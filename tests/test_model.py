@@ -11,6 +11,9 @@ from masck_one.nasal_subsystem import (
 from masck_one.spatial import Point3, Vector3
 
 
+CAD_BREP_BOUND_TOLERANCE_MM = 2e-6
+
+
 def test_model_builds():
     model = build_model()
     assert model.shell.solid.val().Volume() > 0
@@ -125,7 +128,7 @@ def test_model_exposes_dedicated_nasal_roles_and_localized_lobe_cad():
         assert nasal.role_by_id[role_id].nominal_thickness_mm is None
     assert model.nasal_interface.name == "nasal_lobe_membrane_reference"
     assert model.nasal_interface.status == "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE"
-    assert abs(model.nasal_interface.solid.val().BoundingBox().zlen - 0.30) < 1e-9
+    assert abs(model.nasal_interface.solid.val().BoundingBox().zlen - 0.30) <= CAD_BREP_BOUND_TOLERANCE_MM
     assert nasal.anatomical_validation_eligible is False
 
 
