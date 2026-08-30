@@ -13,6 +13,12 @@ if TYPE_CHECKING:
     from .authority import Authority
     from .coverage import CoverageEvaluation, FacialCoverageMesh, TZoneDevelopmentDefinition
     from .facial_surface import FacialSurface, FacialSurfaceDescriptor
+    from .interface_topology import (
+        CompliantInterfaceTopology,
+        InterfaceParameterZone,
+        InterfaceTriangleAssignment,
+        NasalLobeThicknessAuthority,
+    )
     from .model import MasckOneModel
     from .protected_volumes import PlanarProtectedZone, ProtectedVolume, ProtectedVolumeSet
     from .reference_surfaces import ReferenceSurfaceAsset, SurfaceProvenance, SurfaceRegistration, TriangleMesh
@@ -32,6 +38,10 @@ __all__ = [
     "FacialCoverageMesh",
     "CoverageEvaluation",
     "TZoneDevelopmentDefinition",
+    "CompliantInterfaceTopology",
+    "InterfaceParameterZone",
+    "InterfaceTriangleAssignment",
+    "NasalLobeThicknessAuthority",
     "ReferenceSurfaceAsset",
     "SurfaceProvenance",
     "SurfaceRegistration",
@@ -53,6 +63,7 @@ __all__ = [
     "build_protected_volumes",
     "build_facial_coverage_mesh",
     "build_t_zone_development_definition",
+    "build_compliant_interface_topology",
     "generate_hard_envelope_regression_set",
     "protected_zone_regression_bounds",
     "build_model",
@@ -110,6 +121,28 @@ def __getattr__(name: str) -> Any:
             "TZoneDevelopmentDefinition": TZoneDevelopmentDefinition,
             "build_facial_coverage_mesh": build_facial_coverage_mesh,
             "build_t_zone_development_definition": build_t_zone_development_definition,
+        }[name]
+
+    if name in {
+        "CompliantInterfaceTopology",
+        "InterfaceParameterZone",
+        "InterfaceTriangleAssignment",
+        "NasalLobeThicknessAuthority",
+        "build_compliant_interface_topology",
+    }:
+        from .interface_topology import (
+            CompliantInterfaceTopology,
+            InterfaceParameterZone,
+            InterfaceTriangleAssignment,
+            NasalLobeThicknessAuthority,
+            build_compliant_interface_topology,
+        )
+        return {
+            "CompliantInterfaceTopology": CompliantInterfaceTopology,
+            "InterfaceParameterZone": InterfaceParameterZone,
+            "InterfaceTriangleAssignment": InterfaceTriangleAssignment,
+            "NasalLobeThicknessAuthority": NasalLobeThicknessAuthority,
+            "build_compliant_interface_topology": build_compliant_interface_topology,
         }[name]
 
     if name in {"ReferenceSurfaceAsset", "SurfaceProvenance", "SurfaceRegistration", "TriangleMesh"}:
