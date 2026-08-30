@@ -2,9 +2,9 @@
 
 ## Reason for inserted iteration
 
-Iteration 11 passed its exact-head engineering CI and was merged. During the failure/fix cycle, the OpenCascade bounding box for the 0.30 mm nasal-lobe development reference reported a Z span approximately 1.4 micrometres larger than the authored extrusion. The design parameter itself had not changed; the difference came from B-rep bounding-box tolerance bookkeeping.
+Iteration 11 passed its exact-head engineering CI and was merged. During the failure/fix cycle, the OpenCascade bounding box for the 0.30 mm nasal-lobe development reference reported a Z span approximately **0.0000014 mm (1.4 nm)** larger than the authored extrusion. The design parameter itself had not changed; the difference came from B-rep bounding-box tolerance bookkeeping.
 
-The first corrective pass allowed a controlled 0.002 micrometre? No: **0.000002 mm (2e-6 mm)** B-rep diagnostic budget. That was sufficient to make the regression numerically correct, but it still left the bounding box as the primary geometric thickness measurement.
+The first corrective pass allowed a controlled **0.000002 mm (2 nm)** B-rep diagnostic budget. That was sufficient to make the regression numerically correct, but it still left the bounding box as the primary geometric thickness measurement.
 
 Iteration 11A improves the verification architecture rather than merely accepting the looser comparison.
 
