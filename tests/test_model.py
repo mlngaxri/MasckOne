@@ -22,7 +22,6 @@ def test_model_exposes_canonical_global_datums():
 def test_model_exposes_semantic_facial_reference_without_invented_depth():
     model = build_model()
     reference = model.facial_reference
-
     assert reference.source_revision == model.authority.get("project", "authority_revision")
     assert len(reference.landmarks) == 5
     assert len(reference.unresolved_3d_landmarks()) == 5
@@ -33,7 +32,6 @@ def test_model_exposes_semantic_facial_reference_without_invented_depth():
 def test_model_exposes_neutral_surface_without_promoting_it_to_anatomical_evidence():
     model = build_model()
     surface = model.facial_surface
-
     assert surface.descriptor.kind == "PLANAR_DEVELOPMENT_REFERENCE"
     assert surface.descriptor.anatomical_validation_eligible is False
     assert surface.is_planar is True
@@ -43,11 +41,20 @@ def test_model_exposes_neutral_surface_without_promoting_it_to_anatomical_eviden
 def test_model_exposes_protected_volumes_without_fake_3d_validation():
     model = build_model()
     protected = model.protected_volumes
-
     assert len(protected.all) == 5
     assert all(volume.anatomical_validation_eligible is False for volume in protected.all)
     assert all(volume.z_policy == "UNBOUNDED_UNTIL_REGISTERED_ANATOMICAL_SURFACE" for volume in protected.all)
     assert "3D_DYNAMIC_GEOMETRY_BLOCKED" in protected.evidence_status
+
+
+def test_model_exposes_deterministic_worn_pose_screen_without_measured_distribution_claim():
+    model = build_model()
+    regression = model.worn_pose_regression
+    assert regression.pose_count == 459
+    assert regression.maximum_sampled_radial_translation_mm == 5.0
+    assert regression.maximum_sampled_absolute_rotation_deg == 4.0
+    assert regression.poses[regression.identity_pose_index].translation_z_mm == 0.0
+    assert regression.evidence_status == "DETERMINISTIC_DISCRETE_SCREEN_NOT_MEASURED_DONNING_DISTRIBUTION"
 
 
 def test_all_software_verifiable_assertions_pass():
