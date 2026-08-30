@@ -4,7 +4,11 @@ from dataclasses import asdict, dataclass
 import math
 from typing import Any
 
-from .interface_topology import ZONE_T_NOSE_PHILTRUM
+from .interface_topology import (
+    CONTACT_CONNECTIVITY_STATUS,
+    MATERIAL_CONTINUITY_STATUS,
+    ZONE_T_NOSE_PHILTRUM,
+)
 from .model import MasckOneModel
 
 
@@ -175,13 +179,22 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
     interface = model.compliant_interface_topology
     nasal_thickness = interface.nasal_lobe_thickness_authority
     nose_zone = interface.zone_by_id[ZONE_T_NOSE_PHILTRUM]
-    contact_components = interface.contact_component_count(coverage)
+    components = interface.contact_components(coverage)
+    connectivity = interface.connectivity_manifest(coverage)
+    isolated = components[1:]
     interface_pass = (
         len(interface.assignments) == len(coverage.triangles)
         and abs(interface.contact_area_mm2 - coverage.target_area_mm2) <= 1e-8
         and abs(interface.protected_opening_area_mm2 - coverage.protected_area_mm2) <= 1e-8
         and abs(interface.t_zone_contact_area_mm2 - coverage.t_zone_target_area_mm2) <= 1e-8
-        and contact_components == 1
+        and len(components) == 2
+        and len(isolated) == 1
+        and isolated[0].is_nose_philtrum_only
+        and isolated[0].centroid_y_min_mm >= coverage.t_zone_definition.stem_y_min_mm - 1e-12
+        and isolated[0].centroid_y_max_mm <= 0.0 + 1e-12
+        and connectivity["isolated_components_are_nose_philtrum_only"] is True
+        and interface.contact_connectivity_status == CONTACT_CONNECTIVITY_STATUS
+        and interface.material_continuity_status == MATERIAL_CONTINUITY_STATUS
         and nasal_thickness.center_thickness_mm == a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm")
         and nasal_thickness.doe_mm == tuple(float(value) for value in a.get("geometry", "nasal_lobe_membrane", "thickness_doe_mm"))
         and nose_zone.nominal_thickness_mm is None
@@ -192,14 +205,19 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
     )
     checks.append(Check(
         "COMPLIANT_INTERFACE_TOPOLOGY", "PASS" if interface_pass else "FAIL",
-        "The main compliant interface is partitioned into deterministic contact/T-zone/protected-opening parameter zones without inventing global membrane thickness, material behavior or contact validation.",
+        "The compliant interface conserves target/protected areas and explicitly classifies the safety-separated philtrum contact patch instead of erasing protected clearance to force graph connectivity; physical material continuity remains a later nasal/attachment closure item.",
         actual={
             "zone_count": len(interface.zones),
             "assignment_count": len(interface.assignments),
             "contact_area_mm2": round(interface.contact_area_mm2, 6),
             "protected_area_mm2": round(interface.protected_opening_area_mm2, 6),
             "t_zone_contact_area_mm2": round(interface.t_zone_contact_area_mm2, 6),
-            "contact_component_count": contact_components,
+            "contact_component_count": len(components),
+            "isolated_component_count": len(isolated),
+            "isolated_components_are_nose_philtrum_only": connectivity["isolated_components_are_nose_philtrum_only"],
+            "isolated_contact_area_mm2": round(float(connectivity["isolated_contact_area_mm2"]), 6),
+            "contact_connectivity_status": interface.contact_connectivity_status,
+            "material_continuity_status": interface.material_continuity_status,
             "nasal_lobe_center_thickness_mm": nasal_thickness.center_thickness_mm,
             "nasal_lobe_doe_mm": list(nasal_thickness.doe_mm),
             "nasal_thickness_application_status": nasal_thickness.application_status,
@@ -212,7 +230,9 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
             "contact_area_mm2": round(coverage.target_area_mm2, 6),
             "protected_area_mm2": round(coverage.protected_area_mm2, 6),
             "t_zone_contact_area_mm2": round(coverage.t_zone_target_area_mm2, 6),
-            "contact_component_count": 1,
+            "contact_component_count": 2,
+            "isolated_component_count": 1,
+            "isolated_components_are_nose_philtrum_only": True,
             "nasal_lobe_center_thickness_mm": a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm"),
             "anatomical_validation_eligible": False,
         },
