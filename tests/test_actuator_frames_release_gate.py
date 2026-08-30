@@ -67,6 +67,16 @@ def test_boolean_numeric_aliases_cannot_resolve_actuator_geometry(field, value):
         replace(architecture.frames[0], **{field: value})
 
 
+@pytest.mark.parametrize("field,value", [
+    ("axis_angle_baseline_deg", True),
+    ("axis_angle_doe_deg", (50.0, 55.0, True, 67.0, 72.0)),
+])
+def test_boolean_numeric_aliases_cannot_corrupt_actuator_angle_contract(field, value):
+    _, _, architecture = _architecture()
+    with pytest.raises(ActuatorFrameError, match="real finite numerics"):
+        replace(architecture.frames[0], **{field: value})
+
+
 def test_hard_sweep_gate_accepts_current_complete_architecture():
     authority, structural_frame, architecture = _architecture()
     _complete(architecture).require_sweep_ready(structural_frame=structural_frame, authority=authority)
