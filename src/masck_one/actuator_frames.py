@@ -51,10 +51,10 @@ class ActuatorLocalFrame:
             raise ActuatorFrameError("Actuator-frame origin must be a finite XYZ point with real numeric coordinates")
         if self.axis_azimuth_deg is not None and not _real_finite(self.axis_azimuth_deg):
             raise ActuatorFrameError("Actuator axis azimuth must be a real finite number when defined")
+        if not _real_finite(self.axis_angle_baseline_deg) or not self.axis_angle_doe_deg or not all(_real_finite(v) for v in self.axis_angle_doe_deg):
+            raise ActuatorFrameError("Actuator angle definition must contain real finite numerics and a non-empty DOE")
         baseline = float(self.axis_angle_baseline_deg)
         doe = tuple(float(v) for v in self.axis_angle_doe_deg)
-        if not math.isfinite(baseline) or not doe or not all(math.isfinite(v) for v in doe):
-            raise ActuatorFrameError("Actuator angle definition must be finite and non-empty")
         if tuple(sorted(set(doe))) != doe:
             raise ActuatorFrameError("Actuator angle DOE must be unique and ascending")
         if baseline not in doe:
