@@ -6,9 +6,9 @@ The project is intentionally strict about the difference between a value that ca
 
 ## Current development state
 
-**Phase 2: compliant facial interface and nose/T-zone architecture — Iteration 10 release candidate.**
+**Phase 2: compliant facial interface and nose/T-zone architecture — Iteration 11 release candidate.**
 
-Phase 1 is complete. The current code-CAD baseline generates the rigid shell development geometry, dedicated nasal/T-zone development interface, nominal protected apertures, four actuator packaging references, water-reservoir envelope, waste-cartridge envelope, battery packaging reference, STEP exports, and structured assertion reports. These are development artifacts, not claims that fit, cleansing efficacy, airflow, pressure, materials, or production readiness have been physically validated.
+Phase 1 is complete. The current code-CAD baseline generates the rigid shell development geometry, a localized nasal-lobe membrane development reference, nominal protected apertures, four actuator packaging references, water-reservoir envelope, waste-cartridge envelope, battery packaging reference, STEP exports, and structured assertion reports. These are development artifacts, not claims that fit, cleansing efficacy, airflow, pressure, materials, or production readiness have been physically validated.
 
 The engineering foundation now includes:
 
@@ -19,8 +19,10 @@ The engineering foundation now includes:
 - conservative eye, mouth and nostril/airway protected envelopes with unresolved 3D anatomy kept evidence-gated;
 - a deterministic 459-state worn-pose/misregistration regression screen using the authority's 5 mm radial and ±4° rotational limits;
 - a triangle-level facial coverage mesh that partitions active targets from protected zones, preserves a dedicated nose/T-zone and nose-to-upper-lip/philtrum target region, consumes the authority's 90% aggregate / 90% T-zone / 100 mm² hole thresholds, and refuses to treat synthetic geometric success as cleansing-efficacy evidence;
-- a compliant-interface topology that assigns every coverage triangle to a stable contact/T-zone/protected-opening parameter zone, conserves target/protected area exactly, preserves one connected development contact field, and keeps the true eye/mouth/nostril openings material-free;
-- an authority-backed nasal-lobe thickness record that preserves the 0.30 mm center and 0.25/0.30/0.35 mm DOE without incorrectly applying that local value to the entire central T-zone before the dedicated nasal subsystem boundary exists.
+- a compliant-interface topology that assigns every coverage triangle to a stable contact/T-zone/protected-opening parameter zone, conserves target/protected area exactly, preserves one connected development contact field, and keeps the true eye/mouth/nostril protected regions material-free;
+- a dedicated nasal subsystem topology that partitions the active central nose/philtrum target into bridge/dorsum, left/right sidewall, nasal-lobe and philtrum roles without introducing unsupported anatomical dimensions;
+- explicit localization of the authority-backed 0.30 mm center / 0.25–0.35 mm DOE thickness family to the nasal-lobe development role only;
+- correction of the former broad 0.30 mm trapezoidal nasal placeholder: generated thickness CAD is now a local `nasal_lobe_membrane_reference`, while bridge/dorsum/sidewall/philtrum thickness remains unresolved until later geometry/material evidence.
 
 ## Repository principles
 
@@ -45,6 +47,8 @@ Key engineering modules:
 - `src/masck_one/worn_pose.py` — deterministic misregistration regression engine.
 - `src/masck_one/coverage.py` — facial-region segmentation, target/protected area accounting and coverage metrics.
 - `src/masck_one/interface_topology.py` — main compliant facial-interface contact/protected topology and parameter-zone authority boundary.
+- `src/masck_one/nasal_subsystem.py` — dedicated bridge/dorsum/sidewall/lobe/philtrum functional partition and local lobe-thickness boundary.
+- `src/masck_one/nasal_preflight.py` — Iteration-11 source-chain, role, safety-exclusion and thickness-localization CI gate.
 
 ## Controlled toolchain
 
@@ -74,9 +78,10 @@ This performs strict JSON Schema validation followed by deterministic semantic c
 
 ```bash
 python -m masck_one.preflight
+python -m masck_one.nasal_preflight
 ```
 
-Preflight checks the controlled runtime/dependencies, authority, coordinates, facial reference, surface ingestion, neutral surface, protected zones, worn-pose regression, coverage mesh, compliant-interface topology, product identity, repository structure and naming invariants.
+The existing repository preflight checks the controlled runtime/dependencies and upstream engineering contracts. The Iteration-11 nasal preflight additionally checks exact upstream hashes, central target assignment closure, area conservation, bilateral sidewall balance, protected-opening exclusion, lobe-thickness localization, local lobe CAD thickness and evidence status.
 
 ## Test
 
@@ -91,7 +96,7 @@ python -m pytest
 python -m masck_one.cli --output generated
 ```
 
-The build emits STEP files and `build_report.json`. Software-verifiable failures fail the command; evidence-gated items remain explicitly `BLOCKED` instead of being reported as fabricated passes.
+The build emits STEP files and `build_report.json`. Iteration 11 replaces the ambiguous `nasal_interface.step` placeholder with `nasal_lobe_membrane_reference.step`. The build report now also records deterministic coverage, compliant-interface and nasal-subsystem topology manifests. Software-verifiable failures fail the command; evidence-gated items remain explicitly `BLOCKED` instead of being reported as fabricated passes.
 
 ## Engineering governance
 
@@ -107,6 +112,8 @@ Read [`docs/WORN_POSE.md`](docs/WORN_POSE.md) before adding fit/misregistration 
 
 Read [`docs/COVERAGE_MESH.md`](docs/COVERAGE_MESH.md) before changing facial target regions, T-zone segmentation or coverage metrics.
 
-Read [`docs/COMPLIANT_INTERFACE_TOPOLOGY.md`](docs/COMPLIANT_INTERFACE_TOPOLOGY.md) before changing skin-contact intent, protected openings, membrane parameter zones or applying the nasal-lobe thickness values.
+Read [`docs/COMPLIANT_INTERFACE_TOPOLOGY.md`](docs/COMPLIANT_INTERFACE_TOPOLOGY.md) before changing skin-contact intent, protected openings or broad interface parameter zones.
+
+Read [`docs/NASAL_SUBSYSTEM.md`](docs/NASAL_SUBSYSTEM.md) before changing the nose/T-zone functional partition, nasal-lobe thickness application boundary, protected nostril exclusions or philtrum continuity.
 
 The controlled program sequence is in [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md).
