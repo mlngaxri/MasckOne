@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 from hashlib import sha256
 import json
+import math
 import re
 from typing import Mapping
 
@@ -17,6 +18,16 @@ from typing import Mapping
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _CAPACITY_EPSILON_ML = 1e-9
+
+
+def _require_finite_positive(value: float, *, name: str) -> None:
+    """Reject NaN/infinity before any ordering or conservation comparison."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{name} must be a finite numeric value")
+    if not math.isfinite(value):
+        raise ValueError(f"{name} must be finite")
+    if value <= 0:
+        raise ValueError(f"{name} must be positive")
 
 
 class EvidenceState(str, Enum):
@@ -64,10 +75,21 @@ class CartridgeEnvelope:
     z_mm: float
     authority_status: str
 
+    def validate(self) -> None:
+        _require_finite_positive(self.x_mm, name="cartridge envelope x_mm")
+        _require_finite_positive(self.y_mm, name="cartridge envelope y_mm")
+        _require_finite_positive(self.z_mm, name="cartridge envelope z_mm")
+        if not self.authority_status.strip():
+            raise ValueError("cartridge envelope authority_status is required")
+
     @property
     def bounding_volume_ml(self) -> float:
         """Rectangular package bounding volume only, never usable capacity."""
-        return self.x_mm * self.y_mm * self.z_mm / 1000.0
+        self.validate()
+        volume = self.x_mm * self.y_mm * self.z_mm / 1000.0
+        if not math.isfinite(volume):
+            raise ValueError("cartridge external bounding volume must be finite")
+        return volume
 
 
 @dataclass(frozen=True)
@@ -80,16 +102,16 @@ class CapacityContract:
     credits_absorbent_media_volume: bool = False
 
     def validate(self) -> None:
-        if self.retained_capacity_target_ml <= 0:
-            raise ValueError("retained capacity target must be positive")
+        _require_finite_positive(self.retained_capacity_target_ml, name="retained capacity target")
+        if not self.target_status.strip():
+            raise ValueError("retained capacity target status is required")
         if self.credits_absorbent_media_volume:
             raise ValueError("absorbent/media volume credit requires separate physical evidence and is not allowed in the digital baseline")
         if self.usable_capacity_ml is None:
             if self.usable_capacity_state is EvidenceState.VERIFIED or self.evidence is not None:
                 raise ValueError("usable capacity cannot be verified without a numeric result and evidence")
             return
-        if self.usable_capacity_ml <= 0:
-            raise ValueError("usable capacity must be positive")
+        _require_finite_positive(self.usable_capacity_ml, name="usable capacity")
         if self.usable_capacity_state is not EvidenceState.VERIFIED or self.evidence is None:
             raise ValueError("numeric usable capacity is blocked until it is VERIFIED with cryptographic evidence")
         self.evidence.validate()
@@ -136,8 +158,7 @@ class WasteArchitecture:
             raise ValueError("source_main_sha must be a lowercase 40-character Git SHA")
         if not self.authority_revision.strip():
             raise ValueError("authority revision is required")
-        if min(self.envelope.x_mm, self.envelope.y_mm, self.envelope.z_mm) <= 0:
-            raise ValueError("cartridge envelope dimensions must be positive")
+        self.envelope.validate()
         self.capacity.validate()
 
         # Geometry conservation is an absolute upper-bound check, not capacity evidence.
