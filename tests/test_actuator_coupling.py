@@ -3,11 +3,8 @@ from dataclasses import replace
 import pytest
 
 from masck_one.actuation_sweep_contract import build_actuation_displacement_contract
-from masck_one.actuator_coupling import (
-    ActuatorCouplingArchitecture,
-    ActuatorCouplingError,
-    build_actuator_coupling_architecture,
-)
+from masck_one.actuator_coupling import ActuatorCouplingError, build_actuator_coupling_architecture
+from masck_one.actuator_coupling_preflight import run_actuator_coupling_preflight
 from masck_one.actuator_frames import ZONE_IDS, build_actuator_frame_architecture
 from masck_one.boundary_release import build_verified_interface_boundary_topology
 from masck_one.interface_attachment import build_interface_attachment_architecture
@@ -36,6 +33,12 @@ def _inputs():
         model.compliant_interface_topology,
     )
     return model, frame, actuator_architecture, displacement, coupling
+
+
+def test_iteration18_preflight_passes_without_promoting_blocked_geometry():
+    report = run_actuator_coupling_preflight()
+    assert report["result"] == "PASS"
+    assert report["iteration"] == 18
 
 
 def test_builds_four_zone_provenance_bound_coupling_architecture():
