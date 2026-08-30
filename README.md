@@ -15,6 +15,9 @@ The existing code-CAD baseline currently generates the rigid shell development g
 - Product name: **Masck One**.
 - Machine ID: `MASCK_ONE`.
 - `config/masck_one_authority.yaml` is the current machine-readable parameter authority used by the baseline generator.
+- `schemas/masck_one_authority.schema.json` is the strict structural contract for that authority.
+- Authority loading also runs deterministic semantic cross-checks before CAD generation is permitted.
+- Duplicate YAML keys are rejected rather than silently overwritten.
 - Generated CAD must be reproducible from source.
 - Validation-gated requirements remain validation-gated until evidence closes them.
 - Missing real-world evidence is represented explicitly rather than fabricated.
@@ -26,6 +29,7 @@ The currently verified Phase 1 toolchain is:
 
 - Python 3.13.x
 - CadQuery 2.8.0
+- jsonschema 4.26.0
 - PyYAML 6.0.3
 - pytest 9.0.2 for development/testing
 
@@ -35,13 +39,21 @@ Install in an isolated environment:
 python -m pip install -e ".[dev]"
 ```
 
+## Validate the engineering authority
+
+```bash
+python -m masck_one.authority
+```
+
+This performs strict JSON Schema validation followed by deterministic semantic checks. It does not claim physical validation; it establishes that the digital authority is explicit and internally self-consistent.
+
 ## Phase 1 preflight
 
 ```bash
 python -m masck_one.preflight
 ```
 
-Preflight checks the controlled runtime/dependencies, authority load, product identity, required source structure, and repository naming invariant.
+Preflight checks the controlled runtime/dependencies, authority contract, product identity, required source structure, and repository naming invariant.
 
 ## Test
 

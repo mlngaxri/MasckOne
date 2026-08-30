@@ -14,6 +14,7 @@ from .authority import AuthorityError, load_authority
 REQUIRED_PYTHON = (3, 13)
 EXPECTED_DISTRIBUTIONS = {
     "cadquery": "2.8.0",
+    "jsonschema": "4.26.0",
     "PyYAML": "6.0.3",
 }
 LEGACY_PRODUCT_TOKEN = "F" + "CW"
@@ -74,7 +75,7 @@ def _check_authority() -> list[PreflightCheck]:
             PreflightCheck(
                 id="AUTHORITY_LOAD",
                 status="FAIL",
-                message="Machine authority must load without structural errors.",
+                message="Machine authority must load without schema or semantic errors.",
                 actual=str(exc),
                 expected="valid authority",
             )
@@ -82,6 +83,13 @@ def _check_authority() -> list[PreflightCheck]:
 
     return [
         PreflightCheck("AUTHORITY_LOAD", "PASS", "Machine authority loads successfully."),
+        PreflightCheck(
+            "AUTHORITY_CONTRACT",
+            "PASS" if authority.validation_report.valid else "FAIL",
+            "Authority passes strict JSON Schema and deterministic semantic validation.",
+            len(authority.validation_report.issues),
+            0,
+        ),
         PreflightCheck(
             "PRODUCT_NAME",
             "PASS" if authority.get("project", "name") == "Masck One" else "FAIL",
@@ -95,6 +103,13 @@ def _check_authority() -> list[PreflightCheck]:
             "Machine project identifier is stable.",
             authority.get("project", "id"),
             "MASCK_ONE",
+        ),
+        PreflightCheck(
+            "AUTHORITY_SCHEMA_VERSION",
+            "PASS" if authority.get("project", "schema_version") == "1.0.0" else "FAIL",
+            "Authority schema version is explicit and controlled.",
+            authority.get("project", "schema_version"),
+            "1.0.0",
         ),
     ]
 
@@ -131,6 +146,7 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "README.md",
         "pyproject.toml",
         "config/masck_one_authority.yaml",
+        "schemas/masck_one_authority.schema.json",
         "src/masck_one/__init__.py",
         "src/masck_one/authority.py",
         "src/masck_one/model.py",
@@ -138,6 +154,7 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "src/masck_one/export.py",
         "src/masck_one/cli.py",
         "tests/test_authority.py",
+        "tests/test_authority_contract.py",
         "tests/test_model.py",
     ]
     missing = [item for item in required if not (root / item).exists()]
@@ -163,7 +180,7 @@ def run_preflight() -> dict[str, object]:
     return {
         "project": "Masck One",
         "phase": "1",
-        "iteration": "1",
+        "iteration": "2",
         "result": result,
         "checks": [check.to_dict() for check in checks],
     }

@@ -32,6 +32,9 @@ jobs:
       - name: Compile Python
         run: python -m compileall -q src tests
 
+      - name: Validate engineering authority contract
+        run: python -m masck_one.authority
+
       - name: Repository preflight
         run: python -m masck_one.preflight
 

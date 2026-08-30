@@ -10,18 +10,19 @@ readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
   "cadquery==2.8.0",
+  "jsonschema==4.26.0",
   "PyYAML==6.0.3",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "jsonschema==4.26.0",
   "pytest==9.0.2",
 ]
 
 [project.scripts]
 masck-one-cad = "masck_one.cli:main"
 masck-one-preflight = "masck_one.preflight:main"
+masck-one-authority-check = "masck_one.authority:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
