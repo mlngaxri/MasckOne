@@ -1,4 +1,5 @@
 from masck_one.assertions import run_assertions
+from masck_one.interface_boundaries import BOUNDARY_IDS
 from masck_one.interface_topology import ZONE_T_NOSE_PHILTRUM
 from masck_one.model import build_model
 from masck_one.nasal_subsystem import (
@@ -130,6 +131,19 @@ def test_model_exposes_dedicated_nasal_roles_and_localized_lobe_cad():
     assert model.nasal_interface.status == "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE"
     assert abs(model.nasal_interface.solid.val().BoundingBox().zlen - 0.30) <= CAD_BREP_BOUND_TOLERANCE_MM
     assert nasal.anatomical_validation_eligible is False
+
+
+def test_model_exposes_perimeter_and_aperture_transition_topology_without_invented_seal_dimensions():
+    model = build_model()
+    boundaries = model.interface_boundary_topology
+
+    assert tuple(boundaries.edges_by_boundary) == BOUNDARY_IDS
+    assert all(boundaries.boundary_is_closed_loop(boundary_id) for boundary_id in BOUNDARY_IDS)
+    assert all(boundaries.boundary_component_count(boundary_id) == 1 for boundary_id in BOUNDARY_IDS)
+    assert all(definition.nominal_transition_width_mm is None for definition in boundaries.definitions)
+    assert all(definition.nominal_interface_thickness_mm is None for definition in boundaries.definitions)
+    assert boundaries.anatomical_validation_eligible is False
+    assert len(boundaries.topology_sha256) == 64
 
 
 def test_all_software_verifiable_assertions_pass():
