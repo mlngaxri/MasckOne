@@ -13,12 +13,6 @@ class VisualInspectionError(ValueError):
     """Raised when deterministic visual-inspection geometry is invalid."""
 
 
-# Each view uses an explicit signed screen basis in canonical world coordinates.
-# This prevents opposing views from silently collapsing to the same unsigned
-# projection and preserves handedness/asymmetry information for later visual
-# regression work.
-#
-# Canonical axes: X wearer-right, Y superior, Z anterior.
 _VIEW_BASES: dict[str, tuple[int, float, int, float]] = {
     "FRONT": (0, 1.0, 1, 1.0),
     "REAR": (0, -1.0, 1, 1.0),
@@ -30,6 +24,14 @@ _VIEW_BASES: dict[str, tuple[int, float, int, float]] = {
 _VIEW_ORDER = tuple(_VIEW_BASES)
 _SCHEMA = "MASCK_ONE_VISUAL_INSPECTION_V2"
 _AXIS_NAMES = ("X", "Y", "Z")
+
+
+def _canonical_sha256(value: str) -> bool:
+    return len(value) == 64 and all(c in "0123456789abcdef" for c in value)
+
+
+def _finite_metric(value: object) -> bool:
+    return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(float(value))
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,19 +72,23 @@ class VisualInspectionReport:
     physical_validation_eligible: bool = False
 
     def __post_init__(self) -> None:
+        if not _canonical_sha256(self.source_sample_manifest_sha256):
+            raise VisualInspectionError("Inspection source identity must be lowercase canonical SHA-256")
         if tuple(view.view_id for view in self.views) != _VIEW_ORDER:
             raise VisualInspectionError("Inspection views must follow the controlled six-view order")
         for view in self.views:
             basis = _VIEW_BASES[view.view_id]
-            expected = (
-                _AXIS_NAMES[basis[0]],
-                int(basis[1]),
-                _AXIS_NAMES[basis[2]],
-                int(basis[3]),
-            )
+            expected = (_AXIS_NAMES[basis[0]], int(basis[1]), _AXIS_NAMES[basis[2]], int(basis[3]))
             actual = (view.horizontal_axis, view.horizontal_sign, view.vertical_axis, view.vertical_sign)
             if actual != expected:
                 raise VisualInspectionError(f"{view.view_id} metrics do not match the controlled signed world-coordinate basis")
+            metrics = (view.horizontal_span_mm, view.vertical_span_mm, view.aspect_ratio, view.centroid_horizontal_mm, view.centroid_vertical_mm)
+            if not all(_finite_metric(value) for value in metrics):
+                raise VisualInspectionError(f"{view.view_id} contains non-finite derived inspection metrics")
+            if view.horizontal_span_mm <= 0.0 or view.vertical_span_mm <= 0.0 or view.aspect_ratio <= 0.0:
+                raise VisualInspectionError(f"{view.view_id} contains non-positive derived inspection metrics")
+            if isinstance(view.sample_count, bool) or not isinstance(view.sample_count, int) or view.sample_count < 3:
+                raise VisualInspectionError(f"{view.view_id} sample count is invalid")
         if self.physical_validation_eligible:
             raise VisualInspectionError("Digital visual inspection cannot be physical-validation evidence")
 
@@ -116,7 +122,7 @@ def _validated_samples(samples: Iterable[SurfaceSample]) -> tuple[SurfaceSample,
     for sample in materialized:
         if not all(math.isfinite(value) for value in sample.point.as_tuple()):
             raise VisualInspectionError("Visual inspection requires finite world-coordinate samples")
-    return materialized
+    return tuple(sorted(materialized, key=lambda sample: sample.sample_id))
 
 
 def _view_metrics(samples: tuple[SurfaceSample, ...], view_id: str) -> ViewMetrics:
@@ -126,8 +132,13 @@ def _view_metrics(samples: tuple[SurfaceSample, ...], view_id: str) -> ViewMetri
     vertical = [vertical_sign * point[vertical_axis] for point in coordinates]
     h_span = max(horizontal) - min(horizontal)
     v_span = max(vertical) - min(vertical)
-    if h_span <= 0.0 or v_span <= 0.0:
-        raise VisualInspectionError(f"{view_id} projection is degenerate; inspection metrics would be misleading")
+    if not math.isfinite(h_span) or not math.isfinite(v_span) or h_span <= 0.0 or v_span <= 0.0:
+        raise VisualInspectionError(f"{view_id} projection is degenerate or non-finite; inspection metrics would be misleading")
+    aspect_ratio = h_span / v_span
+    centroid_horizontal = math.fsum(horizontal) / len(horizontal)
+    centroid_vertical = math.fsum(vertical) / len(vertical)
+    if not all(math.isfinite(value) for value in (aspect_ratio, centroid_horizontal, centroid_vertical)):
+        raise VisualInspectionError(f"{view_id} derived inspection metrics are non-finite")
     return ViewMetrics(
         view_id=view_id,
         horizontal_axis=_AXIS_NAMES[horizontal_axis],
@@ -136,21 +147,15 @@ def _view_metrics(samples: tuple[SurfaceSample, ...], view_id: str) -> ViewMetri
         vertical_sign=int(vertical_sign),
         horizontal_span_mm=h_span,
         vertical_span_mm=v_span,
-        aspect_ratio=h_span / v_span,
-        centroid_horizontal_mm=sum(horizontal) / len(horizontal),
-        centroid_vertical_mm=sum(vertical) / len(vertical),
+        aspect_ratio=aspect_ratio,
+        centroid_horizontal_mm=centroid_horizontal,
+        centroid_vertical_mm=centroid_vertical,
         sample_count=len(samples),
     )
 
 
 def inspect_surface_samples(samples: Iterable[SurfaceSample]) -> VisualInspectionReport:
-    """Create provenance-bound orthographic inspection metrics from world-coordinate samples.
-
-    This deliberately supplies no aesthetic pass/fail threshold. It creates deterministic
-    front/rear/left/right/top/bottom bookkeeping using controlled signed screen bases so
-    opposing views retain handedness information. Later CAD and visual-regression work can
-    compare these metrics without promoting sampled geometry into appearance or physical evidence.
-    """
+    """Create provenance-bound deterministic orthographic metrics from world-coordinate samples."""
     materialized = _validated_samples(samples)
     manifest_sha = surface_sample_manifest_sha256(materialized)
     views = tuple(_view_metrics(materialized, view_id) for view_id in _VIEW_ORDER)
