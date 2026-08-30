@@ -31,7 +31,6 @@ def _build():
 
 def test_every_coverage_triangle_receives_exactly_one_interface_assignment():
     _, coverage, topology = _build()
-
     assert len(topology.assignments) == len(coverage.triangles)
     assert [item.triangle_index for item in topology.assignments] == list(range(len(coverage.triangles)))
     assert topology.coverage_segmentation_sha256 == coverage.segmentation_sha256
@@ -40,47 +39,27 @@ def test_every_coverage_triangle_receives_exactly_one_interface_assignment():
 
 def test_contact_and_protected_areas_are_exactly_conserved():
     _, coverage, topology = _build()
-
     assert topology.contact_area_mm2 == pytest.approx(coverage.target_area_mm2, abs=1e-8)
     assert topology.protected_opening_area_mm2 == pytest.approx(coverage.protected_area_mm2, abs=1e-8)
     assert topology.t_zone_contact_area_mm2 == pytest.approx(coverage.t_zone_target_area_mm2, abs=1e-8)
 
 
-def test_contact_components_are_semantically_classified_not_forced_connected():
+def test_refined_contact_topology_is_one_edge_connected_field():
     _, coverage, topology = _build()
     components = topology.contact_components(coverage)
-
-    # The conservative planar baseline intentionally uses the full rigid-clearance
-    # safety footprints as no-contact zones. Their union separates a very small
-    # central philtrum target patch from the primary face-contact field. It is an
-    # engineering error to erase safety clearance merely to make the graph connected.
-    assert len(components) == 2
-    assert components[0].area_mm2 > components[1].area_mm2
-    assert components[1].is_nose_philtrum_only is True
-    assert components[1].centroid_y_min_mm >= coverage.t_zone_definition.stem_y_min_mm
-    assert components[1].centroid_y_max_mm <= 0.0
+    assert len(components) == 1
+    assert components[0].area_mm2 == pytest.approx(topology.contact_area_mm2, abs=1e-8)
+    assert topology.contact_component_count(coverage) == 1
     assert topology.contact_connectivity_status == CONTACT_CONNECTIVITY_STATUS
-    assert topology.material_continuity_status == MATERIAL_CONTINUITY_STATUS
 
 
-def test_no_disconnected_contact_island_exists_outside_nose_philtrum_zone():
-    _, coverage, topology = _build()
-    isolated = topology.contact_components(coverage)[1:]
-
-    assert isolated
-    assert all(component.parameter_zone_ids == (ZONE_T_NOSE_PHILTRUM,) for component in isolated)
-
-
-def test_connectivity_manifest_preserves_distinction_between_contact_and_material_continuity():
+def test_connectivity_diagnostics_do_not_claim_physical_membrane_continuity():
     _, coverage, topology = _build()
     manifest = topology.connectivity_manifest(coverage)
-
-    assert manifest["component_count"] == 2
-    assert manifest["isolated_component_count"] == 1
-    assert manifest["isolated_components_are_nose_philtrum_only"] is True
-    assert manifest["isolated_contact_area_mm2"] > 0.0
+    assert manifest["component_count"] == 1
     assert manifest["contact_connectivity_status"] == CONTACT_CONNECTIVITY_STATUS
     assert manifest["material_continuity_status"] == MATERIAL_CONTINUITY_STATUS
+    assert topology.material_continuity_status == MATERIAL_CONTINUITY_STATUS
 
 
 def test_nostrils_are_protected_openings_and_never_skin_contact_targets():
@@ -88,10 +67,8 @@ def test_nostrils_are_protected_openings_and_never_skin_contact_targets():
     assignments = topology.assignments
     left = [item for item in assignments if item.parameter_zone_id == ZONE_OPENING_NOSTRIL_LEFT]
     right = [item for item in assignments if item.parameter_zone_id == ZONE_OPENING_NOSTRIL_RIGHT]
-
     assert left and right
     assert all(item.protected_opening and not item.contact_intent for item in left + right)
-
     coverage_by_id = {triangle.triangle_index: triangle for triangle in coverage.triangles}
     assert all(not coverage_by_id[item.triangle_index].is_target for item in left + right)
 
@@ -108,7 +85,6 @@ def test_nose_to_upper_lip_region_remains_an_active_contact_target():
         <= coverage_by_id[item.triangle_index].centroid.y
         <= 0.0
     ]
-
     assert philtrum_assignments
     assert sum(item.area_mm2 for item in philtrum_assignments) == pytest.approx(
         coverage.philtrum_target_area_mm2,
@@ -124,7 +100,6 @@ def test_nasal_lobe_authority_thickness_is_preserved_but_not_misapplied_to_whole
     authority, _, topology = _build()
     nasal = topology.nasal_lobe_thickness_authority
     nose_zone = topology.zone_by_id[ZONE_T_NOSE_PHILTRUM]
-
     assert nasal.center_thickness_mm == authority.number(
         "geometry", "nasal_lobe_membrane", "thickness_center_mm"
     )
@@ -140,7 +115,6 @@ def test_nasal_lobe_authority_thickness_is_preserved_but_not_misapplied_to_whole
 def test_interface_topology_is_deterministic():
     _, coverage, first = _build()
     _, _, second = _build()
-
     assert first.topology_sha256 == second.topology_sha256
     assert first.manifest(coverage) == second.manifest(coverage)
 
@@ -164,6 +138,5 @@ def test_contact_zone_cannot_claim_numeric_doe_without_nominal_thickness():
 
 def test_iteration_10_cannot_be_promoted_to_anatomical_validation_evidence():
     _, _, topology = _build()
-
     assert topology.anatomical_validation_eligible is False
     assert "NOT_CONTACT_FIT_MATERIAL_OR_EFFICACY_EVIDENCE" in topology.evidence_status
