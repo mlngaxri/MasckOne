@@ -6,6 +6,7 @@ from typing import Iterable
 
 import cadquery as cq
 
+from .anatomy import FacialReferenceLayer, build_facial_reference
 from .authority import Authority, load_authority
 from .spatial import CanonicalDatums, Point2, Point3, authority_point2
 
@@ -22,6 +23,7 @@ class Component:
 class MasckOneModel:
     authority: Authority
     datums: CanonicalDatums
+    facial_reference: FacialReferenceLayer
     shell: Component
     nasal_interface: Component
     actuator_envelopes: tuple[Component, ...]
@@ -235,6 +237,7 @@ def _build_visual_keepouts(authority: Authority) -> tuple[Component, ...]:
 def build_model(authority: Authority | None = None) -> MasckOneModel:
     authority = authority or load_authority()
     datums = CanonicalDatums.from_authority(authority)
+    facial_reference = build_facial_reference(authority, datums)
     shell = Component(
         "rigid_shell",
         _build_shell(authority),
@@ -275,6 +278,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
     return MasckOneModel(
         authority=authority,
         datums=datums,
+        facial_reference=facial_reference,
         shell=shell,
         nasal_interface=nasal_interface,
         actuator_envelopes=_build_actuators(authority),
