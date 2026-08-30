@@ -14,11 +14,11 @@ Digital completion is not physical validation. Physical evidence, supplier evide
 2. Strict machine-authority schema and semantic validation. **COMPLETE**
 3. Canonical global coordinates, datums and rigid transforms. **COMPLETE**
 4. Facial-reference landmark layer and derived neutral metrics. **COMPLETE**
-5. Headform/reference-surface ingestion, units, provenance and registration contract. **IN PROGRESS**
-6. Neutral facial reference surface generator/import abstraction.
-7. Protected eye, mouth and nostril hard-envelope geometry.
-8. Worn-pose/misregistration transform engine and hard-envelope regression set.
-9. Facial-region segmentation and coverage-analysis mesh.
+5. Headform/reference-surface ingestion, units, provenance and registration contract. **COMPLETE**
+6. Neutral facial reference surface generator/import abstraction. **COMPLETE**
+7. Protected eye, mouth and nostril hard-envelope geometry. **COMPLETE**
+8. Worn-pose/misregistration transform engine and hard-envelope regression set. **COMPLETE**
+9. Facial-region segmentation and coverage-analysis mesh. **COMPLETE ON MERGE OF ITERATION-9 RELEASE CANDIDATE**
 
 ## Phase 2 — compliant facial interface and nose/T-zone architecture
 
