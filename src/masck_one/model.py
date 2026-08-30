@@ -7,6 +7,7 @@ from typing import Iterable
 import cadquery as cq
 
 from .authority import Authority, load_authority
+from .spatial import CanonicalDatums, Point2, Point3, authority_point2
 
 
 @dataclass(frozen=True)
@@ -20,6 +21,7 @@ class Component:
 @dataclass(frozen=True)
 class MasckOneModel:
     authority: Authority
+    datums: CanonicalDatums
     shell: Component
     nasal_interface: Component
     actuator_envelopes: tuple[Component, ...]
@@ -55,40 +57,55 @@ def _loft_ellipses(sections: Iterable[tuple[float, float, float]]) -> cq.Workpla
     return wp.loft(combine=True, ruled=True)
 
 
-def _ellipse_cutter(width: float, height: float, center: tuple[float, float], depth: float = 50.0,
-                    z_start: float = -10.0, angle_deg: float = 0.0) -> cq.Workplane:
-    x, y = center
+def _ellipse_cutter(
+    width: float,
+    height: float,
+    center: Point2,
+    depth: float = 50.0,
+    z_start: float = -10.0,
+    angle_deg: float = 0.0,
+) -> cq.Workplane:
     cutter = (
         cq.Workplane("XY")
         .workplane(offset=z_start)
-        .center(x, y)
+        .center(center.x, center.y)
         .ellipse(width / 2.0, height / 2.0)
         .extrude(depth)
     )
     if angle_deg:
-        cutter = cutter.rotate((x, y, 0.0), (x, y, 1.0), angle_deg)
+        cutter = cutter.rotate(
+            (center.x, center.y, 0.0),
+            (center.x, center.y, 1.0),
+            angle_deg,
+        )
     return cutter
 
 
-def _circle_cutter(diameter: float, center: tuple[float, float], depth: float = 50.0,
-                   z_start: float = -10.0) -> cq.Workplane:
-    x, y = center
+def _circle_cutter(
+    diameter: float,
+    center: Point2,
+    depth: float = 50.0,
+    z_start: float = -10.0,
+) -> cq.Workplane:
     return (
         cq.Workplane("XY")
         .workplane(offset=z_start)
-        .center(x, y)
+        .center(center.x, center.y)
         .circle(diameter / 2.0)
         .extrude(depth)
     )
 
 
-def _box_centered(width_x: float, height_y: float, depth_z: float,
-                  center: tuple[float, float, float]) -> cq.Workplane:
-    x, y, z = center
+def _box_centered(
+    width_x: float,
+    height_y: float,
+    depth_z: float,
+    center: Point3,
+) -> cq.Workplane:
     return (
         cq.Workplane("XY")
         .box(width_x, height_y, depth_z, centered=(True, True, True))
-        .translate((x, y, z))
+        .translate(center.as_tuple())
     )
 
 
@@ -100,6 +117,7 @@ def _derived_nostril_diameter(authority: Authority) -> float:
     development baseline with a 2% area margin. This is deliberately a CAD
     closure choice, not a promoted product requirement.
     """
+
     minimum_area = authority.number("geometry", "nostrils", "minimum_deformed_area_each_mm2")
     minimum_dim = authority.number("geometry", "nostrils", "minimum_local_opening_dimension_mm")
     diameter_from_area = math.sqrt(4.0 * minimum_area * 1.02 / math.pi)
@@ -128,19 +146,19 @@ def _build_shell(authority: Authority) -> cq.Workplane:
     shell = outer.cut(inner)
 
     eye_w, eye_h = authority.pair("geometry", "eye", "visual_aperture_wh_mm")
-    left_eye = authority.pair("geometry", "eye", "centers_mm", "left")
-    right_eye = authority.pair("geometry", "eye", "centers_mm", "right")
+    left_eye = authority_point2(authority, "geometry", "eye", "centers_mm", "left")
+    right_eye = authority_point2(authority, "geometry", "eye", "centers_mm", "right")
     cant = authority.number("geometry", "eye", "lateral_cant_deg")
     shell = shell.cut(_ellipse_cutter(eye_w, eye_h, left_eye, angle_deg=-cant))
     shell = shell.cut(_ellipse_cutter(eye_w, eye_h, right_eye, angle_deg=cant))
 
     mouth_w, mouth_h = authority.pair("geometry", "mouth", "visual_aperture_wh_mm")
-    mouth_center = authority.pair("geometry", "mouth", "center_mm")
+    mouth_center = authority_point2(authority, "geometry", "mouth", "center_mm")
     shell = shell.cut(_ellipse_cutter(mouth_w, mouth_h, mouth_center))
 
     nostril_diameter = _derived_nostril_diameter(authority)
-    left_nostril = authority.pair("geometry", "nostrils", "centers_mm", "left")
-    right_nostril = authority.pair("geometry", "nostrils", "centers_mm", "right")
+    left_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "left")
+    right_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "right")
     shell = shell.cut(_circle_cutter(nostril_diameter, left_nostril))
     shell = shell.cut(_circle_cutter(nostril_diameter, right_nostril))
 
@@ -150,8 +168,8 @@ def _build_shell(authority: Authority) -> cq.Workplane:
 def _build_nasal_interface(authority: Authority) -> cq.Workplane:
     thickness = authority.number("geometry", "nasal_lobe_membrane", "thickness_center_mm")
     nostril_diameter = _derived_nostril_diameter(authority)
-    left_nostril = authority.pair("geometry", "nostrils", "centers_mm", "left")
-    right_nostril = authority.pair("geometry", "nostrils", "centers_mm", "right")
+    left_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "left")
+    right_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "right")
 
     saddle = (
         cq.Workplane("XY")
@@ -174,16 +192,16 @@ def _build_actuators(authority: Authority) -> tuple[Component, ...]:
     diameter = 10.2
     length = 18.7
     placements = [
-        (-48.0, 52.0, 2.0, +1.0),
-        (48.0, 52.0, 2.0, -1.0),
-        (-50.0, -38.0, 2.0, +1.0),
-        (50.0, -38.0, 2.0, -1.0),
+        (Point3(-48.0, 52.0, 2.0), +1.0),
+        (Point3(48.0, 52.0, 2.0), -1.0),
+        (Point3(-50.0, -38.0, 2.0), +1.0),
+        (Point3(50.0, -38.0, 2.0), -1.0),
     ]
     parts: list[Component] = []
-    for index, (x, y, z, sign) in enumerate(placements, start=1):
+    for index, (center, sign) in enumerate(placements, start=1):
         solid = cq.Workplane("XY").circle(diameter / 2.0).extrude(length)
         solid = solid.rotate((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), sign * angle)
-        solid = solid.translate((x, y, z))
+        solid = solid.translate(center.as_tuple())
         parts.append(
             Component(
                 name=f"actuator_envelope_{index}",
@@ -197,13 +215,13 @@ def _build_actuators(authority: Authority) -> tuple[Component, ...]:
 
 def _build_visual_keepouts(authority: Authority) -> tuple[Component, ...]:
     eye_w, eye_h = authority.pair("geometry", "eye", "visual_aperture_wh_mm")
-    left_eye = authority.pair("geometry", "eye", "centers_mm", "left")
-    right_eye = authority.pair("geometry", "eye", "centers_mm", "right")
+    left_eye = authority_point2(authority, "geometry", "eye", "centers_mm", "left")
+    right_eye = authority_point2(authority, "geometry", "eye", "centers_mm", "right")
     mouth_w, mouth_h = authority.pair("geometry", "mouth", "visual_aperture_wh_mm")
-    mouth_center = authority.pair("geometry", "mouth", "center_mm")
+    mouth_center = authority_point2(authority, "geometry", "mouth", "center_mm")
     nostril_d = _derived_nostril_diameter(authority)
-    left_nostril = authority.pair("geometry", "nostrils", "centers_mm", "left")
-    right_nostril = authority.pair("geometry", "nostrils", "centers_mm", "right")
+    left_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "left")
+    right_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "right")
 
     return (
         Component("visual_eye_left", _ellipse_cutter(eye_w, eye_h, left_eye), "REFERENCE_ONLY"),
@@ -216,6 +234,7 @@ def _build_visual_keepouts(authority: Authority) -> tuple[Component, ...]:
 
 def build_model(authority: Authority | None = None) -> MasckOneModel:
     authority = authority or load_authority()
+    datums = CanonicalDatums.from_authority(authority)
     shell = Component(
         "rigid_shell",
         _build_shell(authority),
@@ -231,7 +250,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
 
     water_reservoir = Component(
         "water_reservoir_envelope",
-        _box_centered(26.0, 25.0, 10.0, (0.0, 76.0, 7.0)),
+        _box_centered(26.0, 25.0, 10.0, Point3(0.0, 76.0, 7.0)),
         "ENGINEERING_BASELINE_ENVELOPE",
         "6500 mm^3 gross volume; final wall/port geometry not frozen.",
     )
@@ -240,7 +259,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
     cw, ch, cd = (float(v) for v in cartridge_dims)
     waste_cartridge = Component(
         "waste_cartridge_envelope",
-        _box_centered(cw, ch, cd, (0.0, -80.0, 8.0)),
+        _box_centered(cw, ch, cd, Point3(0.0, -80.0, 8.0)),
         "ENGINEERING_BASELINE_ENVELOPE",
         "External envelope only; retained capacity is a physical validation gate.",
     )
@@ -248,13 +267,14 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
     bw, bh, bd = authority.get("battery_reference", "envelope_mm")
     battery = Component(
         "battery_reference_envelope",
-        _box_centered(float(bw), float(bh), float(bd), (0.0, 0.0, -15.0)),
+        _box_centered(float(bw), float(bh), float(bd), Point3(0.0, 0.0, -15.0)),
         "PACKAGING_BENCHMARK_NOT_PRODUCTION_FREEZE",
         "Halo-location benchmark only; not a production-qualified battery pack.",
     )
 
     return MasckOneModel(
         authority=authority,
+        datums=datums,
         shell=shell,
         nasal_interface=nasal_interface,
         actuator_envelopes=_build_actuators(authority),
