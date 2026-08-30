@@ -46,11 +46,12 @@ def test_reference_preserves_authority_status_and_provenance():
 
 
 def test_bilateral_pairs_are_symmetric_about_canonical_sagittal_plane():
-    reference = build_facial_reference(load_authority())
-    datums = CanonicalDatums.from_authority(load_authority())
+    authority = load_authority()
+    reference = build_facial_reference(authority)
+    datums = CanonicalDatums.from_authority(authority)
 
     for pair in (reference.eye_pair, reference.nostril_pair):
-        left = pair.left.as_projected_point3()
+        left = pair.left.as_projected_point3(z_reference_mm=0.0)
         mirrored = datums.mirror_sagittal(left)
         assert mirrored.x == pytest.approx(pair.right.point_xy.x)
         assert mirrored.y == pytest.approx(pair.right.point_xy.y)
@@ -83,6 +84,13 @@ def test_projected_point3_requires_explicit_reference_plane_semantics():
     projected = landmark.as_projected_point3(z_reference_mm=12.5)
     assert projected.as_tuple() == (0.0, -50.0, 12.5)
     assert landmark.has_resolved_depth is False
+
+
+def test_projected_point3_rejects_implicit_z_by_signature():
+    landmark = build_facial_reference(load_authority()).mouth_center
+
+    with pytest.raises(TypeError):
+        landmark.as_projected_point3()
 
 
 def test_left_landmark_must_have_negative_x():
