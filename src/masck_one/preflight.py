@@ -10,6 +10,7 @@ from typing import Iterable
 
 from .anatomy import FacialReferenceError, build_facial_reference
 from .authority import Authority, AuthorityError, load_authority
+from .coverage import CoverageError, build_facial_coverage_mesh
 from .facial_surface import FacialSurfaceError, build_planar_development_surface
 from .protected_volumes import ProtectedVolumeError, build_protected_volumes
 from .reference_surfaces import (
@@ -283,6 +284,64 @@ def _check_worn_pose(authority: Authority | None, datums: CanonicalDatums | None
     return PreflightCheck("WORN_POSE_CONTRACT", "PASS" if actual == expected else "FAIL", "Worn-pose limits, deterministic boundary sampling, protected-zone transforms and evidence status are explicit.", actual, expected)
 
 
+def _check_coverage_mesh(authority: Authority | None, datums: CanonicalDatums | None) -> PreflightCheck:
+    if authority is None or datums is None:
+        return PreflightCheck("COVERAGE_MESH_CONTRACT", "FAIL", "Coverage mesh requires valid authority and datums.")
+    try:
+        reference = build_facial_reference(authority, datums)
+        surface = build_planar_development_surface(authority)
+        protected = build_protected_volumes(authority, reference, surface)
+        coverage = build_facial_coverage_mesh(authority, reference, surface, protected)
+        all_target_ids = [triangle.triangle_index for triangle in coverage.target_triangles]
+        synthetic_full = coverage.evaluate(
+            all_target_ids,
+            evidence_status="PREFLIGHT_SYNTHETIC_ALL_TARGETS",
+            evidence_eligible=True,
+        )
+    except (FacialReferenceError, FacialSurfaceError, ProtectedVolumeError, CoverageError) as exc:
+        return PreflightCheck("COVERAGE_MESH_CONTRACT", "FAIL", "Facial target/protected/T-zone segmentation and coverage metrics must build deterministically without being promoted to efficacy evidence.", str(exc), "valid deterministic coverage topology")
+
+    actual = {
+        "triangle_count_matches_surface": len(coverage.triangles) == surface.mesh.triangle_count,
+        "target_area_positive": coverage.target_area_mm2 > 0.0,
+        "protected_area_positive": coverage.protected_area_mm2 > 0.0,
+        "t_zone_area_positive": coverage.t_zone_target_area_mm2 > 0.0,
+        "philtrum_area_positive": coverage.philtrum_target_area_mm2 > 0.0,
+        "area_conservation_error_lt_1e_8": coverage.area_conservation_error_mm2 < 1e-8,
+        "aggregate_min_percent": coverage.aggregate_min_percent,
+        "t_zone_min_percent": coverage.t_zone_min_percent,
+        "unexplained_hole_max_mm2": coverage.unexplained_hole_max_mm2,
+        "segmentation_sha256_length": len(coverage.segmentation_sha256),
+        "anatomical_validation_eligible": coverage.anatomical_validation_eligible,
+        "synthetic_full_numeric_pass": synthetic_full.numeric_gate_passed,
+        "synthetic_full_aggregate_percent": synthetic_full.aggregate_percent,
+        "synthetic_full_t_zone_percent": synthetic_full.t_zone_percent,
+        "synthetic_full_largest_hole_mm2": synthetic_full.largest_uncovered_hole_mm2,
+        "synthetic_full_product_status": synthetic_full.product_validation_status,
+        "t_zone_development_status": coverage.t_zone_definition.evidence_status,
+    }
+    expected = {
+        "triangle_count_matches_surface": True,
+        "target_area_positive": True,
+        "protected_area_positive": True,
+        "t_zone_area_positive": True,
+        "philtrum_area_positive": True,
+        "area_conservation_error_lt_1e_8": True,
+        "aggregate_min_percent": 90.0,
+        "t_zone_min_percent": 90.0,
+        "unexplained_hole_max_mm2": 100.0,
+        "segmentation_sha256_length": 64,
+        "anatomical_validation_eligible": False,
+        "synthetic_full_numeric_pass": True,
+        "synthetic_full_aggregate_percent": 100.0,
+        "synthetic_full_t_zone_percent": 100.0,
+        "synthetic_full_largest_hole_mm2": 0.0,
+        "synthetic_full_product_status": "NUMERIC_SCREEN_PASS_NOT_PRODUCT_VALIDATION",
+        "t_zone_development_status": "CAD_CLOSURE_BASELINE_DERIVED_FROM_AUTHORITY_GEOMETRY_NOT_ANATOMICAL_VALIDATION",
+    }
+    return PreflightCheck("COVERAGE_MESH_CONTRACT", "PASS" if actual == expected else "FAIL", "Coverage topology conserves area, includes T-zone/philtrum targets, consumes authority thresholds and refuses to turn synthetic numeric success into product validation.", actual, expected)
+
+
 def _iter_text_files(root: Path) -> Iterable[Path]:
     ignored_parts = {".git", ".pytest_cache", "__pycache__", ".venv", "generated"}
     allowed_suffixes = {".py", ".md", ".toml", ".yaml", ".yml", ".json", ".txt"}
@@ -317,6 +376,7 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "src/masck_one/facial_surface.py",
         "src/masck_one/protected_volumes.py",
         "src/masck_one/worn_pose.py",
+        "src/masck_one/coverage.py",
         "src/masck_one/model.py",
         "src/masck_one/assertions.py",
         "src/masck_one/export.py",
@@ -329,12 +389,16 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "tests/test_facial_surface.py",
         "tests/test_protected_volumes.py",
         "tests/test_worn_pose.py",
+        "tests/test_coverage.py",
         "tests/test_model.py",
         "docs/COORDINATE_SYSTEM.md",
         "docs/REFERENCE_SURFACE_INGESTION.md",
         "docs/NEUTRAL_FACIAL_SURFACE.md",
         "docs/PROTECTED_VOLUMES.md",
         "docs/WORN_POSE.md",
+        "docs/COVERAGE_MESH.md",
+        "docs/ITERATION_9_ACCEPTANCE.md",
+        "docs/PHASE_1_ITERATION_9.md",
         "docs/DEVELOPMENT_ROADMAP.md",
     ]
     missing = [item for item in required if not (root / item).exists()]
@@ -355,6 +419,7 @@ def run_preflight() -> dict[str, object]:
         _check_neutral_facial_surface(authority, datums),
         _check_protected_volumes(authority, datums),
         _check_worn_pose(authority, datums),
+        _check_coverage_mesh(authority, datums),
         _check_legacy_naming(root),
         _check_required_structure(root),
     ]
@@ -362,7 +427,7 @@ def run_preflight() -> dict[str, object]:
     return {
         "project": "Masck One",
         "phase": "1",
-        "iteration": "8",
+        "iteration": "9",
         "result": result,
         "checks": [check.to_dict() for check in checks],
     }

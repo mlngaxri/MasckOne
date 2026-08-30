@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .anatomy import FacialReferenceLayer, PlanarLandmark
     from .authority import Authority
+    from .coverage import CoverageEvaluation, FacialCoverageMesh, TZoneDevelopmentDefinition
     from .facial_surface import FacialSurface, FacialSurfaceDescriptor
     from .model import MasckOneModel
     from .protected_volumes import PlanarProtectedZone, ProtectedVolume, ProtectedVolumeSet
@@ -28,6 +29,9 @@ __all__ = [
     "PlanarProtectedZone",
     "ProtectedVolume",
     "ProtectedVolumeSet",
+    "FacialCoverageMesh",
+    "CoverageEvaluation",
+    "TZoneDevelopmentDefinition",
     "ReferenceSurfaceAsset",
     "SurfaceProvenance",
     "SurfaceRegistration",
@@ -47,6 +51,8 @@ __all__ = [
     "build_facial_reference",
     "build_planar_development_surface",
     "build_protected_volumes",
+    "build_facial_coverage_mesh",
+    "build_t_zone_development_definition",
     "generate_hard_envelope_regression_set",
     "protected_zone_regression_bounds",
     "build_model",
@@ -82,6 +88,28 @@ def __getattr__(name: str) -> Any:
             "ProtectedVolume": ProtectedVolume,
             "ProtectedVolumeSet": ProtectedVolumeSet,
             "build_protected_volumes": build_protected_volumes,
+        }[name]
+
+    if name in {
+        "FacialCoverageMesh",
+        "CoverageEvaluation",
+        "TZoneDevelopmentDefinition",
+        "build_facial_coverage_mesh",
+        "build_t_zone_development_definition",
+    }:
+        from .coverage import (
+            CoverageEvaluation,
+            FacialCoverageMesh,
+            TZoneDevelopmentDefinition,
+            build_facial_coverage_mesh,
+            build_t_zone_development_definition,
+        )
+        return {
+            "FacialCoverageMesh": FacialCoverageMesh,
+            "CoverageEvaluation": CoverageEvaluation,
+            "TZoneDevelopmentDefinition": TZoneDevelopmentDefinition,
+            "build_facial_coverage_mesh": build_facial_coverage_mesh,
+            "build_t_zone_development_definition": build_t_zone_development_definition,
         }[name]
 
     if name in {"ReferenceSurfaceAsset", "SurfaceProvenance", "SurfaceRegistration", "TriangleMesh"}:

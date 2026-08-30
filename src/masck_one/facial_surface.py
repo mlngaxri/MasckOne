@@ -158,13 +158,24 @@ def _planar_mesh(width_mm: float, height_mm: float, *, x_samples: int, y_samples
                 vertices.append(Point3(x, y, 0.0))
 
     triangles: list[tuple[int, int, int]] = []
+    sagittal_cell_boundary = (x_samples - 1) / 2.0
     for j in range(y_samples - 1):
         for i in range(x_samples - 1):
             corners = ((i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1))
             if all(corner in vertex_index for corner in corners):
                 a, b, c, d = (vertex_index[corner] for corner in corners)
-                triangles.append((a, b, c))
-                triangles.append((a, c, d))
+                # Mirror the cell-diagonal topology across X=0. A single global
+                # diagonal direction created a small but real left/right area bias
+                # when protected boundaries were sampled triangle-by-triangle.
+                # The mirrored topology preserves the same vertices, envelope and
+                # total area while making the neutral development mesh itself obey
+                # the project's sagittal-symmetry baseline.
+                if i < sagittal_cell_boundary:
+                    triangles.append((a, b, c))
+                    triangles.append((a, c, d))
+                else:
+                    triangles.append((a, b, d))
+                    triangles.append((b, c, d))
 
     if not triangles:
         raise FacialSurfaceError("Development surface grid produced no triangles")

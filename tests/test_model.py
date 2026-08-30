@@ -57,11 +57,44 @@ def test_model_exposes_deterministic_worn_pose_screen_without_measured_distribut
     assert regression.evidence_status == "DETERMINISTIC_DISCRETE_SCREEN_NOT_MEASURED_DONNING_DISTRIBUTION"
 
 
+def test_model_exposes_coverage_topology_without_promoting_geometric_screen_to_efficacy():
+    model = build_model()
+    coverage = model.coverage_mesh
+
+    assert len(coverage.triangles) == model.facial_surface.mesh.triangle_count
+    assert coverage.aggregate_min_percent == 90.0
+    assert coverage.t_zone_min_percent == 90.0
+    assert coverage.unexplained_hole_max_mm2 == 100.0
+    assert coverage.area_conservation_error_mm2 < 1e-8
+    assert coverage.target_area_mm2 > 0.0
+    assert coverage.t_zone_target_area_mm2 > 0.0
+    assert coverage.philtrum_target_area_mm2 > 0.0
+    assert coverage.anatomical_validation_eligible is False
+
+    full_screen = coverage.evaluate(
+        (cell.triangle_index for cell in coverage.target_triangles),
+        evidence_status="MODEL_REGRESSION_SYNTHETIC_ALL_TARGETS",
+        evidence_eligible=True,
+    )
+    assert full_screen.numeric_gate_passed is True
+    assert full_screen.aggregate_percent == 100.0
+    assert full_screen.t_zone_percent == 100.0
+    assert full_screen.product_validation_status == "NUMERIC_SCREEN_PASS_NOT_PRODUCT_VALIDATION"
+
+
 def test_all_software_verifiable_assertions_pass():
     model = build_model()
     checks = run_assertions(model)
     failures = [c for c in checks if c.status == "FAIL"]
     assert failures == []
+
+
+def test_cleansing_coverage_remains_evidence_blocked_despite_coverage_mesh():
+    model = build_model()
+    checks = {check.id: check for check in run_assertions(model)}
+
+    assert checks["COVERAGE_MESH_TOPOLOGY"].status == "PASS"
+    assert checks["CLEANSING_COVERAGE"].status == "BLOCKED"
 
 
 def test_shell_fits_xy_authority_envelope():

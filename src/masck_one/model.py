@@ -8,6 +8,7 @@ import cadquery as cq
 
 from .anatomy import FacialReferenceLayer, build_facial_reference
 from .authority import Authority, load_authority
+from .coverage import FacialCoverageMesh, build_facial_coverage_mesh
 from .facial_surface import FacialSurface, build_planar_development_surface
 from .protected_volumes import ProtectedVolumeSet, build_protected_volumes
 from .spatial import CanonicalDatums, Point2, Point3
@@ -30,6 +31,7 @@ class MasckOneModel:
     facial_surface: FacialSurface
     protected_volumes: ProtectedVolumeSet
     worn_pose_regression: WornPoseRegressionSet
+    coverage_mesh: FacialCoverageMesh
     shell: Component
     nasal_interface: Component
     actuator_envelopes: tuple[Component, ...]
@@ -169,6 +171,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
     facial_surface = build_planar_development_surface(authority)
     protected_volumes = build_protected_volumes(authority, facial_reference, facial_surface)
     worn_pose_regression = generate_hard_envelope_regression_set(authority)
+    coverage_mesh = build_facial_coverage_mesh(authority, facial_reference, facial_surface, protected_volumes)
     shell = Component(
         "rigid_shell", _build_shell(authority, facial_reference), "CAD_BASELINE",
         "XY envelope and apertures follow authority; Class-A Z surface remains CAD-CLOSURE.",
@@ -188,7 +191,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
     )
     bw, bh, bd = authority.get("battery_reference", "envelope_mm")
     battery = Component(
-        "battery_reference_envelope", _box_centered(float(bw), float(bh), float(bd), Point3(0.0, 0.0, -15.0)),
+        "battery_reference_envelope", _box_centered(float(bw), float(bh), float(bd, ), Point3(0.0, 0.0, -15.0)),
         "PACKAGING_BENCHMARK_NOT_PRODUCTION_FREEZE", "Halo-location benchmark only; not a production-qualified battery pack.",
     )
     return MasckOneModel(
@@ -198,6 +201,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         facial_surface=facial_surface,
         protected_volumes=protected_volumes,
         worn_pose_regression=worn_pose_regression,
+        coverage_mesh=coverage_mesh,
         shell=shell,
         nasal_interface=nasal_interface,
         actuator_envelopes=_build_actuators(authority),
