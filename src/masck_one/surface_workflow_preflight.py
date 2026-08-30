@@ -5,7 +5,14 @@ import json
 
 from .authority import load_authority
 from .spatial import Point3
-from .surface_workflow import SurfaceSample, build_class_a_workflow
+from .surface_workflow import (
+    ReleasedSurfaceReference,
+    SurfaceSample,
+    SurfaceWorkflowError,
+    build_class_a_workflow,
+    sha256_bytes,
+    surface_sample_manifest_sha256,
+)
 
 
 @dataclass(frozen=True)
@@ -32,6 +39,27 @@ def run_surface_workflow_preflight() -> dict[str, object]:
         SurfaceSample("P1", Point3(10.0, 0.0, 0.10)),
     )
     report = workflow.evaluate(engineering, reference)
+
+    manifest_sha = surface_sample_manifest_sha256(reference)
+    released_reference = ReleasedSurfaceReference(
+        surface_id="MASCK_ONE-CLASS-A-PREFLIGHT",
+        source_asset_sha256=sha256_bytes(b"iteration16-controlled-synthetic-source-asset"),
+        reference_sample_manifest_sha256=manifest_sha,
+        revision="PREFLIGHT-R1",
+        release_status="RELEASED_CLASS_A_REFERENCE",
+    )
+    released_report = build_class_a_workflow(authority, reference=released_reference).evaluate(engineering, reference)
+
+    mismatch_rejected = False
+    substituted_reference = (
+        reference[0],
+        SurfaceSample("P1", Point3(10.0, 0.0, 0.20)),
+    )
+    try:
+        build_class_a_workflow(authority, reference=released_reference).evaluate(engineering, substituted_reference)
+    except SurfaceWorkflowError:
+        mismatch_rejected = True
+
     checks = [
         SurfaceWorkflowPreflightCheck(
             "CLASS_A_AUTHORITY_BINDING",
@@ -48,6 +76,19 @@ def run_surface_workflow_preflight() -> dict[str, object]:
             "PASS" if (workflow.reference is None and report.product_validation_status == "BLOCKED_RELEASE_REFERENCE_REQUIRED") else "FAIL",
             "A numerical deviation pass cannot close CAD release until an authored, identified, hashed and explicitly released Class-A reference exists.",
             actual=report.product_validation_status,
+        ),
+        SurfaceWorkflowPreflightCheck(
+            "CLASS_A_REFERENCE_SAMPLE_PROVENANCE",
+            "PASS" if (
+                released_report.reference_release_eligible
+                and released_report.reference_sample_manifest_sha256 == manifest_sha
+                and mismatch_rejected
+            ) else "FAIL",
+            "Release eligibility is cryptographically bound to the exact canonical reference-sample manifest; substituted or stale sample geometry is rejected.",
+            actual={
+                "manifest_sha256": released_report.reference_sample_manifest_sha256,
+                "substituted_reference_rejected": mismatch_rejected,
+            },
         ),
         SurfaceWorkflowPreflightCheck(
             "CLASS_A_NUMERIC_EVALUATOR",
