@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from .anatomy import FacialReferenceLayer, PlanarLandmark
     from .authority import Authority
     from .model import MasckOneModel
     from .spatial import CanonicalDatums, DatumFrame, DatumPlane, Point2, Point3, RigidTransform, Vector3
@@ -16,6 +17,8 @@ if TYPE_CHECKING:
 __all__ = [
     "Authority",
     "MasckOneModel",
+    "FacialReferenceLayer",
+    "PlanarLandmark",
     "CanonicalDatums",
     "DatumFrame",
     "DatumPlane",
@@ -24,6 +27,7 @@ __all__ = [
     "RigidTransform",
     "Vector3",
     "load_authority",
+    "build_facial_reference",
     "build_model",
 ]
 __version__ = "0.1.0"
@@ -34,6 +38,15 @@ def __getattr__(name: str) -> Any:
         from .authority import Authority, load_authority
 
         exports = {"Authority": Authority, "load_authority": load_authority}
+        return exports[name]
+    if name in {"FacialReferenceLayer", "PlanarLandmark", "build_facial_reference"}:
+        from .anatomy import FacialReferenceLayer, PlanarLandmark, build_facial_reference
+
+        exports = {
+            "FacialReferenceLayer": FacialReferenceLayer,
+            "PlanarLandmark": PlanarLandmark,
+            "build_facial_reference": build_facial_reference,
+        }
         return exports[name]
     if name in {"MasckOneModel", "build_model"}:
         from .model import MasckOneModel, build_model

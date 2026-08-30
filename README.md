@@ -10,7 +10,10 @@ The project is intentionally strict about the difference between a value that ca
 
 The existing code-CAD baseline currently generates the rigid shell development geometry, dedicated nasal/T-zone interface, nominal protected apertures, four actuator packaging references, water-reservoir envelope, waste-cartridge envelope, battery packaging reference, STEP exports, and a structured assertion report. These are development artifacts, not a claim that fit, cleansing efficacy, airflow, pressure, materials, or production readiness have been physically validated.
 
-Phase 1 also now provides a canonical spatial/datum API. All later geometry-bearing work has one tested right-handed convention beneath it: `+X` wearer-right, `+Y` superior, `+Z` anterior, with explicit typed points/vectors, rigid transforms, principal datum planes, transform composition, and authority-coordinate adapters.
+Phase 1 now provides two foundational reference layers:
+
+- a canonical spatial/datum API with one tested right-handed convention: `+X` wearer-right, `+Y` superior, `+Z` anterior;
+- a semantic facial-reference layer that converts the authority's current eye, nostril and mouth-center coordinates into stable, typed, traceable landmarks while explicitly leaving their 3D anatomical depth unresolved until a registered facial/headform surface exists.
 
 ## Repository principles
 
@@ -21,7 +24,10 @@ Phase 1 also now provides a canonical spatial/datum API. All later geometry-bear
 - Authority loading also runs deterministic semantic cross-checks before CAD generation is permitted.
 - Duplicate YAML keys are rejected rather than silently overwritten.
 - `src/masck_one/spatial.py` is the canonical spatial/transform API for geometry-bearing code.
+- `src/masck_one/anatomy.py` is the current facial landmark/reference semantic layer.
 - `docs/COORDINATE_SYSTEM.md` defines the global frame, principal planes, handedness, rotation signs, transform order, unit boundary, and external-geometry import rules.
+- `docs/FACIAL_REFERENCE.md` defines what current facial landmarks mean, where they come from, and—critically—what they do not yet claim.
+- `docs/DEVELOPMENT_ROADMAP.md` contains the controlled baseline sequence of small engineering iterations through digital Alpha release readiness.
 - Generated CAD must be reproducible from source.
 - Validation-gated requirements remain validation-gated until evidence closes them.
 - Missing real-world evidence is represented explicitly rather than fabricated.
@@ -57,7 +63,7 @@ This performs strict JSON Schema validation followed by deterministic semantic c
 python -m masck_one.preflight
 ```
 
-Preflight checks the controlled runtime/dependencies, authority contract, canonical spatial contract, product identity, required source structure, and repository naming invariant.
+Preflight checks the controlled runtime/dependencies, authority contract, canonical spatial contract, facial-reference contract, product identity, required source structure, and repository naming invariant.
 
 ## Test
 
@@ -80,4 +86,6 @@ Read [`docs/ENGINEERING_GOVERNANCE.md`](docs/ENGINEERING_GOVERNANCE.md) before c
 
 Read [`docs/COORDINATE_SYSTEM.md`](docs/COORDINATE_SYSTEM.md) before adding geometry, local datum frames, imported headforms/supplier CAD, fixture coordinates, pose transforms, or render-export transforms.
 
-Development progress is recorded in [`docs/PHASE_1_LOG.md`](docs/PHASE_1_LOG.md).
+Read [`docs/FACIAL_REFERENCE.md`](docs/FACIAL_REFERENCE.md) before adding or consuming facial landmarks, headforms or reference surfaces.
+
+The current planned iteration sequence is in [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md), and completed engineering work is recorded in [`docs/PHASE_1_LOG.md`](docs/PHASE_1_LOG.md).

@@ -6,8 +6,9 @@ from typing import Iterable
 
 import cadquery as cq
 
+from .anatomy import FacialReferenceLayer, build_facial_reference
 from .authority import Authority, load_authority
-from .spatial import CanonicalDatums, Point2, Point3, authority_point2
+from .spatial import CanonicalDatums, Point2, Point3
 
 
 @dataclass(frozen=True)
@@ -22,6 +23,7 @@ class Component:
 class MasckOneModel:
     authority: Authority
     datums: CanonicalDatums
+    facial_reference: FacialReferenceLayer
     shell: Component
     nasal_interface: Component
     actuator_envelopes: tuple[Component, ...]
@@ -124,7 +126,7 @@ def _derived_nostril_diameter(authority: Authority) -> float:
     return max(minimum_dim, diameter_from_area)
 
 
-def _build_shell(authority: Authority) -> cq.Workplane:
+def _build_shell(authority: Authority, facial_reference: FacialReferenceLayer) -> cq.Workplane:
     outer_w, outer_h = authority.pair("geometry", "outer_xy_envelope_mm")
     frame_w, frame_h = authority.pair("geometry", "functional_frame_xy_mm")
     wall = authority.number("geometry", "shell_nominal_wall_mm")
@@ -146,30 +148,25 @@ def _build_shell(authority: Authority) -> cq.Workplane:
     shell = outer.cut(inner)
 
     eye_w, eye_h = authority.pair("geometry", "eye", "visual_aperture_wh_mm")
-    left_eye = authority_point2(authority, "geometry", "eye", "centers_mm", "left")
-    right_eye = authority_point2(authority, "geometry", "eye", "centers_mm", "right")
+    left_eye = facial_reference.eye_pair.left.point_xy
+    right_eye = facial_reference.eye_pair.right.point_xy
     cant = authority.number("geometry", "eye", "lateral_cant_deg")
     shell = shell.cut(_ellipse_cutter(eye_w, eye_h, left_eye, angle_deg=-cant))
     shell = shell.cut(_ellipse_cutter(eye_w, eye_h, right_eye, angle_deg=cant))
 
     mouth_w, mouth_h = authority.pair("geometry", "mouth", "visual_aperture_wh_mm")
-    mouth_center = authority_point2(authority, "geometry", "mouth", "center_mm")
-    shell = shell.cut(_ellipse_cutter(mouth_w, mouth_h, mouth_center))
+    shell = shell.cut(_ellipse_cutter(mouth_w, mouth_h, facial_reference.mouth_center.point_xy))
 
     nostril_diameter = _derived_nostril_diameter(authority)
-    left_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "left")
-    right_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "right")
-    shell = shell.cut(_circle_cutter(nostril_diameter, left_nostril))
-    shell = shell.cut(_circle_cutter(nostril_diameter, right_nostril))
+    shell = shell.cut(_circle_cutter(nostril_diameter, facial_reference.nostril_pair.left.point_xy))
+    shell = shell.cut(_circle_cutter(nostril_diameter, facial_reference.nostril_pair.right.point_xy))
 
     return shell
 
 
-def _build_nasal_interface(authority: Authority) -> cq.Workplane:
+def _build_nasal_interface(authority: Authority, facial_reference: FacialReferenceLayer) -> cq.Workplane:
     thickness = authority.number("geometry", "nasal_lobe_membrane", "thickness_center_mm")
     nostril_diameter = _derived_nostril_diameter(authority)
-    left_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "left")
-    right_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "right")
 
     saddle = (
         cq.Workplane("XY")
@@ -178,8 +175,22 @@ def _build_nasal_interface(authority: Authority) -> cq.Workplane:
         .close()
         .extrude(thickness)
     )
-    saddle = saddle.cut(_circle_cutter(nostril_diameter, left_nostril, depth=5.0, z_start=-3.0))
-    saddle = saddle.cut(_circle_cutter(nostril_diameter, right_nostril, depth=5.0, z_start=-3.0))
+    saddle = saddle.cut(
+        _circle_cutter(
+            nostril_diameter,
+            facial_reference.nostril_pair.left.point_xy,
+            depth=5.0,
+            z_start=-3.0,
+        )
+    )
+    saddle = saddle.cut(
+        _circle_cutter(
+            nostril_diameter,
+            facial_reference.nostril_pair.right.point_xy,
+            depth=5.0,
+            z_start=-3.0,
+        )
+    )
     return saddle
 
 
@@ -213,37 +224,56 @@ def _build_actuators(authority: Authority) -> tuple[Component, ...]:
     return tuple(parts)
 
 
-def _build_visual_keepouts(authority: Authority) -> tuple[Component, ...]:
+def _build_visual_keepouts(
+    authority: Authority,
+    facial_reference: FacialReferenceLayer,
+) -> tuple[Component, ...]:
     eye_w, eye_h = authority.pair("geometry", "eye", "visual_aperture_wh_mm")
-    left_eye = authority_point2(authority, "geometry", "eye", "centers_mm", "left")
-    right_eye = authority_point2(authority, "geometry", "eye", "centers_mm", "right")
     mouth_w, mouth_h = authority.pair("geometry", "mouth", "visual_aperture_wh_mm")
-    mouth_center = authority_point2(authority, "geometry", "mouth", "center_mm")
     nostril_d = _derived_nostril_diameter(authority)
-    left_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "left")
-    right_nostril = authority_point2(authority, "geometry", "nostrils", "centers_mm", "right")
 
     return (
-        Component("visual_eye_left", _ellipse_cutter(eye_w, eye_h, left_eye), "REFERENCE_ONLY"),
-        Component("visual_eye_right", _ellipse_cutter(eye_w, eye_h, right_eye), "REFERENCE_ONLY"),
-        Component("visual_mouth", _ellipse_cutter(mouth_w, mouth_h, mouth_center), "REFERENCE_ONLY"),
-        Component("visual_nostril_left", _circle_cutter(nostril_d, left_nostril), "REFERENCE_ONLY"),
-        Component("visual_nostril_right", _circle_cutter(nostril_d, right_nostril), "REFERENCE_ONLY"),
+        Component(
+            "visual_eye_left",
+            _ellipse_cutter(eye_w, eye_h, facial_reference.eye_pair.left.point_xy),
+            "REFERENCE_ONLY",
+        ),
+        Component(
+            "visual_eye_right",
+            _ellipse_cutter(eye_w, eye_h, facial_reference.eye_pair.right.point_xy),
+            "REFERENCE_ONLY",
+        ),
+        Component(
+            "visual_mouth",
+            _ellipse_cutter(mouth_w, mouth_h, facial_reference.mouth_center.point_xy),
+            "REFERENCE_ONLY",
+        ),
+        Component(
+            "visual_nostril_left",
+            _circle_cutter(nostril_d, facial_reference.nostril_pair.left.point_xy),
+            "REFERENCE_ONLY",
+        ),
+        Component(
+            "visual_nostril_right",
+            _circle_cutter(nostril_d, facial_reference.nostril_pair.right.point_xy),
+            "REFERENCE_ONLY",
+        ),
     )
 
 
 def build_model(authority: Authority | None = None) -> MasckOneModel:
     authority = authority or load_authority()
     datums = CanonicalDatums.from_authority(authority)
+    facial_reference = build_facial_reference(authority, datums)
     shell = Component(
         "rigid_shell",
-        _build_shell(authority),
+        _build_shell(authority, facial_reference),
         "CAD_BASELINE",
         "XY envelope and apertures follow authority; Class-A Z surface remains CAD-CLOSURE.",
     )
     nasal_interface = Component(
         "nasal_interface",
-        _build_nasal_interface(authority),
+        _build_nasal_interface(authority, facial_reference),
         "CAD_CLOSURE_BASELINE",
         "Dedicated compliant nose/T-zone saddle; final scan-conforming geometry remains validation/CAD closure.",
     )
@@ -275,11 +305,12 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
     return MasckOneModel(
         authority=authority,
         datums=datums,
+        facial_reference=facial_reference,
         shell=shell,
         nasal_interface=nasal_interface,
         actuator_envelopes=_build_actuators(authority),
         water_reservoir_envelope=water_reservoir,
         waste_cartridge_envelope=waste_cartridge,
         battery_reference_envelope=battery,
-        visual_keepouts=_build_visual_keepouts(authority),
+        visual_keepouts=_build_visual_keepouts(authority, facial_reference),
     )

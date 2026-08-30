@@ -8,7 +8,8 @@ import re
 import sys
 from typing import Iterable
 
-from .authority import AuthorityError, load_authority
+from .anatomy import FacialReferenceError, build_facial_reference
+from .authority import Authority, AuthorityError, load_authority
 from .spatial import CanonicalDatums, SpatialContractError
 
 
@@ -68,7 +69,7 @@ def _check_dependencies() -> list[PreflightCheck]:
     return checks
 
 
-def _check_authority() -> tuple[list[PreflightCheck], object | None]:
+def _check_authority() -> tuple[list[PreflightCheck], Authority | None]:
     try:
         authority = load_authority()
     except AuthorityError as exc:
@@ -119,24 +120,30 @@ def _check_authority() -> tuple[list[PreflightCheck], object | None]:
     return checks, authority
 
 
-def _check_spatial_contract(authority: object | None) -> PreflightCheck:
+def _build_datums(authority: Authority | None) -> tuple[PreflightCheck, CanonicalDatums | None]:
     if authority is None:
-        return PreflightCheck(
-            "SPATIAL_CONTRACT",
-            "FAIL",
-            "Canonical spatial datums require a valid machine authority.",
+        return (
+            PreflightCheck(
+                "SPATIAL_CONTRACT",
+                "FAIL",
+                "Canonical spatial datums require a valid machine authority.",
+                None,
+                "valid authority and right-handed canonical datums",
+            ),
             None,
-            "valid authority and right-handed canonical datums",
         )
     try:
         datums = CanonicalDatums.from_authority(authority)
     except SpatialContractError as exc:
-        return PreflightCheck(
-            "SPATIAL_CONTRACT",
-            "FAIL",
-            "Canonical spatial datums must be finite, orthonormal, right-handed, and authority-aligned.",
-            str(exc),
-            "valid canonical datums",
+        return (
+            PreflightCheck(
+                "SPATIAL_CONTRACT",
+                "FAIL",
+                "Canonical spatial datums must be finite, orthonormal, right-handed, and authority-aligned.",
+                str(exc),
+                "valid canonical datums",
+            ),
+            None,
         )
     actual = {
         "origin": datums.global_frame.origin.as_tuple(),
@@ -160,10 +167,67 @@ def _check_spatial_contract(authority: object | None) -> PreflightCheck:
             "MASCK_ONE_CORONAL_Z0",
         ],
     }
+    return (
+        PreflightCheck(
+            "SPATIAL_CONTRACT",
+            "PASS" if actual == expected else "FAIL",
+            "Canonical origin, axes and principal datum planes match the frozen Masck One convention.",
+            actual,
+            expected,
+        ),
+        datums,
+    )
+
+
+def _check_facial_reference(authority: Authority | None, datums: CanonicalDatums | None) -> PreflightCheck:
+    if authority is None or datums is None:
+        return PreflightCheck(
+            "FACIAL_REFERENCE_CONTRACT",
+            "FAIL",
+            "Facial reference requires valid authority and canonical datums.",
+            None,
+            "valid authority/datums and neutral landmark layer",
+        )
+    try:
+        reference = build_facial_reference(authority, datums)
+    except FacialReferenceError as exc:
+        return PreflightCheck(
+            "FACIAL_REFERENCE_CONTRACT",
+            "FAIL",
+            "Authority facial landmarks must form a unique, symmetric neutral-baseline projection with no invented 3D depth.",
+            str(exc),
+            "valid neutral 2D facial reference",
+        )
+
+    metrics = reference.metrics
+    actual = {
+        "reference_kind": reference.reference_kind,
+        "landmark_count": len(reference.landmarks),
+        "landmark_ids": [landmark.id for landmark in reference.landmarks],
+        "unresolved_3d_count": len(reference.unresolved_3d_landmarks()),
+        "interpupillary_center_spacing_mm": metrics.interpupillary_center_spacing_mm,
+        "nostril_center_spacing_mm": metrics.nostril_center_spacing_mm,
+        "eye_to_mouth_center_vertical_mm": metrics.eye_to_mouth_center_vertical_mm,
+    }
+    expected = {
+        "reference_kind": "NEUTRAL_2D_CAD_BASELINE_PROJECTION",
+        "landmark_count": 5,
+        "landmark_ids": [
+            "MASCK_ONE-LMK-EYE-LEFT-CENTER",
+            "MASCK_ONE-LMK-EYE-RIGHT-CENTER",
+            "MASCK_ONE-LMK-NOSTRIL-LEFT-CENTER",
+            "MASCK_ONE-LMK-NOSTRIL-RIGHT-CENTER",
+            "MASCK_ONE-LMK-MOUTH-CENTER",
+        ],
+        "unresolved_3d_count": 5,
+        "interpupillary_center_spacing_mm": 63.0,
+        "nostril_center_spacing_mm": 21.0,
+        "eye_to_mouth_center_vertical_mm": 85.0,
+    }
     return PreflightCheck(
-        "SPATIAL_CONTRACT",
+        "FACIAL_REFERENCE_CONTRACT",
         "PASS" if actual == expected else "FAIL",
-        "Canonical origin, axes and principal datum planes match the frozen Masck One convention.",
+        "Facial landmark IDs, authority coordinates, bilateral symmetry, derived neutral metrics, and unresolved 3D status are deterministic.",
         actual,
         expected,
     )
@@ -205,6 +269,7 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "src/masck_one/__init__.py",
         "src/masck_one/authority.py",
         "src/masck_one/spatial.py",
+        "src/masck_one/anatomy.py",
         "src/masck_one/model.py",
         "src/masck_one/assertions.py",
         "src/masck_one/export.py",
@@ -212,7 +277,10 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "tests/test_authority.py",
         "tests/test_authority_contract.py",
         "tests/test_spatial.py",
+        "tests/test_anatomy.py",
         "tests/test_model.py",
+        "docs/COORDINATE_SYSTEM.md",
+        "docs/DEVELOPMENT_ROADMAP.md",
     ]
     missing = [item for item in required if not (root / item).exists()]
     return PreflightCheck(
@@ -227,11 +295,13 @@ def _check_required_structure(root: Path) -> PreflightCheck:
 def run_preflight() -> dict[str, object]:
     root = repository_root()
     authority_checks, authority = _check_authority()
+    spatial_check, datums = _build_datums(authority)
     checks = [
         _check_python(),
         *_check_dependencies(),
         *authority_checks,
-        _check_spatial_contract(authority),
+        spatial_check,
+        _check_facial_reference(authority, datums),
         _check_legacy_naming(root),
         _check_required_structure(root),
     ]
@@ -239,7 +309,7 @@ def run_preflight() -> dict[str, object]:
     return {
         "project": "Masck One",
         "phase": "1",
-        "iteration": "3",
+        "iteration": "4",
         "result": result,
         "checks": [check.to_dict() for check in checks],
     }

@@ -19,6 +19,17 @@ def test_model_exposes_canonical_global_datums():
     assert frame.z_axis == Vector3(0.0, 0.0, 1.0)
 
 
+def test_model_exposes_semantic_facial_reference_without_invented_depth():
+    model = build_model()
+    reference = model.facial_reference
+
+    assert reference.source_revision == model.authority.get("project", "authority_revision")
+    assert len(reference.landmarks) == 5
+    assert len(reference.unresolved_3d_landmarks()) == 5
+    assert reference.metrics.interpupillary_center_spacing_mm == 63.0
+    assert reference.metrics.nostril_center_spacing_mm == 21.0
+
+
 def test_all_software_verifiable_assertions_pass():
     model = build_model()
     checks = run_assertions(model)
