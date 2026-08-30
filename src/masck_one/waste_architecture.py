@@ -129,6 +129,18 @@ class WasteCartridgeArchitecture:
         """Bounding-box volume only. Never treat this as fillable or retained capacity."""
         return math.prod(self.external_envelope_mm) / 1000.0
 
+    @property
+    def capacity_reservation_envelope_mm(self) -> tuple[float, float, float]:
+        """Nonphysical minimum spatial reservation preserving the retained-volume target.
+
+        This intentionally preserves the external-envelope aspect ratio for collision bookkeeping only.
+        It is not an internal wall surface, usable volume, absorbent-media model or retained-capacity proof.
+        """
+        scale = (
+            self.retained_capacity_target_mL * 1000.0 / math.prod(self.external_envelope_mm)
+        ) ** (1.0 / 3.0)
+        return tuple(value * scale for value in self.external_envelope_mm)
+
     def cad_external_envelope(self) -> cq.Workplane:
         x, y, z = self.external_envelope_mm
         return cq.Workplane("XY").box(x, y, z, centered=(True, True, True)).translate(
@@ -136,8 +148,9 @@ class WasteCartridgeArchitecture:
         )
 
     def cad_capacity_reservation(self) -> cq.Workplane:
-        raise WasteArchitectureError(
-            "No capacity solid is valid until cartridge wall, seal, keying, vent/air handling, contaminated-interface and media geometry are controlled"
+        x, y, z = self.capacity_reservation_envelope_mm
+        return cq.Workplane("XY").box(x, y, z, centered=(True, True, True)).translate(
+            self.center_mm.as_tuple()
         )
 
 
@@ -215,6 +228,14 @@ class WasteArchitecture:
             raise WasteArchitectureError(
                 "Retained capacity is validation-gated and cannot be promoted from bounding-box arithmetic"
             )
+        if any(
+            reserve > external + 1e-9
+            for reserve, external in zip(
+                self.cartridge.capacity_reservation_envelope_mm,
+                self.cartridge.external_envelope_mm,
+            )
+        ):
+            raise WasteArchitectureError("Spatial capacity reservation must fit inside the cartridge envelope")
         if not 0.0 < self.minimum_recovery_ratio <= 1.0:
             raise WasteArchitectureError("Recovery-ratio requirement must be in (0, 1]")
         if self.maximum_residual_free_liquid_uL < 0.0:
@@ -253,6 +274,8 @@ class WasteArchitecture:
                 **asdict(self.cartridge),
                 "center_mm": list(self.cartridge.center_mm.as_tuple()),
                 "external_bounding_volume_mL": self.cartridge.external_bounding_volume_mL,
+                "capacity_reservation_envelope_mm": list(self.cartridge.capacity_reservation_envelope_mm),
+                "capacity_reservation_semantics": "SPATIAL_BOOKKEEPING_ONLY_NOT_USABLE_OR_RETAINED_CAPACITY_EVIDENCE",
             },
             "route_contracts": [asdict(route) for route in self.route_contracts],
             "orientation_case_ids": list(self.orientation_case_ids),
