@@ -2,12 +2,7 @@ from dataclasses import replace
 
 import pytest
 
-from masck_one.actuator_frames import (
-    ActuatorFrameArchitecture,
-    ActuatorFrameError,
-    ZONE_IDS,
-    build_actuator_frame_architecture,
-)
+from masck_one.actuator_frames import ActuatorFrameArchitecture, ActuatorFrameError, ZONE_IDS, build_actuator_frame_architecture
 from masck_one.boundary_release import build_verified_interface_boundary_topology
 from masck_one.interface_attachment import build_interface_attachment_architecture
 from masck_one.model import build_model
@@ -16,12 +11,7 @@ from masck_one.structural_frame import build_structural_frame_topology
 
 def _authority_and_frame():
     model = build_model()
-    boundaries = build_verified_interface_boundary_topology(
-        model.authority,
-        model.facial_surface,
-        model.coverage_mesh,
-        model.compliant_interface_topology,
-    )
+    boundaries = build_verified_interface_boundary_topology(model.authority, model.facial_surface, model.coverage_mesh, model.compliant_interface_topology)
     attachment = build_interface_attachment_architecture(model.authority, boundaries)
     frame = build_structural_frame_topology(model.authority, attachment)
     return model.authority, frame
@@ -44,7 +34,7 @@ def test_sweep_analysis_hard_fails_while_geometry_or_supplier_envelope_is_unreso
     authority, structural_frame = _authority_and_frame()
     architecture = build_actuator_frame_architecture(authority, structural_frame)
     with pytest.raises(ActuatorFrameError, match="sweep/collision analysis is blocked"):
-        architecture.require_sweep_ready()
+        architecture.require_sweep_ready(structural_frame=structural_frame, authority=authority)
 
 
 def test_valid_but_stale_structural_topology_hash_is_rejected():
@@ -66,8 +56,7 @@ def test_registered_mesh_provenance_cannot_drift_independently():
 def test_manifest_identity_changes_when_mount_contract_changes():
     authority, structural_frame = _authority_and_frame()
     architecture = build_actuator_frame_architecture(authority, structural_frame)
-    first = architecture.frames[0]
-    changed_first = replace(first, origin_status="UNRESOLVED_CHANGED_CONTRACT")
+    changed_first = replace(architecture.frames[0], origin_status="UNRESOLVED_CHANGED_CONTRACT")
     changed = replace(architecture, frames=(changed_first,) + architecture.frames[1:])
     assert changed.architecture_sha256 != architecture.architecture_sha256
 
