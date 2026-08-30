@@ -50,6 +50,23 @@ def test_hard_sweep_gate_rejects_stale_authority_revision_on_complete_architectu
         stale.require_sweep_ready(structural_frame=structural_frame, authority=authority)
 
 
+def test_blank_mount_datum_cannot_masquerade_as_resolved():
+    _, _, architecture = _architecture()
+    with pytest.raises(ActuatorFrameError, match="mount datum identity must be nonblank"):
+        replace(architecture.frames[0], structural_mount_datum_id="   ")
+
+
+@pytest.mark.parametrize("field,value", [
+    ("origin_xyz_mm", (True, 0.0, 0.0)),
+    ("axis_azimuth_deg", True),
+    ("actuator_envelope_mm", (True, 10.0, 10.0)),
+])
+def test_boolean_numeric_aliases_cannot_resolve_actuator_geometry(field, value):
+    _, _, architecture = _architecture()
+    with pytest.raises(ActuatorFrameError):
+        replace(architecture.frames[0], **{field: value})
+
+
 def test_hard_sweep_gate_accepts_current_complete_architecture():
     authority, structural_frame, architecture = _architecture()
     _complete(architecture).require_sweep_ready(structural_frame=structural_frame, authority=authority)
