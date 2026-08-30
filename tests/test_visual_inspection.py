@@ -130,7 +130,7 @@ def test_view_basis_rejects_boolean_sign_aliases_and_nonrecord_containers():
     with pytest.raises(VisualInspectionError, match="immutable tuple of ViewMetrics"):
         replace(report, views=list(report.views))
     malformed = object.__new__(type(report.views[0]))
-    with pytest.raises(VisualInspectionError, match="immutable tuple of ViewMetrics"):
+    with pytest.raises(VisualInspectionError, match="complete ViewMetrics records"):
         replace(report, views=(malformed, *report.views[1:]))
 
 
