@@ -24,32 +24,41 @@ def test_continuous_translation_envelope_contains_interior_path_not_only_endpoin
     interior_keepout = AABB((5.0, 0.5, 0.5), (5.5, 1.5, 1.5), frame_id=WORLD_FRAME)
     assert not sweep.start_box.intersects(interior_keepout)
     assert not sweep.end_box.intersects(interior_keepout)
-    assert sweep.collides_with(interior_keepout)
+    assert sweep.collides_with(interior_keepout, expected_geometry_sha256=SOURCE_SHA)
     assert sweep.continuous_envelope == AABB((0.0, 0.0, 0.0), (12.0, 2.0, 2.0), frame_id=WORLD_FRAME)
 
 
 def test_touching_closed_keepout_boundary_counts_as_collision():
     sweep = _sweep()
     touching = AABB((12.0, 0.0, 0.0), (13.0, 1.0, 1.0), frame_id=WORLD_FRAME)
-    assert sweep.collides_with(touching)
+    assert sweep.collides_with(touching, expected_geometry_sha256=SOURCE_SHA)
 
 
 def test_clearance_expands_collision_guard_without_changing_geometry():
     sweep = _sweep()
     near = AABB((12.2, 0.0, 0.0), (13.0, 1.0, 1.0), frame_id=WORLD_FRAME)
-    assert not sweep.collides_with(near)
-    assert sweep.collides_with(near, clearance_mm=0.2)
+    assert not sweep.collides_with(near, expected_geometry_sha256=SOURCE_SHA)
+    assert sweep.collides_with(near, expected_geometry_sha256=SOURCE_SHA, clearance_mm=0.2)
     with pytest.raises(SweepGeometryError, match="non-negative"):
-        sweep.collides_with(near, clearance_mm=-0.01)
+        sweep.collides_with(near, expected_geometry_sha256=SOURCE_SHA, clearance_mm=-0.01)
 
 
 def test_coordinate_frame_mismatch_is_a_hard_failure_not_a_collision_boolean():
     sweep = _sweep()
     local_keepout = AABB((5.0, 0.5, 0.5), (5.5, 1.5, 1.5), frame_id="ACTUATOR_LOCAL_FOREHEAD")
     with pytest.raises(SweepGeometryError, match="coordinate-frame mismatch"):
-        sweep.collides_with(local_keepout)
+        sweep.collides_with(local_keepout, expected_geometry_sha256=SOURCE_SHA)
     with pytest.raises(SweepGeometryError, match="coordinate-frame mismatch"):
         sweep.start_box.union(local_keepout)
+
+
+def test_collision_api_cannot_bypass_source_freshness():
+    sweep = _sweep()
+    keepout = AABB((5.0, 0.5, 0.5), (5.5, 1.5, 1.5), frame_id=WORLD_FRAME)
+    with pytest.raises(TypeError):
+        sweep.collides_with(keepout)  # type: ignore[call-arg]
+    with pytest.raises(SweepGeometryError, match="provenance is stale"):
+        sweep.collides_with(keepout, expected_geometry_sha256="2" * 64)
 
 
 def test_frame_identity_is_preserved_through_translation_and_manifest():
