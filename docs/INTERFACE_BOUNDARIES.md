@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Iteration 12 establishes the controlled edge topology for the compliant facial interface. It identifies where the contact field terminates at the outer perimeter and where it transitions to the protected eye, mouth and nostril openings.
+Iteration 12 establishes controlled material/no-material edge topology for the compliant facial interface. It identifies where the active contact field terminates at the outer perimeter and where it transitions into protected eye, mouth and nostril regions.
 
-This is an edge-topology and functional-intent layer. It does not define final seal width, transition width, compression, membrane thickness, material, stiffness, pressure, ingress performance or 3D anatomical conformity because the current engineering authority does not provide evidence sufficient to freeze those properties.
+This is an edge-topology and functional-intent layer. It does not define final seal width, transition width, compression, general membrane thickness, material, stiffness, pressure, ingress performance or 3D anatomical conformity because the current engineering authority does not support freezing those properties.
 
-## Controlled boundary set
+## Provenance partitions and physical boundaries
 
-Six boundary systems are extracted directly from the exact Iteration-10/11 development surface and interface segmentation:
+Six source-region provenance labels are retained:
 
 1. `INTERFACE_BOUNDARY_OUTER_PERIMETER`
 2. `INTERFACE_BOUNDARY_EYE_LEFT`
@@ -17,69 +17,49 @@ Six boundary systems are extracted directly from the exact Iteration-10/11 devel
 5. `INTERFACE_BOUNDARY_NOSTRIL_LEFT`
 6. `INTERFACE_BOUNDARY_NOSTRIL_RIGHT`
 
-The outer perimeter consists of mesh edges incident to one active contact triangle. Each protected-aperture transition consists only of edges shared by one contact triangle and one protected triangle of the corresponding eye, mouth or nostril region.
+These labels identify which protected-region triangle lies on the non-contact side of each transition edge. They are not assumed to be six separate physical loops.
 
-## Functional intent
+The conservative left/right eye protected regions overlap across the sagittal plane, and the left/right nostril protected regions overlap as well. Their labelled edge chains are therefore provenance partitions of larger physical boundaries. Physical closure is evaluated on four systems:
 
-The outer perimeter carries compliant-interface and fluid-containment intent. Protected-aperture boundaries carry compliance, fluid-exclusion/containment and protected-opening exclusion intent.
+- outer interface perimeter;
+- bilateral eye protected union;
+- mouth protected opening;
+- bilateral nostril/airway protected union.
 
-These are architectural intents, not measured seal-performance claims. A later interface geometry/material iteration must determine the actual width, profile, compression and constitutive behavior needed to deliver those functions.
+This distinction prevents an implementation artifact, region labelling, from being mistaken for material topology.
+
+## Edge semantics
+
+Outer-perimeter edges have exactly one incident active contact triangle. Protected-aperture transition edges have one active contact triangle and one protected triangle. Each edge keeps its deterministic vertex pair, incident triangle IDs, contact triangle ID and protected triangle ID.
+
+The release manifest exports those edge identities plus both provenance and physical-boundary IDs, so downstream tooling can reconstruct and independently verify the digital transition topology.
+
+## Registered-mesh source binding
+
+The facial-surface descriptor source SHA identifies the source artifact. Different registrations of the same asset may therefore share that source SHA. Iteration 12 separately records the registered mesh SHA and registration revision.
+
+The controlled release path also checks the coverage triangle identities and centroids against the current registered mesh. Coverage generated from another registration of the same source asset is rejected. The comparison tolerance is a numerical software-identity budget only, not a product or manufacturing tolerance.
 
 ## Dimension authority discipline
 
-The current authority does not define a numeric compliant perimeter seal width, protected-aperture transition width, or general interface thickness. All six boundary definitions therefore carry:
+The authority does not define a numeric compliant perimeter seal width, protected-aperture transition width or general interface thickness. Boundary definitions therefore retain unresolved values, with material selection and physical behavior validation gated to later work. Unsupported numeric transition width or general interface thickness is rejected.
 
-- `nominal_transition_width_mm = None`
-- `nominal_interface_thickness_mm = None`
-- `material_status = UNSELECTED_VALIDATION_GATED`
-- `geometry_status = EDGE_TOPOLOGY_ONLY_WIDTH_PROFILE_AND_3D_CONFORMITY_UNRESOLVED`
+The authority eye inner-edge roll radius is preserved on the eye provenance definitions only as a rigid-edge design reference. It is not used as a compliant membrane roll radius, seal width, membrane thickness or contact-pressure parameter. No analogous roll radius is invented for mouth or nostril transitions.
 
-Iteration 12 explicitly rejects attempts to insert an unsupported numeric transition width or interface thickness into the boundary-definition object.
+## Digital invariants
 
-## Eye inner-edge roll reference
+The controlled Iteration-12 path requires:
 
-The engineering authority contains a 3.0 mm eye inner-edge roll radius. Iteration 12 preserves this value on the left and right eye transition definitions only as:
+- all six provenance partitions to remain present;
+- all four physical material/no-material boundary systems to be present and each form one closed connected loop;
+- every aperture transition edge to retain exact contact/protected source-region semantics;
+- no mesh edge to be assigned to multiple provenance boundaries;
+- no protected region to reach the outer development perimeter unexpectedly;
+- registered-mesh and registration-revision provenance to remain explicit;
+- left/right provenance discretizations to remain sagittally balanced on the neutral development surface;
+- deterministic SHA-256 identification;
+- no promotion to anatomical or physical validation evidence.
 
-`RIGID_EYE_INNER_EDGE_DESIGN_BASELINE_REFERENCE_NOT_COMPLIANT_PROFILE`
+## Evidence boundary
 
-It is not used as a compliant membrane roll radius, seal width, thickness or contact-pressure parameter.
-
-No analogous roll radius is defined by the authority for mouth or nostril transitions, so none is invented.
-
-## Topological invariants
-
-The builder verifies that:
-
-- all six boundary systems are present;
-- each boundary is one closed edge loop on the current development mesh;
-- no mesh edge is assigned to more than one controlled boundary;
-- every protected-aperture edge separates exactly one active contact triangle from exactly one protected triangle;
-- protected-region identity matches the boundary definition;
-- no protected region reaches the outer development perimeter unexpectedly;
-- the source surface, coverage segmentation and compliant-interface topology hashes are preserved;
-- neutral left/right eye and nostril transition discretizations remain sagittally balanced;
-- the result receives a deterministic SHA-256 identity;
-- the topology cannot be promoted to anatomical validation evidence.
-
-## What this iteration proves
-
-It proves that downstream CAD now has a deterministic answer to where the compliant field must terminate or transition around the face on the current development reference. It prevents later geometry from silently bridging an eye, mouth or nostril protected opening, losing a perimeter segment, or introducing an unsupported seal dimension as if it were authoritative.
-
-## What this iteration does not prove
-
-Iteration 12 does not prove:
-
-- seal effectiveness;
-- liquid ingress protection;
-- facial fit;
-- pressure distribution;
-- local membrane strain;
-- comfort;
-- compression set;
-- material compatibility;
-- final aperture-edge profile;
-- final perimeter profile;
-- 3D anatomical conformity;
-- cleansing efficacy.
-
-Those remain downstream digital and physical evidence gates.
+Iteration 12 does not prove seal effectiveness, liquid-ingress protection, facial fit, pressure distribution, membrane strain, comfort, compression set, material compatibility, final edge profiles, 3D anatomical conformity, airway performance or cleansing efficacy. Those remain downstream simulation and physical-evidence gates.
