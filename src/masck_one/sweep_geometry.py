@@ -19,12 +19,27 @@ def _finite3(values: tuple[float, float, float], *, label: str) -> tuple[float, 
     return out  # type: ignore[return-value]
 
 
+def _canonical_sha256(value: str, *, label: str) -> str:
+    digest = value.strip()
+    if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+        raise SweepGeometryError(f"{label} must be a lowercase canonical SHA-256 digest")
+    return digest
+
+
+def _frame_id(value: str) -> str:
+    frame = value.strip()
+    if not frame:
+        raise SweepGeometryError("AABB coordinate frame identity must be explicit")
+    return frame
+
+
 @dataclass(frozen=True, slots=True)
 class AABB:
-    """Closed axis-aligned world-coordinate bounding box in millimetres."""
+    """Closed axis-aligned bounding box in an explicit coordinate frame, in millimetres."""
 
     minimum_xyz_mm: tuple[float, float, float]
     maximum_xyz_mm: tuple[float, float, float]
+    frame_id: str = "MASCK_ONE_WORLD"
 
     def __post_init__(self) -> None:
         lo = _finite3(self.minimum_xyz_mm, label="AABB minimum")
@@ -33,8 +48,16 @@ class AABB:
             raise SweepGeometryError("AABB minimum cannot exceed maximum")
         object.__setattr__(self, "minimum_xyz_mm", lo)
         object.__setattr__(self, "maximum_xyz_mm", hi)
+        object.__setattr__(self, "frame_id", _frame_id(self.frame_id))
+
+    def _require_same_frame(self, other: "AABB") -> None:
+        if self.frame_id != other.frame_id:
+            raise SweepGeometryError(
+                f"AABB coordinate-frame mismatch: {self.frame_id!r} != {other.frame_id!r}"
+            )
 
     def intersects(self, other: "AABB", *, clearance_mm: float = 0.0) -> bool:
+        self._require_same_frame(other)
         clearance = float(clearance_mm)
         if not math.isfinite(clearance) or clearance < 0.0:
             raise SweepGeometryError("Collision clearance must be finite and non-negative")
@@ -49,16 +72,23 @@ class AABB:
         return AABB(
             tuple(self.minimum_xyz_mm[i] + delta[i] for i in range(3)),
             tuple(self.maximum_xyz_mm[i] + delta[i] for i in range(3)),
+            frame_id=self.frame_id,
         )
 
     def union(self, other: "AABB") -> "AABB":
+        self._require_same_frame(other)
         return AABB(
             tuple(min(self.minimum_xyz_mm[i], other.minimum_xyz_mm[i]) for i in range(3)),
             tuple(max(self.maximum_xyz_mm[i], other.maximum_xyz_mm[i]) for i in range(3)),
+            frame_id=self.frame_id,
         )
 
     def manifest(self) -> dict[str, object]:
-        return {"minimum_xyz_mm": list(self.minimum_xyz_mm), "maximum_xyz_mm": list(self.maximum_xyz_mm)}
+        return {
+            "minimum_xyz_mm": list(self.minimum_xyz_mm),
+            "maximum_xyz_mm": list(self.maximum_xyz_mm),
+            "frame_id": self.frame_id,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,10 +110,10 @@ class LinearSweep:
     def __post_init__(self) -> None:
         if not self.source_id.strip():
             raise SweepGeometryError("Sweep source identity must be explicit")
-        _finite3(self.translation_xyz_mm, label="sweep translation")
-        digest = self.source_geometry_sha256.lower()
-        if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
-            raise SweepGeometryError("Sweep source geometry identity must be SHA-256")
+        translation = _finite3(self.translation_xyz_mm, label="sweep translation")
+        object.__setattr__(self, "translation_xyz_mm", translation)
+        digest = _canonical_sha256(self.source_geometry_sha256, label="Sweep source geometry identity")
+        object.__setattr__(self, "source_geometry_sha256", digest)
         if not self.rotation_invariant:
             raise SweepGeometryError(
                 "LinearSweep cannot certify changing orientation; provide a proven conservative rotational envelope"
@@ -111,6 +141,7 @@ class LinearSweep:
         payload: dict[str, object] = {
             "source_id": self.source_id,
             "source_geometry_sha256": self.source_geometry_sha256,
+            "coordinate_frame_id": self.start_box.frame_id,
             "start_box": self.start_box.manifest(),
             "translation_xyz_mm": list(self.translation_xyz_mm),
             "end_box": self.end_box.manifest(),
@@ -126,8 +157,6 @@ class LinearSweep:
 
 def require_fresh_sweep_source(sweep: LinearSweep, *, expected_geometry_sha256: str) -> None:
     """Reject a validly formatted but stale geometry identity before collision use."""
-    expected = expected_geometry_sha256.lower()
-    if len(expected) != 64 or any(c not in "0123456789abcdef" for c in expected):
-        raise SweepGeometryError("Expected geometry identity must be SHA-256")
-    if sweep.source_geometry_sha256.lower() != expected:
+    expected = _canonical_sha256(expected_geometry_sha256, label="Expected geometry identity")
+    if sweep.source_geometry_sha256 != expected:
         raise SweepGeometryError("Sweep geometry provenance is stale for the current source geometry")
