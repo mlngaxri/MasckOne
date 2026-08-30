@@ -138,7 +138,21 @@ class LinearSweep:
         raw = json.dumps(self.manifest(include_sha=False), sort_keys=True, separators=(",", ":")).encode("utf-8")
         return hashlib.sha256(raw).hexdigest()
 
-    def collides_with(self, keepout: AABB, *, clearance_mm: float = 0.0) -> bool:
+    def collides_with(
+        self,
+        keepout: AABB,
+        *,
+        expected_geometry_sha256: str,
+        clearance_mm: float = 0.0,
+    ) -> bool:
+        """Evaluate collision only after proving the sweep is current for its source geometry.
+
+        Freshness is intentionally part of the collision API rather than an optional
+        pre-check. A stale but otherwise well-formed sweep must not be able to produce a
+        release-relevant collision boolean simply because a caller forgot to invoke a
+        separate provenance helper.
+        """
+        require_fresh_sweep_source(self, expected_geometry_sha256=expected_geometry_sha256)
         return self.continuous_envelope.intersects(keepout, clearance_mm=clearance_mm)
 
     def manifest(self, *, include_sha: bool = True) -> dict[str, object]:
