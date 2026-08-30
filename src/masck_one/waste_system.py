@@ -10,7 +10,12 @@ from dataclasses import dataclass
 from enum import Enum
 from hashlib import sha256
 import json
+import re
 from typing import Mapping
+
+
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
 class EvidenceState(str, Enum):
@@ -31,17 +36,24 @@ class Orientation(str, Enum):
 
 REQUIRED_ORIENTATIONS = frozenset(Orientation)
 REQUIRED_MIXED_PHASE_FAULTS = frozenset({
-    "pump_off_power_loss",
-    "gas_ingestion",
-    "liquid_slugging",
-    "foam_ingestion",
-    "route_occlusion",
-    "backflow",
-    "cartridge_missing",
-    "cartridge_misinstalled",
-    "cartridge_full_or_reduced_retention",
-    "protected_region_pooling",
+    "pump_off_power_loss", "gas_ingestion", "liquid_slugging", "foam_ingestion",
+    "route_occlusion", "backflow", "cartridge_missing", "cartridge_misinstalled",
+    "cartridge_full_or_reduced_retention", "protected_region_pooling",
 })
+
+
+@dataclass(frozen=True)
+class EvidenceReference:
+    """Cryptographic identity for evidence eligible to support VERIFIED state."""
+    evidence_id: str
+    revision: str
+    artifact_sha256: str
+
+    def validate(self) -> None:
+        if not self.evidence_id.strip() or not self.revision.strip():
+            raise ValueError("verified evidence requires non-empty id and revision")
+        if not _SHA256_RE.fullmatch(self.artifact_sha256):
+            raise ValueError("verified evidence artifact_sha256 must be lowercase 64-hex")
 
 
 @dataclass(frozen=True)
@@ -63,7 +75,7 @@ class CapacityContract:
     target_status: str
     usable_capacity_ml: float | None = None
     usable_capacity_state: EvidenceState = EvidenceState.UNRESOLVED
-    evidence_id: str | None = None
+    evidence: EvidenceReference | None = None
     credits_absorbent_media_volume: bool = False
 
     def validate(self) -> None:
@@ -72,13 +84,14 @@ class CapacityContract:
         if self.credits_absorbent_media_volume:
             raise ValueError("absorbent/media volume credit requires separate physical evidence and is not allowed in the digital baseline")
         if self.usable_capacity_ml is None:
-            if self.usable_capacity_state is EvidenceState.VERIFIED or self.evidence_id is not None:
+            if self.usable_capacity_state is EvidenceState.VERIFIED or self.evidence is not None:
                 raise ValueError("usable capacity cannot be verified without a numeric result and evidence")
             return
         if self.usable_capacity_ml <= 0:
             raise ValueError("usable capacity must be positive")
-        if self.usable_capacity_state is not EvidenceState.VERIFIED or not self.evidence_id:
-            raise ValueError("numeric usable capacity is blocked until it is VERIFIED with evidence_id")
+        if self.usable_capacity_state is not EvidenceState.VERIFIED or self.evidence is None:
+            raise ValueError("numeric usable capacity is blocked until it is VERIFIED with cryptographic evidence")
+        self.evidence.validate()
 
 
 @dataclass(frozen=True)
@@ -91,23 +104,20 @@ class OrientationCase:
     cartridge_assumption: str
     backflow_assumption: str
     evidence_state: EvidenceState = EvidenceState.VALIDATION_GATED
-    evidence_id: str | None = None
+    evidence: EvidenceReference | None = None
 
     def validate(self) -> None:
-        for value in (
-            self.pickup_assumption,
-            self.air_location_assumption,
-            self.drainage_or_capillary_assumption,
-            self.pump_inlet_assumption,
-            self.cartridge_assumption,
-            self.backflow_assumption,
-        ):
+        for value in (self.pickup_assumption, self.air_location_assumption,
+                      self.drainage_or_capillary_assumption, self.pump_inlet_assumption,
+                      self.cartridge_assumption, self.backflow_assumption):
             if not value.strip():
                 raise ValueError(f"orientation {self.orientation.value} has an empty assumption")
-        if self.evidence_state is EvidenceState.VERIFIED and not self.evidence_id:
-            raise ValueError("verified orientation behavior requires evidence_id")
-        if self.evidence_state is not EvidenceState.VERIFIED and self.evidence_id:
-            raise ValueError("evidence_id may only be attached to VERIFIED orientation behavior")
+        if self.evidence_state is EvidenceState.VERIFIED:
+            if self.evidence is None:
+                raise ValueError("verified orientation behavior requires cryptographic evidence")
+            self.evidence.validate()
+        elif self.evidence is not None:
+            raise ValueError("evidence may only be attached to VERIFIED orientation behavior")
 
 
 @dataclass(frozen=True)
@@ -120,7 +130,8 @@ class WasteArchitecture:
     orientation_cases: Mapping[Orientation, OrientationCase]
 
     def validate(self) -> None:
-        if len(self.source_main_sha) != 40 or any(c not in "0123456789abcdef" for c in self.source_main_sha):
+        """Validate intrinsic integrity while preserving historical provenance."""
+        if not _GIT_SHA_RE.fullmatch(self.source_main_sha):
             raise ValueError("source_main_sha must be a lowercase 40-character Git SHA")
         if not self.authority_revision.strip():
             raise ValueError("authority revision is required")
@@ -140,39 +151,49 @@ class WasteArchitecture:
                 raise ValueError("orientation mapping key does not match case orientation")
             case.validate()
 
+    def validate_current_release(self, *, expected_main_sha: str, expected_authority_revision: str) -> None:
+        """Validate intrinsic integrity plus freshness against the release context.
+
+        Historical objects remain readable through validate(), but an object cannot be
+        released as current merely because its recorded SHA/revision are syntactically valid.
+        """
+        self.validate()
+        if not _GIT_SHA_RE.fullmatch(expected_main_sha):
+            raise ValueError("expected_main_sha must be a lowercase 40-character Git SHA")
+        if not expected_authority_revision.strip():
+            raise ValueError("expected_authority_revision is required")
+        if self.source_main_sha != expected_main_sha:
+            raise ValueError("waste architecture is stale for the expected upstream main SHA")
+        if self.authority_revision != expected_authority_revision:
+            raise ValueError("waste architecture is stale for the expected authority revision")
+
     def manifest_sha256(self) -> str:
         self.validate()
+        def evidence_payload(evidence: EvidenceReference | None):
+            return None if evidence is None else {
+                "evidence_id": evidence.evidence_id,
+                "revision": evidence.revision,
+                "artifact_sha256": evidence.artifact_sha256,
+            }
         payload = {
             "source_main_sha": self.source_main_sha,
             "authority_revision": self.authority_revision,
-            "envelope": {
-                "x_mm": self.envelope.x_mm,
-                "y_mm": self.envelope.y_mm,
-                "z_mm": self.envelope.z_mm,
-                "authority_status": self.envelope.authority_status,
-            },
-            "capacity": {
-                "retained_capacity_target_ml": self.capacity.retained_capacity_target_ml,
-                "target_status": self.capacity.target_status,
-                "usable_capacity_ml": self.capacity.usable_capacity_ml,
-                "usable_capacity_state": self.capacity.usable_capacity_state.value,
-                "evidence_id": self.capacity.evidence_id,
-                "credits_absorbent_media_volume": self.capacity.credits_absorbent_media_volume,
-            },
+            "envelope": {"x_mm": self.envelope.x_mm, "y_mm": self.envelope.y_mm,
+                         "z_mm": self.envelope.z_mm, "authority_status": self.envelope.authority_status},
+            "capacity": {"retained_capacity_target_ml": self.capacity.retained_capacity_target_ml,
+                         "target_status": self.capacity.target_status,
+                         "usable_capacity_ml": self.capacity.usable_capacity_ml,
+                         "usable_capacity_state": self.capacity.usable_capacity_state.value,
+                         "evidence": evidence_payload(self.capacity.evidence),
+                         "credits_absorbent_media_volume": self.capacity.credits_absorbent_media_volume},
             "faults": sorted(self.faults),
-            "orientations": {
-                orientation.value: {
-                    "pickup": case.pickup_assumption,
-                    "air": case.air_location_assumption,
-                    "drainage": case.drainage_or_capillary_assumption,
-                    "pump_inlet": case.pump_inlet_assumption,
-                    "cartridge": case.cartridge_assumption,
-                    "backflow": case.backflow_assumption,
-                    "evidence_state": case.evidence_state.value,
-                    "evidence_id": case.evidence_id,
-                }
-                for orientation, case in sorted(self.orientation_cases.items(), key=lambda item: item[0].value)
-            },
+            "orientations": {orientation.value: {
+                "pickup": case.pickup_assumption, "air": case.air_location_assumption,
+                "drainage": case.drainage_or_capillary_assumption,
+                "pump_inlet": case.pump_inlet_assumption, "cartridge": case.cartridge_assumption,
+                "backflow": case.backflow_assumption, "evidence_state": case.evidence_state.value,
+                "evidence": evidence_payload(case.evidence),
+            } for orientation, case in sorted(self.orientation_cases.items(), key=lambda item: item[0].value)},
         }
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
         return sha256(encoded).hexdigest()
