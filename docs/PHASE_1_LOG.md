@@ -109,3 +109,72 @@ This iteration deliberately leaves product geometry unchanged. Its sole engineer
 - No physical validation status promotion.
 
 The next iteration may establish the canonical coordinate/datum API because the authority it consumes is now contract-validated first.
+
+---
+
+## Iteration 3 — canonical spatial and datum contract
+
+### Scope
+
+This iteration deliberately avoids inventing new facial, actuator, fluid or shell geometry. It establishes the mathematical/spatial infrastructure that every later geometry-bearing subsystem must use so coordinates, vectors, transforms, symmetry operations, local frames and imported reference data cannot acquire inconsistent axis conventions.
+
+### Implemented
+
+- Added `src/masck_one/spatial.py` as the canonical spatial API.
+- Added finite-value validation for all spatial primitives.
+- Added typed `Point2`, `Point3` and `Vector3` objects.
+- Added explicit point-versus-vector behavior so translations cannot be applied accidentally to directions.
+- Added vector dot product, cross product, norm, normalization and scaling.
+- Added immutable `Matrix3` rotation support.
+- Added right-handed rotation constructors around global X, Y and Z.
+- Added determinant and orthonormal/right-handed validation.
+- Added `RigidTransform` with explicit point and vector transformation semantics.
+- Added analytical rigid-transform inverse.
+- Added unambiguous `followed_by(...)` transform-composition semantics.
+- Added an explicit extrinsic XYZ pose-construction convention using `Rz * Ry * Rx`.
+- Added `DatumFrame` with mandatory right-handed orthonormal axes.
+- Added `DatumPlane` with signed-distance and projection operations.
+- Added `CanonicalDatums.from_authority(...)`, deriving the spatial contract directly from the frozen authority rather than duplicating the origin/axis definitions.
+- Added stable principal datum identifiers:
+  - `MASCK_ONE_GLOBAL`;
+  - `MASCK_ONE_SAGITTAL_X0`;
+  - `MASCK_ONE_TRANSVERSE_Y0`;
+  - `MASCK_ONE_CORONAL_Z0`.
+- Added canonical sagittal mirroring.
+- Added `authority_point2(...)` and `authority_point3(...)` adapters so authority coordinate arrays cannot acquire call-site-specific ordering semantics.
+- Migrated current eye, mouth and nostril center consumption in CAD generation through typed authority adapters.
+- Migrated current packaging-center translations through `Point3` before crossing the CadQuery tuple API boundary.
+- Added canonical datums to every `MasckOneModel` instance.
+- Added a dedicated spatial-contract preflight check.
+- Added a detailed `docs/COORDINATE_SYSTEM.md` contract for future CAD, simulation, fixtures, supplier imports and render exports.
+- Added adversarial/unit tests covering handedness, sign conventions, mirror behavior, rigid inverse round trips, transform ordering, frame round trips, projection, zero vectors, non-finite values, non-orthonormal matrices and left-handed frames.
+- Exposed spatial primitives lazily at the package boundary without forcing CadQuery import for authority-only operations.
+
+### Evidence required before merge
+
+1. Existing authority/schema validation remains `PASS`.
+2. Canonical datum origin remains exactly `(0, 0, 0)` mm.
+3. Axis semantics remain `+X wearer-right`, `+Y superior`, `+Z anterior`.
+4. `+X × +Y = +Z` and determinant of all accepted frame rotations is `+1`.
+5. Positive Z and Y rotation sign tests pass.
+6. Rigid-transform inverse round trips recover representative points/vectors within numerical tolerance.
+7. Transform-composition order is proven by a non-commuting translate/rotate test.
+8. Left-handed and non-orthonormal frames are rejected deterministically.
+9. NaN/infinite spatial inputs are rejected deterministically.
+10. Existing CAD model tests remain unchanged in engineering outcome.
+11. Deterministic CAD smoke build remains `PASS` after typed-coordinate migration.
+12. Repository preflight reports Phase 1 / Iteration 3 and the spatial contract passes.
+13. GitHub Actions completes successfully on the pull-request head before merge.
+
+### Explicitly not attempted in this iteration
+
+- No final facial-reference surface.
+- No new anthropometric landmark values.
+- No dynamic eye/mouth/airway keep-out geometry.
+- No new actuator placements.
+- No shell Class-A redesign.
+- No fluid-routing changes.
+- No final subsystem-local datum positions whose authority is not yet explicit.
+- No physical validation status promotion.
+
+The next iteration can establish the first canonical facial-reference and landmark layer because all future geometry now has a tested coordinate/transform contract beneath it.

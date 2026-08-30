@@ -9,6 +9,7 @@ import sys
 from typing import Iterable
 
 from .authority import AuthorityError, load_authority
+from .spatial import CanonicalDatums, SpatialContractError
 
 
 REQUIRED_PYTHON = (3, 13)
@@ -67,21 +68,24 @@ def _check_dependencies() -> list[PreflightCheck]:
     return checks
 
 
-def _check_authority() -> list[PreflightCheck]:
+def _check_authority() -> tuple[list[PreflightCheck], object | None]:
     try:
         authority = load_authority()
     except AuthorityError as exc:
-        return [
-            PreflightCheck(
-                id="AUTHORITY_LOAD",
-                status="FAIL",
-                message="Machine authority must load without schema or semantic errors.",
-                actual=str(exc),
-                expected="valid authority",
-            )
-        ]
+        return (
+            [
+                PreflightCheck(
+                    id="AUTHORITY_LOAD",
+                    status="FAIL",
+                    message="Machine authority must load without schema or semantic errors.",
+                    actual=str(exc),
+                    expected="valid authority",
+                )
+            ],
+            None,
+        )
 
-    return [
+    checks = [
         PreflightCheck("AUTHORITY_LOAD", "PASS", "Machine authority loads successfully."),
         PreflightCheck(
             "AUTHORITY_CONTRACT",
@@ -112,6 +116,57 @@ def _check_authority() -> list[PreflightCheck]:
             "1.0.0",
         ),
     ]
+    return checks, authority
+
+
+def _check_spatial_contract(authority: object | None) -> PreflightCheck:
+    if authority is None:
+        return PreflightCheck(
+            "SPATIAL_CONTRACT",
+            "FAIL",
+            "Canonical spatial datums require a valid machine authority.",
+            None,
+            "valid authority and right-handed canonical datums",
+        )
+    try:
+        datums = CanonicalDatums.from_authority(authority)
+    except SpatialContractError as exc:
+        return PreflightCheck(
+            "SPATIAL_CONTRACT",
+            "FAIL",
+            "Canonical spatial datums must be finite, orthonormal, right-handed, and authority-aligned.",
+            str(exc),
+            "valid canonical datums",
+        )
+    actual = {
+        "origin": datums.global_frame.origin.as_tuple(),
+        "x_axis": datums.global_frame.x_axis.as_tuple(),
+        "y_axis": datums.global_frame.y_axis.as_tuple(),
+        "z_axis": datums.global_frame.z_axis.as_tuple(),
+        "planes": [
+            datums.sagittal_plane.name,
+            datums.transverse_plane.name,
+            datums.coronal_plane.name,
+        ],
+    }
+    expected = {
+        "origin": (0.0, 0.0, 0.0),
+        "x_axis": (1.0, 0.0, 0.0),
+        "y_axis": (0.0, 1.0, 0.0),
+        "z_axis": (0.0, 0.0, 1.0),
+        "planes": [
+            "MASCK_ONE_SAGITTAL_X0",
+            "MASCK_ONE_TRANSVERSE_Y0",
+            "MASCK_ONE_CORONAL_Z0",
+        ],
+    }
+    return PreflightCheck(
+        "SPATIAL_CONTRACT",
+        "PASS" if actual == expected else "FAIL",
+        "Canonical origin, axes and principal datum planes match the frozen Masck One convention.",
+        actual,
+        expected,
+    )
 
 
 def _iter_text_files(root: Path) -> Iterable[Path]:
@@ -149,12 +204,14 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "schemas/masck_one_authority.schema.json",
         "src/masck_one/__init__.py",
         "src/masck_one/authority.py",
+        "src/masck_one/spatial.py",
         "src/masck_one/model.py",
         "src/masck_one/assertions.py",
         "src/masck_one/export.py",
         "src/masck_one/cli.py",
         "tests/test_authority.py",
         "tests/test_authority_contract.py",
+        "tests/test_spatial.py",
         "tests/test_model.py",
     ]
     missing = [item for item in required if not (root / item).exists()]
@@ -169,10 +226,12 @@ def _check_required_structure(root: Path) -> PreflightCheck:
 
 def run_preflight() -> dict[str, object]:
     root = repository_root()
+    authority_checks, authority = _check_authority()
     checks = [
         _check_python(),
         *_check_dependencies(),
-        *_check_authority(),
+        *authority_checks,
+        _check_spatial_contract(authority),
         _check_legacy_naming(root),
         _check_required_structure(root),
     ]
@@ -180,7 +239,7 @@ def run_preflight() -> dict[str, object]:
     return {
         "project": "Masck One",
         "phase": "1",
-        "iteration": "2",
+        "iteration": "3",
         "result": result,
         "checks": [check.to_dict() for check in checks],
     }

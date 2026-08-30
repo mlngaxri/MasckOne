@@ -10,6 +10,8 @@ The project is intentionally strict about the difference between a value that ca
 
 The existing code-CAD baseline currently generates the rigid shell development geometry, dedicated nasal/T-zone interface, nominal protected apertures, four actuator packaging references, water-reservoir envelope, waste-cartridge envelope, battery packaging reference, STEP exports, and a structured assertion report. These are development artifacts, not a claim that fit, cleansing efficacy, airflow, pressure, materials, or production readiness have been physically validated.
 
+Phase 1 also now provides a canonical spatial/datum API. All later geometry-bearing work has one tested right-handed convention beneath it: `+X` wearer-right, `+Y` superior, `+Z` anterior, with explicit typed points/vectors, rigid transforms, principal datum planes, transform composition, and authority-coordinate adapters.
+
 ## Repository principles
 
 - Product name: **Masck One**.
@@ -18,6 +20,8 @@ The existing code-CAD baseline currently generates the rigid shell development g
 - `schemas/masck_one_authority.schema.json` is the strict structural contract for that authority.
 - Authority loading also runs deterministic semantic cross-checks before CAD generation is permitted.
 - Duplicate YAML keys are rejected rather than silently overwritten.
+- `src/masck_one/spatial.py` is the canonical spatial/transform API for geometry-bearing code.
+- `docs/COORDINATE_SYSTEM.md` defines the global frame, principal planes, handedness, rotation signs, transform order, unit boundary, and external-geometry import rules.
 - Generated CAD must be reproducible from source.
 - Validation-gated requirements remain validation-gated until evidence closes them.
 - Missing real-world evidence is represented explicitly rather than fabricated.
@@ -53,7 +57,7 @@ This performs strict JSON Schema validation followed by deterministic semantic c
 python -m masck_one.preflight
 ```
 
-Preflight checks the controlled runtime/dependencies, authority contract, product identity, required source structure, and repository naming invariant.
+Preflight checks the controlled runtime/dependencies, authority contract, canonical spatial contract, product identity, required source structure, and repository naming invariant.
 
 ## Test
 
@@ -73,5 +77,7 @@ The build emits STEP files and `build_report.json`. Software-verifiable failures
 ## Engineering governance
 
 Read [`docs/ENGINEERING_GOVERNANCE.md`](docs/ENGINEERING_GOVERNANCE.md) before changing authoritative parameters or CAD architecture.
+
+Read [`docs/COORDINATE_SYSTEM.md`](docs/COORDINATE_SYSTEM.md) before adding geometry, local datum frames, imported headforms/supplier CAD, fixture coordinates, pose transforms, or render-export transforms.
 
 Development progress is recorded in [`docs/PHASE_1_LOG.md`](docs/PHASE_1_LOG.md).
