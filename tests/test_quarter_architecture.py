@@ -9,7 +9,11 @@ from masck_one.quarter_architecture import build_quarter_architecture
 from masck_one.quarter_preflight import run_quarter_preflight
 from masck_one.surface_workflow import SurfaceSample, SurfaceWorkflowError
 from masck_one.spatial import Point2, Point3
-from masck_one.waste_architecture import REQUIRED_FAULT_STATES, WasteArchitectureError
+from masck_one.waste_architecture import (
+    REQUIRED_FAULT_STATES,
+    REQUIRED_ORIENTATION_CASES,
+    WasteArchitectureError,
+)
 
 
 @pytest.fixture(scope="module")
@@ -115,12 +119,26 @@ def test_waste_pump_enumerates_faults_without_claiming_mixed_phase_performance(q
     assert pump.cad_envelope().val().Volume() == pytest.approx(25.0 * 25.0 * 8.2)
 
 
-def test_cartridge_reserves_capacity_without_promoting_it_to_evidence(quarter):
+def test_cartridge_keeps_bounding_volume_separate_from_retained_capacity(quarter):
     cartridge = quarter.waste.cartridge
     assert cartridge.external_envelope_mm == (74.0, 36.0, 20.0)
-    assert cartridge.cad_capacity_reservation().val().Volume() / 1000.0 == pytest.approx(35.0)
+    assert cartridge.external_bounding_volume_mL == pytest.approx(53.28)
+    assert cartridge.retained_capacity_target_mL == pytest.approx(35.0)
+    assert cartridge.internal_usable_capacity_mL is None
     assert cartridge.retained_capacity_status == "VALIDATION_GATED"
-    assert quarter.waste.physical_validation_eligible is False
+    assert "NO_ABSORBENT" in cartridge.media_status
+    with pytest.raises(WasteArchitectureError, match="No capacity solid"):
+        cartridge.cad_capacity_reservation()
+    with pytest.raises(WasteArchitectureError, match="Internal usable cartridge capacity"):
+        replace(cartridge, internal_usable_capacity_mL=35.0)
+
+
+def test_waste_orientation_cases_are_registered_without_fake_pass_status(quarter):
+    waste = quarter.waste
+    assert set(waste.orientation_case_ids) == set(REQUIRED_ORIENTATION_CASES)
+    assert "NO_PASS_STATUS" in waste.orientation_validation_status
+    with pytest.raises(WasteArchitectureError, match="every controlled orientation case"):
+        replace(waste, orientation_case_ids=waste.orientation_case_ids[:-1])
 
 
 def test_complete_fluid_routes_reject_invented_dimensions(quarter):
