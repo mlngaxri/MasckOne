@@ -20,6 +20,12 @@ if TYPE_CHECKING:
         NasalLobeThicknessAuthority,
     )
     from .model import MasckOneModel
+    from .nasal_subsystem import (
+        NasalDevelopmentBoundaries,
+        NasalRoleDefinition,
+        NasalSubsystemTopology,
+        NasalTriangleAssignment,
+    )
     from .protected_volumes import PlanarProtectedZone, ProtectedVolume, ProtectedVolumeSet
     from .reference_surfaces import ReferenceSurfaceAsset, SurfaceProvenance, SurfaceRegistration, TriangleMesh
     from .spatial import CanonicalDatums, DatumFrame, DatumPlane, Point2, Point3, RigidTransform, Vector3
@@ -42,6 +48,10 @@ __all__ = [
     "InterfaceParameterZone",
     "InterfaceTriangleAssignment",
     "NasalLobeThicknessAuthority",
+    "NasalDevelopmentBoundaries",
+    "NasalRoleDefinition",
+    "NasalSubsystemTopology",
+    "NasalTriangleAssignment",
     "ReferenceSurfaceAsset",
     "SurfaceProvenance",
     "SurfaceRegistration",
@@ -64,6 +74,8 @@ __all__ = [
     "build_facial_coverage_mesh",
     "build_t_zone_development_definition",
     "build_compliant_interface_topology",
+    "build_nasal_subsystem_topology",
+    "derive_nasal_development_boundaries",
     "generate_hard_envelope_regression_set",
     "protected_zone_regression_bounds",
     "build_model",
@@ -78,43 +90,18 @@ def __getattr__(name: str) -> Any:
 
     if name in {"FacialReferenceLayer", "PlanarLandmark", "build_facial_reference"}:
         from .anatomy import FacialReferenceLayer, PlanarLandmark, build_facial_reference
-        return {
-            "FacialReferenceLayer": FacialReferenceLayer,
-            "PlanarLandmark": PlanarLandmark,
-            "build_facial_reference": build_facial_reference,
-        }[name]
+        return {"FacialReferenceLayer": FacialReferenceLayer, "PlanarLandmark": PlanarLandmark, "build_facial_reference": build_facial_reference}[name]
 
     if name in {"FacialSurface", "FacialSurfaceDescriptor", "build_planar_development_surface"}:
         from .facial_surface import FacialSurface, FacialSurfaceDescriptor, build_planar_development_surface
-        return {
-            "FacialSurface": FacialSurface,
-            "FacialSurfaceDescriptor": FacialSurfaceDescriptor,
-            "build_planar_development_surface": build_planar_development_surface,
-        }[name]
+        return {"FacialSurface": FacialSurface, "FacialSurfaceDescriptor": FacialSurfaceDescriptor, "build_planar_development_surface": build_planar_development_surface}[name]
 
     if name in {"PlanarProtectedZone", "ProtectedVolume", "ProtectedVolumeSet", "build_protected_volumes"}:
         from .protected_volumes import PlanarProtectedZone, ProtectedVolume, ProtectedVolumeSet, build_protected_volumes
-        return {
-            "PlanarProtectedZone": PlanarProtectedZone,
-            "ProtectedVolume": ProtectedVolume,
-            "ProtectedVolumeSet": ProtectedVolumeSet,
-            "build_protected_volumes": build_protected_volumes,
-        }[name]
+        return {"PlanarProtectedZone": PlanarProtectedZone, "ProtectedVolume": ProtectedVolume, "ProtectedVolumeSet": ProtectedVolumeSet, "build_protected_volumes": build_protected_volumes}[name]
 
-    if name in {
-        "FacialCoverageMesh",
-        "CoverageEvaluation",
-        "TZoneDevelopmentDefinition",
-        "build_facial_coverage_mesh",
-        "build_t_zone_development_definition",
-    }:
-        from .coverage import (
-            CoverageEvaluation,
-            FacialCoverageMesh,
-            TZoneDevelopmentDefinition,
-            build_facial_coverage_mesh,
-            build_t_zone_development_definition,
-        )
+    if name in {"FacialCoverageMesh", "CoverageEvaluation", "TZoneDevelopmentDefinition", "build_facial_coverage_mesh", "build_t_zone_development_definition"}:
+        from .coverage import CoverageEvaluation, FacialCoverageMesh, TZoneDevelopmentDefinition, build_facial_coverage_mesh, build_t_zone_development_definition
         return {
             "FacialCoverageMesh": FacialCoverageMesh,
             "CoverageEvaluation": CoverageEvaluation,
@@ -123,20 +110,8 @@ def __getattr__(name: str) -> Any:
             "build_t_zone_development_definition": build_t_zone_development_definition,
         }[name]
 
-    if name in {
-        "CompliantInterfaceTopology",
-        "InterfaceParameterZone",
-        "InterfaceTriangleAssignment",
-        "NasalLobeThicknessAuthority",
-        "build_compliant_interface_topology",
-    }:
-        from .interface_topology import (
-            CompliantInterfaceTopology,
-            InterfaceParameterZone,
-            InterfaceTriangleAssignment,
-            NasalLobeThicknessAuthority,
-            build_compliant_interface_topology,
-        )
+    if name in {"CompliantInterfaceTopology", "InterfaceParameterZone", "InterfaceTriangleAssignment", "NasalLobeThicknessAuthority", "build_compliant_interface_topology"}:
+        from .interface_topology import CompliantInterfaceTopology, InterfaceParameterZone, InterfaceTriangleAssignment, NasalLobeThicknessAuthority, build_compliant_interface_topology
         return {
             "CompliantInterfaceTopology": CompliantInterfaceTopology,
             "InterfaceParameterZone": InterfaceParameterZone,
@@ -145,31 +120,30 @@ def __getattr__(name: str) -> Any:
             "build_compliant_interface_topology": build_compliant_interface_topology,
         }[name]
 
-    if name in {"ReferenceSurfaceAsset", "SurfaceProvenance", "SurfaceRegistration", "TriangleMesh"}:
-        from .reference_surfaces import ReferenceSurfaceAsset, SurfaceProvenance, SurfaceRegistration, TriangleMesh
+    if name in {"NasalDevelopmentBoundaries", "NasalRoleDefinition", "NasalSubsystemTopology", "NasalTriangleAssignment", "build_nasal_subsystem_topology", "derive_nasal_development_boundaries"}:
+        from .nasal_subsystem import (
+            NasalDevelopmentBoundaries,
+            NasalRoleDefinition,
+            NasalSubsystemTopology,
+            NasalTriangleAssignment,
+            build_nasal_subsystem_topology,
+            derive_nasal_development_boundaries,
+        )
         return {
-            "ReferenceSurfaceAsset": ReferenceSurfaceAsset,
-            "SurfaceProvenance": SurfaceProvenance,
-            "SurfaceRegistration": SurfaceRegistration,
-            "TriangleMesh": TriangleMesh,
+            "NasalDevelopmentBoundaries": NasalDevelopmentBoundaries,
+            "NasalRoleDefinition": NasalRoleDefinition,
+            "NasalSubsystemTopology": NasalSubsystemTopology,
+            "NasalTriangleAssignment": NasalTriangleAssignment,
+            "build_nasal_subsystem_topology": build_nasal_subsystem_topology,
+            "derive_nasal_development_boundaries": derive_nasal_development_boundaries,
         }[name]
 
-    if name in {
-        "WornPose",
-        "WornPoseLimits",
-        "WornPoseRegressionSet",
-        "PosedZoneBounds",
-        "generate_hard_envelope_regression_set",
-        "protected_zone_regression_bounds",
-    }:
-        from .worn_pose import (
-            PosedZoneBounds,
-            WornPose,
-            WornPoseLimits,
-            WornPoseRegressionSet,
-            generate_hard_envelope_regression_set,
-            protected_zone_regression_bounds,
-        )
+    if name in {"ReferenceSurfaceAsset", "SurfaceProvenance", "SurfaceRegistration", "TriangleMesh"}:
+        from .reference_surfaces import ReferenceSurfaceAsset, SurfaceProvenance, SurfaceRegistration, TriangleMesh
+        return {"ReferenceSurfaceAsset": ReferenceSurfaceAsset, "SurfaceProvenance": SurfaceProvenance, "SurfaceRegistration": SurfaceRegistration, "TriangleMesh": TriangleMesh}[name]
+
+    if name in {"WornPose", "WornPoseLimits", "WornPoseRegressionSet", "PosedZoneBounds", "generate_hard_envelope_regression_set", "protected_zone_regression_bounds"}:
+        from .worn_pose import PosedZoneBounds, WornPose, WornPoseLimits, WornPoseRegressionSet, generate_hard_envelope_regression_set, protected_zone_regression_bounds
         return {
             "WornPose": WornPose,
             "WornPoseLimits": WornPoseLimits,
@@ -183,24 +157,8 @@ def __getattr__(name: str) -> Any:
         from .model import MasckOneModel, build_model
         return {"MasckOneModel": MasckOneModel, "build_model": build_model}[name]
 
-    if name in {
-        "CanonicalDatums",
-        "DatumFrame",
-        "DatumPlane",
-        "Point2",
-        "Point3",
-        "RigidTransform",
-        "Vector3",
-    }:
+    if name in {"CanonicalDatums", "DatumFrame", "DatumPlane", "Point2", "Point3", "RigidTransform", "Vector3"}:
         from .spatial import CanonicalDatums, DatumFrame, DatumPlane, Point2, Point3, RigidTransform, Vector3
-        return {
-            "CanonicalDatums": CanonicalDatums,
-            "DatumFrame": DatumFrame,
-            "DatumPlane": DatumPlane,
-            "Point2": Point2,
-            "Point3": Point3,
-            "RigidTransform": RigidTransform,
-            "Vector3": Vector3,
-        }[name]
+        return {"CanonicalDatums": CanonicalDatums, "DatumFrame": DatumFrame, "DatumPlane": DatumPlane, "Point2": Point2, "Point3": Point3, "RigidTransform": RigidTransform, "Vector3": Vector3}[name]
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
