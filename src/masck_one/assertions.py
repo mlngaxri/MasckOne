@@ -131,6 +131,46 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
         },
     ))
 
+    coverage = model.coverage_mesh
+    coverage_pass = (
+        len(coverage.triangles) == model.facial_surface.mesh.triangle_count
+        and coverage.area_conservation_error_mm2 <= 1e-8
+        and coverage.target_area_mm2 > 0.0
+        and coverage.t_zone_target_area_mm2 > 0.0
+        and coverage.philtrum_target_area_mm2 > 0.0
+        and coverage.aggregate_min_percent == a.number("coverage", "aggregate_min_percent")
+        and coverage.t_zone_min_percent == a.number("coverage", "t_zone_min_percent")
+        and coverage.unexplained_hole_max_mm2 == a.number("coverage", "unexplained_hole_max_mm2")
+        and coverage.anatomical_validation_eligible is False
+        and len(coverage.segmentation_sha256) == 64
+        and "NOT_ANATOMICAL_VALIDATION" in coverage.segmentation_status
+    )
+    checks.append(Check(
+        "COVERAGE_MESH_TOPOLOGY", "PASS" if coverage_pass else "FAIL",
+        "Facial target/protected/T-zone topology is deterministic, area-conserving, includes the nose-to-upper-lip target region, and carries the authority coverage thresholds without claiming efficacy.",
+        actual={
+            "triangle_count": len(coverage.triangles),
+            "surface_triangle_count": model.facial_surface.mesh.triangle_count,
+            "target_area_mm2": round(coverage.target_area_mm2, 6),
+            "protected_area_mm2": round(coverage.protected_area_mm2, 6),
+            "t_zone_target_area_mm2": round(coverage.t_zone_target_area_mm2, 6),
+            "philtrum_target_area_mm2": round(coverage.philtrum_target_area_mm2, 6),
+            "area_conservation_error_mm2": coverage.area_conservation_error_mm2,
+            "aggregate_min_percent": coverage.aggregate_min_percent,
+            "t_zone_min_percent": coverage.t_zone_min_percent,
+            "hole_max_mm2": coverage.unexplained_hole_max_mm2,
+            "anatomical_validation_eligible": coverage.anatomical_validation_eligible,
+            "segmentation_sha256": coverage.segmentation_sha256,
+        },
+        limit={
+            "area_conservation_error_mm2_max": 1e-8,
+            "aggregate_min_percent": a.number("coverage", "aggregate_min_percent"),
+            "t_zone_min_percent": a.number("coverage", "t_zone_min_percent"),
+            "hole_max_mm2": a.number("coverage", "unexplained_hole_max_mm2"),
+            "anatomical_validation_eligible": False,
+        },
+    ))
+
     blocked = [
         ("DYNAMIC_EYE_SIGNED_DISTANCE", "Misregistration transforms and planar eye envelopes now exist, but expression-dependent registered anatomical eye volumes are still required."),
         ("DYNAMIC_AIRWAY_SIGNED_DISTANCE", "Misregistration transforms and planar airway envelopes now exist, but deformable nasal geometry and measured fit states are still required."),
@@ -138,7 +178,7 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
         ("AIRWAY_PRESSURE_DROP", "Requires airflow rig or validated CFD boundary conditions."),
         ("FACIAL_PRESSURE", "Requires nonlinear contact model with selected material data and/or pressure-map testing."),
         ("MEMBRANE_STRAIN", "Requires selected silicone constitutive data and converged nonlinear FEA."),
-        ("CLEANSING_COVERAGE", "Requires defined fluid/manifold topology and physical spatial-efficacy evidence."),
+        ("CLEANSING_COVERAGE", "Coverage mesh, protected exclusions, T-zone partition, authority thresholds and uncovered-hole metric now exist; closure still requires the actual cleansing mechanism footprint plus physical spatial-efficacy evidence on eligible anatomy."),
         ("WASTE_RETAINED_CAPACITY", "Requires contaminated-waste cartridge test; geometric envelope alone is insufficient."),
         ("MASS_CG_PITCH_TORQUE", "Requires complete component mass/location ledger for the generated CAD revision."),
         ("A_SURFACE_DEVIATION", "Requires an authored and released Class-A reference surface."),
