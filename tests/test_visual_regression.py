@@ -66,7 +66,24 @@ def test_tampered_coordinate_basis_cannot_be_compared():
     candidate = inspect_surface_samples(_samples())
     tampered_view = replace(candidate.views[0], horizontal_sign=-1)
     object.__setattr__(candidate, "views", (tampered_view, *candidate.views[1:]))
-    with pytest.raises(VisualRegressionError, match="mismatched view identities or coordinate bases"):
+    with pytest.raises(VisualRegressionError, match="fails inspection invariants"):
+        compare_visual_reports(baseline, candidate)
+
+
+def test_tampered_candidate_nonpositive_metrics_cannot_be_compared():
+    baseline = inspect_surface_samples(_samples())
+    candidate = inspect_surface_samples(_samples())
+    invalid_view = replace(candidate.views[0], horizontal_span_mm=0.0, aspect_ratio=0.0)
+    object.__setattr__(candidate, "views", (invalid_view, *candidate.views[1:]))
+    with pytest.raises(VisualRegressionError, match="fails inspection invariants"):
+        compare_visual_reports(baseline, candidate)
+
+
+def test_tampered_evidence_status_cannot_enter_comparison():
+    baseline = inspect_surface_samples(_samples())
+    candidate = inspect_surface_samples(_samples())
+    object.__setattr__(candidate, "evidence_status", "PHYSICALLY_VALIDATED_APPEARANCE")
+    with pytest.raises(VisualRegressionError, match="fails inspection invariants"):
         compare_visual_reports(baseline, candidate)
 
 
