@@ -4,7 +4,11 @@ from dataclasses import asdict, dataclass
 import json
 
 from .coverage import REGION_T_NOSE_PHILTRUM
-from .model import build_model
+from .model import (
+    CAD_BREP_BOUND_TOLERANCE_MM,
+    CAD_PLANAR_FACE_SPAN_TOLERANCE_MM,
+    build_model,
+)
 from .nasal_subsystem import (
     ROLE_BRIDGE_DORSUM,
     ROLE_LOBE,
@@ -12,9 +16,6 @@ from .nasal_subsystem import (
     ROLE_SIDEWALL_LEFT,
     ROLE_SIDEWALL_RIGHT,
 )
-
-
-CAD_BREP_BOUND_TOLERANCE_MM = 2e-6
 
 
 @dataclass(frozen=True)
@@ -58,9 +59,11 @@ def run_nasal_preflight() -> dict[str, object]:
         ROLE_SIDEWALL_RIGHT,
         ROLE_PHILTRUM,
     )
-    cad_bb = model.nasal_interface.solid.val().BoundingBox()
-    cad_zlen_mm = float(cad_bb.zlen)
     authored_lobe_thickness_mm = a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm")
+    planar_span_mm = model.nasal_interface.horizontal_planar_face_span_z_mm()
+    planar_span_error_mm = abs(planar_span_mm - authored_lobe_thickness_mm)
+    brep_span_mm = model.nasal_interface.brep_bounding_span_z_mm()
+    brep_bound_error_mm = abs(brep_span_mm - authored_lobe_thickness_mm)
     coverage_by_id = {triangle.triangle_index: triangle for triangle in coverage.triangles}
 
     checks = [
@@ -133,20 +136,24 @@ def run_nasal_preflight() -> dict[str, object]:
             "PASS" if (
                 model.nasal_interface.name == "nasal_lobe_membrane_reference"
                 and model.nasal_interface.status == "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE"
-                and abs(cad_zlen_mm - authored_lobe_thickness_mm) <= CAD_BREP_BOUND_TOLERANCE_MM
+                and planar_span_error_mm <= CAD_PLANAR_FACE_SPAN_TOLERANCE_MM
+                and brep_bound_error_mm <= CAD_BREP_BOUND_TOLERANCE_MM
             ) else "FAIL",
-            "Generated CAD is explicitly a local nasal-lobe development reference. The authored thickness is checked exactly in the role authority and the post-boolean B-rep bound is checked only against the controlled OpenCascade numerical tolerance, not a product/manufacturing tolerance.",
+            "Generated CAD is a local nasal-lobe development reference. Horizontal support-plane separation verifies the authored thickness, while the enclosing B-rep bound is retained only as a looser OpenCascade numerical diagnostic; neither numerical budget is a product/manufacturing tolerance.",
             actual={
                 "name": model.nasal_interface.name,
                 "status": model.nasal_interface.status,
                 "authored_thickness_mm": authored_lobe_thickness_mm,
-                "brep_zlen_mm": cad_zlen_mm,
-                "brep_bound_error_mm": abs(cad_zlen_mm - authored_lobe_thickness_mm),
+                "planar_face_span_mm": planar_span_mm,
+                "planar_face_span_error_mm": planar_span_error_mm,
+                "brep_zlen_mm": brep_span_mm,
+                "brep_bound_error_mm": brep_bound_error_mm,
             },
             expected={
                 "name": "nasal_lobe_membrane_reference",
                 "status": "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE",
                 "authored_thickness_mm": authored_lobe_thickness_mm,
+                "planar_face_span_error_mm_max": CAD_PLANAR_FACE_SPAN_TOLERANCE_MM,
                 "brep_bound_error_mm_max": CAD_BREP_BOUND_TOLERANCE_MM,
             },
         ),
@@ -163,7 +170,7 @@ def run_nasal_preflight() -> dict[str, object]:
     return {
         "project": "Masck One",
         "phase": 2,
-        "iteration": 11,
+        "iteration": "11A",
         "result": result,
         "checks": [check.to_dict() for check in checks],
         "nasal_topology_sha256": nasal.topology_sha256,
