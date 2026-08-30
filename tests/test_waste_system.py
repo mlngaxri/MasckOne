@@ -48,6 +48,30 @@ def test_unverified_numeric_usable_capacity_is_rejected():
         bad.validate()
 
 
+def test_verified_usable_capacity_cannot_exceed_external_bounding_volume():
+    evidence = EvidenceReference("capacity-rig-overvolume", "r1", "d" * 64)
+    bad = replace(architecture(), capacity=CapacityContract(
+        35.0, "VALIDATION_GATED", usable_capacity_ml=53.280001,
+        usable_capacity_state=EvidenceState.VERIFIED, evidence=evidence))
+    with pytest.raises(ValueError, match="usable capacity exceeds"):
+        bad.validate()
+
+
+def test_retained_capacity_target_cannot_exceed_external_bounding_volume():
+    bad = replace(architecture(), capacity=CapacityContract(53.280001, "VALIDATION_GATED"))
+    with pytest.raises(ValueError, match="retained capacity target exceeds"):
+        bad.validate()
+
+
+def test_capacity_equal_to_external_bound_is_only_geometrically_permitted_not_verified():
+    evidence = EvidenceReference("capacity-rig-boundary", "r1", "e" * 64)
+    boundary = replace(architecture(), capacity=CapacityContract(
+        53.28, "VALIDATION_GATED", usable_capacity_ml=53.28,
+        usable_capacity_state=EvidenceState.VERIFIED, evidence=evidence))
+    boundary.validate()
+    assert boundary.envelope.bounding_volume_ml == pytest.approx(53.28)
+
+
 def test_absorbent_volume_credit_is_rejected_without_physical_evidence():
     bad = replace(architecture(), capacity=CapacityContract(35.0, "VALIDATION_GATED", credits_absorbent_media_volume=True))
     with pytest.raises(ValueError, match="absorbent/media"):
@@ -106,7 +130,7 @@ def test_malformed_upstream_identity_is_rejected_intrinsically():
 
 def test_valid_but_stale_upstream_sha_is_rejected_at_release():
     historical = replace(architecture(), source_main_sha=OTHER_VALID_SHA)
-    historical.validate()  # historical provenance remains representable
+    historical.validate()
     with pytest.raises(ValueError, match="stale for the expected upstream main SHA"):
         historical.validate_current_release(expected_main_sha=MAIN_SHA, expected_authority_revision=AUTHORITY_REVISION)
 
