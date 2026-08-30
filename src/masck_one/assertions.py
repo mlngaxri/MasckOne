@@ -16,6 +16,9 @@ from .nasal_subsystem import (
 )
 
 
+CAD_BREP_BOUND_TOLERANCE_MM = 2e-6
+
+
 @dataclass(frozen=True)
 class Check:
     id: str
@@ -183,6 +186,7 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
     lobe_role = nasal.role_by_id[ROLE_LOBE]
     unresolved_roles = [ROLE_BRIDGE_DORSUM, ROLE_SIDEWALL_LEFT, ROLE_SIDEWALL_RIGHT, ROLE_PHILTRUM]
     lobe_bb = model.nasal_interface.solid.val().BoundingBox()
+    lobe_brep_error_mm = abs(float(lobe_bb.zlen) - lobe_role.nominal_thickness_mm)
     nasal_pass = (
         nasal.triangle_indices == frozenset(central_ids)
         and abs(nasal.total_target_area_mm2 - central_area) <= 1e-8
@@ -193,13 +197,13 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
         and all(nasal.role_by_id[role_id].nominal_thickness_mm is None for role_id in unresolved_roles)
         and all(nasal.role_by_id[role_id].thickness_doe_mm == () for role_id in unresolved_roles)
         and model.nasal_interface.name == "nasal_lobe_membrane_reference"
-        and abs(float(lobe_bb.zlen) - lobe_role.nominal_thickness_mm) <= 1e-9
+        and lobe_brep_error_mm <= CAD_BREP_BOUND_TOLERANCE_MM
         and nasal.anatomical_validation_eligible is False
         and len(nasal.topology_sha256) == 64
     )
     checks.append(Check(
         "DEDICATED_NASAL_SUBSYSTEM_TOPOLOGY", "PASS" if nasal_pass else "FAIL",
-        "The central nose/T-zone is explicitly partitioned into bridge/dorsum, bilateral sidewalls, local-thickness nasal lobe and philtrum roles; the 0.30 mm authority thickness is localized to the lobe development role instead of being extrapolated across the whole saddle.",
+        "The central nose/T-zone is explicitly partitioned into bridge/dorsum, bilateral sidewalls, local-thickness nasal lobe and philtrum roles. The authority thickness is exact in the role definition; the post-boolean B-rep bound is checked against a controlled numerical-kernel tolerance rather than treated as a product tolerance.",
         actual={
             "central_target_triangle_count": len(nasal.assignments),
             "central_target_area_mm2": round(nasal.total_target_area_mm2, 6),
@@ -208,6 +212,7 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
             "lobe_nominal_thickness_mm": lobe_role.nominal_thickness_mm,
             "lobe_thickness_doe_mm": list(lobe_role.thickness_doe_mm),
             "lobe_reference_cad_z_thickness_mm": round(float(lobe_bb.zlen), 9),
+            "lobe_reference_brep_bound_error_mm": lobe_brep_error_mm,
             "non_lobe_numeric_thickness_assigned": any(nasal.role_by_id[role_id].nominal_thickness_mm is not None for role_id in unresolved_roles),
             "anatomical_validation_eligible": nasal.anatomical_validation_eligible,
             "topology_sha256": nasal.topology_sha256,
@@ -217,6 +222,7 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
             "all_five_roles_positive_area": True,
             "left_right_sidewall_area_delta_mm2_max": 1e-6,
             "lobe_nominal_thickness_mm": a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm"),
+            "lobe_reference_brep_bound_error_mm_max": CAD_BREP_BOUND_TOLERANCE_MM,
             "non_lobe_numeric_thickness_assigned": False,
             "anatomical_validation_eligible": False,
         },
