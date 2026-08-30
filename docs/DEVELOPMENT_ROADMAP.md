@@ -13,7 +13,7 @@ Physical validation remains separate. Completion of this roadmap means the digit
 1. Repository integrity, reproducible toolchain and CI. **COMPLETE**
 2. Strict machine-authority schema and semantic validation. **COMPLETE**
 3. Canonical global coordinates, datums and rigid transforms. **COMPLETE**
-4. Facial-reference landmark layer and derived neutral metrics. **IN PROGRESS**
+4. Facial-reference landmark layer and derived neutral metrics. **COMPLETE**
 5. Headform/reference-surface ingestion, units, provenance and registration contract.
 6. Neutral facial reference surface generator/import abstraction.
 7. Protected eye, mouth and nostril hard-envelope geometry.
