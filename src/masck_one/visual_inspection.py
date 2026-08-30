@@ -1,0 +1,125 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+import hashlib
+import json
+import math
+from typing import Iterable
+
+from .surface_workflow import SurfaceSample, surface_sample_manifest_sha256
+
+
+class VisualInspectionError(ValueError):
+    """Raised when deterministic visual-inspection geometry is invalid."""
+
+
+_VIEW_AXES: dict[str, tuple[int, int]] = {
+    "FRONT": (0, 1),
+    "REAR": (0, 1),
+    "LEFT": (2, 1),
+    "RIGHT": (2, 1),
+    "TOP": (0, 2),
+    "BOTTOM": (0, 2),
+}
+_VIEW_ORDER = tuple(_VIEW_AXES)
+_SCHEMA = "MASCK_ONE_VISUAL_INSPECTION_V1"
+
+
+@dataclass(frozen=True, slots=True)
+class ViewMetrics:
+    view_id: str
+    horizontal_span_mm: float
+    vertical_span_mm: float
+    aspect_ratio: float
+    centroid_horizontal_mm: float
+    centroid_vertical_mm: float
+    sample_count: int
+
+    def manifest(self) -> dict[str, object]:
+        return {
+            "view_id": self.view_id,
+            "horizontal_span_mm": self.horizontal_span_mm,
+            "vertical_span_mm": self.vertical_span_mm,
+            "aspect_ratio": self.aspect_ratio,
+            "centroid_horizontal_mm": self.centroid_horizontal_mm,
+            "centroid_vertical_mm": self.centroid_vertical_mm,
+            "sample_count": self.sample_count,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class VisualInspectionReport:
+    source_sample_manifest_sha256: str
+    views: tuple[ViewMetrics, ...]
+    evidence_status: str = "DIGITAL_INSPECTION_METRICS_ONLY_NOT_APPEARANCE_FIT_OR_MANUFACTURING_EVIDENCE"
+    physical_validation_eligible: bool = False
+
+    def __post_init__(self) -> None:
+        if tuple(view.view_id for view in self.views) != _VIEW_ORDER:
+            raise VisualInspectionError("Inspection views must follow the controlled six-view order")
+        if self.physical_validation_eligible:
+            raise VisualInspectionError("Digital visual inspection cannot be physical-validation evidence")
+
+    @property
+    def report_sha256(self) -> str:
+        payload = self.manifest(include_sha=False)
+        raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+        return hashlib.sha256(raw).hexdigest()
+
+    def manifest(self, *, include_sha: bool = True) -> dict[str, object]:
+        payload: dict[str, object] = {
+            "schema": _SCHEMA,
+            "source_sample_manifest_sha256": self.source_sample_manifest_sha256,
+            "views": [view.manifest() for view in self.views],
+            "evidence_status": self.evidence_status,
+            "physical_validation_eligible": self.physical_validation_eligible,
+        }
+        if include_sha:
+            payload["report_sha256"] = self.report_sha256
+        return payload
+
+
+def _validated_samples(samples: Iterable[SurfaceSample]) -> tuple[SurfaceSample, ...]:
+    materialized = tuple(samples)
+    if len(materialized) < 3:
+        raise VisualInspectionError("Visual inspection requires at least three surface samples")
+    ids = [sample.sample_id for sample in materialized]
+    if any(not sample_id.strip() for sample_id in ids) or len(ids) != len(set(ids)):
+        raise VisualInspectionError("Visual inspection requires unique non-empty sample IDs")
+    for sample in materialized:
+        if not all(math.isfinite(value) for value in sample.point.as_tuple()):
+            raise VisualInspectionError("Visual inspection requires finite world-coordinate samples")
+    return materialized
+
+
+def _view_metrics(samples: tuple[SurfaceSample, ...], view_id: str) -> ViewMetrics:
+    horizontal_axis, vertical_axis = _VIEW_AXES[view_id]
+    coordinates = [sample.point.as_tuple() for sample in samples]
+    horizontal = [point[horizontal_axis] for point in coordinates]
+    vertical = [point[vertical_axis] for point in coordinates]
+    h_span = max(horizontal) - min(horizontal)
+    v_span = max(vertical) - min(vertical)
+    if h_span <= 0.0 or v_span <= 0.0:
+        raise VisualInspectionError(f"{view_id} projection is degenerate; inspection metrics would be misleading")
+    return ViewMetrics(
+        view_id=view_id,
+        horizontal_span_mm=h_span,
+        vertical_span_mm=v_span,
+        aspect_ratio=h_span / v_span,
+        centroid_horizontal_mm=sum(horizontal) / len(horizontal),
+        centroid_vertical_mm=sum(vertical) / len(vertical),
+        sample_count=len(samples),
+    )
+
+
+def inspect_surface_samples(samples: Iterable[SurfaceSample]) -> VisualInspectionReport:
+    """Create provenance-bound orthographic inspection metrics from world-coordinate samples.
+
+    This deliberately supplies no aesthetic pass/fail threshold. It creates deterministic
+    front/rear/left/right/top/bottom section-bookkeeping that later CAD and visual-regression
+    work can compare without promoting sampled geometry into appearance or physical evidence.
+    """
+    materialized = _validated_samples(samples)
+    manifest_sha = surface_sample_manifest_sha256(materialized)
+    views = tuple(_view_metrics(materialized, view_id) for view_id in _VIEW_ORDER)
+    return VisualInspectionReport(source_sample_manifest_sha256=manifest_sha, views=views)
