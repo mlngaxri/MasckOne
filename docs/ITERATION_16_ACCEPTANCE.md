@@ -15,10 +15,19 @@ Iteration 16 adds the controlled comparison workflow between future engineering 
 - stable sample IDs with exact one-to-one pairing;
 - duplicate, empty, mismatched and non-finite sample data rejection;
 - deterministic RMS and maximum Euclidean deviation calculation;
-- SHA-256, revision and explicit release-status contract for any reference that is allowed to participate in release-level CAD closure;
+- explicit source-asset SHA-256, reference revision and release status;
+- a second SHA-256 that binds release eligibility to the exact canonical reference-sample manifest used by the numeric comparison;
+- canonical sample manifests use sorted sample IDs, millimetre coordinates and exact `float.hex()` coordinate serialization so identity is deterministic and locale/decimal-format independent;
+- substituted or stale reference samples are rejected even when sample IDs and release metadata otherwise look valid;
 - numerical pass without a released reference remains blocked;
 - numerical failure remains failure even if a reference is released;
 - physical-validation eligibility is explicitly false.
+
+## Provenance boundary
+
+The source CAD asset and its comparison-sample derivative are separate controlled identities. `source_asset_sha256` identifies the released source artifact. `reference_sample_manifest_sha256` identifies the exact derivative samples accepted by this workflow. The release process is responsible for recording the correct pair. The evaluator independently recomputes the sample-manifest hash and refuses release-level CAD closure when the supplied samples do not match that recorded manifest.
+
+This prevents a released metadata record for surface A from being combined with numerically convenient or stale samples from surface B. It does not yet prove how the derivative samples were generated from the source asset; a future controlled sampler/export workflow should bind that transformation when real Class-A authoring is introduced.
 
 ## Evidence boundary
 
@@ -33,5 +42,7 @@ python -m masck_one.surface_workflow_preflight
 python -m pytest
 python -m masck_one.cli --output generated
 ```
+
+The adversarial suite includes same-ID/different-geometry substitution, single-coordinate stale-derivative mutation, duplicate/mismatched IDs, invalid hashes, non-finite coordinates and attempted physical-evidence promotion.
 
 Promotion requires exact-head GitHub CI success.
