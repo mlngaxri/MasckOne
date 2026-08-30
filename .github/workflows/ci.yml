@@ -41,6 +41,9 @@ jobs:
       - name: Iteration 11 nasal subsystem preflight
         run: python -m masck_one.nasal_preflight
 
+      - name: Iteration 12 interface boundary preflight
+        run: python -m masck_one.boundary_preflight
+
       - name: Unit and integration tests
         run: python -m pytest
 
