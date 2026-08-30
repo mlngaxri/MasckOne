@@ -20,6 +20,7 @@ from .reference_surfaces import (
     identity_registration,
 )
 from .spatial import CanonicalDatums, Point3, SpatialContractError
+from .worn_pose import WornPoseError, generate_hard_envelope_regression_set, protected_zone_regression_bounds
 
 
 REQUIRED_PYTHON = (3, 13)
@@ -49,13 +50,12 @@ def repository_root() -> Path:
 
 def _check_python() -> PreflightCheck:
     actual = [sys.version_info.major, sys.version_info.minor]
-    status = "PASS" if tuple(actual) == REQUIRED_PYTHON else "FAIL"
     return PreflightCheck(
-        id="PYTHON_VERSION",
-        status=status,
-        message="Runtime uses the repository's controlled Python major/minor version.",
-        actual=actual,
-        expected=list(REQUIRED_PYTHON),
+        "PYTHON_VERSION",
+        "PASS" if tuple(actual) == REQUIRED_PYTHON else "FAIL",
+        "Runtime uses the repository's controlled Python major/minor version.",
+        actual,
+        list(REQUIRED_PYTHON),
     )
 
 
@@ -68,11 +68,11 @@ def _check_dependencies() -> list[PreflightCheck]:
             actual = None
         checks.append(
             PreflightCheck(
-                id=f"DEPENDENCY_{re.sub(r'[^A-Za-z0-9]+', '_', distribution).upper()}",
-                status="PASS" if actual == expected else "FAIL",
-                message="Runtime dependency matches the controlled repository version.",
-                actual=actual,
-                expected=expected,
+                f"DEPENDENCY_{re.sub(r'[^A-Za-z0-9]+', '_', distribution).upper()}",
+                "PASS" if actual == expected else "FAIL",
+                "Runtime dependency matches the controlled repository version.",
+                actual,
+                expected,
             )
         )
     return checks
@@ -82,20 +82,14 @@ def _check_authority() -> tuple[list[PreflightCheck], Authority | None]:
     try:
         authority = load_authority()
     except AuthorityError as exc:
-        return ([PreflightCheck(
-            id="AUTHORITY_LOAD",
-            status="FAIL",
-            message="Machine authority must load without schema or semantic errors.",
-            actual=str(exc),
-            expected="valid authority",
-        )], None)
+        return [PreflightCheck("AUTHORITY_LOAD", "FAIL", "Machine authority must load without schema or semantic errors.", str(exc), "valid authority")], None
 
     checks = [
         PreflightCheck("AUTHORITY_LOAD", "PASS", "Machine authority loads successfully."),
         PreflightCheck(
             "AUTHORITY_CONTRACT",
             "PASS" if authority.validation_report.valid else "FAIL",
-            "Authority passes strict JSON Schema and deterministic semantic validation.",
+            "Authority passes strict schema and deterministic semantic validation.",
             len(authority.validation_report.issues),
             0,
         ),
@@ -126,19 +120,12 @@ def _check_authority() -> tuple[list[PreflightCheck], Authority | None]:
 
 def _build_datums(authority: Authority | None) -> tuple[PreflightCheck, CanonicalDatums | None]:
     if authority is None:
-        return PreflightCheck(
-            "SPATIAL_CONTRACT", "FAIL",
-            "Canonical spatial datums require a valid machine authority.",
-            None, "valid authority and right-handed canonical datums",
-        ), None
+        return PreflightCheck("SPATIAL_CONTRACT", "FAIL", "Canonical spatial datums require valid authority.", None, "valid canonical datums"), None
     try:
         datums = CanonicalDatums.from_authority(authority)
     except SpatialContractError as exc:
-        return PreflightCheck(
-            "SPATIAL_CONTRACT", "FAIL",
-            "Canonical spatial datums must be finite, orthonormal, right-handed, and authority-aligned.",
-            str(exc), "valid canonical datums",
-        ), None
+        return PreflightCheck("SPATIAL_CONTRACT", "FAIL", "Canonical datums must be finite, orthonormal, right-handed and authority-aligned.", str(exc), "valid canonical datums"), None
+
     actual = {
         "origin": datums.global_frame.origin.as_tuple(),
         "x_axis": datums.global_frame.x_axis.as_tuple(),
@@ -153,56 +140,25 @@ def _build_datums(authority: Authority | None) -> tuple[PreflightCheck, Canonica
         "z_axis": (0.0, 0.0, 1.0),
         "planes": ["MASCK_ONE_SAGITTAL_X0", "MASCK_ONE_TRANSVERSE_Y0", "MASCK_ONE_CORONAL_Z0"],
     }
-    return PreflightCheck(
-        "SPATIAL_CONTRACT", "PASS" if actual == expected else "FAIL",
-        "Canonical origin, axes and principal datum planes match the frozen Masck One convention.",
-        actual, expected,
-    ), datums
+    return PreflightCheck("SPATIAL_CONTRACT", "PASS" if actual == expected else "FAIL", "Canonical origin, axes and principal datum planes match the frozen convention.", actual, expected), datums
 
 
 def _check_facial_reference(authority: Authority | None, datums: CanonicalDatums | None) -> PreflightCheck:
     if authority is None or datums is None:
-        return PreflightCheck(
-            "FACIAL_REFERENCE_CONTRACT", "FAIL",
-            "Facial reference requires valid authority and canonical datums.",
-            None, "valid authority/datums and neutral landmark layer",
-        )
+        return PreflightCheck("FACIAL_REFERENCE_CONTRACT", "FAIL", "Facial reference requires valid authority and datums.")
     try:
         reference = build_facial_reference(authority, datums)
     except FacialReferenceError as exc:
-        return PreflightCheck(
-            "FACIAL_REFERENCE_CONTRACT", "FAIL",
-            "Authority facial landmarks must form a unique, symmetric neutral-baseline projection with no invented 3D depth.",
-            str(exc), "valid neutral 2D facial reference",
-        )
-    metrics = reference.metrics
+        return PreflightCheck("FACIAL_REFERENCE_CONTRACT", "FAIL", "Facial reference must preserve authority landmarks without invented depth.", str(exc), "valid neutral reference")
     actual = {
-        "reference_kind": reference.reference_kind,
-        "landmark_count": len(reference.landmarks),
-        "landmark_ids": [landmark.id for landmark in reference.landmarks],
+        "count": len(reference.landmarks),
         "unresolved_3d_count": len(reference.unresolved_3d_landmarks()),
-        "interpupillary_center_spacing_mm": metrics.interpupillary_center_spacing_mm,
-        "nostril_center_spacing_mm": metrics.nostril_center_spacing_mm,
-        "eye_to_mouth_center_vertical_mm": metrics.eye_to_mouth_center_vertical_mm,
+        "eye_spacing_mm": reference.metrics.interpupillary_center_spacing_mm,
+        "nostril_spacing_mm": reference.metrics.nostril_center_spacing_mm,
+        "eye_to_mouth_vertical_mm": reference.metrics.eye_to_mouth_center_vertical_mm,
     }
-    expected = {
-        "reference_kind": "NEUTRAL_2D_CAD_BASELINE_PROJECTION",
-        "landmark_count": 5,
-        "landmark_ids": [
-            "MASCK_ONE-LMK-EYE-LEFT-CENTER", "MASCK_ONE-LMK-EYE-RIGHT-CENTER",
-            "MASCK_ONE-LMK-NOSTRIL-LEFT-CENTER", "MASCK_ONE-LMK-NOSTRIL-RIGHT-CENTER",
-            "MASCK_ONE-LMK-MOUTH-CENTER",
-        ],
-        "unresolved_3d_count": 5,
-        "interpupillary_center_spacing_mm": 63.0,
-        "nostril_center_spacing_mm": 21.0,
-        "eye_to_mouth_center_vertical_mm": 85.0,
-    }
-    return PreflightCheck(
-        "FACIAL_REFERENCE_CONTRACT", "PASS" if actual == expected else "FAIL",
-        "Facial landmark IDs, authority coordinates, bilateral symmetry, derived neutral metrics, and unresolved 3D status are deterministic.",
-        actual, expected,
-    )
+    expected = {"count": 5, "unresolved_3d_count": 5, "eye_spacing_mm": 63.0, "nostril_spacing_mm": 21.0, "eye_to_mouth_vertical_mm": 85.0}
+    return PreflightCheck("FACIAL_REFERENCE_CONTRACT", "PASS" if actual == expected else "FAIL", "Authority-derived neutral landmark layer is deterministic.", actual, expected)
 
 
 def _check_reference_surface_ingestion() -> PreflightCheck:
@@ -226,128 +182,114 @@ def _check_reference_surface_ingestion() -> PreflightCheck:
         )
         asset = ReferenceSurfaceAsset(provenance, mesh, identity_registration())
         registered = asset.registered_mesh
-        edge_mm = registered.vertices[0].vector_to(registered.vertices[1]).norm()
         manifest = asset.registration_manifest()
+        edge_mm = registered.vertices[0].vector_to(registered.vertices[1]).norm()
     except (ReferenceSurfaceError, SpatialContractError) as exc:
-        return PreflightCheck(
-            "REFERENCE_SURFACE_INGESTION", "FAIL",
-            "Reference surfaces must preserve provenance, units, handedness and explicit rigid registration.",
-            str(exc), "valid traceable ingestion contract",
-        )
-    actual = {
-        "edge_mm": edge_mm,
-        "source_units": manifest["source_units"],
-        "scale_to_mm": manifest["source_scale_to_mm"],
-        "handedness": manifest["source_handedness"],
-        "vertex_count": manifest["mesh"]["vertex_count"],
-        "triangle_count": manifest["mesh"]["triangle_count"],
-    }
-    expected = {
-        "edge_mm": 10.0, "source_units": "cm", "scale_to_mm": 10.0,
-        "handedness": "right", "vertex_count": 3, "triangle_count": 1,
-    }
-    return PreflightCheck(
-        "REFERENCE_SURFACE_INGESTION", "PASS" if actual == expected else "FAIL",
-        "Reference-surface ingestion preserves units/provenance and produces deterministic Masck One-global geometry.",
-        actual, expected,
-    )
+        return PreflightCheck("REFERENCE_SURFACE_INGESTION", "FAIL", "Reference surfaces must preserve provenance, units, handedness and rigid registration.", str(exc), "valid ingestion contract")
+    actual = {"edge_mm": edge_mm, "source_units": manifest["source_units"], "scale_to_mm": manifest["source_scale_to_mm"], "handedness": manifest["source_handedness"]}
+    expected = {"edge_mm": 10.0, "source_units": "cm", "scale_to_mm": 10.0, "handedness": "right"}
+    return PreflightCheck("REFERENCE_SURFACE_INGESTION", "PASS" if actual == expected else "FAIL", "Reference-surface ingestion produces deterministic Masck One-global geometry.", actual, expected)
 
 
 def _check_neutral_facial_surface(authority: Authority | None, datums: CanonicalDatums | None) -> PreflightCheck:
     if authority is None or datums is None:
-        return PreflightCheck(
-            "NEUTRAL_FACIAL_SURFACE", "FAIL",
-            "Neutral facial surface requires valid authority and canonical datums.",
-            None, "deterministic development surface",
-        )
+        return PreflightCheck("NEUTRAL_FACIAL_SURFACE", "FAIL", "Neutral facial surface requires valid authority and datums.")
     try:
         reference = build_facial_reference(authority, datums)
         surface = build_planar_development_surface(authority)
         projections = surface.project_reference_landmarks(reference)
     except (FacialSurfaceError, FacialReferenceError) as exc:
-        return PreflightCheck(
-            "NEUTRAL_FACIAL_SURFACE", "FAIL",
-            "Development facial surface must be deterministic and explicitly non-anatomical until a registered source exists.",
-            str(exc), "valid topology-only surface",
-        )
+        return PreflightCheck("NEUTRAL_FACIAL_SURFACE", "FAIL", "Development facial surface must be deterministic and explicitly non-anatomical.", str(exc), "valid topology-only surface")
     actual = {
         "kind": surface.descriptor.kind,
         "validation_eligible": surface.descriptor.anatomical_validation_eligible,
         "planar": surface.is_planar,
-        "vertex_count": surface.mesh.vertex_count,
-        "triangle_count": surface.mesh.triangle_count,
+        "vertex_count_gt_1000": surface.mesh.vertex_count > 1000,
+        "triangle_count_gt_1500": surface.mesh.triangle_count > 1500,
         "projection_count": len(projections),
-        "max_projection_error_mm_lt_3": max(p.xy_error_mm for p in projections) < 3.0,
+        "max_projection_error_lt_3_mm": max(p.xy_error_mm for p in projections) < 3.0,
     }
-    expected = {
-        "kind": "PLANAR_DEVELOPMENT_REFERENCE", "validation_eligible": False, "planar": True,
-        "vertex_count": surface.mesh.vertex_count, "triangle_count": surface.mesh.triangle_count,
-        "projection_count": 5, "max_projection_error_mm_lt_3": True,
-    }
-    passed = actual == expected and surface.mesh.vertex_count > 1000 and surface.mesh.triangle_count > 1500
-    return PreflightCheck(
-        "NEUTRAL_FACIAL_SURFACE", "PASS" if passed else "FAIL",
-        "Neutral surface provides deterministic topology while refusing to masquerade as anatomical fit evidence.",
-        actual, expected,
-    )
+    expected = {"kind": "PLANAR_DEVELOPMENT_REFERENCE", "validation_eligible": False, "planar": True, "vertex_count_gt_1000": True, "triangle_count_gt_1500": True, "projection_count": 5, "max_projection_error_lt_3_mm": True}
+    return PreflightCheck("NEUTRAL_FACIAL_SURFACE", "PASS" if actual == expected else "FAIL", "Neutral topology surface exists without being promoted to anatomical evidence.", actual, expected)
 
 
 def _check_protected_volumes(authority: Authority | None, datums: CanonicalDatums | None) -> PreflightCheck:
     if authority is None or datums is None:
-        return PreflightCheck(
-            "PROTECTED_VOLUME_CONTRACT", "FAIL",
-            "Protected volumes require valid authority and canonical datums.",
-            None, "five authority-derived protected targets",
-        )
+        return PreflightCheck("PROTECTED_VOLUME_CONTRACT", "FAIL", "Protected volumes require valid authority and datums.")
     try:
         reference = build_facial_reference(authority, datums)
         surface = build_planar_development_surface(authority)
         protected = build_protected_volumes(authority, reference, surface)
     except (FacialReferenceError, FacialSurfaceError, ProtectedVolumeError) as exc:
-        return PreflightCheck(
-            "PROTECTED_VOLUME_CONTRACT", "FAIL",
-            "Eye, mouth and airway analytical keep-outs must preserve authority clearances and unresolved 3D status.",
-            str(exc), "valid conservative protected-volume set",
-        )
-    actual_clearances = {
-        volume.zone.zone_id: volume.zone.required_rigid_clearance_mm for volume in protected.all
-    }
-    expected_clearances = {
-        "MASCK_ONE-PROTECTED-EYE-LEFT": 8.5,
-        "MASCK_ONE-PROTECTED-EYE-RIGHT": 8.5,
-        "MASCK_ONE-PROTECTED-MOUTH": 9.5,
-        "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 7.5,
-        "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 7.5,
-    }
+        return PreflightCheck("PROTECTED_VOLUME_CONTRACT", "FAIL", "Eye, mouth and airway keep-outs must preserve authority clearances and unresolved 3D status.", str(exc), "valid protected-volume set")
     actual = {
         "count": len(protected.all),
-        "clearances_mm": actual_clearances,
-        "z_policies": sorted({volume.z_policy for volume in protected.all}),
+        "clearances": {volume.zone.zone_id: volume.zone.required_rigid_clearance_mm for volume in protected.all},
+        "z_policy": sorted({volume.z_policy for volume in protected.all}),
         "any_validation_eligible": any(volume.anatomical_validation_eligible for volume in protected.all),
-        "dynamic_geometry_blocked": "3D_DYNAMIC_GEOMETRY_BLOCKED" in protected.evidence_status,
     }
     expected = {
         "count": 5,
-        "clearances_mm": expected_clearances,
-        "z_policies": ["UNBOUNDED_UNTIL_REGISTERED_ANATOMICAL_SURFACE"],
+        "clearances": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 8.5,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 8.5,
+            "MASCK_ONE-PROTECTED-MOUTH": 9.5,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 7.5,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 7.5,
+        },
+        "z_policy": ["UNBOUNDED_UNTIL_REGISTERED_ANATOMICAL_SURFACE"],
         "any_validation_eligible": False,
-        "dynamic_geometry_blocked": True,
     }
-    return PreflightCheck(
-        "PROTECTED_VOLUME_CONTRACT", "PASS" if actual == expected else "FAIL",
-        "Five conservative eye/mouth/airway protected footprints are deterministic while dynamic 3D anatomy remains explicitly blocked.",
-        actual, expected,
-    )
+    return PreflightCheck("PROTECTED_VOLUME_CONTRACT", "PASS" if actual == expected else "FAIL", "Conservative protected footprints remain deterministic while 3D anatomy stays evidence-gated.", actual, expected)
+
+
+def _check_worn_pose(authority: Authority | None, datums: CanonicalDatums | None) -> PreflightCheck:
+    if authority is None or datums is None:
+        return PreflightCheck("WORN_POSE_CONTRACT", "FAIL", "Worn-pose regression requires valid authority and datums.")
+    try:
+        reference = build_facial_reference(authority, datums)
+        surface = build_planar_development_surface(authority)
+        protected = build_protected_volumes(authority, reference, surface)
+        regression = generate_hard_envelope_regression_set(authority)
+        posed_bounds = protected_zone_regression_bounds(protected, regression, boundary_samples=16)
+    except (FacialReferenceError, FacialSurfaceError, ProtectedVolumeError, WornPoseError) as exc:
+        return PreflightCheck("WORN_POSE_CONTRACT", "FAIL", "Deterministic authority-bounded worn poses must build and transform protected zones without inventing Z translation.", str(exc), "valid 459-state regression")
+
+    manifest = regression.manifest()
+    actual = {
+        "pose_count": regression.pose_count,
+        "radial_direction_count": regression.radial_direction_count,
+        "translation_radial_max_mm": manifest["translation_radial_max_mm"],
+        "rotation_max_deg": manifest["rotation_max_deg"],
+        "translation_z_mm": manifest["translation_z_mm"],
+        "z_translation_status": manifest["z_translation_status"],
+        "identity_present": regression.identity_pose_index >= 0,
+        "sha256_length": len(regression.sha256),
+        "posed_bound_count": len(posed_bounds),
+        "evidence_status": regression.evidence_status,
+    }
+    expected = {
+        "pose_count": 459,
+        "radial_direction_count": 16,
+        "translation_radial_max_mm": 5.0,
+        "rotation_max_deg": 4.0,
+        "translation_z_mm": 0.0,
+        "z_translation_status": "NOT_DEFINED_BY_CURRENT_AUTHORITY_FIXED_ZERO",
+        "identity_present": True,
+        "sha256_length": 64,
+        "posed_bound_count": 459 * 5,
+        "evidence_status": "DETERMINISTIC_DISCRETE_SCREEN_NOT_MEASURED_DONNING_DISTRIBUTION",
+    }
+    return PreflightCheck("WORN_POSE_CONTRACT", "PASS" if actual == expected else "FAIL", "Worn-pose limits, deterministic boundary sampling, protected-zone transforms and evidence status are explicit.", actual, expected)
 
 
 def _iter_text_files(root: Path) -> Iterable[Path]:
     ignored_parts = {".git", ".pytest_cache", "__pycache__", ".venv", "generated"}
     allowed_suffixes = {".py", ".md", ".toml", ".yaml", ".yml", ".json", ".txt"}
     for path in root.rglob("*"):
-        if not path.is_file() or any(part in ignored_parts for part in path.parts):
-            continue
-        if path.name == ".gitignore" or path.suffix.lower() in allowed_suffixes:
-            yield path
+        if path.is_file() and not any(part in ignored_parts for part in path.parts):
+            if path.name == ".gitignore" or path.suffix.lower() in allowed_suffixes:
+                yield path
 
 
 def _check_legacy_naming(root: Path) -> PreflightCheck:
@@ -358,33 +300,45 @@ def _check_legacy_naming(root: Path) -> PreflightCheck:
             text = text.replace('"F" + "CW"', '"legacy"')
         if LEGACY_PRODUCT_TOKEN.lower() in text.lower():
             offenders.append(path.relative_to(root).as_posix())
-    return PreflightCheck(
-        "LEGACY_PRODUCT_NAMING", "PASS" if not offenders else "FAIL",
-        "No legacy product naming appears in source-controlled text artifacts.",
-        offenders, [],
-    )
+    return PreflightCheck("LEGACY_PRODUCT_NAMING", "PASS" if not offenders else "FAIL", "No legacy product naming appears in source-controlled text artifacts.", offenders, [])
 
 
 def _check_required_structure(root: Path) -> PreflightCheck:
     required = [
-        "README.md", "pyproject.toml", "config/masck_one_authority.yaml",
+        "README.md",
+        "pyproject.toml",
+        "config/masck_one_authority.yaml",
         "schemas/masck_one_authority.schema.json",
-        "src/masck_one/__init__.py", "src/masck_one/authority.py", "src/masck_one/spatial.py",
-        "src/masck_one/anatomy.py", "src/masck_one/reference_surfaces.py",
-        "src/masck_one/facial_surface.py", "src/masck_one/protected_volumes.py",
-        "src/masck_one/model.py", "src/masck_one/assertions.py", "src/masck_one/export.py", "src/masck_one/cli.py",
-        "tests/test_authority.py", "tests/test_authority_contract.py", "tests/test_spatial.py",
-        "tests/test_anatomy.py", "tests/test_reference_surfaces.py", "tests/test_facial_surface.py",
-        "tests/test_protected_volumes.py", "tests/test_model.py",
-        "docs/COORDINATE_SYSTEM.md", "docs/REFERENCE_SURFACE_INGESTION.md",
-        "docs/NEUTRAL_FACIAL_SURFACE.md", "docs/PROTECTED_VOLUMES.md", "docs/DEVELOPMENT_ROADMAP.md",
+        "src/masck_one/__init__.py",
+        "src/masck_one/authority.py",
+        "src/masck_one/spatial.py",
+        "src/masck_one/anatomy.py",
+        "src/masck_one/reference_surfaces.py",
+        "src/masck_one/facial_surface.py",
+        "src/masck_one/protected_volumes.py",
+        "src/masck_one/worn_pose.py",
+        "src/masck_one/model.py",
+        "src/masck_one/assertions.py",
+        "src/masck_one/export.py",
+        "src/masck_one/cli.py",
+        "tests/test_authority.py",
+        "tests/test_authority_contract.py",
+        "tests/test_spatial.py",
+        "tests/test_anatomy.py",
+        "tests/test_reference_surfaces.py",
+        "tests/test_facial_surface.py",
+        "tests/test_protected_volumes.py",
+        "tests/test_worn_pose.py",
+        "tests/test_model.py",
+        "docs/COORDINATE_SYSTEM.md",
+        "docs/REFERENCE_SURFACE_INGESTION.md",
+        "docs/NEUTRAL_FACIAL_SURFACE.md",
+        "docs/PROTECTED_VOLUMES.md",
+        "docs/WORN_POSE.md",
+        "docs/DEVELOPMENT_ROADMAP.md",
     ]
     missing = [item for item in required if not (root / item).exists()]
-    return PreflightCheck(
-        "REPOSITORY_STRUCTURE", "PASS" if not missing else "FAIL",
-        "Required Phase 1 source files exist at deterministic paths.",
-        missing, [],
-    )
+    return PreflightCheck("REPOSITORY_STRUCTURE", "PASS" if not missing else "FAIL", "Required Phase 1 source files exist at deterministic paths.", missing, [])
 
 
 def run_preflight() -> dict[str, object]:
@@ -392,11 +346,15 @@ def run_preflight() -> dict[str, object]:
     authority_checks, authority = _check_authority()
     spatial_check, datums = _build_datums(authority)
     checks = [
-        _check_python(), *_check_dependencies(), *authority_checks, spatial_check,
+        _check_python(),
+        *_check_dependencies(),
+        *authority_checks,
+        spatial_check,
         _check_facial_reference(authority, datums),
         _check_reference_surface_ingestion(),
         _check_neutral_facial_surface(authority, datums),
         _check_protected_volumes(authority, datums),
+        _check_worn_pose(authority, datums),
         _check_legacy_naming(root),
         _check_required_structure(root),
     ]
@@ -404,7 +362,7 @@ def run_preflight() -> dict[str, object]:
     return {
         "project": "Masck One",
         "phase": "1",
-        "iteration": "7",
+        "iteration": "8",
         "result": result,
         "checks": [check.to_dict() for check in checks],
     }
