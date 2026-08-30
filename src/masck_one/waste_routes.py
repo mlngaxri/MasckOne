@@ -32,8 +32,10 @@ class WasteNode:
     protected_region_adjacent: bool = False
 
     def validate(self) -> None:
-        if not self.node_id.strip():
+        if not isinstance(self.node_id, str) or not self.node_id.strip():
             raise ValueError("waste node_id is required")
+        if not isinstance(self.kind, WasteNodeKind):
+            raise ValueError("waste node kind must be a WasteNodeKind")
         if not isinstance(self.protected_region_adjacent, bool):
             raise ValueError("protected_region_adjacent must be a literal bool")
 
@@ -47,7 +49,8 @@ class WasteRouteSegment:
     physical_performance_state: str = "VALIDATION_GATED"
 
     def validate(self) -> None:
-        if not self.segment_id.strip() or not self.source_node_id.strip() or not self.target_node_id.strip():
+        identities = (self.segment_id, self.source_node_id, self.target_node_id)
+        if any(not isinstance(value, str) or not value.strip() for value in identities):
             raise ValueError("waste route segment identities are required")
         if self.source_node_id == self.target_node_id:
             raise ValueError("waste route segment cannot self-loop")
@@ -64,17 +67,23 @@ class WasteRouteNetwork:
     segments: tuple[WasteRouteSegment, ...]
 
     def validate(self) -> None:
-        if not _SHA256_RE.fullmatch(self.source_waste_architecture_sha256):
+        if not isinstance(self.source_waste_architecture_sha256, str) or not _SHA256_RE.fullmatch(self.source_waste_architecture_sha256):
             raise ValueError("source waste architecture SHA-256 must be canonical lowercase 64-hex")
-        if not self.nodes:
+        if not isinstance(self.nodes, Mapping) or not self.nodes:
             raise ValueError("waste route network requires nodes")
+        if not isinstance(self.segments, tuple):
+            raise ValueError("waste route segments must be an immutable tuple")
         for key, node in self.nodes.items():
+            if not isinstance(key, str) or not isinstance(node, WasteNode):
+                raise ValueError("waste node mapping must contain string IDs and WasteNode values")
             node.validate()
             if key != node.node_id:
                 raise ValueError("waste node mapping key must equal node_id")
         segment_ids: set[str] = set()
         directed: dict[str, list[str]] = {node_id: [] for node_id in self.nodes}
         for segment in self.segments:
+            if not isinstance(segment, WasteRouteSegment):
+                raise ValueError("waste route segments must be WasteRouteSegment values")
             segment.validate()
             if segment.segment_id in segment_ids:
                 raise ValueError("duplicate waste route segment_id")
@@ -105,6 +114,11 @@ class WasteRouteNetwork:
         for acquisition in acquisitions:
             if not self._reachable(acquisition, pump_in, directed):
                 raise ValueError(f"regional acquisition {acquisition} has no route to pump inlet")
+            # The pump is an explicit stage boundary. A graph edge cannot silently create
+            # a passive acquisition-to-discharge or acquisition-to-cartridge bypass around it.
+            for forbidden_target in (pump_out, cartridge_in, retention):
+                if self._reachable(acquisition, forbidden_target, directed):
+                    raise ValueError("regional acquisition has a route that bypasses the pump stage boundary")
         if not self._reachable(pump_out, cartridge_in, directed):
             raise ValueError("pump outlet has no route to cartridge inlet")
         if not self._reachable(cartridge_in, retention, directed):
@@ -114,16 +128,16 @@ class WasteRouteNetwork:
             for barrier in barriers
         ):
             raise ValueError("cartridge path must place a passive backflow barrier downstream of pump outlet")
-
-        # A passive barrier is a release-relevant topological protection only if every
-        # directed pump-outlet -> cartridge-inlet path crosses at least one barrier.
-        # Merely proving that one barrier-containing path exists is insufficient because
-        # a parallel bypass branch would defeat the intended pump-off architecture.
         if self._reachable_avoiding(pump_out, cartridge_in, directed, forbidden=barriers):
             raise ValueError("pump outlet has a cartridge path that bypasses all passive backflow barriers")
 
-        # A protected-adjacent acquisition must drain forward. Dead-ended local storage is forbidden digitally,
-        # while actual pooling performance remains validation-gated.
+        # Retention is a terminal topology sink. A return edge can otherwise create a
+        # digitally valid cycle that defeats containment semantics without any physical evidence.
+        if directed[retention]:
+            raise ValueError("cartridge retention must be a terminal waste-route sink")
+        if self._reachable(cartridge_in, pump_in, directed) or self._reachable(cartridge_in, pump_out, directed):
+            raise ValueError("cartridge path cannot cycle back into the pump stage")
+
         for node in self.nodes.values():
             if node.protected_region_adjacent and node.kind is WasteNodeKind.REGIONAL_ACQUISITION:
                 if not directed[node.node_id]:
@@ -144,14 +158,7 @@ class WasteRouteNetwork:
         return False
 
     @staticmethod
-    def _reachable_avoiding(
-        start: str,
-        target: str,
-        graph: Mapping[str, list[str]],
-        *,
-        forbidden: set[str],
-    ) -> bool:
-        """Return whether target is reachable without traversing any forbidden node."""
+    def _reachable_avoiding(start: str, target: str, graph: Mapping[str, list[str]], *, forbidden: set[str]) -> bool:
         if start in forbidden or target in forbidden:
             return False
         pending = [start]
@@ -168,7 +175,7 @@ class WasteRouteNetwork:
 
     def validate_current_source(self, *, expected_waste_architecture_sha256: str) -> None:
         self.validate()
-        if not _SHA256_RE.fullmatch(expected_waste_architecture_sha256):
+        if not isinstance(expected_waste_architecture_sha256, str) or not _SHA256_RE.fullmatch(expected_waste_architecture_sha256):
             raise ValueError("expected waste architecture SHA-256 must be canonical lowercase 64-hex")
         if self.source_waste_architecture_sha256 != expected_waste_architecture_sha256:
             raise ValueError("waste route network is stale for the expected waste architecture")
@@ -178,21 +185,11 @@ class WasteRouteNetwork:
         payload = {
             "source_waste_architecture_sha256": self.source_waste_architecture_sha256,
             "nodes": [
-                {
-                    "node_id": n.node_id,
-                    "kind": n.kind.value,
-                    "protected_region_adjacent": n.protected_region_adjacent,
-                }
+                {"node_id": n.node_id, "kind": n.kind.value, "protected_region_adjacent": n.protected_region_adjacent}
                 for n in sorted(self.nodes.values(), key=lambda x: x.node_id)
             ],
             "segments": [
-                {
-                    "segment_id": s.segment_id,
-                    "source": s.source_node_id,
-                    "target": s.target_node_id,
-                    "mixed_phase": s.mixed_phase,
-                    "physical_performance_state": s.physical_performance_state,
-                }
+                {"segment_id": s.segment_id, "source": s.source_node_id, "target": s.target_node_id, "mixed_phase": s.mixed_phase, "physical_performance_state": s.physical_performance_state}
                 for s in sorted(self.segments, key=lambda x: x.segment_id)
             ],
         }
