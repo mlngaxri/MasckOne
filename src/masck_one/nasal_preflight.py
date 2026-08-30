@@ -14,6 +14,9 @@ from .nasal_subsystem import (
 )
 
 
+CAD_BREP_BOUND_TOLERANCE_MM = 2e-6
+
+
 @dataclass(frozen=True)
 class NasalPreflightCheck:
     id: str
@@ -56,6 +59,8 @@ def run_nasal_preflight() -> dict[str, object]:
         ROLE_PHILTRUM,
     )
     cad_bb = model.nasal_interface.solid.val().BoundingBox()
+    cad_zlen_mm = float(cad_bb.zlen)
+    authored_lobe_thickness_mm = a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm")
     coverage_by_id = {triangle.triangle_index: triangle for triangle in coverage.triangles}
 
     checks = [
@@ -100,7 +105,7 @@ def run_nasal_preflight() -> dict[str, object]:
         NasalPreflightCheck(
             "NASAL_LOBE_THICKNESS_LOCALIZATION",
             "PASS" if (
-                lobe.nominal_thickness_mm == a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm")
+                lobe.nominal_thickness_mm == authored_lobe_thickness_mm
                 and lobe.thickness_doe_mm == tuple(float(value) for value in a.get("geometry", "nasal_lobe_membrane", "thickness_doe_mm"))
                 and all(roles[role_id].nominal_thickness_mm is None for role_id in unresolved_role_ids)
                 and all(roles[role_id].thickness_doe_mm == () for role_id in unresolved_role_ids)
@@ -113,7 +118,7 @@ def run_nasal_preflight() -> dict[str, object]:
                     role_id: roles[role_id].nominal_thickness_mm for role_id in unresolved_role_ids
                 },
             },
-            expected={"lobe_nominal_mm": 0.30, "lobe_doe_mm": [0.25, 0.30, 0.35], "other_numeric_thicknesses": None},
+            expected={"lobe_nominal_mm": authored_lobe_thickness_mm, "lobe_doe_mm": [0.25, 0.30, 0.35], "other_numeric_thicknesses": None},
         ),
         NasalPreflightCheck(
             "NASAL_PROTECTED_OPENING_EXCLUSION",
@@ -128,11 +133,22 @@ def run_nasal_preflight() -> dict[str, object]:
             "PASS" if (
                 model.nasal_interface.name == "nasal_lobe_membrane_reference"
                 and model.nasal_interface.status == "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE"
-                and abs(float(cad_bb.zlen) - 0.30) <= 1e-9
+                and abs(cad_zlen_mm - authored_lobe_thickness_mm) <= CAD_BREP_BOUND_TOLERANCE_MM
             ) else "FAIL",
-            "Generated 0.30 mm CAD is explicitly a local nasal-lobe development reference rather than a whole-saddle thickness claim.",
-            actual={"name": model.nasal_interface.name, "status": model.nasal_interface.status, "zlen_mm": float(cad_bb.zlen)},
-            expected={"name": "nasal_lobe_membrane_reference", "status": "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE", "zlen_mm": 0.30},
+            "Generated CAD is explicitly a local nasal-lobe development reference. The authored thickness is checked exactly in the role authority and the post-boolean B-rep bound is checked only against the controlled OpenCascade numerical tolerance, not a product/manufacturing tolerance.",
+            actual={
+                "name": model.nasal_interface.name,
+                "status": model.nasal_interface.status,
+                "authored_thickness_mm": authored_lobe_thickness_mm,
+                "brep_zlen_mm": cad_zlen_mm,
+                "brep_bound_error_mm": abs(cad_zlen_mm - authored_lobe_thickness_mm),
+            },
+            expected={
+                "name": "nasal_lobe_membrane_reference",
+                "status": "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE",
+                "authored_thickness_mm": authored_lobe_thickness_mm,
+                "brep_bound_error_mm_max": CAD_BREP_BOUND_TOLERANCE_MM,
+            },
         ),
         NasalPreflightCheck(
             "NASAL_EVIDENCE_BOUNDARY",
