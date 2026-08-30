@@ -26,12 +26,12 @@ def _samples(offset_mm: float = 0.0):
     return engineering, reference
 
 
-def _released_reference(reference_samples):
+def _released_reference(reference_samples, *, revision="R1", source_asset=b"controlled-reference-asset"):
     return ReleasedSurfaceReference(
         surface_id="MASCK_ONE-CLASS-A-REF-001",
-        source_asset_sha256=sha256_bytes(b"controlled-reference-asset"),
+        source_asset_sha256=sha256_bytes(source_asset),
         reference_sample_manifest_sha256=surface_sample_manifest_sha256(reference_samples),
-        revision="R1",
+        revision=revision,
         release_status="RELEASED_CLASS_A_REFERENCE",
     )
 
@@ -52,6 +52,10 @@ def test_numeric_pass_without_released_reference_remains_blocked():
     assert report.numeric_gate_passed is True
     assert report.reference_release_eligible is False
     assert report.reference_sample_manifest_sha256 == surface_sample_manifest_sha256(reference)
+    assert report.reference_surface_id is None
+    assert report.reference_revision is None
+    assert report.reference_source_asset_sha256 is None
+    assert report.reference_release_record_sha256 is None
     assert report.product_validation_status == "BLOCKED_RELEASE_REFERENCE_REQUIRED"
 
 
@@ -63,8 +67,41 @@ def test_released_reference_allows_only_digital_cad_closure_status():
     assert report.numeric_gate_passed is True
     assert report.reference_release_eligible is True
     assert report.reference_sample_manifest_sha256 == ref.reference_sample_manifest_sha256
+    assert report.reference_surface_id == ref.surface_id
+    assert report.reference_revision == ref.revision
+    assert report.reference_source_asset_sha256 == ref.source_asset_sha256
+    assert report.reference_release_record_sha256 == ref.release_record_sha256
     assert report.product_validation_status == "CAD_CLOSURE_NUMERIC_PASS_AGAINST_RELEASED_REFERENCE"
     assert workflow.physical_validation_eligible is False
+
+
+def test_report_binds_both_engineering_and_reference_sample_sets():
+    engineering, reference = _samples(0.10)
+    report = build_class_a_workflow(load_authority(), reference=_released_reference(reference)).evaluate(
+        engineering, reference
+    )
+    assert report.engineering_sample_manifest_sha256 == surface_sample_manifest_sha256(engineering)
+    assert report.reference_sample_manifest_sha256 == surface_sample_manifest_sha256(reference)
+    changed_engineering = (
+        SurfaceSample("A", Point3(0.0, 0.0, 0.01)),
+        engineering[1],
+    )
+    changed_report = build_class_a_workflow(load_authority(), reference=_released_reference(reference)).evaluate(
+        changed_engineering, reference
+    )
+    assert changed_report.engineering_sample_manifest_sha256 != report.engineering_sample_manifest_sha256
+    assert changed_report.reference_sample_manifest_sha256 == report.reference_sample_manifest_sha256
+
+
+def test_release_record_hash_changes_when_source_asset_or_revision_changes():
+    _, reference = _samples(0.10)
+    baseline = _released_reference(reference)
+    source_changed = _released_reference(reference, source_asset=b"different-controlled-asset")
+    revision_changed = _released_reference(reference, revision="R2")
+    assert source_changed.reference_sample_manifest_sha256 == baseline.reference_sample_manifest_sha256
+    assert revision_changed.reference_sample_manifest_sha256 == baseline.reference_sample_manifest_sha256
+    assert source_changed.release_record_sha256 != baseline.release_record_sha256
+    assert revision_changed.release_record_sha256 != baseline.release_record_sha256
 
 
 def test_released_reference_rejects_different_sample_geometry_even_with_same_ids():
@@ -92,7 +129,7 @@ def test_released_reference_rejects_stale_sample_manifest_after_single_coordinat
         workflow.evaluate(engineering, stale_derivative)
 
 
-def test_sample_manifest_is_order_independent_but_identity_sensitive():
+def test_sample_manifest_is_order_independent_identity_sensitive_and_normalizes_signed_zero():
     _, reference = _samples(0.10)
     reversed_reference = tuple(reversed(reference))
     assert surface_sample_manifest_sha256(reference) == surface_sample_manifest_sha256(reversed_reference)
@@ -101,6 +138,9 @@ def test_sample_manifest_is_order_independent_but_identity_sensitive():
         SurfaceSample("C", reference[1].point),
     )
     assert surface_sample_manifest_sha256(reference) != surface_sample_manifest_sha256(changed_id)
+    positive_zero = (SurfaceSample("A", Point3(0.0, 0.0, 0.0)),)
+    negative_zero = (SurfaceSample("A", Point3(-0.0, 0.0, -0.0)),)
+    assert surface_sample_manifest_sha256(positive_zero) == surface_sample_manifest_sha256(negative_zero)
 
 
 def test_deviation_over_limit_fails_numeric_gate():
@@ -148,8 +188,10 @@ def test_invalid_reference_hashes_or_release_status_are_rejected():
     manifest = surface_sample_manifest_sha256(reference)
     with pytest.raises(SurfaceWorkflowError, match="source asset"):
         ReleasedSurfaceReference("ID", "abc", manifest, "R1", "RELEASED_CLASS_A_REFERENCE")
-    with pytest.raises(SurfaceWorkflowError, match="reference sample manifest"):
+    with pytest.raises(SurfaceWorkflowError, match="sample manifest"):
         ReleasedSurfaceReference("ID", "0" * 64, "abc", "R1", "RELEASED_CLASS_A_REFERENCE")
+    with pytest.raises(SurfaceWorkflowError, match="lowercase"):
+        ReleasedSurfaceReference("ID", "A" * 64, manifest, "R1", "RELEASED_CLASS_A_REFERENCE")
     with pytest.raises(SurfaceWorkflowError, match="explicit release status"):
         ReleasedSurfaceReference("ID", "0" * 64, manifest, "R1", "DRAFT")
 
