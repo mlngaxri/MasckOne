@@ -57,8 +57,8 @@ def run_surface_workflow_preflight() -> dict[str, object]:
     )
     try:
         build_class_a_workflow(authority, reference=released_reference).evaluate(engineering, substituted_reference)
-    except SurfaceWorkflowError:
-        mismatch_rejected = True
+    except SurfaceWorkflowError as exc:
+        mismatch_rejected = "manifest hash does not match" in str(exc)
 
     checks = [
         SurfaceWorkflowPreflightCheck(
@@ -84,11 +84,33 @@ def run_surface_workflow_preflight() -> dict[str, object]:
                 and released_report.reference_sample_manifest_sha256 == manifest_sha
                 and mismatch_rejected
             ) else "FAIL",
-            "Release eligibility is cryptographically bound to the exact canonical reference-sample manifest; substituted or stale sample geometry is rejected.",
+            "Release eligibility is bound to the exact canonical reference-sample manifest; substituted or stale sample geometry is rejected.",
             actual={
                 "manifest_sha256": released_report.reference_sample_manifest_sha256,
                 "substituted_reference_rejected": mismatch_rejected,
             },
+        ),
+        SurfaceWorkflowPreflightCheck(
+            "CLASS_A_RELEASE_RECORD_PROVENANCE",
+            "PASS" if (
+                released_report.reference_surface_id == released_reference.surface_id
+                and released_report.reference_revision == released_reference.revision
+                and released_report.reference_source_asset_sha256 == released_reference.source_asset_sha256
+                and released_report.reference_release_record_sha256 == released_reference.release_record_sha256
+            ) else "FAIL",
+            "Eligible reports preserve the released surface ID, revision, source-asset SHA-256 and complete release-record SHA-256, not only the derivative sample hash.",
+            actual={
+                "surface_id": released_report.reference_surface_id,
+                "revision": released_report.reference_revision,
+                "source_asset_sha256": released_report.reference_source_asset_sha256,
+                "release_record_sha256": released_report.reference_release_record_sha256,
+            },
+        ),
+        SurfaceWorkflowPreflightCheck(
+            "CLASS_A_ENGINEERING_INPUT_TRACEABILITY",
+            "PASS" if released_report.engineering_sample_manifest_sha256 == surface_sample_manifest_sha256(engineering) else "FAIL",
+            "The report records the exact engineering sample-set identity as well as the released reference identity.",
+            actual=released_report.engineering_sample_manifest_sha256,
         ),
         SurfaceWorkflowPreflightCheck(
             "CLASS_A_NUMERIC_EVALUATOR",
