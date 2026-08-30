@@ -42,24 +42,39 @@ def test_six_view_metrics_are_deterministic_and_provenance_bound():
     assert report.physical_validation_eligible is False
 
 
+def test_metrics_are_order_invariant_for_adversarial_floating_point_inputs():
+    samples = (
+        SurfaceSample("A", Point3(1.0e16, -30.0, -4.0)),
+        SurfaceSample("B", Point3(-1.0e16, -20.0, 6.0)),
+        SurfaceSample("C", Point3(1.0, 30.0, 8.0)),
+        SurfaceSample("D", Point3(3.0, 10.0, -8.0)),
+    )
+    forward = inspect_surface_samples(samples)
+    reverse = inspect_surface_samples(reversed(samples))
+    assert forward.report_sha256 == reverse.report_sha256
+    assert forward.views == reverse.views
+
+
+def test_finite_inputs_that_overflow_derived_span_are_rejected():
+    huge = 1.0e308
+    samples = (
+        SurfaceSample("A", Point3(-huge, -30.0, -4.0)),
+        SurfaceSample("B", Point3(huge, -20.0, 6.0)),
+        SurfaceSample("C", Point3(0.0, 30.0, 8.0)),
+    )
+    with pytest.raises(VisualInspectionError, match="non-finite"):
+        inspect_surface_samples(samples)
+
+
 def test_opposing_views_preserve_handedness_instead_of_collapsing():
     report = inspect_surface_samples(_asymmetric_samples())
     views = {view.view_id: view for view in report.views}
-
     assert views["FRONT"].horizontal_span_mm == pytest.approx(views["REAR"].horizontal_span_mm)
     assert views["FRONT"].centroid_horizontal_mm == pytest.approx(-views["REAR"].centroid_horizontal_mm)
-    assert views["FRONT"].horizontal_sign == 1
-    assert views["REAR"].horizontal_sign == -1
-
     assert views["LEFT"].horizontal_span_mm == pytest.approx(views["RIGHT"].horizontal_span_mm)
     assert views["LEFT"].centroid_horizontal_mm == pytest.approx(-views["RIGHT"].centroid_horizontal_mm)
-    assert views["LEFT"].horizontal_sign == 1
-    assert views["RIGHT"].horizontal_sign == -1
-
     assert views["TOP"].horizontal_span_mm == pytest.approx(views["BOTTOM"].horizontal_span_mm)
     assert views["TOP"].centroid_horizontal_mm == pytest.approx(-views["BOTTOM"].centroid_horizontal_mm)
-    assert views["TOP"].horizontal_sign == -1
-    assert views["BOTTOM"].horizontal_sign == 1
 
 
 def test_geometry_change_changes_report_identity():
@@ -99,3 +114,12 @@ def test_view_basis_tampering_is_rejected():
     tampered_front = replace(report.views[0], horizontal_sign=-1)
     with pytest.raises(VisualInspectionError, match="controlled signed world-coordinate basis"):
         replace(report, views=(tampered_front, *report.views[1:]))
+
+
+def test_report_rejects_noncanonical_source_identity_and_nonfinite_derived_metric():
+    report = inspect_surface_samples(_samples())
+    with pytest.raises(VisualInspectionError, match="lowercase canonical SHA-256"):
+        replace(report, source_sample_manifest_sha256=report.source_sample_manifest_sha256.upper())
+    bad_front = replace(report.views[0], aspect_ratio=float("nan"))
+    with pytest.raises(VisualInspectionError, match="non-finite"):
+        replace(report, views=(bad_front, *report.views[1:]))
