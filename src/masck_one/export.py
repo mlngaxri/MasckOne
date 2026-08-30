@@ -21,7 +21,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
 
     export_map = {
         "rigid_shell": model.shell.solid,
-        "nasal_interface": model.nasal_interface.solid,
+        "nasal_lobe_membrane_reference": model.nasal_interface.solid,
         "water_reservoir_envelope": model.water_reservoir_envelope.solid,
         "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
         "battery_reference_envelope": model.battery_reference_envelope.solid,
@@ -40,9 +40,17 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
+        "development_phase": 2,
+        "iteration": 11,
         "result": "PASS" if not any(c.status == "FAIL" for c in checks) else "FAIL",
         "checks": [c.to_dict() for c in checks],
-        "note": "BLOCKED checks are unresolved evidence gates, not software failures.",
+        "digital_topology": {
+            "coverage": model.coverage_mesh.manifest(),
+            "compliant_interface": model.compliant_interface_topology.manifest(model.coverage_mesh),
+            "nasal_subsystem": model.nasal_subsystem_topology.manifest(),
+        },
+        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "note": "BLOCKED checks are unresolved evidence gates, not software failures. Development topology/manifests are not physical validation evidence.",
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2)
