@@ -17,12 +17,52 @@ from .spatial import CanonicalDatums, Point2, Point3
 from .worn_pose import WornPoseRegressionSet, generate_hard_envelope_regression_set
 
 
+# Numerical-kernel diagnostics only. These are not product, drawing, process, or
+# manufacturing tolerances and must never be presented as such.
+CAD_BREP_BOUND_TOLERANCE_MM = 2e-6
+CAD_PLANAR_FACE_SPAN_TOLERANCE_MM = 1e-10
+CAD_AXIS_NORMAL_TOLERANCE = 1e-9
+
+
 @dataclass(frozen=True)
 class Component:
     name: str
     solid: cq.Workplane
     status: str
     notes: str = ""
+
+    def brep_bounding_span_z_mm(self) -> float:
+        """Return the OpenCascade bounding-box Z span.
+
+        OpenCascade bounding boxes intentionally include small geometric/topological
+        tolerances. This value is useful as a kernel-regression diagnostic, but it is
+        not the authoritative way to verify an authored planar extrusion thickness.
+        """
+
+        return float(self.solid.val().BoundingBox().zlen)
+
+    def horizontal_planar_face_span_z_mm(self) -> float:
+        """Measure Z separation of the component's horizontal planar support faces.
+
+        For a planar constant-thickness development solid, the top/bottom plane
+        locations retain the authored geometry while the enclosing B-rep bounding box
+        can be slightly inflated by OpenCascade tolerance bookkeeping. We therefore
+        use plane separation for the engineering geometry check and retain the bounding
+        span as a separate secondary kernel diagnostic.
+        """
+
+        z_values: list[float] = []
+        for face in self.solid.val().Faces():
+            if face.geomType() != "PLANE":
+                continue
+            normal = face.normalAt()
+            if abs(abs(float(normal.z)) - 1.0) <= CAD_AXIS_NORMAL_TOLERANCE:
+                z_values.append(float(face.Center().z))
+        if len(z_values) < 2:
+            raise ValueError(
+                f"Component {self.name!r} does not expose two horizontal planar faces for Z-span verification"
+            )
+        return max(z_values) - min(z_values)
 
 
 @dataclass(frozen=True)
