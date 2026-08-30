@@ -10,6 +10,7 @@ from typing import Iterable
 
 from .anatomy import FacialReferenceError, build_facial_reference
 from .authority import Authority, AuthorityError, load_authority
+from .facial_surface import FacialSurfaceError, build_planar_development_surface
 from .reference_surfaces import (
     ReferenceSurfaceAsset,
     ReferenceSurfaceError,
@@ -241,8 +242,6 @@ def _check_facial_reference(authority: Authority | None, datums: CanonicalDatums
 
 
 def _check_reference_surface_ingestion() -> PreflightCheck:
-    """Exercise the ingestion contract without treating a synthetic mesh as product evidence."""
-
     try:
         mesh = TriangleMesh(
             vertices=(Point3(0.0, 0.0, 0.0), Point3(1.0, 0.0, 0.0), Point3(0.0, 1.0, 0.0)),
@@ -299,6 +298,55 @@ def _check_reference_surface_ingestion() -> PreflightCheck:
     )
 
 
+def _check_neutral_facial_surface(authority: Authority | None, datums: CanonicalDatums | None) -> PreflightCheck:
+    if authority is None or datums is None:
+        return PreflightCheck(
+            "NEUTRAL_FACIAL_SURFACE",
+            "FAIL",
+            "Neutral facial surface requires valid authority and canonical datums.",
+            None,
+            "deterministic development surface",
+        )
+    try:
+        reference = build_facial_reference(authority, datums)
+        surface = build_planar_development_surface(authority)
+        projections = surface.project_reference_landmarks(reference)
+    except (FacialSurfaceError, FacialReferenceError) as exc:
+        return PreflightCheck(
+            "NEUTRAL_FACIAL_SURFACE",
+            "FAIL",
+            "Development facial surface must be deterministic and explicitly non-anatomical until a registered source exists.",
+            str(exc),
+            "valid topology-only surface",
+        )
+
+    actual = {
+        "kind": surface.descriptor.kind,
+        "validation_eligible": surface.descriptor.anatomical_validation_eligible,
+        "planar": surface.is_planar,
+        "vertex_count": surface.mesh.vertex_count,
+        "triangle_count": surface.mesh.triangle_count,
+        "projection_count": len(projections),
+        "max_projection_error_mm_lt_3": max(p.xy_error_mm for p in projections) < 3.0,
+    }
+    expected = {
+        "kind": "PLANAR_DEVELOPMENT_REFERENCE",
+        "validation_eligible": False,
+        "planar": True,
+        "vertex_count": surface.mesh.vertex_count,
+        "triangle_count": surface.mesh.triangle_count,
+        "projection_count": 5,
+        "max_projection_error_mm_lt_3": True,
+    }
+    return PreflightCheck(
+        "NEUTRAL_FACIAL_SURFACE",
+        "PASS" if actual == expected and surface.mesh.vertex_count > 1000 and surface.mesh.triangle_count > 1500 else "FAIL",
+        "Neutral surface provides deterministic topology while refusing to masquerade as anatomical fit evidence.",
+        actual,
+        expected,
+    )
+
+
 def _iter_text_files(root: Path) -> Iterable[Path]:
     ignored_parts = {".git", ".pytest_cache", "__pycache__", ".venv", "generated"}
     allowed_suffixes = {".py", ".md", ".toml", ".yaml", ".yml", ".json", ".txt"}
@@ -337,6 +385,7 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "src/masck_one/spatial.py",
         "src/masck_one/anatomy.py",
         "src/masck_one/reference_surfaces.py",
+        "src/masck_one/facial_surface.py",
         "src/masck_one/model.py",
         "src/masck_one/assertions.py",
         "src/masck_one/export.py",
@@ -346,9 +395,11 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "tests/test_spatial.py",
         "tests/test_anatomy.py",
         "tests/test_reference_surfaces.py",
+        "tests/test_facial_surface.py",
         "tests/test_model.py",
         "docs/COORDINATE_SYSTEM.md",
         "docs/REFERENCE_SURFACE_INGESTION.md",
+        "docs/NEUTRAL_FACIAL_SURFACE.md",
         "docs/DEVELOPMENT_ROADMAP.md",
     ]
     missing = [item for item in required if not (root / item).exists()]
@@ -372,6 +423,7 @@ def run_preflight() -> dict[str, object]:
         spatial_check,
         _check_facial_reference(authority, datums),
         _check_reference_surface_ingestion(),
+        _check_neutral_facial_surface(authority, datums),
         _check_legacy_naming(root),
         _check_required_structure(root),
     ]
@@ -379,7 +431,7 @@ def run_preflight() -> dict[str, object]:
     return {
         "project": "Masck One",
         "phase": "1",
-        "iteration": "5",
+        "iteration": "6",
         "result": result,
         "checks": [check.to_dict() for check in checks],
     }
