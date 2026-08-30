@@ -1,0 +1,42 @@
+name: Masck One engineering CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  engineering-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Compile Python
+        run: python -m compileall -q src tests
+
+      - name: Repository preflight
+        run: python -m masck_one.preflight
+
+      - name: Unit and integration tests
+        run: python -m pytest
+
+      - name: Deterministic CAD smoke build
+        run: python -m masck_one.cli --output /tmp/masck-one-generated
