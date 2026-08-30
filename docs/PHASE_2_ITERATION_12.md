@@ -1,54 +1,55 @@
-# Masck One Phase 2 Iteration 12 engineering record
+# Phase 2 Iteration 12: perimeter and protected-aperture transitions
 
-## Objective
+## Scope
 
-Close the digital topology of the compliant-interface perimeter and protected-aperture transitions without inventing seal dimensions, material behavior or anatomical fit evidence.
+Iteration 12 establishes deterministic material/no-material edge topology for the compliant facial interface. It does not define a seal width, transition profile, general membrane thickness, compression target, material model, contact pressure, ingress performance, fit performance or cleansing efficacy.
 
-## Upstream dependencies
+## Upstream baseline
 
-Iteration 12 depends on the merged outputs of:
+This iteration is built from the verified Iteration 11A mainline state. The earlier Iteration 12 candidate was not reused as a merge base because it diverged before Iteration 11A and would have regressed the merged CAD thickness-verification hardening.
 
-- Iteration 6 neutral facial surface;
-- Iteration 7 protected eye, mouth and airway regions;
-- Iteration 9 target/protected coverage segmentation;
-- Iteration 10 compliant-interface contact topology;
-- Iteration 11 dedicated nasal subsystem topology.
+## Boundary decomposition
 
-The new topology records the exact source hashes of the facial surface, coverage segmentation and compliant-interface topology so stale combinations cannot be silently mixed.
+The coverage mesh retains six source-region provenance partitions: outer perimeter, left eye, right eye, mouth, left nostril and right nostril. Those labels are useful because each transition edge can still identify the exact protected-region triangle on its non-contact side.
 
-## Implementation
+They are not six independent physical boundaries. The conservative left/right eye protected envelopes overlap across the sagittal plane, and the conservative left/right nostril envelopes overlap as well. Requiring each labelled partition to form its own closed loop is therefore a decomposition error.
 
-`src/masck_one/interface_boundaries.py` constructs the six controlled edge systems from mesh incidence rather than drawing new unsupported geometry.
+Physical loop integrity is evaluated on four systems:
 
-The outer boundary is defined by a development-mesh edge with exactly one incident active contact triangle. Protected-aperture boundaries are defined only by an edge shared by one active contact triangle and one protected triangle belonging to the expected eye, mouth or nostril region.
+1. outer interface perimeter;
+2. bilateral eye protected union;
+3. mouth protected opening;
+4. bilateral nostril/airway protected union.
 
-Each boundary must be one closed connected loop. Edge identity, incident triangles, edge lengths and source hashes are included in the deterministic topology manifest and SHA-256 identity.
+All six provenance partitions remain explicit, but only the four physical systems are required to be single closed edge loops.
+
+## Source-chain hardening
+
+The facial-surface descriptor source SHA identifies the original source artifact. A registered external surface can therefore share that source SHA with another rigid registration of the same asset. Iteration 12 records the registered mesh SHA and registration revision separately.
+
+The controlled release path additionally verifies the coverage triangle identities and centroids against the current registered mesh. A stale coverage revision from another registration of the same source asset is rejected. The numerical centroid comparison budget is a software identity check only, not a manufacturing or physical tolerance.
+
+## Release manifest
+
+The build report exports each interface-boundary edge record, including:
+
+- deterministic edge index;
+- source-region boundary ID;
+- physical-boundary ID;
+- vertex pair;
+- incident triangle IDs;
+- contact triangle ID;
+- protected triangle ID where applicable;
+- edge length.
+
+This makes the exported topology reconstructable rather than exposing only aggregate counts and lengths.
 
 ## Authority discipline
 
-The current authority contains no numeric compliant seal/transition width and no general interface thickness. Iteration 12 therefore leaves these values explicitly unresolved and rejects numeric assignment in the boundary-definition data model.
+The authority does not currently provide a compliant seal width, edge-transition width, general interface thickness, compression profile or material constitutive behavior. Those fields remain unresolved. Numeric insertion is rejected.
 
-The authority does define a 3.0 mm eye inner-edge roll radius. This is preserved only as a rigid eye-edge design reference. It is deliberately not converted into compliant-interface width, thickness, compression or pressure geometry.
+The existing eye inner-edge roll radius is retained only as a rigid-edge design reference. It is explicitly not promoted to compliant seal/profile geometry.
 
-## Validation boundary
+## Evidence gates left open
 
-The new data represents deterministic development topology only. It cannot satisfy real seal, ingress, fit, pressure, strain, comfort, material or anatomical validation gates.
-
-## Verification introduced
-
-Iteration 12 adds:
-
-- source-chain/hash verification;
-- six-boundary completeness verification;
-- one-closed-loop-per-boundary verification;
-- contact/protected edge semantic verification;
-- no-unsupported-dimension regression tests;
-- rigid-eye-roll-reference regression tests;
-- sagittal eye/nostril boundary symmetry checks;
-- deterministic topology hash checks;
-- model/public API/build-manifest integration;
-- a dedicated `masck_one.boundary_preflight` CI gate.
-
-## Downstream handoff
-
-Iteration 13 can now define the interface-to-structural-frame attachment/clamp architecture against explicit outer and protected-aperture edge identities. Actual seal/compliance profiles remain evidence-gated for later geometry/material/contact iterations.
+Digital closure of this iteration does not close seal performance, fluid ingress, facial fit, pressure distribution, membrane strain, durability, hygiene, airway performance, anatomical validation or cleansing efficacy. Those require the later material, simulation and physical-evidence iterations in the controlled roadmap.
