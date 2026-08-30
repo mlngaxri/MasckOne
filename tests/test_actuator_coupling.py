@@ -1,4 +1,5 @@
 from dataclasses import replace
+from functools import lru_cache
 
 import pytest
 
@@ -13,6 +14,7 @@ from masck_one.structural_frame import build_structural_frame_topology
 from masck_one.sweep_geometry import AABB, LinearSweep
 
 
+@lru_cache(maxsize=1)
 def _inputs():
     model = build_model()
     boundaries = build_verified_interface_boundary_topology(

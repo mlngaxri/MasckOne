@@ -1,4 +1,5 @@
 from dataclasses import replace
+from functools import lru_cache
 
 import pytest
 
@@ -16,6 +17,7 @@ from masck_one.model import build_model
 from masck_one.structural_frame import build_structural_frame_topology
 
 
+@lru_cache(maxsize=1)
 def _inputs():
     model = build_model()
     boundaries = build_verified_interface_boundary_topology(model.authority, model.facial_surface, model.coverage_mesh, model.compliant_interface_topology)
