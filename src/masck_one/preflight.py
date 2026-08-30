@@ -91,39 +91,13 @@ def _check_authority() -> tuple[list[PreflightCheck], Authority | None]:
         authority = load_authority()
     except AuthorityError as exc:
         return [PreflightCheck("AUTHORITY_LOAD", "FAIL", "Machine authority must load without schema or semantic errors.", str(exc), "valid authority")], None
-
-    checks = [
+    return [
         PreflightCheck("AUTHORITY_LOAD", "PASS", "Machine authority loads successfully."),
-        PreflightCheck(
-            "AUTHORITY_CONTRACT",
-            "PASS" if authority.validation_report.valid else "FAIL",
-            "Authority passes strict schema and deterministic semantic validation.",
-            len(authority.validation_report.issues),
-            0,
-        ),
-        PreflightCheck(
-            "PRODUCT_NAME",
-            "PASS" if authority.get("project", "name") == "Masck One" else "FAIL",
-            "Human-facing product name is exactly Masck One.",
-            authority.get("project", "name"),
-            "Masck One",
-        ),
-        PreflightCheck(
-            "PROJECT_ID",
-            "PASS" if authority.get("project", "id") == "MASCK_ONE" else "FAIL",
-            "Machine project identifier is stable.",
-            authority.get("project", "id"),
-            "MASCK_ONE",
-        ),
-        PreflightCheck(
-            "AUTHORITY_SCHEMA_VERSION",
-            "PASS" if authority.get("project", "schema_version") == "1.0.0" else "FAIL",
-            "Authority schema version is explicit and controlled.",
-            authority.get("project", "schema_version"),
-            "1.0.0",
-        ),
-    ]
-    return checks, authority
+        PreflightCheck("AUTHORITY_CONTRACT", "PASS" if authority.validation_report.valid else "FAIL", "Authority passes strict schema and deterministic semantic validation.", len(authority.validation_report.issues), 0),
+        PreflightCheck("PRODUCT_NAME", "PASS" if authority.get("project", "name") == "Masck One" else "FAIL", "Human-facing product name is exactly Masck One.", authority.get("project", "name"), "Masck One"),
+        PreflightCheck("PROJECT_ID", "PASS" if authority.get("project", "id") == "MASCK_ONE" else "FAIL", "Machine project identifier is stable.", authority.get("project", "id"), "MASCK_ONE"),
+        PreflightCheck("AUTHORITY_SCHEMA_VERSION", "PASS" if authority.get("project", "schema_version") == "1.0.0" else "FAIL", "Authority schema version is explicit and controlled.", authority.get("project", "schema_version"), "1.0.0"),
+    ], authority
 
 
 def _build_datums(authority: Authority | None) -> tuple[PreflightCheck, CanonicalDatums | None]:
@@ -133,7 +107,6 @@ def _build_datums(authority: Authority | None) -> tuple[PreflightCheck, Canonica
         datums = CanonicalDatums.from_authority(authority)
     except SpatialContractError as exc:
         return PreflightCheck("SPATIAL_CONTRACT", "FAIL", "Canonical datums must be finite, orthonormal, right-handed and authority-aligned.", str(exc), "valid canonical datums"), None
-
     actual = {
         "origin": datums.global_frame.origin.as_tuple(),
         "x_axis": datums.global_frame.x_axis.as_tuple(),
@@ -262,7 +235,6 @@ def _check_worn_pose(authority: Authority | None, datums: CanonicalDatums | None
         posed_bounds = protected_zone_regression_bounds(protected, regression, boundary_samples=16)
     except (FacialReferenceError, FacialSurfaceError, ProtectedVolumeError, WornPoseError) as exc:
         return PreflightCheck("WORN_POSE_CONTRACT", "FAIL", "Deterministic authority-bounded worn poses must build and transform protected zones without inventing Z translation.", str(exc), "valid 459-state regression")
-
     manifest = regression.manifest()
     actual = {
         "pose_count": regression.pose_count,
@@ -305,14 +277,9 @@ def _check_coverage_mesh(authority: Authority | None, datums: CanonicalDatums | 
     try:
         _, surface, _, coverage = _build_coverage(authority, datums)
         all_target_ids = [triangle.triangle_index for triangle in coverage.target_triangles]
-        synthetic_full = coverage.evaluate(
-            all_target_ids,
-            evidence_status="PREFLIGHT_SYNTHETIC_ALL_TARGETS",
-            evidence_eligible=True,
-        )
+        synthetic_full = coverage.evaluate(all_target_ids, evidence_status="PREFLIGHT_SYNTHETIC_ALL_TARGETS", evidence_eligible=True)
     except (FacialReferenceError, FacialSurfaceError, ProtectedVolumeError, CoverageError) as exc:
         return PreflightCheck("COVERAGE_MESH_CONTRACT", "FAIL", "Facial target/protected/T-zone segmentation and coverage metrics must build deterministically without being promoted to efficacy evidence.", str(exc), "valid deterministic coverage topology")
-
     actual = {
         "triangle_count_matches_surface": len(coverage.triangles) == surface.mesh.triangle_count,
         "target_area_positive": coverage.target_area_mm2 > 0.0,
@@ -362,31 +329,16 @@ def _check_compliant_interface(authority: Authority | None, datums: CanonicalDat
         topology = build_compliant_interface_topology(authority, coverage)
         nose_zone = topology.zone_by_id[ZONE_T_NOSE_PHILTRUM]
         components = topology.contact_components(coverage)
-        connectivity = topology.connectivity_manifest(coverage)
-    except (
-        FacialReferenceError,
-        FacialSurfaceError,
-        ProtectedVolumeError,
-        CoverageError,
-        InterfaceTopologyError,
-    ) as exc:
+    except (FacialReferenceError, FacialSurfaceError, ProtectedVolumeError, CoverageError, InterfaceTopologyError) as exc:
         return PreflightCheck("COMPLIANT_INTERFACE_CONTRACT", "FAIL", "Main interface contact/protected topology must be deterministic, area-conserving and evidence-bounded.", str(exc), "valid compliant-interface topology")
-
     nasal = topology.nasal_lobe_thickness_authority
-    isolated = components[1:]
     actual = {
         "assignment_count_matches_coverage": len(topology.assignments) == len(coverage.triangles),
         "contact_area_matches_coverage": abs(topology.contact_area_mm2 - coverage.target_area_mm2) <= 1e-8,
         "protected_area_matches_coverage": abs(topology.protected_opening_area_mm2 - coverage.protected_area_mm2) <= 1e-8,
         "t_zone_area_matches_coverage": abs(topology.t_zone_contact_area_mm2 - coverage.t_zone_target_area_mm2) <= 1e-8,
         "contact_component_count": len(components),
-        "isolated_component_count": len(isolated),
-        "isolated_components_are_nose_philtrum_only": connectivity["isolated_components_are_nose_philtrum_only"],
-        "isolated_components_inside_philtrum_screen": all(
-            component.centroid_y_min_mm >= coverage.t_zone_definition.stem_y_min_mm - 1e-12
-            and component.centroid_y_max_mm <= 0.0 + 1e-12
-            for component in isolated
-        ),
+        "single_component_area_matches_contact": len(components) == 1 and abs(components[0].area_mm2 - topology.contact_area_mm2) <= 1e-8,
         "contact_connectivity_status": topology.contact_connectivity_status,
         "material_continuity_status": topology.material_continuity_status,
         "nasal_center_thickness_mm": nasal.center_thickness_mm,
@@ -401,10 +353,8 @@ def _check_compliant_interface(authority: Authority | None, datums: CanonicalDat
         "contact_area_matches_coverage": True,
         "protected_area_matches_coverage": True,
         "t_zone_area_matches_coverage": True,
-        "contact_component_count": 2,
-        "isolated_component_count": 1,
-        "isolated_components_are_nose_philtrum_only": True,
-        "isolated_components_inside_philtrum_screen": True,
+        "contact_component_count": 1,
+        "single_component_area_matches_contact": True,
         "contact_connectivity_status": CONTACT_CONNECTIVITY_STATUS,
         "material_continuity_status": MATERIAL_CONTINUITY_STATUS,
         "nasal_center_thickness_mm": 0.30,
@@ -417,7 +367,7 @@ def _check_compliant_interface(authority: Authority | None, datums: CanonicalDat
     return PreflightCheck(
         "COMPLIANT_INTERFACE_CONTRACT",
         "PASS" if actual == expected else "FAIL",
-        "Interface parameter zones conserve target/protected area and explicitly classify the safety-separated philtrum contact patch instead of erasing protected clearance to force graph connectivity; material continuity remains unresolved for the dedicated nasal/attachment architecture.",
+        "The refined development contact field remains one edge-connected topology without erasing protected openings; physical membrane construction remains a later geometry/material closure item.",
         actual,
         expected,
     )
@@ -445,44 +395,17 @@ def _check_legacy_naming(root: Path) -> PreflightCheck:
 
 def _check_required_structure(root: Path) -> PreflightCheck:
     required = [
-        "README.md",
-        "pyproject.toml",
-        "config/masck_one_authority.yaml",
-        "schemas/masck_one_authority.schema.json",
-        "src/masck_one/__init__.py",
-        "src/masck_one/authority.py",
-        "src/masck_one/spatial.py",
-        "src/masck_one/anatomy.py",
-        "src/masck_one/reference_surfaces.py",
-        "src/masck_one/facial_surface.py",
-        "src/masck_one/protected_volumes.py",
-        "src/masck_one/worn_pose.py",
-        "src/masck_one/coverage.py",
-        "src/masck_one/interface_topology.py",
-        "src/masck_one/model.py",
-        "src/masck_one/assertions.py",
-        "src/masck_one/export.py",
-        "src/masck_one/cli.py",
-        "tests/test_authority.py",
-        "tests/test_authority_contract.py",
-        "tests/test_spatial.py",
-        "tests/test_anatomy.py",
-        "tests/test_reference_surfaces.py",
-        "tests/test_facial_surface.py",
-        "tests/test_protected_volumes.py",
-        "tests/test_worn_pose.py",
-        "tests/test_coverage.py",
-        "tests/test_interface_topology.py",
-        "tests/test_model.py",
-        "docs/COORDINATE_SYSTEM.md",
-        "docs/REFERENCE_SURFACE_INGESTION.md",
-        "docs/NEUTRAL_FACIAL_SURFACE.md",
-        "docs/PROTECTED_VOLUMES.md",
-        "docs/WORN_POSE.md",
-        "docs/COVERAGE_MESH.md",
-        "docs/COMPLIANT_INTERFACE_TOPOLOGY.md",
-        "docs/ITERATION_10_ACCEPTANCE.md",
-        "docs/PHASE_2_ITERATION_10.md",
+        "README.md", "pyproject.toml", "config/masck_one_authority.yaml", "schemas/masck_one_authority.schema.json",
+        "src/masck_one/__init__.py", "src/masck_one/authority.py", "src/masck_one/spatial.py", "src/masck_one/anatomy.py",
+        "src/masck_one/reference_surfaces.py", "src/masck_one/facial_surface.py", "src/masck_one/protected_volumes.py",
+        "src/masck_one/worn_pose.py", "src/masck_one/coverage.py", "src/masck_one/interface_topology.py",
+        "src/masck_one/model.py", "src/masck_one/assertions.py", "src/masck_one/export.py", "src/masck_one/cli.py",
+        "tests/test_authority.py", "tests/test_authority_contract.py", "tests/test_spatial.py", "tests/test_anatomy.py",
+        "tests/test_reference_surfaces.py", "tests/test_facial_surface.py", "tests/test_protected_volumes.py",
+        "tests/test_worn_pose.py", "tests/test_coverage.py", "tests/test_interface_topology.py", "tests/test_model.py",
+        "docs/COORDINATE_SYSTEM.md", "docs/REFERENCE_SURFACE_INGESTION.md", "docs/NEUTRAL_FACIAL_SURFACE.md",
+        "docs/PROTECTED_VOLUMES.md", "docs/WORN_POSE.md", "docs/COVERAGE_MESH.md",
+        "docs/COMPLIANT_INTERFACE_TOPOLOGY.md", "docs/ITERATION_10_ACCEPTANCE.md", "docs/PHASE_2_ITERATION_10.md",
         "docs/DEVELOPMENT_ROADMAP.md",
     ]
     missing = [item for item in required if not (root / item).exists()]
@@ -494,28 +417,14 @@ def run_preflight() -> dict[str, object]:
     authority_checks, authority = _check_authority()
     spatial_check, datums = _build_datums(authority)
     checks = [
-        _check_python(),
-        *_check_dependencies(),
-        *authority_checks,
-        spatial_check,
-        _check_facial_reference(authority, datums),
-        _check_reference_surface_ingestion(),
-        _check_neutral_facial_surface(authority, datums),
-        _check_protected_volumes(authority, datums),
-        _check_worn_pose(authority, datums),
-        _check_coverage_mesh(authority, datums),
-        _check_compliant_interface(authority, datums),
-        _check_legacy_naming(root),
-        _check_required_structure(root),
+        _check_python(), *_check_dependencies(), *authority_checks, spatial_check,
+        _check_facial_reference(authority, datums), _check_reference_surface_ingestion(),
+        _check_neutral_facial_surface(authority, datums), _check_protected_volumes(authority, datums),
+        _check_worn_pose(authority, datums), _check_coverage_mesh(authority, datums),
+        _check_compliant_interface(authority, datums), _check_legacy_naming(root), _check_required_structure(root),
     ]
     result = "PASS" if all(check.status == "PASS" for check in checks) else "FAIL"
-    return {
-        "project": "Masck One",
-        "phase": "2",
-        "iteration": "10",
-        "result": result,
-        "checks": [check.to_dict() for check in checks],
-    }
+    return {"project": "Masck One", "phase": "2", "iteration": "10", "result": result, "checks": [check.to_dict() for check in checks]}
 
 
 def main() -> int:
