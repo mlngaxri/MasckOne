@@ -13,6 +13,13 @@ if TYPE_CHECKING:
     from .authority import Authority
     from .coverage import CoverageEvaluation, FacialCoverageMesh, TZoneDevelopmentDefinition
     from .facial_surface import FacialSurface, FacialSurfaceDescriptor
+    from .interface_boundaries import (
+        EyeInnerEdgeRollAuthority,
+        InterfaceBoundaryEdge,
+        InterfaceBoundaryTopology,
+        PerimeterComplianceIntent,
+        VisibleSeamAuthority,
+    )
     from .interface_topology import (
         CompliantInterfaceTopology,
         InterfaceParameterZone,
@@ -48,6 +55,11 @@ __all__ = [
     "InterfaceParameterZone",
     "InterfaceTriangleAssignment",
     "NasalLobeThicknessAuthority",
+    "InterfaceBoundaryTopology",
+    "InterfaceBoundaryEdge",
+    "PerimeterComplianceIntent",
+    "VisibleSeamAuthority",
+    "EyeInnerEdgeRollAuthority",
     "NasalDevelopmentBoundaries",
     "NasalRoleDefinition",
     "NasalSubsystemTopology",
@@ -74,6 +86,7 @@ __all__ = [
     "build_facial_coverage_mesh",
     "build_t_zone_development_definition",
     "build_compliant_interface_topology",
+    "build_interface_boundary_topology",
     "build_nasal_subsystem_topology",
     "derive_nasal_development_boundaries",
     "generate_hard_envelope_regression_set",
@@ -118,6 +131,31 @@ def __getattr__(name: str) -> Any:
             "InterfaceTriangleAssignment": InterfaceTriangleAssignment,
             "NasalLobeThicknessAuthority": NasalLobeThicknessAuthority,
             "build_compliant_interface_topology": build_compliant_interface_topology,
+        }[name]
+
+    if name in {
+        "InterfaceBoundaryTopology",
+        "InterfaceBoundaryEdge",
+        "PerimeterComplianceIntent",
+        "VisibleSeamAuthority",
+        "EyeInnerEdgeRollAuthority",
+        "build_interface_boundary_topology",
+    }:
+        from .interface_boundaries import (
+            EyeInnerEdgeRollAuthority,
+            InterfaceBoundaryEdge,
+            InterfaceBoundaryTopology,
+            PerimeterComplianceIntent,
+            VisibleSeamAuthority,
+            build_interface_boundary_topology,
+        )
+        return {
+            "InterfaceBoundaryTopology": InterfaceBoundaryTopology,
+            "InterfaceBoundaryEdge": InterfaceBoundaryEdge,
+            "PerimeterComplianceIntent": PerimeterComplianceIntent,
+            "VisibleSeamAuthority": VisibleSeamAuthority,
+            "EyeInnerEdgeRollAuthority": EyeInnerEdgeRollAuthority,
+            "build_interface_boundary_topology": build_interface_boundary_topology,
         }[name]
 
     if name in {"NasalDevelopmentBoundaries", "NasalRoleDefinition", "NasalSubsystemTopology", "NasalTriangleAssignment", "build_nasal_subsystem_topology", "derive_nasal_development_boundaries"}:
