@@ -24,10 +24,11 @@ _VIEW_BASES: dict[str, tuple[int, float, int, float]] = {
 _VIEW_ORDER = tuple(_VIEW_BASES)
 _SCHEMA = "MASCK_ONE_VISUAL_INSPECTION_V2"
 _AXIS_NAMES = ("X", "Y", "Z")
+_EVIDENCE_STATUS = "DIGITAL_INSPECTION_METRICS_ONLY_NOT_APPEARANCE_FIT_OR_MANUFACTURING_EVIDENCE"
 
 
-def _canonical_sha256(value: str) -> bool:
-    return len(value) == 64 and all(c in "0123456789abcdef" for c in value)
+def _canonical_sha256(value: object) -> bool:
+    return isinstance(value, str) and len(value) == 64 and all(c in "0123456789abcdef" for c in value)
 
 
 def _finite_metric(value: object) -> bool:
@@ -68,7 +69,7 @@ class ViewMetrics:
 class VisualInspectionReport:
     source_sample_manifest_sha256: str
     views: tuple[ViewMetrics, ...]
-    evidence_status: str = "DIGITAL_INSPECTION_METRICS_ONLY_NOT_APPEARANCE_FIT_OR_MANUFACTURING_EVIDENCE"
+    evidence_status: str = _EVIDENCE_STATUS
     physical_validation_eligible: bool = False
 
     def __post_init__(self) -> None:
@@ -89,6 +90,10 @@ class VisualInspectionReport:
                 raise VisualInspectionError(f"{view.view_id} contains non-positive derived inspection metrics")
             if isinstance(view.sample_count, bool) or not isinstance(view.sample_count, int) or view.sample_count < 3:
                 raise VisualInspectionError(f"{view.view_id} sample count is invalid")
+        if self.evidence_status != _EVIDENCE_STATUS:
+            raise VisualInspectionError("Digital visual inspection evidence status is controlled and cannot be promoted or relabelled")
+        if not isinstance(self.physical_validation_eligible, bool):
+            raise VisualInspectionError("Physical-validation eligibility must be an explicit boolean")
         if self.physical_validation_eligible:
             raise VisualInspectionError("Digital visual inspection cannot be physical-validation evidence")
 
