@@ -5,7 +5,7 @@ import hashlib
 import json
 import math
 
-from .visual_inspection import VisualInspectionReport
+from .visual_inspection import VisualInspectionError, VisualInspectionReport
 
 
 class VisualRegressionError(ValueError):
@@ -22,6 +22,13 @@ def _canonical_sha256(value: object) -> bool:
 
 def _finite_real(value: object) -> bool:
     return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(float(value))
+
+
+def _revalidate_report(report: VisualInspectionReport, label: str) -> None:
+    try:
+        report.__post_init__()
+    except (VisualInspectionError, AttributeError, TypeError, ValueError) as exc:
+        raise VisualRegressionError(f"Visual regression {label} report fails inspection invariants: {exc}") from exc
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,8 +131,8 @@ def compare_visual_reports(
     """Compare two provenance-bound six-view reports without inventing acceptance thresholds."""
     if not isinstance(baseline, VisualInspectionReport) or not isinstance(candidate, VisualInspectionReport):
         raise VisualRegressionError("Visual regression requires VisualInspectionReport inputs")
-    if tuple(view.view_id for view in baseline.views) != _VIEW_ORDER or tuple(view.view_id for view in candidate.views) != _VIEW_ORDER:
-        raise VisualRegressionError("Visual regression requires controlled six-view reports")
+    _revalidate_report(baseline, "baseline")
+    _revalidate_report(candidate, "candidate")
 
     deltas: list[ViewDelta] = []
     for base_view, candidate_view in zip(baseline.views, candidate.views, strict=True):
@@ -133,8 +140,6 @@ def compare_visual_reports(
         candidate_basis = (candidate_view.horizontal_axis, candidate_view.horizontal_sign, candidate_view.vertical_axis, candidate_view.vertical_sign)
         if base_view.view_id != candidate_view.view_id or base_basis != candidate_basis:
             raise VisualRegressionError("Visual regression cannot compare mismatched view identities or coordinate bases")
-        if base_view.horizontal_span_mm <= 0.0 or base_view.vertical_span_mm <= 0.0:
-            raise VisualRegressionError("Visual regression baseline spans must be positive")
         h_delta = candidate_view.horizontal_span_mm - base_view.horizontal_span_mm
         v_delta = candidate_view.vertical_span_mm - base_view.vertical_span_mm
         deltas.append(
