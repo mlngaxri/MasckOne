@@ -5,7 +5,6 @@ import hashlib
 import itertools
 import json
 import math
-from typing import Iterable
 
 from .authority import Authority
 from .protected_volumes import PlanarProtectedZone, ProtectedVolumeSet
@@ -177,15 +176,21 @@ class WornPoseRegressionSet:
 
     @property
     def maximum_sampled_radial_translation_mm(self) -> float:
-        return max(pose.translation_radial_mm for pose in self.poses)
+        value = max(pose.translation_radial_mm for pose in self.poses)
+        if math.isclose(value, self.limits.translation_radial_max_mm, rel_tol=0.0, abs_tol=1e-12):
+            return self.limits.translation_radial_max_mm
+        return value
 
     @property
     def maximum_sampled_absolute_rotation_deg(self) -> float:
-        return max(
-            abs(value)
+        value = max(
+            abs(component)
             for pose in self.poses
-            for value in (pose.roll_x_deg, pose.pitch_y_deg, pose.yaw_z_deg)
+            for component in (pose.roll_x_deg, pose.pitch_y_deg, pose.yaw_z_deg)
         )
+        if math.isclose(value, self.limits.rotation_max_deg, rel_tol=0.0, abs_tol=1e-12):
+            return self.limits.rotation_max_deg
+        return value
 
     @property
     def sha256(self) -> str:
