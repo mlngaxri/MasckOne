@@ -144,6 +144,8 @@ def _planar_mesh(width_mm: float, height_mm: float, *, x_samples: int, y_samples
         raise FacialSurfaceError("Development surface dimensions must be positive")
     if x_samples < 5 or y_samples < 5:
         raise FacialSurfaceError("Development surface requires at least 5x5 samples")
+    if x_samples % 2 == 0:
+        raise FacialSurfaceError("Development surface x_samples must be odd so X=0 is an explicit sagittal vertex column")
 
     xs = _linspace(-width_mm / 2.0, width_mm / 2.0, x_samples)
     ys = _linspace(-height_mm / 2.0, height_mm / 2.0, y_samples)
@@ -185,10 +187,18 @@ def _planar_mesh(width_mm: float, height_mm: float, *, x_samples: int, y_samples
 def build_planar_development_surface(
     authority: Authority,
     *,
-    x_samples: int = 41,
-    y_samples: int = 53,
+    x_samples: int = 81,
+    y_samples: int = 105,
 ) -> FacialSurface:
     """Build a deterministic topology/reference surface without inventing facial depth.
+
+    The default 81 x 105 grid is approximately 2 mm in both development-plane axes for
+    the current 155 x 202 mm functional frame. Iteration 10 increased the former coarse
+    grid after it created a false two-triangle philtrum contact island: the continuous
+    protected-zone geometry left a real corridor, but the coarse conservative triangle
+    sampling could not resolve it. The refined grid is a digital-resolution baseline,
+    not anatomical evidence, and callers may still supply explicit sample counts for
+    sensitivity/convergence studies.
 
     This surface exists so region topology, IDs and algorithms can be implemented before
     registered headform/face geometry is available. It is deliberately planar at Z=0 and
