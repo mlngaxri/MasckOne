@@ -65,7 +65,6 @@ def test_model_exposes_deterministic_worn_pose_screen_without_measured_distribut
 def test_model_exposes_coverage_topology_without_promoting_geometric_screen_to_efficacy():
     model = build_model()
     coverage = model.coverage_mesh
-
     assert len(coverage.triangles) == model.facial_surface.mesh.triangle_count
     assert coverage.aggregate_min_percent == 90.0
     assert coverage.t_zone_min_percent == 90.0
@@ -91,18 +90,13 @@ def test_model_exposes_main_compliant_interface_topology_without_invented_materi
     model = build_model()
     topology = model.compliant_interface_topology
     coverage = model.coverage_mesh
-
     assert len(topology.assignments) == len(coverage.triangles)
     assert topology.contact_area_mm2 == coverage.target_area_mm2
     assert topology.protected_opening_area_mm2 == coverage.protected_area_mm2
     assert topology.t_zone_contact_area_mm2 == coverage.t_zone_target_area_mm2
-
-    components = topology.contact_components(coverage)
-    assert len(components) == 2
-    assert components[1].is_nose_philtrum_only is True
+    assert topology.contact_component_count(coverage) == 1
     assert topology.contact_connectivity_status == CONTACT_CONNECTIVITY_STATUS
     assert topology.material_continuity_status == MATERIAL_CONTINUITY_STATUS
-
     assert topology.anatomical_validation_eligible is False
     assert len(topology.topology_sha256) == 64
 
@@ -124,7 +118,6 @@ def test_all_software_verifiable_assertions_pass():
 def test_cleansing_coverage_and_contact_physics_remain_evidence_blocked():
     model = build_model()
     checks = {check.id: check for check in run_assertions(model)}
-
     assert checks["COVERAGE_MESH_TOPOLOGY"].status == "PASS"
     assert checks["COMPLIANT_INTERFACE_TOPOLOGY"].status == "PASS"
     assert checks["CLEANSING_COVERAGE"].status == "BLOCKED"
