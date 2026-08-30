@@ -84,10 +84,45 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
         limit=int(a.number("actuation", "count")),
     ))
 
+    protected = model.protected_volumes
+    expected_clearances = {
+        "MASCK_ONE-PROTECTED-EYE-LEFT": a.number("geometry", "eye", "rigid_dynamic_keepout_clearance_mm"),
+        "MASCK_ONE-PROTECTED-EYE-RIGHT": a.number("geometry", "eye", "rigid_dynamic_keepout_clearance_mm"),
+        "MASCK_ONE-PROTECTED-MOUTH": a.number("geometry", "mouth", "rigid_dynamic_keepout_clearance_mm"),
+        "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": a.number("geometry", "nostrils", "rigid_dynamic_keepout_clearance_mm"),
+        "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": a.number("geometry", "nostrils", "rigid_dynamic_keepout_clearance_mm"),
+    }
+    actual_clearances = {
+        volume.zone.zone_id: volume.zone.required_rigid_clearance_mm
+        for volume in protected.all
+    }
+    protected_xy_pass = (
+        len(protected.all) == 5
+        and actual_clearances == expected_clearances
+        and all(not volume.anatomical_validation_eligible for volume in protected.all)
+        and all(volume.z_policy == "UNBOUNDED_UNTIL_REGISTERED_ANATOMICAL_SURFACE" for volume in protected.all)
+    )
+    checks.append(Check(
+        "PROTECTED_ZONE_XY_BASELINES",
+        "PASS" if protected_xy_pass else "FAIL",
+        "Authority-derived eye/mouth/nostril planar protected footprints and rigid-clearance baselines are encoded; dynamic 3D anatomy remains blocked.",
+        actual={
+            "count": len(protected.all),
+            "clearances_mm": actual_clearances,
+            "z_policy": sorted({volume.z_policy for volume in protected.all}),
+            "validation_eligible": any(volume.anatomical_validation_eligible for volume in protected.all),
+        },
+        limit={
+            "count": 5,
+            "clearances_mm": expected_clearances,
+            "validation_eligible": False,
+        },
+    ))
+
     blocked = [
-        ("DYNAMIC_EYE_SIGNED_DISTANCE", "Requires expression-dependent headform/eye keep-out meshes."),
-        ("DYNAMIC_AIRWAY_SIGNED_DISTANCE", "Requires deformable nasal geometry and measured fit states."),
-        ("DYNAMIC_MOUTH_SIGNED_DISTANCE", "Requires jaw/smile/speech keep-out meshes."),
+        ("DYNAMIC_EYE_SIGNED_DISTANCE", "Planar eye envelopes now exist, but expression-dependent registered anatomical eye keep-out meshes are still required."),
+        ("DYNAMIC_AIRWAY_SIGNED_DISTANCE", "Planar airway envelopes now exist, but deformable nasal geometry and measured fit states are still required."),
+        ("DYNAMIC_MOUTH_SIGNED_DISTANCE", "Planar mouth envelope now exists, but jaw/smile/speech anatomical keep-out meshes are still required."),
         ("AIRWAY_PRESSURE_DROP", "Requires airflow rig or validated CFD boundary conditions."),
         ("FACIAL_PRESSURE", "Requires nonlinear contact model with selected material data and/or pressure-map testing."),
         ("MEMBRANE_STRAIN", "Requires selected silicone constitutive data and converged nonlinear FEA."),

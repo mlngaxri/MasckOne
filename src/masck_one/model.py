@@ -9,6 +9,7 @@ import cadquery as cq
 from .anatomy import FacialReferenceLayer, build_facial_reference
 from .authority import Authority, load_authority
 from .facial_surface import FacialSurface, build_planar_development_surface
+from .protected_volumes import ProtectedVolumeSet, build_protected_volumes
 from .spatial import CanonicalDatums, Point2, Point3
 
 
@@ -26,6 +27,7 @@ class MasckOneModel:
     datums: CanonicalDatums
     facial_reference: FacialReferenceLayer
     facial_surface: FacialSurface
+    protected_volumes: ProtectedVolumeSet
     shell: Component
     nasal_interface: Component
     actuator_envelopes: tuple[Component, ...]
@@ -268,6 +270,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
     datums = CanonicalDatums.from_authority(authority)
     facial_reference = build_facial_reference(authority, datums)
     facial_surface = build_planar_development_surface(authority)
+    protected_volumes = build_protected_volumes(authority, facial_reference, facial_surface)
     shell = Component(
         "rigid_shell",
         _build_shell(authority, facial_reference),
@@ -310,6 +313,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         datums=datums,
         facial_reference=facial_reference,
         facial_surface=facial_surface,
+        protected_volumes=protected_volumes,
         shell=shell,
         nasal_interface=nasal_interface,
         actuator_envelopes=_build_actuators(authority),

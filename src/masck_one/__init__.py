@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .authority import Authority
     from .facial_surface import FacialSurface, FacialSurfaceDescriptor
     from .model import MasckOneModel
+    from .protected_volumes import PlanarProtectedZone, ProtectedVolume, ProtectedVolumeSet
     from .reference_surfaces import ReferenceSurfaceAsset, SurfaceProvenance, SurfaceRegistration, TriangleMesh
     from .spatial import CanonicalDatums, DatumFrame, DatumPlane, Point2, Point3, RigidTransform, Vector3
 
@@ -23,6 +24,9 @@ __all__ = [
     "PlanarLandmark",
     "FacialSurface",
     "FacialSurfaceDescriptor",
+    "PlanarProtectedZone",
+    "ProtectedVolume",
+    "ProtectedVolumeSet",
     "ReferenceSurfaceAsset",
     "SurfaceProvenance",
     "SurfaceRegistration",
@@ -37,6 +41,7 @@ __all__ = [
     "load_authority",
     "build_facial_reference",
     "build_planar_development_surface",
+    "build_protected_volumes",
     "build_model",
 ]
 __version__ = "0.1.0"
@@ -46,41 +51,45 @@ def __getattr__(name: str) -> Any:
     if name in {"Authority", "load_authority"}:
         from .authority import Authority, load_authority
 
-        exports = {"Authority": Authority, "load_authority": load_authority}
-        return exports[name]
+        return {"Authority": Authority, "load_authority": load_authority}[name]
     if name in {"FacialReferenceLayer", "PlanarLandmark", "build_facial_reference"}:
         from .anatomy import FacialReferenceLayer, PlanarLandmark, build_facial_reference
 
-        exports = {
+        return {
             "FacialReferenceLayer": FacialReferenceLayer,
             "PlanarLandmark": PlanarLandmark,
             "build_facial_reference": build_facial_reference,
-        }
-        return exports[name]
+        }[name]
     if name in {"FacialSurface", "FacialSurfaceDescriptor", "build_planar_development_surface"}:
         from .facial_surface import FacialSurface, FacialSurfaceDescriptor, build_planar_development_surface
 
-        exports = {
+        return {
             "FacialSurface": FacialSurface,
             "FacialSurfaceDescriptor": FacialSurfaceDescriptor,
             "build_planar_development_surface": build_planar_development_surface,
-        }
-        return exports[name]
+        }[name]
+    if name in {"PlanarProtectedZone", "ProtectedVolume", "ProtectedVolumeSet", "build_protected_volumes"}:
+        from .protected_volumes import PlanarProtectedZone, ProtectedVolume, ProtectedVolumeSet, build_protected_volumes
+
+        return {
+            "PlanarProtectedZone": PlanarProtectedZone,
+            "ProtectedVolume": ProtectedVolume,
+            "ProtectedVolumeSet": ProtectedVolumeSet,
+            "build_protected_volumes": build_protected_volumes,
+        }[name]
     if name in {"ReferenceSurfaceAsset", "SurfaceProvenance", "SurfaceRegistration", "TriangleMesh"}:
         from .reference_surfaces import ReferenceSurfaceAsset, SurfaceProvenance, SurfaceRegistration, TriangleMesh
 
-        exports = {
+        return {
             "ReferenceSurfaceAsset": ReferenceSurfaceAsset,
             "SurfaceProvenance": SurfaceProvenance,
             "SurfaceRegistration": SurfaceRegistration,
             "TriangleMesh": TriangleMesh,
-        }
-        return exports[name]
+        }[name]
     if name in {"MasckOneModel", "build_model"}:
         from .model import MasckOneModel, build_model
 
-        exports = {"MasckOneModel": MasckOneModel, "build_model": build_model}
-        return exports[name]
+        return {"MasckOneModel": MasckOneModel, "build_model": build_model}[name]
     if name in {
         "CanonicalDatums",
         "DatumFrame",
@@ -92,7 +101,7 @@ def __getattr__(name: str) -> Any:
     }:
         from .spatial import CanonicalDatums, DatumFrame, DatumPlane, Point2, Point3, RigidTransform, Vector3
 
-        exports = {
+        return {
             "CanonicalDatums": CanonicalDatums,
             "DatumFrame": DatumFrame,
             "DatumPlane": DatumPlane,
@@ -100,6 +109,5 @@ def __getattr__(name: str) -> Any:
             "Point3": Point3,
             "RigidTransform": RigidTransform,
             "Vector3": Vector3,
-        }
-        return exports[name]
+        }[name]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
