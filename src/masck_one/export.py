@@ -6,7 +6,11 @@ from pathlib import Path
 import cadquery as cq
 
 from .assertions import run_assertions
-from .boundary_release import boundary_release_manifest
+from .boundary_release import (
+    boundary_release_manifest,
+    build_verified_interface_boundary_topology,
+)
+from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 
 
@@ -38,11 +42,18 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
 
     checks = run_assertions(model)
+    boundary_topology = build_verified_interface_boundary_topology(
+        model.authority,
+        model.facial_surface,
+        model.coverage_mesh,
+        model.compliant_interface_topology,
+    )
+    attachment = build_interface_attachment_architecture(model.authority, boundary_topology)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
         "development_phase": 2,
-        "iteration": 12,
+        "iteration": 13,
         "result": "PASS" if not any(c.status == "FAIL" for c in checks) else "FAIL",
         "checks": [c.to_dict() for c in checks],
         "digital_topology": {
@@ -55,6 +66,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
                 model.coverage_mesh,
                 model.compliant_interface_topology,
             ),
+            "interface_attachment": attachment.manifest(),
         },
         "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
         "note": "BLOCKED checks are unresolved evidence gates, not software failures. Development topology/manifests are not physical validation evidence.",

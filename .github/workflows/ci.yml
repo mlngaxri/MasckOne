@@ -44,6 +44,9 @@ jobs:
       - name: Iteration 12 interface boundary preflight
         run: python -m masck_one.boundary_preflight
 
+      - name: Iteration 13 interface attachment preflight
+        run: python -m masck_one.attachment_preflight
+
       - name: Unit and integration tests
         run: python -m pytest
 
