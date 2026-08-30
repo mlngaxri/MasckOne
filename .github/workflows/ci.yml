@@ -53,6 +53,12 @@ jobs:
       - name: Iteration 15 structural frame preflight
         run: python -m masck_one.structural_frame_preflight
 
+      - name: Candidate Iterations 16-28 development preflight
+        run: python -m masck_one.quarter_preflight
+
+      - name: Digital Alpha Iterations 29-40 preflight
+        run: python -m masck_one.alpha_preflight
+
       - name: Unit and integration tests
         run: python -m pytest
 

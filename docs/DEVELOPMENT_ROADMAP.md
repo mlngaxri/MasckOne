@@ -26,51 +26,51 @@ Digital completion is not physical validation. Physical evidence, supplier evide
 11. Dedicated nasal saddle, bridge/dorsum/sidewall and philtrum continuity architecture. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
 12. Perimeter interface, seal/compliance zones and aperture-edge transitions.
 13. Interface-to-structural-frame attachment/clamp architecture.
-14. First nonlinear membrane/contact simulation framework with evidence-gated material cards.
+14. First nonlinear membrane/contact simulation framework with evidence-gated material cards. **COMPLETE**
 
 ## Phase 3 — rigid structure, shell and actuation
 
-15. Functional structural frame topology and mechanical datum network.
-16. Exterior engineering surface/Class-A reference workflow and deviation governance.
-17. Four actuator local frames, supplier/development envelopes and mounts.
-18. Actuator coupling, flexure/load paths, swept volumes and collision assertions.
-19. Actuation parameter/sensitivity framework and impedance-test handoff.
+15. Functional structural frame topology and mechanical datum network. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+16. Exterior engineering surface/Class-A reference workflow and deviation governance. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+17. Four actuator local frames, supplier/development envelopes and mounts. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+18. Actuator coupling, flexure/load paths, swept volumes and collision assertions. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+19. Actuation parameter/sensitivity framework and impedance-test handoff. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
 
 ## Phase 4 — fresh fluid delivery
 
-20. Water reservoir architecture, fill/vent/usable-volume/service geometry.
-21. Cleanser storage, refill, compatibility metadata and purge architecture.
-22. Water/cleanser pump packaging and tubing-interface architecture.
-23. Parametric manifold branching/metering model.
-24. Skin-facing lateral distribution grooves and protected-region outlet-direction rules.
+20. Water reservoir architecture, fill/vent/usable-volume/service geometry. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+21. Cleanser storage, refill, compatibility metadata and purge architecture. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+22. Water/cleanser pump packaging and tubing-interface architecture. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+23. Parametric manifold branching/metering model. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+24. Skin-facing lateral distribution grooves and protected-region outlet-direction rules. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
 
 ## Phase 5 — waste acquisition and containment
 
-25. Facial waste gutters, capillary paths and regional transient buffers.
-26. Mixed-phase waste-pump packaging, routing and fault-state architecture.
-27. Waste cartridge keyed insertion, sealing, internal capacity reservation and service geometry.
-28. Complete fresh/waste routing, bend-radius, dead-volume and service-clearance checks.
+25. Facial waste gutters, capillary paths and regional transient buffers. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+26. Mixed-phase waste-pump packaging, routing and fault-state architecture. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+27. Waste cartridge keyed insertion, sealing, internal capacity reservation and service geometry. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+28. Complete fresh/waste routing, bend-radius, dead-volume and service-clearance checks. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
 
 ## Phase 6 — retention, power, HMI and thermal reservations
 
-29. Halo/occipital/crown-support architecture and retention load paths.
-30. Mechanical one-handed unpowered quick-release architecture and pinch/hair keep-outs.
-31. Battery/electronics dry-bay packaging, swelling/fault clearances and harness routes.
-32. Four-button physical HMI, seals, tactile differentiation and service indication envelopes.
-33. WARM implementation envelope, temperature-sensing/limiting geometry and thermal-model hooks.
-34. COOL experimental reservation, condensation/dew-point model and architecture comparison hooks.
+29. Halo/occipital/crown-support architecture and retention load paths. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
+30. Mechanical one-handed unpowered quick-release architecture and pinch/hair keep-outs. **RELEASE CANDIDATE — PHYSICAL RELEASE RIG REQUIRED**
+31. Battery/electronics dry-bay packaging, swelling/fault clearances and harness routes. **RELEASE CANDIDATE — PACK SELECTION AND ELECTRICAL EVIDENCE REQUIRED**
+32. Four-button physical HMI, seals, tactile differentiation and service indication envelopes. **RELEASE CANDIDATE — POSITIONS AND FINAL SEMANTICS UNRESOLVED**
+33. WARM implementation envelope, temperature-sensing/limiting geometry and thermal-model hooks. **RELEASE CANDIDATE — THERMAL RIG REQUIRED**
+34. COOL experimental reservation, condensation/dew-point model and architecture comparison hooks. **RELEASE CANDIDATE — FEASIBILITY EVIDENCE REQUIRED**
 
 ## Phase 7 — manufacturing, assembly and quantitative closure
 
-35. Wet/dry cavity classification, seals, drainage/drying and hygiene/service architecture.
-36. Full assembly hierarchy, joints, insertion/removal trajectories and interference engine.
-37. Manufacturing/DFM geometry: walls, ribs, bosses, draft, parting strategy, tolerance/CTQ register.
-38. Automatic mass/CG/pitch-torque, fluid, power and thermal ledgers tied to the generated CAD revision.
+35. Wet/dry cavity classification, seals, drainage/drying and hygiene/service architecture. **DIGITAL RELEASE CANDIDATE**
+36. Full assembly hierarchy, joints, insertion/removal trajectories and interference engine. **DIGITAL RELEASE CANDIDATE — TRAJECTORY GEOMETRY UNRESOLVED**
+37. Manufacturing/DFM geometry: walls, ribs, bosses, draft, parting strategy, tolerance/CTQ register. **DIGITAL CONTRACT COMPLETE — PART DFM UNRESOLVED**
+38. Automatic mass/CG/pitch-torque, fluid, power and thermal ledgers tied to the generated CAD revision. **LEDGERS IMPLEMENTED — CLOSURE BLOCKED BY MISSING ENTRIES**
 
 ## Phase 8 — digital Alpha release
 
-39. Fusion 360 reconstruction/export integration, named components/parameters, neutral CAD exports, drawings and release manifests.
-40. Full-system digital regression, visual/red-team inspection, validation-protocol package and Alpha release-readiness report.
+39. Fusion 360 reconstruction/export integration, named components/parameters, neutral CAD exports, drawings and release manifests. **STEP/JSON RECONSTRUCTION MANIFEST COMPLETE — DRAWINGS BLOCKED**
+40. Full-system digital regression, visual/red-team inspection, validation-protocol package and Alpha release-readiness report. **DIGITAL ALPHA RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
 
 ## Phase 9 — physical subsystem evidence
 

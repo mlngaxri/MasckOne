@@ -6,7 +6,7 @@ The project is intentionally strict about the difference between a value that ca
 
 ## Current development state
 
-**Phase 2: compliant facial interface and nose/T-zone architecture — Iteration 11 release candidate.**
+**Digital Alpha architecture release candidate through Iteration 40. Exact-head CI and review are required before promotion.**
 
 Phase 1 is complete. The current code-CAD baseline generates the rigid shell development geometry, a localized nasal-lobe membrane development reference, nominal protected apertures, four actuator packaging references, water-reservoir envelope, waste-cartridge envelope, battery packaging reference, STEP exports, and structured assertion reports. These are development artifacts, not claims that fit, cleansing efficacy, airflow, pressure, materials, or production readiness have been physically validated.
 
@@ -23,6 +23,21 @@ The engineering foundation now includes:
 - a dedicated nasal subsystem topology that partitions the active central nose/philtrum target into bridge/dorsum, left/right sidewall, nasal-lobe and philtrum roles without introducing unsupported anatomical dimensions;
 - explicit localization of the authority-backed 0.30 mm center / 0.25–0.35 mm DOE thickness family to the nasal-lobe development role only;
 - correction of the former broad 0.30 mm trapezoidal nasal placeholder: generated thickness CAD is now a local `nasal_lobe_membrane_reference`, while bridge/dorsum/sidewall/philtrum thickness remains unresolved until later geometry/material evidence.
+- an evidence-gated 12-case nonlinear contact-analysis framework with no invented material constants;
+- a functional-frame centerline and canonical mechanical datum network without an invented section or material;
+- a Class-A deviation workflow tied to the authority's RMS and maximum limits;
+- four actuator local frames, development-reference envelopes, angle-DOE swept volumes and an impedance-test handoff boundary;
+- water-reservoir, cleanser and dual fresh-fluid pump packaging architecture;
+- a deterministic first-manifold topology with authority-counted water/cleanser outlets, conservative protected-opening exclusion and lateral/subsurface groove intent.
+- target-bound regional waste-acquisition centerlines and transient-buffer handoffs with gutter dimensions left unresolved;
+- mixed-phase waste-pump packaging with every required fault state and no performance inference from fresh-fluid datasheets;
+- a keyed-cartridge interface contract and exact 35 mL capacity-reservation envelope without a retained-capacity or leakage claim;
+- stable fresh/waste route contracts with bend radius, dead volume and service clearance explicitly unresolved.
+- halo/occipital/crown retention interfaces and a one-hand wet unpowered quick-release safety contract;
+- battery dry-bay, four-control physical HMI and WARM/COOL thermal architecture reservations;
+- complete hygiene classification, assembly hierarchy and authority-backed DFM/CTQ contracts;
+- generated mass/CG, fluid, power and thermal ledgers that refuse closure when entries or evidence are missing;
+- hashed STEP and JSON release manifests for deterministic reconstruction through digital Alpha Iteration 40.
 
 ## Repository principles
 
@@ -49,6 +64,17 @@ Key engineering modules:
 - `src/masck_one/interface_topology.py` — main compliant facial-interface contact/protected topology and parameter-zone authority boundary.
 - `src/masck_one/nasal_subsystem.py` — dedicated bridge/dorsum/sidewall/lobe/philtrum functional partition and local lobe-thickness boundary.
 - `src/masck_one/nasal_preflight.py` — Iteration-11 source-chain, role, safety-exclusion and thickness-localization CI gate.
+- `src/masck_one/contact_simulation.py` — Iteration-14 contact-analysis input and evidence contract.
+- `src/masck_one/structural_frame.py` — Iteration-15 functional-frame topology and datums.
+- `src/masck_one/surface_workflow.py` — Iteration-16 Class-A deviation governance.
+- `src/masck_one/actuation_architecture.py` — Iterations 17-19 station, sweep and sensitivity architecture.
+- `src/masck_one/fresh_fluid.py` — Iterations 20-22 reservoir, cleanser and pump packaging architecture.
+- `src/masck_one/distribution_manifold.py` — Iterations 23-24 manifold, outlet and groove-intent architecture.
+- `src/masck_one/waste_architecture.py` — Iterations 25-28 waste acquisition, pump, cartridge and complete-route architecture.
+- `src/masck_one/wearable_architecture.py` — Iterations 29-34 retention, release, dry-bay, HMI and thermal architecture.
+- `src/masck_one/alpha_closure.py` — Iterations 35-40 hygiene, assembly, DFM, ledgers and release closure.
+- `src/masck_one/quarter_preflight.py` — integrated digital architecture gate through Iteration 40.
+- `src/masck_one/alpha_preflight.py` — digital Alpha release and physical-MVP boundary gate.
 
 ## Controlled toolchain
 

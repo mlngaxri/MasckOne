@@ -105,6 +105,20 @@ class PlanarProtectedZone:
         normalized = (local_x / a) ** 2 + (local_y / b) ** 2
         return normalized <= 1.0 + 1e-12 if include_boundary else normalized < 1.0 - 1e-12
 
+    def conservative_radial_margin_xy_mm(self, point: Point2) -> float:
+        """Return a conservative radial margin from the protected envelope.
+
+        Positive values are outside the envelope, zero is on it, and negative values
+        are inside. The value scales normalized ellipse radius by the smaller semi-axis,
+        so it is deliberately conservative and is not an exact Euclidean ellipse distance.
+        """
+
+        local_x, local_y = self._local_xy(point)
+        a = self.envelope_width_mm / 2.0
+        b = self.envelope_height_mm / 2.0
+        normalized_radius = math.sqrt((local_x / a) ** 2 + (local_y / b) ** 2)
+        return (normalized_radius - 1.0) * min(a, b)
+
     def mirrored_across_sagittal(self) -> "PlanarProtectedZone":
         return PlanarProtectedZone(
             zone_id=self.zone_id,

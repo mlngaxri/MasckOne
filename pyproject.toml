@@ -23,6 +23,8 @@ dev = [
 masck-one-cad = "masck_one.cli:main"
 masck-one-preflight = "masck_one.preflight:main"
 masck-one-authority-check = "masck_one.authority:main"
+masck-one-quarter-preflight = "masck_one.quarter_preflight:main"
+masck-one-alpha-preflight = "masck_one.alpha_preflight:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
