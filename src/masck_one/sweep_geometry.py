@@ -35,11 +35,17 @@ def _frame_id(value: str) -> str:
 
 @dataclass(frozen=True, slots=True)
 class AABB:
-    """Closed axis-aligned bounding box in an explicit coordinate frame, in millimetres."""
+    """Closed axis-aligned bounding box in an explicit coordinate frame, in millimetres.
+
+    ``frame_id`` is intentionally required. Geometry entering collision analysis must
+    prove its coordinate identity at construction rather than inheriting a convenient
+    world-frame default. This prevents local supplier/mount envelopes from silently
+    becoming world geometry.
+    """
 
     minimum_xyz_mm: tuple[float, float, float]
     maximum_xyz_mm: tuple[float, float, float]
-    frame_id: str = "MASCK_ONE_WORLD"
+    frame_id: str
 
     def __post_init__(self) -> None:
         lo = _finite3(self.minimum_xyz_mm, label="AABB minimum")
@@ -125,8 +131,6 @@ class LinearSweep:
 
     @property
     def continuous_envelope(self) -> AABB:
-        # For pure translation along a line segment, the coordinate extrema occur at
-        # endpoints. Their union therefore contains the rigid body at every t in [0,1].
         return self.start_box.union(self.end_box)
 
     @property
