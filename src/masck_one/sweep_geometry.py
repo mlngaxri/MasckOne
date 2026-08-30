@@ -4,33 +4,48 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
+from numbers import Real
 
 
 class SweepGeometryError(ValueError):
     """Raised when a continuous-sweep contract would become non-conservative."""
 
 
+def _finite_real(value: object, *, label: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise SweepGeometryError(f"{label} must be a real finite number, not a boolean or coercible alias")
+    out = float(value)
+    if not math.isfinite(out):
+        raise SweepGeometryError(f"{label} must be finite")
+    return out
+
+
 def _finite3(values: tuple[float, float, float], *, label: str) -> tuple[float, float, float]:
     if len(values) != 3:
         raise SweepGeometryError(f"{label} must contain exactly three coordinates")
-    out = tuple(float(v) for v in values)
-    if not all(math.isfinite(v) for v in out):
-        raise SweepGeometryError(f"{label} must be finite")
-    return out  # type: ignore[return-value]
+    return tuple(_finite_real(v, label=f"{label}[{i}]") for i, v in enumerate(values))  # type: ignore[return-value]
 
 
 def _canonical_sha256(value: str, *, label: str) -> str:
+    if not isinstance(value, str):
+        raise SweepGeometryError(f"{label} must be a lowercase canonical SHA-256 digest")
     digest = value.strip()
     if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
         raise SweepGeometryError(f"{label} must be a lowercase canonical SHA-256 digest")
     return digest
 
 
+def _identity(value: str, *, label: str) -> str:
+    if not isinstance(value, str):
+        raise SweepGeometryError(f"{label} must be an explicit nonblank string")
+    identity = value.strip()
+    if not identity:
+        raise SweepGeometryError(f"{label} must be an explicit nonblank string")
+    return identity
+
+
 def _frame_id(value: str) -> str:
-    frame = value.strip()
-    if not frame:
-        raise SweepGeometryError("AABB coordinate frame identity must be explicit")
-    return frame
+    return _identity(value, label="AABB coordinate frame identity")
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,9 +79,9 @@ class AABB:
 
     def intersects(self, other: "AABB", *, clearance_mm: float = 0.0) -> bool:
         self._require_same_frame(other)
-        clearance = float(clearance_mm)
-        if not math.isfinite(clearance) or clearance < 0.0:
-            raise SweepGeometryError("Collision clearance must be finite and non-negative")
+        clearance = _finite_real(clearance_mm, label="Collision clearance")
+        if clearance < 0.0:
+            raise SweepGeometryError("Collision clearance must be non-negative")
         return all(
             self.minimum_xyz_mm[i] - clearance <= other.maximum_xyz_mm[i]
             and other.minimum_xyz_mm[i] - clearance <= self.maximum_xyz_mm[i]
@@ -114,12 +129,13 @@ class LinearSweep:
     rotation_invariant: bool
 
     def __post_init__(self) -> None:
-        if not self.source_id.strip():
-            raise SweepGeometryError("Sweep source identity must be explicit")
+        object.__setattr__(self, "source_id", _identity(self.source_id, label="Sweep source identity"))
         translation = _finite3(self.translation_xyz_mm, label="sweep translation")
         object.__setattr__(self, "translation_xyz_mm", translation)
         digest = _canonical_sha256(self.source_geometry_sha256, label="Sweep source geometry identity")
         object.__setattr__(self, "source_geometry_sha256", digest)
+        if type(self.rotation_invariant) is not bool:
+            raise SweepGeometryError("LinearSweep rotation_invariant must be an explicit boolean")
         if not self.rotation_invariant:
             raise SweepGeometryError(
                 "LinearSweep cannot certify changing orientation; provide a proven conservative rotational envelope"
