@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .authority import Authority
     from .coverage import CoverageEvaluation, FacialCoverageMesh, TZoneDevelopmentDefinition
     from .facial_surface import FacialSurface, FacialSurfaceDescriptor
+    from .interface_boundaries import InterfaceBoundaryDefinition, InterfaceBoundaryEdge, InterfaceBoundaryTopology
     from .interface_topology import (
         CompliantInterfaceTopology,
         InterfaceParameterZone,
@@ -48,6 +49,9 @@ __all__ = [
     "InterfaceParameterZone",
     "InterfaceTriangleAssignment",
     "NasalLobeThicknessAuthority",
+    "InterfaceBoundaryDefinition",
+    "InterfaceBoundaryEdge",
+    "InterfaceBoundaryTopology",
     "NasalDevelopmentBoundaries",
     "NasalRoleDefinition",
     "NasalSubsystemTopology",
@@ -74,6 +78,7 @@ __all__ = [
     "build_facial_coverage_mesh",
     "build_t_zone_development_definition",
     "build_compliant_interface_topology",
+    "build_interface_boundary_topology",
     "build_nasal_subsystem_topology",
     "derive_nasal_development_boundaries",
     "generate_hard_envelope_regression_set",
@@ -118,6 +123,15 @@ def __getattr__(name: str) -> Any:
             "InterfaceTriangleAssignment": InterfaceTriangleAssignment,
             "NasalLobeThicknessAuthority": NasalLobeThicknessAuthority,
             "build_compliant_interface_topology": build_compliant_interface_topology,
+        }[name]
+
+    if name in {"InterfaceBoundaryDefinition", "InterfaceBoundaryEdge", "InterfaceBoundaryTopology", "build_interface_boundary_topology"}:
+        from .interface_boundaries import InterfaceBoundaryDefinition, InterfaceBoundaryEdge, InterfaceBoundaryTopology, build_interface_boundary_topology
+        return {
+            "InterfaceBoundaryDefinition": InterfaceBoundaryDefinition,
+            "InterfaceBoundaryEdge": InterfaceBoundaryEdge,
+            "InterfaceBoundaryTopology": InterfaceBoundaryTopology,
+            "build_interface_boundary_topology": build_interface_boundary_topology,
         }[name]
 
     if name in {"NasalDevelopmentBoundaries", "NasalRoleDefinition", "NasalSubsystemTopology", "NasalTriangleAssignment", "build_nasal_subsystem_topology", "derive_nasal_development_boundaries"}:
