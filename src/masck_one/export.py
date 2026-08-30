@@ -13,6 +13,7 @@ from .boundary_release import (
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
+from .structural_frame import build_structural_frame_topology
 
 
 def _ensure_output_dir(path: str | Path) -> Path:
@@ -51,11 +52,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     )
     attachment = build_interface_attachment_architecture(model.authority, boundary_topology)
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
+    structural_frame = build_structural_frame_topology(model.authority, attachment)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
-        "development_phase": 2,
-        "iteration": 14,
+        "development_phase": 3,
+        "iteration": 15,
         "result": "PASS" if not any(c.status == "FAIL" for c in checks) else "FAIL",
         "checks": [c.to_dict() for c in checks],
         "digital_topology": {
@@ -69,14 +71,16 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
                 model.compliant_interface_topology,
             ),
             "interface_attachment": attachment.manifest(),
+            "structural_frame": structural_frame.manifest(),
         },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
         "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
         "note": (
-            "BLOCKED checks are unresolved evidence gates, not software failures. Development topology/manifests and "
-            "solver-agnostic analysis frameworks are not physical validation evidence."
+            "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
+            "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
+            "released by Iteration 15. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
