@@ -10,6 +10,7 @@ from .boundary_release import (
     boundary_release_manifest,
     build_verified_interface_boundary_topology,
 )
+from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 
@@ -49,11 +50,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         model.compliant_interface_topology,
     )
     attachment = build_interface_attachment_architecture(model.authority, boundary_topology)
+    contact_framework = build_contact_simulation_framework(model.authority, attachment)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
         "development_phase": 2,
-        "iteration": 13,
+        "iteration": 14,
         "result": "PASS" if not any(c.status == "FAIL" for c in checks) else "FAIL",
         "checks": [c.to_dict() for c in checks],
         "digital_topology": {
@@ -68,8 +70,14 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             ),
             "interface_attachment": attachment.manifest(),
         },
+        "analysis_frameworks": {
+            "contact_simulation": contact_framework.manifest(),
+        },
         "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
-        "note": "BLOCKED checks are unresolved evidence gates, not software failures. Development topology/manifests are not physical validation evidence.",
+        "note": (
+            "BLOCKED checks are unresolved evidence gates, not software failures. Development topology/manifests and "
+            "solver-agnostic analysis frameworks are not physical validation evidence."
+        ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2)
