@@ -14,6 +14,13 @@ from types import MappingProxyType
 from typing import Mapping
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
+
+
+def _canonical_id(value: object, *, name: str) -> str:
+    if not isinstance(value, str) or not _ID_RE.fullmatch(value):
+        raise ValueError(f"{name} must be canonical lowercase identifier text")
+    return value
 
 
 class WasteNodeKind(str, Enum):
@@ -33,8 +40,7 @@ class WasteNode:
     protected_region_adjacent: bool = False
 
     def validate(self) -> None:
-        if not isinstance(self.node_id, str) or not self.node_id.strip():
-            raise ValueError("waste node_id is required")
+        _canonical_id(self.node_id, name="waste node_id")
         if not isinstance(self.kind, WasteNodeKind):
             raise ValueError("waste node kind must be a WasteNodeKind")
         if not isinstance(self.protected_region_adjacent, bool):
@@ -50,9 +56,9 @@ class WasteRouteSegment:
     physical_performance_state: str = "VALIDATION_GATED"
 
     def validate(self) -> None:
-        identities = (self.segment_id, self.source_node_id, self.target_node_id)
-        if any(not isinstance(value, str) or not value.strip() for value in identities):
-            raise ValueError("waste route segment identities are required")
+        _canonical_id(self.segment_id, name="waste segment_id")
+        _canonical_id(self.source_node_id, name="waste source_node_id")
+        _canonical_id(self.target_node_id, name="waste target_node_id")
         if self.source_node_id == self.target_node_id:
             raise ValueError("waste route segment cannot self-loop")
         if self.mixed_phase is not True:
@@ -68,9 +74,6 @@ class WasteRouteNetwork:
     segments: tuple[WasteRouteSegment, ...]
 
     def __post_init__(self) -> None:
-        # Frozen dataclasses do not freeze mutable objects supplied by callers. Snapshot the
-        # node map at construction so later mutation cannot silently alter validated topology
-        # or change a previously computed deterministic manifest.
         if isinstance(self.nodes, Mapping):
             object.__setattr__(self, "nodes", MappingProxyType(dict(self.nodes)))
 
@@ -82,8 +85,9 @@ class WasteRouteNetwork:
         if not isinstance(self.segments, tuple):
             raise ValueError("waste route segments must be an immutable tuple")
         for key, node in self.nodes.items():
-            if not isinstance(key, str) or not isinstance(node, WasteNode):
-                raise ValueError("waste node mapping must contain string IDs and WasteNode values")
+            _canonical_id(key, name="waste node mapping key")
+            if not isinstance(node, WasteNode):
+                raise ValueError("waste node mapping must contain WasteNode values")
             node.validate()
             if key != node.node_id:
                 raise ValueError("waste node mapping key must equal node_id")
@@ -122,8 +126,6 @@ class WasteRouteNetwork:
         for acquisition in acquisitions:
             if not self._reachable(acquisition, pump_in, directed):
                 raise ValueError(f"regional acquisition {acquisition} has no route to pump inlet")
-            # The pump is an explicit stage boundary. A graph edge cannot silently create
-            # a passive acquisition-to-discharge or acquisition-to-cartridge bypass around it.
             for forbidden_target in (pump_out, cartridge_in, retention):
                 if self._reachable(acquisition, forbidden_target, directed):
                     raise ValueError("regional acquisition has a route that bypasses the pump stage boundary")
@@ -131,25 +133,17 @@ class WasteRouteNetwork:
             raise ValueError("pump outlet has no route to cartridge inlet")
         if not self._reachable(cartridge_in, retention, directed):
             raise ValueError("cartridge inlet has no route to retention volume")
-        if not any(
-            self._reachable(pump_out, barrier, directed) and self._reachable(barrier, cartridge_in, directed)
-            for barrier in barriers
-        ):
+        if not any(self._reachable(pump_out, barrier, directed) and self._reachable(barrier, cartridge_in, directed) for barrier in barriers):
             raise ValueError("cartridge path must place a passive backflow barrier downstream of pump outlet")
         if self._reachable_avoiding(pump_out, cartridge_in, directed, forbidden=barriers):
             raise ValueError("pump outlet has a cartridge path that bypasses all passive backflow barriers")
-
-        # Retention is a terminal topology sink. A return edge can otherwise create a
-        # digitally valid cycle that defeats containment semantics without any physical evidence.
         if directed[retention]:
             raise ValueError("cartridge retention must be a terminal waste-route sink")
         if self._reachable(cartridge_in, pump_in, directed) or self._reachable(cartridge_in, pump_out, directed):
             raise ValueError("cartridge path cannot cycle back into the pump stage")
-
         for node in self.nodes.values():
-            if node.protected_region_adjacent and node.kind is WasteNodeKind.REGIONAL_ACQUISITION:
-                if not directed[node.node_id]:
-                    raise ValueError("protected-region-adjacent acquisition cannot be a dead end")
+            if node.protected_region_adjacent and node.kind is WasteNodeKind.REGIONAL_ACQUISITION and not directed[node.node_id]:
+                raise ValueError("protected-region-adjacent acquisition cannot be a dead end")
 
     @staticmethod
     def _reachable(start: str, target: str, graph: Mapping[str, list[str]]) -> bool:
@@ -192,13 +186,7 @@ class WasteRouteNetwork:
         self.validate()
         payload = {
             "source_waste_architecture_sha256": self.source_waste_architecture_sha256,
-            "nodes": [
-                {"node_id": n.node_id, "kind": n.kind.value, "protected_region_adjacent": n.protected_region_adjacent}
-                for n in sorted(self.nodes.values(), key=lambda x: x.node_id)
-            ],
-            "segments": [
-                {"segment_id": s.segment_id, "source": s.source_node_id, "target": s.target_node_id, "mixed_phase": s.mixed_phase, "physical_performance_state": s.physical_performance_state}
-                for s in sorted(self.segments, key=lambda x: x.segment_id)
-            ],
+            "nodes": [{"node_id": n.node_id, "kind": n.kind.value, "protected_region_adjacent": n.protected_region_adjacent} for n in sorted(self.nodes.values(), key=lambda x: x.node_id)],
+            "segments": [{"segment_id": s.segment_id, "source": s.source_node_id, "target": s.target_node_id, "mixed_phase": s.mixed_phase, "physical_performance_state": s.physical_performance_state} for s in sorted(self.segments, key=lambda x: x.segment_id)],
         }
         return sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
