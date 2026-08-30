@@ -8,18 +8,23 @@ from masck_one.actuator_frames import (
     ZONE_IDS,
     build_actuator_frame_architecture,
 )
-from masck_one.authority import load_authority
+from masck_one.boundary_release import build_verified_interface_boundary_topology
 from masck_one.interface_attachment import build_interface_attachment_architecture
-from masck_one.interface_topology import build_interface_topology
+from masck_one.model import build_model
 from masck_one.structural_frame import build_structural_frame_topology
 
 
 def _authority_and_frame():
-    authority = load_authority()
-    interface = build_interface_topology(authority)
-    attachment = build_interface_attachment_architecture(authority, interface)
-    frame = build_structural_frame_topology(authority, attachment)
-    return authority, frame
+    model = build_model()
+    boundaries = build_verified_interface_boundary_topology(
+        model.authority,
+        model.facial_surface,
+        model.coverage_mesh,
+        model.compliant_interface_topology,
+    )
+    attachment = build_interface_attachment_architecture(model.authority, boundaries)
+    frame = build_structural_frame_topology(model.authority, attachment)
+    return model.authority, frame
 
 
 def test_four_zone_contract_is_authority_bound_and_explicitly_not_sweep_ready():
