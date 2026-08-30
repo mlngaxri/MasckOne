@@ -35,6 +35,10 @@ def _finite_metric(value: object) -> bool:
     return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(float(value))
 
 
+def _canonical_basis_sign(value: object) -> bool:
+    return type(value) is int and value in (-1, 1)
+
+
 @dataclass(frozen=True, slots=True)
 class ViewMetrics:
     view_id: str
@@ -75,10 +79,14 @@ class VisualInspectionReport:
     def __post_init__(self) -> None:
         if not _canonical_sha256(self.source_sample_manifest_sha256):
             raise VisualInspectionError("Inspection source identity must be lowercase canonical SHA-256")
+        if not isinstance(self.views, tuple) or not all(isinstance(view, ViewMetrics) for view in self.views):
+            raise VisualInspectionError("Inspection views must be an immutable tuple of ViewMetrics records")
         if tuple(view.view_id for view in self.views) != _VIEW_ORDER:
             raise VisualInspectionError("Inspection views must follow the controlled six-view order")
         for view in self.views:
             basis = _VIEW_BASES[view.view_id]
+            if not _canonical_basis_sign(view.horizontal_sign) or not _canonical_basis_sign(view.vertical_sign):
+                raise VisualInspectionError(f"{view.view_id} basis signs must be literal integer -1 or 1 values")
             expected = (_AXIS_NAMES[basis[0]], int(basis[1]), _AXIS_NAMES[basis[2]], int(basis[3]))
             actual = (view.horizontal_axis, view.horizontal_sign, view.vertical_axis, view.vertical_sign)
             if actual != expected:
