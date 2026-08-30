@@ -10,6 +10,7 @@ from .anatomy import FacialReferenceLayer, build_facial_reference
 from .authority import Authority, load_authority
 from .coverage import FacialCoverageMesh, build_facial_coverage_mesh
 from .facial_surface import FacialSurface, build_planar_development_surface
+from .interface_boundaries import InterfaceBoundaryTopology, build_interface_boundary_topology
 from .interface_topology import CompliantInterfaceTopology, build_compliant_interface_topology
 from .nasal_subsystem import NasalSubsystemTopology, ROLE_LOBE, build_nasal_subsystem_topology
 from .protected_volumes import ProtectedVolumeSet, build_protected_volumes
@@ -36,6 +37,7 @@ class MasckOneModel:
     coverage_mesh: FacialCoverageMesh
     compliant_interface_topology: CompliantInterfaceTopology
     nasal_subsystem_topology: NasalSubsystemTopology
+    interface_boundary_topology: InterfaceBoundaryTopology
     shell: Component
     nasal_interface: Component
     actuator_envelopes: tuple[Component, ...]
@@ -214,6 +216,12 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         compliant_interface_topology,
         protected_volumes,
     )
+    interface_boundary_topology = build_interface_boundary_topology(
+        authority,
+        facial_surface,
+        coverage_mesh,
+        compliant_interface_topology,
+    )
     shell = Component(
         "rigid_shell", _build_shell(authority, facial_reference), "CAD_BASELINE",
         "XY envelope and apertures follow authority; Class-A Z surface remains CAD-CLOSURE.",
@@ -248,6 +256,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         coverage_mesh=coverage_mesh,
         compliant_interface_topology=compliant_interface_topology,
         nasal_subsystem_topology=nasal_subsystem_topology,
+        interface_boundary_topology=interface_boundary_topology,
         shell=shell,
         nasal_interface=nasal_interface,
         actuator_envelopes=_build_actuators(authority),
