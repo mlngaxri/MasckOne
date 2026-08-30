@@ -1,4 +1,5 @@
 from masck_one.assertions import run_assertions
+from masck_one.interface_topology import ZONE_T_NOSE_PHILTRUM
 from masck_one.model import build_model
 from masck_one.spatial import Point3, Vector3
 
@@ -82,6 +83,27 @@ def test_model_exposes_coverage_topology_without_promoting_geometric_screen_to_e
     assert full_screen.product_validation_status == "NUMERIC_SCREEN_PASS_NOT_PRODUCT_VALIDATION"
 
 
+def test_model_exposes_main_compliant_interface_topology_without_invented_material_truth():
+    model = build_model()
+    topology = model.compliant_interface_topology
+    coverage = model.coverage_mesh
+
+    assert len(topology.assignments) == len(coverage.triangles)
+    assert topology.contact_area_mm2 == coverage.target_area_mm2
+    assert topology.protected_opening_area_mm2 == coverage.protected_area_mm2
+    assert topology.t_zone_contact_area_mm2 == coverage.t_zone_target_area_mm2
+    assert topology.contact_component_count(coverage) == 1
+    assert topology.anatomical_validation_eligible is False
+    assert len(topology.topology_sha256) == 64
+
+    nasal = topology.nasal_lobe_thickness_authority
+    nose_zone = topology.zone_by_id[ZONE_T_NOSE_PHILTRUM]
+    assert nasal.center_thickness_mm == 0.30
+    assert nasal.doe_mm == (0.25, 0.30, 0.35)
+    assert nose_zone.nominal_thickness_mm is None
+    assert nose_zone.thickness_doe_mm == ()
+
+
 def test_all_software_verifiable_assertions_pass():
     model = build_model()
     checks = run_assertions(model)
@@ -89,12 +111,15 @@ def test_all_software_verifiable_assertions_pass():
     assert failures == []
 
 
-def test_cleansing_coverage_remains_evidence_blocked_despite_coverage_mesh():
+def test_cleansing_coverage_and_contact_physics_remain_evidence_blocked():
     model = build_model()
     checks = {check.id: check for check in run_assertions(model)}
 
     assert checks["COVERAGE_MESH_TOPOLOGY"].status == "PASS"
+    assert checks["COMPLIANT_INTERFACE_TOPOLOGY"].status == "PASS"
     assert checks["CLEANSING_COVERAGE"].status == "BLOCKED"
+    assert checks["FACIAL_PRESSURE"].status == "BLOCKED"
+    assert checks["MEMBRANE_STRAIN"].status == "BLOCKED"
 
 
 def test_shell_fits_xy_authority_envelope():

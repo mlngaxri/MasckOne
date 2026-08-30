@@ -18,11 +18,11 @@ Digital completion is not physical validation. Physical evidence, supplier evide
 6. Neutral facial reference surface generator/import abstraction. **COMPLETE**
 7. Protected eye, mouth and nostril hard-envelope geometry. **COMPLETE**
 8. Worn-pose/misregistration transform engine and hard-envelope regression set. **COMPLETE**
-9. Facial-region segmentation and coverage-analysis mesh. **COMPLETE ON MERGE OF ITERATION-9 RELEASE CANDIDATE**
+9. Facial-region segmentation and coverage-analysis mesh. **COMPLETE**
 
 ## Phase 2 — compliant facial interface and nose/T-zone architecture
 
-10. Main compliant facial-interface topology and parameter zones.
+10. Main compliant facial-interface topology and parameter zones. **COMPLETE**
 11. Dedicated nasal saddle, bridge/dorsum/sidewall and philtrum continuity architecture.
 12. Perimeter interface, seal/compliance zones and aperture-edge transitions.
 13. Interface-to-structural-frame attachment/clamp architecture.

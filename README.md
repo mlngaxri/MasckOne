@@ -6,9 +6,9 @@ The project is intentionally strict about the difference between a value that ca
 
 ## Current development state
 
-**Phase 1: foundations and human-reference geometry — Iteration 9.**
+**Phase 2: compliant facial interface and nose/T-zone architecture — Iteration 10 release candidate.**
 
-The current code-CAD baseline generates the rigid shell development geometry, dedicated nasal/T-zone interface, nominal protected apertures, four actuator packaging references, water-reservoir envelope, waste-cartridge envelope, battery packaging reference, STEP exports, and a structured assertion report. These are development artifacts, not claims that fit, cleansing efficacy, airflow, pressure, materials, or production readiness have been physically validated.
+Phase 1 is complete. The current code-CAD baseline generates the rigid shell development geometry, dedicated nasal/T-zone development interface, nominal protected apertures, four actuator packaging references, water-reservoir envelope, waste-cartridge envelope, battery packaging reference, STEP exports, and structured assertion reports. These are development artifacts, not claims that fit, cleansing efficacy, airflow, pressure, materials, or production readiness have been physically validated.
 
 The engineering foundation now includes:
 
@@ -18,7 +18,9 @@ The engineering foundation now includes:
 - a neutral facial-surface abstraction whose current planar development implementation is explicitly non-anatomical;
 - conservative eye, mouth and nostril/airway protected envelopes with unresolved 3D anatomy kept evidence-gated;
 - a deterministic 459-state worn-pose/misregistration regression screen using the authority's 5 mm radial and ±4° rotational limits;
-- a triangle-level facial coverage mesh that partitions active targets from protected zones, preserves a dedicated nose/T-zone and nose-to-upper-lip/philtrum target region, consumes the authority's 90% aggregate / 90% T-zone / 100 mm² hole thresholds, and refuses to treat synthetic geometric success as cleansing-efficacy evidence.
+- a triangle-level facial coverage mesh that partitions active targets from protected zones, preserves a dedicated nose/T-zone and nose-to-upper-lip/philtrum target region, consumes the authority's 90% aggregate / 90% T-zone / 100 mm² hole thresholds, and refuses to treat synthetic geometric success as cleansing-efficacy evidence;
+- a compliant-interface topology that assigns every coverage triangle to a stable contact/T-zone/protected-opening parameter zone, conserves target/protected area exactly, preserves one connected development contact field, and keeps the true eye/mouth/nostril openings material-free;
+- an authority-backed nasal-lobe thickness record that preserves the 0.30 mm center and 0.25/0.30/0.35 mm DOE without incorrectly applying that local value to the entire central T-zone before the dedicated nasal subsystem boundary exists.
 
 ## Repository principles
 
@@ -42,10 +44,11 @@ Key engineering modules:
 - `src/masck_one/protected_volumes.py` — eye/mouth/airway safety-exclusion topology.
 - `src/masck_one/worn_pose.py` — deterministic misregistration regression engine.
 - `src/masck_one/coverage.py` — facial-region segmentation, target/protected area accounting and coverage metrics.
+- `src/masck_one/interface_topology.py` — main compliant facial-interface contact/protected topology and parameter-zone authority boundary.
 
 ## Controlled toolchain
 
-The currently verified Phase 1 toolchain is:
+The currently verified toolchain is:
 
 - Python 3.13.x
 - CadQuery 2.8.0
@@ -67,13 +70,13 @@ python -m masck_one.authority
 
 This performs strict JSON Schema validation followed by deterministic semantic checks. It does not claim physical validation; it establishes that the digital authority is explicit and internally self-consistent.
 
-## Phase 1 preflight
+## Engineering preflight
 
 ```bash
 python -m masck_one.preflight
 ```
 
-Preflight checks the controlled runtime/dependencies, authority, coordinates, facial reference, surface ingestion, neutral surface, protected zones, worn-pose regression, coverage mesh, product identity, repository structure and naming invariants.
+Preflight checks the controlled runtime/dependencies, authority, coordinates, facial reference, surface ingestion, neutral surface, protected zones, worn-pose regression, coverage mesh, compliant-interface topology, product identity, repository structure and naming invariants.
 
 ## Test
 
@@ -103,5 +106,7 @@ Read [`docs/REFERENCE_SURFACE_INGESTION.md`](docs/REFERENCE_SURFACE_INGESTION.md
 Read [`docs/WORN_POSE.md`](docs/WORN_POSE.md) before adding fit/misregistration regressions.
 
 Read [`docs/COVERAGE_MESH.md`](docs/COVERAGE_MESH.md) before changing facial target regions, T-zone segmentation or coverage metrics.
+
+Read [`docs/COMPLIANT_INTERFACE_TOPOLOGY.md`](docs/COMPLIANT_INTERFACE_TOPOLOGY.md) before changing skin-contact intent, protected openings, membrane parameter zones or applying the nasal-lobe thickness values.
 
 The controlled program sequence is in [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md).
