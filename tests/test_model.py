@@ -1,5 +1,6 @@
 from masck_one.assertions import run_assertions
 from masck_one.model import build_model
+from masck_one.spatial import Point3, Vector3
 
 
 def test_model_builds():
@@ -7,6 +8,15 @@ def test_model_builds():
     assert model.shell.solid.val().Volume() > 0
     assert model.nasal_interface.solid.val().Volume() > 0
     assert len(model.actuator_envelopes) == 4
+
+
+def test_model_exposes_canonical_global_datums():
+    model = build_model()
+    frame = model.datums.global_frame
+    assert frame.origin == Point3(0.0, 0.0, 0.0)
+    assert frame.x_axis == Vector3(1.0, 0.0, 0.0)
+    assert frame.y_axis == Vector3(0.0, 1.0, 0.0)
+    assert frame.z_axis == Vector3(0.0, 0.0, 1.0)
 
 
 def test_all_software_verifiable_assertions_pass():
