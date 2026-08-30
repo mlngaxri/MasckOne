@@ -97,10 +97,12 @@ def test_retention_material_selection_is_rejected_without_evidence():
 
 def test_corrupted_source_without_outer_perimeter_is_rejected():
     model, boundaries, _ = _build()
-    corrupted = replace(
-        boundaries,
-        edges=tuple(edge for edge in boundaries.edges if edge.boundary_id != BOUNDARY_OUTER_PERIMETER),
-    )
+    remaining = tuple(edge for edge in boundaries.edges if edge.boundary_id != BOUNDARY_OUTER_PERIMETER)
+    # Preserve the upstream topology object's own deterministic index invariant so this
+    # adversarial fixture reaches the Iteration-13 attachment guard rather than failing
+    # earlier for an unrelated corruption.
+    reindexed = tuple(replace(edge, edge_index=index) for index, edge in enumerate(remaining))
+    corrupted = replace(boundaries, edges=reindexed)
     with pytest.raises(InterfaceAttachmentError, match="outer perimeter"):
         build_interface_attachment_architecture(model.authority, corrupted)
 
