@@ -3,7 +3,7 @@ from dataclasses import replace
 import pytest
 
 from masck_one.authority import load_authority
-from masck_one.spatial import Point3
+from masck_one.spatial import Point3, SpatialContractError
 from masck_one.surface_workflow import (
     ReleasedSurfaceReference,
     SurfaceSample,
@@ -34,6 +34,15 @@ def _released_reference(reference_samples, *, revision="R1", source_asset=b"cont
         revision=revision,
         release_status="RELEASED_CLASS_A_REFERENCE",
     )
+
+
+def _corrupt_point3(*, x: float, y: float, z: float) -> Point3:
+    """Bypass Point3 construction only to exercise downstream corruption defense."""
+    point = object.__new__(Point3)
+    object.__setattr__(point, "x", x)
+    object.__setattr__(point, "y", y)
+    object.__setattr__(point, "z", z)
+    return point
 
 
 def test_workflow_consumes_authority_limits_and_status():
@@ -170,12 +179,15 @@ def test_mismatched_sample_ids_are_rejected():
         workflow.evaluate(engineering, reference)
 
 
-def test_nonfinite_sample_coordinates_are_rejected_before_manifest_or_deviation_use():
+def test_nonfinite_coordinates_are_rejected_at_boundary_and_after_adversarial_corruption():
+    with pytest.raises(SpatialContractError, match="must be finite"):
+        Point3(10.0, 0.0, float("nan"))
+
     workflow = build_class_a_workflow(load_authority())
     engineering, reference = _samples()
     bad_reference = (
         reference[0],
-        SurfaceSample("B", Point3(10.0, 0.0, float("nan"))),
+        SurfaceSample("B", _corrupt_point3(x=10.0, y=0.0, z=float("nan"))),
     )
     with pytest.raises(SurfaceWorkflowError, match="finite coordinates"):
         workflow.evaluate(engineering, bad_reference)
