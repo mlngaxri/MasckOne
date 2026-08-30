@@ -5,6 +5,7 @@ import hashlib
 import json
 import math
 from numbers import Real
+from typing import Sequence
 
 
 class SweepGeometryError(ValueError):
@@ -20,28 +21,30 @@ def _finite_real(value: object, *, label: str) -> float:
     return out
 
 
-def _finite3(values: tuple[float, float, float], *, label: str) -> tuple[float, float, float]:
+def _finite3(values: object, *, label: str) -> tuple[float, float, float]:
+    if isinstance(values, (str, bytes)) or not isinstance(values, Sequence):
+        raise SweepGeometryError(f"{label} must contain exactly three coordinates")
     if len(values) != 3:
         raise SweepGeometryError(f"{label} must contain exactly three coordinates")
-    return tuple(_finite_real(v, label=f"{label}[{i}]") for i, v in enumerate(values))  # type: ignore[return-value]
+    return tuple(_finite_real(values[i], label=f"{label}[{i}]") for i in range(3))  # type: ignore[return-value]
 
 
 def _canonical_sha256(value: str, *, label: str) -> str:
     if not isinstance(value, str):
         raise SweepGeometryError(f"{label} must be a lowercase canonical SHA-256 digest")
-    digest = value.strip()
-    if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+    if value != value.strip():
+        raise SweepGeometryError(f"{label} must be a lowercase canonical SHA-256 digest without surrounding whitespace")
+    if len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
         raise SweepGeometryError(f"{label} must be a lowercase canonical SHA-256 digest")
-    return digest
+    return value
 
 
 def _identity(value: str, *, label: str) -> str:
     if not isinstance(value, str):
-        raise SweepGeometryError(f"{label} must be an explicit nonblank string")
-    identity = value.strip()
-    if not identity:
-        raise SweepGeometryError(f"{label} must be an explicit nonblank string")
-    return identity
+        raise SweepGeometryError(f"{label} must be an explicit nonblank canonical string")
+    if not value or value != value.strip():
+        raise SweepGeometryError(f"{label} must be an explicit nonblank canonical string without surrounding whitespace")
+    return value
 
 
 def _frame_id(value: str) -> str:
@@ -50,13 +53,7 @@ def _frame_id(value: str) -> str:
 
 @dataclass(frozen=True, slots=True)
 class AABB:
-    """Closed axis-aligned bounding box in an explicit coordinate frame, in millimetres.
-
-    ``frame_id`` is intentionally required. Geometry entering collision analysis must
-    prove its coordinate identity at construction rather than inheriting a convenient
-    world-frame default. This prevents local supplier/mount envelopes from silently
-    becoming world geometry.
-    """
+    """Closed axis-aligned bounding box in an explicit coordinate frame, in millimetres."""
 
     minimum_xyz_mm: tuple[float, float, float]
     maximum_xyz_mm: tuple[float, float, float]
@@ -72,10 +69,10 @@ class AABB:
         object.__setattr__(self, "frame_id", _frame_id(self.frame_id))
 
     def _require_same_frame(self, other: "AABB") -> None:
+        if not isinstance(other, AABB):
+            raise SweepGeometryError("Collision geometry must be an AABB with explicit coordinate identity")
         if self.frame_id != other.frame_id:
-            raise SweepGeometryError(
-                f"AABB coordinate-frame mismatch: {self.frame_id!r} != {other.frame_id!r}"
-            )
+            raise SweepGeometryError(f"AABB coordinate-frame mismatch: {self.frame_id!r} != {other.frame_id!r}")
 
     def intersects(self, other: "AABB", *, clearance_mm: float = 0.0) -> bool:
         self._require_same_frame(other)
@@ -105,22 +102,12 @@ class AABB:
         )
 
     def manifest(self) -> dict[str, object]:
-        return {
-            "minimum_xyz_mm": list(self.minimum_xyz_mm),
-            "maximum_xyz_mm": list(self.maximum_xyz_mm),
-            "frame_id": self.frame_id,
-        }
+        return {"minimum_xyz_mm": list(self.minimum_xyz_mm), "maximum_xyz_mm": list(self.maximum_xyz_mm), "frame_id": self.frame_id}
 
 
 @dataclass(frozen=True, slots=True)
 class LinearSweep:
-    """Analytical conservative envelope for a rigid AABB translated along a segment.
-
-    This primitive covers every position for t in [0, 1], not only sampled endpoints.
-    It deliberately does not model rotation. Any consumer with changing orientation must
-    provide a separately proven conservative rotational envelope rather than treating
-    angle-DOE samples as continuous coverage.
-    """
+    """Analytical conservative envelope for a rigid AABB translated along a segment."""
 
     source_id: str
     start_box: AABB
@@ -129,17 +116,15 @@ class LinearSweep:
     rotation_invariant: bool
 
     def __post_init__(self) -> None:
+        if not isinstance(self.start_box, AABB):
+            raise SweepGeometryError("LinearSweep start_box must be an AABB with explicit coordinate identity")
         object.__setattr__(self, "source_id", _identity(self.source_id, label="Sweep source identity"))
-        translation = _finite3(self.translation_xyz_mm, label="sweep translation")
-        object.__setattr__(self, "translation_xyz_mm", translation)
-        digest = _canonical_sha256(self.source_geometry_sha256, label="Sweep source geometry identity")
-        object.__setattr__(self, "source_geometry_sha256", digest)
+        object.__setattr__(self, "translation_xyz_mm", _finite3(self.translation_xyz_mm, label="sweep translation"))
+        object.__setattr__(self, "source_geometry_sha256", _canonical_sha256(self.source_geometry_sha256, label="Sweep source geometry identity"))
         if type(self.rotation_invariant) is not bool:
             raise SweepGeometryError("LinearSweep rotation_invariant must be an explicit boolean")
         if not self.rotation_invariant:
-            raise SweepGeometryError(
-                "LinearSweep cannot certify changing orientation; provide a proven conservative rotational envelope"
-            )
+            raise SweepGeometryError("LinearSweep cannot certify changing orientation; provide a proven conservative rotational envelope")
 
     @property
     def end_box(self) -> AABB:
@@ -154,20 +139,7 @@ class LinearSweep:
         raw = json.dumps(self.manifest(include_sha=False), sort_keys=True, separators=(",", ":")).encode("utf-8")
         return hashlib.sha256(raw).hexdigest()
 
-    def collides_with(
-        self,
-        keepout: AABB,
-        *,
-        expected_geometry_sha256: str,
-        clearance_mm: float = 0.0,
-    ) -> bool:
-        """Evaluate collision only after proving the sweep is current for its source geometry.
-
-        Freshness is intentionally part of the collision API rather than an optional
-        pre-check. A stale but otherwise well-formed sweep must not be able to produce a
-        release-relevant collision boolean simply because a caller forgot to invoke a
-        separate provenance helper.
-        """
+    def collides_with(self, keepout: AABB, *, expected_geometry_sha256: str, clearance_mm: float = 0.0) -> bool:
         require_fresh_sweep_source(self, expected_geometry_sha256=expected_geometry_sha256)
         return self.continuous_envelope.intersects(keepout, clearance_mm=clearance_mm)
 
@@ -190,7 +162,8 @@ class LinearSweep:
 
 
 def require_fresh_sweep_source(sweep: LinearSweep, *, expected_geometry_sha256: str) -> None:
-    """Reject a validly formatted but stale geometry identity before collision use."""
+    if not isinstance(sweep, LinearSweep):
+        raise SweepGeometryError("Sweep freshness requires a LinearSweep instance")
     expected = _canonical_sha256(expected_geometry_sha256, label="Expected geometry identity")
     if sweep.source_geometry_sha256 != expected:
         raise SweepGeometryError("Sweep geometry provenance is stale for the current source geometry")
