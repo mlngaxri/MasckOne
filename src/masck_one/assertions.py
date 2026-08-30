@@ -38,19 +38,15 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
         "OUTER_XY_ENVELOPE",
         "PASS" if shell_x <= max_x + 1e-6 and shell_y <= max_y + 1e-6 else "FAIL",
         "Rigid shell remains inside the authority XY envelope.",
-        actual=[round(shell_x, 6), round(shell_y, 6)],
-        limit=[max_x, max_y],
+        actual=[round(shell_x, 6), round(shell_y, 6)], limit=[max_x, max_y],
     ))
 
-    water_volume_mm3 = _volume(model.water_reservoir_envelope)
-    water_volume_mL = water_volume_mm3 / 1000.0
+    water_volume_mL = _volume(model.water_reservoir_envelope) / 1000.0
     target_water = a.number("fluid", "water_reservoir", "gross_mL")
     checks.append(Check(
-        "WATER_RESERVOIR_GROSS_VOLUME",
-        "PASS" if abs(water_volume_mL - target_water) <= 1e-6 else "FAIL",
+        "WATER_RESERVOIR_GROSS_VOLUME", "PASS" if abs(water_volume_mL - target_water) <= 1e-6 else "FAIL",
         "Development packaging envelope has the exact gross water volume baseline.",
-        actual=round(water_volume_mL, 6),
-        limit=target_water,
+        actual=round(water_volume_mL, 6), limit=target_water,
     ))
 
     cartridge_bb = model.waste_cartridge_envelope.solid.val().BoundingBox()
@@ -60,8 +56,7 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
         "WASTE_CARTRIDGE_ENVELOPE",
         "PASS" if all(abs(x-y) <= 1e-6 for x, y in zip(actual_cartridge, target_cartridge)) else "FAIL",
         "Waste-cartridge external packaging envelope matches authority.",
-        actual=[round(v, 6) for v in actual_cartridge],
-        limit=target_cartridge,
+        actual=[round(v, 6) for v in actual_cartridge], limit=target_cartridge,
     ))
 
     min_area = a.number("geometry", "nostrils", "minimum_deformed_area_each_mm2")
@@ -77,11 +72,9 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
     ))
 
     checks.append(Check(
-        "ACTUATOR_COUNT",
-        "PASS" if len(model.actuator_envelopes) == int(a.number("actuation", "count")) else "FAIL",
+        "ACTUATOR_COUNT", "PASS" if len(model.actuator_envelopes) == int(a.number("actuation", "count")) else "FAIL",
         "Development assembly contains the frozen four-zone actuator count.",
-        actual=len(model.actuator_envelopes),
-        limit=int(a.number("actuation", "count")),
+        actual=len(model.actuator_envelopes), limit=int(a.number("actuation", "count")),
     ))
 
     protected = model.protected_volumes
@@ -92,10 +85,7 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
         "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": a.number("geometry", "nostrils", "rigid_dynamic_keepout_clearance_mm"),
         "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": a.number("geometry", "nostrils", "rigid_dynamic_keepout_clearance_mm"),
     }
-    actual_clearances = {
-        volume.zone.zone_id: volume.zone.required_rigid_clearance_mm
-        for volume in protected.all
-    }
+    actual_clearances = {volume.zone.zone_id: volume.zone.required_rigid_clearance_mm for volume in protected.all}
     protected_xy_pass = (
         len(protected.all) == 5
         and actual_clearances == expected_clearances
@@ -103,26 +93,48 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
         and all(volume.z_policy == "UNBOUNDED_UNTIL_REGISTERED_ANATOMICAL_SURFACE" for volume in protected.all)
     )
     checks.append(Check(
-        "PROTECTED_ZONE_XY_BASELINES",
-        "PASS" if protected_xy_pass else "FAIL",
+        "PROTECTED_ZONE_XY_BASELINES", "PASS" if protected_xy_pass else "FAIL",
         "Authority-derived eye/mouth/nostril planar protected footprints and rigid-clearance baselines are encoded; dynamic 3D anatomy remains blocked.",
         actual={
-            "count": len(protected.all),
-            "clearances_mm": actual_clearances,
+            "count": len(protected.all), "clearances_mm": actual_clearances,
             "z_policy": sorted({volume.z_policy for volume in protected.all}),
             "validation_eligible": any(volume.anatomical_validation_eligible for volume in protected.all),
         },
+        limit={"count": 5, "clearances_mm": expected_clearances, "validation_eligible": False},
+    ))
+
+    regression = model.worn_pose_regression
+    translation_limit = a.number("geometry", "misregistration", "translation_radial_max_mm")
+    rotation_limit = a.number("geometry", "misregistration", "rotation_max_deg")
+    pose_pass = (
+        regression.pose_count == 459
+        and abs(regression.maximum_sampled_radial_translation_mm - translation_limit) <= 1e-9
+        and abs(regression.maximum_sampled_absolute_rotation_deg - rotation_limit) <= 1e-9
+        and all(pose.translation_z_mm == 0.0 for pose in regression.poses)
+        and regression.evidence_status == "DETERMINISTIC_DISCRETE_SCREEN_NOT_MEASURED_DONNING_DISTRIBUTION"
+    )
+    checks.append(Check(
+        "WORN_POSE_HARD_ENVELOPE_SET", "PASS" if pose_pass else "FAIL",
+        "Deterministic regression samples exercise the authority misregistration boundary without inventing Z translation or claiming a measured donning distribution.",
+        actual={
+            "pose_count": regression.pose_count,
+            "max_radial_translation_mm": regression.maximum_sampled_radial_translation_mm,
+            "max_abs_rotation_deg": regression.maximum_sampled_absolute_rotation_deg,
+            "translation_z_mm": 0.0,
+            "sha256": regression.sha256,
+        },
         limit={
-            "count": 5,
-            "clearances_mm": expected_clearances,
-            "validation_eligible": False,
+            "pose_count": 459,
+            "translation_radial_max_mm": translation_limit,
+            "rotation_max_deg": rotation_limit,
+            "translation_z_mm": 0.0,
         },
     ))
 
     blocked = [
-        ("DYNAMIC_EYE_SIGNED_DISTANCE", "Planar eye envelopes now exist, but expression-dependent registered anatomical eye keep-out meshes are still required."),
-        ("DYNAMIC_AIRWAY_SIGNED_DISTANCE", "Planar airway envelopes now exist, but deformable nasal geometry and measured fit states are still required."),
-        ("DYNAMIC_MOUTH_SIGNED_DISTANCE", "Planar mouth envelope now exists, but jaw/smile/speech anatomical keep-out meshes are still required."),
+        ("DYNAMIC_EYE_SIGNED_DISTANCE", "Misregistration transforms and planar eye envelopes now exist, but expression-dependent registered anatomical eye volumes are still required."),
+        ("DYNAMIC_AIRWAY_SIGNED_DISTANCE", "Misregistration transforms and planar airway envelopes now exist, but deformable nasal geometry and measured fit states are still required."),
+        ("DYNAMIC_MOUTH_SIGNED_DISTANCE", "Misregistration transforms and planar mouth envelope now exist, but jaw/smile/speech anatomical volumes are still required."),
         ("AIRWAY_PRESSURE_DROP", "Requires airflow rig or validated CFD boundary conditions."),
         ("FACIAL_PRESSURE", "Requires nonlinear contact model with selected material data and/or pressure-map testing."),
         ("MEMBRANE_STRAIN", "Requires selected silicone constitutive data and converged nonlinear FEA."),
