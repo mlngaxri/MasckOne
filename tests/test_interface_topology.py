@@ -5,6 +5,8 @@ from masck_one.authority import load_authority
 from masck_one.coverage import REGION_T_NOSE_PHILTRUM, build_facial_coverage_mesh
 from masck_one.facial_surface import build_planar_development_surface
 from masck_one.interface_topology import (
+    CONTACT_CONNECTIVITY_STATUS,
+    MATERIAL_CONTINUITY_STATUS,
     InterfaceParameterZone,
     InterfaceTopologyError,
     ZONE_OPENING_NOSTRIL_LEFT,
@@ -44,10 +46,41 @@ def test_contact_and_protected_areas_are_exactly_conserved():
     assert topology.t_zone_contact_area_mm2 == pytest.approx(coverage.t_zone_target_area_mm2, abs=1e-8)
 
 
-def test_contact_topology_is_one_connected_skin_contact_field_at_iteration_10():
+def test_contact_components_are_semantically_classified_not_forced_connected():
     _, coverage, topology = _build()
+    components = topology.contact_components(coverage)
 
-    assert topology.contact_component_count(coverage) == 1
+    # The conservative planar baseline intentionally uses the full rigid-clearance
+    # safety footprints as no-contact zones. Their union separates a very small
+    # central philtrum target patch from the primary face-contact field. It is an
+    # engineering error to erase safety clearance merely to make the graph connected.
+    assert len(components) == 2
+    assert components[0].area_mm2 > components[1].area_mm2
+    assert components[1].is_nose_philtrum_only is True
+    assert components[1].centroid_y_min_mm >= coverage.t_zone_definition.stem_y_min_mm
+    assert components[1].centroid_y_max_mm <= 0.0
+    assert topology.contact_connectivity_status == CONTACT_CONNECTIVITY_STATUS
+    assert topology.material_continuity_status == MATERIAL_CONTINUITY_STATUS
+
+
+def test_no_disconnected_contact_island_exists_outside_nose_philtrum_zone():
+    _, coverage, topology = _build()
+    isolated = topology.contact_components(coverage)[1:]
+
+    assert isolated
+    assert all(component.parameter_zone_ids == (ZONE_T_NOSE_PHILTRUM,) for component in isolated)
+
+
+def test_connectivity_manifest_preserves_distinction_between_contact_and_material_continuity():
+    _, coverage, topology = _build()
+    manifest = topology.connectivity_manifest(coverage)
+
+    assert manifest["component_count"] == 2
+    assert manifest["isolated_component_count"] == 1
+    assert manifest["isolated_components_are_nose_philtrum_only"] is True
+    assert manifest["isolated_contact_area_mm2"] > 0.0
+    assert manifest["contact_connectivity_status"] == CONTACT_CONNECTIVITY_STATUS
+    assert manifest["material_continuity_status"] == MATERIAL_CONTINUITY_STATUS
 
 
 def test_nostrils_are_protected_openings_and_never_skin_contact_targets():
@@ -105,11 +138,11 @@ def test_nasal_lobe_authority_thickness_is_preserved_but_not_misapplied_to_whole
 
 
 def test_interface_topology_is_deterministic():
-    _, _, first = _build()
+    _, coverage, first = _build()
     _, _, second = _build()
 
     assert first.topology_sha256 == second.topology_sha256
-    assert first.manifest() == second.manifest()
+    assert first.manifest(coverage) == second.manifest(coverage)
 
 
 def test_contact_zone_cannot_claim_numeric_doe_without_nominal_thickness():
