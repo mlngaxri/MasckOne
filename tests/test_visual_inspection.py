@@ -107,6 +107,12 @@ def test_digital_report_cannot_be_promoted_to_physical_evidence():
     report = inspect_surface_samples(_samples())
     with pytest.raises(VisualInspectionError, match="physical-validation"):
         replace(report, physical_validation_eligible=True)
+    with pytest.raises(VisualInspectionError, match="explicit boolean"):
+        replace(report, physical_validation_eligible=0)
+    with pytest.raises(VisualInspectionError, match="cannot be promoted or relabelled"):
+        replace(report, evidence_status="PHYSICALLY_VALIDATED_APPEARANCE")
+    with pytest.raises(VisualInspectionError, match="cannot be promoted or relabelled"):
+        replace(report, evidence_status="")
 
 
 def test_view_basis_tampering_is_rejected():
