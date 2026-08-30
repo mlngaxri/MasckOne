@@ -31,6 +31,16 @@ This is deliberate: the nostrils are protected airways, but the surrounding exte
 
 Iteration 10 does **not** yet define the detailed nasal saddle boundary, bridge/dorsum geometry or local aperture-edge transitions. Those are Iterations 11 and 12.
 
+## Connectivity defect found by the Iteration-10 gate
+
+The first Iteration-10 CI run rejected the interface topology because the contact graph contained **two** edge-connected components instead of one. Investigation showed that the second component was only **two triangles, approximately 15.05 mm²**, centered around the philtrum corridor near `Y ≈ -22 mm`.
+
+This was not accepted as a product architecture decision. The continuous protected-zone geometry still leaves a real skin corridor between the mouth and nostril exclusions; the former approximately 3.9 mm development grid was simply too coarse for its conservative triangle-based protected-zone classification to resolve that corridor cleanly.
+
+The neutral planar development mesh was therefore refined from 41 × 53 samples to **81 × 105 samples**, approximately **1.94 mm spacing in both axes** for the current functional frame. The connectivity requirement remains one component. In other words, the gate was preserved and the underlying digital representation was corrected rather than weakening the acceptance criterion.
+
+This is a development-mesh correction only. It does not establish real anatomical continuity, fit or safety; those remain dependent on registered geometry and physical evidence.
+
 ## Thickness discipline
 
 The engineering authority contains one numeric membrane-thickness family that is directly relevant here:
@@ -66,7 +76,7 @@ The Iteration-10 builder enforces or verifies:
 
 It proves that the software/CAD authority now has a deterministic, traceable and regression-tested answer for the **functional topology** of the compliant facial interface.
 
-It prevents several classes of silent CAD error before detailed geometry exists: accidentally covering an airway, omitting the philtrum, dropping a T-zone target, assigning the same region twice, creating a disconnected contact island, or applying an authority value outside its defined subsystem.
+It prevents several classes of silent CAD error before detailed geometry exists: accidentally covering an airway, omitting the philtrum, dropping a T-zone target, assigning the same region twice, allowing a mesh artifact to become a detached contact island, or applying an authority value outside its defined subsystem.
 
 ## What this iteration does not prove
 
