@@ -74,7 +74,6 @@ class WasteRouteNetwork:
                 raise ValueError("waste node mapping key must equal node_id")
         segment_ids: set[str] = set()
         directed: dict[str, list[str]] = {node_id: [] for node_id in self.nodes}
-        incoming: dict[str, list[str]] = {node_id: [] for node_id in self.nodes}
         for segment in self.segments:
             segment.validate()
             if segment.segment_id in segment_ids:
@@ -83,7 +82,6 @@ class WasteRouteNetwork:
             if segment.source_node_id not in self.nodes or segment.target_node_id not in self.nodes:
                 raise ValueError("waste route segment references unknown node")
             directed[segment.source_node_id].append(segment.target_node_id)
-            incoming[segment.target_node_id].append(segment.source_node_id)
 
         kinds: dict[WasteNodeKind, list[str]] = {kind: [] for kind in WasteNodeKind}
         for node in self.nodes.values():
@@ -111,9 +109,18 @@ class WasteRouteNetwork:
             raise ValueError("pump outlet has no route to cartridge inlet")
         if not self._reachable(cartridge_in, retention, directed):
             raise ValueError("cartridge inlet has no route to retention volume")
-        if not any(self._reachable(pump_out, barrier, directed) and self._reachable(barrier, cartridge_in, directed)
-                   for barrier in barriers):
+        if not any(
+            self._reachable(pump_out, barrier, directed) and self._reachable(barrier, cartridge_in, directed)
+            for barrier in barriers
+        ):
             raise ValueError("cartridge path must place a passive backflow barrier downstream of pump outlet")
+
+        # A passive barrier is a release-relevant topological protection only if every
+        # directed pump-outlet -> cartridge-inlet path crosses at least one barrier.
+        # Merely proving that one barrier-containing path exists is insufficient because
+        # a parallel bypass branch would defeat the intended pump-off architecture.
+        if self._reachable_avoiding(pump_out, cartridge_in, directed, forbidden=barriers):
+            raise ValueError("pump outlet has a cartridge path that bypasses all passive backflow barriers")
 
         # A protected-adjacent acquisition must drain forward. Dead-ended local storage is forbidden digitally,
         # while actual pooling performance remains validation-gated.
@@ -136,6 +143,29 @@ class WasteRouteNetwork:
             pending.extend(graph.get(current, ()))
         return False
 
+    @staticmethod
+    def _reachable_avoiding(
+        start: str,
+        target: str,
+        graph: Mapping[str, list[str]],
+        *,
+        forbidden: set[str],
+    ) -> bool:
+        """Return whether target is reachable without traversing any forbidden node."""
+        if start in forbidden or target in forbidden:
+            return False
+        pending = [start]
+        visited: set[str] = set()
+        while pending:
+            current = pending.pop()
+            if current == target:
+                return True
+            if current in visited or current in forbidden:
+                continue
+            visited.add(current)
+            pending.extend(next_id for next_id in graph.get(current, ()) if next_id not in forbidden)
+        return False
+
     def validate_current_source(self, *, expected_waste_architecture_sha256: str) -> None:
         self.validate()
         if not _SHA256_RE.fullmatch(expected_waste_architecture_sha256):
@@ -147,12 +177,23 @@ class WasteRouteNetwork:
         self.validate()
         payload = {
             "source_waste_architecture_sha256": self.source_waste_architecture_sha256,
-            "nodes": [{"node_id": n.node_id, "kind": n.kind.value,
-                       "protected_region_adjacent": n.protected_region_adjacent}
-                      for n in sorted(self.nodes.values(), key=lambda x: x.node_id)],
-            "segments": [{"segment_id": s.segment_id, "source": s.source_node_id,
-                           "target": s.target_node_id, "mixed_phase": s.mixed_phase,
-                           "physical_performance_state": s.physical_performance_state}
-                          for s in sorted(self.segments, key=lambda x: x.segment_id)],
+            "nodes": [
+                {
+                    "node_id": n.node_id,
+                    "kind": n.kind.value,
+                    "protected_region_adjacent": n.protected_region_adjacent,
+                }
+                for n in sorted(self.nodes.values(), key=lambda x: x.node_id)
+            ],
+            "segments": [
+                {
+                    "segment_id": s.segment_id,
+                    "source": s.source_node_id,
+                    "target": s.target_node_id,
+                    "mixed_phase": s.mixed_phase,
+                    "physical_performance_state": s.physical_performance_state,
+                }
+                for s in sorted(self.segments, key=lambda x: x.segment_id)
+            ],
         }
         return sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
