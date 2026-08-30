@@ -9,18 +9,12 @@ from masck_one.visual_regression import VisualRegressionError, compare_visual_re
 
 
 def _samples():
-    return (
-        SurfaceSample("A", Point3(-20.0, -30.0, -4.0)),
-        SurfaceSample("B", Point3(20.0, -30.0, 6.0)),
-        SurfaceSample("C", Point3(20.0, 30.0, 8.0)),
-        SurfaceSample("D", Point3(-20.0, 30.0, -8.0)),
-    )
+    return (SurfaceSample("A", Point3(-20.0, -30.0, -4.0)), SurfaceSample("B", Point3(20.0, -30.0, 6.0)), SurfaceSample("C", Point3(20.0, 30.0, 8.0)), SurfaceSample("D", Point3(-20.0, 30.0, -8.0)))
 
 
 def test_comparison_is_deterministic_provenance_bound_and_threshold_free():
     baseline = inspect_surface_samples(_samples())
-    changed = list(_samples())
-    changed[2] = SurfaceSample("C", Point3(22.0, 31.0, 9.0))
+    changed = list(_samples()); changed[2] = SurfaceSample("C", Point3(22.0, 31.0, 9.0))
     candidate = inspect_surface_samples(changed)
     comparison = compare_visual_reports(baseline, candidate)
     assert comparison.baseline_report_sha256 == baseline.report_sha256
@@ -36,9 +30,7 @@ def test_comparison_is_deterministic_provenance_bound_and_threshold_free():
 def test_signed_span_and_centroid_deltas_preserve_direction():
     baseline = inspect_surface_samples(_samples())
     changed = tuple(SurfaceSample(sample.sample_id, Point3(sample.point.x + 3.0, sample.point.y, sample.point.z)) for sample in _samples())
-    candidate = inspect_surface_samples(changed)
-    comparison = compare_visual_reports(baseline, candidate)
-    views = {delta.view_id: delta for delta in comparison.view_deltas}
+    views = {delta.view_id: delta for delta in compare_visual_reports(baseline, inspect_surface_samples(changed)).view_deltas}
     assert views["FRONT"].horizontal_span_delta_mm == pytest.approx(0.0)
     assert views["FRONT"].centroid_horizontal_shift_mm == pytest.approx(3.0)
     assert views["REAR"].centroid_horizontal_shift_mm == pytest.approx(-3.0)
@@ -48,8 +40,7 @@ def test_signed_span_and_centroid_deltas_preserve_direction():
 
 def test_identical_geometry_is_explicitly_reported_without_false_change():
     baseline = inspect_surface_samples(_samples())
-    candidate = inspect_surface_samples(reversed(_samples()))
-    comparison = compare_visual_reports(baseline, candidate)
+    comparison = compare_visual_reports(baseline, inspect_surface_samples(reversed(_samples())))
     assert comparison.geometry_changed is False
     assert all(delta.horizontal_span_delta_mm == 0.0 for delta in comparison.view_deltas)
     assert all(delta.vertical_span_delta_mm == 0.0 for delta in comparison.view_deltas)
@@ -62,48 +53,52 @@ def test_wrong_object_types_fail_closed():
 
 
 def test_tampered_coordinate_basis_cannot_be_compared():
-    baseline = inspect_surface_samples(_samples())
-    candidate = inspect_surface_samples(_samples())
-    tampered_view = replace(candidate.views[0], horizontal_sign=-1)
-    object.__setattr__(candidate, "views", (tampered_view, *candidate.views[1:]))
+    baseline = inspect_surface_samples(_samples()); candidate = inspect_surface_samples(_samples())
+    object.__setattr__(candidate, "views", (replace(candidate.views[0], horizontal_sign=-1), *candidate.views[1:]))
     with pytest.raises(VisualRegressionError, match="fails inspection invariants"):
         compare_visual_reports(baseline, candidate)
 
 
 def test_tampered_candidate_nonpositive_metrics_cannot_be_compared():
-    baseline = inspect_surface_samples(_samples())
-    candidate = inspect_surface_samples(_samples())
-    invalid_view = replace(candidate.views[0], horizontal_span_mm=0.0, aspect_ratio=0.0)
-    object.__setattr__(candidate, "views", (invalid_view, *candidate.views[1:]))
+    baseline = inspect_surface_samples(_samples()); candidate = inspect_surface_samples(_samples())
+    object.__setattr__(candidate, "views", (replace(candidate.views[0], horizontal_span_mm=0.0, aspect_ratio=0.0), *candidate.views[1:]))
     with pytest.raises(VisualRegressionError, match="fails inspection invariants"):
         compare_visual_reports(baseline, candidate)
 
 
 def test_tampered_evidence_status_cannot_enter_comparison():
-    baseline = inspect_surface_samples(_samples())
-    candidate = inspect_surface_samples(_samples())
+    baseline = inspect_surface_samples(_samples()); candidate = inspect_surface_samples(_samples())
     object.__setattr__(candidate, "evidence_status", "PHYSICALLY_VALIDATED_APPEARANCE")
     with pytest.raises(VisualRegressionError, match="fails inspection invariants"):
         compare_visual_reports(baseline, candidate)
 
 
 def test_comparison_identity_rejects_digest_alias_and_physical_promotion():
-    baseline = inspect_surface_samples(_samples())
-    changed = list(_samples())
-    changed[0] = SurfaceSample("A", Point3(-21.0, -30.0, -4.0))
+    baseline = inspect_surface_samples(_samples()); changed = list(_samples()); changed[0] = SurfaceSample("A", Point3(-21.0, -30.0, -4.0))
     comparison = compare_visual_reports(baseline, inspect_surface_samples(changed))
     with pytest.raises(VisualRegressionError, match="lowercase canonical SHA-256"):
         replace(comparison, baseline_report_sha256=comparison.baseline_report_sha256.upper())
     with pytest.raises(VisualRegressionError, match="physical-validation"):
         replace(comparison, physical_validation_eligible=True)
+    with pytest.raises(VisualRegressionError, match="cannot be promoted or relabelled"):
+        replace(comparison, evidence_status="PHYSICALLY_VALIDATED_APPEARANCE")
+    with pytest.raises(VisualRegressionError, match="explicit boolean"):
+        replace(comparison, physical_validation_eligible=0)
 
 
-def test_nonfinite_or_boolean_delta_metrics_are_rejected():
-    baseline = inspect_surface_samples(_samples())
-    comparison = compare_visual_reports(baseline, baseline)
+def test_nonfinite_boolean_mutable_or_tampered_delta_metrics_are_rejected():
+    baseline = inspect_surface_samples(_samples()); comparison = compare_visual_reports(baseline, baseline)
     bad_nan = replace(comparison.view_deltas[0], aspect_ratio_delta=float("nan"))
     with pytest.raises(VisualRegressionError, match="non-finite or non-real"):
         replace(comparison, view_deltas=(bad_nan, *comparison.view_deltas[1:]))
     bad_bool = replace(comparison.view_deltas[0], horizontal_span_delta_mm=True)
     with pytest.raises(VisualRegressionError, match="non-finite or non-real"):
         replace(comparison, view_deltas=(bad_bool, *comparison.view_deltas[1:]))
+    with pytest.raises(VisualRegressionError, match="immutable tuple"):
+        replace(comparison, view_deltas=list(comparison.view_deltas))
+    tampered = object.__new__(type(comparison.view_deltas[0]))
+    for field in comparison.view_deltas[0].__dataclass_fields__:
+        object.__setattr__(tampered, field, getattr(comparison.view_deltas[0], field))
+    object.__setattr__(tampered, "aspect_ratio_delta", float("nan"))
+    with pytest.raises(VisualRegressionError, match="non-finite or non-real"):
+        replace(comparison, view_deltas=(tampered, *comparison.view_deltas[1:]))
