@@ -86,19 +86,27 @@ def test_comparison_identity_rejects_digest_alias_and_physical_promotion():
         replace(comparison, physical_validation_eligible=0)
 
 
+def _tampered_delta(delta, field, value):
+    corrupted = object.__new__(type(delta))
+    for name in delta.__dataclass_fields__:
+        object.__setattr__(corrupted, name, getattr(delta, name))
+    object.__setattr__(corrupted, field, value)
+    return corrupted
+
+
 def test_nonfinite_boolean_mutable_or_tampered_delta_metrics_are_rejected():
     baseline = inspect_surface_samples(_samples()); comparison = compare_visual_reports(baseline, baseline)
-    bad_nan = replace(comparison.view_deltas[0], aspect_ratio_delta=float("nan"))
+    bad_nan = _tampered_delta(comparison.view_deltas[0], "aspect_ratio_delta", float("nan"))
     with pytest.raises(VisualRegressionError, match="non-finite or non-real"):
         replace(comparison, view_deltas=(bad_nan, *comparison.view_deltas[1:]))
-    bad_bool = replace(comparison.view_deltas[0], horizontal_span_delta_mm=True)
+    bad_bool = _tampered_delta(comparison.view_deltas[0], "horizontal_span_delta_mm", True)
     with pytest.raises(VisualRegressionError, match="non-finite or non-real"):
         replace(comparison, view_deltas=(bad_bool, *comparison.view_deltas[1:]))
     with pytest.raises(VisualRegressionError, match="immutable tuple"):
         replace(comparison, view_deltas=list(comparison.view_deltas))
-    tampered = object.__new__(type(comparison.view_deltas[0]))
-    for field in comparison.view_deltas[0].__dataclass_fields__:
-        object.__setattr__(tampered, field, getattr(comparison.view_deltas[0], field))
-    object.__setattr__(tampered, "aspect_ratio_delta", float("nan"))
-    with pytest.raises(VisualRegressionError, match="non-finite or non-real"):
-        replace(comparison, view_deltas=(tampered, *comparison.view_deltas[1:]))
+
+
+def test_non_delta_records_fail_closed_without_attribute_errors():
+    baseline = inspect_surface_samples(_samples()); comparison = compare_visual_reports(baseline, baseline)
+    with pytest.raises(VisualRegressionError, match="only ViewDelta records"):
+        replace(comparison, view_deltas=(object(), *comparison.view_deltas[1:]))
