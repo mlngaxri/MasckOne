@@ -53,6 +53,9 @@ jobs:
       - name: Iteration 15 structural frame preflight
         run: python -m masck_one.structural_frame_preflight
 
+      - name: Iteration 16 Class-A surface workflow preflight
+        run: python -m masck_one.surface_workflow_preflight
+
       - name: Unit and integration tests
         run: python -m pytest
 
