@@ -70,11 +70,11 @@ class VisualRegressionComparison:
             raise VisualRegressionError("Regression source identities must be lowercase canonical SHA-256 strings")
         if not isinstance(self.view_deltas, tuple):
             raise VisualRegressionError("Regression deltas must be an immutable tuple")
+        if not all(isinstance(delta, ViewDelta) for delta in self.view_deltas):
+            raise VisualRegressionError("Regression deltas must contain only ViewDelta records")
         if tuple(delta.view_id for delta in self.view_deltas) != _VIEW_ORDER:
             raise VisualRegressionError("Regression deltas must preserve the controlled six-view order")
         for delta in self.view_deltas:
-            if not isinstance(delta, ViewDelta):
-                raise VisualRegressionError("Regression deltas must contain only ViewDelta records")
             delta.__post_init__()
         if self.evidence_status != _EVIDENCE_STATUS:
             raise VisualRegressionError("Regression evidence status is controlled and cannot be promoted or relabelled")
