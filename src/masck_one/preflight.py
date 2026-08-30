@@ -10,7 +10,14 @@ from typing import Iterable
 
 from .anatomy import FacialReferenceError, build_facial_reference
 from .authority import Authority, AuthorityError, load_authority
-from .spatial import CanonicalDatums, SpatialContractError
+from .reference_surfaces import (
+    ReferenceSurfaceAsset,
+    ReferenceSurfaceError,
+    SurfaceProvenance,
+    TriangleMesh,
+    identity_registration,
+)
+from .spatial import CanonicalDatums, Point3, SpatialContractError
 
 
 REQUIRED_PYTHON = (3, 13)
@@ -233,6 +240,65 @@ def _check_facial_reference(authority: Authority | None, datums: CanonicalDatums
     )
 
 
+def _check_reference_surface_ingestion() -> PreflightCheck:
+    """Exercise the ingestion contract without treating a synthetic mesh as product evidence."""
+
+    try:
+        mesh = TriangleMesh(
+            vertices=(Point3(0.0, 0.0, 0.0), Point3(1.0, 0.0, 0.0), Point3(0.0, 1.0, 0.0)),
+            triangles=((0, 1, 2),),
+        )
+        provenance = SurfaceProvenance(
+            asset_id="PREFLIGHT-SYNTHETIC-TRIANGLE",
+            source_kind="SYNTHETIC_TEST_FIXTURE",
+            source_label="preflight unit triangle",
+            source_revision="v1",
+            source_units="cm",
+            handedness="right",
+            x_positive="explicit test +X",
+            y_positive="explicit test +Y",
+            z_positive="explicit test +Z",
+            source_sha256=mesh.normalized_sha256(),
+            evidence_status="SYNTHETIC_TEST_ONLY",
+        )
+        asset = ReferenceSurfaceAsset(provenance, mesh, identity_registration())
+        registered = asset.registered_mesh
+        edge_mm = registered.vertices[0].vector_to(registered.vertices[1]).norm()
+        manifest = asset.registration_manifest()
+    except (ReferenceSurfaceError, SpatialContractError) as exc:
+        return PreflightCheck(
+            "REFERENCE_SURFACE_INGESTION",
+            "FAIL",
+            "Reference surfaces must preserve provenance, units, handedness and explicit rigid registration.",
+            str(exc),
+            "valid traceable ingestion contract",
+        )
+
+    actual = {
+        "edge_mm": edge_mm,
+        "source_units": manifest["source_units"],
+        "scale_to_mm": manifest["source_scale_to_mm"],
+        "handedness": manifest["source_handedness"],
+        "vertex_count": manifest["mesh"]["vertex_count"],
+        "triangle_count": manifest["mesh"]["triangle_count"],
+    }
+    expected = {
+        "edge_mm": 10.0,
+        "source_units": "cm",
+        "scale_to_mm": 10.0,
+        "handedness": "right",
+        "vertex_count": 3,
+        "triangle_count": 1,
+    }
+    return PreflightCheck(
+        "REFERENCE_SURFACE_INGESTION",
+        "PASS" if actual == expected else "FAIL",
+        "Reference-surface ingestion preserves units/provenance and produces deterministic Masck One-global geometry.",
+        actual,
+        expected,
+    )
+
+
 def _iter_text_files(root: Path) -> Iterable[Path]:
     ignored_parts = {".git", ".pytest_cache", "__pycache__", ".venv", "generated"}
     allowed_suffixes = {".py", ".md", ".toml", ".yaml", ".yml", ".json", ".txt"}
@@ -270,6 +336,7 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "src/masck_one/authority.py",
         "src/masck_one/spatial.py",
         "src/masck_one/anatomy.py",
+        "src/masck_one/reference_surfaces.py",
         "src/masck_one/model.py",
         "src/masck_one/assertions.py",
         "src/masck_one/export.py",
@@ -278,8 +345,10 @@ def _check_required_structure(root: Path) -> PreflightCheck:
         "tests/test_authority_contract.py",
         "tests/test_spatial.py",
         "tests/test_anatomy.py",
+        "tests/test_reference_surfaces.py",
         "tests/test_model.py",
         "docs/COORDINATE_SYSTEM.md",
+        "docs/REFERENCE_SURFACE_INGESTION.md",
         "docs/DEVELOPMENT_ROADMAP.md",
     ]
     missing = [item for item in required if not (root / item).exists()]
@@ -302,6 +371,7 @@ def run_preflight() -> dict[str, object]:
         *authority_checks,
         spatial_check,
         _check_facial_reference(authority, datums),
+        _check_reference_surface_ingestion(),
         _check_legacy_naming(root),
         _check_required_structure(root),
     ]
@@ -309,7 +379,7 @@ def run_preflight() -> dict[str, object]:
     return {
         "project": "Masck One",
         "phase": "1",
-        "iteration": "4",
+        "iteration": "5",
         "result": result,
         "checks": [check.to_dict() for check in checks],
     }

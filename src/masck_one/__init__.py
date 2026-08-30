@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from .anatomy import FacialReferenceLayer, PlanarLandmark
     from .authority import Authority
     from .model import MasckOneModel
+    from .reference_surfaces import ReferenceSurfaceAsset, SurfaceProvenance, SurfaceRegistration, TriangleMesh
     from .spatial import CanonicalDatums, DatumFrame, DatumPlane, Point2, Point3, RigidTransform, Vector3
 
 __all__ = [
@@ -19,6 +20,10 @@ __all__ = [
     "MasckOneModel",
     "FacialReferenceLayer",
     "PlanarLandmark",
+    "ReferenceSurfaceAsset",
+    "SurfaceProvenance",
+    "SurfaceRegistration",
+    "TriangleMesh",
     "CanonicalDatums",
     "DatumFrame",
     "DatumPlane",
@@ -46,6 +51,16 @@ def __getattr__(name: str) -> Any:
             "FacialReferenceLayer": FacialReferenceLayer,
             "PlanarLandmark": PlanarLandmark,
             "build_facial_reference": build_facial_reference,
+        }
+        return exports[name]
+    if name in {"ReferenceSurfaceAsset", "SurfaceProvenance", "SurfaceRegistration", "TriangleMesh"}:
+        from .reference_surfaces import ReferenceSurfaceAsset, SurfaceProvenance, SurfaceRegistration, TriangleMesh
+
+        exports = {
+            "ReferenceSurfaceAsset": ReferenceSurfaceAsset,
+            "SurfaceProvenance": SurfaceProvenance,
+            "SurfaceRegistration": SurfaceRegistration,
+            "TriangleMesh": TriangleMesh,
         }
         return exports[name]
     if name in {"MasckOneModel", "build_model"}:
