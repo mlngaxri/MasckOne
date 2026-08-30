@@ -6,6 +6,7 @@ from pathlib import Path
 import cadquery as cq
 
 from .assertions import run_assertions
+from .boundary_release import boundary_release_manifest
 from .model import MasckOneModel, build_model
 
 
@@ -48,7 +49,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "coverage": model.coverage_mesh.manifest(),
             "compliant_interface": model.compliant_interface_topology.manifest(model.coverage_mesh),
             "nasal_subsystem": model.nasal_subsystem_topology.manifest(),
-            "interface_boundaries": model.interface_boundary_topology.manifest(),
+            "interface_boundaries": boundary_release_manifest(
+                model.facial_surface,
+                model.coverage_mesh,
+                model.compliant_interface_topology,
+                model.interface_boundary_topology,
+            ),
         },
         "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
         "note": "BLOCKED checks are unresolved evidence gates, not software failures. Development topology/manifests are not physical validation evidence.",
