@@ -107,6 +107,12 @@ def test_digital_report_cannot_be_promoted_to_physical_evidence():
     report = inspect_surface_samples(_samples())
     with pytest.raises(VisualInspectionError, match="physical-validation"):
         replace(report, physical_validation_eligible=True)
+    with pytest.raises(VisualInspectionError, match="explicit boolean"):
+        replace(report, physical_validation_eligible=0)
+    with pytest.raises(VisualInspectionError, match="cannot be promoted or relabelled"):
+        replace(report, evidence_status="PHYSICALLY_VALIDATED_APPEARANCE")
+    with pytest.raises(VisualInspectionError, match="cannot be promoted or relabelled"):
+        replace(report, evidence_status="")
 
 
 def test_view_basis_tampering_is_rejected():
@@ -114,6 +120,18 @@ def test_view_basis_tampering_is_rejected():
     tampered_front = replace(report.views[0], horizontal_sign=-1)
     with pytest.raises(VisualInspectionError, match="controlled signed world-coordinate basis"):
         replace(report, views=(tampered_front, *report.views[1:]))
+
+
+def test_view_basis_rejects_boolean_sign_aliases_and_nonrecord_containers():
+    report = inspect_surface_samples(_asymmetric_samples())
+    bool_front = replace(report.views[0], horizontal_sign=True)
+    with pytest.raises(VisualInspectionError, match="literal integer -1 or 1"):
+        replace(report, views=(bool_front, *report.views[1:]))
+    with pytest.raises(VisualInspectionError, match="immutable tuple of ViewMetrics"):
+        replace(report, views=list(report.views))
+    malformed = object.__new__(type(report.views[0]))
+    with pytest.raises(VisualInspectionError, match="complete ViewMetrics records"):
+        replace(report, views=(malformed, *report.views[1:]))
 
 
 def test_report_rejects_noncanonical_source_identity_and_nonfinite_derived_metric():
