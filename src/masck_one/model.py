@@ -10,6 +10,7 @@ from .anatomy import FacialReferenceLayer, build_facial_reference
 from .authority import Authority, load_authority
 from .coverage import FacialCoverageMesh, build_facial_coverage_mesh
 from .facial_surface import FacialSurface, build_planar_development_surface
+from .interface_boundaries import InterfaceBoundaryTopology, build_interface_boundary_topology
 from .interface_topology import CompliantInterfaceTopology, build_compliant_interface_topology
 from .nasal_subsystem import NasalSubsystemTopology, ROLE_LOBE, build_nasal_subsystem_topology
 from .protected_volumes import ProtectedVolumeSet, build_protected_volumes
@@ -42,14 +43,7 @@ class Component:
         return float(self.solid.val().BoundingBox().zlen)
 
     def horizontal_planar_face_span_z_mm(self) -> float:
-        """Measure Z separation of the component's horizontal planar support faces.
-
-        For a planar constant-thickness development solid, the top/bottom plane
-        locations retain the authored geometry while the enclosing B-rep bounding box
-        can be slightly inflated by OpenCascade tolerance bookkeeping. We therefore
-        use plane separation for the engineering geometry check and retain the bounding
-        span as a separate secondary kernel diagnostic.
-        """
+        """Measure Z separation of the component's horizontal planar support faces."""
 
         z_values: list[float] = []
         for face in self.solid.val().Faces():
@@ -76,6 +70,7 @@ class MasckOneModel:
     coverage_mesh: FacialCoverageMesh
     compliant_interface_topology: CompliantInterfaceTopology
     nasal_subsystem_topology: NasalSubsystemTopology
+    interface_boundary_topology: InterfaceBoundaryTopology
     shell: Component
     nasal_interface: Component
     actuator_envelopes: tuple[Component, ...]
@@ -166,14 +161,7 @@ def _build_nasal_lobe_membrane_reference(
     nasal_topology: NasalSubsystemTopology,
     protected: ProtectedVolumeSet,
 ) -> cq.Workplane:
-    """Create only the authority-backed local-thickness nasal-lobe development reference.
-
-    Iterations 1-10 extruded a broad trapezoidal nasal saddle at 0.30 mm. That silently
-    applied a local nasal-lobe thickness authority to bridge/dorsum/sidewall regions whose
-    thickness remains unresolved. Iteration 11 removes that extrapolation. The generated
-    solid is limited to the development lobe band and removes the full conservative nostril
-    protected footprints. It is still not final conforming anatomy or production membrane CAD.
-    """
+    """Create only the authority-backed local-thickness nasal-lobe development reference."""
 
     role = nasal_topology.role_by_id[ROLE_LOBE]
     if role.nominal_thickness_mm is None:
@@ -254,6 +242,13 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         compliant_interface_topology,
         protected_volumes,
     )
+    interface_boundary_topology = build_interface_boundary_topology(
+        authority,
+        facial_surface,
+        coverage_mesh,
+        compliant_interface_topology,
+        nasal_subsystem_topology,
+    )
     shell = Component(
         "rigid_shell", _build_shell(authority, facial_reference), "CAD_BASELINE",
         "XY envelope and apertures follow authority; Class-A Z surface remains CAD-CLOSURE.",
@@ -288,6 +283,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         coverage_mesh=coverage_mesh,
         compliant_interface_topology=compliant_interface_topology,
         nasal_subsystem_topology=nasal_subsystem_topology,
+        interface_boundary_topology=interface_boundary_topology,
         shell=shell,
         nasal_interface=nasal_interface,
         actuator_envelopes=_build_actuators(authority),
