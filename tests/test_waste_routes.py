@@ -58,6 +58,20 @@ def test_barrier_not_on_pump_to_cartridge_path_is_rejected():
         replace(n, segments=segments).validate()
 
 
+def test_parallel_pump_to_cartridge_path_cannot_bypass_backflow_barrier():
+    n = network()
+    # Keep the valid barrier-containing path intact, then add a parallel direct bypass.
+    # The former implementation accepted this because it only proved that *some* path
+    # traversed a barrier. Pump-off protection requires every route to cartridge inlet
+    # to cross at least one passive barrier.
+    bypassed = replace(
+        n,
+        segments=n.segments + (WasteRouteSegment("s_bypass", "pump_out", "cart_in", True),),
+    )
+    with pytest.raises(ValueError, match="bypasses all passive backflow barriers"):
+        bypassed.validate()
+
+
 def test_disconnected_regional_acquisition_is_rejected():
     n = network()
     segments = tuple(s for s in n.segments if s.segment_id != "s2")
