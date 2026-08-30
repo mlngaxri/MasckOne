@@ -52,7 +52,7 @@ def test_hard_sweep_gate_rejects_stale_authority_revision_on_complete_architectu
 
 def test_blank_mount_datum_cannot_masquerade_as_resolved():
     _, _, architecture = _architecture()
-    with pytest.raises(ActuatorFrameError, match="mount datum identity must be nonblank"):
+    with pytest.raises(ActuatorFrameError, match="mount datum identity must be a nonblank string"):
         replace(architecture.frames[0], structural_mount_datum_id="   ")
 
 
@@ -75,6 +75,33 @@ def test_boolean_numeric_aliases_cannot_corrupt_actuator_angle_contract(field, v
     _, _, architecture = _architecture()
     with pytest.raises(ActuatorFrameError, match="real finite numerics"):
         replace(architecture.frames[0], **{field: value})
+
+
+@pytest.mark.parametrize("field,value", [
+    ("structural_mount_datum_id", 17),
+    ("origin_status", 17),
+    ("axis_status", True),
+    ("mount_status", object()),
+    ("envelope_status", "   "),
+])
+def test_nontext_or_blank_frame_metadata_fails_closed(field, value):
+    _, _, architecture = _architecture()
+    with pytest.raises(ActuatorFrameError):
+        replace(architecture.frames[0], **{field: value})
+
+
+@pytest.mark.parametrize("field,value", [
+    ("source_structural_frame_sha256", 17),
+    ("source_registered_mesh_sha256", True),
+    ("source_authority_revision", 17),
+    ("evidence_status", object()),
+    ("physical_validation_eligible", 0),
+    ("independent_zone_count", True),
+])
+def test_noncanonical_architecture_metadata_fails_with_contract_error(field, value):
+    _, _, architecture = _architecture()
+    with pytest.raises(ActuatorFrameError):
+        replace(architecture, **{field: value})
 
 
 def test_hard_sweep_gate_accepts_current_complete_architecture():
