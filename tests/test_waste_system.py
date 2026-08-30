@@ -72,6 +72,46 @@ def test_capacity_equal_to_external_bound_is_only_geometrically_permitted_not_ve
     assert boundary.envelope.bounding_volume_ml == pytest.approx(53.28)
 
 
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+@pytest.mark.parametrize("axis", ["x_mm", "y_mm", "z_mm"])
+def test_nonfinite_cartridge_envelope_dimension_is_rejected(axis, value):
+    a = architecture()
+    bad_envelope = replace(a.envelope, **{axis: value})
+    with pytest.raises(ValueError, match="must be finite"):
+        replace(a, envelope=bad_envelope).validate()
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_nonfinite_retained_capacity_target_is_rejected(value):
+    bad = replace(architecture(), capacity=CapacityContract(value, "VALIDATION_GATED"))
+    with pytest.raises(ValueError, match="retained capacity target must be finite"):
+        bad.validate()
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_nonfinite_verified_usable_capacity_is_rejected(value):
+    evidence = EvidenceReference("capacity-rig-nonfinite", "r1", "f" * 64)
+    bad = replace(architecture(), capacity=CapacityContract(
+        35.0, "VALIDATION_GATED", usable_capacity_ml=value,
+        usable_capacity_state=EvidenceState.VERIFIED, evidence=evidence))
+    with pytest.raises(ValueError, match="usable capacity must be finite"):
+        bad.validate()
+
+
+def test_boolean_capacity_cannot_alias_numeric_volume():
+    bad = replace(architecture(), capacity=CapacityContract(True, "VALIDATION_GATED"))
+    with pytest.raises(ValueError, match="finite numeric"):
+        bad.validate()
+
+
+def test_blank_envelope_and_capacity_statuses_are_rejected():
+    a = architecture()
+    with pytest.raises(ValueError, match="authority_status"):
+        replace(a, envelope=replace(a.envelope, authority_status=" ")).validate()
+    with pytest.raises(ValueError, match="target status"):
+        replace(a, capacity=replace(a.capacity, target_status=" ")).validate()
+
+
 def test_absorbent_volume_credit_is_rejected_without_physical_evidence():
     bad = replace(architecture(), capacity=CapacityContract(35.0, "VALIDATION_GATED", credits_absorbent_media_volume=True))
     with pytest.raises(ValueError, match="absorbent/media"):
