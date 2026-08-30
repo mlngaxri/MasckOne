@@ -50,6 +50,9 @@ jobs:
       - name: Iteration 14 contact simulation preflight
         run: python -m masck_one.contact_simulation_preflight
 
+      - name: Iteration 15 structural frame preflight
+        run: python -m masck_one.structural_frame_preflight
+
       - name: Unit and integration tests
         run: python -m pytest
 
