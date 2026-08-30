@@ -40,6 +40,16 @@ def test_model_exposes_neutral_surface_without_promoting_it_to_anatomical_eviden
     assert surface.mesh.vertex_count > 1000
 
 
+def test_model_exposes_protected_volumes_without_fake_3d_validation():
+    model = build_model()
+    protected = model.protected_volumes
+
+    assert len(protected.all) == 5
+    assert all(volume.anatomical_validation_eligible is False for volume in protected.all)
+    assert all(volume.z_policy == "UNBOUNDED_UNTIL_REGISTERED_ANATOMICAL_SURFACE" for volume in protected.all)
+    assert "3D_DYNAMIC_GEOMETRY_BLOCKED" in protected.evidence_status
+
+
 def test_all_software_verifiable_assertions_pass():
     model = build_model()
     checks = run_assertions(model)
