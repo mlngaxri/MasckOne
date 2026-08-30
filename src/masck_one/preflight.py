@@ -13,6 +13,8 @@ from .authority import Authority, AuthorityError, load_authority
 from .coverage import CoverageError, build_facial_coverage_mesh
 from .facial_surface import FacialSurfaceError, build_planar_development_surface
 from .interface_topology import (
+    CONTACT_CONNECTIVITY_STATUS,
+    MATERIAL_CONTINUITY_STATUS,
     InterfaceTopologyError,
     ZONE_T_NOSE_PHILTRUM,
     build_compliant_interface_topology,
@@ -359,7 +361,8 @@ def _check_compliant_interface(authority: Authority | None, datums: CanonicalDat
         _, _, _, coverage = _build_coverage(authority, datums)
         topology = build_compliant_interface_topology(authority, coverage)
         nose_zone = topology.zone_by_id[ZONE_T_NOSE_PHILTRUM]
-        component_count = topology.contact_component_count(coverage)
+        components = topology.contact_components(coverage)
+        connectivity = topology.connectivity_manifest(coverage)
     except (
         FacialReferenceError,
         FacialSurfaceError,
@@ -370,12 +373,22 @@ def _check_compliant_interface(authority: Authority | None, datums: CanonicalDat
         return PreflightCheck("COMPLIANT_INTERFACE_CONTRACT", "FAIL", "Main interface contact/protected topology must be deterministic, area-conserving and evidence-bounded.", str(exc), "valid compliant-interface topology")
 
     nasal = topology.nasal_lobe_thickness_authority
+    isolated = components[1:]
     actual = {
         "assignment_count_matches_coverage": len(topology.assignments) == len(coverage.triangles),
         "contact_area_matches_coverage": abs(topology.contact_area_mm2 - coverage.target_area_mm2) <= 1e-8,
         "protected_area_matches_coverage": abs(topology.protected_opening_area_mm2 - coverage.protected_area_mm2) <= 1e-8,
         "t_zone_area_matches_coverage": abs(topology.t_zone_contact_area_mm2 - coverage.t_zone_target_area_mm2) <= 1e-8,
-        "contact_component_count": component_count,
+        "contact_component_count": len(components),
+        "isolated_component_count": len(isolated),
+        "isolated_components_are_nose_philtrum_only": connectivity["isolated_components_are_nose_philtrum_only"],
+        "isolated_components_inside_philtrum_screen": all(
+            component.centroid_y_min_mm >= coverage.t_zone_definition.stem_y_min_mm - 1e-12
+            and component.centroid_y_max_mm <= 0.0 + 1e-12
+            for component in isolated
+        ),
+        "contact_connectivity_status": topology.contact_connectivity_status,
+        "material_continuity_status": topology.material_continuity_status,
         "nasal_center_thickness_mm": nasal.center_thickness_mm,
         "nasal_doe_mm": list(nasal.doe_mm),
         "nasal_application_status": nasal.application_status,
@@ -388,7 +401,12 @@ def _check_compliant_interface(authority: Authority | None, datums: CanonicalDat
         "contact_area_matches_coverage": True,
         "protected_area_matches_coverage": True,
         "t_zone_area_matches_coverage": True,
-        "contact_component_count": 1,
+        "contact_component_count": 2,
+        "isolated_component_count": 1,
+        "isolated_components_are_nose_philtrum_only": True,
+        "isolated_components_inside_philtrum_screen": True,
+        "contact_connectivity_status": CONTACT_CONNECTIVITY_STATUS,
+        "material_continuity_status": MATERIAL_CONTINUITY_STATUS,
         "nasal_center_thickness_mm": 0.30,
         "nasal_doe_mm": [0.25, 0.30, 0.35],
         "nasal_application_status": "BOUNDARY_UNRESOLVED_UNTIL_DEDICATED_NASAL_SUBSYSTEM",
@@ -399,7 +417,7 @@ def _check_compliant_interface(authority: Authority | None, datums: CanonicalDat
     return PreflightCheck(
         "COMPLIANT_INTERFACE_CONTRACT",
         "PASS" if actual == expected else "FAIL",
-        "Interface parameter zones cover every target/protected triangle, preserve airway/opening exclusions, retain the nose-to-upper-lip target, and do not spread the nasal-lobe thickness value beyond its unresolved subsystem boundary.",
+        "Interface parameter zones conserve target/protected area and explicitly classify the safety-separated philtrum contact patch instead of erasing protected clearance to force graph connectivity; material continuity remains unresolved for the dedicated nasal/attachment architecture.",
         actual,
         expected,
     )
