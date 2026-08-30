@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .anatomy import FacialReferenceLayer, PlanarLandmark
     from .authority import Authority
+    from .facial_surface import FacialSurface, FacialSurfaceDescriptor
     from .model import MasckOneModel
     from .reference_surfaces import ReferenceSurfaceAsset, SurfaceProvenance, SurfaceRegistration, TriangleMesh
     from .spatial import CanonicalDatums, DatumFrame, DatumPlane, Point2, Point3, RigidTransform, Vector3
@@ -20,6 +21,8 @@ __all__ = [
     "MasckOneModel",
     "FacialReferenceLayer",
     "PlanarLandmark",
+    "FacialSurface",
+    "FacialSurfaceDescriptor",
     "ReferenceSurfaceAsset",
     "SurfaceProvenance",
     "SurfaceRegistration",
@@ -33,6 +36,7 @@ __all__ = [
     "Vector3",
     "load_authority",
     "build_facial_reference",
+    "build_planar_development_surface",
     "build_model",
 ]
 __version__ = "0.1.0"
@@ -51,6 +55,15 @@ def __getattr__(name: str) -> Any:
             "FacialReferenceLayer": FacialReferenceLayer,
             "PlanarLandmark": PlanarLandmark,
             "build_facial_reference": build_facial_reference,
+        }
+        return exports[name]
+    if name in {"FacialSurface", "FacialSurfaceDescriptor", "build_planar_development_surface"}:
+        from .facial_surface import FacialSurface, FacialSurfaceDescriptor, build_planar_development_surface
+
+        exports = {
+            "FacialSurface": FacialSurface,
+            "FacialSurfaceDescriptor": FacialSurfaceDescriptor,
+            "build_planar_development_surface": build_planar_development_surface,
         }
         return exports[name]
     if name in {"ReferenceSurfaceAsset", "SurfaceProvenance", "SurfaceRegistration", "TriangleMesh"}:
