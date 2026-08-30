@@ -26,6 +26,10 @@ def _canonical_sha256(value: str) -> None:
         raise ActuatorFrameError("Actuator architecture source identities must be lowercase canonical SHA-256")
 
 
+def _real_finite(value: object) -> bool:
+    return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(float(value))
+
+
 @dataclass(frozen=True, slots=True)
 class ActuatorLocalFrame:
     zone_id: str
@@ -43,10 +47,10 @@ class ActuatorLocalFrame:
     def __post_init__(self) -> None:
         if self.zone_id not in ZONE_IDS:
             raise ActuatorFrameError(f"Unknown actuator zone {self.zone_id!r}")
-        if self.origin_xyz_mm is not None and (len(self.origin_xyz_mm) != 3 or not all(math.isfinite(float(v)) for v in self.origin_xyz_mm)):
-            raise ActuatorFrameError("Actuator-frame origin must be a finite XYZ point")
-        if self.axis_azimuth_deg is not None and not math.isfinite(float(self.axis_azimuth_deg)):
-            raise ActuatorFrameError("Actuator axis azimuth must be finite when defined")
+        if self.origin_xyz_mm is not None and (len(self.origin_xyz_mm) != 3 or not all(_real_finite(v) for v in self.origin_xyz_mm)):
+            raise ActuatorFrameError("Actuator-frame origin must be a finite XYZ point with real numeric coordinates")
+        if self.axis_azimuth_deg is not None and not _real_finite(self.axis_azimuth_deg):
+            raise ActuatorFrameError("Actuator axis azimuth must be a real finite number when defined")
         baseline = float(self.axis_angle_baseline_deg)
         doe = tuple(float(v) for v in self.axis_angle_doe_deg)
         if not math.isfinite(baseline) or not doe or not all(math.isfinite(v) for v in doe):
@@ -55,8 +59,10 @@ class ActuatorLocalFrame:
             raise ActuatorFrameError("Actuator angle DOE must be unique and ascending")
         if baseline not in doe:
             raise ActuatorFrameError("Actuator baseline angle must be represented in the DOE")
-        if self.actuator_envelope_mm is not None and (len(self.actuator_envelope_mm) != 3 or not all(math.isfinite(float(v)) and float(v) > 0 for v in self.actuator_envelope_mm)):
-            raise ActuatorFrameError("Actuator envelope must contain three positive finite dimensions")
+        if self.structural_mount_datum_id is not None and not self.structural_mount_datum_id.strip():
+            raise ActuatorFrameError("Structural mount datum identity must be nonblank when resolved")
+        if self.actuator_envelope_mm is not None and (len(self.actuator_envelope_mm) != 3 or not all(_real_finite(v) and float(v) > 0 for v in self.actuator_envelope_mm)):
+            raise ActuatorFrameError("Actuator envelope must contain three positive finite real dimensions")
         if any(not value.strip() for value in (self.origin_status, self.axis_status, self.mount_status, self.envelope_status)):
             raise ActuatorFrameError("Actuator-frame status metadata must be explicit")
 
