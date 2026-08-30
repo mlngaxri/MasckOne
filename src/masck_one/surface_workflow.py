@@ -10,6 +10,10 @@ from .authority import Authority
 from .spatial import Point3
 
 
+_SAMPLE_MANIFEST_SCHEMA = "MASCK_ONE_SURFACE_SAMPLE_MANIFEST_V1"
+_RELEASE_RECORD_SCHEMA = "MASCK_ONE_RELEASED_CLASS_A_REFERENCE_V1"
+
+
 class SurfaceWorkflowError(ValueError):
     pass
 
@@ -18,6 +22,11 @@ class SurfaceWorkflowError(ValueError):
 class SurfaceSample:
     sample_id: str
     point: Point3
+
+
+def _require_sha256(digest: str, label: str) -> None:
+    if len(digest) != 64 or digest != digest.lower() or any(c not in "0123456789abcdef" for c in digest):
+        raise SurfaceWorkflowError(f"{label} requires a lowercase 64-character SHA-256")
 
 
 def _index_samples(samples: Iterable[SurfaceSample], label: str) -> dict[str, SurfaceSample]:
@@ -36,15 +45,18 @@ def _index_samples(samples: Iterable[SurfaceSample], label: str) -> dict[str, Su
 
 
 def _sample_manifest_sha256(indexed: Mapping[str, SurfaceSample]) -> str:
-    # Float.hex() is used deliberately so the manifest binds the exact binary
-    # floating-point coordinates without locale or decimal-format ambiguity.
+    # Float.hex() deliberately binds exact binary floating-point coordinates.
+    # Normalize signed zero because +0.0 and -0.0 are geometrically identical.
+    def normalized_hex(value: float) -> str:
+        return (0.0 if value == 0.0 else float(value)).hex()
+
     payload = {
-        "schema": "MASCK_ONE_SURFACE_SAMPLE_MANIFEST_V1",
+        "schema": _SAMPLE_MANIFEST_SCHEMA,
         "coordinate_unit": "mm",
         "samples": [
             {
                 "sample_id": sample_id,
-                "point_mm_float_hex": [float(value).hex() for value in indexed[sample_id].point.as_tuple()],
+                "point_mm_float_hex": [normalized_hex(value) for value in indexed[sample_id].point.as_tuple()],
             }
             for sample_id in sorted(indexed)
         ],
@@ -54,7 +66,7 @@ def _sample_manifest_sha256(indexed: Mapping[str, SurfaceSample]) -> str:
 
 
 def surface_sample_manifest_sha256(samples: Iterable[SurfaceSample]) -> str:
-    """Return the deterministic identity of an exact released comparison sample set."""
+    """Return the deterministic identity of an exact comparison sample set."""
     return _sample_manifest_sha256(_index_samples(samples, "Reference"))
 
 
@@ -69,14 +81,24 @@ class ReleasedSurfaceReference:
     def __post_init__(self) -> None:
         if not self.surface_id.strip() or not self.revision.strip():
             raise SurfaceWorkflowError("Released Class-A reference requires non-empty id and revision")
-        for label, digest in (
-            ("source asset", self.source_asset_sha256),
-            ("reference sample manifest", self.reference_sample_manifest_sha256),
-        ):
-            if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest.lower()):
-                raise SurfaceWorkflowError(f"Released Class-A reference {label} requires a 64-character SHA-256")
+        _require_sha256(self.source_asset_sha256, "Released Class-A reference source asset")
+        _require_sha256(self.reference_sample_manifest_sha256, "Released Class-A reference sample manifest")
         if self.release_status != "RELEASED_CLASS_A_REFERENCE":
             raise SurfaceWorkflowError("Class-A reference cannot be treated as released without explicit release status")
+
+    @property
+    def release_record_sha256(self) -> str:
+        """Hash the complete released-reference identity, not only its derivative samples."""
+        payload = {
+            "schema": _RELEASE_RECORD_SCHEMA,
+            "surface_id": self.surface_id,
+            "revision": self.revision,
+            "source_asset_sha256": self.source_asset_sha256,
+            "reference_sample_manifest_sha256": self.reference_sample_manifest_sha256,
+            "release_status": self.release_status,
+        }
+        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+        return hashlib.sha256(canonical).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,7 +110,12 @@ class SurfaceDeviationReport:
     maximum_limit_mm: float
     numeric_gate_passed: bool
     reference_release_eligible: bool
+    engineering_sample_manifest_sha256: str
     reference_sample_manifest_sha256: str
+    reference_surface_id: str | None
+    reference_revision: str | None
+    reference_source_asset_sha256: str | None
+    reference_release_record_sha256: str | None
     product_validation_status: str
 
 
@@ -115,11 +142,9 @@ class ClassAReferenceWorkflow:
         if engineering_by_id.keys() != reference_by_id.keys():
             raise SurfaceWorkflowError("Engineering and Class-A samples must have identical IDs")
 
+        engineering_manifest_sha256 = _sample_manifest_sha256(engineering_by_id)
         reference_manifest_sha256 = _sample_manifest_sha256(reference_by_id)
-        if (
-            self.reference is not None
-            and reference_manifest_sha256.lower() != self.reference.reference_sample_manifest_sha256.lower()
-        ):
+        if self.reference is not None and reference_manifest_sha256 != self.reference.reference_sample_manifest_sha256:
             raise SurfaceWorkflowError(
                 "Released Class-A reference sample manifest hash does not match supplied reference samples"
             )
@@ -148,7 +173,12 @@ class ClassAReferenceWorkflow:
             maximum_limit_mm=self.maximum_limit_mm,
             numeric_gate_passed=numeric_pass,
             reference_release_eligible=released,
+            engineering_sample_manifest_sha256=engineering_manifest_sha256,
             reference_sample_manifest_sha256=reference_manifest_sha256,
+            reference_surface_id=self.reference.surface_id if self.reference else None,
+            reference_revision=self.reference.revision if self.reference else None,
+            reference_source_asset_sha256=self.reference.source_asset_sha256 if self.reference else None,
+            reference_release_record_sha256=self.reference.release_record_sha256 if self.reference else None,
             product_validation_status=status,
         )
 
