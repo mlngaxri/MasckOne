@@ -1,0 +1,533 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://masck.one/schemas/masck_one_authority.schema.json",
+  "title": "Masck One engineering authority",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project",
+    "coordinate_system",
+    "geometry",
+    "safety",
+    "actuation",
+    "fluid",
+    "structure",
+    "mass",
+    "battery_reference",
+    "manufacturing",
+    "coverage",
+    "commercial"
+  ],
+  "$defs": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "FROZEN_DATUM",
+        "FROZEN_SAFETY_REQUIREMENT",
+        "FROZEN_REQUIREMENT",
+        "FROZEN_ARCHITECTURE",
+        "PROJECT_REQUIREMENT",
+        "ENGINEERING_BASELINE",
+        "DESIGN_BASELINE",
+        "CAD_BASELINE",
+        "CAD_ASSERTION",
+        "VALIDATION_GATED",
+        "VALIDATION_GATED_BASELINE",
+        "VALIDATION_GATED_DESIGN_BASELINE",
+        "SUPPLIER_DEPENDENT",
+        "CAD_CLOSURE",
+        "PACKAGING_BENCHMARK_NOT_PRODUCTION_FREEZE"
+      ]
+    },
+    "number": {"type": "number"},
+    "positiveNumber": {"type": "number", "exclusiveMinimum": 0},
+    "nonNegativeNumber": {"type": "number", "minimum": 0},
+    "positiveInteger": {"type": "integer", "minimum": 1},
+    "pair": {
+      "type": "array",
+      "prefixItems": [{"type": "number"}, {"type": "number"}],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "positivePair": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "number", "exclusiveMinimum": 0},
+        {"type": "number", "exclusiveMinimum": 0}
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "positiveTriple": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "number", "exclusiveMinimum": 0},
+        {"type": "number", "exclusiveMinimum": 0},
+        {"type": "number", "exclusiveMinimum": 0}
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "positiveNumberArray": {
+      "type": "array",
+      "items": {"type": "number", "exclusiveMinimum": 0},
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "properties": {
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "authority_revision", "schema_version", "units"],
+      "properties": {
+        "id": {"const": "MASCK_ONE"},
+        "name": {"const": "Masck One"},
+        "authority_revision": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}-R[0-9]+$"},
+        "schema_version": {"const": "1.0.0"},
+        "units": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "length", "area", "mass", "angle", "force", "pressure", "pressure_small",
+            "liquid_volume", "liquid_microvolume", "time", "frequency", "voltage",
+            "electric_capacity", "torque", "flow", "strain", "ratio"
+          ],
+          "properties": {
+            "length": {"const": "mm"},
+            "area": {"const": "mm2"},
+            "mass": {"const": "g"},
+            "angle": {"const": "deg"},
+            "force": {"const": "N"},
+            "pressure": {"const": "kPa"},
+            "pressure_small": {"const": "Pa"},
+            "liquid_volume": {"const": "mL"},
+            "liquid_microvolume": {"const": "uL"},
+            "time": {"const": "s"},
+            "frequency": {"const": "Hz"},
+            "voltage": {"const": "V"},
+            "electric_capacity": {"const": "mAh"},
+            "torque": {"const": "N*m"},
+            "flow": {"const": "L/min"},
+            "strain": {"const": "percent"},
+            "ratio": {"const": "1"}
+          }
+        }
+      }
+    },
+    "coordinate_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "x_positive", "y_positive", "z_positive", "status"],
+      "properties": {
+        "origin": {
+          "type": "array",
+          "prefixItems": [{"type": "number"}, {"type": "number"}, {"type": "number"}],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "x_positive": {"const": "wearer_right"},
+        "y_positive": {"const": "superior"},
+        "z_positive": {"const": "anterior"},
+        "status": {"$ref": "#/$defs/status"}
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outer_xy_envelope_mm", "outer_xy_envelope_status", "functional_frame_xy_mm",
+        "functional_frame_status", "shell_nominal_wall_mm", "shell_absolute_development_min_mm",
+        "shell_status", "eye", "mouth", "nostrils", "nasal_lobe_membrane", "visible_seam", "misregistration"
+      ],
+      "properties": {
+        "outer_xy_envelope_mm": {"$ref": "#/$defs/positivePair"},
+        "outer_xy_envelope_status": {"$ref": "#/$defs/status"},
+        "functional_frame_xy_mm": {"$ref": "#/$defs/positivePair"},
+        "functional_frame_status": {"$ref": "#/$defs/status"},
+        "shell_nominal_wall_mm": {"$ref": "#/$defs/positiveNumber"},
+        "shell_absolute_development_min_mm": {"$ref": "#/$defs/positiveNumber"},
+        "shell_status": {"$ref": "#/$defs/status"},
+        "eye": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "centers_mm", "visual_aperture_wh_mm", "lateral_cant_deg", "inner_edge_roll_radius_mm",
+            "rigid_dynamic_keepout_clearance_mm", "center_status", "aperture_status", "clearance_status"
+          ],
+          "properties": {
+            "centers_mm": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["left", "right"],
+              "properties": {"left": {"$ref": "#/$defs/pair"}, "right": {"$ref": "#/$defs/pair"}}
+            },
+            "visual_aperture_wh_mm": {"$ref": "#/$defs/positivePair"},
+            "lateral_cant_deg": {"$ref": "#/$defs/nonNegativeNumber"},
+            "inner_edge_roll_radius_mm": {"$ref": "#/$defs/positiveNumber"},
+            "rigid_dynamic_keepout_clearance_mm": {"$ref": "#/$defs/positiveNumber"},
+            "center_status": {"$ref": "#/$defs/status"},
+            "aperture_status": {"$ref": "#/$defs/status"},
+            "clearance_status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "mouth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["center_mm", "visual_aperture_wh_mm", "rigid_dynamic_keepout_clearance_mm", "center_status", "aperture_status", "clearance_status"],
+          "properties": {
+            "center_mm": {"$ref": "#/$defs/pair"},
+            "visual_aperture_wh_mm": {"$ref": "#/$defs/positivePair"},
+            "rigid_dynamic_keepout_clearance_mm": {"$ref": "#/$defs/positiveNumber"},
+            "center_status": {"$ref": "#/$defs/status"},
+            "aperture_status": {"$ref": "#/$defs/status"},
+            "clearance_status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "nostrils": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "centers_mm", "minimum_deformed_area_each_mm2", "minimum_local_opening_dimension_mm",
+            "rigid_dynamic_keepout_clearance_mm", "center_status", "opening_status", "clearance_status"
+          ],
+          "properties": {
+            "centers_mm": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["left", "right"],
+              "properties": {"left": {"$ref": "#/$defs/pair"}, "right": {"$ref": "#/$defs/pair"}}
+            },
+            "minimum_deformed_area_each_mm2": {"$ref": "#/$defs/positiveNumber"},
+            "minimum_local_opening_dimension_mm": {"$ref": "#/$defs/positiveNumber"},
+            "rigid_dynamic_keepout_clearance_mm": {"$ref": "#/$defs/positiveNumber"},
+            "center_status": {"$ref": "#/$defs/status"},
+            "opening_status": {"$ref": "#/$defs/status"},
+            "clearance_status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "nasal_lobe_membrane": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["thickness_center_mm", "thickness_doe_mm", "status"],
+          "properties": {
+            "thickness_center_mm": {"$ref": "#/$defs/positiveNumber"},
+            "thickness_doe_mm": {"$ref": "#/$defs/positiveNumberArray"},
+            "status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "visible_seam": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["gap_mm", "tolerance_mm", "flush_mismatch_max_mm", "status"],
+          "properties": {
+            "gap_mm": {"$ref": "#/$defs/nonNegativeNumber"},
+            "tolerance_mm": {"$ref": "#/$defs/nonNegativeNumber"},
+            "flush_mismatch_max_mm": {"$ref": "#/$defs/nonNegativeNumber"},
+            "status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "misregistration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["translation_radial_max_mm", "rotation_max_deg", "status"],
+          "properties": {
+            "translation_radial_max_mm": {"$ref": "#/$defs/nonNegativeNumber"},
+            "rotation_max_deg": {"$ref": "#/$defs/nonNegativeNumber"},
+            "status": {"$ref": "#/$defs/status"}
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["airway", "fluid_fault", "pressure", "membrane_strain", "quick_release"],
+      "properties": {
+        "airway": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "minimum_area_each_mm2", "minimum_local_dimension_mm", "opening_geometry_status",
+            "max_added_pressure_drop_pa", "pressure_drop_status", "no_collapse_test_flow_lpm",
+            "no_collapse_required", "no_collapse_status"
+          ],
+          "properties": {
+            "minimum_area_each_mm2": {"$ref": "#/$defs/positiveNumber"},
+            "minimum_local_dimension_mm": {"$ref": "#/$defs/positiveNumber"},
+            "opening_geometry_status": {"$ref": "#/$defs/status"},
+            "max_added_pressure_drop_pa": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["at_30_lpm", "at_60_lpm"],
+              "properties": {
+                "at_30_lpm": {"$ref": "#/$defs/nonNegativeNumber"},
+                "at_60_lpm": {"$ref": "#/$defs/nonNegativeNumber"}
+              }
+            },
+            "pressure_drop_status": {"$ref": "#/$defs/status"},
+            "no_collapse_test_flow_lpm": {"$ref": "#/$defs/positiveNumber"},
+            "no_collapse_required": {"const": true},
+            "no_collapse_status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "fluid_fault": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "max_uncontrolled_total_uL", "max_uncontrolled_branch_uL", "uncontrolled_volume_status",
+            "max_external_leakage_uL_cycle", "external_leakage_status"
+          ],
+          "properties": {
+            "max_uncontrolled_total_uL": {"$ref": "#/$defs/nonNegativeNumber"},
+            "max_uncontrolled_branch_uL": {"$ref": "#/$defs/nonNegativeNumber"},
+            "uncontrolled_volume_status": {"$ref": "#/$defs/status"},
+            "max_external_leakage_uL_cycle": {"$ref": "#/$defs/nonNegativeNumber"},
+            "external_leakage_status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "pressure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bridge_p95_max_kPa", "bridge_steady_max_kPa", "cheek_p95_max_kPa", "dynamic_max_kPa", "status"],
+          "properties": {
+            "bridge_p95_max_kPa": {"$ref": "#/$defs/positiveNumber"},
+            "bridge_steady_max_kPa": {"$ref": "#/$defs/positiveNumber"},
+            "cheek_p95_max_kPa": {"$ref": "#/$defs/positiveNumber"},
+            "dynamic_max_kPa": {"$ref": "#/$defs/positiveNumber"},
+            "status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "membrane_strain": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["p95_max_percent", "local_max_percent", "status"],
+          "properties": {
+            "p95_max_percent": {"type": "number", "minimum": 0, "maximum": 100},
+            "local_max_percent": {"type": "number", "minimum": 0, "maximum": 100},
+            "status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "quick_release": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["time_max_s", "time_status", "force_target_N", "force_status", "one_hand_wet_unpowered", "one_hand_wet_unpowered_status"],
+          "properties": {
+            "time_max_s": {"$ref": "#/$defs/positiveNumber"},
+            "time_status": {"$ref": "#/$defs/status"},
+            "force_target_N": {"$ref": "#/$defs/positivePair"},
+            "force_status": {"$ref": "#/$defs/status"},
+            "one_hand_wet_unpowered": {"const": true},
+            "one_hand_wet_unpowered_status": {"$ref": "#/$defs/status"}
+          }
+        }
+      }
+    },
+    "actuation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "architecture_status", "clean"],
+      "properties": {
+        "count": {"const": 4},
+        "architecture_status": {"$ref": "#/$defs/status"},
+        "clean": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "frequency_baseline_hz", "displacement_pp_baseline_mm", "axis_angle_baseline_deg",
+            "axis_angle_doe_deg", "continuous_force_requirement_N", "transient_force_requirement_N", "status"
+          ],
+          "properties": {
+            "frequency_baseline_hz": {"$ref": "#/$defs/positiveNumber"},
+            "displacement_pp_baseline_mm": {"$ref": "#/$defs/positiveNumber"},
+            "axis_angle_baseline_deg": {"$ref": "#/$defs/positiveNumber"},
+            "axis_angle_doe_deg": {"$ref": "#/$defs/positiveNumberArray"},
+            "continuous_force_requirement_N": {"$ref": "#/$defs/positiveNumber"},
+            "transient_force_requirement_N": {"$ref": "#/$defs/positiveNumber"},
+            "status": {"$ref": "#/$defs/status"}
+          }
+        }
+      }
+    },
+    "fluid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["water_reservoir", "clean_cycle", "outlets", "waste", "cartridge"],
+      "properties": {
+        "water_reservoir": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["gross_mL", "minimum_usable_mL", "status"],
+          "properties": {
+            "gross_mL": {"$ref": "#/$defs/positiveNumber"},
+            "minimum_usable_mL": {"$ref": "#/$defs/positiveNumber"},
+            "status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "clean_cycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["face_water_mL", "cleanser_mL", "post_flush_water_mL", "nominal_introduced_liquid_mL", "maximum_initial_prime_mL", "status"],
+          "properties": {
+            "face_water_mL": {"$ref": "#/$defs/nonNegativeNumber"},
+            "cleanser_mL": {"$ref": "#/$defs/nonNegativeNumber"},
+            "post_flush_water_mL": {"$ref": "#/$defs/nonNegativeNumber"},
+            "nominal_introduced_liquid_mL": {"$ref": "#/$defs/positiveNumber"},
+            "maximum_initial_prime_mL": {"$ref": "#/$defs/nonNegativeNumber"},
+            "status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "outlets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["water_count_first_manifold", "cleanser_count_first_manifold", "count_status", "manifold_outlet_diameter_seed_mm", "outlet_position_sensitivity_mm", "outlet_direction_sensitivity_deg", "geometry_status"],
+          "properties": {
+            "water_count_first_manifold": {"$ref": "#/$defs/positiveInteger"},
+            "cleanser_count_first_manifold": {"$ref": "#/$defs/positiveInteger"},
+            "count_status": {"$ref": "#/$defs/status"},
+            "manifold_outlet_diameter_seed_mm": {"$ref": "#/$defs/positiveNumber"},
+            "outlet_position_sensitivity_mm": {"$ref": "#/$defs/nonNegativeNumber"},
+            "outlet_direction_sensitivity_deg": {"$ref": "#/$defs/nonNegativeNumber"},
+            "geometry_status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "waste": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["recovery_ratio_min", "residual_free_liquid_max_uL", "status"],
+          "properties": {
+            "recovery_ratio_min": {"type": "number", "minimum": 0, "maximum": 1},
+            "residual_free_liquid_max_uL": {"$ref": "#/$defs/nonNegativeNumber"},
+            "status": {"$ref": "#/$defs/status"}
+          }
+        },
+        "cartridge": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["external_envelope_mm", "external_envelope_status", "retained_capacity_min_mL", "retained_capacity_status", "service_cycles_baseline", "service_cycles_status"],
+          "properties": {
+            "external_envelope_mm": {"$ref": "#/$defs/positiveTriple"},
+            "external_envelope_status": {"$ref": "#/$defs/status"},
+            "retained_capacity_min_mL": {"$ref": "#/$defs/positiveNumber"},
+            "retained_capacity_status": {"$ref": "#/$defs/status"},
+            "service_cycles_baseline": {"$ref": "#/$defs/positiveInteger"},
+            "service_cycles_status": {"$ref": "#/$defs/status"}
+          }
+        }
+      }
+    },
+    "structure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frame_deflection_p95_max_mm", "frame_deflection_status", "frame_first_mode_preferred_min_hz", "frame_first_mode_status"],
+      "properties": {
+        "frame_deflection_p95_max_mm": {"$ref": "#/$defs/positiveNumber"},
+        "frame_deflection_status": {"$ref": "#/$defs/status"},
+        "frame_first_mode_preferred_min_hz": {"$ref": "#/$defs/positiveNumber"},
+        "frame_first_mode_status": {"$ref": "#/$defs/status"}
+      }
+    },
+    "mass": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dry_target_max_g", "dry_target_status", "loaded_absolute_max_g", "loaded_absolute_max_status",
+        "cg_z_max_mm", "cg_status", "pitch_torque_max_Nm", "pitch_torque_status",
+        "preferred_battery_location", "preferred_battery_location_status"
+      ],
+      "properties": {
+        "dry_target_max_g": {"$ref": "#/$defs/positiveNumber"},
+        "dry_target_status": {"$ref": "#/$defs/status"},
+        "loaded_absolute_max_g": {"$ref": "#/$defs/positiveNumber"},
+        "loaded_absolute_max_status": {"$ref": "#/$defs/status"},
+        "cg_z_max_mm": {"$ref": "#/$defs/nonNegativeNumber"},
+        "cg_status": {"$ref": "#/$defs/status"},
+        "pitch_torque_max_Nm": {"$ref": "#/$defs/positiveNumber"},
+        "pitch_torque_status": {"$ref": "#/$defs/status"},
+        "preferred_battery_location": {"type": "string", "minLength": 1},
+        "preferred_battery_location_status": {"$ref": "#/$defs/status"}
+      }
+    },
+    "battery_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate", "nominal_voltage_V", "capacity_mAh", "envelope_mm", "mass_g", "status"],
+      "properties": {
+        "candidate": {"type": "string", "minLength": 1},
+        "nominal_voltage_V": {"$ref": "#/$defs/positiveNumber"},
+        "capacity_mAh": {"$ref": "#/$defs/positiveNumber"},
+        "envelope_mm": {"$ref": "#/$defs/positiveTriple"},
+        "mass_g": {"$ref": "#/$defs/positiveNumber"},
+        "status": {"$ref": "#/$defs/status"}
+      }
+    },
+    "manufacturing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mold_draft_nominal_deg", "rib_thickness_ratio_range", "geometry_rules_status", "hygiene_classes", "hygiene_classification_status", "a_surface"],
+      "properties": {
+        "mold_draft_nominal_deg": {"$ref": "#/$defs/nonNegativeNumber"},
+        "rib_thickness_ratio_range": {
+          "type": "array",
+          "prefixItems": [
+            {"type": "number", "minimum": 0, "maximum": 1},
+            {"type": "number", "minimum": 0, "maximum": 1}
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "geometry_rules_status": {"$ref": "#/$defs/status"},
+        "hygiene_classes": {
+          "type": "array",
+          "prefixItems": [
+            {"const": "DRY_ALWAYS"},
+            {"const": "WET_DRAINABLE"},
+            {"const": "WET_REMOVABLE"},
+            {"const": "SEALED_NONUSER"}
+          ],
+          "items": false,
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "hygiene_classification_status": {"$ref": "#/$defs/status"},
+        "a_surface": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rms_deviation_max_mm", "max_deviation_mm", "status"],
+          "properties": {
+            "rms_deviation_max_mm": {"$ref": "#/$defs/nonNegativeNumber"},
+            "max_deviation_mm": {"$ref": "#/$defs/nonNegativeNumber"},
+            "status": {"$ref": "#/$defs/status"}
+          }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["aggregate_min_percent", "t_zone_min_percent", "unexplained_hole_max_mm2", "status"],
+      "properties": {
+        "aggregate_min_percent": {"type": "number", "minimum": 0, "maximum": 100},
+        "t_zone_min_percent": {"type": "number", "minimum": 0, "maximum": 100},
+        "unexplained_hole_max_mm2": {"$ref": "#/$defs/nonNegativeNumber"},
+        "status": {"$ref": "#/$defs/status"}
+      }
+    },
+    "commercial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initial_state", "initial_state_status", "paid_preorder_gate", "paid_preorder_gate_status"],
+      "properties": {
+        "initial_state": {"enum": ["EARLY_ACCESS", "RESERVATION", "PAID_PREORDER"]},
+        "initial_state_status": {"$ref": "#/$defs/status"},
+        "paid_preorder_gate": {"type": "boolean"},
+        "paid_preorder_gate_status": {"$ref": "#/$defs/status"}
+      }
+    }
+  }
+}
