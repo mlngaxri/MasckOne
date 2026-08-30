@@ -113,11 +113,7 @@ class NasalTriangleAssignment:
 
 @dataclass(frozen=True, slots=True)
 class NasalDevelopmentBoundaries:
-    """Derived development-only role boundaries.
-
-    These are deliberately derived from existing authority landmarks/protected footprints;
-    they are not promoted to anatomical nose dimensions.
-    """
+    """Derived development-only role boundaries, never anatomical nose dimensions."""
 
     stem_half_width_mm: float
     stem_y_min_mm: float
@@ -130,7 +126,7 @@ class NasalDevelopmentBoundaries:
     lobe_y_min_mm: float
     lobe_y_max_mm: float
     lobe_half_width_mm: float
-    sidewall_inner_half_width_mm: float
+    bridge_dorsum_half_width_mm: float
     bridge_dorsum_y_min_mm: float
     evidence_status: str = "DEVELOPMENT_ROLE_BOUNDARIES_DERIVED_FROM_EXISTING_AUTHORITY_GEOMETRY_NOT_ANATOMICAL_TRUTH"
 
@@ -147,21 +143,21 @@ class NasalDevelopmentBoundaries:
             "lobe_y_min_mm",
             "lobe_y_max_mm",
             "lobe_half_width_mm",
-            "sidewall_inner_half_width_mm",
+            "bridge_dorsum_half_width_mm",
             "bridge_dorsum_y_min_mm",
         ):
             value = float(getattr(self, field_name))
             if not math.isfinite(value):
                 raise NasalSubsystemError(f"{field_name} must be finite")
             object.__setattr__(self, field_name, value)
-        if self.stem_half_width_mm <= 0.0 or self.lobe_half_width_mm <= 0.0:
-            raise NasalSubsystemError("Nasal development widths must be positive")
+        if min(self.stem_half_width_mm, self.lobe_half_width_mm, self.bridge_dorsum_half_width_mm) <= 0.0:
+            raise NasalSubsystemError("Nasal development half-widths must be positive")
         if not self.stem_y_min_mm < self.stem_y_max_mm:
             raise NasalSubsystemError("Nasal T-zone stem Y bounds are inverted")
         if not self.lobe_y_min_mm < self.lobe_y_max_mm:
             raise NasalSubsystemError("Nasal lobe Y bounds are inverted")
-        if self.sidewall_inner_half_width_mm < 0.0:
-            raise NasalSubsystemError("Sidewall inner half-width cannot be negative")
+        if not self.stem_y_min_mm <= self.lobe_y_min_mm < self.lobe_y_max_mm <= self.stem_y_max_mm:
+            raise NasalSubsystemError("Nasal lobe development band must lie inside the T-zone stem")
         if not self.evidence_status.strip():
             raise NasalSubsystemError("Nasal boundary evidence status must be explicit")
 
@@ -178,7 +174,7 @@ class NasalDevelopmentBoundaries:
             "lobe_y_min_mm": self.lobe_y_min_mm,
             "lobe_y_max_mm": self.lobe_y_max_mm,
             "lobe_half_width_mm": self.lobe_half_width_mm,
-            "sidewall_inner_half_width_mm": self.sidewall_inner_half_width_mm,
+            "bridge_dorsum_half_width_mm": self.bridge_dorsum_half_width_mm,
             "bridge_dorsum_y_min_mm": self.bridge_dorsum_y_min_mm,
             "evidence_status": self.evidence_status,
         }
@@ -208,11 +204,7 @@ class NasalSubsystemTopology:
         }.items():
             if not str(value).strip():
                 raise NasalSubsystemError(f"{label} must be explicit")
-        for digest in (
-            self.source_surface_sha256,
-            self.source_coverage_sha256,
-            self.source_interface_sha256,
-        ):
+        for digest in (self.source_surface_sha256, self.source_coverage_sha256, self.source_interface_sha256):
             if len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest.lower()):
                 raise NasalSubsystemError("Nasal subsystem source hashes must be SHA-256 values")
         if self.anatomical_validation_eligible:
@@ -269,9 +261,7 @@ class NasalSubsystemTopology:
             "evidence_status": self.evidence_status,
             "anatomical_validation_eligible": self.anatomical_validation_eligible,
         }
-        return hashlib.sha256(
-            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-        ).hexdigest()
+        return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
     def manifest(self) -> dict[str, object]:
         return {
@@ -306,24 +296,9 @@ def _build_roles(authority: Authority) -> tuple[NasalRoleDefinition, ...]:
         "thickness_status": "UNRESOLVED_PENDING_DETAILED_INTERFACE_GEOMETRY_AND_MATERIAL_SELECTION",
     }
     return (
-        NasalRoleDefinition(
-            ROLE_BRIDGE_DORSUM,
-            "nasal bridge and dorsum cleansing/contact field",
-            **common,
-            **unresolved,
-        ),
-        NasalRoleDefinition(
-            ROLE_SIDEWALL_LEFT,
-            "left nasal sidewall cleansing/contact field",
-            **common,
-            **unresolved,
-        ),
-        NasalRoleDefinition(
-            ROLE_SIDEWALL_RIGHT,
-            "right nasal sidewall cleansing/contact field",
-            **common,
-            **unresolved,
-        ),
+        NasalRoleDefinition(ROLE_BRIDGE_DORSUM, "nasal bridge and dorsum cleansing/contact field", **common, **unresolved),
+        NasalRoleDefinition(ROLE_SIDEWALL_LEFT, "left nasal sidewall cleansing/contact field", **common, **unresolved),
+        NasalRoleDefinition(ROLE_SIDEWALL_RIGHT, "right nasal sidewall cleansing/contact field", **common, **unresolved),
         NasalRoleDefinition(
             ROLE_LOBE,
             "nasal lobe/tip/alar development field surrounding but excluding protected nostril openings",
@@ -335,12 +310,7 @@ def _build_roles(authority: Authority) -> tuple[NasalRoleDefinition, ...]:
             geometry_status="DEDICATED_LOBE_DEVELOPMENT_BOUNDARY_LOCAL_THICKNESS_AUTHORITY_APPLIES",
             evidence_status="AUTHORITY_THICKNESS_LOCALIZED_TO_DEVELOPMENT_LOBE_ROLE_NOT_ANATOMICAL_VALIDATION",
         ),
-        NasalRoleDefinition(
-            ROLE_PHILTRUM,
-            "nose-to-upper-lip/philtrum cleansing/contact continuity field",
-            **common,
-            **unresolved,
-        ),
+        NasalRoleDefinition(ROLE_PHILTRUM, "nose-to-upper-lip/philtrum cleansing/contact continuity field", **common, **unresolved),
     )
 
 
@@ -352,16 +322,20 @@ def derive_nasal_development_boundaries(
     right = protected.nostril_right.zone
     if not math.isclose(left.center.y, right.center.y, rel_tol=0.0, abs_tol=1e-12):
         raise NasalSubsystemError("Neutral baseline nostril centers must share Y for deterministic role derivation")
+    if not math.isclose(abs(left.center.x), abs(right.center.x), rel_tol=0.0, abs_tol=1e-12):
+        raise NasalSubsystemError("Neutral baseline nostril centers must be sagittally symmetric")
     half_height = max(left.envelope_height_mm, right.envelope_height_mm) / 2.0
     outer_half_width = max(
         abs(left.center.x) + left.envelope_width_mm / 2.0,
         abs(right.center.x) + right.envelope_width_mm / 2.0,
     )
-    lobe_y_min = left.center.y - half_height
-    lobe_y_max = left.center.y + half_height
+    lobe_y_min = max(coverage.t_zone_definition.stem_y_min_mm, left.center.y - half_height)
+    lobe_y_max = min(coverage.t_zone_definition.stem_y_max_mm, left.center.y + half_height)
     lobe_half_width = min(coverage.t_zone_definition.stem_half_width_mm, outer_half_width)
-    sidewall_inner = max(abs(left.center.x), abs(right.center.x)) * 0.45
-    bridge_dorsum_y_min = lobe_y_max
+    # The bridge/dorsum development half-width is anchored directly to the
+    # authority-defined nostril-center spacing: the central band extends to each
+    # nostril centerline. No arbitrary percentage or anatomical width is invented.
+    bridge_dorsum_half_width = min(abs(left.center.x), abs(right.center.x))
     return NasalDevelopmentBoundaries(
         stem_half_width_mm=coverage.t_zone_definition.stem_half_width_mm,
         stem_y_min_mm=coverage.t_zone_definition.stem_y_min_mm,
@@ -374,17 +348,17 @@ def derive_nasal_development_boundaries(
         lobe_y_min_mm=lobe_y_min,
         lobe_y_max_mm=lobe_y_max,
         lobe_half_width_mm=lobe_half_width,
-        sidewall_inner_half_width_mm=sidewall_inner,
-        bridge_dorsum_y_min_mm=bridge_dorsum_y_min,
+        bridge_dorsum_half_width_mm=bridge_dorsum_half_width,
+        bridge_dorsum_y_min_mm=lobe_y_max,
     )
 
 
 def _role_for_xy(x: float, y: float, boundaries: NasalDevelopmentBoundaries) -> str:
     if y < boundaries.lobe_y_min_mm:
         return ROLE_PHILTRUM
-    if boundaries.lobe_y_min_mm <= y <= boundaries.lobe_y_max_mm and abs(x) <= boundaries.lobe_half_width_mm:
+    if y <= boundaries.lobe_y_max_mm:
         return ROLE_LOBE
-    if y >= boundaries.bridge_dorsum_y_min_mm and abs(x) <= boundaries.sidewall_inner_half_width_mm:
+    if abs(x) <= boundaries.bridge_dorsum_half_width_mm:
         return ROLE_BRIDGE_DORSUM
     return ROLE_SIDEWALL_LEFT if x < 0.0 else ROLE_SIDEWALL_RIGHT
 
@@ -443,8 +417,9 @@ def build_nasal_subsystem_topology(
 
     if topology.triangle_indices != coverage_ids:
         raise NasalSubsystemError("Nasal subsystem did not assign every central T-zone target exactly once")
-    if abs(topology.total_target_area_mm2 - coverage.t_zone_definition_area_placeholder if False else 0.0) > 0.0:
-        raise AssertionError("unreachable")
+    central_target_area = sum(triangle.area_mm2 for triangle in central_targets)
+    if abs(topology.total_target_area_mm2 - central_target_area) > 1e-8:
+        raise NasalSubsystemError("Nasal subsystem role partition does not conserve central T-zone target area")
     areas = topology.role_area_mm2
     missing_roles = [role_id for role_id, area in areas.items() if area <= 0.0]
     if missing_roles:
