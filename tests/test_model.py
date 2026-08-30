@@ -1,5 +1,9 @@
 from masck_one.assertions import run_assertions
-from masck_one.interface_topology import ZONE_T_NOSE_PHILTRUM
+from masck_one.interface_topology import (
+    CONTACT_CONNECTIVITY_STATUS,
+    MATERIAL_CONTINUITY_STATUS,
+    ZONE_T_NOSE_PHILTRUM,
+)
 from masck_one.model import build_model
 from masck_one.spatial import Point3, Vector3
 
@@ -92,7 +96,13 @@ def test_model_exposes_main_compliant_interface_topology_without_invented_materi
     assert topology.contact_area_mm2 == coverage.target_area_mm2
     assert topology.protected_opening_area_mm2 == coverage.protected_area_mm2
     assert topology.t_zone_contact_area_mm2 == coverage.t_zone_target_area_mm2
-    assert topology.contact_component_count(coverage) == 1
+
+    components = topology.contact_components(coverage)
+    assert len(components) == 2
+    assert components[1].is_nose_philtrum_only is True
+    assert topology.contact_connectivity_status == CONTACT_CONNECTIVITY_STATUS
+    assert topology.material_continuity_status == MATERIAL_CONTINUITY_STATUS
+
     assert topology.anatomical_validation_eligible is False
     assert len(topology.topology_sha256) == 64
 
