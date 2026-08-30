@@ -61,6 +61,11 @@ def test_frame_identity_is_preserved_through_translation_and_manifest():
     assert manifest["start_box"]["frame_id"] == WORLD_FRAME
 
 
+def test_aabb_construction_requires_explicit_coordinate_frame():
+    with pytest.raises(TypeError):
+        AABB((0.0, 0.0, 0.0), (1.0, 1.0, 1.0))  # type: ignore[call-arg]
+
+
 def test_rotating_body_cannot_be_misrepresented_as_linear_sweep():
     with pytest.raises(SweepGeometryError, match="cannot certify changing orientation"):
         replace(_sweep(), rotation_invariant=False)
@@ -76,7 +81,7 @@ def test_sha256_identity_requires_lowercase_canonical_form():
     alpha_digest = "ab" * 32
     canonical = LinearSweep(
         source_id="CANONICAL_DIGEST",
-        start_box=AABB((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)),
+        start_box=AABB((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), frame_id=WORLD_FRAME),
         translation_xyz_mm=(1.0, 0.0, 0.0),
         source_geometry_sha256=alpha_digest,
         rotation_invariant=True,
@@ -99,10 +104,10 @@ def test_manifest_identity_changes_for_mechanical_path_or_frame_change():
     assert first.manifest_sha256 != changed_frame.manifest_sha256
 
 
-def test_nonfinite_inverted_and_unidentified_geometry_are_hard_failures():
+def test_nonfinite_inverted_and_blank_frame_geometry_are_hard_failures():
     with pytest.raises(SweepGeometryError, match="finite"):
-        AABB((0.0, float("nan"), 0.0), (1.0, 1.0, 1.0))
+        AABB((0.0, float("nan"), 0.0), (1.0, 1.0, 1.0), frame_id=WORLD_FRAME)
     with pytest.raises(SweepGeometryError, match="minimum cannot exceed"):
-        AABB((2.0, 0.0, 0.0), (1.0, 1.0, 1.0))
+        AABB((2.0, 0.0, 0.0), (1.0, 1.0, 1.0), frame_id=WORLD_FRAME)
     with pytest.raises(SweepGeometryError, match="frame identity must be explicit"):
         AABB((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), frame_id="  ")
