@@ -10,6 +10,7 @@ from enum import Enum
 from hashlib import sha256
 import json
 import re
+from types import MappingProxyType
 from typing import Mapping
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -65,6 +66,13 @@ class WasteRouteNetwork:
     source_waste_architecture_sha256: str
     nodes: Mapping[str, WasteNode]
     segments: tuple[WasteRouteSegment, ...]
+
+    def __post_init__(self) -> None:
+        # Frozen dataclasses do not freeze mutable objects supplied by callers. Snapshot the
+        # node map at construction so later mutation cannot silently alter validated topology
+        # or change a previously computed deterministic manifest.
+        if isinstance(self.nodes, Mapping):
+            object.__setattr__(self, "nodes", MappingProxyType(dict(self.nodes)))
 
     def validate(self) -> None:
         if not isinstance(self.source_waste_architecture_sha256, str) or not _SHA256_RE.fullmatch(self.source_waste_architecture_sha256):
