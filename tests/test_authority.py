@@ -2,6 +2,7 @@ from pathlib import Path
 
 import yaml
 
+import masck_one
 from masck_one.authority import load_authority
 
 
@@ -9,6 +10,12 @@ def test_authority_loads_and_uses_correct_name():
     authority = load_authority()
     assert authority.get("project", "name") == "Masck One"
     assert authority.get("project", "id") == "MASCK_ONE"
+
+
+def test_public_package_api_preserves_lazy_authority_access():
+    authority = masck_one.load_authority()
+    assert authority.get("project", "name") == "Masck One"
+    assert masck_one.Authority is type(authority)
 
 
 def test_no_legacy_product_name_in_machine_authority():
