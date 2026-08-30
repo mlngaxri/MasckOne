@@ -2,9 +2,11 @@
 
 ## Purpose
 
-Iteration 6 introduces one consistent software abstraction for the facial surface that later regions, keep-outs, interface geometry, pressure/contact models and coverage algorithms will reference.
+Iteration 6 introduced one consistent software abstraction for the facial surface that later regions, keep-outs, interface geometry, pressure/contact models and coverage algorithms reference.
 
 The critical rule is that **topology infrastructure is allowed to exist before anatomical evidence, but topology infrastructure must not be mislabeled as anatomical evidence**.
+
+Iteration 10 tightened the development-mesh resolution after a downstream interface-connectivity check exposed a discretization artifact. That correction changes only the synthetic topology resolution; it does not promote the planar surface into anatomical evidence.
 
 ## Two surface classes
 
@@ -33,7 +35,7 @@ A headform/face scan that has passed the Iteration-5 ingestion contract can be w
 
 Importing it does **not** automatically make it validation evidence. `anatomical_validation_eligible` defaults to `False` and must be promoted explicitly only after the source population, intended use, registration quality and evidence status are reviewed.
 
-## Why the first development surface is planar
+## Why the development surface is planar
 
 The current machine authority contains reliable XY baseline locations for the eye centers, nostril centers and mouth center, but it does not contain a complete authoritative facial depth map.
 
@@ -43,9 +45,22 @@ A planar topology reference is therefore intentionally less visually impressive 
 
 ## Deterministic mesh generation
 
-The development mesh is generated inside the current functional-frame ellipse using a regular canonical XY grid. Only cells whose four corners are inside the ellipse become triangles.
+The development mesh is generated inside the current functional-frame ellipse using a regular canonical XY grid. Only cells whose four corners are inside the ellipse become triangles. Cell diagonals mirror across `X = 0`, and the X sample count must be odd so the sagittal plane is an explicit vertex column.
 
-The default resolution is chosen to give more than one thousand vertices and more than fifteen hundred triangles, sufficient for deterministic region/topology work without pretending to be a scan-resolution anatomical mesh.
+The current default is **81 × 105 samples**. Across the current 155 × 202 mm functional frame this is approximately **1.94 mm spacing in both axes**. This is a digital-resolution baseline, not an anatomical resolution claim.
+
+### Why Iteration 10 increased the resolution
+
+The former 41 × 53 grid was approximately 3.9 mm in each axis. Its conservative protected-zone classification produced a two-triangle, approximately 15 mm² contact island in the philtrum corridor. The underlying continuous protected-zone geometry did not actually remove that corridor; the coarse grid simply lacked enough samples to represent it while conservatively excluding triangles near the mouth and nostril keep-outs.
+
+The compliant-interface connectivity gate correctly rejected that result rather than accepting the disconnected island. The development mesh was therefore refined to approximately 2 mm spacing. At that resolution the intended skin-contact target field is represented as one edge-connected component while the eyes, mouth and nostrils remain protected.
+
+This correction is important for two reasons:
+
+1. **A mesh artifact is not allowed to become a product architecture decision.** A coarse discretization cannot be used as evidence that the physical interface should contain a detached philtrum island.
+2. **Refinement is not physical evidence.** A finer planar mesh still does not prove real facial fit, pressure, airway safety or cleansing efficacy.
+
+Callers may supply explicit sample counts to `build_planar_development_surface(...)` for sensitivity and convergence studies. Downstream engineering must continue to treat important conclusions that change materially with mesh resolution as unresolved digital-model issues rather than physical truth.
 
 The normalized mesh is hashed. A changed authority frame or changed sampling rule changes the hash and is therefore visible to regression tooling.
 
@@ -75,7 +90,7 @@ The resulting descriptor retains:
 
 The same downstream interfaces can therefore consume either the topology-only development surface or a later evidence-bearing reference without changing coordinate semantics.
 
-## What Iteration 6 does not claim
+## What the planar development surface does not claim
 
 It does not claim:
 
