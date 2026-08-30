@@ -178,3 +178,100 @@ This iteration deliberately avoids inventing new facial, actuator, fluid or shel
 - No physical validation status promotion.
 
 The next iteration can establish the first canonical facial-reference and landmark layer because all future geometry now has a tested coordinate/transform contract beneath it.
+
+---
+
+## Iteration 4 — facial-reference landmark layer
+
+### Scope
+
+This iteration converts only the facial coordinates already present in the machine authority into stable semantic landmark objects. It intentionally does not invent a 3D facial surface or new anthropometric coordinates.
+
+The key engineering distinction is that the current authority gives eye, nostril and mouth-center coordinates in X/Y. Those values are useful CAD references, but they are not sufficient to claim the physical Z depth of those anatomical locations on a human face. Iteration 4 encodes that limitation explicitly instead of allowing later code to assume `Z = 0` means a real face surface.
+
+### Implemented
+
+- Added `src/masck_one/anatomy.py`.
+- Added stable semantic IDs for the five authority-supported neutral facial reference points:
+  - left eye center reference;
+  - right eye center reference;
+  - left nostril center reference;
+  - right nostril center reference;
+  - mouth center reference.
+- Added `PlanarLandmark` with:
+  - typed `Point2` coordinate;
+  - anatomical/engineering description;
+  - authority status;
+  - exact authority source path;
+  - side classification;
+  - bilateral-group metadata where applicable.
+- Added strict side-sign rules for left/right landmarks.
+- Added strict sagittal-plane rule for midline landmarks.
+- Added `BilateralLandmarkPair` with neutral-baseline symmetry enforcement.
+- Added `FacialReferenceLayer` containing all currently supported landmarks and source authority revision.
+- Added explicit reference kind `NEUTRAL_2D_CAD_BASELINE_PROJECTION`.
+- Added `has_resolved_depth = False` for all current planar landmarks.
+- Added an explicit debug/reference projection method that does not promote projected Z to anatomical truth.
+- Added derived neutral metrics calculated from source coordinates rather than stored independently:
+  - eye-center spacing;
+  - nostril-center spacing;
+  - eye/nostril/mouth Y references;
+  - vertical eye-to-nostril, nostril-to-mouth and eye-to-mouth separations.
+- Added model integration at `model.facial_reference`.
+- Added a dedicated facial-reference preflight contract.
+- Added `docs/FACIAL_REFERENCE.md` documenting the semantic meaning, source provenance and unresolved 3D limitations.
+- Added `docs/DEVELOPMENT_ROADMAP.md` defining a 40-iteration planning baseline through digital Alpha release readiness.
+- Added adversarial/unit tests for:
+  - exact source-coordinate preservation;
+  - exact source-status preservation;
+  - source-path provenance;
+  - unique stable IDs;
+  - bilateral symmetry;
+  - derived metric closure;
+  - unresolved 3D state;
+  - invalid left/right sign;
+  - invalid midline placement;
+  - invalid neutral bilateral asymmetry.
+
+### Current derived metrics
+
+Derived from the existing authority, not promoted as new independent requirements:
+
+- eye-center spacing: `63.0 mm`;
+- nostril-center spacing: `21.0 mm`;
+- eye line Y: `35.0 mm`;
+- nostril line Y: `-7.5 mm`;
+- mouth-center Y: `-50.0 mm`;
+- eye-to-nostril vertical separation: `42.5 mm`;
+- nostril-to-mouth vertical separation: `42.5 mm`;
+- eye-to-mouth vertical separation: `85.0 mm`.
+
+### Evidence required before merge
+
+1. Existing authority/schema validation remains `PASS`.
+2. Existing spatial contract remains `PASS`.
+3. Facial-reference preflight reports exactly five authority-derived landmarks.
+4. Landmark coordinates match the authority exactly.
+5. Landmark authority statuses and source paths are preserved.
+6. Eye and nostril neutral pairs satisfy canonical sagittal symmetry.
+7. Mouth center remains on X = 0.
+8. All five landmarks remain explicitly unresolved in physical 3D depth.
+9. Derived neutral metrics match direct coordinate calculations.
+10. Invalid side classification and asymmetric neutral-pair test cases fail deterministically.
+11. Existing CAD geometry/assertion outcomes remain unchanged.
+12. Full test suite passes.
+13. Deterministic CAD smoke build remains `PASS`.
+14. GitHub Actions completes successfully on the exact pull-request head before merge.
+
+### Explicitly not attempted in this iteration
+
+- No new face/headform surface.
+- No guessed Z coordinates for facial landmarks.
+- No new bridge, nose-tip, alar, philtrum, chin, cheek, jaw or eye-corner landmarks.
+- No dynamic expression geometry.
+- No protected-volume geometry.
+- No population-fit claim.
+- No new shell/interface geometry.
+- No physical validation status promotion.
+
+Iteration 5 is planned to establish external headform/reference-surface ingestion, provenance, unit/handedness normalization and registration into `MASCK_ONE_GLOBAL`.
