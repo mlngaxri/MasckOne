@@ -1,0 +1,50 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import cadquery as cq
+
+from .assertions import run_assertions
+from .model import MasckOneModel, build_model
+
+
+def _ensure_output_dir(path: str | Path) -> Path:
+    output = Path(path).resolve()
+    output.mkdir(parents=True, exist_ok=True)
+    return output
+
+
+def export_release(output_dir: str | Path = "generated", model: MasckOneModel | None = None) -> dict:
+    model = model or build_model()
+    output = _ensure_output_dir(output_dir)
+
+    export_map = {
+        "rigid_shell": model.shell.solid,
+        "nasal_interface": model.nasal_interface.solid,
+        "water_reservoir_envelope": model.water_reservoir_envelope.solid,
+        "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
+        "battery_reference_envelope": model.battery_reference_envelope.solid,
+    }
+    for index, actuator in enumerate(model.actuator_envelopes, start=1):
+        export_map[f"actuator_envelope_{index}"] = actuator.solid
+
+    for name, solid in export_map.items():
+        cq.exporters.export(solid, str(output / f"{name}.step"))
+
+    shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
+    compound = cq.Compound.makeCompound(shapes)
+    cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
+
+    checks = run_assertions(model)
+    report = {
+        "project": "Masck One",
+        "authority_revision": model.authority.get("project", "authority_revision"),
+        "result": "PASS" if not any(c.status == "FAIL" for c in checks) else "FAIL",
+        "checks": [c.to_dict() for c in checks],
+        "note": "BLOCKED checks are unresolved evidence gates, not software failures.",
+    }
+    with (output / "build_report.json").open("w", encoding="utf-8") as handle:
+        json.dump(report, handle, indent=2)
+        handle.write("\n")
+    return report

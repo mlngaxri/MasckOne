@@ -1,0 +1,179 @@
+project:
+  id: MASCK_ONE
+  name: Masck One
+  authority_revision: 2026-08-30-R1
+  units:
+    length: mm
+    mass: g
+    angle: deg
+    force: N
+    pressure: kPa
+    liquid_volume: mL
+
+coordinate_system:
+  origin: [0.0, 0.0, 0.0]
+  x_positive: wearer_right
+  y_positive: superior
+  z_positive: anterior
+  status: FROZEN_DATUM
+
+geometry:
+  outer_xy_envelope_mm: [172.0, 210.0]
+  outer_xy_envelope_status: DESIGN_BASELINE
+  functional_frame_xy_mm: [155.0, 202.0]
+  functional_frame_status: DESIGN_BASELINE
+  shell_nominal_wall_mm: 1.8
+  shell_absolute_development_min_mm: 1.5
+  shell_status: ENGINEERING_BASELINE
+  eye:
+    centers_mm:
+      left: [-31.5, 35.0]
+      right: [31.5, 35.0]
+    visual_aperture_wh_mm: [46.0, 30.0]
+    lateral_cant_deg: 4.0
+    inner_edge_roll_radius_mm: 3.0
+    rigid_dynamic_keepout_clearance_mm: 8.5
+    center_status: CAD_BASELINE
+    aperture_status: DESIGN_BASELINE
+    clearance_status: VALIDATION_GATED_BASELINE
+  mouth:
+    center_mm: [0.0, -50.0]
+    visual_aperture_wh_mm: [58.0, 32.0]
+    rigid_dynamic_keepout_clearance_mm: 9.5
+    center_status: CAD_BASELINE
+    aperture_status: DESIGN_BASELINE
+    clearance_status: VALIDATION_GATED_BASELINE
+  nostrils:
+    centers_mm:
+      left: [-10.5, -7.5]
+      right: [10.5, -7.5]
+    minimum_deformed_area_each_mm2: 120.0
+    minimum_local_opening_dimension_mm: 8.0
+    rigid_dynamic_keepout_clearance_mm: 7.5
+    center_status: CAD_BASELINE
+    opening_status: ENGINEERING_BASELINE
+    clearance_status: VALIDATION_GATED_BASELINE
+  nasal_lobe_membrane:
+    thickness_center_mm: 0.30
+    thickness_doe_mm: [0.25, 0.30, 0.35]
+    status: VALIDATION_GATED
+  visible_seam:
+    gap_mm: 0.40
+    tolerance_mm: 0.15
+    flush_mismatch_max_mm: 0.15
+    status: DESIGN_BASELINE
+  misregistration:
+    translation_radial_max_mm: 5.0
+    rotation_max_deg: 4.0
+    status: ENGINEERING_BASELINE
+
+safety:
+  airway:
+    minimum_area_each_mm2: 120.0
+    minimum_local_dimension_mm: 8.0
+    max_added_pressure_drop_pa:
+      at_30_lpm: 10.0
+      at_60_lpm: 40.0
+    no_collapse_test_flow_lpm: 120.0
+    no_collapse_required: true
+  fluid_fault:
+    max_uncontrolled_total_uL: 150.0
+    max_uncontrolled_branch_uL: 50.0
+    max_external_leakage_uL_cycle: 50.0
+  pressure:
+    bridge_p95_max_kPa: 4.0
+    bridge_steady_max_kPa: 6.0
+    cheek_p95_max_kPa: 5.0
+    dynamic_max_kPa: 8.0
+  membrane_strain:
+    p95_max_percent: 20.0
+    local_max_percent: 35.0
+  quick_release:
+    time_max_s: 2.0
+    force_target_N: [5.0, 12.0]
+    one_hand_wet_unpowered: true
+
+actuation:
+  count: 4
+  architecture_status: FROZEN_ARCHITECTURE
+  clean:
+    frequency_baseline_hz: 40.0
+    displacement_pp_baseline_mm: 0.52
+    axis_angle_baseline_deg: 61.0
+    axis_angle_doe_deg: [50.0, 55.0, 61.0, 67.0, 72.0]
+    continuous_force_requirement_N: 0.20
+    transient_force_requirement_N: 0.60
+    status: VALIDATION_GATED
+
+fluid:
+  water_reservoir:
+    gross_mL: 6.5
+    minimum_usable_mL: 5.5
+    status: ENGINEERING_BASELINE
+  clean_cycle:
+    face_water_mL: 3.2
+    cleanser_mL: 0.60
+    post_flush_water_mL: 0.80
+    nominal_introduced_liquid_mL: 4.60
+    maximum_initial_prime_mL: 0.40
+    status: VALIDATION_GATED
+  outlets:
+    water_count_first_manifold: 18
+    cleanser_count_first_manifold: 6
+    count_status: VALIDATION_GATED_DESIGN_BASELINE
+    manifold_outlet_diameter_seed_mm: 0.375
+    outlet_position_sensitivity_mm: 0.5
+    outlet_direction_sensitivity_deg: 5.0
+  waste:
+    recovery_ratio_min: 0.90
+    residual_free_liquid_max_uL: 400.0
+    status: VALIDATION_GATED
+  cartridge:
+    external_envelope_mm: [74.0, 36.0, 20.0]
+    retained_capacity_min_mL: 35.0
+    service_cycles_baseline: 6
+    service_cycles_status: VALIDATION_GATED
+
+structure:
+  frame_deflection_p95_max_mm: 0.40
+  frame_first_mode_preferred_min_hz: 250.0
+  status: ENGINEERING_BASELINE
+
+mass:
+  dry_target_max_g: 215.0
+  loaded_absolute_max_g: 255.0
+  cg_z_max_mm: 30.0
+  pitch_torque_max_Nm: 0.070
+  preferred_battery_location: halo
+  status: ENGINEERING_BASELINE
+
+battery_reference:
+  candidate: EEMB LP603450HA
+  nominal_voltage_V: 3.7
+  capacity_mAh: 1100
+  envelope_mm: [34.5, 52.0, 6.3]
+  mass_g: 22.0
+  status: PACKAGING_BENCHMARK_NOT_PRODUCTION_FREEZE
+
+manufacturing:
+  mold_draft_nominal_deg: 1.0
+  rib_thickness_ratio_range: [0.40, 0.60]
+  hygiene_classes:
+    - DRY_ALWAYS
+    - WET_DRAINABLE
+    - WET_REMOVABLE
+    - SEALED_NONUSER
+  a_surface:
+    rms_deviation_max_mm: 0.25
+    max_deviation_mm: 0.75
+    status: CAD_CLOSURE
+
+coverage:
+  aggregate_min_percent: 90.0
+  t_zone_min_percent: 90.0
+  unexplained_hole_max_mm2: 100.0
+  status: VALIDATION_GATED
+
+commercial:
+  initial_state: EARLY_ACCESS
+  paid_preorder_gate: false
