@@ -21,13 +21,17 @@ ZONE_IDS = (
 )
 
 
-def _canonical_sha256(value: str) -> None:
-    if len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
-        raise ActuatorFrameError("Actuator architecture source identities must be lowercase canonical SHA-256")
+def _canonical_sha256(value: object) -> None:
+    if not isinstance(value, str) or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+        raise ActuatorFrameError("Actuator architecture source identities must be lowercase canonical SHA-256 strings")
 
 
 def _real_finite(value: object) -> bool:
     return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(float(value))
+
+
+def _nonblank_text(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip())
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,7 +49,7 @@ class ActuatorLocalFrame:
     envelope_status: str
 
     def __post_init__(self) -> None:
-        if self.zone_id not in ZONE_IDS:
+        if not isinstance(self.zone_id, str) or self.zone_id not in ZONE_IDS:
             raise ActuatorFrameError(f"Unknown actuator zone {self.zone_id!r}")
         if self.origin_xyz_mm is not None and (len(self.origin_xyz_mm) != 3 or not all(_real_finite(v) for v in self.origin_xyz_mm)):
             raise ActuatorFrameError("Actuator-frame origin must be a finite XYZ point with real numeric coordinates")
@@ -59,12 +63,12 @@ class ActuatorLocalFrame:
             raise ActuatorFrameError("Actuator angle DOE must be unique and ascending")
         if baseline not in doe:
             raise ActuatorFrameError("Actuator baseline angle must be represented in the DOE")
-        if self.structural_mount_datum_id is not None and not self.structural_mount_datum_id.strip():
-            raise ActuatorFrameError("Structural mount datum identity must be nonblank when resolved")
+        if self.structural_mount_datum_id is not None and not _nonblank_text(self.structural_mount_datum_id):
+            raise ActuatorFrameError("Structural mount datum identity must be a nonblank string when resolved")
         if self.actuator_envelope_mm is not None and (len(self.actuator_envelope_mm) != 3 or not all(_real_finite(v) and float(v) > 0 for v in self.actuator_envelope_mm)):
             raise ActuatorFrameError("Actuator envelope must contain three positive finite real dimensions")
-        if any(not value.strip() for value in (self.origin_status, self.axis_status, self.mount_status, self.envelope_status)):
-            raise ActuatorFrameError("Actuator-frame status metadata must be explicit")
+        if not all(_nonblank_text(value) for value in (self.origin_status, self.axis_status, self.mount_status, self.envelope_status)):
+            raise ActuatorFrameError("Actuator-frame status metadata must be explicit nonblank strings")
 
     @property
     def placement_resolved(self) -> bool:
@@ -100,16 +104,18 @@ class ActuatorFrameArchitecture:
     def __post_init__(self) -> None:
         _canonical_sha256(self.source_structural_frame_sha256)
         _canonical_sha256(self.source_registered_mesh_sha256)
-        if not self.source_authority_revision.strip():
-            raise ActuatorFrameError("Authority revision must be explicit")
+        if not _nonblank_text(self.source_authority_revision):
+            raise ActuatorFrameError("Authority revision must be an explicit nonblank string")
         if tuple(frame.zone_id for frame in self.frames) != ZONE_IDS:
             raise ActuatorFrameError("Actuator frames must preserve the controlled four-zone order")
-        if self.independent_zone_count != len(ZONE_IDS):
+        if isinstance(self.independent_zone_count, bool) or not isinstance(self.independent_zone_count, int) or self.independent_zone_count != len(ZONE_IDS):
             raise ActuatorFrameError("Actuator architecture must preserve four independent zones")
+        if not isinstance(self.physical_validation_eligible, bool):
+            raise ActuatorFrameError("Physical-validation eligibility must be an explicit boolean")
         if self.physical_validation_eligible:
             raise ActuatorFrameError("Digital actuator mount/frame topology cannot be physical evidence")
-        if not self.evidence_status.strip():
-            raise ActuatorFrameError("Actuator architecture evidence status must be explicit")
+        if not _nonblank_text(self.evidence_status):
+            raise ActuatorFrameError("Actuator architecture evidence status must be an explicit nonblank string")
 
     @property
     def architecture_sha256(self) -> str:
