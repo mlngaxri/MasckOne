@@ -118,5 +118,23 @@ def test_nonfinite_inverted_and_blank_frame_geometry_are_hard_failures():
         AABB((0.0, float("nan"), 0.0), (1.0, 1.0, 1.0), frame_id=WORLD_FRAME)
     with pytest.raises(SweepGeometryError, match="minimum cannot exceed"):
         AABB((2.0, 0.0, 0.0), (1.0, 1.0, 1.0), frame_id=WORLD_FRAME)
-    with pytest.raises(SweepGeometryError, match="frame identity must be explicit"):
+    with pytest.raises(SweepGeometryError, match="explicit nonblank string"):
         AABB((0.0, 0.0, 0.0), (1.0, 1.0, 1.0), frame_id="  ")
+
+
+def test_boolean_and_coercible_aliases_cannot_enter_mechanical_geometry():
+    with pytest.raises(SweepGeometryError, match="not a boolean or coercible alias"):
+        AABB((True, 0.0, 0.0), (1.0, 1.0, 1.0), frame_id=WORLD_FRAME)  # type: ignore[arg-type]
+    with pytest.raises(SweepGeometryError, match="not a boolean or coercible alias"):
+        replace(_sweep(), translation_xyz_mm=("10.0", 0.0, 0.0))  # type: ignore[arg-type]
+    keepout = AABB((20.0, 0.0, 0.0), (21.0, 1.0, 1.0), frame_id=WORLD_FRAME)
+    with pytest.raises(SweepGeometryError, match="not a boolean or coercible alias"):
+        _sweep().collides_with(keepout, expected_geometry_sha256=SOURCE_SHA, clearance_mm=True)  # type: ignore[arg-type]
+
+
+def test_rotation_invariant_requires_literal_boolean_and_source_identity_is_canonicalized():
+    with pytest.raises(SweepGeometryError, match="explicit boolean"):
+        replace(_sweep(), rotation_invariant=1)  # type: ignore[arg-type]
+    normalized = replace(_sweep(), source_id="  ACTUATOR_TEST_ENVELOPE  ")
+    assert normalized.source_id == "ACTUATOR_TEST_ENVELOPE"
+    assert normalized.manifest()["source_id"] == "ACTUATOR_TEST_ENVELOPE"
