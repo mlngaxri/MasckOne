@@ -5,8 +5,9 @@ import hashlib
 import json
 import math
 
-from .actuator_frames import ActuatorFrameArchitecture
+from .actuator_frames import ActuatorFrameArchitecture, ActuatorFrameError
 from .authority import Authority
+from .structural_frame import StructuralFrameTopology
 
 
 class ActuationSweepContractError(ValueError):
@@ -73,10 +74,19 @@ class ActuationDisplacementContract:
         if self.displacement_pp_mm != current_pp:
             raise ActuationSweepContractError("Displacement contract no longer matches authority peak-to-peak displacement")
 
-    def require_geometry_ready(self, *, authority: Authority, architecture: ActuatorFrameArchitecture) -> None:
+    def require_geometry_ready(
+        self,
+        *,
+        authority: Authority,
+        architecture: ActuatorFrameArchitecture,
+        structural_frame: StructuralFrameTopology,
+    ) -> None:
+        """Prove motion semantics and the complete live structural provenance chain before geometry use."""
         self.validate_current_sources(authority=authority, architecture=architecture)
-        if not architecture.sweep_ready:
-            raise ActuationSweepContractError("Actuator sweep geometry remains blocked until released local-frame placement, mount datum, and supplier envelope are resolved")
+        try:
+            architecture.require_sweep_ready(structural_frame=structural_frame, authority=authority)
+        except ActuatorFrameError as exc:
+            raise ActuationSweepContractError(f"Actuator sweep geometry remains blocked: {exc}") from exc
 
     def manifest(self, *, include_sha: bool = True) -> dict[str, object]:
         payload: dict[str, object] = {
