@@ -30,6 +30,16 @@ def test_model_exposes_semantic_facial_reference_without_invented_depth():
     assert reference.metrics.nostril_center_spacing_mm == 21.0
 
 
+def test_model_exposes_neutral_surface_without_promoting_it_to_anatomical_evidence():
+    model = build_model()
+    surface = model.facial_surface
+
+    assert surface.descriptor.kind == "PLANAR_DEVELOPMENT_REFERENCE"
+    assert surface.descriptor.anatomical_validation_eligible is False
+    assert surface.is_planar is True
+    assert surface.mesh.vertex_count > 1000
+
+
 def test_all_software_verifiable_assertions_pass():
     model = build_model()
     checks = run_assertions(model)
