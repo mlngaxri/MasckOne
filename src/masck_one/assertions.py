@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 import math
 from typing import Any
 
+from .interface_topology import ZONE_T_NOSE_PHILTRUM
 from .model import MasckOneModel
 
 
@@ -171,14 +172,60 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
         },
     ))
 
+    interface = model.compliant_interface_topology
+    nasal_thickness = interface.nasal_lobe_thickness_authority
+    nose_zone = interface.zone_by_id[ZONE_T_NOSE_PHILTRUM]
+    contact_components = interface.contact_component_count(coverage)
+    interface_pass = (
+        len(interface.assignments) == len(coverage.triangles)
+        and abs(interface.contact_area_mm2 - coverage.target_area_mm2) <= 1e-8
+        and abs(interface.protected_opening_area_mm2 - coverage.protected_area_mm2) <= 1e-8
+        and abs(interface.t_zone_contact_area_mm2 - coverage.t_zone_target_area_mm2) <= 1e-8
+        and contact_components == 1
+        and nasal_thickness.center_thickness_mm == a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm")
+        and nasal_thickness.doe_mm == tuple(float(value) for value in a.get("geometry", "nasal_lobe_membrane", "thickness_doe_mm"))
+        and nose_zone.nominal_thickness_mm is None
+        and nose_zone.thickness_doe_mm == ()
+        and interface.anatomical_validation_eligible is False
+        and len(interface.topology_sha256) == 64
+        and "NOT_CONTACT_FIT_MATERIAL_OR_EFFICACY_EVIDENCE" in interface.evidence_status
+    )
+    checks.append(Check(
+        "COMPLIANT_INTERFACE_TOPOLOGY", "PASS" if interface_pass else "FAIL",
+        "The main compliant interface is partitioned into deterministic contact/T-zone/protected-opening parameter zones without inventing global membrane thickness, material behavior or contact validation.",
+        actual={
+            "zone_count": len(interface.zones),
+            "assignment_count": len(interface.assignments),
+            "contact_area_mm2": round(interface.contact_area_mm2, 6),
+            "protected_area_mm2": round(interface.protected_opening_area_mm2, 6),
+            "t_zone_contact_area_mm2": round(interface.t_zone_contact_area_mm2, 6),
+            "contact_component_count": contact_components,
+            "nasal_lobe_center_thickness_mm": nasal_thickness.center_thickness_mm,
+            "nasal_lobe_doe_mm": list(nasal_thickness.doe_mm),
+            "nasal_thickness_application_status": nasal_thickness.application_status,
+            "full_nose_t_zone_nominal_thickness_mm": nose_zone.nominal_thickness_mm,
+            "anatomical_validation_eligible": interface.anatomical_validation_eligible,
+            "topology_sha256": interface.topology_sha256,
+        },
+        limit={
+            "assignment_count": len(coverage.triangles),
+            "contact_area_mm2": round(coverage.target_area_mm2, 6),
+            "protected_area_mm2": round(coverage.protected_area_mm2, 6),
+            "t_zone_contact_area_mm2": round(coverage.t_zone_target_area_mm2, 6),
+            "contact_component_count": 1,
+            "nasal_lobe_center_thickness_mm": a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm"),
+            "anatomical_validation_eligible": False,
+        },
+    ))
+
     blocked = [
         ("DYNAMIC_EYE_SIGNED_DISTANCE", "Misregistration transforms and planar eye envelopes now exist, but expression-dependent registered anatomical eye volumes are still required."),
         ("DYNAMIC_AIRWAY_SIGNED_DISTANCE", "Misregistration transforms and planar airway envelopes now exist, but deformable nasal geometry and measured fit states are still required."),
         ("DYNAMIC_MOUTH_SIGNED_DISTANCE", "Misregistration transforms and planar mouth envelope now exist, but jaw/smile/speech anatomical volumes are still required."),
         ("AIRWAY_PRESSURE_DROP", "Requires airflow rig or validated CFD boundary conditions."),
-        ("FACIAL_PRESSURE", "Requires nonlinear contact model with selected material data and/or pressure-map testing."),
-        ("MEMBRANE_STRAIN", "Requires selected silicone constitutive data and converged nonlinear FEA."),
-        ("CLEANSING_COVERAGE", "Coverage mesh, protected exclusions, T-zone partition, authority thresholds and uncovered-hole metric now exist; closure still requires the actual cleansing mechanism footprint plus physical spatial-efficacy evidence on eligible anatomy."),
+        ("FACIAL_PRESSURE", "Compliant-interface contact topology now exists, but closure still requires selected material constitutive data, nonlinear contact analysis and/or measured pressure mapping."),
+        ("MEMBRANE_STRAIN", "Interface parameter zones and nasal-lobe thickness authority are encoded, but closure still requires selected silicone constitutive data and converged nonlinear FEA."),
+        ("CLEANSING_COVERAGE", "Coverage mesh, protected exclusions, T-zone partition, authority thresholds and interface target topology now exist; closure still requires the actual cleansing mechanism footprint plus physical spatial-efficacy evidence on eligible anatomy."),
         ("WASTE_RETAINED_CAPACITY", "Requires contaminated-waste cartridge test; geometric envelope alone is insufficient."),
         ("MASS_CG_PITCH_TORQUE", "Requires complete component mass/location ledger for the generated CAD revision."),
         ("A_SURFACE_DEVIATION", "Requires an authored and released Class-A reference surface."),
