@@ -119,7 +119,7 @@ def test_waste_pump_enumerates_faults_without_claiming_mixed_phase_performance(q
     assert pump.cad_envelope().val().Volume() == pytest.approx(25.0 * 25.0 * 8.2)
 
 
-def test_cartridge_keeps_bounding_volume_separate_from_retained_capacity(quarter):
+def test_cartridge_separates_external_bound_spatial_reservation_and_usable_capacity(quarter):
     cartridge = quarter.waste.cartridge
     assert cartridge.external_envelope_mm == (74.0, 36.0, 20.0)
     assert cartridge.external_bounding_volume_mL == pytest.approx(53.28)
@@ -127,8 +127,11 @@ def test_cartridge_keeps_bounding_volume_separate_from_retained_capacity(quarter
     assert cartridge.internal_usable_capacity_mL is None
     assert cartridge.retained_capacity_status == "VALIDATION_GATED"
     assert "NO_ABSORBENT" in cartridge.media_status
-    with pytest.raises(WasteArchitectureError, match="No capacity solid"):
-        cartridge.cad_capacity_reservation()
+    assert cartridge.cad_capacity_reservation().val().Volume() / 1000.0 == pytest.approx(35.0)
+    manifest = quarter.waste.manifest()
+    assert manifest["cartridge"]["capacity_reservation_semantics"] == (
+        "SPATIAL_BOOKKEEPING_ONLY_NOT_USABLE_OR_RETAINED_CAPACITY_EVIDENCE"
+    )
     with pytest.raises(WasteArchitectureError, match="Internal usable cartridge capacity"):
         replace(cartridge, internal_usable_capacity_mL=35.0)
 
