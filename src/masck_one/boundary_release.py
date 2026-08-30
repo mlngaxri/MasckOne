@@ -19,16 +19,18 @@ _GEOMETRY_MATCH_TOLERANCE_MM = 1e-9
 def validate_registered_mesh_binding(surface: FacialSurface, coverage: FacialCoverageMesh) -> None:
     """Reject coverage produced from a different registration of the same source asset.
 
-    The descriptor source hash identifies the source artifact, not the transformed
-    registered mesh. Triangle centroids therefore provide an explicit geometry binding
-    between the coverage revision and the current registered mesh. This tolerance is a
-    software identity check only and is not a manufacturing or physical tolerance.
+    `FacialSurfaceDescriptor.source_sha256` identifies the original source artifact,
+    while `FacialCoverageMesh.source_surface_sha256` identifies the registered mesh
+    actually segmented. Both identities are preserved separately. Triangle centroids
+    provide an additional geometry-level binding. The comparison tolerance is a
+    software identity check only, never a product or manufacturing tolerance.
     """
 
     if coverage.source_surface_id != surface.descriptor.surface_id:
         raise InterfaceBoundaryError("Coverage and facial surface identities differ")
-    if coverage.source_surface_sha256 != surface.descriptor.source_sha256:
-        raise InterfaceBoundaryError("Coverage and facial source-asset hashes differ")
+    registered_mesh_sha256 = surface.mesh.normalized_sha256()
+    if coverage.source_surface_sha256 != registered_mesh_sha256:
+        raise InterfaceBoundaryError("Coverage and current registered-mesh hashes differ")
     if len(coverage.triangles) != surface.mesh.triangle_count:
         raise InterfaceBoundaryError("Coverage triangle count does not match current registered mesh")
 
@@ -72,6 +74,8 @@ def build_verified_interface_boundary_topology(
 ) -> InterfaceBoundaryTopology:
     validate_registered_mesh_binding(surface, coverage)
     topology = build_interface_boundary_topology(authority, surface, coverage, interface)
+    if topology.source_surface_sha256 != surface.descriptor.source_sha256:
+        raise InterfaceBoundaryError("Boundary topology source-asset hash does not match current surface provenance")
     if topology.source_registered_mesh_sha256 != surface.mesh.normalized_sha256():
         raise InterfaceBoundaryError("Boundary topology registered-mesh hash does not match current surface")
     if topology.source_surface_revision != surface.descriptor.source_revision:
