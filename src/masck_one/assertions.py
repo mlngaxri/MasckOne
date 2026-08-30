@@ -4,8 +4,19 @@ from dataclasses import asdict, dataclass
 import math
 from typing import Any
 
+from .coverage import REGION_T_NOSE_PHILTRUM
 from .interface_topology import ZONE_T_NOSE_PHILTRUM
 from .model import MasckOneModel
+from .nasal_subsystem import (
+    ROLE_BRIDGE_DORSUM,
+    ROLE_LOBE,
+    ROLE_PHILTRUM,
+    ROLE_SIDEWALL_LEFT,
+    ROLE_SIDEWALL_RIGHT,
+)
+
+
+CAD_BREP_BOUND_TOLERANCE_MM = 2e-6
 
 
 @dataclass(frozen=True)
@@ -96,11 +107,7 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
     checks.append(Check(
         "PROTECTED_ZONE_XY_BASELINES", "PASS" if protected_xy_pass else "FAIL",
         "Authority-derived eye/mouth/nostril planar protected footprints and rigid-clearance baselines are encoded; dynamic 3D anatomy remains blocked.",
-        actual={
-            "count": len(protected.all), "clearances_mm": actual_clearances,
-            "z_policy": sorted({volume.z_policy for volume in protected.all}),
-            "validation_eligible": any(volume.anatomical_validation_eligible for volume in protected.all),
-        },
+        actual={"count": len(protected.all), "clearances_mm": actual_clearances, "z_policy": sorted({volume.z_policy for volume in protected.all}), "validation_eligible": any(volume.anatomical_validation_eligible for volume in protected.all)},
         limit={"count": 5, "clearances_mm": expected_clearances, "validation_eligible": False},
     ))
 
@@ -117,19 +124,8 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
     checks.append(Check(
         "WORN_POSE_HARD_ENVELOPE_SET", "PASS" if pose_pass else "FAIL",
         "Deterministic regression samples exercise the authority misregistration boundary without inventing Z translation or claiming a measured donning distribution.",
-        actual={
-            "pose_count": regression.pose_count,
-            "max_radial_translation_mm": regression.maximum_sampled_radial_translation_mm,
-            "max_abs_rotation_deg": regression.maximum_sampled_absolute_rotation_deg,
-            "translation_z_mm": 0.0,
-            "sha256": regression.sha256,
-        },
-        limit={
-            "pose_count": 459,
-            "translation_radial_max_mm": translation_limit,
-            "rotation_max_deg": rotation_limit,
-            "translation_z_mm": 0.0,
-        },
+        actual={"pose_count": regression.pose_count, "max_radial_translation_mm": regression.maximum_sampled_radial_translation_mm, "max_abs_rotation_deg": regression.maximum_sampled_absolute_rotation_deg, "translation_z_mm": 0.0, "sha256": regression.sha256},
+        limit={"pose_count": 459, "translation_radial_max_mm": translation_limit, "rotation_max_deg": rotation_limit, "translation_z_mm": 0.0},
     ))
 
     coverage = model.coverage_mesh
@@ -149,27 +145,8 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
     checks.append(Check(
         "COVERAGE_MESH_TOPOLOGY", "PASS" if coverage_pass else "FAIL",
         "Facial target/protected/T-zone topology is deterministic, area-conserving, includes the nose-to-upper-lip target region, and carries the authority coverage thresholds without claiming efficacy.",
-        actual={
-            "triangle_count": len(coverage.triangles),
-            "surface_triangle_count": model.facial_surface.mesh.triangle_count,
-            "target_area_mm2": round(coverage.target_area_mm2, 6),
-            "protected_area_mm2": round(coverage.protected_area_mm2, 6),
-            "t_zone_target_area_mm2": round(coverage.t_zone_target_area_mm2, 6),
-            "philtrum_target_area_mm2": round(coverage.philtrum_target_area_mm2, 6),
-            "area_conservation_error_mm2": coverage.area_conservation_error_mm2,
-            "aggregate_min_percent": coverage.aggregate_min_percent,
-            "t_zone_min_percent": coverage.t_zone_min_percent,
-            "hole_max_mm2": coverage.unexplained_hole_max_mm2,
-            "anatomical_validation_eligible": coverage.anatomical_validation_eligible,
-            "segmentation_sha256": coverage.segmentation_sha256,
-        },
-        limit={
-            "area_conservation_error_mm2_max": 1e-8,
-            "aggregate_min_percent": a.number("coverage", "aggregate_min_percent"),
-            "t_zone_min_percent": a.number("coverage", "t_zone_min_percent"),
-            "hole_max_mm2": a.number("coverage", "unexplained_hole_max_mm2"),
-            "anatomical_validation_eligible": False,
-        },
+        actual={"triangle_count": len(coverage.triangles), "surface_triangle_count": model.facial_surface.mesh.triangle_count, "target_area_mm2": round(coverage.target_area_mm2, 6), "protected_area_mm2": round(coverage.protected_area_mm2, 6), "t_zone_target_area_mm2": round(coverage.t_zone_target_area_mm2, 6), "philtrum_target_area_mm2": round(coverage.philtrum_target_area_mm2, 6), "area_conservation_error_mm2": coverage.area_conservation_error_mm2, "aggregate_min_percent": coverage.aggregate_min_percent, "t_zone_min_percent": coverage.t_zone_min_percent, "hole_max_mm2": coverage.unexplained_hole_max_mm2, "anatomical_validation_eligible": coverage.anatomical_validation_eligible, "segmentation_sha256": coverage.segmentation_sha256},
+        limit={"area_conservation_error_mm2_max": 1e-8, "aggregate_min_percent": a.number("coverage", "aggregate_min_percent"), "t_zone_min_percent": a.number("coverage", "t_zone_min_percent"), "hole_max_mm2": a.number("coverage", "unexplained_hole_max_mm2"), "anatomical_validation_eligible": False},
     ))
 
     interface = model.compliant_interface_topology
@@ -193,39 +170,72 @@ def run_assertions(model: MasckOneModel) -> list[Check]:
     checks.append(Check(
         "COMPLIANT_INTERFACE_TOPOLOGY", "PASS" if interface_pass else "FAIL",
         "The main compliant interface is partitioned into deterministic contact/T-zone/protected-opening parameter zones without inventing global membrane thickness, material behavior or contact validation.",
+        actual={"zone_count": len(interface.zones), "assignment_count": len(interface.assignments), "contact_area_mm2": round(interface.contact_area_mm2, 6), "protected_area_mm2": round(interface.protected_opening_area_mm2, 6), "t_zone_contact_area_mm2": round(interface.t_zone_contact_area_mm2, 6), "contact_component_count": contact_components, "nasal_lobe_center_thickness_mm": nasal_thickness.center_thickness_mm, "nasal_lobe_doe_mm": list(nasal_thickness.doe_mm), "nasal_thickness_application_status": nasal_thickness.application_status, "full_nose_t_zone_nominal_thickness_mm": nose_zone.nominal_thickness_mm, "anatomical_validation_eligible": interface.anatomical_validation_eligible, "topology_sha256": interface.topology_sha256},
+        limit={"assignment_count": len(coverage.triangles), "contact_area_mm2": round(coverage.target_area_mm2, 6), "protected_area_mm2": round(coverage.protected_area_mm2, 6), "t_zone_contact_area_mm2": round(coverage.t_zone_target_area_mm2, 6), "contact_component_count": 1, "nasal_lobe_center_thickness_mm": a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm"), "anatomical_validation_eligible": False},
+    ))
+
+    nasal = model.nasal_subsystem_topology
+    central_targets = [
+        triangle
+        for triangle in coverage.triangles
+        if triangle.region_id == REGION_T_NOSE_PHILTRUM and triangle.is_target
+    ]
+    central_ids = {triangle.triangle_index for triangle in central_targets}
+    central_area = sum(triangle.area_mm2 for triangle in central_targets)
+    role_areas = nasal.role_area_mm2
+    lobe_role = nasal.role_by_id[ROLE_LOBE]
+    unresolved_roles = [ROLE_BRIDGE_DORSUM, ROLE_SIDEWALL_LEFT, ROLE_SIDEWALL_RIGHT, ROLE_PHILTRUM]
+    lobe_bb = model.nasal_interface.solid.val().BoundingBox()
+    lobe_brep_error_mm = abs(float(lobe_bb.zlen) - lobe_role.nominal_thickness_mm)
+    nasal_pass = (
+        nasal.triangle_indices == frozenset(central_ids)
+        and abs(nasal.total_target_area_mm2 - central_area) <= 1e-8
+        and all(role_areas[role_id] > 0.0 for role_id in role_areas)
+        and abs(role_areas[ROLE_SIDEWALL_LEFT] - role_areas[ROLE_SIDEWALL_RIGHT]) <= 1e-6
+        and lobe_role.nominal_thickness_mm == a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm")
+        and lobe_role.thickness_doe_mm == tuple(float(value) for value in a.get("geometry", "nasal_lobe_membrane", "thickness_doe_mm"))
+        and all(nasal.role_by_id[role_id].nominal_thickness_mm is None for role_id in unresolved_roles)
+        and all(nasal.role_by_id[role_id].thickness_doe_mm == () for role_id in unresolved_roles)
+        and model.nasal_interface.name == "nasal_lobe_membrane_reference"
+        and lobe_brep_error_mm <= CAD_BREP_BOUND_TOLERANCE_MM
+        and nasal.anatomical_validation_eligible is False
+        and len(nasal.topology_sha256) == 64
+    )
+    checks.append(Check(
+        "DEDICATED_NASAL_SUBSYSTEM_TOPOLOGY", "PASS" if nasal_pass else "FAIL",
+        "The central nose/T-zone is explicitly partitioned into bridge/dorsum, bilateral sidewalls, local-thickness nasal lobe and philtrum roles. The authority thickness is exact in the role definition; the post-boolean B-rep bound is checked against a controlled numerical-kernel tolerance rather than treated as a product tolerance.",
         actual={
-            "zone_count": len(interface.zones),
-            "assignment_count": len(interface.assignments),
-            "contact_area_mm2": round(interface.contact_area_mm2, 6),
-            "protected_area_mm2": round(interface.protected_opening_area_mm2, 6),
-            "t_zone_contact_area_mm2": round(interface.t_zone_contact_area_mm2, 6),
-            "contact_component_count": contact_components,
-            "nasal_lobe_center_thickness_mm": nasal_thickness.center_thickness_mm,
-            "nasal_lobe_doe_mm": list(nasal_thickness.doe_mm),
-            "nasal_thickness_application_status": nasal_thickness.application_status,
-            "full_nose_t_zone_nominal_thickness_mm": nose_zone.nominal_thickness_mm,
-            "anatomical_validation_eligible": interface.anatomical_validation_eligible,
-            "topology_sha256": interface.topology_sha256,
+            "central_target_triangle_count": len(nasal.assignments),
+            "central_target_area_mm2": round(nasal.total_target_area_mm2, 6),
+            "role_area_mm2": {key: round(value, 6) for key, value in role_areas.items()},
+            "left_right_sidewall_area_delta_mm2": round(abs(role_areas[ROLE_SIDEWALL_LEFT] - role_areas[ROLE_SIDEWALL_RIGHT]), 9),
+            "lobe_nominal_thickness_mm": lobe_role.nominal_thickness_mm,
+            "lobe_thickness_doe_mm": list(lobe_role.thickness_doe_mm),
+            "lobe_reference_cad_z_thickness_mm": round(float(lobe_bb.zlen), 9),
+            "lobe_reference_brep_bound_error_mm": lobe_brep_error_mm,
+            "non_lobe_numeric_thickness_assigned": any(nasal.role_by_id[role_id].nominal_thickness_mm is not None for role_id in unresolved_roles),
+            "anatomical_validation_eligible": nasal.anatomical_validation_eligible,
+            "topology_sha256": nasal.topology_sha256,
         },
         limit={
-            "assignment_count": len(coverage.triangles),
-            "contact_area_mm2": round(coverage.target_area_mm2, 6),
-            "protected_area_mm2": round(coverage.protected_area_mm2, 6),
-            "t_zone_contact_area_mm2": round(coverage.t_zone_target_area_mm2, 6),
-            "contact_component_count": 1,
-            "nasal_lobe_center_thickness_mm": a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm"),
+            "central_target_area_mm2": round(central_area, 6),
+            "all_five_roles_positive_area": True,
+            "left_right_sidewall_area_delta_mm2_max": 1e-6,
+            "lobe_nominal_thickness_mm": a.number("geometry", "nasal_lobe_membrane", "thickness_center_mm"),
+            "lobe_reference_brep_bound_error_mm_max": CAD_BREP_BOUND_TOLERANCE_MM,
+            "non_lobe_numeric_thickness_assigned": False,
             "anatomical_validation_eligible": False,
         },
     ))
 
     blocked = [
         ("DYNAMIC_EYE_SIGNED_DISTANCE", "Misregistration transforms and planar eye envelopes now exist, but expression-dependent registered anatomical eye volumes are still required."),
-        ("DYNAMIC_AIRWAY_SIGNED_DISTANCE", "Misregistration transforms and planar airway envelopes now exist, but deformable nasal geometry and measured fit states are still required."),
+        ("DYNAMIC_AIRWAY_SIGNED_DISTANCE", "Dedicated nasal functional topology now exists, but deformable 3D nasal/airway geometry and measured fit states are still required."),
         ("DYNAMIC_MOUTH_SIGNED_DISTANCE", "Misregistration transforms and planar mouth envelope now exist, but jaw/smile/speech anatomical volumes are still required."),
         ("AIRWAY_PRESSURE_DROP", "Requires airflow rig or validated CFD boundary conditions."),
-        ("FACIAL_PRESSURE", "Compliant-interface contact topology now exists, but closure still requires selected material constitutive data, nonlinear contact analysis and/or measured pressure mapping."),
-        ("MEMBRANE_STRAIN", "Interface parameter zones and nasal-lobe thickness authority are encoded, but closure still requires selected silicone constitutive data and converged nonlinear FEA."),
-        ("CLEANSING_COVERAGE", "Coverage mesh, protected exclusions, T-zone partition, authority thresholds and interface target topology now exist; closure still requires the actual cleansing mechanism footprint plus physical spatial-efficacy evidence on eligible anatomy."),
+        ("FACIAL_PRESSURE", "Compliant-interface and nasal functional topologies now exist, but closure still requires selected material constitutive data, nonlinear contact analysis and/or measured pressure mapping."),
+        ("MEMBRANE_STRAIN", "The 0.30 mm nasal-lobe authority is now localized in CAD/topology, but closure still requires selected silicone constitutive data and converged nonlinear FEA."),
+        ("CLEANSING_COVERAGE", "Coverage and nose/T-zone target topology now exist; closure still requires actual delivery/actuation footprint plus physical spatial-efficacy evidence on eligible anatomy."),
         ("WASTE_RETAINED_CAPACITY", "Requires contaminated-waste cartridge test; geometric envelope alone is insufficient."),
         ("MASS_CG_PITCH_TORQUE", "Requires complete component mass/location ledger for the generated CAD revision."),
         ("A_SURFACE_DEVIATION", "Requires an authored and released Class-A reference surface."),

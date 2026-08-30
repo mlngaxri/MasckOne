@@ -11,6 +11,7 @@ from .authority import Authority, load_authority
 from .coverage import FacialCoverageMesh, build_facial_coverage_mesh
 from .facial_surface import FacialSurface, build_planar_development_surface
 from .interface_topology import CompliantInterfaceTopology, build_compliant_interface_topology
+from .nasal_subsystem import NasalSubsystemTopology, ROLE_LOBE, build_nasal_subsystem_topology
 from .protected_volumes import ProtectedVolumeSet, build_protected_volumes
 from .spatial import CanonicalDatums, Point2, Point3
 from .worn_pose import WornPoseRegressionSet, generate_hard_envelope_regression_set
@@ -34,6 +35,7 @@ class MasckOneModel:
     worn_pose_regression: WornPoseRegressionSet
     coverage_mesh: FacialCoverageMesh
     compliant_interface_topology: CompliantInterfaceTopology
+    nasal_subsystem_topology: NasalSubsystemTopology
     shell: Component
     nasal_interface: Component
     actuator_envelopes: tuple[Component, ...]
@@ -119,17 +121,48 @@ def _build_shell(authority: Authority, facial_reference: FacialReferenceLayer) -
     return shell
 
 
-def _build_nasal_interface(authority: Authority, facial_reference: FacialReferenceLayer) -> cq.Workplane:
-    thickness = authority.number("geometry", "nasal_lobe_membrane", "thickness_center_mm")
-    nostril_diameter = _derived_nostril_diameter(authority)
-    saddle = (
-        cq.Workplane("XY").workplane(offset=-thickness)
-        .polyline([(-23.0, 31.0), (23.0, 31.0), (25.0, -22.0), (-25.0, -22.0)])
-        .close().extrude(thickness)
+def _build_nasal_lobe_membrane_reference(
+    authority: Authority,
+    nasal_topology: NasalSubsystemTopology,
+    protected: ProtectedVolumeSet,
+) -> cq.Workplane:
+    """Create only the authority-backed local-thickness nasal-lobe development reference.
+
+    Iterations 1-10 extruded a broad trapezoidal nasal saddle at 0.30 mm. That silently
+    applied a local nasal-lobe thickness authority to bridge/dorsum/sidewall regions whose
+    thickness remains unresolved. Iteration 11 removes that extrapolation. The generated
+    solid is limited to the development lobe band and removes the full conservative nostril
+    protected footprints. It is still not final conforming anatomy or production membrane CAD.
+    """
+
+    role = nasal_topology.role_by_id[ROLE_LOBE]
+    if role.nominal_thickness_mm is None:
+        raise ValueError("Nasal lobe role must carry the authority-backed center thickness")
+    thickness = role.nominal_thickness_mm
+    b = nasal_topology.boundaries
+    width = 2.0 * b.lobe_half_width_mm
+    height = b.lobe_y_max_mm - b.lobe_y_min_mm
+    center_y = (b.lobe_y_min_mm + b.lobe_y_max_mm) / 2.0
+    membrane = (
+        cq.Workplane("XY")
+        .workplane(offset=-thickness)
+        .center(0.0, center_y)
+        .rect(width, height)
+        .extrude(thickness)
     )
-    saddle = saddle.cut(_circle_cutter(nostril_diameter, facial_reference.nostril_pair.left.point_xy, depth=5.0, z_start=-3.0))
-    saddle = saddle.cut(_circle_cutter(nostril_diameter, facial_reference.nostril_pair.right.point_xy, depth=5.0, z_start=-3.0))
-    return saddle
+    for volume in (protected.nostril_left, protected.nostril_right):
+        zone = volume.zone
+        membrane = membrane.cut(
+            _ellipse_cutter(
+                zone.envelope_width_mm,
+                zone.envelope_height_mm,
+                zone.center,
+                depth=5.0,
+                z_start=-3.0,
+                angle_deg=zone.angle_deg,
+            )
+        )
+    return membrane
 
 
 def _build_actuators(authority: Authority) -> tuple[Component, ...]:
@@ -175,13 +208,21 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
     worn_pose_regression = generate_hard_envelope_regression_set(authority)
     coverage_mesh = build_facial_coverage_mesh(authority, facial_reference, facial_surface, protected_volumes)
     compliant_interface_topology = build_compliant_interface_topology(authority, coverage_mesh)
+    nasal_subsystem_topology = build_nasal_subsystem_topology(
+        authority,
+        coverage_mesh,
+        compliant_interface_topology,
+        protected_volumes,
+    )
     shell = Component(
         "rigid_shell", _build_shell(authority, facial_reference), "CAD_BASELINE",
         "XY envelope and apertures follow authority; Class-A Z surface remains CAD-CLOSURE.",
     )
     nasal_interface = Component(
-        "nasal_interface", _build_nasal_interface(authority, facial_reference), "CAD_CLOSURE_BASELINE",
-        "Dedicated compliant nose/T-zone saddle; final scan-conforming geometry remains validation/CAD closure.",
+        "nasal_lobe_membrane_reference",
+        _build_nasal_lobe_membrane_reference(authority, nasal_subsystem_topology, protected_volumes),
+        "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE",
+        "Only the dedicated nasal-lobe development role carries the 0.30 mm authority thickness; bridge, dorsum, sidewall and philtrum thicknesses remain unresolved. Not final anatomical membrane CAD.",
     )
     water_reservoir = Component(
         "water_reservoir_envelope", _box_centered(26.0, 25.0, 10.0, Point3(0.0, 76.0, 7.0)),
@@ -206,6 +247,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         worn_pose_regression=worn_pose_regression,
         coverage_mesh=coverage_mesh,
         compliant_interface_topology=compliant_interface_topology,
+        nasal_subsystem_topology=nasal_subsystem_topology,
         shell=shell,
         nasal_interface=nasal_interface,
         actuator_envelopes=_build_actuators(authority),

@@ -38,6 +38,9 @@ jobs:
       - name: Repository preflight
         run: python -m masck_one.preflight
 
+      - name: Iteration 11 nasal subsystem preflight
+        run: python -m masck_one.nasal_preflight
+
       - name: Unit and integration tests
         run: python -m pytest
 

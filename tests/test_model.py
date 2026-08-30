@@ -1,7 +1,17 @@
 from masck_one.assertions import run_assertions
 from masck_one.interface_topology import ZONE_T_NOSE_PHILTRUM
 from masck_one.model import build_model
+from masck_one.nasal_subsystem import (
+    ROLE_BRIDGE_DORSUM,
+    ROLE_LOBE,
+    ROLE_PHILTRUM,
+    ROLE_SIDEWALL_LEFT,
+    ROLE_SIDEWALL_RIGHT,
+)
 from masck_one.spatial import Point3, Vector3
+
+
+CAD_BREP_BOUND_TOLERANCE_MM = 2e-6
 
 
 def test_model_builds():
@@ -61,7 +71,6 @@ def test_model_exposes_deterministic_worn_pose_screen_without_measured_distribut
 def test_model_exposes_coverage_topology_without_promoting_geometric_screen_to_efficacy():
     model = build_model()
     coverage = model.coverage_mesh
-
     assert len(coverage.triangles) == model.facial_surface.mesh.triangle_count
     assert coverage.aggregate_min_percent == 90.0
     assert coverage.t_zone_min_percent == 90.0
@@ -87,7 +96,6 @@ def test_model_exposes_main_compliant_interface_topology_without_invented_materi
     model = build_model()
     topology = model.compliant_interface_topology
     coverage = model.coverage_mesh
-
     assert len(topology.assignments) == len(coverage.triangles)
     assert topology.contact_area_mm2 == coverage.target_area_mm2
     assert topology.protected_opening_area_mm2 == coverage.protected_area_mm2
@@ -104,6 +112,26 @@ def test_model_exposes_main_compliant_interface_topology_without_invented_materi
     assert nose_zone.thickness_doe_mm == ()
 
 
+def test_model_exposes_dedicated_nasal_roles_and_localized_lobe_cad():
+    model = build_model()
+    nasal = model.nasal_subsystem_topology
+    assert set(nasal.role_area_mm2) == {
+        ROLE_BRIDGE_DORSUM,
+        ROLE_SIDEWALL_LEFT,
+        ROLE_SIDEWALL_RIGHT,
+        ROLE_LOBE,
+        ROLE_PHILTRUM,
+    }
+    assert all(area > 0.0 for area in nasal.role_area_mm2.values())
+    assert nasal.role_by_id[ROLE_LOBE].nominal_thickness_mm == 0.30
+    for role_id in (ROLE_BRIDGE_DORSUM, ROLE_SIDEWALL_LEFT, ROLE_SIDEWALL_RIGHT, ROLE_PHILTRUM):
+        assert nasal.role_by_id[role_id].nominal_thickness_mm is None
+    assert model.nasal_interface.name == "nasal_lobe_membrane_reference"
+    assert model.nasal_interface.status == "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE"
+    assert abs(model.nasal_interface.solid.val().BoundingBox().zlen - 0.30) <= CAD_BREP_BOUND_TOLERANCE_MM
+    assert nasal.anatomical_validation_eligible is False
+
+
 def test_all_software_verifiable_assertions_pass():
     model = build_model()
     checks = run_assertions(model)
@@ -114,12 +142,13 @@ def test_all_software_verifiable_assertions_pass():
 def test_cleansing_coverage_and_contact_physics_remain_evidence_blocked():
     model = build_model()
     checks = {check.id: check for check in run_assertions(model)}
-
     assert checks["COVERAGE_MESH_TOPOLOGY"].status == "PASS"
     assert checks["COMPLIANT_INTERFACE_TOPOLOGY"].status == "PASS"
+    assert checks["DEDICATED_NASAL_SUBSYSTEM_TOPOLOGY"].status == "PASS"
     assert checks["CLEANSING_COVERAGE"].status == "BLOCKED"
     assert checks["FACIAL_PRESSURE"].status == "BLOCKED"
     assert checks["MEMBRANE_STRAIN"].status == "BLOCKED"
+    assert checks["DYNAMIC_AIRWAY_SIGNED_DISTANCE"].status == "BLOCKED"
 
 
 def test_shell_fits_xy_authority_envelope():
