@@ -77,14 +77,10 @@ def test_structural_material_cannot_be_selected_without_evidence():
         replace(frame, material_selection="UNSOURCED_TEST_POLYMER")
 
 
-def test_duplicate_reaction_edges_are_rejected():
-    model, attachment, _ = _build()
-    duplicate = replace(
-        attachment,
-        assignments=attachment.assignments + (replace(attachment.assignments[-1], assignment_index=len(attachment.assignments)),),
-    )
-    with pytest.raises(Exception):
-        build_structural_frame_topology(model.authority, duplicate)
+def test_duplicate_reaction_edges_are_rejected_by_load_path_contract():
+    _, _, frame = _build()
+    with pytest.raises(StructuralFrameError, match="cannot repeat"):
+        replace(frame.perimeter_reaction_path, source_attachment_edge_indices=(0, 0))
 
 
 def test_frame_topology_is_deterministic_and_not_physical_evidence():
