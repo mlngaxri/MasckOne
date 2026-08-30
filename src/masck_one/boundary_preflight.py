@@ -3,12 +3,14 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import json
 
+from .boundary_release import validate_boundary_source_chain
 from .interface_boundaries import (
     BOUNDARY_EYE_LEFT,
     BOUNDARY_EYE_RIGHT,
     BOUNDARY_IDS,
     BOUNDARY_NOSTRIL_LEFT,
     BOUNDARY_NOSTRIL_RIGHT,
+    InterfaceBoundaryError,
 )
 from .model import build_model
 
@@ -34,6 +36,20 @@ def run_boundary_preflight() -> dict[str, object]:
     definitions = topology.definition_by_id
     lengths = topology.boundary_length_mm
 
+    try:
+        source_chain = validate_boundary_source_chain(
+            model.facial_surface,
+            coverage,
+            interface,
+            topology,
+        )
+        source_chain_ok = True
+        source_chain_error = None
+    except InterfaceBoundaryError as exc:
+        source_chain = None
+        source_chain_ok = False
+        source_chain_error = str(exc)
+
     protected_transition_ok = True
     interface_by_id = {item.triangle_index: item for item in interface.assignments}
     coverage_by_id = {item.triangle_index: item for item in coverage.triangles}
@@ -56,20 +72,17 @@ def run_boundary_preflight() -> dict[str, object]:
     checks = [
         BoundaryPreflightCheck(
             "BOUNDARY_SOURCE_CHAIN",
-            "PASS" if (
-                topology.source_surface_id == model.facial_surface.descriptor.surface_id
-                and topology.source_surface_sha256 == model.facial_surface.descriptor.source_sha256
-                and topology.source_coverage_sha256 == coverage.segmentation_sha256
-                and topology.source_interface_sha256 == interface.topology_sha256
-            ) else "FAIL",
-            "Interface-boundary topology is bound to the exact facial surface, coverage and compliant-interface revisions.",
+            "PASS" if source_chain_ok else "FAIL",
+            "Interface-boundary topology is bound to the exact current registered facial mesh, source asset, coverage and compliant-interface revisions.",
+            actual=source_chain if source_chain_ok else {"error": source_chain_error},
+            expected="exact registered-mesh and upstream topology identity",
         ),
         BoundaryPreflightCheck(
             "BOUNDARY_SET_COMPLETENESS",
             "PASS" if tuple(topology.edges_by_boundary) == BOUNDARY_IDS and all(topology.edges_by_boundary[item] for item in BOUNDARY_IDS) else "FAIL",
-            "Outer perimeter, both eyes, mouth and both nostril transitions are all present.",
+            "Outer perimeter, both eyes, mouth and both nostril transition provenance sets are all present.",
             actual={item: len(topology.edges_by_boundary[item]) for item in BOUNDARY_IDS},
-            expected="all six boundary edge sets non-empty",
+            expected="all six provenance edge sets non-empty",
         ),
         BoundaryPreflightCheck(
             "BOUNDARY_LOOP_INTEGRITY",
@@ -77,7 +90,7 @@ def run_boundary_preflight() -> dict[str, object]:
                 topology.boundary_component_count(item) == 1 and topology.boundary_is_closed_loop(item)
                 for item in BOUNDARY_IDS
             ) else "FAIL",
-            "Each controlled interface boundary is one deterministic closed edge loop on the current development mesh.",
+            "Each currently controlled interface boundary is one deterministic closed edge loop on the development mesh.",
             actual={
                 item: {
                     "components": topology.boundary_component_count(item),
@@ -85,7 +98,7 @@ def run_boundary_preflight() -> dict[str, object]:
                 }
                 for item in BOUNDARY_IDS
             },
-            expected="one closed component per boundary",
+            expected="one closed component per currently controlled boundary",
         ),
         BoundaryPreflightCheck(
             "PROTECTED_APERTURE_EDGE_SEMANTICS",
