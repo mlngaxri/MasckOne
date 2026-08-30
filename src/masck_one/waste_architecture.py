@@ -28,6 +28,16 @@ REQUIRED_FAULT_STATES = (
     "LOCAL_POOLING_NEAR_PROTECTED_OPENINGS",
 )
 
+REQUIRED_ORIENTATION_CASES = (
+    "UPRIGHT",
+    "RECLINED",
+    "LEFT_SIDE_TILT",
+    "RIGHT_SIDE_TILT",
+    "FACE_UP",
+    "FACE_DOWN",
+    "ORIENTATION_TRANSITION",
+)
+
 
 @dataclass(frozen=True, slots=True)
 class WasteAcquisitionPath:
@@ -92,12 +102,32 @@ class WasteCartridgeArchitecture:
     center_mm: Point3
     retained_capacity_target_mL: float
     service_cycles_baseline: int
-    capacity_reservation_envelope_mm: tuple[float, float, float]
+    internal_usable_capacity_mL: float | None
     insertion_key_status: str
     seal_status: str
     missing_detection_status: str
     service_trajectory_status: str
     retained_capacity_status: str
+    internal_geometry_status: str
+    media_status: str
+    vent_air_management_status: str
+
+    def __post_init__(self) -> None:
+        if any(value <= 0.0 for value in self.external_envelope_mm):
+            raise WasteArchitectureError("Cartridge external envelope dimensions must be positive")
+        if self.retained_capacity_target_mL <= 0.0:
+            raise WasteArchitectureError("Cartridge retained-capacity target must be positive")
+        if self.service_cycles_baseline <= 0:
+            raise WasteArchitectureError("Cartridge service-cycle baseline must be positive")
+        if self.internal_usable_capacity_mL is not None:
+            raise WasteArchitectureError(
+                "Internal usable cartridge capacity cannot be asserted before wall, seal, vent, media and retained-volume evidence are controlled"
+            )
+
+    @property
+    def external_bounding_volume_mL(self) -> float:
+        """Bounding-box volume only. Never treat this as fillable or retained capacity."""
+        return math.prod(self.external_envelope_mm) / 1000.0
 
     def cad_external_envelope(self) -> cq.Workplane:
         x, y, z = self.external_envelope_mm
@@ -106,9 +136,8 @@ class WasteCartridgeArchitecture:
         )
 
     def cad_capacity_reservation(self) -> cq.Workplane:
-        x, y, z = self.capacity_reservation_envelope_mm
-        return cq.Workplane("XY").box(x, y, z, centered=(True, True, True)).translate(
-            self.center_mm.as_tuple()
+        raise WasteArchitectureError(
+            "No capacity solid is valid until cartridge wall, seal, keying, vent/air handling, contaminated-interface and media geometry are controlled"
         )
 
 
@@ -147,6 +176,8 @@ class WasteArchitecture:
     pump_station: WastePumpStation
     cartridge: WasteCartridgeArchitecture
     route_contracts: tuple[FluidRouteContract, ...]
+    orientation_case_ids: tuple[str, ...]
+    orientation_validation_status: str
     minimum_recovery_ratio: float
     maximum_residual_free_liquid_uL: float
     architecture_status: str
@@ -169,19 +200,21 @@ class WasteArchitecture:
             or set(self.pump_station.fault_state_ids) != set(REQUIRED_FAULT_STATES)
         ):
             raise WasteArchitectureError("Waste pump architecture must enumerate every brief-required fault state")
+        if (
+            len(self.orientation_case_ids) != len(REQUIRED_ORIENTATION_CASES)
+            or set(self.orientation_case_ids) != set(REQUIRED_ORIENTATION_CASES)
+        ):
+            raise WasteArchitectureError("Waste architecture must enumerate every controlled orientation case")
         if len({route.route_id for route in self.route_contracts}) != len(self.route_contracts):
             raise WasteArchitectureError("Fluid route IDs must be unique")
-        reserved_mL = math.prod(self.cartridge.capacity_reservation_envelope_mm) / 1000.0
-        if not math.isclose(reserved_mL, self.cartridge.retained_capacity_target_mL, abs_tol=1e-9):
-            raise WasteArchitectureError("Capacity reservation must preserve the retained-capacity target")
-        if any(
-            reserve > external + 1e-9
-            for reserve, external in zip(
-                self.cartridge.capacity_reservation_envelope_mm,
-                self.cartridge.external_envelope_mm,
+        if self.cartridge.external_bounding_volume_mL + 1e-9 < self.cartridge.retained_capacity_target_mL:
+            raise WasteArchitectureError(
+                "Cartridge external bounding volume cannot be smaller than the retained-capacity target"
             )
-        ):
-            raise WasteArchitectureError("Capacity reservation must fit inside the cartridge envelope")
+        if self.cartridge.internal_usable_capacity_mL is not None:
+            raise WasteArchitectureError(
+                "Retained capacity is validation-gated and cannot be promoted from bounding-box arithmetic"
+            )
         if not 0.0 < self.minimum_recovery_ratio <= 1.0:
             raise WasteArchitectureError("Recovery-ratio requirement must be in (0, 1]")
         if self.maximum_residual_free_liquid_uL < 0.0:
@@ -219,8 +252,11 @@ class WasteArchitecture:
             "cartridge": {
                 **asdict(self.cartridge),
                 "center_mm": list(self.cartridge.center_mm.as_tuple()),
+                "external_bounding_volume_mL": self.cartridge.external_bounding_volume_mL,
             },
             "route_contracts": [asdict(route) for route in self.route_contracts],
+            "orientation_case_ids": list(self.orientation_case_ids),
+            "orientation_validation_status": self.orientation_validation_status,
             "minimum_recovery_ratio": self.minimum_recovery_ratio,
             "maximum_residual_free_liquid_uL": self.maximum_residual_free_liquid_uL,
             "architecture_status": self.architecture_status,
@@ -295,20 +331,21 @@ def build_waste_architecture(
 
     external = tuple(float(value) for value in authority.get("fluid", "cartridge", "external_envelope_mm"))
     retained = authority.number("fluid", "cartridge", "retained_capacity_min_mL")
-    uniform_scale = (retained * 1000.0 / math.prod(external)) ** (1.0 / 3.0)
-    reservation = tuple(value * uniform_scale for value in external)
     cartridge = WasteCartridgeArchitecture(
         "WASTE_CARTRIDGE_ALPHA",
         external,
         cartridge_center_mm,
         retained,
         int(authority.number("fluid", "cartridge", "service_cycles_baseline")),
-        reservation,
+        None,
         "KEY_AND_INCORRECT_INSERTION_REJECTION_GEOMETRY_UNRESOLVED",
         "SEAL_STACK_COMPRESSION_MATERIAL_AND_LEAKAGE_EVIDENCE_UNRESOLVED",
         "MISSING_OR_MISINSTALLED_STATE_REQUIRES_SENSOR_AND_STATE_MACHINE_HANDOFF",
         "INSERTION_REMOVAL_GRIP_AND_CONTAMINATION_BOUNDARY_UNRESOLVED",
         str(authority.get("fluid", "cartridge", "retained_capacity_status")),
+        "WALL_SEAL_KEYING_VENT_MEDIA_AND_CONTAMINATED_INTERFACE_GEOMETRY_UNRESOLVED",
+        "NO_ABSORBENT_OR_RETENTION_MEDIA_VOLUME_CREDIT_WITHOUT_PHYSICAL_EVIDENCE",
+        "VENTING_AIR_SEPARATION_AND_ORIENTATION_BEHAVIOR_UNRESOLVED",
     )
     pump = WastePumpStation(
         "PUMP_WASTE_ALPHA",
@@ -365,6 +402,8 @@ def build_waste_architecture(
         pump,
         cartridge,
         (*fresh_route_contracts, *waste_routes),
+        REQUIRED_ORIENTATION_CASES,
+        "ORIENTATION_CASES_REGISTERED_FOR_RIG_OR_SIMULATION_HANDOFF_NO_PASS_STATUS_ASSIGNED",
         authority.number("fluid", "waste", "recovery_ratio_min"),
         authority.number("fluid", "waste", "residual_free_liquid_max_uL"),
         "ITERATIONS25_28_WASTE_ACQUISITION_PUMP_CARTRIDGE_AND_ROUTING_ARCHITECTURE",
