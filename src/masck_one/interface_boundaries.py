@@ -20,7 +20,7 @@ from .interface_topology import CompliantInterfaceTopology
 
 
 class InterfaceBoundaryError(ValueError):
-    """Raised when perimeter or protected-opening edge topology violates its contract."""
+    """Raised when interface-boundary topology violates its digital contract."""
 
 
 BOUNDARY_OUTER_PERIMETER = "INTERFACE_BOUNDARY_OUTER_PERIMETER"
@@ -29,7 +29,6 @@ BOUNDARY_EYE_RIGHT = "INTERFACE_BOUNDARY_EYE_RIGHT"
 BOUNDARY_MOUTH = "INTERFACE_BOUNDARY_MOUTH"
 BOUNDARY_NOSTRIL_LEFT = "INTERFACE_BOUNDARY_NOSTRIL_LEFT"
 BOUNDARY_NOSTRIL_RIGHT = "INTERFACE_BOUNDARY_NOSTRIL_RIGHT"
-
 BOUNDARY_IDS = (
     BOUNDARY_OUTER_PERIMETER,
     BOUNDARY_EYE_LEFT,
@@ -67,6 +66,8 @@ _PROTECTED_REGION_TO_BOUNDARY = {
     REGION_PROTECTED_NOSTRIL_RIGHT: BOUNDARY_NOSTRIL_RIGHT,
 }
 
+_GEOMETRY_IDENTITY_TOLERANCE_MM = 1e-9
+
 
 @dataclass(frozen=True, slots=True)
 class InterfaceBoundaryDefinition:
@@ -95,7 +96,9 @@ class InterfaceBoundaryDefinition:
         if self.boundary_kind == "PROTECTED_APERTURE" and not self.protected_region_id:
             raise InterfaceBoundaryError("Protected-aperture boundary requires a protected region ID")
         if self.nominal_transition_width_mm is not None or self.nominal_interface_thickness_mm is not None:
-            raise InterfaceBoundaryError("Iteration 12 cannot assign numeric transition width/interface thickness without authority")
+            raise InterfaceBoundaryError(
+                "Iteration 12 cannot assign numeric transition width/interface thickness without authority"
+            )
         for value in (
             self.functional_role,
             self.rigid_roll_reference_status,
@@ -187,7 +190,7 @@ def _component_count(edges: tuple[InterfaceBoundaryEdge, ...]) -> int:
         for vertex in edge.vertex_indices:
             vertex_to_edges[vertex].add(edge.edge_index)
     remaining = {edge.edge_index for edge in edges}
-    by_index = {edge.edge_index: edge for edge in edges}
+    edge_by_index = {edge.edge_index: edge for edge in edges}
     count = 0
     while remaining:
         count += 1
@@ -195,9 +198,9 @@ def _component_count(edges: tuple[InterfaceBoundaryEdge, ...]) -> int:
         remaining.remove(start)
         queue: deque[int] = deque([start])
         while queue:
-            current = queue.popleft()
+            edge = edge_by_index[queue.popleft()]
             neighbors: set[int] = set()
-            for vertex in by_index[current].vertex_indices:
+            for vertex in edge.vertex_indices:
                 neighbors.update(vertex_to_edges[vertex])
             for neighbor in sorted(neighbors):
                 if neighbor in remaining:
@@ -249,7 +252,8 @@ class InterfaceBoundaryTopology:
             self.source_coverage_sha256,
             self.source_interface_sha256,
         ):
-            if len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest.lower()):
+            digest = digest.lower()
+            if len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest):
                 raise InterfaceBoundaryError("Boundary topology source hashes must be SHA-256 values")
         if self.anatomical_validation_eligible:
             raise InterfaceBoundaryError("Development edge topology cannot be anatomical-validation evidence")
@@ -266,19 +270,28 @@ class InterfaceBoundaryTopology:
 
     @property
     def edges_by_boundary(self) -> dict[str, tuple[InterfaceBoundaryEdge, ...]]:
-        return {boundary_id: tuple(edge for edge in self.edges if edge.boundary_id == boundary_id) for boundary_id in BOUNDARY_IDS}
+        return {
+            boundary_id: tuple(edge for edge in self.edges if edge.boundary_id == boundary_id)
+            for boundary_id in BOUNDARY_IDS
+        }
 
     @property
     def physical_edges_by_boundary(self) -> dict[str, tuple[InterfaceBoundaryEdge, ...]]:
-        return {physical_id: tuple(edge for edge in self.edges if edge.physical_boundary_id == physical_id) for physical_id in PHYSICAL_BOUNDARY_IDS}
+        return {
+            boundary_id: tuple(edge for edge in self.edges if edge.physical_boundary_id == boundary_id)
+            for boundary_id in PHYSICAL_BOUNDARY_IDS
+        }
 
     @property
     def boundary_length_mm(self) -> dict[str, float]:
-        return {boundary_id: sum(edge.length_mm for edge in edges) for boundary_id, edges in self.edges_by_boundary.items()}
+        return {key: sum(edge.length_mm for edge in value) for key, value in self.edges_by_boundary.items()}
 
     @property
     def physical_boundary_length_mm(self) -> dict[str, float]:
-        return {boundary_id: sum(edge.length_mm for edge in edges) for boundary_id, edges in self.physical_edges_by_boundary.items()}
+        return {
+            key: sum(edge.length_mm for edge in value)
+            for key, value in self.physical_edges_by_boundary.items()
+        }
 
     def boundary_component_count(self, boundary_id: str) -> int:
         return _component_count(self.edges_by_boundary[boundary_id])
@@ -302,13 +315,14 @@ class InterfaceBoundaryTopology:
             "source_coverage_sha256": self.source_coverage_sha256,
             "source_interface_sha256": self.source_interface_sha256,
             "boundary_to_physical": BOUNDARY_TO_PHYSICAL,
-            "definitions": [definition.manifest() for definition in self.definitions],
+            "definitions": [item.manifest() for item in self.definitions],
             "edges": [edge.manifest() for edge in self.edges],
             "topology_status": self.topology_status,
             "evidence_status": self.evidence_status,
             "anatomical_validation_eligible": self.anatomical_validation_eligible,
         }
-        return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+        raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        return hashlib.sha256(raw).hexdigest()
 
     def manifest(self) -> dict[str, object]:
         return {
@@ -318,17 +332,27 @@ class InterfaceBoundaryTopology:
             "source_surface_revision": self.source_surface_revision,
             "source_coverage_sha256": self.source_coverage_sha256,
             "source_interface_sha256": self.source_interface_sha256,
-            "definitions": [definition.manifest() for definition in self.definitions],
+            "definitions": [item.manifest() for item in self.definitions],
             "edges": [edge.manifest() for edge in self.edges],
             "edge_count": len(self.edges),
             "provenance_boundary_edge_count": {key: len(value) for key, value in self.edges_by_boundary.items()},
             "provenance_boundary_length_mm": self.boundary_length_mm,
-            "provenance_boundary_component_count": {key: self.boundary_component_count(key) for key in BOUNDARY_IDS},
-            "provenance_boundary_closed_loop": {key: self.boundary_is_closed_loop(key) for key in BOUNDARY_IDS},
-            "physical_boundary_edge_count": {key: len(value) for key, value in self.physical_edges_by_boundary.items()},
+            "provenance_boundary_component_count": {
+                key: self.boundary_component_count(key) for key in BOUNDARY_IDS
+            },
+            "provenance_boundary_closed_loop": {
+                key: self.boundary_is_closed_loop(key) for key in BOUNDARY_IDS
+            },
+            "physical_boundary_edge_count": {
+                key: len(value) for key, value in self.physical_edges_by_boundary.items()
+            },
             "physical_boundary_length_mm": self.physical_boundary_length_mm,
-            "physical_boundary_component_count": {key: self.physical_boundary_component_count(key) for key in PHYSICAL_BOUNDARY_IDS},
-            "physical_boundary_closed_loop": {key: self.physical_boundary_is_closed_loop(key) for key in PHYSICAL_BOUNDARY_IDS},
+            "physical_boundary_component_count": {
+                key: self.physical_boundary_component_count(key) for key in PHYSICAL_BOUNDARY_IDS
+            },
+            "physical_boundary_closed_loop": {
+                key: self.physical_boundary_is_closed_loop(key) for key in PHYSICAL_BOUNDARY_IDS
+            },
             "topology_status": self.topology_status,
             "evidence_status": self.evidence_status,
             "anatomical_validation_eligible": self.anatomical_validation_eligible,
@@ -352,13 +376,100 @@ def _definitions(authority: Authority) -> tuple[InterfaceBoundaryDefinition, ...
     }
     eye_roll = authority.number("geometry", "eye", "inner_edge_roll_radius_mm")
     return (
-        InterfaceBoundaryDefinition(BOUNDARY_OUTER_PERIMETER, "outer compliant-interface perimeter and fluid-containment transition", "OUTER_PERIMETER", None, fluid_containment_intent=True, protected_opening_exclusion_intent=False, rigid_roll_reference_mm=None, rigid_roll_reference_status="NO_NUMERIC_RIGID_ROLL_REFERENCE_ASSIGNED", **unresolved_common),
-        InterfaceBoundaryDefinition(BOUNDARY_EYE_LEFT, "left eye protected-region provenance partition", "PROTECTED_APERTURE", REGION_PROTECTED_EYE_LEFT, rigid_roll_reference_mm=eye_roll, rigid_roll_reference_status="RIGID_EYE_INNER_EDGE_DESIGN_BASELINE_REFERENCE_NOT_COMPLIANT_PROFILE", **protected_common),
-        InterfaceBoundaryDefinition(BOUNDARY_EYE_RIGHT, "right eye protected-region provenance partition", "PROTECTED_APERTURE", REGION_PROTECTED_EYE_RIGHT, rigid_roll_reference_mm=eye_roll, rigid_roll_reference_status="RIGID_EYE_INNER_EDGE_DESIGN_BASELINE_REFERENCE_NOT_COMPLIANT_PROFILE", **protected_common),
-        InterfaceBoundaryDefinition(BOUNDARY_MOUTH, "mouth compliant-to-protected-opening transition", "PROTECTED_APERTURE", REGION_PROTECTED_MOUTH, rigid_roll_reference_mm=None, rigid_roll_reference_status="NO_AUTHORITY_ROLL_RADIUS_DEFINED", **protected_common),
-        InterfaceBoundaryDefinition(BOUNDARY_NOSTRIL_LEFT, "left nostril protected-region provenance partition", "PROTECTED_APERTURE", REGION_PROTECTED_NOSTRIL_LEFT, rigid_roll_reference_mm=None, rigid_roll_reference_status="NO_AUTHORITY_ROLL_RADIUS_DEFINED", **protected_common),
-        InterfaceBoundaryDefinition(BOUNDARY_NOSTRIL_RIGHT, "right nostril protected-region provenance partition", "PROTECTED_APERTURE", REGION_PROTECTED_NOSTRIL_RIGHT, rigid_roll_reference_mm=None, rigid_roll_reference_status="NO_AUTHORITY_ROLL_RADIUS_DEFINED", **protected_common),
+        InterfaceBoundaryDefinition(
+            BOUNDARY_OUTER_PERIMETER,
+            "outer compliant-interface perimeter and fluid-containment transition",
+            "OUTER_PERIMETER",
+            None,
+            fluid_containment_intent=True,
+            protected_opening_exclusion_intent=False,
+            rigid_roll_reference_mm=None,
+            rigid_roll_reference_status="NO_NUMERIC_RIGID_ROLL_REFERENCE_ASSIGNED",
+            **unresolved_common,
+        ),
+        InterfaceBoundaryDefinition(
+            BOUNDARY_EYE_LEFT,
+            "left eye protected-region provenance partition",
+            "PROTECTED_APERTURE",
+            REGION_PROTECTED_EYE_LEFT,
+            rigid_roll_reference_mm=eye_roll,
+            rigid_roll_reference_status="RIGID_EYE_INNER_EDGE_DESIGN_BASELINE_REFERENCE_NOT_COMPLIANT_PROFILE",
+            **protected_common,
+        ),
+        InterfaceBoundaryDefinition(
+            BOUNDARY_EYE_RIGHT,
+            "right eye protected-region provenance partition",
+            "PROTECTED_APERTURE",
+            REGION_PROTECTED_EYE_RIGHT,
+            rigid_roll_reference_mm=eye_roll,
+            rigid_roll_reference_status="RIGID_EYE_INNER_EDGE_DESIGN_BASELINE_REFERENCE_NOT_COMPLIANT_PROFILE",
+            **protected_common,
+        ),
+        InterfaceBoundaryDefinition(
+            BOUNDARY_MOUTH,
+            "mouth compliant-to-protected-opening transition",
+            "PROTECTED_APERTURE",
+            REGION_PROTECTED_MOUTH,
+            rigid_roll_reference_mm=None,
+            rigid_roll_reference_status="NO_AUTHORITY_ROLL_RADIUS_DEFINED",
+            **protected_common,
+        ),
+        InterfaceBoundaryDefinition(
+            BOUNDARY_NOSTRIL_LEFT,
+            "left nostril protected-region provenance partition",
+            "PROTECTED_APERTURE",
+            REGION_PROTECTED_NOSTRIL_LEFT,
+            rigid_roll_reference_mm=None,
+            rigid_roll_reference_status="NO_AUTHORITY_ROLL_RADIUS_DEFINED",
+            **protected_common,
+        ),
+        InterfaceBoundaryDefinition(
+            BOUNDARY_NOSTRIL_RIGHT,
+            "right nostril protected-region provenance partition",
+            "PROTECTED_APERTURE",
+            REGION_PROTECTED_NOSTRIL_RIGHT,
+            rigid_roll_reference_mm=None,
+            rigid_roll_reference_status="NO_AUTHORITY_ROLL_RADIUS_DEFINED",
+            **protected_common,
+        ),
     )
+
+
+def _validate_coverage_geometry_binding(surface: FacialSurface, coverage: FacialCoverageMesh) -> str:
+    registered_mesh_sha256 = surface.mesh.normalized_sha256()
+    if coverage.source_surface_id != surface.descriptor.surface_id:
+        raise InterfaceBoundaryError("Coverage and facial surface identities differ")
+    if coverage.source_surface_sha256 != registered_mesh_sha256:
+        raise InterfaceBoundaryError("Coverage and current registered-mesh hashes differ")
+    if len(coverage.triangles) != surface.mesh.triangle_count:
+        raise InterfaceBoundaryError("Coverage triangle count does not match current registered mesh")
+
+    for item in coverage.triangles:
+        try:
+            vertex_indices = tuple(surface.mesh.triangles[item.triangle_index])
+        except IndexError as exc:
+            raise InterfaceBoundaryError(
+                f"Coverage triangle {item.triangle_index} is absent from current registered mesh"
+            ) from exc
+        if tuple(item.vertex_indices) != vertex_indices:
+            raise InterfaceBoundaryError(
+                f"Coverage triangle {item.triangle_index} vertex identity is stale for current registered mesh"
+            )
+        points = [surface.mesh.vertices[index] for index in vertex_indices]
+        expected_centroid = (
+            sum(point.x for point in points) / 3.0,
+            sum(point.y for point in points) / 3.0,
+            sum(point.z for point in points) / 3.0,
+        )
+        actual_centroid = (item.centroid.x, item.centroid.y, item.centroid.z)
+        if any(
+            not math.isclose(actual, expected, rel_tol=0.0, abs_tol=_GEOMETRY_IDENTITY_TOLERANCE_MM)
+            for actual, expected in zip(actual_centroid, expected_centroid)
+        ):
+            raise InterfaceBoundaryError(
+                f"Coverage triangle {item.triangle_index} centroid is stale for current registered mesh"
+            )
+    return registered_mesh_sha256
 
 
 def build_interface_boundary_topology(
@@ -369,21 +480,17 @@ def build_interface_boundary_topology(
 ) -> InterfaceBoundaryTopology:
     """Extract material/no-material edge topology without inventing seal geometry.
 
-    Left/right eye and nostril region labels remain provenance partitions. Because the
-    conservative bilateral protected envelopes overlap, physical loop integrity is
-    evaluated on their unions rather than falsely demanding two separate loops.
+    Left/right eye and nostril labels remain source-region provenance partitions. Because
+    the conservative bilateral protected envelopes overlap, physical loop integrity is
+    evaluated on their unions rather than falsely demanding separate left/right loops.
     """
 
-    if coverage.source_surface_id != surface.descriptor.surface_id:
-        raise InterfaceBoundaryError("Coverage and facial surface identities differ")
-    if coverage.source_surface_sha256 != surface.descriptor.source_sha256:
-        raise InterfaceBoundaryError("Coverage and facial source-asset hashes differ")
+    registered_mesh_sha256 = _validate_coverage_geometry_binding(surface, coverage)
     if interface.source_surface_id != surface.descriptor.surface_id:
         raise InterfaceBoundaryError("Interface and facial surface identities differ")
     if interface.coverage_segmentation_sha256 != coverage.segmentation_sha256:
         raise InterfaceBoundaryError("Interface and coverage segmentation hashes differ")
 
-    registered_mesh_sha256 = surface.mesh.normalized_sha256()
     assignments = {item.triangle_index: item for item in interface.assignments}
     triangles = {item.triangle_index: item for item in coverage.triangles}
     if set(assignments) != set(triangles):
@@ -399,13 +506,16 @@ def build_interface_boundary_topology(
     for vertex_pair, incident_raw in sorted(incidence.items()):
         incident = tuple(sorted(incident_raw))
         if len(incident) > 2:
-            raise InterfaceBoundaryError(f"Non-manifold mesh edge {vertex_pair} has {len(incident)} triangles")
+            raise InterfaceBoundaryError(
+                f"Non-manifold mesh edge {vertex_pair} has {len(incident)} incident triangles"
+            )
         if len(incident) == 1:
             triangle_id = incident[0]
             if not assignments[triangle_id].contact_intent:
                 raise InterfaceBoundaryError("Protected region unexpectedly reaches outer development perimeter")
             candidates.append((BOUNDARY_OUTER_PERIMETER, vertex_pair, incident, triangle_id, None))
             continue
+
         first, second = incident
         first_contact = assignments[first].contact_intent
         second_contact = assignments[second].contact_intent
@@ -432,6 +542,7 @@ def build_interface_boundary_topology(
         )
         for index, (boundary_id, vertex_pair, incident, contact_id, protected_id) in enumerate(candidates)
     )
+
     topology = InterfaceBoundaryTopology(
         source_surface_id=surface.descriptor.surface_id,
         source_surface_sha256=surface.descriptor.source_sha256,
@@ -441,10 +552,15 @@ def build_interface_boundary_topology(
         source_interface_sha256=interface.topology_sha256,
         definitions=_definitions(authority),
         edges=edges,
-        topology_status="PHASE2_ITERATION12_PERIMETER_APERTURE_EDGE_TOPOLOGY_WITH_BILATERAL_PHYSICAL_UNIONS",
-        evidence_status="DETERMINISTIC_EDGE_TOPOLOGY_NOT_SEAL_FIT_INGRESS_PRESSURE_OR_ANATOMICAL_VALIDATION",
+        topology_status=(
+            "PHASE2_ITERATION12_PERIMETER_APERTURE_EDGE_TOPOLOGY_WITH_BILATERAL_PHYSICAL_UNIONS"
+        ),
+        evidence_status=(
+            "DETERMINISTIC_EDGE_TOPOLOGY_NOT_SEAL_FIT_INGRESS_PRESSURE_OR_ANATOMICAL_VALIDATION"
+        ),
         anatomical_validation_eligible=False,
     )
+
     if not topology.edges:
         raise InterfaceBoundaryError("Boundary extraction produced no transition edges")
     missing_provenance = [key for key, value in topology.edges_by_boundary.items() if not value]
