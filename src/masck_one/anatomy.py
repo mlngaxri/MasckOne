@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
-from typing import Iterable
 
 from .authority import Authority
-from .spatial import CanonicalDatums, Point2, Point3, SpatialContractError, authority_point2
+from .spatial import CanonicalDatums, Point2, Point3, authority_point2
 
 
 class FacialReferenceError(ValueError):
@@ -51,12 +50,13 @@ class PlanarLandmark:
     def has_resolved_depth(self) -> bool:
         return False
 
-    def as_projected_point3(self, *, z_reference_mm: float = 0.0) -> Point3:
+    def as_projected_point3(self, *, z_reference_mm: float) -> Point3:
         """Return a plotting/CAD reference point only, never an anatomical 3D claim.
 
-        The caller must explicitly supply or accept a visualization/reference plane.
-        This method exists for datum graphics and debug exports; it must not be used
-        as a substitute for future headform/surface registration.
+        The caller must explicitly supply a visualization/reference-plane Z value.
+        Requiring this argument prevents a silent `Z = 0` anatomical assumption.
+        This method exists for datum graphics/debug exports; it must not substitute
+        for future headform/surface registration.
         """
 
         return self.point_xy.with_z(z_reference_mm)
