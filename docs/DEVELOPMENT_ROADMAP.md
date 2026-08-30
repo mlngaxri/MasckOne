@@ -23,7 +23,7 @@ Digital completion is not physical validation. Physical evidence, supplier evide
 ## Phase 2 — compliant facial interface and nose/T-zone architecture
 
 10. Main compliant facial-interface topology and parameter zones. **COMPLETE**
-11. Dedicated nasal saddle, bridge/dorsum/sidewall and philtrum continuity architecture.
+11. Dedicated nasal saddle, bridge/dorsum/sidewall and philtrum continuity architecture. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
 12. Perimeter interface, seal/compliance zones and aperture-edge transitions.
 13. Interface-to-structural-frame attachment/clamp architecture.
 14. First nonlinear membrane/contact simulation framework with evidence-gated material cards.
