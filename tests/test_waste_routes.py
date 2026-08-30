@@ -102,7 +102,7 @@ def test_mixed_phase_semantics_cannot_be_silently_downgraded():
 
 
 def test_digital_route_cannot_claim_physical_performance():
-    n = network(); segments = list(n.segments); segments[0] = replace(segments[0], physical_performance_state="VERIFIED")
+    n = network(); segments = list(n.segments); segments[0] = replace(n.segments[0], physical_performance_state="VERIFIED")
     with pytest.raises(ValueError, match="cannot promote physical performance"):
         replace(n, segments=tuple(segments)).validate()
 
@@ -148,3 +148,29 @@ def test_segments_container_must_be_immutable_tuple():
     n = network()
     with pytest.raises(ValueError, match="immutable tuple"):
         replace(n, segments=list(n.segments)).validate()
+
+
+def test_node_mapping_is_snapshotted_against_post_construction_mutation():
+    nodes = {
+        "acq_eye_safe": WasteNode("acq_eye_safe", WasteNodeKind.REGIONAL_ACQUISITION, True),
+        "buffer": WasteNode("buffer", WasteNodeKind.TRANSIENT_BUFFER),
+        "pump_in": WasteNode("pump_in", WasteNodeKind.PUMP_INLET),
+        "pump_out": WasteNode("pump_out", WasteNodeKind.PUMP_OUTLET),
+        "barrier": WasteNode("barrier", WasteNodeKind.PASSIVE_BACKFLOW_BARRIER),
+        "cart_in": WasteNode("cart_in", WasteNodeKind.CARTRIDGE_INLET),
+        "retention": WasteNode("retention", WasteNodeKind.CARTRIDGE_RETENTION),
+    }
+    segments = (
+        WasteRouteSegment("s1", "acq_eye_safe", "buffer", True),
+        WasteRouteSegment("s2", "buffer", "pump_in", True),
+        WasteRouteSegment("s3", "pump_out", "barrier", True),
+        WasteRouteSegment("s4", "barrier", "cart_in", True),
+        WasteRouteSegment("s5", "cart_in", "retention", True),
+    )
+    n = WasteRouteNetwork(SOURCE, nodes, segments)
+    before = n.manifest_sha256()
+    nodes["evil"] = WasteNode("evil", WasteNodeKind.TRANSIENT_BUFFER)
+    del nodes["barrier"]
+    assert "evil" not in n.nodes
+    assert "barrier" in n.nodes
+    assert n.manifest_sha256() == before
