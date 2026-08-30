@@ -1,6 +1,10 @@
 from masck_one.assertions import run_assertions
 from masck_one.interface_topology import ZONE_T_NOSE_PHILTRUM
-from masck_one.model import build_model
+from masck_one.model import (
+    CAD_BREP_BOUND_TOLERANCE_MM,
+    CAD_PLANAR_FACE_SPAN_TOLERANCE_MM,
+    build_model,
+)
 from masck_one.nasal_subsystem import (
     ROLE_BRIDGE_DORSUM,
     ROLE_LOBE,
@@ -9,9 +13,6 @@ from masck_one.nasal_subsystem import (
     ROLE_SIDEWALL_RIGHT,
 )
 from masck_one.spatial import Point3, Vector3
-
-
-CAD_BREP_BOUND_TOLERANCE_MM = 2e-6
 
 
 def test_model_builds():
@@ -128,8 +129,27 @@ def test_model_exposes_dedicated_nasal_roles_and_localized_lobe_cad():
         assert nasal.role_by_id[role_id].nominal_thickness_mm is None
     assert model.nasal_interface.name == "nasal_lobe_membrane_reference"
     assert model.nasal_interface.status == "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE"
-    assert abs(model.nasal_interface.solid.val().BoundingBox().zlen - 0.30) <= CAD_BREP_BOUND_TOLERANCE_MM
+
+    planar_span = model.nasal_interface.horizontal_planar_face_span_z_mm()
+    brep_span = model.nasal_interface.brep_bounding_span_z_mm()
+    assert abs(planar_span - 0.30) <= CAD_PLANAR_FACE_SPAN_TOLERANCE_MM
+    assert abs(brep_span - 0.30) <= CAD_BREP_BOUND_TOLERANCE_MM
     assert nasal.anatomical_validation_eligible is False
+
+
+def test_nasal_planar_thickness_check_is_not_confused_with_brep_bounding_tolerance():
+    model = build_model()
+    authored = model.nasal_subsystem_topology.role_by_id[ROLE_LOBE].nominal_thickness_mm
+    assert authored is not None
+
+    planar_span = model.nasal_interface.horizontal_planar_face_span_z_mm()
+    brep_span = model.nasal_interface.brep_bounding_span_z_mm()
+
+    assert abs(planar_span - authored) <= CAD_PLANAR_FACE_SPAN_TOLERANCE_MM
+    assert abs(brep_span - authored) <= CAD_BREP_BOUND_TOLERANCE_MM
+    # Bounding spans may carry OCCT tolerance inflation; they must not become the
+    # authority for a deliberately authored constant-thickness planar reference.
+    assert planar_span <= brep_span + CAD_BREP_BOUND_TOLERANCE_MM
 
 
 def test_all_software_verifiable_assertions_pass():
