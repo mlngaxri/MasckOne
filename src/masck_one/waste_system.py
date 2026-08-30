@@ -16,6 +16,7 @@ from typing import Mapping
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+_CAPACITY_EPSILON_ML = 1e-9
 
 
 class EvidenceState(str, Enum):
@@ -138,6 +139,21 @@ class WasteArchitecture:
         if min(self.envelope.x_mm, self.envelope.y_mm, self.envelope.z_mm) <= 0:
             raise ValueError("cartridge envelope dimensions must be positive")
         self.capacity.validate()
+
+        # Geometry conservation is an absolute upper-bound check, not capacity evidence.
+        # Any real usable/retained volume must be lower after walls, seals, venting,
+        # media, contamination boundaries and other displaced package volume are known.
+        bounding_volume_ml = self.envelope.bounding_volume_ml
+        if self.capacity.retained_capacity_target_ml > bounding_volume_ml + _CAPACITY_EPSILON_ML:
+            raise ValueError(
+                "retained capacity target exceeds the cartridge external bounding-volume upper bound"
+            )
+        if (self.capacity.usable_capacity_ml is not None and
+                self.capacity.usable_capacity_ml > bounding_volume_ml + _CAPACITY_EPSILON_ML):
+            raise ValueError(
+                "usable capacity exceeds the cartridge external bounding-volume upper bound"
+            )
+
         missing_faults = REQUIRED_MIXED_PHASE_FAULTS - self.faults
         if missing_faults:
             raise ValueError(f"mixed-phase fault registry incomplete: {sorted(missing_faults)}")
