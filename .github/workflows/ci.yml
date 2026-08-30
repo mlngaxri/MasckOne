@@ -47,6 +47,9 @@ jobs:
       - name: Iteration 13 interface attachment preflight
         run: python -m masck_one.attachment_preflight
 
+      - name: Iteration 14 contact simulation preflight
+        run: python -m masck_one.contact_simulation_preflight
+
       - name: Unit and integration tests
         run: python -m pytest
 
