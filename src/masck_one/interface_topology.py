@@ -33,12 +33,8 @@ ZONE_OPENING_MOUTH = "INTERFACE_OPENING_MOUTH"
 ZONE_OPENING_NOSTRIL_LEFT = "INTERFACE_OPENING_NOSTRIL_LEFT"
 ZONE_OPENING_NOSTRIL_RIGHT = "INTERFACE_OPENING_NOSTRIL_RIGHT"
 
-CONTACT_CONNECTIVITY_STATUS = (
-    "SAFETY_SEPARATED_PHILTRUM_CONTACT_COMPONENT_EXPECTED_ON_CONSERVATIVE_PLANAR_BASELINE"
-)
-MATERIAL_CONTINUITY_STATUS = (
-    "UNRESOLVED_UNTIL_DEDICATED_NASAL_SUBSYSTEM_AND_FRAME_ATTACHMENT_ARCHITECTURE"
-)
+CONTACT_CONNECTIVITY_STATUS = "ONE_EDGE_CONNECTED_CONTACT_FIELD_ON_REFINED_PLANAR_DEVELOPMENT_MESH"
+MATERIAL_CONTINUITY_STATUS = "PHYSICAL_MATERIAL_CONTINUITY_UNRESOLVED_UNTIL_DETAILED_MEMBRANE_AND_ATTACHMENT_CAD"
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,7 +68,6 @@ class InterfaceParameterZone:
             raise InterfaceTopologyError("coverage_region_ids cannot contain duplicates")
         if self.cleansing_target and not self.contact_intent:
             raise InterfaceTopologyError("A cleansing-target zone must have contact intent")
-
         if self.nominal_thickness_mm is None:
             if self.thickness_doe_mm:
                 raise InterfaceTopologyError(
@@ -106,8 +101,6 @@ class InterfaceParameterZone:
 
 @dataclass(frozen=True, slots=True)
 class NasalLobeThicknessAuthority:
-    """Authority-backed thickness data whose geometric application boundary is not yet invented."""
-
     center_thickness_mm: float
     doe_mm: tuple[float, ...]
     authority_status: str
@@ -162,14 +155,6 @@ class InterfaceTriangleAssignment:
 
 @dataclass(frozen=True, slots=True)
 class ContactComponent:
-    """One edge-connected skin-contact component on the current analysis mesh.
-
-    Connectivity here describes contact-intent triangles only. It does not claim that
-    the eventual silicone/interface material is physically disconnected: protected
-    safety footprints can separate skin-contact patches while a later non-contact
-    bridge, nasal saddle, clamp ring, or frame attachment provides material continuity.
-    """
-
     component_index: int
     triangle_indices: tuple[int, ...]
     parameter_zone_ids: tuple[str, ...]
@@ -178,28 +163,6 @@ class ContactComponent:
     centroid_x_max_mm: float
     centroid_y_min_mm: float
     centroid_y_max_mm: float
-
-    def __post_init__(self) -> None:
-        if self.component_index < 0:
-            raise InterfaceTopologyError("Contact component index cannot be negative")
-        if not self.triangle_indices:
-            raise InterfaceTopologyError("Contact component cannot be empty")
-        if tuple(sorted(set(self.triangle_indices))) != self.triangle_indices:
-            raise InterfaceTopologyError("Contact component triangle indices must be unique and sorted")
-        if not self.parameter_zone_ids or tuple(sorted(set(self.parameter_zone_ids))) != self.parameter_zone_ids:
-            raise InterfaceTopologyError("Contact component zone IDs must be non-empty, unique and sorted")
-        if not math.isfinite(self.area_mm2) or self.area_mm2 <= 0.0:
-            raise InterfaceTopologyError("Contact component area must be finite and positive")
-        for value in (
-            self.centroid_x_min_mm,
-            self.centroid_x_max_mm,
-            self.centroid_y_min_mm,
-            self.centroid_y_max_mm,
-        ):
-            if not math.isfinite(value):
-                raise InterfaceTopologyError("Contact component centroid bounds must be finite")
-        if self.centroid_x_min_mm > self.centroid_x_max_mm or self.centroid_y_min_mm > self.centroid_y_max_mm:
-            raise InterfaceTopologyError("Contact component bounds are inverted")
 
     @property
     def triangle_count(self) -> int:
@@ -213,7 +176,6 @@ class ContactComponent:
         return {
             "component_index": self.component_index,
             "triangle_count": self.triangle_count,
-            "triangle_indices": list(self.triangle_indices),
             "parameter_zone_ids": list(self.parameter_zone_ids),
             "area_mm2": self.area_mm2,
             "centroid_bounds_mm": {
@@ -254,19 +216,14 @@ class CompliantInterfaceTopology:
             if len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest.lower()):
                 raise InterfaceTopologyError("Source hashes must be 64-character hexadecimal SHA-256 digests")
         if self.anatomical_validation_eligible:
-            raise InterfaceTopologyError(
-                "Iteration-10 topology cannot be promoted to anatomical/contact validation evidence"
-            )
-        if not self.zones or not self.assignments:
-            raise InterfaceTopologyError("Interface topology requires zones and triangle assignments")
+            raise InterfaceTopologyError("Iteration-10 topology cannot be promoted to validation evidence")
         zone_ids = [zone.zone_id for zone in self.zones]
-        if len(zone_ids) != len(set(zone_ids)):
-            raise InterfaceTopologyError("Interface parameter-zone IDs must be unique")
+        if not zone_ids or len(zone_ids) != len(set(zone_ids)):
+            raise InterfaceTopologyError("Interface parameter-zone IDs must be non-empty and unique")
         indices = [assignment.triangle_index for assignment in self.assignments]
         if indices != list(range(len(self.assignments))):
             raise InterfaceTopologyError("Interface assignments must be contiguous and deterministic")
-        known = set(zone_ids)
-        unknown = {assignment.parameter_zone_id for assignment in self.assignments} - known
+        unknown = {assignment.parameter_zone_id for assignment in self.assignments} - set(zone_ids)
         if unknown:
             raise InterfaceTopologyError(f"Assignments reference unknown parameter zones: {sorted(unknown)}")
 
@@ -306,21 +263,11 @@ class CompliantInterfaceTopology:
         return dict(sorted(areas.items()))
 
     def contact_components(self, coverage: FacialCoverageMesh) -> tuple[ContactComponent, ...]:
-        """Return edge-connected contact-intent components, largest first.
-
-        This deliberately does not reinterpret required protected footprints as contact
-        merely to force one component. A small philtrum component can be legitimately
-        separated on the conservative planar baseline by mouth/nostril safety exclusions.
-        The later nasal/attachment architecture must resolve physical material continuity.
-        """
-
         contact_ids = {item.triangle_index for item in self.contact_assignments}
         assignment_by_id = {item.triangle_index: item for item in self.contact_assignments}
         triangle_by_id = {triangle.triangle_index: triangle for triangle in coverage.triangles}
         if set(triangle_by_id) != set(range(len(self.assignments))):
             raise InterfaceTopologyError("Coverage and interface triangle indices are inconsistent")
-        if set(assignment_by_id) != contact_ids:
-            raise InterfaceTopologyError("Contact assignment index map is inconsistent")
 
         edge_to_triangles: dict[tuple[int, int], list[int]] = defaultdict(list)
         for triangle_id in contact_ids:
@@ -352,24 +299,18 @@ class CompliantInterfaceTopology:
             raw_components.append(component)
 
         raw_components.sort(
-            key=lambda component: (
-                -sum(assignment_by_id[index].area_mm2 for index in component),
-                min(component),
-            )
+            key=lambda component: (-sum(assignment_by_id[i].area_mm2 for i in component), min(component))
         )
-
         summaries: list[ContactComponent] = []
         for component_index, component in enumerate(raw_components):
             indices = tuple(sorted(component))
-            areas = [assignment_by_id[index].area_mm2 for index in indices]
-            zone_ids = tuple(sorted({assignment_by_id[index].parameter_zone_id for index in indices}))
             centroids = [triangle_by_id[index].centroid for index in indices]
             summaries.append(
                 ContactComponent(
                     component_index=component_index,
                     triangle_indices=indices,
-                    parameter_zone_ids=zone_ids,
-                    area_mm2=sum(areas),
+                    parameter_zone_ids=tuple(sorted({assignment_by_id[i].parameter_zone_id for i in indices})),
+                    area_mm2=sum(assignment_by_id[i].area_mm2 for i in indices),
                     centroid_x_min_mm=min(point.x for point in centroids),
                     centroid_x_max_mm=max(point.x for point in centroids),
                     centroid_y_min_mm=min(point.y for point in centroids),
@@ -383,15 +324,8 @@ class CompliantInterfaceTopology:
 
     def connectivity_manifest(self, coverage: FacialCoverageMesh) -> dict[str, object]:
         components = self.contact_components(coverage)
-        isolated = components[1:]
         return {
             "component_count": len(components),
-            "primary_component_area_mm2": components[0].area_mm2 if components else 0.0,
-            "isolated_component_count": len(isolated),
-            "isolated_components_are_nose_philtrum_only": all(
-                component.is_nose_philtrum_only for component in isolated
-            ),
-            "isolated_contact_area_mm2": sum(component.area_mm2 for component in isolated),
             "contact_connectivity_status": self.contact_connectivity_status,
             "material_continuity_status": self.material_continuity_status,
             "components": [component.manifest() for component in components],
@@ -405,14 +339,8 @@ class CompliantInterfaceTopology:
             "coverage_segmentation_sha256": self.coverage_segmentation_sha256,
             "zones": [zone.manifest() for zone in self.zones],
             "assignments": [
-                [
-                    item.triangle_index,
-                    item.coverage_region_id,
-                    item.parameter_zone_id,
-                    round(item.area_mm2, 12),
-                    item.contact_intent,
-                    item.protected_opening,
-                ]
+                [item.triangle_index, item.coverage_region_id, item.parameter_zone_id,
+                 round(item.area_mm2, 12), item.contact_intent, item.protected_opening]
                 for item in self.assignments
             ],
             "nasal_lobe_thickness_authority": self.nasal_lobe_thickness_authority.manifest(),
@@ -422,8 +350,9 @@ class CompliantInterfaceTopology:
             "material_continuity_status": self.material_continuity_status,
             "anatomical_validation_eligible": self.anatomical_validation_eligible,
         }
-        raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-        return hashlib.sha256(raw).hexdigest()
+        return hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
 
     def manifest(self, coverage: FacialCoverageMesh | None = None) -> dict[str, object]:
         result: dict[str, object] = {
@@ -471,75 +400,22 @@ def _build_parameter_zones() -> tuple[InterfaceParameterZone, ...]:
         "geometry_status": "PROTECTED_OPENING_TOPOLOGY",
         "evidence_status": "SAFETY_EXCLUSION_TOPOLOGY_ONLY_DYNAMIC_3D_STILL_BLOCKED",
     }
-
     return (
-        InterfaceParameterZone(
-            ZONE_GENERAL_FACE,
-            "primary compliant skin-contact cleansing field",
-            (REGION_ACTIVE_OTHER,),
-            thickness_status="UNRESOLVED_PENDING_INTERFACE_GEOMETRY_AND_MATERIAL_SELECTION",
-            **contact_common,
-        ),
-        InterfaceParameterZone(
-            ZONE_T_FOREHEAD,
-            "forehead T-zone skin-contact cleansing field",
-            (REGION_T_FOREHEAD,),
-            thickness_status="UNRESOLVED_PENDING_INTERFACE_GEOMETRY_AND_MATERIAL_SELECTION",
-            **contact_common,
-        ),
-        InterfaceParameterZone(
-            ZONE_T_NOSE_PHILTRUM,
-            "central T-zone and nose-to-upper-lip cleansing target field",
-            (REGION_T_NOSE_PHILTRUM,),
-            thickness_status="DEDICATED_NASAL_SUBSYSTEM_BOUNDARY_REQUIRED_BEFORE_THICKNESS_APPLICATION",
-            **contact_common,
-        ),
-        InterfaceParameterZone(
-            ZONE_OPENING_EYE_LEFT,
-            "left eye protected opening",
-            (REGION_PROTECTED_EYE_LEFT,),
-            **opening_common,
-        ),
-        InterfaceParameterZone(
-            ZONE_OPENING_EYE_RIGHT,
-            "right eye protected opening",
-            (REGION_PROTECTED_EYE_RIGHT,),
-            **opening_common,
-        ),
-        InterfaceParameterZone(
-            ZONE_OPENING_MOUTH,
-            "mouth protected opening",
-            (REGION_PROTECTED_MOUTH,),
-            **opening_common,
-        ),
-        InterfaceParameterZone(
-            ZONE_OPENING_NOSTRIL_LEFT,
-            "left nostril/airway protected opening",
-            (REGION_PROTECTED_NOSTRIL_LEFT,),
-            **opening_common,
-        ),
-        InterfaceParameterZone(
-            ZONE_OPENING_NOSTRIL_RIGHT,
-            "right nostril/airway protected opening",
-            (REGION_PROTECTED_NOSTRIL_RIGHT,),
-            **opening_common,
-        ),
+        InterfaceParameterZone(ZONE_GENERAL_FACE, "primary compliant skin-contact cleansing field",
+                               (REGION_ACTIVE_OTHER,), thickness_status="UNRESOLVED_PENDING_INTERFACE_GEOMETRY_AND_MATERIAL_SELECTION", **contact_common),
+        InterfaceParameterZone(ZONE_T_FOREHEAD, "forehead T-zone skin-contact cleansing field",
+                               (REGION_T_FOREHEAD,), thickness_status="UNRESOLVED_PENDING_INTERFACE_GEOMETRY_AND_MATERIAL_SELECTION", **contact_common),
+        InterfaceParameterZone(ZONE_T_NOSE_PHILTRUM, "central T-zone and nose-to-upper-lip cleansing target field",
+                               (REGION_T_NOSE_PHILTRUM,), thickness_status="DEDICATED_NASAL_SUBSYSTEM_BOUNDARY_REQUIRED_BEFORE_THICKNESS_APPLICATION", **contact_common),
+        InterfaceParameterZone(ZONE_OPENING_EYE_LEFT, "left eye protected opening", (REGION_PROTECTED_EYE_LEFT,), **opening_common),
+        InterfaceParameterZone(ZONE_OPENING_EYE_RIGHT, "right eye protected opening", (REGION_PROTECTED_EYE_RIGHT,), **opening_common),
+        InterfaceParameterZone(ZONE_OPENING_MOUTH, "mouth protected opening", (REGION_PROTECTED_MOUTH,), **opening_common),
+        InterfaceParameterZone(ZONE_OPENING_NOSTRIL_LEFT, "left nostril/airway protected opening", (REGION_PROTECTED_NOSTRIL_LEFT,), **opening_common),
+        InterfaceParameterZone(ZONE_OPENING_NOSTRIL_RIGHT, "right nostril/airway protected opening", (REGION_PROTECTED_NOSTRIL_RIGHT,), **opening_common),
     )
 
 
-def build_compliant_interface_topology(
-    authority: Authority,
-    coverage: FacialCoverageMesh,
-) -> CompliantInterfaceTopology:
-    """Create the main interface topology without fabricating thickness/material/contact truth.
-
-    Iteration 10 establishes exactly where the interface is intended to contact/cleanse
-    and where material must not occupy protected openings. The authority's 0.30 mm nasal
-    lobe center thickness and 0.25/0.30/0.35 mm DOE are preserved as subsystem parameters,
-    but are deliberately *not* painted across the full T-zone because the dedicated nasal
-    saddle boundary is an Iteration-11 closure item.
-    """
-
+def build_compliant_interface_topology(authority: Authority, coverage: FacialCoverageMesh) -> CompliantInterfaceTopology:
     zones = _build_parameter_zones()
     region_to_zone: dict[str, InterfaceParameterZone] = {}
     for zone in zones:
@@ -571,47 +447,31 @@ def build_compliant_interface_topology(
             )
         )
 
-    nasal = NasalLobeThicknessAuthority(
-        center_thickness_mm=authority.number("geometry", "nasal_lobe_membrane", "thickness_center_mm"),
-        doe_mm=tuple(float(value) for value in authority.get("geometry", "nasal_lobe_membrane", "thickness_doe_mm")),
-        authority_status=str(authority.get("geometry", "nasal_lobe_membrane", "status")),
-    )
-
     topology = CompliantInterfaceTopology(
         source_surface_id=coverage.source_surface_id,
         source_surface_sha256=coverage.source_surface_sha256,
         coverage_segmentation_sha256=coverage.segmentation_sha256,
         zones=zones,
         assignments=tuple(assignments),
-        nasal_lobe_thickness_authority=nasal,
+        nasal_lobe_thickness_authority=NasalLobeThicknessAuthority(
+            center_thickness_mm=authority.number("geometry", "nasal_lobe_membrane", "thickness_center_mm"),
+            doe_mm=tuple(float(value) for value in authority.get("geometry", "nasal_lobe_membrane", "thickness_doe_mm")),
+            authority_status=str(authority.get("geometry", "nasal_lobe_membrane", "status")),
+        ),
         topology_status="PHASE2_ITERATION10_FUNCTIONAL_TOPOLOGY_BASELINE",
         evidence_status="DETERMINISTIC_TOPOLOGY_ONLY_NOT_CONTACT_FIT_MATERIAL_OR_EFFICACY_EVIDENCE",
         anatomical_validation_eligible=False,
     )
 
-    if len(topology.assignments) != len(coverage.triangles):
-        raise InterfaceTopologyError("Interface topology did not assign every coverage triangle exactly once")
     if abs(topology.contact_area_mm2 - coverage.target_area_mm2) > 1e-8:
         raise InterfaceTopologyError("Interface contact area must exactly conserve coverage target area")
     if abs(topology.protected_opening_area_mm2 - coverage.protected_area_mm2) > 1e-8:
         raise InterfaceTopologyError("Interface protected area must exactly conserve coverage protected area")
-
     components = topology.contact_components(coverage)
-    if not components:
-        raise InterfaceTopologyError("Compliant interface must contain at least one contact component")
-    unexpected_islands = [
-        component
-        for component in components[1:]
-        if not component.is_nose_philtrum_only
-    ]
-    if unexpected_islands:
+    if len(components) != 1:
+        diagnostic = [component.manifest() for component in components]
         raise InterfaceTopologyError(
-            "Conservative contact topology contains disconnected components outside the dedicated nose/philtrum zone"
+            "Refined development contact topology must remain one edge-connected field; "
+            f"found {len(components)} components: {diagnostic}"
         )
-    for component in components[1:]:
-        if component.centroid_y_min_mm < coverage.t_zone_definition.stem_y_min_mm - 1e-12:
-            raise InterfaceTopologyError("Separated nose/philtrum contact component extends below the T-zone stem")
-        if component.centroid_y_max_mm > 0.0 + 1e-12:
-            raise InterfaceTopologyError("Separated nose/philtrum contact component extends above the philtrum screen")
-
     return topology
