@@ -131,6 +131,8 @@ class WasteRouteNetwork:
                     raise ValueError("regional acquisition has a route that bypasses the pump stage boundary")
         if not self._reachable(pump_out, cartridge_in, directed):
             raise ValueError("pump outlet has no route to cartridge inlet")
+        if self._reachable(pump_out, pump_in, directed):
+            raise ValueError("pump outlet cannot recirculate to the pump inlet")
         if not self._reachable(cartridge_in, retention, directed):
             raise ValueError("cartridge inlet has no route to retention volume")
         if not any(self._reachable(pump_out, barrier, directed) and self._reachable(barrier, cartridge_in, directed) for barrier in barriers):
