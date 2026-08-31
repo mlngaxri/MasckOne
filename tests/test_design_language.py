@@ -67,6 +67,15 @@ def test_numeric_and_motion_boundaries_fail_closed():
     with pytest.raises(DesignLanguageError): MotionToken("motion", 100, "linear", "zoom")
 
 
+def test_oversized_integer_shape_radius_fails_through_controlled_boundary():
+    huge = 10 ** 10000
+    for value in (huge, -huge):
+        with pytest.raises(DesignLanguageError):
+            ShapeToken("shape", value, "shell.edge")
+    control = ShapeToken("shape", 10 ** 100, "shell.edge")
+    assert control.radius_mm == float(10 ** 100)
+
+
 def test_shared_motion_easing_is_portable_not_engine_specific():
     for easing in ("linear", "standard", "decelerate", "accelerate", "emphasized"):
         MotionToken("motion", 100, easing, "fade")
