@@ -45,12 +45,7 @@ def test_dual_stations_bind_exact_sources_and_frame_reservation(built):
 def test_routes_are_complete_separate_and_unresolved(built):
     *_, architecture = built
     assert tuple(item.route_id for item in architecture.routes) == ROUTE_IDS
-    assert tuple(item.fluid_identity for item in architecture.routes) == (
-        "WATER",
-        "WATER",
-        "CLEANSER",
-        "CLEANSER",
-    )
+    assert tuple(item.fluid_identity for item in architecture.routes) == ("WATER", "WATER", "CLEANSER", "CLEANSER")
     assert all("UNRESOLVED" in item.geometry_status for item in architecture.routes)
     assert all("VALIDATION_GATED" in item.hydraulic_status for item in architecture.routes)
 
@@ -101,14 +96,8 @@ def test_stale_source_and_physical_promotion_are_rejected(built):
     stations = list(architecture.stations)
     stations[0] = replace(stations[0], source_architecture_sha256="a" * 64)
     with pytest.raises(FreshPumpPackagingError, match="stale for current water"):
-        replace(
-            architecture,
-            source_water_architecture_sha256="a" * 64,
-            stations=tuple(stations),
-        ).validate_current_sources(
-            water=water,
-            cleanser=cleanser,
-            frame=frame,
+        replace(architecture, source_water_architecture_sha256="a" * 64, stations=tuple(stations)).validate_current_sources(
+            water=water, cleanser=cleanser, frame=frame
         )
     with pytest.raises(FreshPumpPackagingError, match="cannot be physical validation"):
         replace(architecture, physical_validation_eligible=True)
@@ -135,6 +124,18 @@ def test_status_tokens_cannot_be_spoofed_by_substring_aliases(built):
         replace(architecture.routes[0], geometry_status="NOT_UNRESOLVED_BUT_CONTAINS_TOKEN")
     with pytest.raises(FreshPumpPackagingError, match="route hydraulics must remain validation gated"):
         replace(architecture.routes[0], hydraulic_status="NOT_VALIDATION_GATED_BUT_CONTAINS_TOKEN")
+
+
+def test_architecture_evidence_status_is_controlled_and_fail_closed(built):
+    *_, architecture = built
+    with pytest.raises(FreshPumpPackagingError, match="evidence status"):
+        replace(architecture, evidence_status="ARBITRARY_NONBLANK_STATUS")
+
+    class LyingStr(str):
+        pass
+
+    with pytest.raises(FreshPumpPackagingError, match="evidence status"):
+        replace(architecture, evidence_status=LyingStr(architecture.evidence_status))
 
 
 def test_manifest_is_deterministic_and_not_physical_evidence(built):
