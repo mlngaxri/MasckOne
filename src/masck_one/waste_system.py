@@ -197,11 +197,15 @@ class WasteArchitecture:
             raise ValueError(
                 "retained capacity target exceeds the cartridge external bounding-volume upper bound"
             )
-        if (self.capacity.usable_capacity_ml is not None and
-                self.capacity.usable_capacity_ml > bounding_volume_ml + _CAPACITY_EPSILON_ML):
-            raise ValueError(
-                "usable capacity exceeds the cartridge external bounding-volume upper bound"
-            )
+        if self.capacity.usable_capacity_ml is not None:
+            if self.capacity.usable_capacity_ml > bounding_volume_ml + _CAPACITY_EPSILON_ML:
+                raise ValueError(
+                    "usable capacity exceeds the cartridge external bounding-volume upper bound"
+                )
+            if self.capacity.usable_capacity_ml + _CAPACITY_EPSILON_ML < self.capacity.retained_capacity_target_ml:
+                raise ValueError(
+                    "verified usable capacity is below the retained capacity target"
+                )
 
         if not isinstance(self.faults, frozenset) or not all(isinstance(fault, str) and fault for fault in self.faults):
             raise ValueError("mixed-phase faults must be an immutable frozenset of non-empty string identifiers")
