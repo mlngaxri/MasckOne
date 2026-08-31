@@ -39,12 +39,12 @@ def _text(value: object, *, label: str) -> str:
     return value
 
 
-def _positive(value: object, *, label: str) -> float:
+def _nonnegative(value: object, *, label: str) -> float:
     if type(value) not in (int, float):
-        raise CleanserStorageError(f"{label} must be an exact finite positive number")
+        raise CleanserStorageError(f"{label} must be an exact finite nonnegative number")
     result = float(value)
-    if not math.isfinite(result) or result <= 0.0:
-        raise CleanserStorageError(f"{label} must be finite and positive")
+    if not math.isfinite(result) or result < 0.0:
+        raise CleanserStorageError(f"{label} must be finite and nonnegative")
     return result
 
 
@@ -152,7 +152,7 @@ class CleanserStorageArchitecture:
         object.__setattr__(
             self,
             "nominal_cycle_dose_mL",
-            _positive(self.nominal_cycle_dose_mL, label="nominal cleanser dose"),
+            _nonnegative(self.nominal_cycle_dose_mL, label="nominal cleanser dose"),
         )
         if type(self.ports) is not tuple or tuple(type(port) for port in self.ports) != (
             CleanserPort,

@@ -92,3 +92,10 @@ def test_authority_drift_and_evidence_promotion_are_rejected():
         replace(storage, nominal_cycle_dose_mL=0.61).validate_current_authority(authority)
     with pytest.raises(CleanserStorageError, match="cannot be physical validation"):
         replace(storage, physical_validation_eligible=True)
+
+
+def test_authority_valid_water_only_cycle_can_carry_zero_cleanser_dose():
+    storage = build_cleanser_storage_architecture(load_authority())
+    assert replace(storage, nominal_cycle_dose_mL=0.0).nominal_cycle_dose_mL == 0.0
+    with pytest.raises(CleanserStorageError, match="finite and nonnegative"):
+        replace(storage, nominal_cycle_dose_mL=-0.01)
