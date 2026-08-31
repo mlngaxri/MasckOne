@@ -17,14 +17,18 @@ _ID = re.compile(r"[A-Z][A-Z0-9_]{0,63}")
 
 
 def _sha(name: str, value: object) -> str:
-    if not isinstance(value, str) or _SHA.fullmatch(value) is None:
-        raise ValueError(f"{name} must be canonical lowercase SHA-256")
+    # Provenance values cross an equality/hash trust boundary. Reject subclasses
+    # rather than preserving caller-controlled __eq__/__ne__/__hash__ behavior.
+    if type(value) is not str or _SHA.fullmatch(value) is None:
+        raise ValueError(f"{name} must be exact built-in canonical lowercase SHA-256")
     return value
 
 
 def _id(name: str, value: object) -> str:
-    if not isinstance(value, str) or _ID.fullmatch(value) is None:
-        raise ValueError(f"{name} must be canonical ASCII uppercase identity")
+    # Same exact-type rule as SHA identities: controlled IDs must have built-in
+    # immutable string equality semantics before any comparison or hashing.
+    if type(value) is not str or _ID.fullmatch(value) is None:
+        raise ValueError(f"{name} must be exact built-in canonical ASCII uppercase identity")
     return value
 
 
