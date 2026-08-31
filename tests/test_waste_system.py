@@ -49,6 +49,15 @@ def test_unverified_numeric_usable_capacity_is_rejected():
         bad.validate()
 
 
+def test_verified_usable_capacity_cannot_be_below_retained_target():
+    evidence = EvidenceReference("capacity-rig-under-target", "r1", "9" * 64)
+    bad = replace(architecture(), capacity=CapacityContract(
+        35.0, "VALIDATION_GATED", usable_capacity_ml=34.999,
+        usable_capacity_state=EvidenceState.VERIFIED, evidence=evidence))
+    with pytest.raises(ValueError, match="below the retained capacity target"):
+        bad.validate()
+
+
 def test_verified_usable_capacity_cannot_exceed_external_bounding_volume():
     evidence = EvidenceReference("capacity-rig-overvolume", "r1", "d" * 64)
     bad = replace(architecture(), capacity=CapacityContract(
