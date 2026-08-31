@@ -14,6 +14,7 @@ from masck_one.distribution_geometry import (
     OUTLET_EVIDENCE_STATUS,
     PLACEMENT_STATUS,
     DistributionGeometryError,
+    _protected_clearance_mm,
     build_distribution_geometry_architecture,
 )
 from masck_one.distribution_manifold import build_distribution_manifold_architecture
@@ -24,6 +25,7 @@ from masck_one.fresh_pump_packaging import (
 )
 from masck_one.interface_attachment import build_interface_attachment_architecture
 from masck_one.model import build_model
+from masck_one.spatial import Point2
 from masck_one.structural_frame import build_structural_frame_topology
 from masck_one.water_reservoir import build_water_reservoir_architecture
 
@@ -113,9 +115,9 @@ def test_fluid_identity_and_each_active_region_are_preserved(built):
 
 def test_protected_margin_and_lateral_direction_rules_hold(built):
     *_, geometry = built
-    assert math.isclose(geometry.required_radial_margin_mm, 0.6875, abs_tol=1e-12)
+    assert math.isclose(geometry.required_clearance_mm, 0.6875, abs_tol=1e-12)
     for placement in geometry.placements:
-        assert placement.protected_radial_margin_mm >= placement.required_radial_margin_mm
+        assert placement.protected_clearance_mm >= placement.required_clearance_mm
         assert placement.placement_status == PLACEMENT_STATUS
         assert placement.direction_rule == DIRECTION_RULE
         assert placement.evidence_status == OUTLET_EVIDENCE_STATUS
@@ -125,6 +127,18 @@ def test_protected_margin_and_lateral_direction_rules_hold(built):
             abs_tol=1e-12,
         )
         assert placement.lateral_direction_xyz[2] == 0.0
+
+
+def test_off_axis_ellipse_clearance_uses_nearest_boundary_not_center_ray(built):
+    model, *_, geometry = built
+    for triangle_index in (10259, 10373):
+        triangle = model.coverage_mesh.triangles[triangle_index]
+        clearance = _protected_clearance_mm(
+            Point2(triangle.centroid.x, triangle.centroid.y),
+            model.protected_volumes,
+        )
+        assert clearance == pytest.approx(0.6704478550479708, abs=1e-12)
+        assert clearance < geometry.required_clearance_mm
 
 
 def test_grooves_bind_one_to_one_without_invented_dimensions(built):
@@ -148,7 +162,7 @@ def test_invented_or_face_directed_geometry_fails_closed(built):
     with pytest.raises(DistributionGeometryError, match="development XY plane"):
         replace(placement, lateral_direction_xyz=(0.0, 0.0, 1.0))
     with pytest.raises(DistributionGeometryError, match="violates protected-region"):
-        replace(placement, protected_radial_margin_mm=0.1)
+        replace(placement, protected_clearance_mm=0.1)
     with pytest.raises(DistributionGeometryError, match="cannot invent"):
         replace(groove, width_mm=0.4)
 
@@ -194,7 +208,7 @@ def test_mutated_position_margin_and_direction_are_rechecked_against_sources(bui
     placements = list(geometry.placements)
     placements[0] = replace(
         placement,
-        protected_radial_margin_mm=placement.protected_radial_margin_mm + 1.0,
+        protected_clearance_mm=placement.protected_clearance_mm + 1.0,
     )
     with pytest.raises(DistributionGeometryError, match="margin is stale"):
         _validate(built, replace(geometry, placements=tuple(placements)))

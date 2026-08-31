@@ -132,21 +132,52 @@ def _local_xy(point: Point2, volume: ProtectedVolume) -> tuple[float, float]:
     return cosine * dx - sine * dy, sine * dx + cosine * dy
 
 
-def _radial_margin_to_zone_mm(point: Point2, volume: ProtectedVolume) -> float:
+def _clearance_to_zone_mm(point: Point2, volume: ProtectedVolume) -> float:
     local_x, local_y = _local_xy(point, volume)
-    radius = math.hypot(local_x, local_y)
+    x = abs(local_x)
+    y = abs(local_y)
     a = volume.zone.envelope_width_mm / 2.0
     b = volume.zone.envelope_height_mm / 2.0
-    if radius <= 1e-15:
-        return -min(a, b)
-    cosine = local_x / radius
-    sine = local_y / radius
-    boundary_radius = 1.0 / math.sqrt((cosine / a) ** 2 + (sine / b) ** 2)
-    return radius - boundary_radius
+    normalized = (x / a) ** 2 + (y / b) ** 2
+    if normalized <= 1.0:
+        # Interior points are always ineligible. A negative conservative sentinel is
+        # sufficient; exterior candidates receive the exact Euclidean solution below.
+        if x <= 1e-15 and y <= 1e-15:
+            return -min(a, b)
+        return -min(a, b) * (1.0 - math.sqrt(normalized))
+    if math.isclose(a, b, rel_tol=0.0, abs_tol=1e-15):
+        return math.hypot(x, y) - a
+
+    # For an exterior point, the closest ellipse point is obtained from the unique
+    # non-negative Lagrange multiplier satisfying this monotone equation.
+    def residual(multiplier: float) -> float:
+        return (
+            (a * x / (multiplier + a * a)) ** 2
+            + (b * y / (multiplier + b * b)) ** 2
+            - 1.0
+        )
+
+    lower = 0.0
+    upper = max(a * x, b * y, a * a, b * b)
+    while residual(upper) > 0.0:
+        upper *= 2.0
+    for _ in range(80):
+        midpoint = (lower + upper) / 2.0
+        if residual(midpoint) > 0.0:
+            lower = midpoint
+        else:
+            upper = midpoint
+    multiplier = (lower + upper) / 2.0
+    closest_x = a * a * x / (multiplier + a * a)
+    closest_y = b * b * y / (multiplier + b * b)
+    distance = math.hypot(x - closest_x, y - closest_y)
+    if distance <= 1e-15:
+        return 0.0
+    return distance
 
 
-def _protected_radial_margin_mm(point: Point2, protected: ProtectedVolumeSet) -> float:
-    return min(_radial_margin_to_zone_mm(point, volume) for volume in protected.all)
+def _protected_clearance_mm(point: Point2, protected: ProtectedVolumeSet) -> float:
+    return min(_clearance_to_zone_mm(point, volume) for volume in protected.all)
 
 
 def _nearest_protected_volume(point: Point2, protected: ProtectedVolumeSet) -> ProtectedVolume:
@@ -225,8 +256,8 @@ class OutletPlacement:
     region_id: str
     center_xyz_mm: tuple[float, float, float]
     lateral_direction_xyz: tuple[float, float, float]
-    protected_radial_margin_mm: float
-    required_radial_margin_mm: float
+    protected_clearance_mm: float
+    required_clearance_mm: float
     placement_status: str
     direction_rule: str
     evidence_status: str
@@ -245,13 +276,13 @@ class OutletPlacement:
         center = _point3(self.center_xyz_mm, label="outlet center")
         direction = _vector3(self.lateral_direction_xyz, label="outlet lateral direction")
         margin = _real(
-            self.protected_radial_margin_mm,
-            label="protected radial margin",
+            self.protected_clearance_mm,
+            label="protected clearance",
             nonnegative=True,
         )
-        required = _real(self.required_radial_margin_mm, label="required radial margin", positive=True)
+        required = _real(self.required_clearance_mm, label="required clearance", positive=True)
         if margin + 1e-12 < required:
-            raise DistributionGeometryError("outlet placement violates protected-region radial margin")
+            raise DistributionGeometryError("outlet placement violates protected-region clearance")
         controlled = (
             (self.placement_status, PLACEMENT_STATUS, "outlet placement status"),
             (self.direction_rule, DIRECTION_RULE, "outlet direction rule"),
@@ -262,8 +293,8 @@ class OutletPlacement:
                 raise DistributionGeometryError(f"{label} must use its controlled state")
         object.__setattr__(self, "center_xyz_mm", center)
         object.__setattr__(self, "lateral_direction_xyz", direction)
-        object.__setattr__(self, "protected_radial_margin_mm", margin)
-        object.__setattr__(self, "required_radial_margin_mm", required)
+        object.__setattr__(self, "protected_clearance_mm", margin)
+        object.__setattr__(self, "required_clearance_mm", required)
 
     def manifest(self) -> dict[str, object]:
         return {
@@ -273,8 +304,8 @@ class OutletPlacement:
             "region_id": self.region_id,
             "center_xyz_mm": list(self.center_xyz_mm),
             "lateral_direction_xyz": list(self.lateral_direction_xyz),
-            "protected_radial_margin_mm": self.protected_radial_margin_mm,
-            "required_radial_margin_mm": self.required_radial_margin_mm,
+            "protected_clearance_mm": self.protected_clearance_mm,
+            "required_clearance_mm": self.required_clearance_mm,
             "placement_status": self.placement_status,
             "direction_rule": self.direction_rule,
             "evidence_status": self.evidence_status,
@@ -329,7 +360,7 @@ class DistributionGeometryArchitecture:
     source_coverage_segmentation_sha256: str
     source_protected_volumes_sha256: str
     eligible_candidate_count: int
-    required_radial_margin_mm: float
+    required_clearance_mm: float
     placements: tuple[OutletPlacement, ...]
     grooves: tuple[DistributionGrooveIntent, ...]
     physical_validation_eligible: bool
@@ -341,7 +372,7 @@ class DistributionGeometryArchitecture:
         _sha(self.source_protected_volumes_sha256, label="source protected volumes")
         if type(self.eligible_candidate_count) is not int or self.eligible_candidate_count <= 0:
             raise DistributionGeometryError("eligible candidate count must be an exact positive integer")
-        required = _real(self.required_radial_margin_mm, label="required radial margin", positive=True)
+        required = _real(self.required_clearance_mm, label="required clearance", positive=True)
         if type(self.placements) is not tuple or not self.placements or any(
             type(item) is not OutletPlacement for item in self.placements
         ):
@@ -352,7 +383,7 @@ class DistributionGeometryArchitecture:
         triangle_indices = tuple(item.source_triangle_index for item in self.placements)
         if len(triangle_indices) != len(set(triangle_indices)):
             raise DistributionGeometryError("outlet placements cannot share source triangles")
-        if any(item.required_radial_margin_mm != required for item in self.placements):
+        if any(item.required_clearance_mm != required for item in self.placements):
             raise DistributionGeometryError("outlet placements must retain the architecture margin rule")
         if type(self.grooves) is not tuple or any(
             type(item) is not DistributionGrooveIntent for item in self.grooves
@@ -370,7 +401,7 @@ class DistributionGeometryArchitecture:
             raise DistributionGeometryError("digital distribution geometry cannot be physical validation evidence")
         if type(self.evidence_status) is not str or self.evidence_status != ARCHITECTURE_EVIDENCE_STATUS:
             raise DistributionGeometryError("distribution geometry evidence status must use the controlled state")
-        object.__setattr__(self, "required_radial_margin_mm", required)
+        object.__setattr__(self, "required_clearance_mm", required)
 
     def validate_current_sources(
         self,
@@ -413,7 +444,7 @@ class DistributionGeometryArchitecture:
         if self.source_protected_volumes_sha256 != _protected_sha256(protected):
             raise DistributionGeometryError("distribution geometry is stale for current protected volumes")
         if not math.isclose(
-            self.required_radial_margin_mm,
+            self.required_clearance_mm,
             expected_required,
             rel_tol=0.0,
             abs_tol=1e-12,
@@ -427,7 +458,7 @@ class DistributionGeometryArchitecture:
             1
             for triangle in coverage.target_triangles
             if triangle.region_id in ACTIVE_REGION_IDS
-            and _protected_radial_margin_mm(
+            and _protected_clearance_mm(
                 Point2(triangle.centroid.x, triangle.centroid.y),
                 protected,
             )
@@ -442,7 +473,7 @@ class DistributionGeometryArchitecture:
             triangle = coverage.triangles[placement.source_triangle_index]
             expected_center = triangle.centroid.as_tuple()
             point = Point2(triangle.centroid.x, triangle.centroid.y)
-            expected_margin = _protected_radial_margin_mm(point, protected)
+            expected_margin = _protected_clearance_mm(point, protected)
             expected_direction = _direction_away_from_nearest(point, protected)
             if not triangle.is_target or triangle.region_id not in ACTIVE_REGION_IDS:
                 raise DistributionGeometryError("outlet source triangle is not an active target")
@@ -451,7 +482,7 @@ class DistributionGeometryArchitecture:
             if placement.region_id != triangle.region_id or placement.center_xyz_mm != expected_center:
                 raise DistributionGeometryError("outlet placement is stale for current target triangle")
             if not math.isclose(
-                placement.protected_radial_margin_mm,
+                placement.protected_clearance_mm,
                 expected_margin,
                 rel_tol=0.0,
                 abs_tol=1e-12,
@@ -482,7 +513,7 @@ class DistributionGeometryArchitecture:
             "source_coverage_segmentation_sha256": self.source_coverage_segmentation_sha256,
             "source_protected_volumes_sha256": self.source_protected_volumes_sha256,
             "eligible_candidate_count": self.eligible_candidate_count,
-            "required_radial_margin_mm": self.required_radial_margin_mm,
+            "required_clearance_mm": self.required_clearance_mm,
             "placements": [item.manifest() for item in self.placements],
             "grooves": [item.manifest() for item in self.grooves],
             "physical_validation_eligible": self.physical_validation_eligible,
@@ -519,7 +550,7 @@ def build_distribution_geometry_architecture(
         triangle
         for triangle in coverage.target_triangles
         if triangle.region_id in ACTIVE_REGION_IDS
-        and _protected_radial_margin_mm(
+        and _protected_clearance_mm(
             Point2(triangle.centroid.x, triangle.centroid.y),
             protected,
         )
@@ -547,11 +578,11 @@ def build_distribution_geometry_architecture(
                 Point2(triangle.centroid.x, triangle.centroid.y),
                 protected,
             ),
-            protected_radial_margin_mm=_protected_radial_margin_mm(
+            protected_clearance_mm=_protected_clearance_mm(
                 Point2(triangle.centroid.x, triangle.centroid.y),
                 protected,
             ),
-            required_radial_margin_mm=required_margin,
+            required_clearance_mm=required_margin,
             placement_status=PLACEMENT_STATUS,
             direction_rule=DIRECTION_RULE,
             evidence_status=OUTLET_EVIDENCE_STATUS,
@@ -577,7 +608,7 @@ def build_distribution_geometry_architecture(
         source_coverage_segmentation_sha256=coverage.segmentation_sha256,
         source_protected_volumes_sha256=_protected_sha256(protected),
         eligible_candidate_count=len(candidates),
-        required_radial_margin_mm=required_margin,
+        required_clearance_mm=required_margin,
         placements=placements,
         grooves=grooves,
         physical_validation_eligible=False,
