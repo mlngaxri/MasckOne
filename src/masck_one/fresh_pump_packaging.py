@@ -44,6 +44,10 @@ ROUTE_IDS = (
 
 FLUID_IDENTITIES = frozenset({"WATER", "CLEANSER"})
 ROUTE_STAGES = frozenset({"SOURCE_TO_PUMP", "PUMP_TO_MANIFOLD"})
+PUMP_PACKAGE_STATUS = "UNRESOLVED_PENDING_CONTROLLED_SUPPLIER_PACKAGE_EVIDENCE"
+PUMP_METERING_STATUS = "VALIDATION_GATED_PENDING_PRESSURE_FLOW_AND_METERING_RIG_EVIDENCE"
+ROUTE_GEOMETRY_STATUS = "UNRESOLVED_PENDING_CONTROLLED_CENTERLINES_TUBING_AND_CONNECTORS"
+ROUTE_HYDRAULIC_STATUS = "VALIDATION_GATED_PENDING_CONTROLLED_GEOMETRY_FLUID_PROPERTIES_AND_PUMP_CURVES"
 
 _SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 
@@ -113,9 +117,9 @@ class PumpStationReservation:
             ("pump metering status", self.metering_performance_status),
         ):
             _text(value, label=label)
-        if "UNRESOLVED" not in self.package_status:
+        if type(self.package_status) is not str or self.package_status != PUMP_PACKAGE_STATUS:
             raise FreshPumpPackagingError("pump package selection must remain unresolved")
-        if "VALIDATION_GATED" not in self.metering_performance_status:
+        if type(self.metering_performance_status) is not str or self.metering_performance_status != PUMP_METERING_STATUS:
             raise FreshPumpPackagingError("pump metering performance must remain validation gated")
 
     def manifest(self) -> dict[str, object]:
@@ -167,9 +171,9 @@ class FreshFluidRouteInterface:
             ("route service status", self.service_status),
         ):
             _text(value, label=label)
-        if "UNRESOLVED" not in self.geometry_status:
+        if type(self.geometry_status) is not str or self.geometry_status != ROUTE_GEOMETRY_STATUS:
             raise FreshPumpPackagingError("Iteration-22 route geometry must remain unresolved")
-        if "VALIDATION_GATED" not in self.hydraulic_status:
+        if type(self.hydraulic_status) is not str or self.hydraulic_status != ROUTE_HYDRAULIC_STATUS:
             raise FreshPumpPackagingError("fresh-route hydraulics must remain validation gated")
 
     def manifest(self) -> dict[str, object]:
@@ -319,10 +323,10 @@ def build_fresh_pump_packaging_architecture(
         "tubing_inner_diameter_mm": None,
         "minimum_bend_radius_mm": None,
         "connector_standard": None,
-        "package_status": "UNRESOLVED_PENDING_CONTROLLED_SUPPLIER_PACKAGE_EVIDENCE",
+        "package_status": PUMP_PACKAGE_STATUS,
         "routing_status": "INTERFACE_TOPOLOGY_ONLY_CENTERLINES_AND_SERVICE_CLEARANCE_UNRESOLVED",
         "service_status": "REPLACEABILITY_PURGE_AND_ACCESS_TRAJECTORY_REQUIRE_ASSEMBLY_GEOMETRY",
-        "metering_performance_status": "VALIDATION_GATED_PENDING_PRESSURE_FLOW_AND_METERING_RIG_EVIDENCE",
+        "metering_performance_status": PUMP_METERING_STATUS,
     }
     stations = (
         PumpStationReservation(
@@ -343,8 +347,8 @@ def build_fresh_pump_packaging_architecture(
         ),
     )
     common_route = {
-        "geometry_status": "UNRESOLVED_PENDING_CONTROLLED_CENTERLINES_TUBING_AND_CONNECTORS",
-        "hydraulic_status": "VALIDATION_GATED_PENDING_CONTROLLED_GEOMETRY_FLUID_PROPERTIES_AND_PUMP_CURVES",
+        "geometry_status": ROUTE_GEOMETRY_STATUS,
+        "hydraulic_status": ROUTE_HYDRAULIC_STATUS,
         "service_status": "ROUTE_ACCESS_PURGE_REPLACEMENT_AND_STRAIN_RELIEF_UNRESOLVED",
     }
     routes = (
