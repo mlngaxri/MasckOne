@@ -15,6 +15,7 @@ from masck_one.distribution_geometry import (
     PLACEMENT_STATUS,
     DistributionGeometryError,
     _protected_clearance_mm,
+    _real,
     build_distribution_geometry_architecture,
 )
 from masck_one.distribution_manifold import build_distribution_manifold_architecture
@@ -261,6 +262,45 @@ def test_status_promotions_hostile_strings_and_mutable_containers_fail_closed(bu
         replace(geometry, placements=list(geometry.placements))
     with pytest.raises(DistributionGeometryError, match="immutable tuple"):
         replace(geometry, grooves=list(geometry.grooves))
+
+
+def test_numeric_trust_boundary_normalizes_overflow_and_rejects_subclasses(built):
+    *_, geometry = built
+    placement = geometry.placements[0]
+    huge_positive = 10**10000
+    huge_negative = -(10**10000)
+
+    for center in (
+        (huge_positive, 0.0, 0.0),
+        (huge_negative, 0.0, 0.0),
+    ):
+        with pytest.raises(DistributionGeometryError, match="representable as a finite float"):
+            replace(placement, center_xyz_mm=center)
+    for direction in (
+        (huge_positive, 0.0, 0.0),
+        (huge_negative, 0.0, 0.0),
+    ):
+        with pytest.raises(DistributionGeometryError, match="representable as a finite float"):
+            replace(placement, lateral_direction_xyz=direction)
+    for field in ("protected_clearance_mm", "required_clearance_mm"):
+        for value in (huge_positive, huge_negative):
+            with pytest.raises(DistributionGeometryError, match="representable as a finite float"):
+                replace(placement, **{field: value})
+
+    class HostileInt(int):
+        pass
+
+    class HostileFloat(float):
+        pass
+
+    with pytest.raises(DistributionGeometryError, match="finite real number"):
+        replace(placement, center_xyz_mm=(HostileInt(1), 0.0, 0.0))
+    with pytest.raises(DistributionGeometryError, match="finite real number"):
+        replace(placement, lateral_direction_xyz=(HostileFloat(1.0), 0.0, 0.0))
+    with pytest.raises(DistributionGeometryError, match="finite real number"):
+        replace(placement, protected_clearance_mm=HostileFloat(1.0))
+
+    assert _real(10**100, label="large representable control") == 1e100
 
 
 def test_manifest_is_deterministic_and_not_physical_evidence(built):

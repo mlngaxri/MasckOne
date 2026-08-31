@@ -85,9 +85,12 @@ def _real(
     positive: bool = False,
     nonnegative: bool = False,
 ) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
+    if type(value) not in (int, float):
         raise DistributionGeometryError(f"{label} must be a finite real number")
-    result = float(value)
+    try:
+        result = float(value)
+    except (OverflowError, ValueError) as exc:
+        raise DistributionGeometryError(f"{label} must be representable as a finite float") from exc
     if not math.isfinite(result):
         raise DistributionGeometryError(f"{label} must be finite")
     if positive and result <= 0.0:
