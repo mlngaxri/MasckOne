@@ -9,6 +9,22 @@ SOURCE = "a" * 64
 PACKAGE = "b" * 64
 
 
+class LyingStr(str):
+    def __eq__(self, other):
+        return True
+
+    def __hash__(self):
+        return hash(str(self))
+
+
+class PumpSubclass(WastePumpPackageRef):
+    pass
+
+
+class NetworkSubclass(WasteRouteNetwork):
+    pass
+
+
 def network():
     nodes = {
         "acq": WasteNode("acq", WasteNodeKind.REGIONAL_ACQUISITION, True),
@@ -77,6 +93,42 @@ def test_pump_identity_cannot_claim_measured_hydraulic_performance():
 def test_noncanonical_pump_provenance_fails_closed(field, value):
     with pytest.raises(ValueError, match="canonical"):
         replace(pump(), **{field: value}).validate()
+
+
+@pytest.mark.parametrize("field,value", [
+    ("component_id", LyingStr("waste-pump-a")),
+    ("package_revision", LyingStr("r1")),
+    ("package_manifest_sha256", LyingStr(PACKAGE)),
+])
+def test_str_subclass_pump_provenance_fails_closed(field, value):
+    with pytest.raises(ValueError, match="exact built-in"):
+        replace(pump(), **{field: value}).validate()
+
+
+def test_str_subclass_hydraulic_state_fails_closed_even_when_equal():
+    with pytest.raises(ValueError, match="cannot promote"):
+        replace(pump(), hydraulic_performance_state=LyingStr("VALIDATION_GATED")).validate()
+
+
+def test_binding_str_subclass_provenance_fails_closed():
+    binding = WastePumpRouteBinding.from_network(network(), pump())
+    for field, value in (
+        ("route_manifest_sha256", LyingStr(binding.route_manifest_sha256)),
+        ("pump_inlet_node_id", LyingStr(binding.pump_inlet_node_id)),
+        ("pump_outlet_node_id", LyingStr(binding.pump_outlet_node_id)),
+    ):
+        with pytest.raises(ValueError, match="exact built-in"):
+            replace(binding, **{field: value}).validate()
+
+
+def test_subclassed_contract_objects_fail_closed_at_binding_boundary():
+    n = network(); p = pump()
+    p_sub = PumpSubclass(p.component_id, p.package_revision, p.package_manifest_sha256)
+    n_sub = NetworkSubclass(n.source_waste_architecture_sha256, dict(n.nodes), n.segments)
+    with pytest.raises(ValueError, match="exact WastePumpPackageRef"):
+        WastePumpRouteBinding.from_network(n, p_sub)
+    with pytest.raises(ValueError, match="exact WasteRouteNetwork"):
+        WastePumpRouteBinding.from_network(n_sub, p)
 
 
 def test_wrong_object_types_fail_closed():
