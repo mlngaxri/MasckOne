@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
+import re
 
 
 class SurfaceContinuityError(ValueError):
@@ -14,6 +15,7 @@ _SCHEMA = "MASCK_ONE_SURFACE_CONTINUITY_V1"
 _EVIDENCE_STATUS = "DIGITAL_SURFACE_CONTINUITY_METRICS_ONLY_NOT_CLASS_A_OR_PHYSICAL_EVIDENCE"
 _ALLOWED_TARGETS = ("G0", "G1", "G2")
 _WORLD_FRAME = "MASCK_ONE_ROOT_WORLD_MM"
+_SEAM_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 
 
 def _finite_real(value: object) -> bool:
@@ -44,8 +46,8 @@ class SeamContinuityMetrics:
     max_curvature_delta_per_mm: float
 
     def __post_init__(self) -> None:
-        if not isinstance(self.seam_id, str) or not self.seam_id.strip():
-            raise SurfaceContinuityError("Seam identity must be nonblank text")
+        if not isinstance(self.seam_id, str) or not _SEAM_ID_RE.fullmatch(self.seam_id):
+            raise SurfaceContinuityError("Seam identity must be canonical lowercase identifier text")
         if self.target not in _ALLOWED_TARGETS:
             raise SurfaceContinuityError("Continuity target must be G0, G1, or G2")
         if type(self.sample_count) is not int or self.sample_count < 3:
