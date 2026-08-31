@@ -56,7 +56,10 @@ class ClearanceStack:
 
     Positive clearance is separation. Contributions are signed sensitivities:
     +1 means increasing the dimension increases clearance, -1 decreases it.
-    This deliberately uses endpoint enumeration rather than RSS/statistics.
+    Worst-case clearance is derived directly from tolerance magnitudes rather
+    than reconstructing deviations from rounded absolute endpoints. This avoids
+    catastrophic cancellation when a nominal dimension is much larger than its
+    tolerance.
     """
     stack_id: str
     coordinate_frame_id: str
@@ -93,15 +96,26 @@ class ClearanceStack:
             raise RuntimeError("stale mechanism geometry provenance")
         if coordinate_frame_id != self.coordinate_frame_id:
             raise RuntimeError("local/world coordinate-frame mismatch")
-        result = self.nominal_clearance_mm
+
+        # For sensitivity +1 the adverse deviation is -minus_mm. For -1 it is
+        # +plus_mm, which contributes -plus_mm. Work with magnitudes directly:
+        # (nominal +/- tolerance) - nominal can lose the tolerance completely
+        # when nominal is large relative to the tolerance.
+        terms = [self.nominal_clearance_mm]
         for _, tol, sensitivity in self.contributions:
-            low, high = tol.interval_mm
-            delta_low = low - tol.nominal_mm
-            delta_high = high - tol.nominal_mm
-            result += min(sensitivity * delta_low, sensitivity * delta_high)
+            adverse_magnitude = tol.minus_mm if sensitivity == 1 else tol.plus_mm
+            terms.append(-adverse_magnitude)
+
+        result = math.fsum(terms)
         if not math.isfinite(result):
             raise ArithmeticError("clearance stack is not finitely representable")
-        return math.nextafter(result, -math.inf)
+        # fsum is correctly rounded, not directionally rounded. Move one
+        # representable value toward reduced clearance so this gate cannot
+        # become optimistic because of the final binary rounding.
+        result = math.nextafter(result, -math.inf)
+        if not math.isfinite(result):
+            raise ArithmeticError("conservative clearance is not finitely representable")
+        return result
 
     def assert_positive_clearance(self, *, current_geometry_sha256: str, coordinate_frame_id: str) -> float:
         value = self.worst_case_clearance_mm(current_geometry_sha256=current_geometry_sha256, coordinate_frame_id=coordinate_frame_id)
