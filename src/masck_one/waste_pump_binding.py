@@ -18,14 +18,20 @@ _ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 
 
 def _canonical_id(value: object, *, name: str) -> str:
-    if not isinstance(value, str) or not _ID_RE.fullmatch(value):
-        raise ValueError(f"{name} must be canonical lowercase identifier text")
+    if type(value) is not str or not _ID_RE.fullmatch(value):
+        raise ValueError(f"{name} must be exact built-in canonical lowercase identifier text")
     return value
 
 
 def _canonical_sha256(value: object, *, name: str) -> str:
-    if not isinstance(value, str) or not _SHA256_RE.fullmatch(value):
-        raise ValueError(f"{name} must be canonical lowercase SHA-256")
+    if type(value) is not str or not _SHA256_RE.fullmatch(value):
+        raise ValueError(f"{name} must be exact built-in canonical lowercase SHA-256")
+    return value
+
+
+def _validation_gated(value: object, *, name: str) -> str:
+    if type(value) is not str or value != "VALIDATION_GATED":
+        raise ValueError(f"{name} cannot promote hydraulic performance")
     return value
 
 
@@ -42,8 +48,7 @@ class WastePumpPackageRef:
         _canonical_id(self.component_id, name="pump component_id")
         _canonical_id(self.package_revision, name="pump package_revision")
         _canonical_sha256(self.package_manifest_sha256, name="pump package manifest")
-        if self.hydraulic_performance_state != "VALIDATION_GATED":
-            raise ValueError("pump package identity cannot promote hydraulic performance")
+        _validation_gated(self.hydraulic_performance_state, name="pump package identity")
 
     def identity_sha256(self) -> str:
         self.validate()
@@ -67,8 +72,10 @@ class WastePumpRouteBinding:
 
     @classmethod
     def from_network(cls, network: WasteRouteNetwork, pump: WastePumpPackageRef) -> "WastePumpRouteBinding":
-        if not isinstance(network, WasteRouteNetwork):
-            raise ValueError("network must be a WasteRouteNetwork")
+        if type(network) is not WasteRouteNetwork:
+            raise ValueError("network must be an exact WasteRouteNetwork")
+        if type(pump) is not WastePumpPackageRef:
+            raise ValueError("pump must be an exact WastePumpPackageRef")
         network.validate()
         pump.validate()
         pump_inlets = [n.node_id for n in network.nodes.values() if n.kind.value == "PUMP_INLET"]
@@ -77,8 +84,8 @@ class WastePumpRouteBinding:
 
     def validate(self) -> None:
         _canonical_sha256(self.route_manifest_sha256, name="route manifest")
-        if not isinstance(self.pump, WastePumpPackageRef):
-            raise ValueError("pump must be a WastePumpPackageRef")
+        if type(self.pump) is not WastePumpPackageRef:
+            raise ValueError("pump must be an exact WastePumpPackageRef")
         self.pump.validate()
         _canonical_id(self.pump_inlet_node_id, name="pump inlet node_id")
         _canonical_id(self.pump_outlet_node_id, name="pump outlet node_id")
@@ -87,8 +94,10 @@ class WastePumpRouteBinding:
 
     def validate_current(self, *, network: WasteRouteNetwork, pump: WastePumpPackageRef) -> None:
         self.validate()
-        if not isinstance(network, WasteRouteNetwork):
-            raise ValueError("network must be a WasteRouteNetwork")
+        if type(network) is not WasteRouteNetwork:
+            raise ValueError("network must be an exact WasteRouteNetwork")
+        if type(pump) is not WastePumpPackageRef:
+            raise ValueError("pump must be an exact WastePumpPackageRef")
         network.validate()
         pump.validate()
         expected = WastePumpRouteBinding.from_network(network, pump)
