@@ -136,6 +136,8 @@ class WasteRouteNetwork:
                     raise ValueError("regional acquisition has a route that bypasses the pump stage boundary")
         if not self._reachable(pump_out, cartridge_in, directed):
             raise ValueError("pump outlet has no route to cartridge inlet")
+        if self._reachable(cartridge_in, pump_in, directed) or self._reachable(cartridge_in, pump_out, directed):
+            raise ValueError("cartridge path cannot cycle back into the pump stage")
         if self._reachable(pump_out, pump_in, directed):
             raise ValueError("pump outlet cannot recirculate to the pump inlet")
         if not self._reachable(cartridge_in, retention, directed):
@@ -146,8 +148,6 @@ class WasteRouteNetwork:
             raise ValueError("pump outlet has a cartridge path that bypasses all passive backflow barriers")
         if directed[retention]:
             raise ValueError("cartridge retention must be a terminal waste-route sink")
-        if self._reachable(cartridge_in, pump_in, directed) or self._reachable(cartridge_in, pump_out, directed):
-            raise ValueError("cartridge path cannot cycle back into the pump stage")
         for node in self.nodes.values():
             if node.protected_region_adjacent and node.kind is WasteNodeKind.REGIONAL_ACQUISITION and not directed[node.node_id]:
                 raise ValueError("protected-region-adjacent acquisition cannot be a dead end")
