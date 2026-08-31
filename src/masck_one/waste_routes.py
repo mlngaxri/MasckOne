@@ -18,8 +18,14 @@ _ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 
 
 def _canonical_id(value: object, *, name: str) -> str:
-    if not isinstance(value, str) or not _ID_RE.fullmatch(value):
-        raise ValueError(f"{name} must be canonical lowercase identifier text")
+    if type(value) is not str or not _ID_RE.fullmatch(value):
+        raise ValueError(f"{name} must be exact built-in canonical lowercase identifier text")
+    return value
+
+
+def _canonical_sha256(value: object, *, name: str) -> str:
+    if type(value) is not str or not _SHA256_RE.fullmatch(value):
+        raise ValueError(f"{name} must be exact built-in canonical lowercase SHA-256")
     return value
 
 
@@ -43,7 +49,7 @@ class WasteNode:
         _canonical_id(self.node_id, name="waste node_id")
         if not isinstance(self.kind, WasteNodeKind):
             raise ValueError("waste node kind must be a WasteNodeKind")
-        if not isinstance(self.protected_region_adjacent, bool):
+        if type(self.protected_region_adjacent) is not bool:
             raise ValueError("protected_region_adjacent must be a literal bool")
 
 
@@ -61,9 +67,9 @@ class WasteRouteSegment:
         _canonical_id(self.target_node_id, name="waste target_node_id")
         if self.source_node_id == self.target_node_id:
             raise ValueError("waste route segment cannot self-loop")
-        if self.mixed_phase is not True:
+        if type(self.mixed_phase) is not bool or self.mixed_phase is not True:
             raise ValueError("waste route segments must explicitly preserve mixed-phase semantics")
-        if self.physical_performance_state != "VALIDATION_GATED":
+        if type(self.physical_performance_state) is not str or self.physical_performance_state != "VALIDATION_GATED":
             raise ValueError("digital waste routes cannot promote physical performance")
 
 
@@ -78,8 +84,7 @@ class WasteRouteNetwork:
             object.__setattr__(self, "nodes", MappingProxyType(dict(self.nodes)))
 
     def validate(self) -> None:
-        if not isinstance(self.source_waste_architecture_sha256, str) or not _SHA256_RE.fullmatch(self.source_waste_architecture_sha256):
-            raise ValueError("source waste architecture SHA-256 must be canonical lowercase 64-hex")
+        _canonical_sha256(self.source_waste_architecture_sha256, name="source waste architecture SHA-256")
         if not isinstance(self.nodes, Mapping) or not self.nodes:
             raise ValueError("waste route network requires nodes")
         if not isinstance(self.segments, tuple):
@@ -179,8 +184,7 @@ class WasteRouteNetwork:
 
     def validate_current_source(self, *, expected_waste_architecture_sha256: str) -> None:
         self.validate()
-        if not isinstance(expected_waste_architecture_sha256, str) or not _SHA256_RE.fullmatch(expected_waste_architecture_sha256):
-            raise ValueError("expected waste architecture SHA-256 must be canonical lowercase 64-hex")
+        _canonical_sha256(expected_waste_architecture_sha256, name="expected waste architecture SHA-256")
         if self.source_waste_architecture_sha256 != expected_waste_architecture_sha256:
             raise ValueError("waste route network is stale for the expected waste architecture")
 
