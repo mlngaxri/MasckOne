@@ -42,7 +42,7 @@ Digital completion is not physical validation. Physical evidence, supplier evide
 21. Cleanser storage, refill, compatibility metadata and purge architecture. **COMPLETE**
 22. Water/cleanser pump packaging and tubing-interface architecture. **COMPLETE**
 23. Parametric manifold branching/metering model. **COMPLETE**
-24. Skin-facing lateral distribution grooves and protected-region outlet-direction rules.
+24. Skin-facing lateral distribution grooves and protected-region outlet-direction rules. **COMPLETE**
 
 ## Phase 5 — waste acquisition and containment
 
