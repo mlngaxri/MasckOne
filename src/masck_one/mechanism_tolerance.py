@@ -12,6 +12,7 @@ import math
 import re
 
 _ID = re.compile(r"^[A-Z][A-Z0-9_]{0,63}$")
+_SHA = re.compile(r"^[0-9a-f]{64}$")
 
 
 def _finite_number(name: str, value: object) -> float:
@@ -24,8 +25,14 @@ def _finite_number(name: str, value: object) -> float:
 
 
 def _identity(name: str, value: object) -> str:
-    if not isinstance(value, str) or _ID.fullmatch(value) is None:
-        raise ValueError(f"{name} must be canonical ASCII uppercase identity")
+    if type(value) is not str or _ID.fullmatch(value) is None:
+        raise ValueError(f"{name} must be exact built-in canonical ASCII uppercase identity")
+    return value
+
+
+def _sha256(name: str, value: object) -> str:
+    if type(value) is not str or _SHA.fullmatch(value) is None:
+        raise ValueError(f"{name} must be exact built-in canonical lowercase SHA-256")
     return value
 
 
@@ -52,15 +59,7 @@ class ScalarTolerance:
 
 @dataclass(frozen=True)
 class ClearanceStack:
-    """Worst-case scalar clearance between moving and protected boundaries.
-
-    Positive clearance is separation. Contributions are signed sensitivities:
-    +1 means increasing the dimension increases clearance, -1 decreases it.
-    Worst-case clearance is derived directly from tolerance magnitudes rather
-    than reconstructing deviations from rounded absolute endpoints. This avoids
-    catastrophic cancellation when a nominal dimension is much larger than its
-    tolerance.
-    """
+    """Worst-case scalar clearance between moving and protected boundaries."""
     stack_id: str
     coordinate_frame_id: str
     source_geometry_sha256: str
@@ -70,8 +69,7 @@ class ClearanceStack:
     def __post_init__(self) -> None:
         object.__setattr__(self, "stack_id", _identity("stack_id", self.stack_id))
         object.__setattr__(self, "coordinate_frame_id", _identity("coordinate_frame_id", self.coordinate_frame_id))
-        if not isinstance(self.source_geometry_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", self.source_geometry_sha256):
-            raise ValueError("source_geometry_sha256 must be canonical lowercase SHA-256")
+        object.__setattr__(self, "source_geometry_sha256", _sha256("source_geometry_sha256", self.source_geometry_sha256))
         object.__setattr__(self, "nominal_clearance_mm", _finite_number("nominal_clearance_mm", self.nominal_clearance_mm))
         frozen = tuple(self.contributions)
         seen: set[str] = set()
@@ -92,26 +90,19 @@ class ClearanceStack:
         object.__setattr__(self, "contributions", tuple(checked))
 
     def worst_case_clearance_mm(self, *, current_geometry_sha256: str, coordinate_frame_id: str) -> float:
+        current_geometry_sha256 = _sha256("current_geometry_sha256", current_geometry_sha256)
+        coordinate_frame_id = _identity("coordinate_frame_id", coordinate_frame_id)
         if current_geometry_sha256 != self.source_geometry_sha256:
             raise RuntimeError("stale mechanism geometry provenance")
         if coordinate_frame_id != self.coordinate_frame_id:
             raise RuntimeError("local/world coordinate-frame mismatch")
-
-        # For sensitivity +1 the adverse deviation is -minus_mm. For -1 it is
-        # +plus_mm, which contributes -plus_mm. Work with magnitudes directly:
-        # (nominal +/- tolerance) - nominal can lose the tolerance completely
-        # when nominal is large relative to the tolerance.
         terms = [self.nominal_clearance_mm]
         for _, tol, sensitivity in self.contributions:
             adverse_magnitude = tol.minus_mm if sensitivity == 1 else tol.plus_mm
             terms.append(-adverse_magnitude)
-
         result = math.fsum(terms)
         if not math.isfinite(result):
             raise ArithmeticError("clearance stack is not finitely representable")
-        # fsum is correctly rounded, not directionally rounded. Move one
-        # representable value toward reduced clearance so this gate cannot
-        # become optimistic because of the final binary rounding.
         result = math.nextafter(result, -math.inf)
         if not math.isfinite(result):
             raise ArithmeticError("conservative clearance is not finitely representable")
@@ -125,12 +116,5 @@ class ClearanceStack:
 
     @property
     def provenance_sha256(self) -> str:
-        payload = {
-            "stack_id": self.stack_id,
-            "coordinate_frame_id": self.coordinate_frame_id,
-            "source_geometry_sha256": self.source_geometry_sha256,
-            "nominal_clearance_mm": self.nominal_clearance_mm,
-            "contributions": [(cid, t.nominal_mm, t.minus_mm, t.plus_mm, s) for cid, t, s in self.contributions],
-            "evidence": "DIGITAL_GEOMETRY_ONLY",
-        }
+        payload = {"stack_id": self.stack_id, "coordinate_frame_id": self.coordinate_frame_id, "source_geometry_sha256": self.source_geometry_sha256, "nominal_clearance_mm": self.nominal_clearance_mm, "contributions": [(cid, t.nominal_mm, t.minus_mm, t.plus_mm, s) for cid, t, s in self.contributions], "evidence": "DIGITAL_GEOMETRY_ONLY"}
         return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("ascii")).hexdigest()
