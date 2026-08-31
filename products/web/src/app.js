@@ -1,0 +1,1 @@
+const button=document.querySelector('#notify');button?.addEventListener('click',()=>{button.textContent='Early access opening later';button.setAttribute('aria-live','polite')});
