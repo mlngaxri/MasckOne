@@ -23,6 +23,11 @@ def continuity(seam_id="shell.cheek"):
     return SurfaceContinuityReport(SHA, WORLD, (metric,))
 
 
+def corrupt(obj, field, value):
+    object.__setattr__(obj, field, value)
+    return obj
+
+
 def test_manifest_is_deterministic_and_binds_continuity():
     first = manifest()
     second = manifest()
@@ -60,6 +65,47 @@ def test_continuity_must_match_geometry_frame_and_exact_seam_namespace():
         manifest().assert_continuity_report(SurfaceContinuityReport("b" * 64, WORLD, continuity().seams))
     with pytest.raises(SurfaceTopologyError, match="seam identities"):
         manifest().assert_continuity_report(continuity("shell.forehead"))
+
+
+def test_continuity_binding_rejects_structural_lookalikes():
+    class Lookalike:
+        source_geometry_sha256 = SHA
+        coordinate_frame = WORLD
+        seams = continuity().seams
+
+    with pytest.raises(SurfaceTopologyError, match="SurfaceContinuityReport"):
+        manifest().assert_continuity_report(Lookalike())
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("evidence_status", "CLASS_A_ACCEPTED"),
+        ("physical_validation_eligible", True),
+        ("coordinate_frame", "LOCAL_MM"),
+    ),
+)
+def test_continuity_binding_revalidates_corrupted_report_state(field, value):
+    report = corrupt(continuity(), field, value)
+    with pytest.raises(SurfaceTopologyError, match="revalidation"):
+        manifest().assert_continuity_report(report)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("target", "G9"),
+        ("sample_count", 2),
+        ("max_position_gap_mm", float("nan")),
+        ("max_tangent_angle_deg", float("inf")),
+        ("max_curvature_delta_per_mm", True),
+    ),
+)
+def test_continuity_binding_revalidates_corrupted_seam_metrics(field, value):
+    report = continuity()
+    corrupt(report.seams[0], field, value)
+    with pytest.raises(SurfaceTopologyError, match="revalidation"):
+        manifest().assert_continuity_report(report)
 
 
 def test_evidence_promotion_and_mutation_are_blocked():
