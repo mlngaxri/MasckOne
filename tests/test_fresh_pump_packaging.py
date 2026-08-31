@@ -5,7 +5,10 @@ import pytest
 from masck_one.boundary_release import build_verified_interface_boundary_topology
 from masck_one.cleanser_storage import build_cleanser_storage_architecture
 from masck_one.fresh_pump_packaging import (
+    PUMP_ROUTING_STATUS,
+    PUMP_SERVICE_STATUS,
     FreshPumpPackagingError,
+    ROUTE_SERVICE_STATUS,
     ROUTE_IDS,
     STATION_IDS,
     build_fresh_pump_packaging_architecture,
@@ -29,14 +32,14 @@ def built():
     frame = build_structural_frame_topology(model.authority, attachment)
     water = build_water_reservoir_architecture(model.authority)
     cleanser = build_cleanser_storage_architecture(model.authority)
-    architecture = build_fresh_pump_packaging_architecture(water, cleanser, frame)
-    return water, cleanser, frame, architecture
+    architecture = build_fresh_pump_packaging_architecture(model.authority, water, cleanser, frame)
+    return model.authority, water, cleanser, frame, architecture
 
 
 def test_dual_stations_bind_exact_sources_and_frame_reservation(built):
-    water, cleanser, frame, architecture = built
+    _, water, cleanser, frame, architecture = built
     assert tuple(item.station_id for item in architecture.stations) == STATION_IDS
-    assert tuple(item.fluid_identity for item in architecture.stations) == ("WATER", "CLEANSER")
+    assert tuple(item.fluid_identity for item in architecture.stations) == ("FRESH_WATER", "CLEANSER")
     assert architecture.source_water_architecture_sha256 == water.architecture_sha256
     assert architecture.source_cleanser_architecture_sha256 == cleanser.architecture_sha256
     assert architecture.source_structural_frame_sha256 == frame.topology_sha256
@@ -45,7 +48,12 @@ def test_dual_stations_bind_exact_sources_and_frame_reservation(built):
 def test_routes_are_complete_separate_and_unresolved(built):
     *_, architecture = built
     assert tuple(item.route_id for item in architecture.routes) == ROUTE_IDS
-    assert tuple(item.fluid_identity for item in architecture.routes) == ("WATER", "WATER", "CLEANSER", "CLEANSER")
+    assert tuple(item.fluid_identity for item in architecture.routes) == (
+        "FRESH_WATER",
+        "FRESH_WATER",
+        "CLEANSER",
+        "CLEANSER",
+    )
     assert all("UNRESOLVED" in item.geometry_status for item in architecture.routes)
     assert all("VALIDATION_GATED" in item.hydraulic_status for item in architecture.routes)
 
@@ -92,15 +100,35 @@ def test_station_identity_swap_and_mutable_containers_fail_closed(built):
 
 
 def test_stale_source_and_physical_promotion_are_rejected(built):
-    water, cleanser, frame, architecture = built
+    authority, water, cleanser, frame, architecture = built
     stations = list(architecture.stations)
     stations[0] = replace(stations[0], source_architecture_sha256="a" * 64)
     with pytest.raises(FreshPumpPackagingError, match="stale for current water"):
         replace(architecture, source_water_architecture_sha256="a" * 64, stations=tuple(stations)).validate_current_sources(
-            water=water, cleanser=cleanser, frame=frame
+            authority=authority, water=water, cleanser=cleanser, frame=frame
         )
     with pytest.raises(FreshPumpPackagingError, match="cannot be physical validation"):
         replace(architecture, physical_validation_eligible=True)
+
+
+def test_builder_rejects_storage_contracts_stale_for_current_authority(built):
+    authority, water, cleanser, frame, _ = built
+    with pytest.raises(FreshPumpPackagingError, match="water architecture is stale"):
+        build_fresh_pump_packaging_architecture(
+            authority,
+            replace(water, source_authority_revision="STALE-AUTHORITY"),
+            cleanser,
+            frame,
+        )
+    with pytest.raises(FreshPumpPackagingError, match="cleanser architecture is stale"):
+        build_fresh_pump_packaging_architecture(
+            authority,
+            water,
+            replace(cleanser, source_authority_revision="STALE-AUTHORITY"),
+            frame,
+        )
+    with pytest.raises(FreshPumpPackagingError, match="exact Authority"):
+        build_fresh_pump_packaging_architecture(object(), water, cleanser, frame)
 
 
 def test_hostile_string_aliases_fail_at_identity_boundary(built):
@@ -131,12 +159,16 @@ def test_routing_and_service_states_are_controlled_and_fail_closed(built):
     station = architecture.stations[0]
     route = architecture.routes[0]
 
+    assert station.routing_status == PUMP_ROUTING_STATUS
+    assert station.service_status == PUMP_SERVICE_STATUS
+    assert route.service_status == ROUTE_SERVICE_STATUS
+
     with pytest.raises(FreshPumpPackagingError, match="routing status"):
-        replace(station, routing_status="ARBITRARY_ROUTING_STATE")
+        replace(station, routing_status="VALIDATED")
     with pytest.raises(FreshPumpPackagingError, match="service status"):
-        replace(station, service_status="ARBITRARY_STATION_SERVICE_STATE")
+        replace(station, service_status="SERVICE_VERIFIED")
     with pytest.raises(FreshPumpPackagingError, match="service status"):
-        replace(route, service_status="ARBITRARY_ROUTE_SERVICE_STATE")
+        replace(route, service_status="SERVICE_VERIFIED")
 
     class LyingStr(str):
         pass
@@ -162,8 +194,8 @@ def test_architecture_evidence_status_is_controlled_and_fail_closed(built):
 
 
 def test_manifest_is_deterministic_and_not_physical_evidence(built):
-    water, cleanser, frame, architecture = built
-    second = build_fresh_pump_packaging_architecture(water, cleanser, frame)
+    authority, water, cleanser, frame, architecture = built
+    second = build_fresh_pump_packaging_architecture(authority, water, cleanser, frame)
     assert architecture.manifest() == second.manifest()
     assert architecture.architecture_sha256 == second.architecture_sha256
     assert architecture.physical_validation_eligible is False

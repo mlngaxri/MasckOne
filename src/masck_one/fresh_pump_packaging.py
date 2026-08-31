@@ -12,12 +12,13 @@ from hashlib import sha256
 import json
 import re
 
-from .cleanser_storage import CleanserStorageArchitecture, PORT_OUTLET
+from .authority import Authority
+from .cleanser_storage import CleanserStorageArchitecture, CleanserStorageError, PORT_OUTLET
 from .structural_frame import (
     RESERVATION_FRESH_FLUID,
     StructuralFrameTopology,
 )
-from .water_reservoir import PORT_PICKUP, WaterReservoirArchitecture
+from .water_reservoir import PORT_PICKUP, WaterReservoirArchitecture, WaterReservoirError
 
 
 class FreshPumpPackagingError(ValueError):
@@ -42,12 +43,17 @@ ROUTE_IDS = (
     ROUTE_CLEANSER_MANIFOLD,
 )
 
-FLUID_IDENTITIES = frozenset({"WATER", "CLEANSER"})
+FLUID_FRESH_WATER = "FRESH_WATER"
+FLUID_CLEANSER = "CLEANSER"
+FLUID_IDENTITIES = frozenset({FLUID_FRESH_WATER, FLUID_CLEANSER})
 ROUTE_STAGES = frozenset({"SOURCE_TO_PUMP", "PUMP_TO_MANIFOLD"})
 PUMP_PACKAGE_STATUS = "UNRESOLVED_PENDING_CONTROLLED_SUPPLIER_PACKAGE_EVIDENCE"
 PUMP_METERING_STATUS = "VALIDATION_GATED_PENDING_PRESSURE_FLOW_AND_METERING_RIG_EVIDENCE"
+PUMP_ROUTING_STATUS = "INTERFACE_TOPOLOGY_ONLY_CENTERLINES_AND_SERVICE_CLEARANCE_UNRESOLVED"
+PUMP_SERVICE_STATUS = "REPLACEABILITY_PURGE_AND_ACCESS_TRAJECTORY_REQUIRE_ASSEMBLY_GEOMETRY"
 ROUTE_GEOMETRY_STATUS = "UNRESOLVED_PENDING_CONTROLLED_CENTERLINES_TUBING_AND_CONNECTORS"
 ROUTE_HYDRAULIC_STATUS = "VALIDATION_GATED_PENDING_CONTROLLED_GEOMETRY_FLUID_PROPERTIES_AND_PUMP_CURVES"
+ROUTE_SERVICE_STATUS = "ROUTE_ACCESS_PURGE_REPLACEMENT_AND_STRAIN_RELIEF_UNRESOLVED"
 ARCHITECTURE_EVIDENCE_STATUS = (
     "DUAL_PUMP_AND_TUBING_INTERFACE_ARCHITECTURE_ONLY_NOT_PACKAGE_SELECTION_"
     "METERING_HYDRAULIC_LEAK_SERVICE_OR_PHYSICAL_EVIDENCE"
@@ -93,7 +99,7 @@ class PumpStationReservation:
         if type(self.station_id) is not str or self.station_id not in STATION_IDS:
             raise FreshPumpPackagingError(f"unknown pump station {self.station_id!r}")
         if type(self.fluid_identity) is not str or self.fluid_identity not in FLUID_IDENTITIES:
-            raise FreshPumpPackagingError("pump station fluid identity must be exact WATER or CLEANSER")
+            raise FreshPumpPackagingError("pump station fluid identity must be exact FRESH_WATER or CLEANSER")
         _sha(self.source_architecture_sha256, label="pump station source architecture")
         _text(self.source_port_id, label="pump station source port ID")
         _text(self.pump_outlet_interface_id, label="pump outlet interface ID")
@@ -123,6 +129,10 @@ class PumpStationReservation:
             _text(value, label=label)
         if type(self.package_status) is not str or self.package_status != PUMP_PACKAGE_STATUS:
             raise FreshPumpPackagingError("pump package selection must remain unresolved")
+        if type(self.routing_status) is not str or self.routing_status != PUMP_ROUTING_STATUS:
+            raise FreshPumpPackagingError("pump routing status must use the controlled unresolved state")
+        if type(self.service_status) is not str or self.service_status != PUMP_SERVICE_STATUS:
+            raise FreshPumpPackagingError("pump service status must use the controlled unresolved state")
         if type(self.metering_performance_status) is not str or self.metering_performance_status != PUMP_METERING_STATUS:
             raise FreshPumpPackagingError("pump metering performance must remain validation gated")
 
@@ -164,7 +174,7 @@ class FreshFluidRouteInterface:
         if type(self.route_id) is not str or self.route_id not in ROUTE_IDS:
             raise FreshPumpPackagingError(f"unknown fresh-fluid route {self.route_id!r}")
         if type(self.fluid_identity) is not str or self.fluid_identity not in FLUID_IDENTITIES:
-            raise FreshPumpPackagingError("route fluid identity must be exact WATER or CLEANSER")
+            raise FreshPumpPackagingError("route fluid identity must be exact FRESH_WATER or CLEANSER")
         if type(self.stage) is not str or self.stage not in ROUTE_STAGES:
             raise FreshPumpPackagingError("route stage must use the controlled vocabulary")
         for label, value in (
@@ -179,6 +189,8 @@ class FreshFluidRouteInterface:
             raise FreshPumpPackagingError("Iteration-22 route geometry must remain unresolved")
         if type(self.hydraulic_status) is not str or self.hydraulic_status != ROUTE_HYDRAULIC_STATUS:
             raise FreshPumpPackagingError("fresh-route hydraulics must remain validation gated")
+        if type(self.service_status) is not str or self.service_status != ROUTE_SERVICE_STATUS:
+            raise FreshPumpPackagingError("route service status must use the controlled unresolved state")
 
     def manifest(self) -> dict[str, object]:
         return {
@@ -214,17 +226,17 @@ class FreshPumpPackagingArchitecture:
             raise FreshPumpPackagingError("pump stations must be an exact immutable two-station tuple")
         if tuple(item.station_id for item in self.stations) != STATION_IDS:
             raise FreshPumpPackagingError("pump stations must retain controlled water/cleanser order")
-        if tuple(item.fluid_identity for item in self.stations) != ("WATER", "CLEANSER"):
+        if tuple(item.fluid_identity for item in self.stations) != (FLUID_FRESH_WATER, FLUID_CLEANSER):
             raise FreshPumpPackagingError("pump stations cannot swap or combine fluid identities")
         expected_stations = (
             (
-                "WATER",
+                FLUID_FRESH_WATER,
                 self.source_water_architecture_sha256,
                 PORT_PICKUP,
                 INTERFACE_WATER_PUMP_OUTLET,
             ),
             (
-                "CLEANSER",
+                FLUID_CLEANSER,
                 self.source_cleanser_architecture_sha256,
                 PORT_OUTLET,
                 INTERFACE_CLEANSER_PUMP_OUTLET,
@@ -246,10 +258,10 @@ class FreshPumpPackagingArchitecture:
         if tuple(item.route_id for item in self.routes) != ROUTE_IDS:
             raise FreshPumpPackagingError("fresh routes must follow the complete controlled route order")
         expected = (
-            ("WATER", "SOURCE_TO_PUMP", PORT_PICKUP, STATION_WATER),
-            ("WATER", "PUMP_TO_MANIFOLD", INTERFACE_WATER_PUMP_OUTLET, "MANIFOLD-INLET-WATER-I23"),
-            ("CLEANSER", "SOURCE_TO_PUMP", PORT_OUTLET, STATION_CLEANSER),
-            ("CLEANSER", "PUMP_TO_MANIFOLD", INTERFACE_CLEANSER_PUMP_OUTLET, "MANIFOLD-INLET-CLEANSER-I23"),
+            (FLUID_FRESH_WATER, "SOURCE_TO_PUMP", PORT_PICKUP, STATION_WATER),
+            (FLUID_FRESH_WATER, "PUMP_TO_MANIFOLD", INTERFACE_WATER_PUMP_OUTLET, "MANIFOLD-INLET-WATER-I23"),
+            (FLUID_CLEANSER, "SOURCE_TO_PUMP", PORT_OUTLET, STATION_CLEANSER),
+            (FLUID_CLEANSER, "PUMP_TO_MANIFOLD", INTERFACE_CLEANSER_PUMP_OUTLET, "MANIFOLD-INLET-CLEANSER-I23"),
         )
         actual = tuple(
             (route.fluid_identity, route.stage, route.source_interface_id, route.target_interface_id)
@@ -265,16 +277,27 @@ class FreshPumpPackagingArchitecture:
     def validate_current_sources(
         self,
         *,
+        authority: Authority,
         water: WaterReservoirArchitecture,
         cleanser: CleanserStorageArchitecture,
         frame: StructuralFrameTopology,
     ) -> None:
+        if type(authority) is not Authority:
+            raise FreshPumpPackagingError("authority must be an exact Authority contract")
         if type(water) is not WaterReservoirArchitecture:
             raise FreshPumpPackagingError("water must be an exact WaterReservoirArchitecture")
         if type(cleanser) is not CleanserStorageArchitecture:
             raise FreshPumpPackagingError("cleanser must be an exact CleanserStorageArchitecture")
         if type(frame) is not StructuralFrameTopology:
             raise FreshPumpPackagingError("frame must be an exact StructuralFrameTopology")
+        try:
+            water.validate_current_authority(authority)
+        except WaterReservoirError as exc:
+            raise FreshPumpPackagingError("water architecture is stale for current authority") from exc
+        try:
+            cleanser.validate_current_authority(authority)
+        except CleanserStorageError as exc:
+            raise FreshPumpPackagingError("cleanser architecture is stale for current authority") from exc
         if self.source_water_architecture_sha256 != water.architecture_sha256:
             raise FreshPumpPackagingError("pump packaging is stale for current water architecture")
         if self.source_cleanser_architecture_sha256 != cleanser.architecture_sha256:
@@ -308,10 +331,13 @@ class FreshPumpPackagingArchitecture:
 
 
 def build_fresh_pump_packaging_architecture(
+    authority: Authority,
     water: WaterReservoirArchitecture,
     cleanser: CleanserStorageArchitecture,
     frame: StructuralFrameTopology,
 ) -> FreshPumpPackagingArchitecture:
+    if type(authority) is not Authority:
+        raise FreshPumpPackagingError("authority must be an exact Authority contract")
     if type(water) is not WaterReservoirArchitecture:
         raise FreshPumpPackagingError("water must be an exact WaterReservoirArchitecture")
     if type(cleanser) is not CleanserStorageArchitecture:
@@ -329,14 +355,14 @@ def build_fresh_pump_packaging_architecture(
         "minimum_bend_radius_mm": None,
         "connector_standard": None,
         "package_status": PUMP_PACKAGE_STATUS,
-        "routing_status": "INTERFACE_TOPOLOGY_ONLY_CENTERLINES_AND_SERVICE_CLEARANCE_UNRESOLVED",
-        "service_status": "REPLACEABILITY_PURGE_AND_ACCESS_TRAJECTORY_REQUIRE_ASSEMBLY_GEOMETRY",
+        "routing_status": PUMP_ROUTING_STATUS,
+        "service_status": PUMP_SERVICE_STATUS,
         "metering_performance_status": PUMP_METERING_STATUS,
     }
     stations = (
         PumpStationReservation(
             station_id=STATION_WATER,
-            fluid_identity="WATER",
+            fluid_identity=FLUID_FRESH_WATER,
             source_architecture_sha256=water.architecture_sha256,
             source_port_id=PORT_PICKUP,
             pump_outlet_interface_id=INTERFACE_WATER_PUMP_OUTLET,
@@ -344,7 +370,7 @@ def build_fresh_pump_packaging_architecture(
         ),
         PumpStationReservation(
             station_id=STATION_CLEANSER,
-            fluid_identity="CLEANSER",
+            fluid_identity=FLUID_CLEANSER,
             source_architecture_sha256=cleanser.architecture_sha256,
             source_port_id=PORT_OUTLET,
             pump_outlet_interface_id=INTERFACE_CLEANSER_PUMP_OUTLET,
@@ -354,13 +380,13 @@ def build_fresh_pump_packaging_architecture(
     common_route = {
         "geometry_status": ROUTE_GEOMETRY_STATUS,
         "hydraulic_status": ROUTE_HYDRAULIC_STATUS,
-        "service_status": "ROUTE_ACCESS_PURGE_REPLACEMENT_AND_STRAIN_RELIEF_UNRESOLVED",
+        "service_status": ROUTE_SERVICE_STATUS,
     }
     routes = (
-        FreshFluidRouteInterface(ROUTE_WATER_SOURCE, "WATER", "SOURCE_TO_PUMP", PORT_PICKUP, STATION_WATER, **common_route),
-        FreshFluidRouteInterface(ROUTE_WATER_MANIFOLD, "WATER", "PUMP_TO_MANIFOLD", INTERFACE_WATER_PUMP_OUTLET, "MANIFOLD-INLET-WATER-I23", **common_route),
-        FreshFluidRouteInterface(ROUTE_CLEANSER_SOURCE, "CLEANSER", "SOURCE_TO_PUMP", PORT_OUTLET, STATION_CLEANSER, **common_route),
-        FreshFluidRouteInterface(ROUTE_CLEANSER_MANIFOLD, "CLEANSER", "PUMP_TO_MANIFOLD", INTERFACE_CLEANSER_PUMP_OUTLET, "MANIFOLD-INLET-CLEANSER-I23", **common_route),
+        FreshFluidRouteInterface(ROUTE_WATER_SOURCE, FLUID_FRESH_WATER, "SOURCE_TO_PUMP", PORT_PICKUP, STATION_WATER, **common_route),
+        FreshFluidRouteInterface(ROUTE_WATER_MANIFOLD, FLUID_FRESH_WATER, "PUMP_TO_MANIFOLD", INTERFACE_WATER_PUMP_OUTLET, "MANIFOLD-INLET-WATER-I23", **common_route),
+        FreshFluidRouteInterface(ROUTE_CLEANSER_SOURCE, FLUID_CLEANSER, "SOURCE_TO_PUMP", PORT_OUTLET, STATION_CLEANSER, **common_route),
+        FreshFluidRouteInterface(ROUTE_CLEANSER_MANIFOLD, FLUID_CLEANSER, "PUMP_TO_MANIFOLD", INTERFACE_CLEANSER_PUMP_OUTLET, "MANIFOLD-INLET-CLEANSER-I23", **common_route),
     )
     architecture = FreshPumpPackagingArchitecture(
         source_water_architecture_sha256=water.architecture_sha256,
@@ -371,5 +397,5 @@ def build_fresh_pump_packaging_architecture(
         physical_validation_eligible=False,
         evidence_status=ARCHITECTURE_EVIDENCE_STATUS,
     )
-    architecture.validate_current_sources(water=water, cleanser=cleanser, frame=frame)
+    architecture.validate_current_sources(authority=authority, water=water, cleanser=cleanser, frame=frame)
     return architecture
