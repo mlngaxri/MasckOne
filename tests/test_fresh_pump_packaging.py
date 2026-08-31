@@ -126,6 +126,29 @@ def test_status_tokens_cannot_be_spoofed_by_substring_aliases(built):
         replace(architecture.routes[0], hydraulic_status="NOT_VALIDATION_GATED_BUT_CONTAINS_TOKEN")
 
 
+def test_routing_and_service_states_are_controlled_and_fail_closed(built):
+    *_, architecture = built
+    station = architecture.stations[0]
+    route = architecture.routes[0]
+
+    with pytest.raises(FreshPumpPackagingError, match="routing status"):
+        replace(station, routing_status="ARBITRARY_ROUTING_STATE")
+    with pytest.raises(FreshPumpPackagingError, match="service status"):
+        replace(station, service_status="ARBITRARY_STATION_SERVICE_STATE")
+    with pytest.raises(FreshPumpPackagingError, match="service status"):
+        replace(route, service_status="ARBITRARY_ROUTE_SERVICE_STATE")
+
+    class LyingStr(str):
+        pass
+
+    with pytest.raises(FreshPumpPackagingError, match="routing status"):
+        replace(station, routing_status=LyingStr(station.routing_status))
+    with pytest.raises(FreshPumpPackagingError, match="service status"):
+        replace(station, service_status=LyingStr(station.service_status))
+    with pytest.raises(FreshPumpPackagingError, match="service status"):
+        replace(route, service_status=LyingStr(route.service_status))
+
+
 def test_architecture_evidence_status_is_controlled_and_fail_closed(built):
     *_, architecture = built
     with pytest.raises(FreshPumpPackagingError, match="evidence status"):
