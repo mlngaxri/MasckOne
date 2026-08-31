@@ -20,14 +20,20 @@ _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def _canonical_id(value: object, label: str) -> str:
-    if not isinstance(value, str) or not _ID_RE.fullmatch(value):
-        raise SurfaceTopologyError(f"{label} must be canonical lowercase identifier text")
+    if type(value) is not str or not _ID_RE.fullmatch(value):
+        raise SurfaceTopologyError(f"{label} must be exact canonical lowercase identifier text")
     return value
 
 
 def _canonical_sha(value: object, label: str) -> str:
-    if not isinstance(value, str) or not _SHA_RE.fullmatch(value):
-        raise SurfaceTopologyError(f"{label} must be canonical lowercase SHA-256")
+    if type(value) is not str or not _SHA_RE.fullmatch(value):
+        raise SurfaceTopologyError(f"{label} must be exact canonical lowercase SHA-256")
+    return value
+
+
+def _canonical_controlled_text(value: object, expected: str, label: str) -> str:
+    if type(value) is not str or value != expected:
+        raise SurfaceTopologyError(f"{label} is controlled")
     return value
 
 
@@ -40,18 +46,21 @@ class SeamTopologyBinding:
     patch_b_boundary_id: str
 
     def __post_init__(self) -> None:
-        _canonical_id(self.seam_id, "Seam identity")
-        _canonical_id(self.patch_a_id, "Patch A identity")
-        _canonical_id(self.patch_b_id, "Patch B identity")
-        _canonical_id(self.patch_a_boundary_id, "Patch A boundary identity")
-        _canonical_id(self.patch_b_boundary_id, "Patch B boundary identity")
-        if self.patch_a_id == self.patch_b_id:
+        seam_id = _canonical_id(self.seam_id, "Seam identity")
+        patch_a_id = _canonical_id(self.patch_a_id, "Patch A identity")
+        patch_b_id = _canonical_id(self.patch_b_id, "Patch B identity")
+        patch_a_boundary_id = _canonical_id(self.patch_a_boundary_id, "Patch A boundary identity")
+        patch_b_boundary_id = _canonical_id(self.patch_b_boundary_id, "Patch B boundary identity")
+        if patch_a_id == patch_b_id:
             raise SurfaceTopologyError("A seam must bind two distinct surface patches")
-        if (self.patch_b_id, self.patch_b_boundary_id) < (self.patch_a_id, self.patch_a_boundary_id):
+        if (patch_b_id, patch_b_boundary_id) < (patch_a_id, patch_a_boundary_id):
             raise SurfaceTopologyError("Seam patch/boundary pair must use canonical lexical orientation")
+        if seam_id != self.seam_id:
+            raise SurfaceTopologyError("Seam identity failed canonicalization")
 
     @property
     def endpoints(self) -> tuple[tuple[str, str], tuple[str, str]]:
+        self.__post_init__()
         return (
             (self.patch_a_id, self.patch_a_boundary_id),
             (self.patch_b_id, self.patch_b_boundary_id),
@@ -78,12 +87,11 @@ class SurfaceTopologyManifest:
 
     def __post_init__(self) -> None:
         _canonical_sha(self.source_geometry_sha256, "Source geometry identity")
-        if self.coordinate_frame != _WORLD_FRAME:
-            raise SurfaceTopologyError("Surface topology must use the controlled root/world millimetre frame")
-        if not isinstance(self.seams, tuple) or not self.seams:
+        _canonical_controlled_text(self.coordinate_frame, _WORLD_FRAME, "Surface topology coordinate frame")
+        if type(self.seams) is not tuple or not self.seams:
             raise SurfaceTopologyError("Seams must be a nonempty immutable tuple")
-        if not all(isinstance(seam, SeamTopologyBinding) for seam in self.seams):
-            raise SurfaceTopologyError("Every seam must be a SeamTopologyBinding")
+        if not all(type(seam) is SeamTopologyBinding for seam in self.seams):
+            raise SurfaceTopologyError("Every seam must be an exact SeamTopologyBinding")
         for seam in self.seams:
             seam.__post_init__()
         seam_ids = tuple(seam.seam_id for seam in self.seams)
@@ -92,8 +100,7 @@ class SurfaceTopologyManifest:
         endpoints = tuple(endpoint for seam in self.seams for endpoint in seam.endpoints)
         if len(set(endpoints)) != len(endpoints):
             raise SurfaceTopologyError("A patch boundary may participate in only one exterior seam")
-        if self.evidence_status != _EVIDENCE_STATUS:
-            raise SurfaceTopologyError("Surface topology evidence status is controlled")
+        _canonical_controlled_text(self.evidence_status, _EVIDENCE_STATUS, "Surface topology evidence status")
         if type(self.physical_validation_eligible) is not bool or self.physical_validation_eligible:
             raise SurfaceTopologyError("Digital topology cannot be physical-validation evidence")
 
@@ -105,16 +112,18 @@ class SurfaceTopologyManifest:
 
     def assert_continuity_report(self, report: object) -> None:
         self.__post_init__()
-        if not isinstance(report, SurfaceContinuityReport):
-            raise SurfaceTopologyError("Continuity binding requires a SurfaceContinuityReport")
+        if type(report) is not SurfaceContinuityReport:
+            raise SurfaceTopologyError("Continuity binding requires an exact SurfaceContinuityReport")
         try:
             report.__post_init__()
-        except SurfaceContinuityError as exc:
+        except (SurfaceContinuityError, TypeError, ValueError) as exc:
             raise SurfaceTopologyError("Continuity report failed contract revalidation") from exc
-        if report.source_geometry_sha256 != self.source_geometry_sha256 or report.coordinate_frame != self.coordinate_frame:
+        report_sha = _canonical_sha(report.source_geometry_sha256, "Continuity source geometry identity")
+        report_frame = _canonical_controlled_text(report.coordinate_frame, _WORLD_FRAME, "Continuity coordinate frame")
+        if report_sha != self.source_geometry_sha256 or report_frame != self.coordinate_frame:
             raise SurfaceTopologyError("Continuity report provenance does not match topology")
-        report_ids = tuple(seam.seam_id for seam in report.seams)
-        topology_ids = tuple(seam.seam_id for seam in self.seams)
+        report_ids = tuple(_canonical_id(seam.seam_id, "Continuity seam identity") for seam in report.seams)
+        topology_ids = tuple(_canonical_id(seam.seam_id, "Topology seam identity") for seam in self.seams)
         if report_ids != topology_ids:
             raise SurfaceTopologyError("Continuity report seam identities do not match topology")
 
