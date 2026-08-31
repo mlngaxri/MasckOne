@@ -5,6 +5,8 @@ import hashlib
 import json
 import re
 
+from .surface_continuity import SurfaceContinuityError, SurfaceContinuityReport
+
 
 class SurfaceTopologyError(ValueError):
     """Raised when exterior surface-topology provenance is invalid."""
@@ -96,20 +98,22 @@ class SurfaceTopologyManifest:
             raise SurfaceTopologyError("Digital topology cannot be physical-validation evidence")
 
     def assert_current_geometry(self, current_geometry_sha256: object) -> None:
+        self.__post_init__()
         current = _canonical_sha(current_geometry_sha256, "Current geometry identity")
         if current != self.source_geometry_sha256:
             raise SurfaceTopologyError("Surface topology manifest is stale for the current geometry")
 
     def assert_continuity_report(self, report: object) -> None:
-        # Structural typing is intentional to avoid a reverse dependency on inspection code.
-        source = getattr(report, "source_geometry_sha256", None)
-        frame = getattr(report, "coordinate_frame", None)
-        report_seams = getattr(report, "seams", None)
-        if source != self.source_geometry_sha256 or frame != self.coordinate_frame:
+        self.__post_init__()
+        if not isinstance(report, SurfaceContinuityReport):
+            raise SurfaceTopologyError("Continuity binding requires a SurfaceContinuityReport")
+        try:
+            report.__post_init__()
+        except SurfaceContinuityError as exc:
+            raise SurfaceTopologyError("Continuity report failed contract revalidation") from exc
+        if report.source_geometry_sha256 != self.source_geometry_sha256 or report.coordinate_frame != self.coordinate_frame:
             raise SurfaceTopologyError("Continuity report provenance does not match topology")
-        if not isinstance(report_seams, tuple):
-            raise SurfaceTopologyError("Continuity report seams must be immutable")
-        report_ids = tuple(getattr(seam, "seam_id", None) for seam in report_seams)
+        report_ids = tuple(seam.seam_id for seam in report.seams)
         topology_ids = tuple(seam.seam_id for seam in self.seams)
         if report_ids != topology_ids:
             raise SurfaceTopologyError("Continuity report seam identities do not match topology")
