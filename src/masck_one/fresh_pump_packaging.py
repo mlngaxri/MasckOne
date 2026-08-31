@@ -48,6 +48,10 @@ PUMP_PACKAGE_STATUS = "UNRESOLVED_PENDING_CONTROLLED_SUPPLIER_PACKAGE_EVIDENCE"
 PUMP_METERING_STATUS = "VALIDATION_GATED_PENDING_PRESSURE_FLOW_AND_METERING_RIG_EVIDENCE"
 ROUTE_GEOMETRY_STATUS = "UNRESOLVED_PENDING_CONTROLLED_CENTERLINES_TUBING_AND_CONNECTORS"
 ROUTE_HYDRAULIC_STATUS = "VALIDATION_GATED_PENDING_CONTROLLED_GEOMETRY_FLUID_PROPERTIES_AND_PUMP_CURVES"
+ARCHITECTURE_EVIDENCE_STATUS = (
+    "DUAL_PUMP_AND_TUBING_INTERFACE_ARCHITECTURE_ONLY_NOT_PACKAGE_SELECTION_"
+    "METERING_HYDRAULIC_LEAK_SERVICE_OR_PHYSICAL_EVIDENCE"
+)
 
 _SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 
@@ -255,7 +259,8 @@ class FreshPumpPackagingArchitecture:
             raise FreshPumpPackagingError("fresh-route interfaces cannot cross, bypass, or alias fluid paths")
         if type(self.physical_validation_eligible) is not bool or self.physical_validation_eligible:
             raise FreshPumpPackagingError("digital pump packaging cannot be physical validation evidence")
-        _text(self.evidence_status, label="pump packaging evidence status")
+        if type(self.evidence_status) is not str or self.evidence_status != ARCHITECTURE_EVIDENCE_STATUS:
+            raise FreshPumpPackagingError("pump packaging evidence status must use the controlled architecture evidence state")
 
     def validate_current_sources(
         self,
@@ -364,7 +369,7 @@ def build_fresh_pump_packaging_architecture(
         stations=stations,
         routes=routes,
         physical_validation_eligible=False,
-        evidence_status="DUAL_PUMP_AND_TUBING_INTERFACE_ARCHITECTURE_ONLY_NOT_PACKAGE_SELECTION_METERING_HYDRAULIC_LEAK_SERVICE_OR_PHYSICAL_EVIDENCE",
+        evidence_status=ARCHITECTURE_EVIDENCE_STATUS,
     )
     architecture.validate_current_sources(water=water, cleanser=cleanser, frame=frame)
     return architecture
