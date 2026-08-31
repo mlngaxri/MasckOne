@@ -13,10 +13,21 @@ class SurfaceContinuityError(ValueError):
 _SCHEMA = "MASCK_ONE_SURFACE_CONTINUITY_V1"
 _EVIDENCE_STATUS = "DIGITAL_SURFACE_CONTINUITY_METRICS_ONLY_NOT_CLASS_A_OR_PHYSICAL_EVIDENCE"
 _ALLOWED_TARGETS = ("G0", "G1", "G2")
+_WORLD_FRAME = "MASCK_ONE_ROOT_WORLD_MM"
 
 
 def _finite_real(value: object) -> bool:
-    return not isinstance(value, bool) and isinstance(value, (int, float)) and math.isfinite(float(value))
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(float(value))
+    except (OverflowError, ValueError):
+        return False
+
+
+def _canonical_float(value: object) -> float:
+    numeric = float(value)
+    return 0.0 if numeric == 0.0 else numeric
 
 
 def _canonical_sha256(value: object) -> bool:
@@ -52,9 +63,9 @@ class SeamContinuityMetrics:
             "seam_id": self.seam_id,
             "target": self.target,
             "sample_count": self.sample_count,
-            "max_position_gap_mm": float(self.max_position_gap_mm),
-            "max_tangent_angle_deg": float(self.max_tangent_angle_deg),
-            "max_curvature_delta_per_mm": float(self.max_curvature_delta_per_mm),
+            "max_position_gap_mm": _canonical_float(self.max_position_gap_mm),
+            "max_tangent_angle_deg": _canonical_float(self.max_tangent_angle_deg),
+            "max_curvature_delta_per_mm": _canonical_float(self.max_curvature_delta_per_mm),
         }
 
 
@@ -69,8 +80,8 @@ class SurfaceContinuityReport:
     def __post_init__(self) -> None:
         if not _canonical_sha256(self.source_geometry_sha256):
             raise SurfaceContinuityError("Source geometry identity must be canonical lowercase SHA-256")
-        if not isinstance(self.coordinate_frame, str) or not self.coordinate_frame.strip():
-            raise SurfaceContinuityError("Coordinate frame must be explicit nonblank text")
+        if self.coordinate_frame != _WORLD_FRAME:
+            raise SurfaceContinuityError("Surface continuity metrics must use the controlled root/world millimetre frame")
         if not isinstance(self.seams, tuple) or not self.seams or not all(isinstance(seam, SeamContinuityMetrics) for seam in self.seams):
             raise SurfaceContinuityError("Seams must be a nonempty immutable tuple of continuity records")
         seam_ids = tuple(seam.seam_id for seam in self.seams)
@@ -83,8 +94,15 @@ class SurfaceContinuityReport:
         if type(self.physical_validation_eligible) is not bool or self.physical_validation_eligible:
             raise SurfaceContinuityError("Digital continuity inspection cannot be physical-validation evidence")
 
+    def assert_current_geometry(self, current_geometry_sha256: object) -> None:
+        if not _canonical_sha256(current_geometry_sha256):
+            raise SurfaceContinuityError("Current geometry identity must be canonical lowercase SHA-256")
+        if current_geometry_sha256 != self.source_geometry_sha256:
+            raise SurfaceContinuityError("Surface continuity report is stale for the current geometry")
+
     @property
     def report_sha256(self) -> str:
+        self.__post_init__()
         payload = {
             "schema": _SCHEMA,
             "source_geometry_sha256": self.source_geometry_sha256,
