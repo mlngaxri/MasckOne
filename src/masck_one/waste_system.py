@@ -12,6 +12,7 @@ from hashlib import sha256
 import json
 import math
 import re
+from types import MappingProxyType
 from typing import Mapping
 
 
@@ -28,6 +29,12 @@ def _require_finite_positive(value: float, *, name: str) -> None:
         raise ValueError(f"{name} must be finite")
     if value <= 0:
         raise ValueError(f"{name} must be positive")
+
+
+def _require_nonblank_text(value: object, *, name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{name} must be non-empty text")
+    return value
 
 
 class EvidenceState(str, Enum):
@@ -62,9 +69,9 @@ class EvidenceReference:
     artifact_sha256: str
 
     def validate(self) -> None:
-        if not self.evidence_id.strip() or not self.revision.strip():
-            raise ValueError("verified evidence requires non-empty id and revision")
-        if not _SHA256_RE.fullmatch(self.artifact_sha256):
+        _require_nonblank_text(self.evidence_id, name="verified evidence id")
+        _require_nonblank_text(self.revision, name="verified evidence revision")
+        if not isinstance(self.artifact_sha256, str) or not _SHA256_RE.fullmatch(self.artifact_sha256):
             raise ValueError("verified evidence artifact_sha256 must be lowercase 64-hex")
 
 
@@ -79,8 +86,7 @@ class CartridgeEnvelope:
         _require_finite_positive(self.x_mm, name="cartridge envelope x_mm")
         _require_finite_positive(self.y_mm, name="cartridge envelope y_mm")
         _require_finite_positive(self.z_mm, name="cartridge envelope z_mm")
-        if not self.authority_status.strip():
-            raise ValueError("cartridge envelope authority_status is required")
+        _require_nonblank_text(self.authority_status, name="cartridge envelope authority_status")
 
     @property
     def bounding_volume_ml(self) -> float:
@@ -103,8 +109,11 @@ class CapacityContract:
 
     def validate(self) -> None:
         _require_finite_positive(self.retained_capacity_target_ml, name="retained capacity target")
-        if not self.target_status.strip():
-            raise ValueError("retained capacity target status is required")
+        _require_nonblank_text(self.target_status, name="retained capacity target status")
+        if not isinstance(self.usable_capacity_state, EvidenceState):
+            raise ValueError("usable capacity state must be an EvidenceState")
+        if type(self.credits_absorbent_media_volume) is not bool:
+            raise ValueError("credits_absorbent_media_volume must be a literal bool")
         if self.credits_absorbent_media_volume:
             raise ValueError("absorbent/media volume credit requires separate physical evidence and is not allowed in the digital baseline")
         if self.usable_capacity_ml is None:
@@ -114,6 +123,8 @@ class CapacityContract:
         _require_finite_positive(self.usable_capacity_ml, name="usable capacity")
         if self.usable_capacity_state is not EvidenceState.VERIFIED or self.evidence is None:
             raise ValueError("numeric usable capacity is blocked until it is VERIFIED with cryptographic evidence")
+        if not isinstance(self.evidence, EvidenceReference):
+            raise ValueError("usable capacity evidence must be an EvidenceReference")
         self.evidence.validate()
 
 
@@ -130,13 +141,21 @@ class OrientationCase:
     evidence: EvidenceReference | None = None
 
     def validate(self) -> None:
-        for value in (self.pickup_assumption, self.air_location_assumption,
-                      self.drainage_or_capillary_assumption, self.pump_inlet_assumption,
-                      self.cartridge_assumption, self.backflow_assumption):
-            if not value.strip():
-                raise ValueError(f"orientation {self.orientation.value} has an empty assumption")
+        if not isinstance(self.orientation, Orientation):
+            raise ValueError("orientation case must use an Orientation value")
+        for name, value in (
+            ("pickup assumption", self.pickup_assumption),
+            ("air-location assumption", self.air_location_assumption),
+            ("drainage/capillary assumption", self.drainage_or_capillary_assumption),
+            ("pump-inlet assumption", self.pump_inlet_assumption),
+            ("cartridge assumption", self.cartridge_assumption),
+            ("backflow assumption", self.backflow_assumption),
+        ):
+            _require_nonblank_text(value, name=f"orientation {self.orientation.value} {name}")
+        if not isinstance(self.evidence_state, EvidenceState):
+            raise ValueError("orientation evidence state must be an EvidenceState")
         if self.evidence_state is EvidenceState.VERIFIED:
-            if self.evidence is None:
+            if not isinstance(self.evidence, EvidenceReference):
                 raise ValueError("verified orientation behavior requires cryptographic evidence")
             self.evidence.validate()
         elif self.evidence is not None:
@@ -152,12 +171,21 @@ class WasteArchitecture:
     faults: frozenset[str]
     orientation_cases: Mapping[Orientation, OrientationCase]
 
+    def __post_init__(self) -> None:
+        # Snapshot caller-owned mappings so a validated release object cannot change
+        # topology/evidence semantics after construction through external mutation.
+        if isinstance(self.orientation_cases, Mapping):
+            object.__setattr__(self, "orientation_cases", MappingProxyType(dict(self.orientation_cases)))
+
     def validate(self) -> None:
         """Validate intrinsic integrity while preserving historical provenance."""
-        if not _GIT_SHA_RE.fullmatch(self.source_main_sha):
+        if not isinstance(self.source_main_sha, str) or not _GIT_SHA_RE.fullmatch(self.source_main_sha):
             raise ValueError("source_main_sha must be a lowercase 40-character Git SHA")
-        if not self.authority_revision.strip():
-            raise ValueError("authority revision is required")
+        _require_nonblank_text(self.authority_revision, name="authority revision")
+        if not isinstance(self.envelope, CartridgeEnvelope):
+            raise ValueError("waste architecture envelope must be a CartridgeEnvelope")
+        if not isinstance(self.capacity, CapacityContract):
+            raise ValueError("waste architecture capacity must be a CapacityContract")
         self.envelope.validate()
         self.capacity.validate()
 
@@ -175,15 +203,21 @@ class WasteArchitecture:
                 "usable capacity exceeds the cartridge external bounding-volume upper bound"
             )
 
+        if not isinstance(self.faults, frozenset) or not all(isinstance(fault, str) and fault for fault in self.faults):
+            raise ValueError("mixed-phase faults must be an immutable frozenset of non-empty string identifiers")
         missing_faults = REQUIRED_MIXED_PHASE_FAULTS - self.faults
         if missing_faults:
             raise ValueError(f"mixed-phase fault registry incomplete: {sorted(missing_faults)}")
+        if not isinstance(self.orientation_cases, Mapping):
+            raise ValueError("orientation cases must be a mapping")
         supplied = frozenset(self.orientation_cases)
         if supplied != REQUIRED_ORIENTATIONS:
             missing = REQUIRED_ORIENTATIONS - supplied
             extra = supplied - REQUIRED_ORIENTATIONS
             raise ValueError(f"orientation registry mismatch; missing={sorted(x.value for x in missing)}, extra={sorted(str(x) for x in extra)}")
         for key, case in self.orientation_cases.items():
+            if not isinstance(case, OrientationCase):
+                raise ValueError("orientation mapping values must be OrientationCase records")
             if key is not case.orientation:
                 raise ValueError("orientation mapping key does not match case orientation")
             case.validate()
@@ -195,10 +229,9 @@ class WasteArchitecture:
         released as current merely because its recorded SHA/revision are syntactically valid.
         """
         self.validate()
-        if not _GIT_SHA_RE.fullmatch(expected_main_sha):
+        if not isinstance(expected_main_sha, str) or not _GIT_SHA_RE.fullmatch(expected_main_sha):
             raise ValueError("expected_main_sha must be a lowercase 40-character Git SHA")
-        if not expected_authority_revision.strip():
-            raise ValueError("expected_authority_revision is required")
+        _require_nonblank_text(expected_authority_revision, name="expected_authority_revision")
         if self.source_main_sha != expected_main_sha:
             raise ValueError("waste architecture is stale for the expected upstream main SHA")
         if self.authority_revision != expected_authority_revision:
@@ -206,12 +239,14 @@ class WasteArchitecture:
 
     def manifest_sha256(self) -> str:
         self.validate()
+
         def evidence_payload(evidence: EvidenceReference | None):
             return None if evidence is None else {
                 "evidence_id": evidence.evidence_id,
                 "revision": evidence.revision,
                 "artifact_sha256": evidence.artifact_sha256,
             }
+
         payload = {
             "source_main_sha": self.source_main_sha,
             "authority_revision": self.authority_revision,
