@@ -91,6 +91,14 @@ def test_nonfinite_cartridge_envelope_dimension_is_rejected(axis, value):
         replace(a, envelope=bad_envelope).validate()
 
 
+@pytest.mark.parametrize("axis", ["x_mm", "y_mm", "z_mm"])
+def test_boolean_cartridge_envelope_dimension_cannot_alias_numeric_length(axis):
+    a = architecture()
+    bad_envelope = replace(a.envelope, **{axis: True})
+    with pytest.raises(ValueError, match="finite numeric"):
+        replace(a, envelope=bad_envelope).validate()
+
+
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
 def test_nonfinite_retained_capacity_target_is_rejected(value):
     bad = replace(architecture(), capacity=CapacityContract(value, "VALIDATION_GATED"))
@@ -110,6 +118,15 @@ def test_nonfinite_verified_usable_capacity_is_rejected(value):
 
 def test_boolean_capacity_cannot_alias_numeric_volume():
     bad = replace(architecture(), capacity=CapacityContract(True, "VALIDATION_GATED"))
+    with pytest.raises(ValueError, match="finite numeric"):
+        bad.validate()
+
+
+def test_boolean_verified_usable_capacity_cannot_alias_numeric_volume():
+    evidence = EvidenceReference("capacity-rig-bool-alias", "r1", "8" * 64)
+    bad = replace(architecture(), capacity=CapacityContract(
+        35.0, "VALIDATION_GATED", usable_capacity_ml=True,
+        usable_capacity_state=EvidenceState.VERIFIED, evidence=evidence))
     with pytest.raises(ValueError, match="finite numeric"):
         bad.validate()
 
