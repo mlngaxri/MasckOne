@@ -10,6 +10,17 @@ SHA = "a" * 64
 WORLD = "MASCK_ONE_ROOT_WORLD_MM"
 
 
+class LyingStr(str):
+    def __eq__(self, other):
+        return True
+
+    def __ne__(self, other):
+        return False
+
+    def __hash__(self):
+        return str.__hash__(self)
+
+
 def seam(seam_id="shell.cheek"):
     return SeamTopologyBinding(seam_id, "patch.cheek", "patch.temple", "edge.outer", "edge.inner")
 
@@ -39,7 +50,7 @@ def test_manifest_is_deterministic_and_binds_continuity():
 def test_stale_geometry_and_local_frame_fail_closed():
     with pytest.raises(SurfaceTopologyError, match="stale"):
         manifest().assert_current_geometry("b" * 64)
-    with pytest.raises(SurfaceTopologyError, match="root/world"):
+    with pytest.raises(SurfaceTopologyError, match="coordinate frame"):
         SurfaceTopologyManifest(SHA, "LOCAL_MM", (seam(),))
 
 
@@ -49,6 +60,41 @@ def test_identity_aliases_and_reversed_orientation_are_rejected():
             seam(bad)
     with pytest.raises(SurfaceTopologyError, match="orientation"):
         SeamTopologyBinding("shell.cheek", "patch.temple", "patch.cheek", "edge.inner", "edge.outer")
+
+
+def test_hostile_string_subclasses_fail_at_all_topology_identity_boundaries():
+    with pytest.raises(SurfaceTopologyError, match="exact canonical"):
+        manifest().assert_current_geometry(LyingStr("b" * 64))
+    for field in ("seam_id", "patch_a_id", "patch_b_id", "patch_a_boundary_id", "patch_b_boundary_id"):
+        values = {
+            "seam_id": "shell.cheek",
+            "patch_a_id": "patch.cheek",
+            "patch_b_id": "patch.temple",
+            "patch_a_boundary_id": "edge.outer",
+            "patch_b_boundary_id": "edge.inner",
+        }
+        values[field] = LyingStr(values[field])
+        with pytest.raises(SurfaceTopologyError, match="exact canonical"):
+            SeamTopologyBinding(**values)
+    with pytest.raises(SurfaceTopologyError, match="coordinate frame"):
+        SurfaceTopologyManifest(SHA, LyingStr(WORLD), (seam(),))
+
+
+def test_hostile_string_subclasses_cannot_bypass_continuity_provenance_or_namespace():
+    report = continuity()
+    corrupt(report, "source_geometry_sha256", LyingStr("b" * 64))
+    with pytest.raises(SurfaceTopologyError):
+        manifest().assert_continuity_report(report)
+
+    report = continuity()
+    corrupt(report, "coordinate_frame", LyingStr(WORLD))
+    with pytest.raises(SurfaceTopologyError):
+        manifest().assert_continuity_report(report)
+
+    report = continuity()
+    corrupt(report.seams[0], "seam_id", LyingStr("shell.forehead"))
+    with pytest.raises(SurfaceTopologyError):
+        manifest().assert_continuity_report(report)
 
 
 def test_duplicate_boundary_ownership_and_duplicate_seam_ids_are_rejected():
@@ -111,6 +157,8 @@ def test_continuity_binding_revalidates_corrupted_seam_metrics(field, value):
 def test_evidence_promotion_and_mutation_are_blocked():
     with pytest.raises(SurfaceTopologyError, match="controlled"):
         SurfaceTopologyManifest(SHA, WORLD, (seam(),), evidence_status="CLASS_A_ACCEPTED")
+    with pytest.raises(SurfaceTopologyError, match="controlled"):
+        SurfaceTopologyManifest(SHA, WORLD, (seam(),), evidence_status=LyingStr("DIGITAL_TOPOLOGY_BINDING_ONLY_NOT_CLASS_A_OR_PHYSICAL_EVIDENCE"))
     for alias in (True, 1, "false"):
         with pytest.raises(SurfaceTopologyError, match="physical-validation"):
             SurfaceTopologyManifest(SHA, WORLD, (seam(),), physical_validation_eligible=alias)
