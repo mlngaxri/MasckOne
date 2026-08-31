@@ -44,7 +44,7 @@ class WasteRouteVolumeAccounting:
     accounting_state: str = _ACCOUNTING_STATE
     physical_performance_state: str = _PHYSICAL_STATE
 
-    def validate(
+    def _validate_sources(
         self,
         *,
         network: WasteRouteNetwork,
@@ -67,14 +67,21 @@ class WasteRouteVolumeAccounting:
         if type(self.physical_performance_state) is not str or self.physical_performance_state != _PHYSICAL_STATE:
             raise ValueError("geometric route accounting cannot promote physical performance")
 
-        stage_ids = self.segment_ids_by_stage(network=network, geometry=geometry)
+    def validate(
+        self,
+        *,
+        network: WasteRouteNetwork,
+        geometry: WasteRouteGeometryLedger,
+    ) -> None:
+        self._validate_sources(network=network, geometry=geometry)
+        stage_ids = self._segment_ids_by_stage_unchecked(network=network)
         classified = tuple(segment_id for ids in stage_ids.values() for segment_id in ids)
         topology_ids = tuple(sorted(segment.segment_id for segment in network.segments))
         if tuple(sorted(classified)) != topology_ids or len(classified) != len(set(classified)):
             raise ValueError("every waste route segment must classify into exactly one volume stage")
 
         stage_total = math.fsum(
-            self.geometric_volume_ml(stage, network=network, geometry=geometry)
+            self._geometric_volume_ml_unchecked(stage, stage_ids=stage_ids, geometry=geometry)
             for stage in WasteRouteVolumeStage
         )
         total = geometry.total_geometric_internal_volume_ml(network=network)
@@ -102,19 +109,15 @@ class WasteRouteVolumeAccounting:
             pending.extend(graph.get(current, ()))
         return False
 
-    def segment_ids_by_stage(
+    def _segment_ids_by_stage_unchecked(
         self,
         *,
         network: WasteRouteNetwork,
-        geometry: WasteRouteGeometryLedger,
     ) -> dict[WasteRouteVolumeStage, tuple[str, ...]]:
-        network.validate()
-        geometry.validate(network=network)
         graph = self._graph(network)
         pump_out = next(
             node.node_id for node in network.nodes.values() if node.kind is WasteNodeKind.PUMP_OUTLET
         )
-
         staged: dict[WasteRouteVolumeStage, list[str]] = {
             stage: [] for stage in WasteRouteVolumeStage
         }
@@ -131,11 +134,31 @@ class WasteRouteVolumeAccounting:
             else:
                 stage = WasteRouteVolumeStage.PRE_PUMP
             staged[stage].append(segment.segment_id)
-
         return {
             stage: tuple(sorted(segment_ids))
             for stage, segment_ids in staged.items()
         }
+
+    def segment_ids_by_stage(
+        self,
+        *,
+        network: WasteRouteNetwork,
+        geometry: WasteRouteGeometryLedger,
+    ) -> dict[WasteRouteVolumeStage, tuple[str, ...]]:
+        self.validate(network=network, geometry=geometry)
+        return self._segment_ids_by_stage_unchecked(network=network)
+
+    @staticmethod
+    def _geometric_volume_ml_unchecked(
+        stage: WasteRouteVolumeStage,
+        *,
+        stage_ids: dict[WasteRouteVolumeStage, tuple[str, ...]],
+        geometry: WasteRouteGeometryLedger,
+    ) -> float:
+        return math.fsum(
+            geometry.segments[segment_id].geometric_internal_volume_ml()
+            for segment_id in stage_ids[stage]
+        )
 
     def geometric_volume_ml(
         self,
@@ -146,8 +169,9 @@ class WasteRouteVolumeAccounting:
     ) -> float:
         if type(stage) is not WasteRouteVolumeStage:
             raise ValueError("stage must be an exact WasteRouteVolumeStage")
-        stage_ids = self.segment_ids_by_stage(network=network, geometry=geometry)[stage]
-        return math.fsum(geometry.segments[segment_id].geometric_internal_volume_ml() for segment_id in stage_ids)
+        self.validate(network=network, geometry=geometry)
+        stage_ids = self._segment_ids_by_stage_unchecked(network=network)
+        return self._geometric_volume_ml_unchecked(stage, stage_ids=stage_ids, geometry=geometry)
 
     def manifest_sha256(
         self,
@@ -156,7 +180,7 @@ class WasteRouteVolumeAccounting:
         geometry: WasteRouteGeometryLedger,
     ) -> str:
         self.validate(network=network, geometry=geometry)
-        stage_ids = self.segment_ids_by_stage(network=network, geometry=geometry)
+        stage_ids = self._segment_ids_by_stage_unchecked(network=network)
         payload = {
             "source_route_manifest_sha256": self.source_route_manifest_sha256,
             "source_geometry_manifest_sha256": self.source_geometry_manifest_sha256,
@@ -166,8 +190,8 @@ class WasteRouteVolumeAccounting:
                 {
                     "stage": stage.value,
                     "segment_ids": list(stage_ids[stage]),
-                    "geometric_volume_ml": self.geometric_volume_ml(
-                        stage, network=network, geometry=geometry
+                    "geometric_volume_ml": self._geometric_volume_ml_unchecked(
+                        stage, stage_ids=stage_ids, geometry=geometry
                     ),
                 }
                 for stage in WasteRouteVolumeStage
