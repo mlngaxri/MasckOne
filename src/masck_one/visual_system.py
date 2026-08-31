@@ -17,6 +17,8 @@ _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 _HEX_RE = re.compile(r"^#[0-9a-f]{6}$")
 _ALLOWED_APPEARANCES = frozenset(("light", "dark", "high-contrast"))
 _ALLOWED_TYPE_ROLES = frozenset(("display", "title", "body", "label", "metadata", "numeric"))
+_MIN_TEXT_CONTRAST = 4.5
+_MIN_FOCUS_CONTRAST = 3.0
 
 
 def _text(value: object, label: str) -> str:
@@ -56,6 +58,18 @@ def _number(value: object, label: str, *, minimum: float, maximum: float) -> flo
     if not minimum <= result <= maximum:
         raise VisualSystemError(f"{label} must be within [{minimum}, {maximum}]")
     return 0.0 if result == 0.0 else result
+
+
+def _relative_luminance(color: str) -> float:
+    """WCAG sRGB relative luminance for an already canonical #rrggbb color."""
+    channels = tuple(int(color[index:index + 2], 16) / 255.0 for index in (1, 3, 5))
+    linear = tuple(channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4 for channel in channels)
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+
+def _contrast_ratio(first: str, second: str) -> float:
+    lighter, darker = sorted((_relative_luminance(first), _relative_luminance(second)), reverse=True)
+    return (lighter + 0.05) / (darker + 0.05)
 
 
 @dataclass(frozen=True, slots=True)
@@ -111,10 +125,10 @@ class AppearanceRole:
             raise VisualSystemError("Appearance must be light, dark, or high-contrast")
         for label, value in (("Surface", self.surface), ("Text", self.text), ("Accent", self.accent), ("Divider", self.divider), ("Focus", self.focus)):
             _hex(value, label)
-        if self.surface == self.text:
-            raise VisualSystemError("Surface and text colors must differ")
-        if self.focus == self.surface:
-            raise VisualSystemError("Focus indication must remain visible against its surface")
+        if _contrast_ratio(self.surface, self.text) < _MIN_TEXT_CONTRAST:
+            raise VisualSystemError("Text must provide at least 4.5:1 contrast against its surface")
+        if _contrast_ratio(self.surface, self.focus) < _MIN_FOCUS_CONTRAST:
+            raise VisualSystemError("Focus indication must provide at least 3:1 contrast against its surface")
 
     def manifest(self) -> dict[str, str]:
         self.__post_init__()
