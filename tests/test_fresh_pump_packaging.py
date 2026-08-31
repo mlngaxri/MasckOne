@@ -125,6 +125,18 @@ def test_hostile_string_aliases_fail_at_identity_boundary(built):
         replace(architecture, source_water_architecture_sha256=LyingStr("a" * 64))
 
 
+def test_status_tokens_cannot_be_spoofed_by_substring_aliases(built):
+    *_, architecture = built
+    with pytest.raises(FreshPumpPackagingError, match="package selection must remain unresolved"):
+        replace(architecture.stations[0], package_status="NOT_UNRESOLVED_BUT_CONTAINS_TOKEN")
+    with pytest.raises(FreshPumpPackagingError, match="metering performance must remain validation gated"):
+        replace(architecture.stations[0], metering_performance_status="NOT_VALIDATION_GATED_BUT_CONTAINS_TOKEN")
+    with pytest.raises(FreshPumpPackagingError, match="route geometry must remain unresolved"):
+        replace(architecture.routes[0], geometry_status="NOT_UNRESOLVED_BUT_CONTAINS_TOKEN")
+    with pytest.raises(FreshPumpPackagingError, match="route hydraulics must remain validation gated"):
+        replace(architecture.routes[0], hydraulic_status="NOT_VALIDATION_GATED_BUT_CONTAINS_TOKEN")
+
+
 def test_manifest_is_deterministic_and_not_physical_evidence(built):
     water, cleanser, frame, architecture = built
     second = build_fresh_pump_packaging_architecture(water, cleanser, frame)
