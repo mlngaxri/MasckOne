@@ -51,9 +51,19 @@ def test_requires_complete_adaptive_appearance_set():
     with pytest.raises(VisualSystemError): system(appearances=duplicate_dark)
 
 
-def test_rejects_invisible_text_or_focus_identity():
-    with pytest.raises(VisualSystemError): AppearanceRole("x", "light", "#ffffff", "#ffffff", "#000000", "#cccccc", "#000000")
-    with pytest.raises(VisualSystemError): AppearanceRole("x", "light", "#ffffff", "#000000", "#111111", "#cccccc", "#ffffff")
+def test_rejects_insufficient_text_or_focus_contrast():
+    with pytest.raises(VisualSystemError):
+        AppearanceRole("x", "light", "#ffffff", "#777777", "#000000", "#cccccc", "#000000")
+    with pytest.raises(VisualSystemError):
+        AppearanceRole("x", "light", "#ffffff", "#000000", "#111111", "#cccccc", "#999999")
+    AppearanceRole("x", "light", "#ffffff", "#767676", "#111111", "#cccccc", "#949494")
+
+
+def test_identity_difference_does_not_masquerade_as_accessibility():
+    with pytest.raises(VisualSystemError):
+        AppearanceRole("x", "light", "#ffffff", "#fffffe", "#000000", "#cccccc", "#000000")
+    with pytest.raises(VisualSystemError):
+        AppearanceRole("x", "light", "#ffffff", "#000000", "#111111", "#cccccc", "#fffffe")
 
 
 def test_typography_bounds_fail_closed():
