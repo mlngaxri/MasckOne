@@ -186,3 +186,57 @@ def test_current_release_requires_exact_expected_identity():
     architecture().validate_current_release(expected_main_sha=MAIN_SHA, expected_authority_revision=AUTHORITY_REVISION)
     with pytest.raises(ValueError, match="expected_main_sha"):
         architecture().validate_current_release(expected_main_sha="main", expected_authority_revision=AUTHORITY_REVISION)
+
+
+def test_orientation_mapping_is_snapshotted_against_external_mutation():
+    source_cases = cases()
+    a = WasteArchitecture(
+        source_main_sha=MAIN_SHA,
+        authority_revision=AUTHORITY_REVISION,
+        envelope=CartridgeEnvelope(74.0, 36.0, 20.0, "ENGINEERING_BASELINE"),
+        capacity=CapacityContract(35.0, "VALIDATION_GATED"),
+        faults=REQUIRED_MIXED_PHASE_FAULTS,
+        orientation_cases=source_cases,
+    )
+    a.validate()
+    identity = a.manifest_sha256()
+    source_cases.pop(Orientation.FACE_DOWN)
+    source_cases[Orientation.UPRIGHT] = replace(source_cases[Orientation.UPRIGHT], pickup_assumption="tampered")
+    a.validate()
+    assert len(a.orientation_cases) == len(REQUIRED_ORIENTATIONS)
+    assert a.manifest_sha256() == identity
+
+
+@pytest.mark.parametrize("bad_state", ["UNRESOLVED", "VERIFIED", None, 0, False])
+def test_capacity_evidence_state_requires_enum_instance(bad_state):
+    bad = replace(architecture(), capacity=CapacityContract(
+        35.0, "VALIDATION_GATED", usable_capacity_state=bad_state
+    ))
+    with pytest.raises(ValueError, match="EvidenceState"):
+        bad.validate()
+
+
+@pytest.mark.parametrize("bad_state", ["VALIDATION_GATED", "VERIFIED", None, 0, False])
+def test_orientation_evidence_state_requires_enum_instance(bad_state):
+    a = architecture()
+    changed = dict(a.orientation_cases)
+    changed[Orientation.UPRIGHT] = replace(changed[Orientation.UPRIGHT], evidence_state=bad_state)
+    with pytest.raises(ValueError, match="EvidenceState"):
+        replace(a, orientation_cases=changed).validate()
+
+
+def test_mutable_fault_registry_is_rejected():
+    with pytest.raises(ValueError, match="immutable frozenset"):
+        replace(architecture(), faults=set(REQUIRED_MIXED_PHASE_FAULTS)).validate()
+
+
+def test_false_like_absorbent_credit_alias_is_rejected():
+    bad = replace(architecture(), capacity=replace(architecture().capacity, credits_absorbent_media_volume=0))
+    with pytest.raises(ValueError, match="literal bool"):
+        bad.validate()
+
+
+def test_malformed_evidence_text_fails_closed_with_value_error():
+    evidence = EvidenceReference(None, "r1", "a" * 64)
+    with pytest.raises(ValueError, match="evidence id"):
+        evidence.validate()
