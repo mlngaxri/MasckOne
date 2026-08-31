@@ -61,6 +61,16 @@ def test_parallel_pump_to_cartridge_path_cannot_bypass_backflow_barrier():
         bypassed.validate()
 
 
+def test_pump_outlet_cannot_recirculate_to_pump_inlet():
+    n = network()
+    recirculating = replace(
+        n,
+        segments=n.segments + (WasteRouteSegment("pump_recirculation", "barrier", "pump_in", True),),
+    )
+    with pytest.raises(ValueError, match="recirculate to the pump inlet"):
+        recirculating.validate()
+
+
 def test_acquisition_cannot_bypass_pump_stage_into_discharge_path():
     n = network()
     bypassed = replace(n, segments=n.segments + (WasteRouteSegment("acq_bypass", "buffer", "pump_out", True),))
