@@ -7,6 +7,13 @@ from masck_one.waste_routes import WasteNode, WasteNodeKind, WasteRouteNetwork, 
 SOURCE = "a" * 64
 
 
+class LyingStr(str):
+    def __eq__(self, other):
+        return True
+    def __hash__(self):
+        return str.__hash__(self)
+
+
 def network():
     nodes = {
         "acq_eye_safe": WasteNode("acq_eye_safe", WasteNodeKind.REGIONAL_ACQUISITION, True),
@@ -63,40 +70,33 @@ def test_parallel_pump_to_cartridge_path_cannot_bypass_backflow_barrier():
 
 def test_pump_outlet_cannot_recirculate_to_pump_inlet():
     n = network()
-    recirculating = replace(
-        n,
-        segments=n.segments + (WasteRouteSegment("pump_recirculation", "barrier", "pump_in", True),),
-    )
+    recirculating = replace(n, segments=n.segments + (WasteRouteSegment("pump_recirculation", "barrier", "pump_in", True),))
     with pytest.raises(ValueError, match="recirculate to the pump inlet"):
         recirculating.validate()
 
 
 def test_acquisition_cannot_bypass_pump_stage_into_discharge_path():
     n = network()
-    bypassed = replace(n, segments=n.segments + (WasteRouteSegment("acq_bypass", "buffer", "pump_out", True),))
     with pytest.raises(ValueError, match="bypasses the pump stage boundary"):
-        bypassed.validate()
+        replace(n, segments=n.segments + (WasteRouteSegment("acq_bypass", "buffer", "pump_out", True),)).validate()
 
 
 def test_acquisition_cannot_bypass_pump_directly_into_cartridge():
     n = network()
-    bypassed = replace(n, segments=n.segments + (WasteRouteSegment("cart_bypass", "buffer", "cart_in", True),))
     with pytest.raises(ValueError, match="bypasses the pump stage boundary"):
-        bypassed.validate()
+        replace(n, segments=n.segments + (WasteRouteSegment("cart_bypass", "buffer", "cart_in", True),)).validate()
 
 
 def test_cartridge_retention_is_terminal():
     n = network()
-    cycled = replace(n, segments=n.segments + (WasteRouteSegment("retention_cycle", "retention", "cart_in", True),))
     with pytest.raises(ValueError, match="terminal"):
-        cycled.validate()
+        replace(n, segments=n.segments + (WasteRouteSegment("retention_cycle", "retention", "cart_in", True),)).validate()
 
 
 def test_cartridge_cannot_cycle_back_into_pump_stage():
     n = network()
-    cycled = replace(n, segments=n.segments + (WasteRouteSegment("pump_cycle", "cart_in", "pump_in", True),))
     with pytest.raises(ValueError, match="cycle back"):
-        cycled.validate()
+        replace(n, segments=n.segments + (WasteRouteSegment("pump_cycle", "cart_in", "pump_in", True),)).validate()
 
 
 def test_disconnected_regional_acquisition_is_rejected():
@@ -161,26 +161,31 @@ def test_segments_container_must_be_immutable_tuple():
 
 
 def test_node_mapping_is_snapshotted_against_post_construction_mutation():
-    nodes = {
-        "acq_eye_safe": WasteNode("acq_eye_safe", WasteNodeKind.REGIONAL_ACQUISITION, True),
-        "buffer": WasteNode("buffer", WasteNodeKind.TRANSIENT_BUFFER),
-        "pump_in": WasteNode("pump_in", WasteNodeKind.PUMP_INLET),
-        "pump_out": WasteNode("pump_out", WasteNodeKind.PUMP_OUTLET),
-        "barrier": WasteNode("barrier", WasteNodeKind.PASSIVE_BACKFLOW_BARRIER),
-        "cart_in": WasteNode("cart_in", WasteNodeKind.CARTRIDGE_INLET),
-        "retention": WasteNode("retention", WasteNodeKind.CARTRIDGE_RETENTION),
-    }
-    segments = (
-        WasteRouteSegment("s1", "acq_eye_safe", "buffer", True),
-        WasteRouteSegment("s2", "buffer", "pump_in", True),
-        WasteRouteSegment("s3", "pump_out", "barrier", True),
-        WasteRouteSegment("s4", "barrier", "cart_in", True),
-        WasteRouteSegment("s5", "cart_in", "retention", True),
-    )
-    n = WasteRouteNetwork(SOURCE, nodes, segments)
+    nodes = dict(network().nodes)
+    n = WasteRouteNetwork(SOURCE, nodes, network().segments)
     before = n.manifest_sha256()
     nodes["evil"] = WasteNode("evil", WasteNodeKind.TRANSIENT_BUFFER)
     del nodes["barrier"]
     assert "evil" not in n.nodes
     assert "barrier" in n.nodes
     assert n.manifest_sha256() == before
+
+
+@pytest.mark.parametrize("field", ["segment_id", "source_node_id", "target_node_id"])
+def test_hostile_string_subclass_cannot_cross_route_identity_boundary(field):
+    n = network(); segments = list(n.segments)
+    segments[0] = replace(segments[0], **{field: LyingStr(getattr(segments[0], field))})
+    with pytest.raises(ValueError, match="exact built-in"):
+        replace(n, segments=tuple(segments)).validate()
+
+
+def test_hostile_string_subclass_cannot_alias_stale_source_sha():
+    with pytest.raises(ValueError, match="exact built-in"):
+        network().validate_current_source(expected_waste_architecture_sha256=LyingStr("b" * 64))
+
+
+def test_hostile_string_subclass_cannot_enter_node_mapping_namespace():
+    n = network(); nodes = dict(n.nodes); node = nodes.pop("buffer")
+    nodes[LyingStr("buffer")] = node
+    with pytest.raises(ValueError, match="exact built-in"):
+        replace(n, nodes=nodes).validate()
