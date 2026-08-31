@@ -15,7 +15,6 @@ _SCHEMA = "MASCK_ONE_DESIGN_LANGUAGE_V1"
 _EVIDENCE = "PRESENTATION_CONTRACT_ONLY_NOT_ENGINEERING_OR_PHYSICAL_EVIDENCE"
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 _HEX_RE = re.compile(r"^#[0-9a-f]{6}$")
-# Shared tokens must have an implementation-independent meaning in web and app.
 _PORTABLE_EASINGS = frozenset(("linear", "standard", "decelerate", "accelerate", "emphasized"))
 _REDUCED_MOTION_BEHAVIORS = frozenset(("fade", "instant", "static"))
 _MIN_TEXT_CONTRAST = 4.5
@@ -44,7 +43,10 @@ def _hex(value: object, label: str) -> str:
 def _number(value: object, label: str, *, minimum: float = 0.0) -> float:
     if type(value) not in (int, float):
         raise DesignLanguageError(f"{label} must be an exact numeric value")
-    result = float(value)
+    try:
+        result = float(value)
+    except (OverflowError, ValueError):
+        raise DesignLanguageError(f"{label} must be representable as a finite binary64 value") from None
     if not minimum <= result < float("inf"):
         raise DesignLanguageError(f"{label} must be finite and >= {minimum}")
     return 0.0 if result == 0.0 else result
