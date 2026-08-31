@@ -43,6 +43,12 @@ def test_seams_require_canonical_unique_order() -> None:
         report(a, a)
 
 
+@pytest.mark.parametrize("bad_id", [" seam", "seam ", "SEAM", "seam/left", "séam", ""])
+def test_seam_identity_requires_canonical_lowercase_namespace(bad_id: str) -> None:
+    with pytest.raises(SurfaceContinuityError, match="canonical lowercase"):
+        seam(bad_id)
+
+
 @pytest.mark.parametrize("bad", [math.nan, math.inf, -0.01, True, 10**1000])
 def test_metrics_fail_closed_on_invalid_numeric_values(bad: object) -> None:
     with pytest.raises(SurfaceContinuityError):
