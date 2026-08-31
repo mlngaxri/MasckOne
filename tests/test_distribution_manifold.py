@@ -182,8 +182,15 @@ def test_status_promotions_and_hostile_string_subclasses_fail_closed(built):
 
     with pytest.raises(DistributionManifoldError, match="branch geometry status"):
         replace(branch, geometry_status=LyingStr(BRANCH_GEOMETRY_STATUS))
+    with pytest.raises(DistributionManifoldError, match="outlet ID"):
+        replace(outlet, outlet_id=LyingStr(outlet.outlet_id))
     with pytest.raises(DistributionManifoldError, match="realization status"):
         replace(outlet, realization_status=LyingStr(OUTLET_REALIZATION_STATUS))
+    with pytest.raises(DistributionManifoldError, match="source authority revision"):
+        replace(
+            manifold,
+            source_authority_revision=LyingStr(manifold.source_authority_revision),
+        )
     with pytest.raises(DistributionManifoldError, match="evidence status"):
         replace(manifold, evidence_status=LyingStr(ARCHITECTURE_EVIDENCE_STATUS))
 
