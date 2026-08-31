@@ -10,6 +10,17 @@ PROTECTED = "b" * 64
 FRAME = "ROOT_WORLD"
 
 
+class LyingStr(str):
+    """Adversarial string whose comparisons falsely claim identity."""
+    def __eq__(self, other):
+        return True
+
+    def __ne__(self, other):
+        return False
+
+    __hash__ = str.__hash__
+
+
 def composite(moving=MOVING, protected=PROTECTED, frame=FRAME):
     payload = {
         "coordinate_frame_id": frame,
@@ -84,6 +95,37 @@ def test_noncanonical_sha_and_identity_aliases_fail_closed():
     b = binding()
     with pytest.raises(ValueError):
         b.assert_positive_clearance(current_moving_geometry_sha256=MOVING, current_protected_geometry_sha256=PROTECTED, coordinate_frame_id=" ROOT_WORLD")
+
+
+def test_lying_string_subclasses_cannot_bypass_provenance_or_frame_gates():
+    b = binding()
+    with pytest.raises(ValueError, match="exact built-in"):
+        b.assert_positive_clearance(
+            current_moving_geometry_sha256=LyingStr("c" * 64),
+            current_protected_geometry_sha256=PROTECTED,
+            coordinate_frame_id=FRAME,
+        )
+    with pytest.raises(ValueError, match="exact built-in"):
+        b.assert_positive_clearance(
+            current_moving_geometry_sha256=MOVING,
+            current_protected_geometry_sha256=LyingStr("c" * 64),
+            coordinate_frame_id=FRAME,
+        )
+    with pytest.raises(ValueError, match="exact built-in"):
+        b.assert_positive_clearance(
+            current_moving_geometry_sha256=MOVING,
+            current_protected_geometry_sha256=PROTECTED,
+            coordinate_frame_id=LyingStr("ACTUATOR_LOCAL"),
+        )
+
+
+def test_lying_string_subclasses_are_rejected_at_construction_boundaries():
+    with pytest.raises(ValueError, match="exact built-in"):
+        binding(moving=LyingStr(MOVING))
+    with pytest.raises(ValueError, match="exact built-in"):
+        binding(protected=LyingStr(PROTECTED))
+    with pytest.raises(ValueError, match="exact built-in"):
+        CollisionClearanceBinding(LyingStr("BINDING"), FRAME, MOVING, PROTECTED, binding().clearance_stack)
 
 
 def test_structural_lookalike_clearance_stack_is_rejected():
