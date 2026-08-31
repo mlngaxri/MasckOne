@@ -13,6 +13,7 @@ class SurfaceTopologyError(ValueError):
 
 
 _SCHEMA = "MASCK_ONE_SURFACE_TOPOLOGY_V1"
+_BINDING_SCHEMA = "MASCK_ONE_TOPOLOGY_CONTINUITY_BINDING_V1"
 _WORLD_FRAME = "MASCK_ONE_ROOT_WORLD_MM"
 _EVIDENCE_STATUS = "DIGITAL_TOPOLOGY_BINDING_ONLY_NOT_CLASS_A_OR_PHYSICAL_EVIDENCE"
 _ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
@@ -61,10 +62,7 @@ class SeamTopologyBinding:
     @property
     def endpoints(self) -> tuple[tuple[str, str], tuple[str, str]]:
         self.__post_init__()
-        return (
-            (self.patch_a_id, self.patch_a_boundary_id),
-            (self.patch_b_id, self.patch_b_boundary_id),
-        )
+        return ((self.patch_a_id, self.patch_a_boundary_id), (self.patch_b_id, self.patch_b_boundary_id))
 
     def manifest(self) -> dict[str, str]:
         self.__post_init__()
@@ -75,6 +73,42 @@ class SeamTopologyBinding:
             "patch_a_boundary_id": self.patch_a_boundary_id,
             "patch_b_boundary_id": self.patch_b_boundary_id,
         }
+
+
+@dataclass(frozen=True, slots=True)
+class TopologyContinuityBinding:
+    """Immutable proof that continuity metrics were evaluated for one exact topology."""
+
+    topology_manifest_sha256: str
+    report: SurfaceContinuityReport
+    evidence_status: str = _EVIDENCE_STATUS
+    physical_validation_eligible: bool = False
+
+    def __post_init__(self) -> None:
+        _canonical_sha(self.topology_manifest_sha256, "Topology manifest identity")
+        if type(self.report) is not SurfaceContinuityReport:
+            raise SurfaceTopologyError("Topology continuity binding requires an exact SurfaceContinuityReport")
+        try:
+            self.report.__post_init__()
+        except (SurfaceContinuityError, TypeError, ValueError) as exc:
+            raise SurfaceTopologyError("Continuity report failed contract revalidation") from exc
+        _canonical_controlled_text(self.evidence_status, _EVIDENCE_STATUS, "Topology continuity evidence status")
+        if type(self.physical_validation_eligible) is not bool or self.physical_validation_eligible:
+            raise SurfaceTopologyError("Digital topology continuity cannot be physical-validation evidence")
+
+    @property
+    def binding_sha256(self) -> str:
+        self.__post_init__()
+        payload = {
+            "schema": _BINDING_SCHEMA,
+            "topology_manifest_sha256": self.topology_manifest_sha256,
+            "report_source_geometry_sha256": self.report.source_geometry_sha256,
+            "report_coordinate_frame": self.report.coordinate_frame,
+            "report_seam_ids": [seam.seam_id for seam in self.report.seams],
+            "evidence_status": self.evidence_status,
+            "physical_validation_eligible": self.physical_validation_eligible,
+        }
+        return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,7 +144,23 @@ class SurfaceTopologyManifest:
         if current != self.source_geometry_sha256:
             raise SurfaceTopologyError("Surface topology manifest is stale for the current geometry")
 
-    def assert_continuity_report(self, report: object) -> None:
+    def bind_continuity_report(self, report: SurfaceContinuityReport) -> TopologyContinuityBinding:
+        """Create provenance only after validating report against this exact topology."""
+        self._assert_report_contract(report)
+        return TopologyContinuityBinding(self.manifest_sha256, report)
+
+    def assert_continuity_report(self, binding: object) -> None:
+        """Accept continuity evidence only when it is bound to this exact endpoint topology."""
+        self.__post_init__()
+        if type(binding) is not TopologyContinuityBinding:
+            raise SurfaceTopologyError("Continuity binding requires an exact TopologyContinuityBinding")
+        binding.__post_init__()
+        bound_topology = _canonical_sha(binding.topology_manifest_sha256, "Bound topology manifest identity")
+        if bound_topology != self.manifest_sha256:
+            raise SurfaceTopologyError("Continuity binding belongs to a different topology manifest")
+        self._assert_report_contract(binding.report)
+
+    def _assert_report_contract(self, report: object) -> None:
         self.__post_init__()
         if type(report) is not SurfaceContinuityReport:
             raise SurfaceTopologyError("Continuity binding requires an exact SurfaceContinuityReport")
