@@ -4,7 +4,8 @@ import pytest
 
 from masck_one.waste_system import (
     CapacityContract, CartridgeEnvelope, EvidenceReference, EvidenceState,
-    Orientation, OrientationCase, REQUIRED_MIXED_PHASE_FAULTS, WasteArchitecture,
+    Orientation, OrientationCase, REQUIRED_MIXED_PHASE_FAULTS, REQUIRED_ORIENTATIONS,
+    WasteArchitecture,
 )
 
 MAIN_SHA = "cdcc6c5d7041a4b0d7594a7c8aa4fc58a8346207"
