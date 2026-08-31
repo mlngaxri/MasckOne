@@ -18,11 +18,32 @@ def stack(**kw):
     return ClearanceStack(**base)
 
 
-def test_worst_case_enumerates_adverse_endpoints_and_rounds_conservatively():
+def test_worst_case_uses_adverse_tolerance_magnitudes_and_rounds_conservatively():
     s = stack()
     got = s.worst_case_clearance_mm(current_geometry_sha256=SHA, coordinate_frame_id="ROOT_WORLD")
     assert got < 0.6
     assert math.isclose(got, 0.6, rel_tol=0.0, abs_tol=2e-16)
+
+
+def test_large_nominal_dimension_cannot_erase_small_tolerance():
+    s = stack(
+        nominal_clearance_mm=0.5,
+        contributions=(("LARGE_DATUM", ScalarTolerance(1e20, 1.0, 1.0), 1),),
+    )
+    got = s.worst_case_clearance_mm(current_geometry_sha256=SHA, coordinate_frame_id="ROOT_WORLD")
+    assert got < -0.5
+    with pytest.raises(RuntimeError, match="nonpositive"):
+        s.assert_positive_clearance(current_geometry_sha256=SHA, coordinate_frame_id="ROOT_WORLD")
+
+
+@pytest.mark.parametrize("sensitivity", [1, -1])
+def test_large_nominal_cancellation_is_rejected_for_both_sensitivity_directions(sensitivity):
+    s = stack(
+        nominal_clearance_mm=0.25,
+        contributions=(("LARGE_DATUM", ScalarTolerance(1e20, 0.5, 0.75), sensitivity),),
+    )
+    with pytest.raises(RuntimeError, match="nonpositive"):
+        s.assert_positive_clearance(current_geometry_sha256=SHA, coordinate_frame_id="ROOT_WORLD")
 
 
 def test_nonpositive_worst_case_fails_closed():
