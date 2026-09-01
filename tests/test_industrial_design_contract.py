@@ -18,6 +18,7 @@ def nominal():
         "ID_EYE_APERTURE_CANT_R": 2.0, "ID_NOSE_PROJECTION_ABOVE_FIELD": 1.0,
         "ID_RETENTION_VISIBLE_WIDTH_L": 10.0, "ID_RETENTION_VISIBLE_WIDTH_R": 10.0,
         "ID_SIDE_HARDWARE_PROJECTION_L": 1.0, "ID_SIDE_HARDWARE_PROJECTION_R": 1.0,
+        "ID_SIDE_HARDWARE_STEP_L": 0.25, "ID_SIDE_HARDWARE_STEP_R": 0.25,
     }
 
 
@@ -64,6 +65,10 @@ def test_retention_visual_burden_and_side_hardware_integration_fail_closed():
     with pytest.raises(IndustrialDesignContractError, match="attached pod"): validate_measurements(values)
     values = nominal(); values["ID_SIDE_HARDWARE_PROJECTION_R"] = 1.8
     with pytest.raises(IndustrialDesignContractError, match="side hardware projection asymmetry"): validate_measurements(values)
+    values = nominal(); values["ID_SIDE_HARDWARE_STEP_L"] = 0.51
+    with pytest.raises(IndustrialDesignContractError, match="abrupt local step"): validate_measurements(values)
+    values = nominal(); values["ID_SIDE_HARDWARE_STEP_R"] = 0.50
+    with pytest.raises(IndustrialDesignContractError, match="local-step asymmetry"): validate_measurements(values)
 
 
 def test_service_grip_and_control_tactility_fail_closed():
