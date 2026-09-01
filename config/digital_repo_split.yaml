@@ -1,0 +1,52 @@
+schema: MASCK_ONE_DIGITAL_REPO_SPLIT_V1
+source_repository: mlngaxri/MasckOne
+digital_release_root: generated/digital_product_release/
+shared_contract_package: null
+allowed_consumer_roots:
+  - generated/digital_product_release/
+workspaces:
+  web:
+    future_repository: MasckOne-Web
+    current_prefix: products/web/
+    build_command: npm run build
+    test_command: npm test --if-present
+    typecheck_command: npm run typecheck --if-present
+    deployment_target: Vercel
+    environment_schema:
+      - name: NEXT_PUBLIC_DIGITAL_RELEASE_URL
+        secret: false
+      - name: NEXT_PUBLIC_ANALYTICS_PROVIDER
+        secret: false
+      - name: ANALYTICS_WRITE_KEY
+        secret: true
+      - name: RESERVATION_PROVIDER_SECRET
+        secret: true
+    history_split_command: git filter-repo --path products/web/ --path-rename products/web/:
+  app:
+    future_repository: MasckOne-App
+    current_prefix: products/app/
+    build_command: npm run build
+    test_command: npm test --if-present
+    typecheck_command: npm run typecheck --if-present
+    deployment_target: Expo-EAS
+    environment_schema:
+      - name: EXPO_PUBLIC_DIGITAL_RELEASE_URL
+        secret: false
+      - name: EXPO_PUBLIC_ANALYTICS_PROVIDER
+        secret: false
+    history_split_command: git filter-repo --path products/app/ --path-rename products/app/:
+import_policy:
+  rule: FRONTENDS_CONSUME_EXPORTED_RELEASES_ONLY
+  forbidden_direct_roots:
+    - src/
+    - config/masck_one_authority.yaml
+    - schemas/
+    - tests/
+    - cad/
+  migration_is_administrative_not_rewrite: true
+release_policy:
+  require_content_sha256: true
+  require_source_provenance_sha256: true
+  require_hardware_commit_binding: true
+  reject_stale_release: true
+  physical_evidence_promotion_forbidden: true
