@@ -1,7 +1,9 @@
 """Inertial retention load-path sensitivity model.
 
-This is a deterministic preflight for head-motion load cases. It does not establish
-comfort, human acceleration exposure, strap friction, dynamic damping or fatigue life.
+Deterministic preflight for prescribed head-motion load cases. Coordinate contract:
++x = wearer right (lateral), +y = anterior, +z = superior. CG offsets are measured
++from the retention support reference. Moments are computed from r x F. Outputs do
++not establish comfort, human acceleration exposure, damping or fatigue life.
 """
 from __future__ import annotations
 
@@ -27,6 +29,7 @@ class InertialRetentionInputs:
     fore_aft_accel_g: float
     cg_lateral_mm: float
     cg_anterior_mm: float
+    cg_vertical_mm: float
     bilateral_support_span_mm: float
     vertical_support_span_mm: float
 
@@ -54,40 +57,39 @@ class InertialRetentionResult:
 
 
 def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetentionResult:
-    """Resolve prescribed translational inertia and CG moments into support couples.
+    """Resolve prescribed translational loads and CG moments into support couples.
 
-    Signed accelerations and CG offsets are retained for moment direction. Couple-force
-    outputs are magnitudes because opposite support reactions form each couple.
-    A required nonzero moment with zero corresponding support span fails closed.
+    With r=(x,y,z) and F=(Fx,Fy,0), r x F gives yaw Mz=x*Fy-y*Fx and
+    pitch Mx=-z*Fy. This deliberately prevents an anterior offset parallel to a
+    fore-aft force from creating a fictitious pitch moment.
     """
     p.validate()
     mass_kg = p.loaded_mass_g / 1000.0
     lateral = mass_kg * p.lateral_accel_g * G
     fore_aft = mass_kg * p.fore_aft_accel_g * G
     resultant = hypot(lateral, fore_aft)
-    yaw = lateral * p.cg_anterior_mm / 1000.0 + fore_aft * p.cg_lateral_mm / 1000.0
-    pitch = fore_aft * p.cg_anterior_mm / 1000.0
+    x = p.cg_lateral_mm / 1000.0
+    y = p.cg_anterior_mm / 1000.0
+    z = p.cg_vertical_mm / 1000.0
+    yaw = x * fore_aft - y * lateral
+    pitch = -z * fore_aft
 
     if yaw == 0.0:
         yaw_force, yaw_closed = 0.0, True
     elif p.bilateral_support_span_mm > 0.0:
-        yaw_force = abs(yaw) / (p.bilateral_support_span_mm / 1000.0)
-        yaw_closed = True
+        yaw_force, yaw_closed = abs(yaw) / (p.bilateral_support_span_mm / 1000.0), True
     else:
         yaw_force, yaw_closed = None, False
 
     if pitch == 0.0:
         pitch_force, pitch_closed = 0.0, True
     elif p.vertical_support_span_mm > 0.0:
-        pitch_force = abs(pitch) / (p.vertical_support_span_mm / 1000.0)
-        pitch_closed = True
+        pitch_force, pitch_closed = abs(pitch) / (p.vertical_support_span_mm / 1000.0), True
     else:
         pitch_force, pitch_closed = None, False
 
-    return InertialRetentionResult(
-        lateral, fore_aft, resultant, yaw, pitch, yaw_force, pitch_force,
-        yaw_closed, pitch_closed,
-    )
+    return InertialRetentionResult(lateral, fore_aft, resultant, yaw, pitch,
+                                   yaw_force, pitch_force, yaw_closed, pitch_closed)
 
 
 def inertial_retention_doe(
@@ -106,8 +108,7 @@ def inertial_retention_doe(
         lat = _finite(lat, "DOE lateral_accel_g")
         for fore in fore_aft_accel_g:
             fore = _finite(fore, "DOE fore_aft_accel_g")
-            p = InertialRetentionInputs(**{
-                **base.__dict__, "lateral_accel_g": lat, "fore_aft_accel_g": fore,
-            })
-            out.append(evaluate_inertial_retention(p))
+            q = InertialRetentionInputs(**{**base.__dict__, "lateral_accel_g": lat,
+                                          "fore_aft_accel_g": fore})
+            out.append(evaluate_inertial_retention(q))
     return tuple(out)
