@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
+import re
 
+from .authority import Authority
 from .power_thermal_contract import PowerThermalEvidenceContract
 
 
@@ -61,6 +63,7 @@ STATE_CONTRACT_REVISION = "CELL4_DEVICE_STATE_V1_2026_09_01"
 FLUID_ANIMATION_BLOCK_REASON = (
     "BLOCKED_UNTIL_A_RELEASED_FLUID_ROUTING_CONTRACT_PROVIDES_EXACT_ROUTE_SOURCE_DESTINATION_PHASE_PROVENANCE"
 )
+_SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 
 
 def _text(value: object, *, label: str) -> str:
@@ -69,10 +72,17 @@ def _text(value: object, *, label: str) -> str:
     return value
 
 
+def _sha256(value: object, *, label: str) -> str:
+    if type(value) is not str or _SHA256_RE.fullmatch(value) is None:
+        raise Cell4DeviceStateError(f"{label} must be a canonical lowercase SHA-256")
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class DeviceStateSnapshot:
     contract_revision: str
     authority_revision: str
+    source_power_thermal_sha256: str
     transport: TransportMode
     operation: OperationState
     battery: BatteryState
@@ -91,6 +101,10 @@ class DeviceStateSnapshot:
         if type(self.contract_revision) is not str or self.contract_revision != STATE_CONTRACT_REVISION:
             raise Cell4DeviceStateError("device-state contract revision is not controlled")
         _text(self.authority_revision, label="device-state authority revision")
+        _sha256(
+            self.source_power_thermal_sha256,
+            label="device-state power/thermal source",
+        )
         for label, value, enum_type in (
             ("transport", self.transport, TransportMode),
             ("operation", self.operation, OperationState),
@@ -163,11 +177,12 @@ class DeviceStateSnapshot:
             )
 
     def consumer_payload(self) -> dict[str, object]:
-        """Return a deterministic consumer payload with explicit simulation/firewall fields."""
+        """Return deterministic consumer state with explicit simulation/provenance fields."""
         self.__post_init__()
         return {
             "contract_revision": self.contract_revision,
             "authority_revision": self.authority_revision,
+            "source_power_thermal_sha256": self.source_power_thermal_sha256,
             "transport": self.transport.value,
             "operation": self.operation.value,
             "battery": self.battery.value,
@@ -186,6 +201,7 @@ class DeviceStateSnapshot:
 
 def build_simulated_cell4_device_state(
     power_thermal: PowerThermalEvidenceContract,
+    authority: Authority,
     *,
     operation: OperationState = OperationState.SIMULATED_IDLE,
     battery: BatteryState = BatteryState.SIMULATED_UNKNOWN,
@@ -197,10 +213,26 @@ def build_simulated_cell4_device_state(
         raise Cell4DeviceStateError(
             "power/thermal source must use the exact controlled contract type"
         )
-    power_thermal.__post_init__()
+    if type(authority) is not Authority:
+        raise Cell4DeviceStateError(
+            "authority source must use the exact controlled Authority type"
+        )
+    try:
+        power_thermal.validate_current_authority(authority)
+        source_sha = power_thermal.contract_sha256
+    except Exception as exc:
+        raise Cell4DeviceStateError(
+            "power/thermal source failed current-authority provenance validation"
+        ) from exc
+    authority_revision = authority.get("project", "authority_revision")
+    if type(authority_revision) is not str or authority_revision != power_thermal.authority_revision:
+        raise Cell4DeviceStateError(
+            "device-state authority revision does not match current power/thermal source"
+        )
     return DeviceStateSnapshot(
         contract_revision=STATE_CONTRACT_REVISION,
-        authority_revision=power_thermal.authority_revision,
+        authority_revision=authority_revision,
+        source_power_thermal_sha256=source_sha,
         transport=TransportMode.SIMULATED_ONLY,
         operation=operation,
         battery=battery,
