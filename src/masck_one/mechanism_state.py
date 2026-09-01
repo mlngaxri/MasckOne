@@ -30,6 +30,17 @@ class OperatingMode(str, Enum):
     FAULT = "FAULT"
 
 
+class ReadinessState(str, Enum):
+    """Derived digital readiness vocabulary, never measured device readiness."""
+
+    NOT_RETAINED = "NOT_RETAINED"
+    READY_FOR_CYCLE = "READY_FOR_CYCLE"
+    CYCLE_ACTIVE = "CYCLE_ACTIVE"
+    RELEASE_OPEN = "RELEASE_OPEN"
+    SERVICE = "SERVICE"
+    FAULT_BLOCKED = "FAULT_BLOCKED"
+
+
 class TransitionAction(str, Enum):
     ENGAGE_RETENTION = "ENGAGE_RETENTION"
     RELEASE_RETENTION = "RELEASE_RETENTION"
@@ -58,6 +69,11 @@ class MechanismState:
     mechanism_provenance_sha256: str
 
     def __post_init__(self) -> None:
+        self.validate_invariants()
+
+    def validate_invariants(self) -> None:
+        """Revalidate the complete stored state before hashing or transition use."""
+
         if type(self.mode) is not OperatingMode:
             raise TypeError("mode must be exact OperatingMode")
         for name in (
@@ -89,12 +105,31 @@ class MechanismState:
 
     @property
     def evidence_state(self) -> str:
+        self.validate_invariants()
         return "SIMULATED_DIGITAL_STATE_ONLY"
 
     @property
+    def readiness(self) -> ReadinessState:
+        """Return deterministic UI readiness without implying sensed hardware state."""
+
+        self.validate_invariants()
+        if self.mode is OperatingMode.FAULT:
+            return ReadinessState.FAULT_BLOCKED
+        if self.mode is OperatingMode.SERVICE or self.service_access_open:
+            return ReadinessState.SERVICE
+        if self.quick_release_open:
+            return ReadinessState.RELEASE_OPEN
+        if self.cycle_active:
+            return ReadinessState.CYCLE_ACTIVE
+        if self.retention_engaged:
+            return ReadinessState.READY_FOR_CYCLE
+        return ReadinessState.NOT_RETAINED
+
+    @property
     def provenance_sha256(self) -> str:
+        self.validate_invariants()
         payload = {
-            "schema": "MASCK_ONE_MECHANISM_STATE_V2",
+            "schema": "MASCK_ONE_MECHANISM_STATE_V3",
             "mode": self.mode.value,
             "cycle_active": self.cycle_active,
             "retention_engaged": self.retention_engaged,
@@ -103,47 +138,67 @@ class MechanismState:
             "fault_latched": self.fault_latched,
             "mechanism_provenance_sha256": self.mechanism_provenance_sha256,
             "evidence_state": self.evidence_state,
+            "readiness": self.readiness.value,
         }
         encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("ascii")
         return hashlib.sha256(encoded).hexdigest()
 
 
+def _copy_state(state: MechanismState) -> MechanismState:
+    if type(state) is not MechanismState:
+        raise TypeError("state must be exact MechanismState")
+    state.validate_invariants()
+    return MechanismState(
+        mode=state.mode,
+        cycle_active=state.cycle_active,
+        retention_engaged=state.retention_engaged,
+        quick_release_open=state.quick_release_open,
+        service_access_open=state.service_access_open,
+        fault_latched=state.fault_latched,
+        mechanism_provenance_sha256=state.mechanism_provenance_sha256,
+    )
+
+
 def _fields(state: MechanismState) -> tuple[object, ...]:
+    state.validate_invariants()
     return (
         state.mode, state.cycle_active, state.retention_engaged,
         state.quick_release_open, state.service_access_open, state.fault_latched,
     )
 
 
-def validate_transition(
+def derive_next_state(
     before: MechanismState,
-    after: MechanismState,
     action: TransitionAction,
     *,
     current_mechanism_provenance_sha256: str,
-) -> None:
-    """Fail closed unless ``after`` is the exact legal result of ``action``.
+) -> MechanismState:
+    """Construct the only legal next simulated state for ``action``.
 
-    Both snapshots must bind the exact current released mechanism identity. Timing,
-    sensor response and physical interlocks remain evidence-gated.
+    The function encodes digital state semantics only. It does not assert actuator,
+    retention, release, sensor or interlock timing, force, travel or physical success.
     """
-    if type(before) is not MechanismState or type(after) is not MechanismState:
-        raise TypeError("before and after must be exact MechanismState")
+
+    if type(before) is not MechanismState:
+        raise TypeError("before must be exact MechanismState")
     if type(action) is not TransitionAction:
         raise TypeError("action must be exact TransitionAction")
+    before.validate_invariants()
     current = _require_sha256(
         "current_mechanism_provenance_sha256", current_mechanism_provenance_sha256
     )
-    if before.mechanism_provenance_sha256 != current or after.mechanism_provenance_sha256 != current:
+    if before.mechanism_provenance_sha256 != current:
         raise ValueError("stale mechanism provenance")
 
     b = _fields(before)
-    a = _fields(after)
     expected: tuple[object, ...] | None = None
 
     if action is TransitionAction.ENGAGE_RETENTION and b == (OperatingMode.IDLE, False, False, False, False, False):
         expected = (OperatingMode.IDLE, False, True, False, False, False)
     elif action is TransitionAction.RELEASE_RETENTION and b == (OperatingMode.IDLE, False, True, False, False, False):
+        # Existing contract name is retained for compatibility. Semantically this is
+        # the simulated one-action emergency release state: retention is no longer
+        # engaged and the independent mechanical release is open.
         expected = (OperatingMode.IDLE, False, False, True, False, False)
     elif action is TransitionAction.RESET_RELEASE and b == (OperatingMode.IDLE, False, False, True, False, False):
         expected = (OperatingMode.IDLE, False, False, False, False, False)
@@ -169,5 +224,135 @@ def validate_transition(
 
     if expected is None:
         raise ValueError(f"action {action.value} is illegal from current state")
-    if a != expected:
+
+    return MechanismState(
+        mode=expected[0],
+        cycle_active=expected[1],
+        retention_engaged=expected[2],
+        quick_release_open=expected[3],
+        service_access_open=expected[4],
+        fault_latched=expected[5],
+        mechanism_provenance_sha256=current,
+    )
+
+
+def validate_transition(
+    before: MechanismState,
+    after: MechanismState,
+    action: TransitionAction,
+    *,
+    current_mechanism_provenance_sha256: str,
+) -> None:
+    """Fail closed unless ``after`` is the exact legal result of ``action``."""
+
+    if type(before) is not MechanismState or type(after) is not MechanismState:
+        raise TypeError("before and after must be exact MechanismState")
+    before.validate_invariants()
+    after.validate_invariants()
+    expected = derive_next_state(
+        before,
+        action,
+        current_mechanism_provenance_sha256=current_mechanism_provenance_sha256,
+    )
+    if after.mechanism_provenance_sha256 != expected.mechanism_provenance_sha256:
+        raise ValueError("stale mechanism provenance")
+    if _fields(after) != _fields(expected):
         raise ValueError(f"after state is not exact result of {action.value}")
+
+
+class SimulatedTransport:
+    """Local deterministic state transport with explicitly no hardware telemetry.
+
+    This object exists so Web/App prototypes can consume the exact product-state
+    transition contract without inventing BLE connectivity, sensor observations or
+    physical readiness. It intentionally stores a defensive state copy and returns
+    defensive snapshots so caller mutation cannot alter the transport's internal state.
+    """
+
+    __slots__ = ("_current_mechanism_provenance_sha256", "_state", "_sequence")
+
+    def __init__(
+        self,
+        initial_state: MechanismState,
+        *,
+        current_mechanism_provenance_sha256: str,
+    ) -> None:
+        current = _require_sha256(
+            "current_mechanism_provenance_sha256", current_mechanism_provenance_sha256
+        )
+        initial = _copy_state(initial_state)
+        if initial.mechanism_provenance_sha256 != current:
+            raise ValueError("stale mechanism provenance")
+        self._current_mechanism_provenance_sha256 = current
+        self._state = initial
+        self._sequence = 0
+
+    @property
+    def transport_kind(self) -> str:
+        return "SIMULATED_LOCAL_ONLY"
+
+    @property
+    def telemetry_source(self) -> str:
+        return "NONE"
+
+    @property
+    def measured_hardware(self) -> bool:
+        return False
+
+    @property
+    def sequence(self) -> int:
+        return self._sequence
+
+    def snapshot(self) -> MechanismState:
+        return _copy_state(self._state)
+
+    def dispatch(self, action: TransitionAction) -> MechanismState:
+        if type(action) is not TransitionAction:
+            raise TypeError("action must be exact TransitionAction")
+        self._state.validate_invariants()
+        next_state = derive_next_state(
+            self._state,
+            action,
+            current_mechanism_provenance_sha256=self._current_mechanism_provenance_sha256,
+        )
+        self._state = next_state
+        self._sequence += 1
+        return self.snapshot()
+
+    @property
+    def provenance_sha256(self) -> str:
+        self._state.validate_invariants()
+        payload = {
+            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V1",
+            "transport_kind": self.transport_kind,
+            "telemetry_source": self.telemetry_source,
+            "measured_hardware": self.measured_hardware,
+            "sequence": self._sequence,
+            "current_mechanism_provenance_sha256": self._current_mechanism_provenance_sha256,
+            "state_provenance_sha256": self._state.provenance_sha256,
+        }
+        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("ascii")
+        return hashlib.sha256(encoded).hexdigest()
+
+    def manifest(self) -> dict[str, object]:
+        snapshot = self.snapshot()
+        return {
+            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V1",
+            "transport_kind": self.transport_kind,
+            "telemetry_source": self.telemetry_source,
+            "measured_hardware": self.measured_hardware,
+            "sequence": self._sequence,
+            "current_mechanism_provenance_sha256": self._current_mechanism_provenance_sha256,
+            "state": {
+                "mode": snapshot.mode.value,
+                "cycle_active": snapshot.cycle_active,
+                "retention_engaged": snapshot.retention_engaged,
+                "quick_release_open": snapshot.quick_release_open,
+                "service_access_open": snapshot.service_access_open,
+                "fault_latched": snapshot.fault_latched,
+                "readiness": snapshot.readiness.value,
+                "evidence_state": snapshot.evidence_state,
+                "provenance_sha256": snapshot.provenance_sha256,
+            },
+            "transport_provenance_sha256": self.provenance_sha256,
+        }
