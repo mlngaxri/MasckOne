@@ -95,4 +95,4 @@ if(gsap&&ScrollTrigger&&!reducedMotion){
   else window.addEventListener('load',()=>ScrollTrigger.refresh(),{once:true});
 }
 
-import('/visuals.js').catch(()=>{});
+import('/visuals.js').catch(()=>document.documentElement.classList.add('motion-static'));
