@@ -24,6 +24,8 @@ class PhysicalHMILimits:
     min_control_center_spacing_mm: float = 10.0
     min_secondary_guard_offset_mm: float = 0.50
     max_secondary_guard_offset_mm: float = 1.50
+    min_control_edge_radius_mm: float = 0.60
+    min_secondary_guard_root_radius_mm: float = 0.75
 
 
 REQUIRED_MEASUREMENTS = (
@@ -37,6 +39,9 @@ REQUIRED_MEASUREMENTS = (
     "HMI_CONTROL_TO_SERVICE_SEPARATION_MM",
     "HMI_CONTROL_CENTER_SPACING_MM",
     "HMI_SECONDARY_GUARD_OFFSET_MM",
+    "HMI_PRIMARY_EDGE_RADIUS_MM",
+    "HMI_SECONDARY_EDGE_RADIUS_MM",
+    "HMI_SECONDARY_GUARD_ROOT_RADIUS_MM",
 )
 
 
@@ -78,3 +83,9 @@ def validate_measurements(values: Mapping[str, float], limits: PhysicalHMILimits
         raise PhysicalHMIContractError("secondary control lacks enough local guarding against incidental contact")
     if guard > limits.max_secondary_guard_offset_mm:
         raise PhysicalHMIContractError("secondary-control guard is too proud and creates an avoidable snag/residue feature")
+    if v["HMI_PRIMARY_EDGE_RADIUS_MM"] < limits.min_control_edge_radius_mm:
+        raise PhysicalHMIContractError("primary CLEAN control edge is too sharp for comfortable wet-hand targeting and wiping")
+    if v["HMI_SECONDARY_EDGE_RADIUS_MM"] < limits.min_control_edge_radius_mm:
+        raise PhysicalHMIContractError("secondary control edge is too sharp for comfortable wet-hand targeting and wiping")
+    if v["HMI_SECONDARY_GUARD_ROOT_RADIUS_MM"] < limits.min_secondary_guard_root_radius_mm:
+        raise PhysicalHMIContractError("secondary-control guard root is too tight and creates a residue-prone crease")
