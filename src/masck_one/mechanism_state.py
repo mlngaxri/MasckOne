@@ -12,6 +12,7 @@ import json
 import re
 
 _SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
+TRANSITION_CONTRACT = "MASCK_ONE_MECHANISM_TRANSITIONS_V2"
 
 
 def _require_sha256(name: str, value: object) -> str:
@@ -44,6 +45,7 @@ class ReadinessState(str, Enum):
 class TransitionAction(str, Enum):
     ENGAGE_RETENTION = "ENGAGE_RETENTION"
     RELEASE_RETENTION = "RELEASE_RETENTION"
+    MECHANICAL_QUICK_RELEASE = "MECHANICAL_QUICK_RELEASE"
     RESET_RELEASE = "RESET_RELEASE"
     START_CLEAN = "START_CLEAN"
     START_WARM = "START_WARM"
@@ -86,12 +88,20 @@ class MechanismState:
 
         if self.quick_release_open and self.retention_engaged:
             raise ValueError("quick release open cannot coexist with engaged retention")
+        if self.service_access_open and self.retention_engaged:
+            raise ValueError("open service access cannot coexist with engaged retention")
+        if self.service_access_open and self.quick_release_open:
+            raise ValueError("open service access cannot coexist with open quick release")
         if self.cycle_active and not self.retention_engaged:
             raise ValueError("active cycle requires engaged retention")
         if self.cycle_active and (self.quick_release_open or self.service_access_open):
             raise ValueError("active cycle cannot coexist with release/service access")
         if self.service_access_open and self.mode not in (OperatingMode.SERVICE, OperatingMode.FAULT):
             raise ValueError("open service access requires SERVICE or FAULT mode")
+        if self.mode is OperatingMode.SERVICE and self.retention_engaged:
+            raise ValueError("SERVICE mode requires retention disengaged")
+        if self.mode is OperatingMode.SERVICE and self.quick_release_open:
+            raise ValueError("SERVICE mode requires quick release reset")
         if self.mode is OperatingMode.SERVICE and self.cycle_active:
             raise ValueError("SERVICE mode cannot run a cycle")
         if self.mode is OperatingMode.FAULT and not self.fault_latched:
@@ -177,6 +187,8 @@ def derive_next_state(
 
     The function encodes digital state semantics only. It does not assert actuator,
     retention, release, sensor or interlock timing, force, travel or physical success.
+    ``MECHANICAL_QUICK_RELEASE`` represents observation/simulation of the independent
+    unpowered release event. It is not a firmware command path.
     """
 
     if type(before) is not MechanismState:
@@ -196,10 +208,20 @@ def derive_next_state(
     if action is TransitionAction.ENGAGE_RETENTION and b == (OperatingMode.IDLE, False, False, False, False, False):
         expected = (OperatingMode.IDLE, False, True, False, False, False)
     elif action is TransitionAction.RELEASE_RETENTION and b == (OperatingMode.IDLE, False, True, False, False, False):
-        # Existing contract name is retained for compatibility. Semantically this is
-        # the simulated one-action emergency release state: retention is no longer
-        # engaged and the independent mechanical release is open.
+        # Legacy normal doff event retained for compatibility.
         expected = (OperatingMode.IDLE, False, False, True, False, False)
+    elif (
+        action is TransitionAction.MECHANICAL_QUICK_RELEASE
+        and before.retention_engaged
+        and not before.quick_release_open
+        and not before.service_access_open
+    ):
+        # A physical emergency release must not require STOP_CYCLE, fault clearing,
+        # connectivity, firmware or power. The digital model immediately terminates
+        # any active cycle while preserving an already-latched fault.
+        fault = before.fault_latched
+        mode = OperatingMode.FAULT if fault else OperatingMode.IDLE
+        expected = (mode, False, False, True, False, fault)
     elif action is TransitionAction.RESET_RELEASE and b == (OperatingMode.IDLE, False, False, True, False, False):
         expected = (OperatingMode.IDLE, False, False, False, False, False)
     elif action in (TransitionAction.START_CLEAN, TransitionAction.START_WARM) and b == (OperatingMode.IDLE, False, True, False, False, False):
@@ -261,12 +283,13 @@ def validate_transition(
 
 
 class SimulatedTransport:
-    """Local deterministic state transport with explicitly no hardware telemetry.
+    """Local deterministic state-event transport with explicitly no hardware telemetry.
 
     This object exists so Web/App prototypes can consume the exact product-state
     transition contract without inventing BLE connectivity, sensor observations or
-    physical readiness. It intentionally stores a defensive state copy and returns
-    defensive snapshots so caller mutation cannot alter the transport's internal state.
+    physical readiness. ``dispatch`` advances local simulated events only; it is not a
+    hardware-command API. The transport stores a defensive state copy and returns
+    defensive snapshots so caller mutation cannot alter internal state.
     """
 
     __slots__ = ("_current_mechanism_provenance_sha256", "_state", "_sequence")
@@ -299,8 +322,10 @@ class SimulatedTransport:
         self._state.validate_invariants()
         if self._state.mechanism_provenance_sha256 != current:
             raise ValueError("stale mechanism provenance")
-        if type(self._sequence) is not int or self._sequence < 0:
-            raise TypeError("simulation sequence must be exact nonnegative int")
+        if type(self._sequence) is not int:
+            raise TypeError("simulation sequence must be exact int")
+        if self._sequence < 0:
+            raise ValueError("simulation sequence must be nonnegative")
 
     @property
     def transport_kind(self) -> str:
@@ -313,6 +338,10 @@ class SimulatedTransport:
     @property
     def measured_hardware(self) -> bool:
         return False
+
+    @property
+    def dispatch_semantics(self) -> str:
+        return "LOCAL_SIMULATED_STATE_EVENT_ONLY_NOT_HARDWARE_COMMAND"
 
     @property
     def sequence(self) -> int:
@@ -341,10 +370,12 @@ class SimulatedTransport:
     def provenance_sha256(self) -> str:
         self.validate_invariants()
         payload = {
-            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V1",
+            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V2",
+            "transition_contract": TRANSITION_CONTRACT,
             "transport_kind": self.transport_kind,
             "telemetry_source": self.telemetry_source,
             "measured_hardware": self.measured_hardware,
+            "dispatch_semantics": self.dispatch_semantics,
             "sequence": self._sequence,
             "current_mechanism_provenance_sha256": self._current_mechanism_provenance_sha256,
             "state_provenance_sha256": self._state.provenance_sha256,
@@ -356,10 +387,12 @@ class SimulatedTransport:
         self.validate_invariants()
         snapshot = self.snapshot()
         return {
-            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V1",
+            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V2",
+            "transition_contract": TRANSITION_CONTRACT,
             "transport_kind": self.transport_kind,
             "telemetry_source": self.telemetry_source,
             "measured_hardware": self.measured_hardware,
+            "dispatch_semantics": self.dispatch_semantics,
             "sequence": self._sequence,
             "current_mechanism_provenance_sha256": self._current_mechanism_provenance_sha256,
             "state": {
