@@ -135,6 +135,44 @@ def test_mutually_consistent_graph_from_mutated_inmemory_authority_is_not_curren
         )
 
 
+def test_old_consistent_objects_fail_when_presented_with_current_live_authority():
+    current = load_authority()
+    historical_authority = Authority(
+        data=deepcopy(current.data),
+        source=current.source,
+        validation_report=current.validation_report,
+    )
+    historical_authority.data["structure"]["frame_deflection_p95_max_mm"] = (
+        float(historical_authority.data["structure"]["frame_deflection_p95_max_mm"]) + 0.05
+    )
+    old_graph = _sources(historical_authority)
+
+    # This models the real stale-graph threat: the caller supplies the current trusted
+    # Authority object but reuses an internally consistent object graph built from an
+    # older source state. Local sibling hashes can agree; canonical reconstruction must
+    # still reject the graph against the live repository source.
+    old_graph["authority"] = current
+
+    with pytest.raises(
+        Iteration25SourceIntegrityError,
+        match="differs from the canonical current repository source graph",
+    ):
+        _validate(old_graph)
+
+    with pytest.raises(WasteAcquisitionError, match="source graph is not canonical current"):
+        build_waste_acquisition_architecture(
+            old_graph["authority"],
+            old_graph["distribution"],
+            old_graph["manifold"],
+            old_graph["pump"],
+            old_graph["water"],
+            old_graph["cleanser"],
+            old_graph["frame"],
+            old_graph["coverage"],
+            old_graph["protected"],
+        )
+
+
 def test_postconstruction_corruption_anywhere_in_inherited_graph_fails_closed():
     mutations = (
         ("water port evidence", lambda g: object.__setattr__(g["water"].ports[0], "geometry_status", "PHYSICALLY_VALIDATED")),
