@@ -20,13 +20,13 @@ The emergency release is a mechanical bilateral-side-yoke disconnect actuated fr
 
 Required mechanical states are `LATCHED`, `RELEASING`, `RELEASED`, and `RESET_REQUIRED`. Reset must require deliberate re-engagement and must not occur merely because the pull feature is released. A single-point release must remove retention preload sufficiently for immediate removal even if electronics are dead.
 
-The 5 to 12 N release-force corridor remains validation-gated. It is not a PASS criterion in this digital model. Release time remains a physical human-factors requirement of no more than 2.0 s and cannot be inferred from CAD travel alone.
+The 5 to 12 N release-force corridor remains validation-gated. Release time remains a physical human-factors requirement of no more than 2.0 s and cannot be inferred from CAD travel alone. `quick_release_validation.py` now enforces these only against supplied physical evidence. Closure additionally requires every recorded trial to be unpowered and one-hand, zero pinch and hair-entanglement failures, adequate accidental-pull margin, and adequate reset-retention margin. Digital geometry or nominal spring calculations cannot populate those fields as measured evidence.
 
 ## Geometry gates before CAD closure
 
 The production-intent latch cannot be frozen until all of the following exist: exact yoke and crown/occipital datums; continuous release trajectory; hard-stop geometry; latch engagement depth and tolerance stack; wet-finger grip envelope; hair and pinch exclusion volumes; harness/fluid strain-relief sweep; service-tool exclusion; accidental snag load cases; one-hand left/right reach assessment; and a reset confirmation feature that is mechanically inspectable.
 
-Release preflight now has two geometry levels. The legacy centreline-to-point check is retained for simple regression cases. `release_capsule_clearance` adds finite moving-feature radius and finite protected-region radius, so a centreline that appears clear cannot hide overlap of the physical latch/yoke/grip envelope with a harness, hair, pinch or protected-region envelope. Both are piecewise-linear approximations. Neither is continuous CAD collision proof, and the capsule bounds must come from controlled geometry rather than guessed radii before they can gate release.
+Release preflight now has two geometry levels. The legacy centreline-to-point check is retained for simple regression cases. `release_capsule_clearance` adds finite moving-feature radius and finite protected-region radius, so a centreline that appears clear cannot hide overlap of the physical latch/yoke/grip envelope with a harness, hair, pinch or protected-region envelope. `release_capsule_tolerance_clearance` additionally consumes bounded moving-body, protected-body and datum uncertainties using conservative Minkowski inflation. These remain piecewise-linear preflight tools, not continuous CAD collision proof, and their bounds must come from controlled geometry and released tolerances rather than guessed values.
 
 ## Retention DOE and physical handoff
 
@@ -40,12 +40,12 @@ Fiddly fit becomes an untrained don/doff task with time, adjustment-count and re
 
 ## DIGITAL_HANDOFF_DELTA
 
-WEBSITE: future fit/removal explanation must show crown load support, occipital stabilization and the single mechanical emergency-release action. Do not depict release as electronic or app-mediated.
+WEBSITE: future fit/removal explanation must show crown load support, occipital stabilization and the single mechanical emergency-release action. Do not depict release as electronic or app-mediated. Do not present force or removal-time targets as achieved until the physical validation gate is closed.
 
-APP: basic removal must never depend on the app. Any future device-state display should distinguish latched/ready from service/reset-required only when physical sensing actually exists.
+APP: basic removal must never depend on the app. Any future device-state display should distinguish latched/ready from service/reset-required only when physical sensing actually exists. The validation model explicitly fails closure if any recorded release trial requires power.
 
-ASSETS/DATA: future mechanism animation requires the released continuous latch/yoke trajectory and verified finite swept volume. Centreline paths alone are explicitly insufficient. Exported animation geometry must preserve the physical moving envelope and protected keepouts.
+ASSETS/DATA: future mechanism animation requires the released continuous latch/yoke trajectory, verified finite swept volume, released tolerance envelope, and mechanically correct reset trajectory. Centreline paths alone are explicitly insufficient. Physical validation records must preserve trial count, wet one-hand peak force, removal time, accidental-pull load, reset-retention load, pinch/hair outcomes, and unpowered/one-hand qualification.
 
-CLAIMS: do not claim universal fit, pressure-free comfort, sub-2-second removal in users, accidental-release immunity, collision-safe release, quiet operation or production-ready retention.
+CLAIMS: do not claim universal fit, pressure-free comfort, sub-2-second removal, accidental-release immunity, collision-safe release, quiet operation or production-ready retention until the corresponding physical evidence closes its gate.
 
-BLOCKERS: representative headform pressure/migration data, exact retention datums, controlled finite-body bounds, continuous CAD release sweep, latch tolerance stack, wet one-hand force/time tests, hair/pinch tests, fatigue and vibration-transfer measurements.
+BLOCKERS: representative headform pressure/migration data, exact retention datums, controlled finite-body bounds, continuous tolerance-aware CAD release sweep, latch tolerance stack, wet one-hand force/time tests, accidental snag/pull tests, reset-retention tests, hair/pinch tests, fatigue and vibration-transfer measurements.
