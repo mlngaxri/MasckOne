@@ -6,7 +6,9 @@ const read=(p)=>readFileSync(new URL(p,import.meta.url),'utf8');
 const html=read('./src/index.html');
 const js=read('./src/app.js');
 const cinematic=read('./src/cinematic.js');
+const visuals=read('./public/visuals.js');
 const css=read('./src/styles.css');
+const visualsCss=read('./public/visuals.css');
 const build=read('./build.mjs');
 const pkg=JSON.parse(read('./package.json'));
 const brand=read('./public/brand/brand-mark.svg');
@@ -14,6 +16,7 @@ const mono=read('./public/brand/brand-mark-mono.svg');
 const favicon=read('./public/favicon.svg');
 const og=read('./public/brand/og-source.svg');
 const social=read('./public/brand/social-avatar-source.svg');
+const productAssets=['hero','shell','fluid','interface','core','cartridge'].map(name=>read(`./public/product/${name}.svg`));
 
 assert.equal(pkg.scripts?.test,'node test.mjs');
 assert.equal(pkg.scripts?.prebuild,'npm test');
@@ -35,6 +38,12 @@ assert.ok(106/8>=10,'dominant field and insert must not regress to equal bars');
 for(const [name,asset] of [['canonical',brand],['monochrome',mono],['favicon',favicon]])assertSmallScaleSeam(asset,name);
 assert.ok(og.includes('Development preview. No performance or availability claim.'));
 
+for(const asset of productAssets){
+  assert.ok(asset.includes('<svg')&&asset.includes('<image'));
+  assert.ok(asset.includes('data:image/avif;base64,'));
+}
+assert.ok(productAssets.slice(0,4).every(asset=>asset.includes('viewBox="0 0 360 450"')),'registered face layers must share one canvas');
+
 const ids=new Set([...html.matchAll(/\sid="([^"]+)"/g)].map(match=>match[1]));
 for(const match of html.matchAll(/\shref="#([^"]+)"/g))assert.ok(ids.has(match[1]),`missing fragment target ${match[1]}`);
 const stage=html.match(/<div[^>]*\bclass="product-stage"[^>]*>/)?.[0]??'';
@@ -52,8 +61,11 @@ for(const token of ['being engineered','Final service geometry remains subject t
 for(const id of ['system','sequence','anatomy','service','development','access'])assert.ok(ids.has(id));
 for(const token of ['THE ROUTINE, REBUILT.','DELIVER','WORK','COLLECT','VALIDATION-GATED','NOT IMPLIED'])assert.ok(html.includes(token));
 assert.ok(html.includes('gsap@3.13.0')&&html.includes('ScrollTrigger.min.js')&&html.includes('lenis@1.3.11'));
+assert.ok(html.includes('rel="stylesheet" href="visuals.css"')&&html.includes('rel="preload" as="image"')&&html.includes('fetchpriority="high"'));
 for(const token of ['window.gsap','window.ScrollTrigger','window.Lenis','lerp:0.075','dataset.explodeX','ScrollTrigger.refresh','prefers-reduced-motion: reduce','pointer: fine',"import('./cinematic.js')"])assert.ok(js.includes(token));
-for(const token of ['handoffOut','handoffIn','clipPath','scrub:1.35','parallax','rotationZ'])assert.ok(cinematic.includes(token));
+for(const token of ['handoffOut','handoffIn','clipPath','scrub:1.35','parallax','rotationZ',"import('/visuals.js')"])assert.ok(cinematic.includes(token));
+for(const token of ['PRODUCT_ASSET_BASE','hero-render','layer-render','masck-assets-ready','masck-images-decoded','requestAnimationFrame','masck-native-motion','ScrollTrigger.getAll','image.decode'])assert.ok(visuals.includes(token));
+for(const token of ['.hero-render','.layer-render','.interface-render','.service-shell-render','.service-cartridge-render','.masck-native-motion','prefers-reduced-motion:reduce'])assert.ok(visualsCss.includes(token));
 for(const token of ['.exploded-product','position:sticky','.cursor','.sequence-track','.service-cartridge','Instrument Serif','Instrument Sans','prefers-reduced-motion:reduce','prefers-contrast:more','forced-colors:active','@media(max-width:420px)',':focus-visible','.skip:focus'])assert.ok(css.includes(token));
 assert.ok(css.includes('--canvas:#edeae3')&&css.includes('--ink:#2c2a27')&&css.includes('--champagne:#c9b99f'));
 
