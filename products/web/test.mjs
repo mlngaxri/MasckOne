@@ -24,7 +24,7 @@ assert.ok(statusTag.includes('aria-live="polite"'));
 assert.ok(statusTag.includes('aria-atomic="true"'));
 const notifyTag=html.match(/<button[^>]*\bid="notify"[^>]*>/)?.[0]??'';
 assert.ok(notifyTag.includes('aria-describedby="access-status"'));
-assert.ok(notifyTag.includes('Check early access'),'CTA must describe a status check, not imply a signup action');
+assert.ok(html.includes('>Check early access</button>'),'CTA must describe a status check, not imply a signup action');
 assert.ok(!html.includes('Join early access'),'public CTA must not imply a join path that does not exist');
 assert.ok(js.includes('button.disabled=true'),'early-access action must fail closed after activation');
 assert.ok(js.includes("button.textContent='Early access not open'"),'post-action copy must not imply future availability');
