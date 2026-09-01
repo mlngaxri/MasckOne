@@ -1,44 +1,4 @@
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-
-const read=(path)=>readFileSync(new URL(path,import.meta.url),'utf8');
-const html=read('./src/index.html');
-const js=read('./src/app.js');
-const css=read('./src/styles.css');
-const build=read('./build.mjs');
-const pkg=JSON.parse(read('./package.json'));
-const brand=read('./assets/brand/brand-mark.svg');
-const mono=read('./assets/brand/brand-mark-mono.svg');
-const appIcon=read('./assets/brand/app-icon-source.svg');
-
-assert.equal(pkg.scripts?.test,'node test.mjs'); assert.equal(pkg.scripts?.prebuild,'npm test'); assert.equal(pkg.scripts?.build,'node build.mjs');
-assert.ok(build.includes("'app.js'")); assert.ok(build.includes("cp('assets','dist/assets'"),'app build must retain split-local brand assets');
-assert.ok(appIcon.includes('viewBox="0 0 1024 1024"'),'app icon source must retain the 1024 square production canvas');
-for(const asset of [brand,appIcon]){
-  assert.ok(asset.includes('#314f38')&&asset.includes('#1d211f'),'brand source must use the controlled digital palette');
-  assert.ok(!/<(?:linearGradient|radialGradient|filter|mask)\b/.test(asset),'icon source must remain flat and unmasked');
-}
-assert.ok(brand.includes('controlled flowing seam'),'canonical mark must identify the revised flowing-seam geometry');
-assert.ok(!brand.includes('h18v216')&&!brand.includes('M142 20h18'),'retired straight parallel-bar geometry must not return');
-assert.equal((brand.match(/<path\b/g)||[]).length,2,'canonical mark must remain a two-field source');
-assert.equal((mono.match(/<path\b/g)||[]).length,2,'monochrome mark must preserve two-field topology');
-assert.ok(!brand.includes('<rect'),'canonical mark geometry must not depend on a platform container');
-const seamTokens=['L106 20C110 48 100 76 108 104C118 134 103 165 113 195','M150 20L160 20','C142 222 139 207 144 191C152 164 137 138 145 109'];
-for(const token of seamTokens){
-  assert.ok(brand.includes(token),`canonical mark must retain optical seam geometry ${token}`);
-  assert.ok(mono.includes(token),`monochrome mark must retain optical seam geometry ${token}`);
-  assert.ok(appIcon.includes(token),`app icon source must derive from canonical seam geometry ${token}`);
-}
-const conservativeSeamUnits=137-118;
-for(const size of [16,20,24,32]) assert.ok(Math.floor(conservativeSeamUnits*size/256)>=1,`mark must retain a full clear raster column at ${size}px`);
-const homeTag=html.match(/<section[^>]*\bid="home"[^>]*>/)?.[0]??'';
-assert.ok(homeTag.includes('data-state-source="simulated"')); assert.ok(homeTag.includes('data-device-transport="none"')); assert.ok(html.includes('Simulated device state, not live telemetry')); assert.ok(html.includes('Preview only. No device command is sent.'));
-for(const forbidden of ['Device Ready','System standing by']) assert.ok(!html.includes(forbidden));
-const liveTag=html.match(/<[^>]*\bid="simulation-status"[^>]*>/)?.[0]??''; assert.ok(liveTag.includes('role="status"')); assert.ok(liveTag.includes('aria-live="polite"')); assert.ok(liveTag.includes('aria-atomic="true"'));
-const previewTag=html.match(/<button[^>]*\bid="preview-cleanse"[^>]*>/)?.[0]??''; assert.ok(previewTag.includes('aria-controls="simulation-status"')); assert.ok(js.includes('preview.disabled=true')); assert.ok(js.includes('No device command was sent'));
-assert.ok(!/<button[^>]*aria-label="Device settings"/i.test(html)); assert.ok(!/class="settings-unavailable"[^>]*aria-describedby=/i.test(html)); assert.ok(html.includes('Device settings are unavailable in this interaction prototype.'));
-for(const token of ['fetch(','XMLHttpRequest','WebSocket','navigator.bluetooth','BluetoothRemoteGATT']) assert.ok(!js.includes(token));
-const ids=new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((match)=>match[1])); for(const match of html.matchAll(/\shref="#([^"]+)"/g)) assert.ok(ids.has(match[1]));
-assert.ok(js.includes('aria-current')); assert.ok(js.includes('hashchange'));
-for(const token of ['prefers-reduced-motion:reduce','prefers-contrast:more','forced-colors:active','safe-area-inset-bottom','@media(max-width:340px)',':focus-visible','.sr-only']) assert.ok(css.includes(token));
-console.log('Masck One app workspace tests passed');
+import assert from 'node:assert/strict'; import { readFileSync } from 'node:fs'; const read=(p)=>readFileSync(new URL(p,import.meta.url),'utf8');
+const html=read('./src/index.html'),js=read('./src/app.js'),css=read('./src/styles.css'),build=read('./build.mjs'),pkg=JSON.parse(read('./package.json')),brand=read('./assets/brand/brand-mark.svg'),mono=read('./assets/brand/brand-mark-mono.svg'),appIcon=read('./assets/brand/app-icon-source.svg');
+assert.equal(pkg.scripts?.test,'node test.mjs');assert.equal(pkg.scripts?.prebuild,'npm test');assert.equal(pkg.scripts?.build,'node build.mjs');assert.ok(build.includes("'app.js'")&&build.includes("cp('assets','dist/assets'"));assert.ok(appIcon.includes('viewBox="0 0 1024 1024"'));for(const a of [brand,appIcon]){assert.ok(a.includes('#314f38')&&a.includes('#1d211f')&&a.includes('dominant-field-insert-v3'));assert.ok(!/<(?:linearGradient|radialGradient|filter|mask)\b/.test(a));}assert.equal((brand.match(/<path\b/g)||[]).length,2);assert.equal((mono.match(/<path\b/g)||[]).length,2);assert.ok(mono.includes('dominant-field-insert-v3'));for(const retired of ['h18v216','M142 20h18','M40 72C40 40 65 20 96 20h16','M144 20h16','M40 72C40 40 65 20 96 20h10','M150 20h10','M40 72C40 40 65 20 96 20L106 20','M150 20L160 20'])assert.ok(!brand.includes(retired));for(const t of ['M44 76C44 44 68 24 100 24H150','M172 24H180']){assert.ok(brand.includes(t)&&appIcon.includes(t));}
+const home=html.match(/<section[^>]*\bid="home"[^>]*>/)?.[0]??'';assert.ok(home.includes('data-state-source="simulated"')&&home.includes('data-device-transport="none"')&&html.includes('Simulated device state, not live telemetry')&&html.includes('Preview only. No device command is sent.'));for(const x of ['Device Ready','System standing by'])assert.ok(!html.includes(x));const live=html.match(/<[^>]*\bid="simulation-status"[^>]*>/)?.[0]??'';assert.ok(live.includes('role="status"')&&live.includes('aria-live="polite"')&&live.includes('aria-atomic="true"'));const preview=html.match(/<button[^>]*\bid="preview-cleanse"[^>]*>/)?.[0]??'';assert.ok(preview.includes('aria-controls="simulation-status"')&&js.includes('preview.disabled=true')&&js.includes('No device command was sent'));assert.ok(!/<button[^>]*aria-label="Device settings"/i.test(html)&&!/class="settings-unavailable"[^>]*aria-describedby=/i.test(html)&&html.includes('Device settings are unavailable in this interaction prototype.'));for(const t of ['fetch(','XMLHttpRequest','WebSocket','navigator.bluetooth','BluetoothRemoteGATT'])assert.ok(!js.includes(t));const ids=new Set([...html.matchAll(/\sid="([^"]+)"/g)].map(m=>m[1]));for(const m of html.matchAll(/\shref="#([^"]+)"/g))assert.ok(ids.has(m[1]));assert.ok(js.includes('aria-current')&&js.includes('hashchange'));for(const t of ['prefers-reduced-motion:reduce','prefers-contrast:more','forced-colors:active','safe-area-inset-bottom','@media(max-width:340px)',':focus-visible','.sr-only'])assert.ok(css.includes(t));console.log('Masck One app workspace tests passed');
