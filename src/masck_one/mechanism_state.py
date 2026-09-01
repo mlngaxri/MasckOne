@@ -12,7 +12,8 @@ import json
 import re
 
 _SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
-TRANSITION_CONTRACT = "MASCK_ONE_MECHANISM_TRANSITIONS_V2"
+STATE_CONTRACT = "MASCK_ONE_MECHANISM_STATE_V4"
+TRANSITION_CONTRACT = "MASCK_ONE_MECHANISM_TRANSITIONS_V3"
 
 
 def _require_sha256(name: str, value: object) -> str:
@@ -50,6 +51,7 @@ class TransitionAction(str, Enum):
     START_CLEAN = "START_CLEAN"
     START_WARM = "START_WARM"
     STOP_CYCLE = "STOP_CYCLE"
+    COMPLETE_CYCLE = "COMPLETE_CYCLE"
     ENTER_SERVICE = "ENTER_SERVICE"
     EXIT_SERVICE = "EXIT_SERVICE"
     OPEN_SERVICE = "OPEN_SERVICE"
@@ -60,7 +62,7 @@ class TransitionAction(str, Enum):
 
 @dataclass(frozen=True)
 class MechanismState:
-    """One immutable, fail-closed snapshot bound to released mechanism identity."""
+    """One immutable, fail-closed simulated snapshot bound to mechanism identity."""
 
     mode: OperatingMode
     cycle_active: bool
@@ -139,7 +141,7 @@ class MechanismState:
     def provenance_sha256(self) -> str:
         self.validate_invariants()
         payload = {
-            "schema": "MASCK_ONE_MECHANISM_STATE_V3",
+            "schema": STATE_CONTRACT,
             "mode": self.mode.value,
             "cycle_active": self.cycle_active,
             "retention_engaged": self.retention_engaged,
@@ -188,7 +190,9 @@ def derive_next_state(
     The function encodes digital state semantics only. It does not assert actuator,
     retention, release, sensor or interlock timing, force, travel or physical success.
     ``MECHANICAL_QUICK_RELEASE`` represents observation/simulation of the independent
-    unpowered release event. It is not a firmware command path.
+    unpowered release event. It is not a firmware command path. ``COMPLETE_CYCLE`` and
+    ``STOP_CYCLE`` deliberately produce the same mechanical snapshot but remain distinct
+    events so consumers cannot confuse normal automatic completion with user stop.
     """
 
     if type(before) is not MechanismState:
@@ -208,8 +212,9 @@ def derive_next_state(
     if action is TransitionAction.ENGAGE_RETENTION and b == (OperatingMode.IDLE, False, False, False, False, False):
         expected = (OperatingMode.IDLE, False, True, False, False, False)
     elif action is TransitionAction.RELEASE_RETENTION and b == (OperatingMode.IDLE, False, True, False, False, False):
-        # Legacy normal doff event retained for compatibility.
-        expected = (OperatingMode.IDLE, False, False, True, False, False)
+        # Normal simulated doff disengages retention without claiming that the
+        # emergency quick-release mechanism has been actuated.
+        expected = (OperatingMode.IDLE, False, False, False, False, False)
     elif (
         action is TransitionAction.MECHANICAL_QUICK_RELEASE
         and before.retention_engaged
@@ -227,7 +232,7 @@ def derive_next_state(
     elif action in (TransitionAction.START_CLEAN, TransitionAction.START_WARM) and b == (OperatingMode.IDLE, False, True, False, False, False):
         mode = OperatingMode.CLEAN if action is TransitionAction.START_CLEAN else OperatingMode.WARM
         expected = (mode, True, True, False, False, False)
-    elif action is TransitionAction.STOP_CYCLE and b[0] in (OperatingMode.CLEAN, OperatingMode.WARM) and b[1:6] == (True, True, False, False, False):
+    elif action in (TransitionAction.STOP_CYCLE, TransitionAction.COMPLETE_CYCLE) and b[0] in (OperatingMode.CLEAN, OperatingMode.WARM) and b[1:6] == (True, True, False, False, False):
         expected = (OperatingMode.IDLE, False, True, False, False, False)
     elif action is TransitionAction.ENTER_SERVICE and b == (OperatingMode.IDLE, False, False, False, False, False):
         expected = (OperatingMode.SERVICE, False, False, False, False, False)
@@ -292,7 +297,12 @@ class SimulatedTransport:
     defensive snapshots so caller mutation cannot alter internal state.
     """
 
-    __slots__ = ("_current_mechanism_provenance_sha256", "_state", "_sequence")
+    __slots__ = (
+        "_current_mechanism_provenance_sha256",
+        "_state",
+        "_sequence",
+        "_last_action",
+    )
 
     def __init__(
         self,
@@ -309,6 +319,7 @@ class SimulatedTransport:
         self._current_mechanism_provenance_sha256 = current
         self._state = initial
         self._sequence = 0
+        self._last_action: TransitionAction | None = None
         self.validate_invariants()
 
     def validate_invariants(self) -> None:
@@ -326,6 +337,12 @@ class SimulatedTransport:
             raise TypeError("simulation sequence must be exact int")
         if self._sequence < 0:
             raise ValueError("simulation sequence must be nonnegative")
+        if self._last_action is not None and type(self._last_action) is not TransitionAction:
+            raise TypeError("last simulated action must be exact TransitionAction or None")
+        if self._sequence == 0 and self._last_action is not None:
+            raise ValueError("zero-sequence simulated transport cannot have a last action")
+        if self._sequence > 0 and self._last_action is None:
+            raise ValueError("nonzero-sequence simulated transport requires a last action")
 
     @property
     def transport_kind(self) -> str:
@@ -348,6 +365,11 @@ class SimulatedTransport:
         self.validate_invariants()
         return self._sequence
 
+    @property
+    def last_event(self) -> str | None:
+        self.validate_invariants()
+        return None if self._last_action is None else self._last_action.value
+
     def snapshot(self) -> MechanismState:
         self.validate_invariants()
         return _copy_state(self._state)
@@ -362,6 +384,7 @@ class SimulatedTransport:
             current_mechanism_provenance_sha256=self._current_mechanism_provenance_sha256,
         )
         self._state = next_state
+        self._last_action = action
         self._sequence += 1
         self.validate_invariants()
         return self.snapshot()
@@ -370,13 +393,14 @@ class SimulatedTransport:
     def provenance_sha256(self) -> str:
         self.validate_invariants()
         payload = {
-            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V2",
+            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V3",
             "transition_contract": TRANSITION_CONTRACT,
             "transport_kind": self.transport_kind,
             "telemetry_source": self.telemetry_source,
             "measured_hardware": self.measured_hardware,
             "dispatch_semantics": self.dispatch_semantics,
             "sequence": self._sequence,
+            "last_event": None if self._last_action is None else self._last_action.value,
             "current_mechanism_provenance_sha256": self._current_mechanism_provenance_sha256,
             "state_provenance_sha256": self._state.provenance_sha256,
         }
@@ -387,13 +411,15 @@ class SimulatedTransport:
         self.validate_invariants()
         snapshot = self.snapshot()
         return {
-            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V2",
+            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V3",
+            "state_contract": STATE_CONTRACT,
             "transition_contract": TRANSITION_CONTRACT,
             "transport_kind": self.transport_kind,
             "telemetry_source": self.telemetry_source,
             "measured_hardware": self.measured_hardware,
             "dispatch_semantics": self.dispatch_semantics,
             "sequence": self._sequence,
+            "last_event": None if self._last_action is None else self._last_action.value,
             "current_mechanism_provenance_sha256": self._current_mechanism_provenance_sha256,
             "state": {
                 "mode": snapshot.mode.value,
