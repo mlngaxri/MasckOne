@@ -112,9 +112,7 @@ def _release_path(value: object) -> str:
     if path.as_posix() != value or any(part in ("", ".", "..") for part in path.parts):
         raise DigitalReleaseError("relative_path must not contain aliases or traversal")
     if not value.startswith(_RELEASE_ROOT) or value == _RELEASE_ROOT.rstrip("/"):
-        raise DigitalReleaseError(
-            f"relative_path must be a file below {_RELEASE_ROOT}"
-        )
+        raise DigitalReleaseError(f"relative_path must be a file below {_RELEASE_ROOT}")
     return value
 
 
@@ -221,6 +219,9 @@ class DigitalProductRelease:
     def validate_invariants(self) -> None:
         if type(self.artifacts) is not tuple:
             raise DigitalReleaseError("artifacts must remain immutable tuple")
+        canonical_order = tuple(sorted(self.artifacts, key=lambda item: item.artifact_id))
+        if self.artifacts != canonical_order:
+            raise DigitalReleaseError("artifacts must remain in canonical artifact order")
         for artifact in self.artifacts:
             if type(artifact) is not ReleaseArtifact:
                 raise DigitalReleaseError("artifacts must remain exact ReleaseArtifact values")
@@ -282,31 +283,51 @@ def validate_current_hardware_commit(
 def validate_repo_split_config(config: object) -> None:
     if type(config) is not dict:
         raise DigitalReleaseError("digital repo split config must be exact mapping")
-    if config.get("schema") != _SPLIT_SCHEMA or type(config.get("schema")) is not str:
+    if any(type(key) is not str for key in config):
+        raise DigitalReleaseError("digital repo split keys must be exact built-in strings")
+
+    schema = _exact_text(config.get("schema"), "split schema")
+    if schema != _SPLIT_SCHEMA:
         raise DigitalReleaseError("unsupported digital repo split schema")
-    if config.get("source_repository") != "mlngaxri/MasckOne":
+    source_repository = _exact_text(config.get("source_repository"), "source_repository")
+    if source_repository != "mlngaxri/MasckOne":
         raise DigitalReleaseError("source_repository must remain authoritative hardware repo")
-    if config.get("digital_release_root") != _RELEASE_ROOT:
+    release_root = _exact_text(config.get("digital_release_root"), "digital_release_root")
+    if release_root != _RELEASE_ROOT:
         raise DigitalReleaseError("digital_release_root must remain canonical export root")
     if config.get("shared_contract_package") is not None:
         raise DigitalReleaseError("shared contract package is not yet authorized")
+
     roots = config.get("allowed_consumer_roots")
-    if type(roots) is not list or roots != [_RELEASE_ROOT]:
+    if (
+        type(roots) is not list
+        or len(roots) != 1
+        or type(roots[0]) is not str
+        or roots[0] != _RELEASE_ROOT
+    ):
         raise DigitalReleaseError("frontends may consume only the exported digital release root")
 
     workspaces = config.get("workspaces")
-    if type(workspaces) is not dict or set(workspaces) != {"web", "app"}:
+    if (
+        type(workspaces) is not dict
+        or any(type(key) is not str for key in workspaces)
+        or set(workspaces) != {"web", "app"}
+    ):
         raise DigitalReleaseError("split config must define exactly web and app workspaces")
     expected = {
-        "web": ("MasckOne-Web", "products/web/"),
-        "app": ("MasckOne-App", "products/app/"),
+        "web": ("MasckOne-Web", "products/web/", "Vercel"),
+        "app": ("MasckOne-App", "products/app/", "Expo-EAS"),
     }
-    for name, (future_repo, prefix) in expected.items():
+    for name, (future_repo, prefix, deployment_target) in expected.items():
         item = workspaces[name]
-        if type(item) is not dict:
+        if type(item) is not dict or any(type(key) is not str for key in item):
             raise DigitalReleaseError(f"{name} workspace must be exact mapping")
-        if item.get("future_repository") != future_repo or item.get("current_prefix") != prefix:
-            raise DigitalReleaseError(f"{name} workspace migration identity drift")
+        if _exact_text(item.get("future_repository"), f"{name}.future_repository") != future_repo:
+            raise DigitalReleaseError(f"{name} future repository identity drift")
+        if _exact_text(item.get("current_prefix"), f"{name}.current_prefix") != prefix:
+            raise DigitalReleaseError(f"{name} workspace prefix drift")
+        if _exact_text(item.get("deployment_target"), f"{name}.deployment_target") != deployment_target:
+            raise DigitalReleaseError(f"{name} deployment target drift")
         for command_name in ("build_command", "test_command", "typecheck_command"):
             _exact_text(item.get(command_name), f"{name}.{command_name}")
         env = item.get("environment_schema")
@@ -314,7 +335,11 @@ def validate_repo_split_config(config: object) -> None:
             raise DigitalReleaseError(f"{name}.environment_schema must be list")
         env_names: set[str] = set()
         for entry in env:
-            if type(entry) is not dict or set(entry) != {"name", "secret"}:
+            if (
+                type(entry) is not dict
+                or any(type(key) is not str for key in entry)
+                or set(entry) != {"name", "secret"}
+            ):
                 raise DigitalReleaseError(f"{name} environment entry malformed")
             env_name = _exact_text(entry["name"], f"{name} environment name")
             if env_name in env_names:
@@ -328,14 +353,21 @@ def validate_repo_split_config(config: object) -> None:
             raise DigitalReleaseError(f"{name} history split command does not preserve prefix history")
 
     import_policy = config.get("import_policy")
-    if type(import_policy) is not dict:
+    if type(import_policy) is not dict or any(type(key) is not str for key in import_policy):
         raise DigitalReleaseError("import_policy must be exact mapping")
-    if import_policy.get("rule") != "FRONTENDS_CONSUME_EXPORTED_RELEASES_ONLY":
+    rule = _exact_text(import_policy.get("rule"), "import_policy.rule")
+    if rule != "FRONTENDS_CONSUME_EXPORTED_RELEASES_ONLY":
         raise DigitalReleaseError("frontend import policy weakened")
     if import_policy.get("migration_is_administrative_not_rewrite") is not True:
         raise DigitalReleaseError("migration must remain administrative")
     forbidden = import_policy.get("forbidden_direct_roots")
-    if type(forbidden) is not list or not {"src/", "config/masck_one_authority.yaml", "schemas/", "tests/"}.issubset(set(forbidden)):
+    required_forbidden = {"src/", "config/masck_one_authority.yaml", "schemas/", "tests/"}
+    if (
+        type(forbidden) is not list
+        or any(type(value) is not str for value in forbidden)
+        or len(forbidden) != len(set(forbidden))
+        or not required_forbidden.issubset(set(forbidden))
+    ):
         raise DigitalReleaseError("hardware direct-import firewall incomplete")
 
     release_policy = config.get("release_policy")
@@ -346,9 +378,13 @@ def validate_repo_split_config(config: object) -> None:
         "reject_stale_release",
         "physical_evidence_promotion_forbidden",
     }
-    if type(release_policy) is not dict or set(release_policy) != required_release_flags:
+    if (
+        type(release_policy) is not dict
+        or any(type(key) is not str for key in release_policy)
+        or set(release_policy) != required_release_flags
+    ):
         raise DigitalReleaseError("release_policy must contain exact controlled flags")
-    if any(value is not True for value in release_policy.values()):
+    if any(type(value) is not bool or value is not True for value in release_policy.values()):
         raise DigitalReleaseError("all digital release safety flags must remain enabled")
 
 
