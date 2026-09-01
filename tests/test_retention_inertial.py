@@ -35,8 +35,22 @@ def test_vertical_cg_offset_creates_pitch_from_fore_aft_force():
     assert r.pitch_moment_nm == pytest.approx(-0.020 * r.fore_aft_force_n)
 
 
+def test_vertical_cg_offset_creates_roll_from_lateral_force():
+    r = evaluate_inertial_retention(base(lateral_accel_g=0.5, fore_aft_accel_g=0.0,
+                                         cg_vertical_mm=20.0))
+    assert r.roll_moment_nm == pytest.approx(0.020 * r.lateral_force_n)
+
+
+def test_zero_vertical_offset_eliminates_pitch_and_roll_not_yaw():
+    r = evaluate_inertial_retention(base(cg_vertical_mm=0.0, lateral_accel_g=0.5,
+                                         fore_aft_accel_g=0.0))
+    assert r.pitch_moment_nm == 0.0 and r.roll_moment_nm == 0.0
+    assert r.yaw_moment_nm != 0.0
+
+
 def test_nonzero_yaw_moment_requires_bilateral_span():
-    r = evaluate_inertial_retention(base(bilateral_support_span_mm=0.0, fore_aft_accel_g=0.0))
+    r = evaluate_inertial_retention(base(bilateral_support_span_mm=0.0, fore_aft_accel_g=0.0,
+                                         cg_vertical_mm=0.0))
     assert not r.yaw_load_path_closed and r.yaw_couple_force_n is None
 
 
@@ -45,24 +59,33 @@ def test_nonzero_pitch_moment_requires_vertical_span():
     assert not r.pitch_load_path_closed and r.pitch_couple_force_n is None
 
 
-def test_support_span_reduces_required_couple_force():
+def test_nonzero_roll_moment_requires_bilateral_span():
+    r = evaluate_inertial_retention(base(bilateral_support_span_mm=0.0, fore_aft_accel_g=0.0,
+                                         cg_anterior_mm=0.0, cg_vertical_mm=20.0))
+    assert not r.roll_load_path_closed and r.roll_couple_force_n is None
+
+
+def test_bilateral_span_reduces_yaw_and_roll_couple_force():
     small = evaluate_inertial_retention(base(bilateral_support_span_mm=60.0))
     large = evaluate_inertial_retention(base(bilateral_support_span_mm=120.0))
     assert small.yaw_couple_force_n == pytest.approx(2.0 * large.yaw_couple_force_n)
+    assert small.roll_couple_force_n == pytest.approx(2.0 * large.roll_couple_force_n)
 
 
 def test_zero_acceleration_closes_without_artificial_couple():
     r = evaluate_inertial_retention(base(lateral_accel_g=0.0, fore_aft_accel_g=0.0,
                                          bilateral_support_span_mm=0.0, vertical_support_span_mm=0.0))
-    assert r.yaw_load_path_closed and r.pitch_load_path_closed
-    assert r.yaw_couple_force_n == 0.0 and r.pitch_couple_force_n == 0.0
+    assert r.yaw_load_path_closed and r.pitch_load_path_closed and r.roll_load_path_closed
+    assert r.yaw_couple_force_n == 0.0 and r.pitch_couple_force_n == 0.0 and r.roll_couple_force_n == 0.0
 
 
 def test_signed_acceleration_preserves_moment_direction():
     pos = evaluate_inertial_retention(base(lateral_accel_g=0.5, fore_aft_accel_g=0.0))
     neg = evaluate_inertial_retention(base(lateral_accel_g=-0.5, fore_aft_accel_g=0.0))
     assert pos.yaw_moment_nm == pytest.approx(-neg.yaw_moment_nm)
+    assert pos.roll_moment_nm == pytest.approx(-neg.roll_moment_nm)
     assert pos.yaw_couple_force_n == pytest.approx(neg.yaw_couple_force_n)
+    assert pos.roll_couple_force_n == pytest.approx(neg.roll_couple_force_n)
 
 
 def test_doe_is_cartesian_and_deterministic():
