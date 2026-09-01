@@ -12,6 +12,7 @@ from masck_one.power_thermal_contract import (
     BatteryPackagingBenchmark,
     ChargingArchitectureBoundary,
     ChargingConventionStatus,
+    EvidenceKind,
     LoadStatus,
     PowerBudget,
     PowerLoadWindow,
@@ -74,13 +75,20 @@ def test_battery_benchmark_rejects_hostile_numeric_and_container_aliases() -> No
         replace(contract.battery, envelope_mm=TupleAlias(contract.battery.envelope_mm))
     with pytest.raises(PowerThermalContractError, match="negative signed zero"):
         replace(contract.battery, mass_g=-0.0)
+    with pytest.raises(PowerThermalContractError, match="representable as a finite float"):
+        replace(contract.battery, capacity_mAh=10**10000)
 
 
 def test_unresolved_load_cannot_smuggle_numeric_inputs_or_evidence() -> None:
     with pytest.raises(PowerThermalContractError, match="UNRESOLVED"):
         PowerLoadWindow("WATER_PUMP", LoadStatus.UNRESOLVED, minimum_power_W=0.1)
     with pytest.raises(PowerThermalContractError, match="UNRESOLVED"):
-        PowerLoadWindow("WATER_PUMP", LoadStatus.UNRESOLVED, evidence_ids=("FAKE",))
+        PowerLoadWindow(
+            "WATER_PUMP",
+            LoadStatus.UNRESOLVED,
+            evidence_kind=EvidenceKind.BOUNDED_MODEL_INPUT,
+            evidence_ids=("FAKE",),
+        )
 
 
 def test_bounded_load_requires_complete_ordered_bounds_and_provenance() -> None:
@@ -91,6 +99,7 @@ def test_bounded_load_requires_complete_ordered_bounds_and_provenance() -> None:
             minimum_power_W=0.1,
             maximum_power_W=0.2,
             minimum_duration_s=1.0,
+            evidence_kind=EvidenceKind.BOUNDED_MODEL_INPUT,
             evidence_ids=("BOUND-1",),
         )
     with pytest.raises(PowerThermalContractError, match="minimum power"):
@@ -101,6 +110,7 @@ def test_bounded_load_requires_complete_ordered_bounds_and_provenance() -> None:
             maximum_power_W=0.2,
             minimum_duration_s=1.0,
             maximum_duration_s=2.0,
+            evidence_kind=EvidenceKind.BOUNDED_MODEL_INPUT,
             evidence_ids=("BOUND-1",),
         )
     with pytest.raises(PowerThermalContractError, match="explicit evidence provenance"):
@@ -111,7 +121,44 @@ def test_bounded_load_requires_complete_ordered_bounds_and_provenance() -> None:
             maximum_power_W=0.2,
             minimum_duration_s=1.0,
             maximum_duration_s=2.0,
+            evidence_kind=EvidenceKind.BOUNDED_MODEL_INPUT,
         )
+    with pytest.raises(PowerThermalContractError, match="BOUNDED_MODEL_INPUT"):
+        PowerLoadWindow(
+            "WATER_PUMP",
+            LoadStatus.BOUNDED_MODEL_INPUT,
+            minimum_power_W=0.1,
+            maximum_power_W=0.2,
+            minimum_duration_s=1.0,
+            maximum_duration_s=2.0,
+            evidence_kind=EvidenceKind.CONTROLLED_PRODUCT_MEASUREMENT,
+            evidence_ids=("WRONG-CLASS",),
+        )
+
+
+def test_measured_load_requires_controlled_product_measurement_provenance() -> None:
+    with pytest.raises(PowerThermalContractError, match="CONTROLLED_PRODUCT_MEASUREMENT"):
+        PowerLoadWindow(
+            "WATER_PUMP",
+            LoadStatus.MEASURED,
+            minimum_power_W=0.1,
+            maximum_power_W=0.2,
+            minimum_duration_s=1.0,
+            maximum_duration_s=2.0,
+            evidence_kind=EvidenceKind.SUPPLIER_CONTROLLED_DATA,
+            evidence_ids=("SUPPLIER-DATA",),
+        )
+    measured = PowerLoadWindow(
+        "WATER_PUMP",
+        LoadStatus.MEASURED,
+        minimum_power_W=0.1,
+        maximum_power_W=0.2,
+        minimum_duration_s=1.0,
+        maximum_duration_s=2.0,
+        evidence_kind=EvidenceKind.CONTROLLED_PRODUCT_MEASUREMENT,
+        evidence_ids=("MEAS-001",),
+    )
+    assert measured.status is LoadStatus.MEASURED
 
 
 def test_complete_bounded_power_budget_computes_energy_only_not_runtime() -> None:
@@ -123,6 +170,7 @@ def test_complete_bounded_power_budget_computes_energy_only_not_runtime() -> Non
             maximum_power_W=2.0,
             minimum_duration_s=3.0,
             maximum_duration_s=6.0,
+            evidence_kind=EvidenceKind.BOUNDED_MODEL_INPUT,
             evidence_ids=(f"BOUND-{index}",),
         )
         for index, load_id in enumerate(LOAD_IDS)
@@ -160,16 +208,18 @@ def test_blocked_thermal_gates_cannot_carry_invented_bounds_or_evidence() -> Non
         ThermalRiskGate(
             "BATTERY_SELF_HEATING",
             ThermalStatus.BLOCKED,
+            evidence_kind=EvidenceKind.BOUNDED_MODEL_INPUT,
             evidence_ids=("FAKE",),
         )
 
 
-def test_bounded_thermal_gate_requires_ordered_bounds_unit_and_provenance() -> None:
+def test_bounded_thermal_gate_requires_ordered_bounds_unit_and_model_provenance() -> None:
     gate = ThermalRiskGate(
         "BATTERY_SELF_HEATING",
         ThermalStatus.BOUNDED_MODEL,
         model_bounds=(0.0, 12.0),
         unit="temperature_rise_degC",
+        evidence_kind=EvidenceKind.BOUNDED_MODEL_INPUT,
         evidence_ids=("THERMAL-MODEL-1",),
     )
     assert gate.model_bounds == (0.0, 12.0)
@@ -179,6 +229,29 @@ def test_bounded_thermal_gate_requires_ordered_bounds_unit_and_provenance() -> N
         replace(gate, unit="")
     with pytest.raises(PowerThermalContractError, match="evidence provenance"):
         replace(gate, evidence_ids=())
+    with pytest.raises(PowerThermalContractError, match="BOUNDED_MODEL_INPUT"):
+        replace(gate, evidence_kind=EvidenceKind.CONTROLLED_PRODUCT_MEASUREMENT)
+
+
+def test_measured_thermal_closure_requires_product_measurement_provenance() -> None:
+    with pytest.raises(PowerThermalContractError, match="CONTROLLED_PRODUCT_MEASUREMENT"):
+        ThermalRiskGate(
+            "BATTERY_SELF_HEATING",
+            ThermalStatus.MEASURED_CLOSED,
+            model_bounds=(0.0, 12.0),
+            unit="temperature_rise_degC",
+            evidence_kind=EvidenceKind.SUPPLIER_CONTROLLED_DATA,
+            evidence_ids=("SUPPLIER-THERMAL",),
+        )
+    measured = ThermalRiskGate(
+        "BATTERY_SELF_HEATING",
+        ThermalStatus.MEASURED_CLOSED,
+        model_bounds=(0.0, 12.0),
+        unit="temperature_rise_degC",
+        evidence_kind=EvidenceKind.CONTROLLED_PRODUCT_MEASUREMENT,
+        evidence_ids=("THERMAL-MEAS-1",),
+    )
+    assert measured.status is ThermalStatus.MEASURED_CLOSED
 
 
 def test_thermal_ledger_must_be_complete_canonical_and_immutable() -> None:
