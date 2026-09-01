@@ -20,14 +20,20 @@ from masck_one.power_thermal_contract import build_cell4_power_thermal_contract
 
 
 def built_state(**kwargs):
-    power = build_cell4_power_thermal_contract(load_authority())
-    return build_simulated_cell4_device_state(power, **kwargs)
+    authority = load_authority()
+    power = build_cell4_power_thermal_contract(authority)
+    return build_simulated_cell4_device_state(power, authority, **kwargs)
 
 
 def test_default_payload_is_explicit_simulation_with_no_fake_transport_or_sensors() -> None:
-    state = built_state()
+    authority = load_authority()
+    power = build_cell4_power_thermal_contract(authority)
+    state = build_simulated_cell4_device_state(power, authority)
     payload = state.consumer_payload()
     assert payload["contract_revision"] == STATE_CONTRACT_REVISION
+    assert payload["authority_revision"] == authority.get("project", "authority_revision")
+    assert payload["source_power_thermal_sha256"] == power.contract_sha256
+    assert len(payload["source_power_thermal_sha256"]) == 64
     assert payload["transport"] == "SIMULATED_ONLY"
     assert payload["hardware_telemetry_available"] is False
     assert payload["ble_transport_available"] is False
@@ -121,12 +127,24 @@ def test_state_contract_rejects_raw_string_enum_aliases() -> None:
         replace(state, battery="SIMULATED_UNKNOWN")
 
 
-def test_state_contract_revision_and_authority_revision_are_fail_closed() -> None:
+def test_state_contract_revision_authority_and_source_sha_are_fail_closed() -> None:
     state = built_state()
     with pytest.raises(Cell4DeviceStateError, match="revision is not controlled"):
         replace(state, contract_revision="CELL4_DEVICE_STATE_V2")
     with pytest.raises(Cell4DeviceStateError, match="nonblank text"):
         replace(state, authority_revision=" stale ")
+    with pytest.raises(Cell4DeviceStateError, match="canonical lowercase SHA-256"):
+        replace(state, source_power_thermal_sha256="not-a-sha")
+
+
+def test_builder_requires_current_authority_and_rejects_stale_power_source() -> None:
+    authority = load_authority()
+    power = build_cell4_power_thermal_contract(authority)
+    stale = replace(power, authority_revision="STALE")
+    with pytest.raises(Cell4DeviceStateError, match="current-authority provenance"):
+        build_simulated_cell4_device_state(stale, authority)
+    with pytest.raises(Cell4DeviceStateError, match="exact controlled Authority type"):
+        build_simulated_cell4_device_state(power, object())
 
 
 def test_consumer_payload_revalidates_post_construction_corruption() -> None:
@@ -134,6 +152,17 @@ def test_consumer_payload_revalidates_post_construction_corruption() -> None:
     object.__setattr__(state, "ble_transport_available", True)
     with pytest.raises(Cell4DeviceStateError, match="cannot be promoted"):
         state.consumer_payload()
+
+
+def test_source_power_identity_changes_when_power_semantics_change() -> None:
+    authority = load_authority()
+    power = build_cell4_power_thermal_contract(authority)
+    first = build_simulated_cell4_device_state(power, authority)
+    assert first.source_power_thermal_sha256 == power.contract_sha256
+
+    object.__setattr__(power.battery, "mass_g", 23.0)
+    with pytest.raises(Cell4DeviceStateError, match="current-authority provenance"):
+        build_simulated_cell4_device_state(power, authority)
 
 
 def test_all_consumer_states_remain_visibly_simulated() -> None:
