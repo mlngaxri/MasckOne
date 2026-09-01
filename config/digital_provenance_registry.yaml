@@ -1,0 +1,7 @@
+schema: MASCK_ONE_DIGITAL_PROVENANCE_REGISTRY_V1
+artifact_kind_sources:
+  PRODUCT_MANIFEST: src/masck_one/model.py
+  CLAIMS_MANIFEST: config/masck_one_authority.yaml
+  COMPONENT_MANIFEST: src/masck_one/model.py
+  DEVICE_STATE_MANIFEST: src/masck_one/mechanism_state.py
+  VISUAL_SYSTEM_MANIFEST: src/masck_one/visual_system.py
