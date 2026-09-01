@@ -14,6 +14,7 @@ import re
 _SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
 STATE_CONTRACT = "MASCK_ONE_MECHANISM_STATE_V4"
 TRANSITION_CONTRACT = "MASCK_ONE_MECHANISM_TRANSITIONS_V3"
+MECHANISM_PROVENANCE_AUTHORITY = "CALLER_SUPPLIED_SIMULATION_CONTEXT_ONLY_NOT_RELEASE_AUTHENTICATION"
 
 
 def _require_sha256(name: str, value: object) -> str:
@@ -212,8 +213,6 @@ def derive_next_state(
     if action is TransitionAction.ENGAGE_RETENTION and b == (OperatingMode.IDLE, False, False, False, False, False):
         expected = (OperatingMode.IDLE, False, True, False, False, False)
     elif action is TransitionAction.RELEASE_RETENTION and b == (OperatingMode.IDLE, False, True, False, False, False):
-        # Normal simulated doff disengages retention without claiming that the
-        # emergency quick-release mechanism has been actuated.
         expected = (OperatingMode.IDLE, False, False, False, False, False)
     elif (
         action is TransitionAction.MECHANICAL_QUICK_RELEASE
@@ -221,9 +220,6 @@ def derive_next_state(
         and not before.quick_release_open
         and not before.service_access_open
     ):
-        # A physical emergency release must not require STOP_CYCLE, fault clearing,
-        # connectivity, firmware or power. The digital model immediately terminates
-        # any active cycle while preserving an already-latched fault.
         fault = before.fault_latched
         mode = OperatingMode.FAULT if fault else OperatingMode.IDLE
         expected = (mode, False, False, True, False, fault)
@@ -245,7 +241,6 @@ def derive_next_state(
     elif action is TransitionAction.LATCH_FAULT and before.mode is not OperatingMode.FAULT:
         expected = (OperatingMode.FAULT, False, before.retention_engaged, before.quick_release_open, before.service_access_open, True)
     elif action is TransitionAction.CLEAR_FAULT and b[0] is OperatingMode.FAULT and b[1] is False and b[5] is True:
-        # Fault clear preserves mechanical positions. It cannot hide open service access.
         mode = OperatingMode.SERVICE if before.service_access_open else OperatingMode.IDLE
         expected = (mode, False, before.retention_engaged, before.quick_release_open, before.service_access_open, False)
 
@@ -290,11 +285,10 @@ def validate_transition(
 class SimulatedTransport:
     """Local deterministic state-event transport with explicitly no hardware telemetry.
 
-    This object exists so Web/App prototypes can consume the exact product-state
-    transition contract without inventing BLE connectivity, sensor observations or
-    physical readiness. ``dispatch`` advances local simulated events only; it is not a
-    hardware-command API. The transport stores a defensive state copy and returns
-    defensive snapshots so caller mutation cannot alter internal state.
+    ``dispatch`` advances local simulated events only; it is not a hardware-command API.
+    The caller-supplied mechanism SHA is a simulation context identity, not authenticated
+    release provenance. Each exported last event is re-derived against a defensive copy
+    of its exact previous state before manifest or provenance generation.
     """
 
     __slots__ = (
@@ -302,6 +296,7 @@ class SimulatedTransport:
         "_state",
         "_sequence",
         "_last_action",
+        "_previous_state",
     )
 
     def __init__(
@@ -320,6 +315,7 @@ class SimulatedTransport:
         self._state = initial
         self._sequence = 0
         self._last_action: TransitionAction | None = None
+        self._previous_state: MechanismState | None = None
         self.validate_invariants()
 
     def validate_invariants(self) -> None:
@@ -339,10 +335,24 @@ class SimulatedTransport:
             raise ValueError("simulation sequence must be nonnegative")
         if self._last_action is not None and type(self._last_action) is not TransitionAction:
             raise TypeError("last simulated action must be exact TransitionAction or None")
-        if self._sequence == 0 and self._last_action is not None:
-            raise ValueError("zero-sequence simulated transport cannot have a last action")
-        if self._sequence > 0 and self._last_action is None:
-            raise ValueError("nonzero-sequence simulated transport requires a last action")
+        if self._previous_state is not None and type(self._previous_state) is not MechanismState:
+            raise TypeError("previous state must be exact MechanismState or None")
+        if self._sequence == 0:
+            if self._last_action is not None or self._previous_state is not None:
+                raise ValueError("zero-sequence simulated transport cannot have transition history")
+            return
+        if self._last_action is None or self._previous_state is None:
+            raise ValueError("nonzero-sequence simulated transport requires complete last-transition history")
+        self._previous_state.validate_invariants()
+        if self._previous_state.mechanism_provenance_sha256 != current:
+            raise ValueError("previous state has stale mechanism provenance")
+        expected = derive_next_state(
+            self._previous_state,
+            self._last_action,
+            current_mechanism_provenance_sha256=current,
+        )
+        if expected != self._state:
+            raise ValueError("last simulated action is inconsistent with previous/current state")
 
     @property
     def transport_kind(self) -> str:
@@ -359,6 +369,10 @@ class SimulatedTransport:
     @property
     def dispatch_semantics(self) -> str:
         return "LOCAL_SIMULATED_STATE_EVENT_ONLY_NOT_HARDWARE_COMMAND"
+
+    @property
+    def mechanism_provenance_authority(self) -> str:
+        return MECHANISM_PROVENANCE_AUTHORITY
 
     @property
     def sequence(self) -> int:
@@ -378,11 +392,13 @@ class SimulatedTransport:
         if type(action) is not TransitionAction:
             raise TypeError("action must be exact TransitionAction")
         self.validate_invariants()
+        previous_state = _copy_state(self._state)
         next_state = derive_next_state(
-            self._state,
+            previous_state,
             action,
             current_mechanism_provenance_sha256=self._current_mechanism_provenance_sha256,
         )
+        self._previous_state = previous_state
         self._state = next_state
         self._last_action = action
         self._sequence += 1
@@ -393,14 +409,17 @@ class SimulatedTransport:
     def provenance_sha256(self) -> str:
         self.validate_invariants()
         payload = {
-            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V3",
+            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V4",
+            "state_contract": STATE_CONTRACT,
             "transition_contract": TRANSITION_CONTRACT,
             "transport_kind": self.transport_kind,
             "telemetry_source": self.telemetry_source,
             "measured_hardware": self.measured_hardware,
             "dispatch_semantics": self.dispatch_semantics,
+            "mechanism_provenance_authority": self.mechanism_provenance_authority,
             "sequence": self._sequence,
             "last_event": None if self._last_action is None else self._last_action.value,
+            "previous_state_provenance_sha256": None if self._previous_state is None else self._previous_state.provenance_sha256,
             "current_mechanism_provenance_sha256": self._current_mechanism_provenance_sha256,
             "state_provenance_sha256": self._state.provenance_sha256,
         }
@@ -411,15 +430,17 @@ class SimulatedTransport:
         self.validate_invariants()
         snapshot = self.snapshot()
         return {
-            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V3",
+            "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V4",
             "state_contract": STATE_CONTRACT,
             "transition_contract": TRANSITION_CONTRACT,
             "transport_kind": self.transport_kind,
             "telemetry_source": self.telemetry_source,
             "measured_hardware": self.measured_hardware,
             "dispatch_semantics": self.dispatch_semantics,
+            "mechanism_provenance_authority": self.mechanism_provenance_authority,
             "sequence": self._sequence,
             "last_event": None if self._last_action is None else self._last_action.value,
+            "previous_state_provenance_sha256": None if self._previous_state is None else self._previous_state.provenance_sha256,
             "current_mechanism_provenance_sha256": self._current_mechanism_provenance_sha256,
             "state": {
                 "mode": snapshot.mode.value,
