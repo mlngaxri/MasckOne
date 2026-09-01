@@ -5,14 +5,12 @@ software provenance problem: a graph of frozen dataclasses can be post-construct
 with ``object.__setattr__`` or rebuilt from mutually-consistent stale inputs. Iteration 25
 must not treat such a graph as current merely because sibling hashes still agree.
 
-The release boundary therefore uses independent checks:
+The release boundary therefore uses two independent checks:
 
-1. the supplied Authority must exactly match the freshly validated repository authority;
+1. the supplied Authority must exactly match the validated repository authority file/schema;
 2. every supplied dataclass graph is recursively reconstructed to re-run constructor
-   invariants;
-3. the complete runtime graph, including exact nested dataclass/container/scalar types, is
-   compared with a deterministic canonical Iteration 15/20-24 graph rebuilt from that
-   repository authority.
+   invariants, then compared with a deterministic canonical Iteration 15/20-24 graph rebuilt
+   from that repository authority.
 
 The canonical graph is the current planar-development engineering lineage used by released
 Iterations 15 and 20-25. Registered-anatomy or supplier-evidence variants require their own
@@ -140,7 +138,7 @@ def _revalidate_exact_graph(value: object, *, path: str) -> None:
 
 
 def _require_exact_graph(actual: object, expected: object, *, path: str) -> None:
-    """Compare the complete canonical graph without erasing runtime type information."""
+    """Compare canonical graphs without Python cross-type equality or signed-zero aliases."""
 
     if type(actual) is not type(expected):
         raise Iteration25SourceIntegrityError(
@@ -155,10 +153,34 @@ def _require_exact_graph(actual: object, expected: object, *, path: str) -> None
         return
 
     if type(actual) is float:
-        if not math.isfinite(actual) or actual != expected:
+        if not math.isfinite(actual) or not math.isfinite(expected) or actual != expected:
             raise Iteration25SourceIntegrityError(
                 f"{path} differs from the canonical current repository source graph"
             )
+        if actual == 0.0 and math.copysign(1.0, actual) != math.copysign(1.0, expected):
+            raise Iteration25SourceIntegrityError(
+                f"{path} signed zero differs from the canonical current repository source graph"
+            )
+        return
+
+    if type(actual) is list:
+        if len(actual) != len(expected):
+            raise Iteration25SourceIntegrityError(
+                f"{path} length differs from the canonical current repository source graph"
+            )
+        for index, (actual_item, expected_item) in enumerate(zip(actual, expected, strict=True)):
+            _require_exact_graph(actual_item, expected_item, path=f"{path}[{index}]")
+        return
+
+    if type(actual) is dict:
+        if len(actual) != len(expected) or set(actual) != set(expected):
+            raise Iteration25SourceIntegrityError(
+                f"{path} keys differ from the canonical current repository source graph"
+            )
+        for key in sorted(expected):
+            if type(key) is not str or type(next(k for k in actual if k == key)) is not str:
+                raise Iteration25SourceIntegrityError(f"{path} contains a non-canonical mapping key")
+            _require_exact_graph(actual[key], expected[key], path=f"{path}.{key}")
         return
 
     if type(actual) is tuple:
@@ -238,10 +260,7 @@ def _repository_authority(authority: Authority) -> Authority:
         raise Iteration25SourceIntegrityError(
             "repository authority cannot be freshly loaded and validated"
         ) from exc
-    if authority.data != fresh.data:
-        raise Iteration25SourceIntegrityError(
-            "in-memory Authority data differs from the current repository authority file"
-        )
+    _require_exact_graph(authority.data, fresh.data, path="authority.data")
     return fresh
 
 
