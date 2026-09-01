@@ -24,7 +24,11 @@ assert.ok(statusTag.includes('aria-live="polite"'));
 assert.ok(statusTag.includes('aria-atomic="true"'));
 const notifyTag=html.match(/<button[^>]*\bid="notify"[^>]*>/)?.[0]??'';
 assert.ok(notifyTag.includes('aria-describedby="access-status"'));
+assert.ok(notifyTag.includes('Check early access'),'CTA must describe a status check, not imply a signup action');
+assert.ok(!html.includes('Join early access'),'public CTA must not imply a join path that does not exist');
 assert.ok(js.includes('button.disabled=true'),'early-access action must fail closed after activation');
+assert.ok(js.includes("button.textContent='Early access not open'"),'post-action copy must not imply future availability');
+assert.ok(!js.includes('opening later'),'runtime copy must not imply an unverified availability timeline');
 assert.ok(js.includes('No signup or availability is implied'),'feedback must not imply signup or availability');
 for(const token of ['fetch(','XMLHttpRequest','WebSocket']) assert.ok(!js.includes(token),`unexpected transport token: ${token}`);
 
