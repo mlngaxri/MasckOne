@@ -5,6 +5,7 @@ import {assertSmallScaleSeam} from './brand-raster.mjs';
 const read=(p)=>readFileSync(new URL(p,import.meta.url),'utf8');
 const html=read('./src/index.html');
 const js=read('./src/app.js');
+const cinematic=read('./src/cinematic.js');
 const css=read('./src/styles.css');
 const build=read('./build.mjs');
 const pkg=JSON.parse(read('./package.json'));
@@ -17,7 +18,7 @@ const social=read('./public/brand/social-avatar-source.svg');
 assert.equal(pkg.scripts?.test,'node test.mjs');
 assert.equal(pkg.scripts?.prebuild,'npm test');
 assert.equal(pkg.scripts?.build,'node build.mjs');
-assert.ok(build.includes("'app.js'")&&build.includes("cp('public','dist'"));
+assert.ok(build.includes("'app.js'")&&build.includes("'cinematic.js'")&&build.includes("cp('public','dist'"));
 assert.ok(html.includes('rel="icon" href="/favicon.svg"'));
 
 for(const asset of [brand,favicon,og,social]){
@@ -51,7 +52,8 @@ for(const token of ['being engineered','Final service geometry remains subject t
 for(const id of ['system','sequence','anatomy','service','development','access'])assert.ok(ids.has(id));
 for(const token of ['THE ROUTINE, REBUILT.','DELIVER','WORK','COLLECT','VALIDATION-GATED','NOT IMPLIED'])assert.ok(html.includes(token));
 assert.ok(html.includes('gsap@3.13.0')&&html.includes('ScrollTrigger.min.js')&&html.includes('lenis@1.3.11'));
-for(const token of ['window.gsap','window.ScrollTrigger','window.Lenis','lerp:0.085','dataset.explodeX','ScrollTrigger.refresh','prefers-reduced-motion: reduce','pointer: fine'])assert.ok(js.includes(token));
+for(const token of ['window.gsap','window.ScrollTrigger','window.Lenis','lerp:0.075','dataset.explodeX','ScrollTrigger.refresh','prefers-reduced-motion: reduce','pointer: fine',"import('./cinematic.js')"])assert.ok(js.includes(token));
+for(const token of ['handoffOut','handoffIn','clipPath','scrub:1.35','parallax','rotationZ'])assert.ok(cinematic.includes(token));
 for(const token of ['.exploded-product','position:sticky','.cursor','.sequence-track','.service-cartridge','Instrument Serif','Instrument Sans','prefers-reduced-motion:reduce','prefers-contrast:more','forced-colors:active','@media(max-width:420px)',':focus-visible','.skip:focus'])assert.ok(css.includes(token));
 assert.ok(css.includes('--canvas:#edeae3')&&css.includes('--ink:#2c2a27')&&css.includes('--champagne:#c9b99f'));
 
