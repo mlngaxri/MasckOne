@@ -222,7 +222,7 @@ def test_nested_dataclass_subclass_cannot_hide_behind_identical_serialization():
         _validate(graph)
 
 
-def test_controlled_cleanser_compatibility_evidence_variant_remains_admissible_without_promotion():
+def test_unreleased_cleanser_compatibility_evidence_variant_is_rejected():
     evidence = CompatibilityEvidence(
         evidence_id="TEST-COUPON-001",
         revision="TEST-REV-1",
@@ -233,6 +233,8 @@ def test_controlled_cleanser_compatibility_evidence_variant_remains_admissible_w
         compatible=True,
     )
     graph = _sources(compatibility_evidence=(evidence,))
-    _validate(graph)
-    assert graph["cleanser"].compatibility_status == "EVIDENCE_ATTACHED_REQUIRES_ENGINEERING_REVIEW"
-    assert graph["cleanser"].physical_validation_eligible is False
+    with pytest.raises(
+        Iteration25SourceIntegrityError,
+        match="not part of the released canonical Iteration 25 lineage",
+    ):
+        _validate(graph)
