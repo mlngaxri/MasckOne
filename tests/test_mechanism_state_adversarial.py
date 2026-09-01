@@ -1,6 +1,7 @@
 import pytest
 
 from masck_one.mechanism_state import (
+    MECHANISM_PROVENANCE_AUTHORITY,
     MechanismState,
     OperatingMode,
     SimulatedTransport,
@@ -82,7 +83,7 @@ def test_negative_internal_sequence_is_value_domain_failure():
         transport.manifest()
 
 
-def test_internal_last_event_corruption_and_sequence_mismatch_fail_closed():
+def test_internal_last_event_or_history_corruption_fails_closed():
     transport = SimulatedTransport(_idle(), current_mechanism_provenance_sha256=MECH)
     transport._last_action = "ENGAGE_RETENTION"
     with pytest.raises(TypeError, match="last simulated action"):
@@ -95,8 +96,29 @@ def test_internal_last_event_corruption_and_sequence_mismatch_fail_closed():
 
     transport = SimulatedTransport(_idle(), current_mechanism_provenance_sha256=MECH)
     transport._sequence = 1
-    with pytest.raises(ValueError, match="requires a last action"):
+    with pytest.raises(ValueError, match="complete last-transition history"):
         transport.manifest()
+
+    transport = SimulatedTransport(_idle(), current_mechanism_provenance_sha256=MECH)
+    transport._previous_state = object()
+    with pytest.raises(TypeError, match="previous state"):
+        transport.manifest()
+
+
+def test_exact_but_wrong_last_event_cannot_mint_false_transition_provenance():
+    transport = SimulatedTransport(_idle(), current_mechanism_provenance_sha256=MECH)
+    transport.dispatch(TransitionAction.ENGAGE_RETENTION)
+    transport._last_action = TransitionAction.COMPLETE_CYCLE
+    with pytest.raises(ValueError, match="illegal"):
+        transport.manifest()
+
+
+def test_exact_but_wrong_previous_state_cannot_mint_false_transition_provenance():
+    transport = SimulatedTransport(_idle(), current_mechanism_provenance_sha256=MECH)
+    transport.dispatch(TransitionAction.ENGAGE_RETENTION)
+    transport._previous_state = _retained()
+    with pytest.raises(ValueError, match="illegal"):
+        transport.provenance_sha256
 
 
 def test_internal_state_corruption_cannot_be_exported_as_simulated_truth():
@@ -152,10 +174,12 @@ def test_mechanical_quick_release_does_not_require_stop_cycle_or_firmware_comman
     assert transport.last_event == "MECHANICAL_QUICK_RELEASE"
 
     manifest = transport.manifest()
-    assert manifest["schema"] == "MASCK_ONE_SIMULATED_TRANSPORT_V3"
+    assert manifest["schema"] == "MASCK_ONE_SIMULATED_TRANSPORT_V4"
     assert manifest["transition_contract"] == TRANSITION_CONTRACT
     assert manifest["last_event"] == "MECHANICAL_QUICK_RELEASE"
+    assert manifest["previous_state_provenance_sha256"] == _clean().provenance_sha256
     assert manifest["dispatch_semantics"] == "LOCAL_SIMULATED_STATE_EVENT_ONLY_NOT_HARDWARE_COMMAND"
+    assert manifest["mechanism_provenance_authority"] == MECHANISM_PROVENANCE_AUTHORITY
     assert manifest["telemetry_source"] == "NONE"
     assert manifest["measured_hardware"] is False
 
