@@ -2,8 +2,8 @@
 
 Deterministic preflight for prescribed head-motion load cases. Coordinate contract:
 +x = wearer right (lateral), +y = anterior, +z = superior. CG offsets are measured
-+from the retention support reference. Moments are computed from r x F. Outputs do
-+not establish comfort, human acceleration exposure, damping or fatigue life.
+from the retention support reference. Moments are computed from r x F. Outputs do
+not establish comfort, human acceleration exposure, damping or fatigue life.
 """
 from __future__ import annotations
 
@@ -49,19 +49,31 @@ class InertialRetentionResult:
     translational_resultant_n: float
     yaw_moment_nm: float
     pitch_moment_nm: float
+    roll_moment_nm: float
     yaw_couple_force_n: float | None
     pitch_couple_force_n: float | None
+    roll_couple_force_n: float | None
     yaw_load_path_closed: bool
     pitch_load_path_closed: bool
+    roll_load_path_closed: bool
     evidence_status: str = "DIGITAL_SENSITIVITY_ONLY"
 
 
-def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetentionResult:
-    """Resolve prescribed translational loads and CG moments into support couples.
+def _resolve_couple(moment_nm: float, span_mm: float) -> tuple[float | None, bool]:
+    if moment_nm == 0.0:
+        return 0.0, True
+    if span_mm > 0.0:
+        return abs(moment_nm) / (span_mm / 1000.0), True
+    return None, False
 
-    With r=(x,y,z) and F=(Fx,Fy,0), r x F gives yaw Mz=x*Fy-y*Fx and
-    pitch Mx=-z*Fy. This deliberately prevents an anterior offset parallel to a
-    fore-aft force from creating a fictitious pitch moment.
+
+def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetentionResult:
+    """Resolve prescribed translational loads and all r x F moments into support couples.
+
+    With r=(x,y,z) and F=(Fx,Fy,0), r x F gives pitch Mx=-z*Fy,
+    roll My=z*Fx, and yaw Mz=x*Fy-y*Fx. The naming follows wearer axes:
+    pitch is rotation about the lateral x axis, roll about anterior y, yaw about z.
+    A nonzero moment with no controlled reaction span fails closed.
     """
     p.validate()
     mass_kg = p.loaded_mass_g / 1000.0
@@ -71,25 +83,21 @@ def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetention
     x = p.cg_lateral_mm / 1000.0
     y = p.cg_anterior_mm / 1000.0
     z = p.cg_vertical_mm / 1000.0
-    yaw = x * fore_aft - y * lateral
+
     pitch = -z * fore_aft
+    roll = z * lateral
+    yaw = x * fore_aft - y * lateral
 
-    if yaw == 0.0:
-        yaw_force, yaw_closed = 0.0, True
-    elif p.bilateral_support_span_mm > 0.0:
-        yaw_force, yaw_closed = abs(yaw) / (p.bilateral_support_span_mm / 1000.0), True
-    else:
-        yaw_force, yaw_closed = None, False
+    yaw_force, yaw_closed = _resolve_couple(yaw, p.bilateral_support_span_mm)
+    pitch_force, pitch_closed = _resolve_couple(pitch, p.vertical_support_span_mm)
+    # A roll couple is reacted across left/right retention supports, hence bilateral span.
+    roll_force, roll_closed = _resolve_couple(roll, p.bilateral_support_span_mm)
 
-    if pitch == 0.0:
-        pitch_force, pitch_closed = 0.0, True
-    elif p.vertical_support_span_mm > 0.0:
-        pitch_force, pitch_closed = abs(pitch) / (p.vertical_support_span_mm / 1000.0), True
-    else:
-        pitch_force, pitch_closed = None, False
-
-    return InertialRetentionResult(lateral, fore_aft, resultant, yaw, pitch,
-                                   yaw_force, pitch_force, yaw_closed, pitch_closed)
+    return InertialRetentionResult(
+        lateral, fore_aft, resultant, yaw, pitch, roll,
+        yaw_force, pitch_force, roll_force,
+        yaw_closed, pitch_closed, roll_closed,
+    )
 
 
 def inertial_retention_doe(
