@@ -13,10 +13,7 @@ from masck_one.fresh_pump_packaging import build_fresh_pump_packaging_architectu
 from masck_one.interface_attachment import build_interface_attachment_architecture
 from masck_one.model import build_model
 from masck_one.structural_frame import build_structural_frame_topology
-from masck_one.waste_acquisition import (
-    WasteAcquisitionError,
-    build_waste_acquisition_architecture,
-)
+from masck_one.waste_acquisition import build_waste_acquisition_architecture
 from masck_one.water_reservoir import build_water_reservoir_architecture
 
 
@@ -147,8 +144,8 @@ def test_iteration25_cannot_rebind_corrupted_iteration24_snapshot(current_stack)
     object.__setattr__(candidate.grooves[0], "width_mm", 0.4)
 
     with pytest.raises(
-        WasteAcquisitionError,
-        match="inherited Iteration 24 source chain is stale",
+        DistributionGeometryError,
+        match="Iteration 24 cannot invent distribution-groove dimensions",
     ):
         build_waste_acquisition_architecture(
             model.authority,
