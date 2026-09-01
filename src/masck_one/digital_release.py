@@ -71,6 +71,81 @@ _REQUIRED_KINDS: Mapping[ConsumerProfile, frozenset[ArtifactKind]] = {
 }
 
 
+_SPLIT_TOP_LEVEL_KEYS = {
+    "schema",
+    "source_repository",
+    "digital_release_root",
+    "shared_contract_package",
+    "allowed_consumer_roots",
+    "workspaces",
+    "import_policy",
+    "release_policy",
+}
+_SPLIT_WORKSPACE_KEYS = {
+    "future_repository",
+    "current_prefix",
+    "build_command",
+    "test_command",
+    "typecheck_command",
+    "deployment_target",
+    "environment_schema",
+    "history_split_command",
+}
+_SPLIT_WORKSPACE_V1: Mapping[str, dict[str, object]] = {
+    "web": {
+        "future_repository": "MasckOne-Web",
+        "current_prefix": "products/web/",
+        "build_command": "npm run build",
+        "test_command": "npm test",
+        "typecheck_command": "npm run typecheck --if-present",
+        "deployment_target": "Vercel",
+        "environment_schema": (
+            ("NEXT_PUBLIC_DIGITAL_RELEASE_URL", False),
+            ("NEXT_PUBLIC_ANALYTICS_PROVIDER", False),
+            ("ANALYTICS_WRITE_KEY", True),
+            ("RESERVATION_PROVIDER_SECRET", True),
+        ),
+        "history_split_command": (
+            "git filter-repo --path products/web/ --path-rename products/web/:"
+        ),
+    },
+    "app": {
+        "future_repository": "MasckOne-App",
+        "current_prefix": "products/app/",
+        "build_command": "npm run build",
+        "test_command": "npm test",
+        "typecheck_command": "npm run typecheck --if-present",
+        "deployment_target": "Expo-EAS",
+        "environment_schema": (
+            ("EXPO_PUBLIC_DIGITAL_RELEASE_URL", False),
+            ("EXPO_PUBLIC_ANALYTICS_PROVIDER", False),
+        ),
+        "history_split_command": (
+            "git filter-repo --path products/app/ --path-rename products/app/:"
+        ),
+    },
+}
+_SPLIT_FORBIDDEN_DIRECT_ROOTS_V1 = (
+    "src/",
+    "config/masck_one_authority.yaml",
+    "schemas/",
+    "tests/",
+    "cad/",
+)
+_SPLIT_IMPORT_POLICY_KEYS = {
+    "rule",
+    "forbidden_direct_roots",
+    "migration_is_administrative_not_rewrite",
+}
+_SPLIT_RELEASE_POLICY_KEYS = {
+    "require_content_sha256",
+    "require_source_provenance_sha256",
+    "require_hardware_commit_binding",
+    "reject_stale_release",
+    "physical_evidence_promotion_forbidden",
+}
+
+
 def _exact_text(value: object, label: str) -> str:
     if type(value) is not str or not value or value != value.strip():
         raise DigitalReleaseError(f"{label} must be exact built-in nonblank text")
@@ -285,6 +360,8 @@ def validate_repo_split_config(config: object) -> None:
         raise DigitalReleaseError("digital repo split config must be exact mapping")
     if any(type(key) is not str for key in config):
         raise DigitalReleaseError("digital repo split keys must be exact built-in strings")
+    if set(config) != _SPLIT_TOP_LEVEL_KEYS:
+        raise DigitalReleaseError("digital repo split config top-level contract drift")
 
     schema = _exact_text(config.get("schema"), "split schema")
     if schema != _SPLIT_SCHEMA:
@@ -311,29 +388,34 @@ def validate_repo_split_config(config: object) -> None:
     if (
         type(workspaces) is not dict
         or any(type(key) is not str for key in workspaces)
-        or set(workspaces) != {"web", "app"}
+        or set(workspaces) != set(_SPLIT_WORKSPACE_V1)
     ):
         raise DigitalReleaseError("split config must define exactly web and app workspaces")
-    expected = {
-        "web": ("MasckOne-Web", "products/web/", "Vercel"),
-        "app": ("MasckOne-App", "products/app/", "Expo-EAS"),
-    }
-    for name, (future_repo, prefix, deployment_target) in expected.items():
+
+    for name, expected in _SPLIT_WORKSPACE_V1.items():
         item = workspaces[name]
         if type(item) is not dict or any(type(key) is not str for key in item):
             raise DigitalReleaseError(f"{name} workspace must be exact mapping")
-        if _exact_text(item.get("future_repository"), f"{name}.future_repository") != future_repo:
-            raise DigitalReleaseError(f"{name} future repository identity drift")
-        if _exact_text(item.get("current_prefix"), f"{name}.current_prefix") != prefix:
-            raise DigitalReleaseError(f"{name} workspace prefix drift")
-        if _exact_text(item.get("deployment_target"), f"{name}.deployment_target") != deployment_target:
-            raise DigitalReleaseError(f"{name} deployment target drift")
-        for command_name in ("build_command", "test_command", "typecheck_command"):
-            _exact_text(item.get(command_name), f"{name}.{command_name}")
+        if set(item) != _SPLIT_WORKSPACE_KEYS:
+            raise DigitalReleaseError(f"{name} workspace contract fields drift")
+
+        for field in (
+            "future_repository",
+            "current_prefix",
+            "build_command",
+            "test_command",
+            "typecheck_command",
+            "deployment_target",
+            "history_split_command",
+        ):
+            actual_value = _exact_text(item.get(field), f"{name}.{field}")
+            if actual_value != expected[field]:
+                raise DigitalReleaseError(f"{name}.{field} drift from V1 split contract")
+
         env = item.get("environment_schema")
         if type(env) is not list:
             raise DigitalReleaseError(f"{name}.environment_schema must be list")
-        env_names: set[str] = set()
+        actual_env: list[tuple[str, bool]] = []
         for entry in env:
             if (
                 type(entry) is not dict
@@ -342,46 +424,35 @@ def validate_repo_split_config(config: object) -> None:
             ):
                 raise DigitalReleaseError(f"{name} environment entry malformed")
             env_name = _exact_text(entry["name"], f"{name} environment name")
-            if env_name in env_names:
-                raise DigitalReleaseError(f"{name} environment names must be unique")
-            env_names.add(env_name)
             if type(entry["secret"]) is not bool:
                 raise DigitalReleaseError(f"{name} environment secret flag must be exact bool")
-        split_command = _exact_text(item.get("history_split_command"), f"{name}.history_split_command")
-        required_fragment = f"--path {prefix} --path-rename {prefix}:"
-        if required_fragment not in split_command:
-            raise DigitalReleaseError(f"{name} history split command does not preserve prefix history")
+            actual_env.append((env_name, entry["secret"]))
+        if tuple(actual_env) != expected["environment_schema"]:
+            raise DigitalReleaseError(f"{name} environment schema drift from V1 split contract")
 
     import_policy = config.get("import_policy")
     if type(import_policy) is not dict or any(type(key) is not str for key in import_policy):
         raise DigitalReleaseError("import_policy must be exact mapping")
+    if set(import_policy) != _SPLIT_IMPORT_POLICY_KEYS:
+        raise DigitalReleaseError("import_policy fields drift from V1 split contract")
     rule = _exact_text(import_policy.get("rule"), "import_policy.rule")
     if rule != "FRONTENDS_CONSUME_EXPORTED_RELEASES_ONLY":
         raise DigitalReleaseError("frontend import policy weakened")
     if import_policy.get("migration_is_administrative_not_rewrite") is not True:
         raise DigitalReleaseError("migration must remain administrative")
     forbidden = import_policy.get("forbidden_direct_roots")
-    required_forbidden = {"src/", "config/masck_one_authority.yaml", "schemas/", "tests/"}
     if (
         type(forbidden) is not list
         or any(type(value) is not str for value in forbidden)
-        or len(forbidden) != len(set(forbidden))
-        or not required_forbidden.issubset(set(forbidden))
+        or tuple(forbidden) != _SPLIT_FORBIDDEN_DIRECT_ROOTS_V1
     ):
-        raise DigitalReleaseError("hardware direct-import firewall incomplete")
+        raise DigitalReleaseError("hardware direct-import firewall drift from V1 split contract")
 
     release_policy = config.get("release_policy")
-    required_release_flags = {
-        "require_content_sha256",
-        "require_source_provenance_sha256",
-        "require_hardware_commit_binding",
-        "reject_stale_release",
-        "physical_evidence_promotion_forbidden",
-    }
     if (
         type(release_policy) is not dict
         or any(type(key) is not str for key in release_policy)
-        or set(release_policy) != required_release_flags
+        or set(release_policy) != _SPLIT_RELEASE_POLICY_KEYS
     ):
         raise DigitalReleaseError("release_policy must contain exact controlled flags")
     if any(type(value) is not bool or value is not True for value in release_policy.values()):
