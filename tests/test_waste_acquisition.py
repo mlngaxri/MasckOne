@@ -285,7 +285,7 @@ def test_post_validation_authority_mutation_cannot_bypass_iteration25_freshness(
     waste = build_current_waste(current_sources)
     mutated = copied_authority(model.authority)
     mutated.data["fluid"]["waste"]["recovery_ratio_min"] = waste.recovery_ratio_min - 0.01
-    with pytest.raises(WasteAcquisitionError, match="recovery requirement is stale"):
+    with pytest.raises(WasteAcquisitionError, match="inherited source graph is not canonical current"):
         validate_current(current_sources, waste, authority=mutated)
 
 
@@ -299,7 +299,7 @@ def test_upstream_iteration24_source_drift_propagates_through_iteration25(curren
 
     with pytest.raises(
         WasteAcquisitionError,
-        match="inherited Iteration 24 source chain is stale",
+        match="inherited source graph is not canonical current",
     ):
         waste.validate_current_sources(
             authority=drifted,
@@ -315,7 +315,7 @@ def test_upstream_iteration24_source_drift_propagates_through_iteration25(curren
 
     with pytest.raises(
         WasteAcquisitionError,
-        match="inherited Iteration 24 source chain is stale",
+        match="inherited source graph is not canonical current",
     ):
         build_waste_acquisition_architecture(
             drifted,
