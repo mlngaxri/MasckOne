@@ -70,6 +70,11 @@ class InertialRetentionResult:
     pitch_load_path_closed: bool
     roll_load_path_closed: bool
     bilateral_load_path_closed: bool
+    right_support_reaction_n: tuple[float, float, float] | None = None
+    left_support_reaction_n: tuple[float, float, float] | None = None
+    right_support_resultant_n: float | None = None
+    left_support_resultant_n: float | None = None
+    max_bilateral_support_resultant_n: float | None = None
     translational_yaw_moment_nm: float = 0.0
     translational_pitch_moment_nm: float = 0.0
     translational_roll_moment_nm: float = 0.0
@@ -87,18 +92,56 @@ def _resolve_couple(moment_nm: float, span_mm: float) -> tuple[float | None, boo
     return None, False
 
 
+def _bilateral_reactions(
+    fx: float, fy: float, fz: float, yaw_nm: float, roll_nm: float, span_mm: float
+) -> tuple[tuple[float, float, float], tuple[float, float, float]] | None:
+    """Symmetric two-support reaction decomposition for the bilateral span.
+
+    Supports are at x=+/-span/2. Equal translation sharing is a declared sensitivity
+    assumption. Differential anterior reactions close yaw and differential vertical
+    reactions close roll. Pitch is intentionally excluded because it terminates through
+    the separate vertical support span. Returned vectors are reactions on the device.
+    """
+    if span_mm == 0.0:
+        if yaw_nm != 0.0 or roll_nm != 0.0:
+            return None
+        # Coincident supports cannot be physically distinguished. Keep the symmetric
+        # bookkeeping only for pure translation; no moment capability is implied.
+        half = (-0.5 * fx, -0.5 * fy, -0.5 * fz)
+        return half, half
+    span_m = span_mm / 1000.0
+    right = (
+        -0.5 * fx,
+        -0.5 * fy - yaw_nm / span_m,
+        -0.5 * fz + roll_nm / span_m,
+    )
+    left = (
+        -0.5 * fx,
+        -0.5 * fy + yaw_nm / span_m,
+        -0.5 * fz - roll_nm / span_m,
+    )
+    return right, left
+
+
+def _norm3(v: tuple[float, float, float]) -> float:
+    return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
+
+
 def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetentionResult:
-    """Resolve prescribed 3D translation and principal-axis rotation into support couples.
+    """Resolve prescribed 3D translation and principal-axis rotation into support loads.
 
     With r=(x,y,z) and F=(Fx,Fy,Fz), r x F gives pitch Mx=y*Fz-z*Fy,
     roll My=z*Fx-x*Fz, and yaw Mz=x*Fy-y*Fx. Vertical translation is included.
     Principal-axis rotational inertia adds I*alpha. Gravity is handled by the separate
-    quasi-static ledger. Yaw and roll both terminate through the bilateral support span,
-    so their orthogonal couple-force components are also resolved as one resultant.
-    Reporting only the two scalar components would understate the actual bilateral
-    interface demand when yaw and roll occur simultaneously. Products of inertia and
-    gyroscopic terms remain blocked pending controlled CAD mass properties and angular
-    velocity inputs.
+    quasi-static ledger. Yaw and roll both terminate through the bilateral support span.
+
+    In addition to scalar couple demand, this resolves a symmetric two-support reaction
+    state. This matters because translational preload can add to the couple reaction on
+    one side and subtract on the other; sizing only from sqrt(F_yaw^2+F_roll^2) can
+    understate the peak local yoke/contact reaction. The equal translational split is a
+    sensitivity assumption, not evidence of real pressure distribution. Products of
+    inertia and gyroscopic terms remain blocked pending controlled CAD mass properties
+    and angular velocity inputs.
     """
     p.validate()
     mass_kg = p.loaded_mass_g / 1000.0
@@ -129,6 +172,16 @@ def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetention
         if bilateral_closed and yaw_force is not None and roll_force is not None
         else None
     )
+    reactions = _bilateral_reactions(lateral, fore_aft, vertical, yaw, roll,
+                                     p.bilateral_support_span_mm)
+    if reactions is None:
+        right = left = None
+        right_resultant = left_resultant = peak_resultant = None
+    else:
+        right, left = reactions
+        right_resultant = _norm3(right)
+        left_resultant = _norm3(left)
+        peak_resultant = max(right_resultant, left_resultant)
 
     return InertialRetentionResult(
         lateral_force_n=lateral,
@@ -146,6 +199,11 @@ def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetention
         pitch_load_path_closed=pitch_closed,
         roll_load_path_closed=roll_closed,
         bilateral_load_path_closed=bilateral_closed,
+        right_support_reaction_n=right,
+        left_support_reaction_n=left,
+        right_support_resultant_n=right_resultant,
+        left_support_resultant_n=left_resultant,
+        max_bilateral_support_resultant_n=peak_resultant,
         translational_yaw_moment_nm=t_yaw,
         translational_pitch_moment_nm=t_pitch,
         translational_roll_moment_nm=t_roll,
