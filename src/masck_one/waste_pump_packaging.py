@@ -171,7 +171,6 @@ class WastePumpStationReservation:
             label="waste pump outlet interface",
         )
         _exact(self.frame_reservation_id, RESERVATION_WASTE, label="waste frame reservation")
-
         unresolved = (
             self.package_candidate_id,
             self.package_evidence_sha256,
@@ -390,11 +389,10 @@ class WastePumpPackagingArchitecture:
             raise WastePumpPackagingError("distribution must be the exact Iteration 24 architecture type")
         if type(frame) is not StructuralFrameTopology:
             raise WastePumpPackagingError("frame must be the exact structural-frame topology type")
-
         try:
             acquisition.validate_current_sources(authority=authority, distribution=distribution)
         except WasteAcquisitionError as exc:
-            raise WastePumpPackagingError("Iteraton 25 waste acquisition is stale for current sources") from exc
+            raise WastePumpPackagingError("Iteration 25 waste acquisition is stale for current sources") from exc
 
         if self.source_waste_acquisition_sha256 != acquisition.architecture_sha256:
             raise WastePumpPackagingError("waste pump architecture is stale for current Iteration 25 acquisition")
@@ -428,9 +426,9 @@ class WastePumpPackagingArchitecture:
         if self.residual_free_liquid_limit_uL != expected_residual:
             raise WastePumpPackagingError("waste pump residual-liquid requirement is stale")
         if acquisition.recovery_ratio_min != expected_recovery:
-            raise WastePumpPackagingError("Iteraton 25 recovery requirement disagrees with current authority")
+            raise WastePumpPackagingError("Iteration 25 recovery requirement disagrees with current authority")
         if acquisition.residual_free_liquid_max_uL != expected_residual:
-            raise WastePumpPackagingError("Iteraton 25 residual-liquid requirement disagrees with current authority")
+            raise WastePumpPackagingError("Iteration 25 residual-liquid requirement disagrees with current authority")
 
         reservations = tuple(
             item for item in frame.reservations if item.reservation_id == RESERVATION_WASTE
@@ -477,11 +475,10 @@ def build_waste_pump_packaging_architecture(
         raise WastePumpPackagingError("distribution must be the exact Iteration 24 architecture type")
     if type(frame) is not StructuralFrameTopology:
         raise WastePumpPackagingError("frame must be the exact structural-frame topology type")
-
     try:
         acquisition.validate_current_sources(authority=authority, distribution=distribution)
     except WasteAcquisitionError as exc:
-        raise WastePumpPackagingError("Iteraton 25 waste acquisition is stale for current sources") from exc
+        raise WastePumpPackagingError("Iteration 25 waste acquisition is stale for current sources") from exc
 
     waste = authority.get("fluid", "waste")
     if type(waste) is not dict:
@@ -498,10 +495,7 @@ def build_waste_pump_packaging_architecture(
         label="waste authority residual free-liquid limit",
         nonnegative=True,
     )
-    revision = _text(
-        authority.get("project", "authority_revision"),
-        label="authority revision",
-    )
+    revision = _text(authority.get("project", "authority_revision"), label="authority revision")
 
     station = WastePumpStationReservation(
         station_id=STATION_WASTE,
@@ -525,7 +519,6 @@ def build_waste_pump_packaging_architecture(
         hydraulic_status=HYDRAULIC_STATUS,
         service_status=SERVICE_STATUS,
     )
-
     common_route = {
         "phase_semantics": PHASE_MIXED_WASTE,
         "geometry_status": ROUTING_STATUS,
@@ -548,7 +541,6 @@ def build_waste_pump_packaging_architecture(
             **common_route,
         ),
     )
-
     faults = tuple(
         WastePumpFaultIntent(
             fault_id=fault_id,
@@ -560,7 +552,6 @@ def build_waste_pump_packaging_architecture(
         )
         for fault_id in FAULT_IDS
     )
-
     architecture = WastePumpPackagingArchitecture(
         source_waste_acquisition_sha256=acquisition.architecture_sha256,
         source_structural_frame_sha256=frame.topology_sha256,
