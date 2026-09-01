@@ -1,246 +1,73 @@
 # Masck One Website & App Engineering Handoff
 
-## Purpose
+## Purpose and ownership
 
-This file is the sole maintained engineering handoff for the website and companion app.
+This is the sole maintained engineering-to-human digital handoff. Cell 1 owns edits. Autonomous agents must not implement, redesign, deploy, refactor, test, optimize or otherwise spend engineering cycles on `products/web/`, `products/app/`, Vercel, app-store packaging, marketing pages, launch funnels or unrelated commercialization infrastructure.
 
-Autonomous agents are **not** to build, redesign, deploy, refactor, optimize, or otherwise spend implementation time on the website or app. Their job is to engineer the physical Masck One product. After every materially released engineering iteration, they must still ask what the new product truth implies for the website and app, then record that implication here so the human-led digital work stays current.
+This file is not engineering authority and does not promote physical evidence. Repository authority, released engineering code/CAD, tests, preflights and evidence state remain controlling.
 
-This file is not engineering authority and does not promote physical evidence. The repository authority, schemas, released CAD/code, tests, preflights and evidence state remain controlling.
-
-## Ownership and update rule
-
-- **Cell 1 / Conductor owns edits to this file** to avoid multi-agent merge conflicts.
-- Cells 2-5 must include a concise `DIGITAL_HANDOFF_DELTA` in their handoff whenever a material product change affects website/app requirements.
-- Cell 1 must reconcile those deltas into this README after each merged engineering iteration or materially changed product architecture.
-- Entries must cite the relevant iteration/PR/main SHA in plain text.
-- Stale entries must be revised or marked superseded when engineering changes.
-- No autonomous agent may use this README as permission to edit `products/web/` or `products/app/`.
+After every materially released engineering iteration, Cell 1 reconciles `DIGITAL_HANDOFF_DELTA` inputs here. Website/app work remains human-owned.
 
 ## Status vocabulary
 
-- `MUST_BUILD`: required for the website/app to represent the released product coherently.
-- `SHOULD_BUILD`: high-value digital feature or explanation, but not required for basic fidelity.
-- `OPTIONAL`: useful enhancement.
-- `BLOCKED`: do not implement as factual/product-connected behavior until the named engineering/evidence dependency closes.
-- `FORBIDDEN_CLAIM`: do not present publicly as established fact.
+`MUST_BUILD` means required for digital fidelity. `SHOULD_BUILD` means high value. `OPTIONAL` means useful but nonessential. `BLOCKED` means do not implement as factual/product-connected behavior until the named dependency closes. `FORBIDDEN_CLAIM` means do not present publicly as established fact.
 
-## Required entry format
+## Current release baseline
 
-For every material engineering iteration, maintain:
+Source: Iteration 28, PR #54, released main `518ed10632193f604fcb4b6723d12e8e42cd3f71`, 2026-09-01.
 
-1. **Source**: iteration, PR and/or released main SHA.
-2. **Physical product change**: what actually changed in Masck One.
-3. **Website delta**: what should be added, removed, revised or animated.
-4. **App delta**: what workflow, state, screen, copy or control implication exists.
-5. **Required assets/data**: geometry, state definitions, renders, measurements or copy inputs the human builder will eventually need.
-6. **Allowed claims**: evidence-backed statements the digital surfaces may make.
-7. **Blocked/forbidden claims**: what remains validation-gated.
-8. **Priority/dependency**: MUST_BUILD / SHOULD_BUILD / OPTIONAL / BLOCKED and the release/evidence dependency.
+Physical truth: the controlled operational fluid graph contains 62 segments, 54 fresh and 8 mixed-waste. It establishes digital interface continuity from water/cleanser sources through pumps, manifold, 24 distribution outlets/grooves, five waste regions, waste pump and cartridge handoff. Fluid identities remain controlled. This is topology and evidence-boundary closure, not realized physical route closure.
 
----
+Realized 3D centerlines, tubing internal cross-sections, supplier bend specifications, bend-radius compliance, geometric dead volume, service/deformation trajectories, orientation extrema, mixed-phase transient-buffer geometry, backflow-device physical selection, drain/dry behavior and instrumented fluid performance remain unresolved. The 0.40 mL maximum initial-prime value remains a validation-gated requirement, not a measured result.
 
-# Current engineering-to-digital backlog
+### WEBSITE
 
-Baseline checked against repository main `7eda0e80d28b068f40c716b94c4b3c9b7f8da085` on 2026-09-01. This list is a handoff backlog, not evidence of completed website/app implementation.
+`MUST_BUILD`: any future technical cutaway or fluid animation must preserve the released source-to-pump-to-distribution-to-acquisition-to-waste-pump-to-cartridge architecture and keep fresh water, cleanser and mixed waste visually distinct.
 
-## Iteration 21: cleanser storage architecture
+`BLOCKED`: do not depict hidden tubing centerlines, manifold branch geometry, bend radii, backflow-device geometry, cartridge internals or service trajectories as factual until released realized geometry exists.
 
-**Physical product change**
-- Cleanser storage/refill architecture became a controlled product subsystem.
-- Compatibility, purge behavior and real-world service burden remain evidence-bounded rather than universal.
+`BLOCKED`: do not imply equal flow, verified pressure balance, exact prime/purge behavior, measured dead volume, verified recovery, orientation independence or cleansing efficacy from topology alone.
 
-**Website delta**
-- `MUST_BUILD`: explain that the product is designed around user-supplied compatible cleanser rather than a proprietary cleanser-only proposition.
-- `SHOULD_BUILD`: show refill/service interaction once final service geometry is released.
-- `FORBIDDEN_CLAIM`: "works with every cleanser" or equivalent universal-compatibility language.
+### APP
 
-**App delta**
-- `SHOULD_BUILD`: reserve a cleanser/refill guidance state.
-- `BLOCKED`: automatic cleanser level, compatibility detection or remaining-cycle telemetry unless later hardware explicitly provides it.
+No implementation change is authorized by Iteration 28. `SHOULD_BUILD` only as future information architecture: maintenance/troubleshooting may mirror the real fluid-system taxonomy once the human-owned app is developed.
 
-**Required future inputs**
-- final fill/service geometry; validated cleanser envelope; purge/cleaning instructions; any real sensing architecture.
+`BLOCKED`: reservoir level, cleanser level, waste level, prime completion, flow rate, leak detection, cartridge-full sensing, pump-health telemetry and live route visualization unless later released hardware explicitly contains and validates those sensing/telemetry capabilities.
 
-## Iteration 22: dual fresh-fluid pump packaging
+### ASSETS / DATA
 
-**Physical product change**
-- Water and cleanser pumping remain distinct controlled paths with evidence-safe packaging semantics.
+Future truthful route assets require exact released segment IDs, source/destination/phase identity, released 3D centerlines where available and revision provenance. Mixed waste must remain distinct from fresh water and cleanser. Decorative invented internal routing is not acceptable.
 
-**Website delta**
-- `SHOULD_BUILD`: internal cutaway/technical sequence can distinguish water and cleanser metering paths.
-- Keep animation conceptual unless exact released route geometry exists.
+### CLAIMS
 
-**App delta**
-- `BLOCKED`: pump speed/flow/pressure telemetry, pump-health readout or remote pump control unless later hardware/firmware authority explicitly adds it.
-- `SHOULD_BUILD`: future fault/help copy may explain fluid-delivery faults once actual detection semantics exist.
+Allowed now: Masck One has a controlled digital architecture separating fresh-water, cleanser and mixed-waste paths, with explicit distribution, acquisition, pumping and cartridge handoffs.
 
-## Iteration 23: fresh-fluid manifold topology
+`FORBIDDEN_CLAIM`: leak-proof, orientation-independent, universal-cleanser, exact prime volume as measured fact, exact recovery fraction, guaranteed cleansing efficacy, clinically proven performance, measured waste-recovery performance, verified comfort, exact runtime, exact cartridge life, verified thermal safety, or sensors/telemetry not physically implemented and validated.
 
-**Physical product change**
-- Controlled topology now reserves 18 water and 6 cleanser outlets while preserving fluid identity.
+### PRIORITY / DEPENDENCIES
 
-**Website delta**
-- `MUST_BUILD`: when showing internal distribution, depict water and cleanser as distinct branches and preserve the 18/6 architecture if still current at build time.
-- `BLOCKED`: visually implying verified equal flow, pressure balance or efficacy from topology alone.
+Highest physical dependencies are realized routing geometry and quantitative closure, retention/halo/crown architecture, one-hand wet unpowered quick release, battery/electronics dry bay, physical HMI, wet/dry cavity and hygiene closure, assembly/service/interference, DFM/tolerance/CTQ, whole-system mass/CG/torque/fluid/power/thermal ledgers, and neutral/Fusion-ready exports.
 
-**App delta**
-- No direct app control implied.
-- `OPTIONAL`: explanatory cycle visualization may reference distribution phases, but must not masquerade as live measured fluid telemetry.
+## Released subsystem implications retained from Iterations 21 to 27
 
-## Iteration 24: protected outlet and groove intent
+Cleanser storage is a controlled subsystem, but universal cleanser compatibility is forbidden until validated. Water and cleanser pumping remain distinct paths. The manifold reserves 18 water and 6 cleanser outlets. Twenty-four outlet/groove intents target active facial regions while preserving protected-region development clearances. Five waste-acquisition region intents preserve mixed air/liquid/foam/contaminant semantics. Waste transport is treated as mixed-phase rather than clean-water pumping. The waste cartridge is a controlled replaceable/serviceable subsystem, but its external bounding volume is not usable-capacity evidence.
 
-**Physical product change**
-- 24 outlet/groove intents are associated with active facial target regions while maintaining protected-zone clearance in development geometry.
+For future human-led digital work, refill, distribution, waste containment and cartridge-service explanations should use released geometry when it exists. Do not invent measured flow, pressure, recovery, retained capacity, cycle count, leak performance, sensor states or service cadence.
 
-**Website delta**
-- `MUST_BUILD`: product explainer should communicate targeted facial distribution and avoidance of protected eye/mouth/airway regions without implying physical ingress validation.
-- `SHOULD_BUILD`: once final registered geometry exists, use a truthful face-map or product cutaway rather than decorative/random fluid lines.
+## Pending physical lanes, not released digital truth
 
-**App delta**
-- `OPTIONAL`: cycle-progress visualization may later represent facial regions/zones.
-- `BLOCKED`: per-region measured coverage or efficacy scores until physical evidence exists.
+PR #59 proposes an industrial-design, CMF and human-factors contract. It is not released. Its future-facing principles include a continuous calm facial field, subordinate side transition, recessive rear/service layer, explicit compliant-versus-rigid material hierarchy, controlled seam architecture and physical CMF sampling. Do not treat its colour, gloss, seam, continuity or tactile targets as production facts before release and physical validation.
 
-## Iteration 25: mixed-phase waste acquisition topology
+PR #60 proposes retention load-path and emergency-release architecture. It is not released. Future digital explanation, if released, should show crown load support, occipital stabilization and one mechanical emergency-release action. Basic removal must never depend on the app. Universal fit, pressure-free comfort, measured removal time and accidental-release immunity remain blocked pending physical evidence.
 
-**Physical product change**
-- Five controlled facial waste-acquisition region intents preserve mixed air/liquid/foam/contaminant semantics and hand off toward active waste pumping.
+PR #61 proposes realized-routing evidence gates and fluid-fixture closure. It is not released. Future route visuals must wait for released centerlines and controlled geometry. Leak-proof, orientation-independent, exact prime/recovery and efficacy claims remain blocked.
 
-**Website delta**
-- `MUST_BUILD`: explain contained used-liquid acquisition as a core differentiator.
-- `SHOULD_BUILD`: show collection regions and flow direction only from released geometry, not invented paths.
-- `FORBIDDEN_CLAIM`: leak-proof, mess-free under all orientations, or verified recovery percentage until physical validation closes.
+All three current physical PR heads have failing engineering CI as of 2026-09-01 and therefore remain non-authoritative. No pending branch is to be promoted from green-looking local logic or descriptive quality alone.
 
-**App delta**
-- `SHOULD_BUILD`: future maintenance/troubleshooting content should distinguish delivery faults from waste-recovery/service faults.
-- `BLOCKED`: waste-recovery percentage or residual-liquid telemetry unless later sensing and validation explicitly support it.
+## Cross-cutting physical-to-digital rules
 
-## Iteration 26: mixed-phase waste pump architecture
+Every future product animation must map to released geometry/state truth rather than decorative mechanism invention. Protected eye, mouth and airway regions remain protected visually and verbally. Engineering targets must never be converted into achieved claims. Final product imagery must use current released exterior geometry and physical CMF authority, not stale concepts or digital palette choices. Safety-critical functions must not depend on app availability unless explicitly authorized by engineering authority. Simulated/development data must remain visibly separate from real telemetry.
 
-**Physical product change**
-- Waste pumping is explicitly treated as mixed-phase transport with controlled fault semantics rather than simple clean-water pumping.
+## Human builder workflow
 
-**Website delta**
-- `SHOULD_BUILD`: technical animation can explain active removal of used liquid, air and foam once route/geometry authority is released.
-- Do not depict a specific production pump or pressure-flow behavior until selected and evidenced.
-
-**App delta**
-- `SHOULD_BUILD`: future fault UX should support waste-path blockage/service guidance if actual device detection semantics are implemented.
-- `BLOCKED`: live pump/fault telemetry until real sensors/firmware exist.
-
-## Iteration 27: waste cartridge architecture
-
-**Physical product change**
-- Cartridge insertion, sealing, capacity reservation and service interfaces are now part of the controlled architecture.
-- The cartridge external bounding volume is not treated as usable retained capacity.
-
-**Website delta**
-- `MUST_BUILD`: show the replaceable/serviceable waste-cartridge concept and intended insertion/removal experience once final service geometry is released.
-- `SHOULD_BUILD`: use exploded/service storytelling to make containment understandable.
-- `FORBIDDEN_CLAIM`: exact retained volume, cycle count or leak performance as measured fact until validation supports it.
-
-**App delta**
-- `MUST_BUILD`: reserve cartridge/service workflow in information architecture.
-- `BLOCKED`: automatic cartridge presence/fullness/remaining-cycle detection unless later hardware includes validated sensing.
-
-## Iteration 28: full fresh/waste routing closure
-
-**Current state**
-- Active engineering work. Do not treat as released until exact-main/queue state confirms it.
-
-**Website delta once released**
-- `MUST_BUILD`: update any cutaway/exploded/fluid animation to use the released route identities and actual geometry available at that point.
-- `BLOCKED`: inventing bend radii, tubing routes, dead volume, prime behavior or service clearance when those remain unresolved.
-
-**App delta once released**
-- `SHOULD_BUILD`: update maintenance/troubleshooting taxonomy to mirror real source -> pump -> distribution -> acquisition -> waste-pump -> cartridge architecture.
-- No live route visualization unless telemetry exists.
-
----
-
-# Upcoming hardware areas and anticipated digital implications
-
-These are planning notes only. They must be rewritten from released engineering truth when each capability lands.
-
-## Iteration 29: retention / halo / occipital / crown
-
-**Website**
-- likely `MUST_BUILD`: fit/retention explanation, donning sequence, perceived-bulk and load-distribution story.
-
-**App**
-- likely `SHOULD_BUILD`: fit/setup guidance.
-- `BLOCKED`: fit sensing or retention-force readout unless hardware supports it.
-
-## Iteration 30: one-hand wet unpowered quick release
-
-**Website**
-- likely `MUST_BUILD`: clear safety/service explanation showing the release is mechanical and unpowered.
-
-**App**
-- app must never become required for emergency release.
-- likely `SHOULD_BUILD`: safety education/troubleshooting only.
-
-## Iteration 31: battery/electronics dry bay
-
-**Website**
-- likely `SHOULD_BUILD`: charging and wet/dry isolation explanation once architecture is released.
-
-**App**
-- battery/status UX becomes meaningful only to the extent real telemetry and firmware interfaces exist.
-- runtime claims remain validation-gated.
-
-## Iteration 32: physical HMI
-
-**Website**
-- `MUST_BUILD`: product interaction story must match final physical controls exactly.
-
-**App**
-- any remote controls must remain subordinate to physical safety and device authority.
-- do not invent modes, controls or sensors for digital richness.
-
----
-
-# Cross-cutting website requirements derived from engineering
-
-- Every product animation should ultimately map to released geometry/state truth, not decorative mechanism invention.
-- Protected eye, mouth and airway regions must remain visually and verbally protected.
-- Do not convert engineering targets into achieved claims.
-- Clearly distinguish intended operation from physically validated performance.
-- Final product imagery must use current released exterior geometry and CMF, not stale concept forms.
-- When a hardware revision changes visible geometry, service sequence, fluid route, HMI, retention or cartridge interaction, the website backlog must be updated.
-
-# Cross-cutting app requirements derived from engineering
-
-- Never imply BLE, telemetry, sensing or remote control that the hardware does not actually implement.
-- Safety-critical functions must not depend on app availability unless explicitly authorized by engineering authority.
-- App state names must match released product-state terminology.
-- Simulated/development data must remain visibly separate from real device telemetry.
-- Maintenance workflows must follow actual refill, cleaning, cartridge and service architecture.
-- New hardware faults should trigger a review of app error states, troubleshooting and user recovery flows.
-
-# Claims firewall
-
-Unless released evidence later supports them, the website/app must not claim or imply:
-
-- universal cleanser compatibility;
-- guaranteed cleansing efficacy;
-- clinically proven performance;
-- leak-proof or orientation-independent operation;
-- verified comfort or pressure safety;
-- exact runtime/cycle endurance;
-- exact cartridge service life;
-- verified thermal comfort/safety;
-- measured waste-recovery performance;
-- certified materials/compliance not actually obtained;
-- sensors, telemetry or connected capabilities not actually implemented.
-
-# Human builder workflow
-
-When manually developing the website or app:
-
-1. Start from the newest entries in this file.
-2. Verify the referenced engineering iteration is actually released on `main`.
-3. Pull exact current geometry/state/assets from the engineering repo where appropriate.
-4. Build the digital experience yourself.
-5. Do not edit engineering authority to make the digital experience easier.
-6. If the desired website/app behavior requires a hardware capability that does not exist, treat it as a product question rather than silently faking it in UI.
+Start from the newest released entry here. Verify its referenced engineering source is actually on `main`. Pull exact current geometry, state definitions and assets from released engineering authority where appropriate. Build the website/app manually. Never edit engineering authority merely to make digital implementation easier. If desired digital behavior requires hardware that does not exist, treat it as a product dependency rather than faking the capability in UI.
