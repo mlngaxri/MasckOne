@@ -238,7 +238,7 @@ def test_split_config_rejects_hostile_string_aliases_and_migration_drift():
 
     bad = deepcopy(config)
     bad["workspaces"]["app"]["history_split_command"] = "git filter-repo --path products/web/"
-    with pytest.raises(DigitalReleaseError, match="history split"):
+    with pytest.raises(DigitalReleaseError, match=r"app\.history_split_command drift"):
         validate_repo_split_config(bad)
 
 
