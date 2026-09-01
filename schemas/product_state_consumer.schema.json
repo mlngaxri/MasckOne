@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://masck.one/schemas/product-state-consumer-v2.json",
+  "title": "Masck One Product State Consumer V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "transport_schema",
+    "state_contract",
+    "transition_contract",
+    "transport_kind",
+    "dispatch_semantics",
+    "mechanism_provenance_authority",
+    "hardware_command_capability",
+    "connectivity_model",
+    "availability_semantics",
+    "ui_intent_semantics",
+    "telemetry_source",
+    "measured_hardware",
+    "sequence",
+    "last_event",
+    "previous_state_provenance_sha256",
+    "current_mechanism_provenance_sha256",
+    "state",
+    "available_ui_intents",
+    "available_simulated_mechanical_events",
+    "available_simulated_device_events",
+    "action_semantics",
+    "state_provenance_sha256",
+    "source_transport_provenance_sha256",
+    "consumer_provenance_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "MASCK_ONE_PRODUCT_STATE_CONSUMER_V2"},
+    "transport_schema": {"const": "MASCK_ONE_SIMULATED_TRANSPORT_V4"},
+    "state_contract": {"const": "MASCK_ONE_MECHANISM_STATE_V4"},
+    "transition_contract": {"const": "MASCK_ONE_MECHANISM_TRANSITIONS_V3"},
+    "transport_kind": {"const": "SIMULATED_LOCAL_ONLY"},
+    "dispatch_semantics": {"const": "LOCAL_SIMULATED_STATE_EVENT_ONLY_NOT_HARDWARE_COMMAND"},
+    "mechanism_provenance_authority": {"const": "CALLER_SUPPLIED_SIMULATION_CONTEXT_ONLY_NOT_RELEASE_AUTHENTICATION"},
+    "hardware_command_capability": {"const": "NONE_SIMULATION_ONLY"},
+    "connectivity_model": {"const": "ABSENT_NOT_MODELED"},
+    "availability_semantics": {"const": "DERIVED_FROM_SIMULATED_STATE_ONLY"},
+    "ui_intent_semantics": {"const": "LOCAL_SIMULATION_INPUT_ONLY_NOT_HARDWARE_COMMAND"},
+    "telemetry_source": {"const": "NONE"},
+    "measured_hardware": {"const": false},
+    "sequence": {"type": "integer", "minimum": 0},
+    "last_event": {
+      "type": ["string", "null"],
+      "enum": [
+        null,
+        "ENGAGE_RETENTION",
+        "RELEASE_RETENTION",
+        "MECHANICAL_QUICK_RELEASE",
+        "RESET_RELEASE",
+        "START_CLEAN",
+        "START_WARM",
+        "STOP_CYCLE",
+        "COMPLETE_CYCLE",
+        "ENTER_SERVICE",
+        "EXIT_SERVICE",
+        "OPEN_SERVICE",
+        "CLOSE_SERVICE",
+        "LATCH_FAULT",
+        "CLEAR_FAULT"
+      ]
+    },
+    "previous_state_provenance_sha256": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/sha256"}
+      ]
+    },
+    "current_mechanism_provenance_sha256": {"$ref": "#/$defs/sha256"},
+    "state": {"$ref": "#/$defs/state"},
+    "available_ui_intents": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": ["START_CLEAN", "START_WARM", "STOP_CYCLE", "ENTER_SERVICE", "EXIT_SERVICE"]
+      }
+    },
+    "available_simulated_mechanical_events": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "ENGAGE_RETENTION",
+          "RELEASE_RETENTION",
+          "MECHANICAL_QUICK_RELEASE",
+          "RESET_RELEASE",
+          "OPEN_SERVICE",
+          "CLOSE_SERVICE"
+        ]
+      }
+    },
+    "available_simulated_device_events": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["COMPLETE_CYCLE", "LATCH_FAULT", "CLEAR_FAULT"]}
+    },
+    "action_semantics": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "prefixItems": [
+        {"$ref": "#/$defs/engageRetention"},
+        {"$ref": "#/$defs/releaseRetention"},
+        {"$ref": "#/$defs/mechanicalQuickRelease"},
+        {"$ref": "#/$defs/resetRelease"},
+        {"$ref": "#/$defs/startClean"},
+        {"$ref": "#/$defs/startWarm"},
+        {"$ref": "#/$defs/stopCycle"},
+        {"$ref": "#/$defs/completeCycle"},
+        {"$ref": "#/$defs/enterService"},
+        {"$ref": "#/$defs/exitService"},
+        {"$ref": "#/$defs/openService"},
+        {"$ref": "#/$defs/closeService"},
+        {"$ref": "#/$defs/latchFault"},
+        {"$ref": "#/$defs/clearFault"}
+      ],
+      "items": false
+    },
+    "state_provenance_sha256": {"$ref": "#/$defs/sha256"},
+    "source_transport_provenance_sha256": {"$ref": "#/$defs/sha256"},
+    "consumer_provenance_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "cycle_active",
+        "retention_engaged",
+        "quick_release_open",
+        "service_access_open",
+        "fault_latched",
+        "readiness",
+        "evidence_state",
+        "provenance_sha256"
+      ],
+      "properties": {
+        "mode": {"enum": ["IDLE", "CLEAN", "WARM", "SERVICE", "FAULT"]},
+        "cycle_active": {"type": "boolean"},
+        "retention_engaged": {"type": "boolean"},
+        "quick_release_open": {"type": "boolean"},
+        "service_access_open": {"type": "boolean"},
+        "fault_latched": {"type": "boolean"},
+        "readiness": {
+          "enum": [
+            "NOT_RETAINED",
+            "READY_FOR_CYCLE",
+            "CYCLE_ACTIVE",
+            "RELEASE_OPEN",
+            "SERVICE",
+            "FAULT_BLOCKED"
+          ]
+        },
+        "evidence_state": {"const": "SIMULATED_DIGITAL_STATE_ONLY"},
+        "provenance_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "mechanicalAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "channel", "ui_control_exposed", "hardware_command"],
+      "properties": {
+        "channel": {"const": "SIMULATED_MECHANICAL_EVENT"},
+        "ui_control_exposed": {"const": false},
+        "hardware_command": {"const": false}
+      }
+    },
+    "uiAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "channel", "ui_control_exposed", "hardware_command"],
+      "properties": {
+        "channel": {"const": "UI_INTENT"},
+        "ui_control_exposed": {"const": true},
+        "hardware_command": {"const": false}
+      }
+    },
+    "deviceAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "channel", "ui_control_exposed", "hardware_command"],
+      "properties": {
+        "channel": {"const": "SIMULATED_DEVICE_EVENT"},
+        "ui_control_exposed": {"const": false},
+        "hardware_command": {"const": false}
+      }
+    },
+    "engageRetention": {
+      "allOf": [
+        {"$ref": "#/$defs/mechanicalAction"},
+        {"properties": {"action": {"const": "ENGAGE_RETENTION"}}}
+      ]
+    },
+    "releaseRetention": {
+      "allOf": [
+        {"$ref": "#/$defs/mechanicalAction"},
+        {"properties": {"action": {"const": "RELEASE_RETENTION"}}}
+      ]
+    },
+    "mechanicalQuickRelease": {
+      "allOf": [
+        {"$ref": "#/$defs/mechanicalAction"},
+        {"properties": {"action": {"const": "MECHANICAL_QUICK_RELEASE"}}}
+      ]
+    },
+    "resetRelease": {
+      "allOf": [
+        {"$ref": "#/$defs/mechanicalAction"},
+        {"properties": {"action": {"const": "RESET_RELEASE"}}}
+      ]
+    },
+    "startClean": {
+      "allOf": [
+        {"$ref": "#/$defs/uiAction"},
+        {"properties": {"action": {"const": "START_CLEAN"}}}
+      ]
+    },
+    "startWarm": {
+      "allOf": [
+        {"$ref": "#/$defs/uiAction"},
+        {"properties": {"action": {"const": "START_WARM"}}}
+      ]
+    },
+    "stopCycle": {
+      "allOf": [
+        {"$ref": "#/$defs/uiAction"},
+        {"properties": {"action": {"const": "STOP_CYCLE"}}}
+      ]
+    },
+    "completeCycle": {
+      "allOf": [
+        {"$ref": "#/$defs/deviceAction"},
+        {"properties": {"action": {"const": "COMPLETE_CYCLE"}}}
+      ]
+    },
+    "enterService": {
+      "allOf": [
+        {"$ref": "#/$defs/uiAction"},
+        {"properties": {"action": {"const": "ENTER_SERVICE"}}}
+      ]
+    },
+    "exitService": {
+      "allOf": [
+        {"$ref": "#/$defs/uiAction"},
+        {"properties": {"action": {"const": "EXIT_SERVICE"}}}
+      ]
+    },
+    "openService": {
+      "allOf": [
+        {"$ref": "#/$defs/mechanicalAction"},
+        {"properties": {"action": {"const": "OPEN_SERVICE"}}}
+      ]
+    },
+    "closeService": {
+      "allOf": [
+        {"$ref": "#/$defs/mechanicalAction"},
+        {"properties": {"action": {"const": "CLOSE_SERVICE"}}}
+      ]
+    },
+    "latchFault": {
+      "allOf": [
+        {"$ref": "#/$defs/deviceAction"},
+        {"properties": {"action": {"const": "LATCH_FAULT"}}}
+      ]
+    },
+    "clearFault": {
+      "allOf": [
+        {"$ref": "#/$defs/deviceAction"},
+        {"properties": {"action": {"const": "CLEAR_FAULT"}}}
+      ]
+    }
+  }
+}
