@@ -59,9 +59,9 @@
         },
         "relative_path": {
           "type": "string",
-          "pattern": "^generated/digital_product_release/[A-Za-z0-9._/-]+$"
+          "pattern": "^generated/digital_product_release/(?!.*(?:^|/)\\.{1,2}(?:/|$))(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+$"
         },
-        "media_type": {"type": "string", "minLength": 1},
+        "media_type": {"type": "string", "pattern": "^\\S(?:.*\\S)?$"},
         "revision": {"type": "integer", "minimum": 1},
         "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "source_provenance_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
