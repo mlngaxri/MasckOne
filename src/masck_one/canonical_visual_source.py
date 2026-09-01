@@ -23,41 +23,40 @@ def _sha(value: object, label: str) -> str:
 
 def _validated_language(
     language: object,
-    authenticated_design_language_sha256: object,
+    expected_design_language_sha256: object,
 ) -> UnifiedDesignLanguage:
-    """Revalidate a language and require an externally authenticated exact identity.
+    """Revalidate a language and require one exact externally supplied identity.
 
-    This module deliberately does not decide whether an upstream design-language
-    manifest is released or authentic. That responsibility belongs to the digital
-    release boundary. The authenticated digest is therefore a mandatory input, not
-    a value reconstructed or invented here.
+    This is an equality/freshness guard, not an authentication mechanism. The caller
+    is responsible for obtaining the expected digest from a separately authenticated
+    release boundary. No release state is inferred from a syntactically valid hash.
     """
     if type(language) is not UnifiedDesignLanguage:
         raise CanonicalVisualSourceError("Design language must be the exact shared contract type")
-    expected = _sha(authenticated_design_language_sha256, "Authenticated design-language SHA")
+    expected = _sha(expected_design_language_sha256, "Expected design-language SHA")
     try:
         language.__post_init__()
         actual = language.manifest_sha256
     except DesignLanguageError:
         raise CanonicalVisualSourceError("Design language failed invariant revalidation") from None
     if actual != expected:
-        raise CanonicalVisualSourceError("Design language does not match authenticated upstream identity")
+        raise CanonicalVisualSourceError("Design language does not match expected upstream identity")
     return language
 
 
 def build_canonical_visual_system(
     language: object,
     *,
-    authenticated_design_language_sha256: object,
+    expected_design_language_sha256: object,
 ) -> AdaptiveVisualSystem:
-    """Build the canonical Cell-2 adaptive presentation system.
+    """Build canonical Cell-2 presentation semantics against one exact upstream identity.
 
     Typography and appearance values are presentation semantics only. They are not
-    geometry authority, CMF approval, hardware evidence, or physical validation.
-    The caller must provide the exact authenticated digest of the supplied upstream
-    design-language manifest. No fixture or placeholder provenance is accepted.
+    geometry authority, CMF approval, engineering evidence, or physical validation.
+    The expected digest is only a freshness guard here. A production caller must get
+    it from an authenticated release artifact; this module does not authenticate it.
     """
-    validated = _validated_language(language, authenticated_design_language_sha256)
+    validated = _validated_language(language, expected_design_language_sha256)
     return AdaptiveVisualSystem(
         contract_id=_CONTRACT_ID,
         design_language_sha256=validated.manifest_sha256,
@@ -77,12 +76,12 @@ def build_canonical_visual_system(
 def build_canonical_digital_exports(
     language: object,
     *,
-    authenticated_design_language_sha256: object,
+    expected_design_language_sha256: object,
 ) -> tuple[DigitalTargetExport, DigitalTargetExport]:
-    """Return canonically ordered web/app exports from one authenticated language."""
+    """Return canonically ordered web/app exports from one exact upstream identity."""
     system = build_canonical_visual_system(
         language,
-        authenticated_design_language_sha256=authenticated_design_language_sha256,
+        expected_design_language_sha256=expected_design_language_sha256,
     )
     web = export_visual_system(system, "web")
     app = export_visual_system(system, "app")

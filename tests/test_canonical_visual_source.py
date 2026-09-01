@@ -27,8 +27,8 @@ def language(*, engineering_sha: str = "a" * 64) -> UnifiedDesignLanguage:
 def test_canonical_visual_source_is_deterministic_and_exactly_bound() -> None:
     upstream = language()
     expected = upstream.manifest_sha256
-    first = build_canonical_visual_system(upstream, authenticated_design_language_sha256=expected)
-    second = build_canonical_visual_system(language(), authenticated_design_language_sha256=expected)
+    first = build_canonical_visual_system(upstream, expected_design_language_sha256=expected)
+    second = build_canonical_visual_system(language(), expected_design_language_sha256=expected)
 
     assert first.manifest == second.manifest
     assert first.manifest_sha256 == second.manifest_sha256
@@ -39,29 +39,29 @@ def test_canonical_visual_source_is_deterministic_and_exactly_bound() -> None:
     assert first.physical_validation_eligible is False
 
 
-def test_requires_external_exact_upstream_identity_without_placeholder_fallback() -> None:
+def test_requires_exact_upstream_identity_without_placeholder_fallback() -> None:
     upstream = language()
     with pytest.raises(CanonicalVisualSourceError):
-        build_canonical_visual_system(upstream, authenticated_design_language_sha256="b" * 64)
+        build_canonical_visual_system(upstream, expected_design_language_sha256="b" * 64)
     with pytest.raises(CanonicalVisualSourceError):
-        build_canonical_visual_system(upstream, authenticated_design_language_sha256=LyingStr(upstream.manifest_sha256))
+        build_canonical_visual_system(upstream, expected_design_language_sha256=LyingStr(upstream.manifest_sha256))
     with pytest.raises(CanonicalVisualSourceError):
-        build_canonical_visual_system(upstream, authenticated_design_language_sha256="fixture")
+        build_canonical_visual_system(upstream, expected_design_language_sha256="fixture")
     with pytest.raises(CanonicalVisualSourceError):
-        build_canonical_visual_system(object(), authenticated_design_language_sha256="a" * 64)
+        build_canonical_visual_system(object(), expected_design_language_sha256="a" * 64)
 
 
 def test_post_construction_upstream_corruption_fails_closed() -> None:
     upstream = language()
-    authenticated = upstream.manifest_sha256
+    expected = upstream.manifest_sha256
     object.__setattr__(upstream, "engineering_manifest_sha256", "not-a-sha")
     with pytest.raises(CanonicalVisualSourceError):
-        build_canonical_visual_system(upstream, authenticated_design_language_sha256=authenticated)
+        build_canonical_visual_system(upstream, expected_design_language_sha256=expected)
 
 
-def test_upstream_semantic_change_requires_new_authenticated_identity() -> None:
+def test_upstream_semantic_change_requires_new_expected_identity() -> None:
     original = language()
-    authenticated = original.manifest_sha256
+    expected = original.manifest_sha256
     changed = UnifiedDesignLanguage(
         contract_id="masck-one.launch-v1",
         engineering_manifest_sha256="a" * 64,
@@ -69,16 +69,16 @@ def test_upstream_semantic_change_requires_new_authenticated_identity() -> None:
         shapes=original.shapes,
         motions=original.motions,
     )
-    assert changed.manifest_sha256 != authenticated
+    assert changed.manifest_sha256 != expected
     with pytest.raises(CanonicalVisualSourceError):
-        build_canonical_visual_system(changed, authenticated_design_language_sha256=authenticated)
+        build_canonical_visual_system(changed, expected_design_language_sha256=expected)
 
 
 def test_web_and_app_exports_share_both_required_semantic_hashes() -> None:
     upstream = language()
     web, app = build_canonical_digital_exports(
         upstream,
-        authenticated_design_language_sha256=upstream.manifest_sha256,
+        expected_design_language_sha256=upstream.manifest_sha256,
     )
     assert (web.target, app.target) == ("web", "app")
     assert web.visual_system_sha256 == app.visual_system_sha256
@@ -94,11 +94,11 @@ def test_engineering_identity_change_propagates_through_dual_hash_chain() -> Non
     second = language(engineering_sha="b" * 64)
     first_web, _ = build_canonical_digital_exports(
         first,
-        authenticated_design_language_sha256=first.manifest_sha256,
+        expected_design_language_sha256=first.manifest_sha256,
     )
     second_web, _ = build_canonical_digital_exports(
         second,
-        authenticated_design_language_sha256=second.manifest_sha256,
+        expected_design_language_sha256=second.manifest_sha256,
     )
     assert first.manifest_sha256 != second.manifest_sha256
     assert first_web.visual_system_sha256 != second_web.visual_system_sha256
