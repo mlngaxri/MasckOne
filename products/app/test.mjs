@@ -8,6 +8,7 @@ const css=read('./src/styles.css');
 const build=read('./build.mjs');
 const pkg=JSON.parse(read('./package.json'));
 const brand=read('./assets/brand/brand-mark.svg');
+const mono=read('./assets/brand/brand-mark-mono.svg');
 const appIcon=read('./assets/brand/app-icon-source.svg');
 
 assert.equal(pkg.scripts?.test,'node test.mjs'); assert.equal(pkg.scripts?.prebuild,'npm test'); assert.equal(pkg.scripts?.build,'node build.mjs');
@@ -16,6 +17,15 @@ assert.ok(appIcon.includes('viewBox="0 0 1024 1024"'),'app icon source must reta
 for(const asset of [brand,appIcon]){
   assert.ok(asset.includes('#314f38')&&asset.includes('#1d211f'),'brand source must use the controlled digital palette');
   assert.ok(!/<(?:linearGradient|radialGradient|filter|mask)\b/.test(asset),'icon source must remain flat and unmasked');
+}
+assert.ok(brand.includes('controlled flowing seam'),'canonical mark must identify the revised flowing-seam geometry');
+assert.ok(!brand.includes('h18v216')&&!brand.includes('M142 20h18'),'retired straight parallel-bar geometry must not return');
+assert.equal((brand.match(/<path\b/g)||[]).length,2,'canonical mark must remain a two-field source');
+assert.equal((mono.match(/<path\b/g)||[]).length,2,'monochrome mark must preserve two-field topology');
+assert.ok(!brand.includes('<rect'),'canonical mark geometry must not depend on a platform container');
+for(const pathToken of ['M40 72C40 40 65 20 96 20h16','M144 20h16']){
+  assert.ok(brand.includes(pathToken),`canonical mark must retain revised seam anchor ${pathToken}`);
+  assert.ok(appIcon.includes(pathToken),`app icon source must derive from canonical mark anchor ${pathToken}`);
 }
 const homeTag=html.match(/<section[^>]*\bid="home"[^>]*>/)?.[0]??'';
 assert.ok(homeTag.includes('data-state-source="simulated"')); assert.ok(homeTag.includes('data-device-transport="none"')); assert.ok(html.includes('Simulated device state, not live telemetry')); assert.ok(html.includes('Preview only. No device command is sent.'));
