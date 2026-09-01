@@ -1,255 +1,176 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#edeae3">
-  <meta name="color-scheme" content="light">
-  <title>Masck One | Facial cleansing wearable in development</title>
-  <meta name="description" content="Masck One is a hands-free facial cleansing system in engineering development, built around controlled fluid delivery, cleansing motion, and contained waste collection.">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="preload" as="image" href="https://cdn.jsdelivr.net/gh/mlngaxri/MasckOne@0ce6725175f972465efc4cbe0434777a90c10ea4/products/web/public/product/hero.svg" fetchpriority="high">
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="visuals.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#eee9df" />
+  <meta name="description" content="MASCK ONE is a contained-fluid facial cleansing system in engineering development." />
+  <title>MASCK ONE | Cleansing, re-engineered</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="preload" as="image" href="https://cdn.jsdelivr.net/gh/mlngaxri/MasckOne@0ce6725175f972465efc4cbe0434777a90c10ea4/products/web/public/product/hero.svg" fetchpriority="high" />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"><span>VIEW</span></div>
+  <div class="scroll-line" aria-hidden="true"><i></i></div>
 
-  <div class="preloader" aria-hidden="true" data-preloader>
-    <div class="preloader__top"><span>MASCK ONE</span><span>OBJECT / 001</span></div>
-    <div class="preloader__count" data-loader-count>000</div>
-    <div class="preloader__line"><i data-loader-line></i></div>
-    <p>FACIAL CLEANSING WEARABLE</p>
+  <div class="stair-transition" aria-hidden="true">
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    <div class="transition-mark">MASCK ONE</div>
   </div>
 
-  <div class="grain" aria-hidden="true"></div>
-  <div class="cursor" aria-hidden="true" data-cursor><span data-cursor-label>VIEW</span></div>
-  <aside class="page-rail" aria-hidden="true">
-    <span data-page-index>00</span>
-    <i><b data-page-progress></b></i>
-    <small>MASCK / DEVELOPMENT OBJECT</small>
-  </aside>
-
-  <header class="site-header" data-header>
-    <a class="brand magnetic" data-cursor="HOME" href="#main" aria-label="Masck One home">
-      <img src="/brand/brand-mark.svg" alt="" width="28" height="28">
+  <header class="site-header glass" data-header>
+    <a href="#object" class="brand magnetic" data-nav-target="object" aria-label="MASCK ONE home">
+      <span class="brand-disc">M</span>
       <span>MASCK ONE</span>
     </a>
-    <p class="header-status"><i></i>Currently in engineering development.</p>
-    <button class="menu-toggle magnetic" data-cursor="OPEN" type="button" aria-expanded="false" aria-controls="menu-panel" data-menu-toggle>
-      <span>Index</span><i aria-hidden="true"></i>
+    <nav class="chapter-nav" aria-label="Primary navigation">
+      <button data-nav-target="object"><small>01</small> Object</button>
+      <button data-nav-target="system"><small>02</small> System</button>
+      <button data-nav-target="proof"><small>03</small> Proof</button>
+    </nav>
+    <button class="menu-button magnetic" type="button" aria-expanded="false" aria-controls="nav-drawer">
+      <span>Index</span><b></b>
     </button>
   </header>
 
-  <div class="menu-panel" id="menu-panel" aria-hidden="true" data-menu-panel>
-    <div class="menu-panel__meta"><span>MASCK ONE</span><span>ENGINEERING DEVELOPMENT</span></div>
-    <nav aria-label="Index">
-      <a data-cursor="GO" href="#system"><small>01</small><span>System</span></a>
-      <a data-cursor="GO" href="#sequence"><small>02</small><span>Flow</span></a>
-      <a data-cursor="GO" href="#anatomy"><small>03</small><span>Interface</span></a>
-      <a data-cursor="GO" href="#service"><small>04</small><span>Service</span></a>
-      <a data-cursor="GO" href="#development"><small>05</small><span>Evidence</span></a>
-      <a data-cursor="GO" href="#access"><small>06</small><span>Access</span></a>
-    </nav>
-    <p>Development preview. Product availability and physical performance remain subject to validation.</p>
-  </div>
+  <aside id="nav-drawer" class="nav-drawer glass" aria-hidden="true">
+    <div class="drawer-meta"><span>MASCK ONE</span><span>DEVELOPMENT / 2026</span></div>
+    <div class="drawer-links">
+      <button data-nav-target="object"><small>01</small><span>Object</span><em>Hero + anatomy</em></button>
+      <button data-nav-target="system"><small>02</small><span>System</span><em>Layers + flow</em></button>
+      <button data-nav-target="proof"><small>03</small><span>Proof</span><em>Evidence + access</em></button>
+    </div>
+    <p>Development visualization. Physical performance remains validation-gated.</p>
+  </aside>
 
   <main id="main">
-    <section class="hero" data-hero data-section-index="00">
-      <div class="hero-word hero-word--a" aria-hidden="true">MASCK</div>
-      <div class="hero-word hero-word--b" aria-hidden="true">ONE</div>
+    <section id="object" class="chapter chapter-object active" data-chapter="01">
+      <article class="panel hero" data-panel="01">
+        <div class="hero-grid"></div>
+        <div class="hero-meta hero-meta-left">
+          <span>FCW / FACIAL CLEANSING WEARABLE</span>
+          <p>Contained-fluid product study<br>Engineering development</p>
+        </div>
+        <div class="hero-meta hero-meta-right">
+          <span>OBJECT / 001</span>
+          <p>Physical evidence pending</p>
+        </div>
 
-      <div class="hero-meta hero-meta--left">
-        <p class="eyebrow">FCW / FACIAL CLEANSING WEARABLE</p>
-        <p>DEVELOPMENT OBJECT<br>PUBLIC SYSTEM STUDY</p>
-      </div>
-      <div class="hero-meta hero-meta--right">
-        <p>CONTROLLED DIGITAL<br>PHYSICAL EVIDENCE PENDING</p>
-        <span>01.09.2026</span>
-      </div>
+        <div class="hero-copy">
+          <p class="kicker">Contained-fluid facial cleansing</p>
+          <h1><span>Cleansing,</span><em>re-engineered.</em></h1>
+          <p class="lede">A wearable system being engineered to coordinate fluid delivery, cleansing motion and waste recovery.</p>
+        </div>
 
-      <div class="hero-title" aria-label="Cleansing, while you keep moving.">
-        <span class="hero-title__line"><i>Cleansing,</i></span>
-        <span class="hero-title__line hero-title__line--serif"><i>while you keep moving.</i></span>
-      </div>
+        <div class="mask-stage" data-cursor="ORBIT">
+          <div class="mask-aura"></div>
+          <div class="marquee marquee-back marquee-back-one" aria-hidden="true"><div>MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp;</div></div>
+          <div class="marquee marquee-back marquee-back-two" aria-hidden="true"><div>MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp;</div></div>
+          <picture class="hero-mask">
+            <img src="https://cdn.jsdelivr.net/gh/mlngaxri/MasckOne@0ce6725175f972465efc4cbe0434777a90c10ea4/products/web/public/product/hero.svg" alt="MASCK ONE facial cleansing wearable development visualization" decoding="async" fetchpriority="high" />
+          </picture>
+          <div class="marquee marquee-front" aria-hidden="true"><div>MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp; MASCK ONE&nbsp;</div></div>
+          <div class="object-chip glass"><span>DEVELOPMENT OBJECT</span><b>01</b></div>
+        </div>
 
-      <div class="product-stage" role="img" aria-label="Illustrative three-quarter Masck One development product visualization" data-product-stage data-cursor="ORBIT">
-        <div class="specimen-ring specimen-ring--a" aria-hidden="true"></div>
-        <div class="specimen-ring specimen-ring--b" aria-hidden="true"></div>
-        <div class="specimen-cross specimen-cross--h" aria-hidden="true"></div>
-        <div class="specimen-cross specimen-cross--v" aria-hidden="true"></div>
-        <div class="hero-product" data-hero-product>
-          <svg viewBox="0 0 760 820" aria-hidden="true" focusable="false">
-            <path class="hero-product__rear" d="M189 181C246 97 371 62 488 99C594 133 649 224 632 339L596 574C581 676 500 739 393 747C275 756 164 692 134 590L94 454C65 355 105 270 189 181Z"/>
-            <path class="hero-product__shell" d="M174 167C237 89 360 59 473 96C575 129 628 216 612 326L578 559C563 652 487 710 389 717C280 725 179 666 150 573L111 446C82 353 102 260 174 167Z"/>
-            <path class="hero-product__insert" d="M519 139C568 173 594 230 585 302L550 538C540 604 505 652 449 680C473 620 478 549 491 477C505 396 484 328 500 255C511 206 516 167 519 139Z"/>
-            <path class="hero-product__eye" d="M181 310C220 269 282 261 328 292C292 329 224 343 181 310Z"/>
-            <path class="hero-product__eye" d="M397 281C446 251 513 261 547 305C503 335 436 324 397 281Z"/>
-            <path class="hero-product__nose" d="M340 314C362 289 394 292 410 321L431 445C436 484 406 510 369 505C334 500 315 471 324 437L340 314Z"/>
-            <path class="hero-product__seam" d="M147 579C255 609 377 618 536 572"/>
-            <path class="hero-product__seam" d="M173 231C270 201 380 190 528 214"/>
+        <button class="scroll-cue" data-nav-target="anatomy" aria-label="Continue to product anatomy"><span>Scroll to inspect</span><i></i></button>
+      </article>
+
+      <article id="anatomy" class="panel anatomy-panel dark-panel" data-panel="02">
+        <div class="panel-heading">
+          <div class="eyebrow-row"><span>01 / OBJECT</span><span>EXPLODED DEVELOPMENT VIEW</span></div>
+          <h2>One object.<br><em>Five functional layers.</em></h2>
+          <p>The system separates by function, not by visual effect. Every layer remains fully visible while geometry moves cleanly into an exploded state.</p>
+        </div>
+
+        <div class="explosion-shell" data-explosion data-cursor="INSPECT">
+          <div class="explosion-grid" aria-hidden="true"></div>
+          <div class="axis-line" aria-hidden="true"></div>
+          <div class="layer layer-shell" data-layer="0"><picture><img src="https://cdn.jsdelivr.net/gh/mlngaxri/MasckOne@0ce6725175f972465efc4cbe0434777a90c10ea4/products/web/public/product/shell.svg" alt="" loading="lazy" decoding="async"></picture></div>
+          <div class="layer layer-fluid" data-layer="1"><picture><img src="https://cdn.jsdelivr.net/gh/mlngaxri/MasckOne@0ce6725175f972465efc4cbe0434777a90c10ea4/products/web/public/product/fluid.svg" alt="" loading="lazy" decoding="async"></picture></div>
+          <div class="layer layer-interface" data-layer="2"><picture><img src="https://cdn.jsdelivr.net/gh/mlngaxri/MasckOne@0ce6725175f972465efc4cbe0434777a90c10ea4/products/web/public/product/interface.svg" alt="" loading="lazy" decoding="async"></picture></div>
+          <div class="layer layer-core" data-layer="3"><picture><img src="https://cdn.jsdelivr.net/gh/mlngaxri/MasckOne@0ce6725175f972465efc4cbe0434777a90c10ea4/products/web/public/product/core.svg" alt="" loading="lazy" decoding="async"></picture></div>
+          <div class="layer layer-cartridge" data-layer="4"><picture><img src="https://cdn.jsdelivr.net/gh/mlngaxri/MasckOne@0ce6725175f972465efc4cbe0434777a90c10ea4/products/web/public/product/cartridge.svg" alt="" loading="lazy" decoding="async"></picture></div>
+          <div class="explode-label explode-label-1"><span>01</span><b>Exterior shell</b><small>Protective structural skin</small></div>
+          <div class="explode-label explode-label-2"><span>02</span><b>Fluid layer</b><small>Distribution architecture</small></div>
+          <div class="explode-label explode-label-3"><span>03</span><b>Face interface</b><small>Compliant contact field</small></div>
+          <div class="explode-label explode-label-4"><span>04</span><b>Actuation core</b><small>Local motion architecture</small></div>
+          <div class="explode-label explode-label-5"><span>05</span><b>Service cartridge</b><small>Contained waste region</small></div>
+        </div>
+        <div class="explode-meter"><span>ASSEMBLED</span><i><b></b></i><span>SEPARATED</span></div>
+      </article>
+    </section>
+
+    <section id="system" class="chapter chapter-system" data-chapter="02">
+      <article class="panel system-panel" data-panel="03">
+        <div class="system-title-wrap reveal">
+          <div class="eyebrow-row"><span>02 / SYSTEM</span><span>FUNCTIONAL LOGIC</span></div>
+          <h2>Every layer<br><em>has one job.</em></h2>
+        </div>
+        <div class="system-cards">
+          <article class="system-card glass reveal" data-cursor="01"><span>01</span><h3>Interface</h3><p>A compliant layer follows the intended facial envelope while protected regions remain open.</p></article>
+          <article class="system-card glass reveal" data-cursor="02"><span>02</span><h3>Delivery</h3><p>Water and cleanser stay distinct upstream, with controlled distribution reserved across active zones.</p></article>
+          <article class="system-card glass reveal" data-cursor="03"><span>03</span><h3>Motion</h3><p>Local actuator stations reserve controlled cleansing motion without converting unvalidated performance into a claim.</p></article>
+          <article class="system-card glass reveal" data-cursor="04"><span>04</span><h3>Recovery</h3><p>Used fluid is routed away from the face toward a separate serviceable waste region.</p></article>
+        </div>
+        <div class="system-orbit" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
+      </article>
+
+      <article class="panel flow-panel dark-panel" data-panel="04">
+        <div class="flow-heading reveal">
+          <div class="eyebrow-row"><span>02 / FLOW</span><span>OPERATING SEQUENCE</span></div>
+          <h2>Load.<br><em>Clean.</em><br>Reset.</h2>
+        </div>
+        <div class="flow-track" data-flow-track>
+          <article class="flow-step active"><span>01</span><div class="flow-node"><i></i></div><h3>Load</h3><p>Prepare fresh fluid and cleanser in separate service paths.</p></article>
+          <article class="flow-step"><span>02</span><div class="flow-node"><i></i></div><h3>Clean</h3><p>Coordinate delivery, local motion and contained recovery.</p></article>
+          <article class="flow-step"><span>03</span><div class="flow-node"><i></i></div><h3>Reset</h3><p>Empty, inspect and service the contained fluid system.</p></article>
+          <svg class="flow-path" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-hidden="true">
+            <path class="path-base" d="M70 112 C250 20 340 202 500 112 C660 20 750 202 930 112" pathLength="1"/>
+            <path class="path-progress" d="M70 112 C250 20 340 202 500 112 C660 20 750 202 930 112" pathLength="1"/>
           </svg>
-          <div class="hero-product__edge" aria-hidden="true"></div>
         </div>
-        <span class="object-label object-label--a">OBJECT / 001</span>
-        <span class="object-label object-label--b">DESIGN VISUALISATION</span>
-        <span class="object-label object-label--c">NOT PHYSICAL VALIDATION</span>
-      </div>
-
-      <div class="hero-bottom">
-        <p class="lede">A hands-free facial-cleansing system being engineered to meter water and cleanser across a compliant interface, create controlled cleansing motion, and collect used fluid.</p>
-        <a class="text-link magnetic" data-cursor="OPEN" href="#system"><span>Open the system</span><b aria-hidden="true">↘</b></a>
-      </div>
-      <div class="scroll-cue" aria-hidden="true"><span>SCROLL / INSPECT</span><i></i></div>
+      </article>
     </section>
 
-    <section class="statement" aria-label="Product principle" data-section-index="01">
-      <div class="statement-kicker"><span>THE ROUTINE, REBUILT.</span><i></i><span>OBJECT / SYSTEM / INTERFACE</span></div>
-      <p class="statement-copy">The object only matters if the system inside it makes sense.</p>
-      <div class="statement-ghost" aria-hidden="true">OPEN</div>
-    </section>
-
-    <section id="system" class="mechanism" data-mechanism data-section-index="02">
-      <div class="mechanism-sticky">
-        <div class="mechanism-copy">
-          <div class="section-meta"><span>01 / SYSTEM</span><span>EXPLODED DEVELOPMENT VIEW</span></div>
-          <h2>One object.<br><em>Five layers.</em></h2>
-          <p>The visualization separates the current system into functional layers. Spacing is illustrative, not a claim about final component trajectories or service clearance.</p>
-          <div class="focus-list" aria-hidden="true">
-            <span data-focus="0"><b>01</b>Outer shell</span>
-            <span data-focus="1"><b>02</b>Fluid distribution intent</span>
-            <span data-focus="2"><b>03</b>Compliant face interface</span>
-            <span data-focus="3"><b>04</b>Structural / actuation core</span>
-            <span data-focus="4"><b>05</b>Waste service region</span>
-          </div>
+    <section id="proof" class="chapter chapter-proof" data-chapter="03">
+      <article class="panel proof-panel" data-panel="05">
+        <div class="proof-copy reveal">
+          <div class="eyebrow-row"><span>03 / PROOF</span><span>PUBLIC CLAIM BOUNDARY</span></div>
+          <h2>Designed digitally.<br><em>Proven physically.</em></h2>
+          <p>Current architecture can be shown. Fit, comfort, hydraulics, leakage, efficacy, acoustics and durability remain physical evidence gates.</p>
         </div>
-
-        <div class="exploded-product" role="img" aria-label="Illustrative exploded Masck One system showing shell, fluid layer, cleansing interface, structural core and service cartridge" data-exploded data-cursor="INSPECT">
-          <div class="explode-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-          <div class="explode-axis" aria-hidden="true"></div>
-          <div class="product-part part-shell" data-part="shell" data-explode-x="-238" data-explode-y="-18" data-explode-r="-8">
-            <svg viewBox="0 0 520 650" aria-hidden="true"><path d="M130 99C180 39 281 20 370 52C451 81 484 155 468 244L438 451C424 544 351 600 258 601C158 602 77 543 60 455L38 339C21 247 61 174 130 99ZM111 255C144 221 195 215 233 239C202 273 147 281 111 255ZM285 232C327 209 381 216 408 251C372 277 318 266 285 232Z"/></svg>
-          </div>
-          <div class="product-part part-fluid" data-part="fluid" data-explode-x="-118" data-explode-y="22" data-explode-r="-4">
-            <svg viewBox="0 0 520 650" aria-hidden="true"><path d="M123 112C179 55 271 37 355 65C431 91 463 158 448 241L420 438C408 522 340 571 257 574C166 578 92 526 76 447L55 340C40 259 73 183 123 112Z"/><path class="fluid-line" d="M126 170C203 144 302 140 388 166M101 452C195 482 307 488 407 453M255 92V548"/></svg>
-          </div>
-          <div class="product-part part-interface" data-part="interface" data-explode-x="0" data-explode-y="44" data-explode-r="0">
-            <svg viewBox="0 0 520 650" aria-hidden="true"><path d="M130 120C185 69 270 52 346 78C415 102 445 164 431 241L405 426C393 503 332 550 256 554C173 558 105 510 89 438L69 340C54 266 83 190 130 120Z"/><path class="interface-zone" d="M118 255C147 226 193 219 227 241C198 270 151 280 118 255ZM286 236C323 214 371 220 396 253C363 276 317 266 286 236Z"/></svg>
-          </div>
-          <div class="product-part part-core" data-part="core" data-explode-x="124" data-explode-y="10" data-explode-r="5">
-            <svg viewBox="0 0 520 650" aria-hidden="true"><path d="M172 145C213 106 278 95 334 116C386 136 407 184 396 244L376 396C367 456 320 493 261 496C198 499 146 463 134 407L119 330C107 269 131 200 172 145Z"/><circle cx="208" cy="288" r="27"/><circle cx="307" cy="276" r="27"/><circle cx="206" cy="375" r="27"/><circle cx="304" cy="366" r="27"/></svg>
-          </div>
-          <div class="product-part part-cartridge" data-part="cartridge" data-explode-x="250" data-explode-y="-24" data-explode-r="9">
-            <div class="cartridge-shape"><i></i><b></b><em></em></div>
-          </div>
-          <div class="part-labels" aria-hidden="true">
-            <span>01 / SHELL</span><span>02 / FLUID</span><span>03 / INTERFACE</span><span>04 / CORE</span><span>05 / SERVICE</span>
-          </div>
+        <div class="proof-ledger">
+          <article class="reveal"><small>01 / NOW</small><h3>Digital architecture</h3><p>Geometry, functional topology, interfaces and verification intent.</p><span>CONTROLLED</span></article>
+          <article class="reveal"><small>02 / NEXT</small><h3>Subsystem benches</h3><p>Flow, motion, fit, retention, containment and service access.</p><span>VALIDATION</span></article>
+          <article class="reveal"><small>03 / THEN</small><h3>Integrated alpha</h3><p>Combine only decisions supported by physical evidence.</p><span>INTEGRATION</span></article>
         </div>
+      </article>
 
-        <div class="mechanism-meter" aria-hidden="true"><span>ASSEMBLED</span><i><b data-mechanism-progress></b></i><span>SEPARATED</span></div>
-      </div>
-    </section>
-
-    <section id="sequence" class="sequence" data-sequence data-section-index="03">
-      <div class="sequence-sticky">
-        <div class="sequence-head">
-          <span>02 / FLOW</span>
-          <p>Three responsibilities. One continuous path.</p>
+      <article class="panel access-panel" data-panel="06">
+        <div class="access-ghost" aria-hidden="true">ONE</div>
+        <div class="access-inner glass reveal">
+          <p class="kicker">MASCK ONE / DEVELOPMENT</p>
+          <h2>Follow the<br><em>first release.</em></h2>
+          <p>This preview shows the current design direction without turning unresolved engineering into marketing claims.</p>
+          <button class="access-button magnetic" type="button"><span>Engineering status</span><b>↗</b></button>
+          <small>Product availability and physical performance are not implied.</small>
         </div>
-        <div class="sequence-track" data-sequence-track>
-          <article class="sequence-panel sequence-panel--deliver">
-            <div class="sequence-panel__word" aria-hidden="true">DELIVER</div>
-            <span class="sequence-number">01</span>
-            <div class="flow-orbit flow-orbit--deliver"><i></i><i></i><i></i><b></b></div>
-            <div class="sequence-copy"><p class="eyebrow">DELIVER</p><h3>Meter fluid to the interface.</h3><p>Fresh water and cleanser remain distinct upstream identities in the engineering architecture. Final realized routing geometry is still validation-gated.</p></div>
-          </article>
-          <article class="sequence-panel sequence-panel--work">
-            <div class="sequence-panel__word" aria-hidden="true">WORK</div>
-            <span class="sequence-number">02</span>
-            <div class="flow-orbit flow-orbit--work"><i></i><i></i><i></i><i></i><b></b></div>
-            <div class="sequence-copy"><p class="eyebrow">WORK</p><h3>Create controlled cleansing motion.</h3><p>The current digital architecture reserves controlled actuation intent. Physical loaded motion, efficacy, comfort, acoustics, and durability are not yet public performance claims.</p></div>
-          </article>
-          <article class="sequence-panel sequence-panel--collect">
-            <div class="sequence-panel__word" aria-hidden="true">COLLECT</div>
-            <span class="sequence-number">03</span>
-            <div class="flow-orbit flow-orbit--collect"><i></i><i></i><i></i><b></b></div>
-            <div class="sequence-copy"><p class="eyebrow">COLLECT</p><h3>Move used fluid away from the face.</h3><p>The waste architecture preserves mixed-phase collection through a pump and passive backflow barrier before the cartridge interface. Recovery and containment remain validation-gated.</p></div>
-          </article>
-        </div>
-        <div class="sequence-progress" aria-hidden="true"><i><b data-sequence-progress></b></i><span>DELIVER / WORK / COLLECT</span></div>
-      </div>
-    </section>
-
-    <section id="anatomy" class="anatomy" data-anatomy data-section-index="04">
-      <div class="anatomy-grid" aria-hidden="true"></div>
-      <div class="anatomy-copy">
-        <div class="section-meta"><span>03 / INTERFACE</span><span>COMPLIANT CONTACT FIELD</span></div>
-        <h2>The face is not<br><em>a flat surface.</em></h2>
-        <p>The interface is being engineered around a compliant facial envelope, protected eye, airway and oral regions, and explicit coverage intent. The public visualization does not imply universal fit or validated pressure distribution.</p>
-      </div>
-      <div class="anatomy-visual" role="img" aria-label="Illustrative layered facial interface visualization with protected eye and nasal regions" data-cursor="TRACE">
-        <div class="face-halo" aria-hidden="true"></div>
-        <div class="face-field">
-          <i class="face-eye face-eye--left"></i><i class="face-eye face-eye--right"></i><b class="face-nose"></b>
-          <span class="zone-line zone-line--a"></span><span class="zone-line zone-line--b"></span><span class="zone-line zone-line--c"></span>
-          <em class="scan-line" aria-hidden="true"></em>
-        </div>
-        <div class="anatomy-callout anatomy-callout--one"><span>01</span><p>Compliant contact field</p></div>
-        <div class="anatomy-callout anatomy-callout--two"><span>02</span><p>Protected regions</p></div>
-        <div class="anatomy-callout anatomy-callout--three"><span>03</span><p>Coverage intent</p></div>
-      </div>
-    </section>
-
-    <section id="service" class="service" data-service data-section-index="05">
-      <div class="service-title" aria-hidden="true">SERVICE</div>
-      <div class="service-copy">
-        <div class="section-meta"><span>04 / SERVICE</span><span>REMOVABLE SERVICE REGION</span></div>
-        <h2>The product stays whole.<br><em>The consumable moves.</em></h2>
-        <p>Cartridge access is being treated as a deliberate service seam rather than a decorative add-on. Final service geometry remains subject to engineering validation.</p>
-      </div>
-      <div class="service-object" role="img" aria-label="Illustrative service cartridge translating out of a Masck One side region" data-service-object data-cursor="EJECT">
-        <div class="service-shell"><i></i><i></i><b></b><span></span></div>
-        <div class="service-cartridge" data-service-cartridge><span>WASTE / SERVICE</span><i></i><b></b></div>
-        <div class="service-rail" aria-hidden="true"><i></i></div>
-      </div>
-    </section>
-
-    <section id="development" class="development" data-development data-section-index="06">
-      <div class="development-head">
-        <div class="section-meta"><span>05 / EVIDENCE</span><span>PUBLIC CLAIM BOUNDARY</span></div>
-        <h2>Designed in public.<br><em>Claimed carefully.</em></h2>
-      </div>
-      <div class="development-ledger">
-        <article data-cursor="01"><span>CONTROLLED DIGITAL</span><h3>System architecture</h3><p>Functional topology, interface identities, design intent, and deterministic digital evidence can be shown.</p><i>01</i></article>
-        <article data-cursor="02"><span>VALIDATION-GATED</span><h3>Physical performance</h3><p>Fit, comfort, cleansing efficacy, hydraulics, leakage, acoustics, durability, and human-use outcomes still require physical evidence.</p><i>02</i></article>
-        <article data-cursor="03"><span>NOT IMPLIED</span><h3>Availability</h3><p>This development website is not a preorder, release-date promise, or statement that manufacturing is complete.</p><i>03</i></article>
-      </div>
-    </section>
-
-    <section id="access" class="access" data-access data-section-index="07">
-      <div class="access-word" aria-hidden="true">ONE</div>
-      <p class="eyebrow">MASCK ONE / DEVELOPMENT</p>
-      <h2>Follow the<br><em>first release.</em></h2>
-      <p class="access-copy">The product is still being engineered. This preview shows the current design direction without converting unresolved engineering into marketing claims.</p>
-      <button type="button" id="notify" class="access-button magnetic" data-cursor="CHECK" aria-describedby="access-status"><span>Check early access</span><i aria-hidden="true">↗</i></button>
-      <p id="access-status" class="fine" role="status" aria-live="polite" aria-atomic="true">No performance or availability claim is implied by this preview.</p>
+        <footer>
+          <a href="#object" data-nav-target="object">MASCK ONE</a>
+          <p>FACIAL CLEANSING WEARABLE / ENGINEERING DEVELOPMENT</p>
+          <button data-nav-target="object">Back to top ↑</button>
+        </footer>
+      </article>
     </section>
   </main>
 
-  <footer>
-    <a data-cursor="TOP" href="#main">MASCK ONE</a>
-    <p>FACIAL CLEANSING WEARABLE / ENGINEERING DEVELOPMENT</p>
-    <a data-cursor="TOP" href="#main">Back to top ↑</a>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.11/dist/lenis.min.js"></script>
-  <script src="app.js" type="module"></script>
+  <script src="/app.js"></script>
 </body>
 </html>
