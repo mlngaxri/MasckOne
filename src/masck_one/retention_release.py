@@ -22,12 +22,6 @@ def _exact_finite_scalar(value: object, label: str) -> float:
 
 @dataclass(frozen=True)
 class RetentionInputs:
-    """Controlled inputs for a quasi-static retention/load-path check.
-
-    support_vertical_offset_mm is the vertical separation available to react the
-    CG-induced pitch moment as an equal/opposite horizontal force couple. Zero
-    deliberately leaves pitch closure unresolved rather than silently deleting it.
-    """
     loaded_mass_g: float
     cg_anterior_mm: float
     support_vertical_offset_mm: float
@@ -44,10 +38,8 @@ class RetentionInputs:
     def validate(self) -> None:
         for label, value in self.__dict__.items():
             _exact_finite_scalar(value, label)
-        if not 0.0 <= self.occipital_share <= 1.0:
-            raise ValueError("occipital_share outside [0,1]")
-        if not 0.0 <= self.crown_share <= 1.0:
-            raise ValueError("crown_share outside [0,1]")
+        if not 0.0 <= self.occipital_share <= 1.0 or not 0.0 <= self.crown_share <= 1.0:
+            raise ValueError("support share outside [0,1]")
         if self.occipital_share + self.crown_share > 1.0 + 1e-9:
             raise ValueError("occipital and crown load shares exceed unity")
         if self.loaded_mass_g <= 0 or self.friction_coefficient < 0:
@@ -106,7 +98,6 @@ def evaluate_retention(p: RetentionInputs, *, min_grip_clearance_mm: float = 12.
 def retention_doe(base: RetentionInputs, *, cg_mm=(20.0, 25.0, 30.0),
                   friction=(0.25, 0.40, 0.55), crown_share=(0.35, 0.50, 0.65),
                   support_vertical_offset_mm: tuple[float, ...] | None = None) -> tuple[RetentionResult, ...]:
-    """Bounded sensitivity sweep for unresolved fit/material/load-path inputs."""
     base.validate()
     offsets = support_vertical_offset_mm if support_vertical_offset_mm is not None else (base.support_vertical_offset_mm,)
     if type(offsets) is not tuple or not offsets:
@@ -150,7 +141,7 @@ def _point_segment_distance_3d(p: object, a: object, b: object) -> float:
 def release_trajectory_clearance(samples_mm: tuple[tuple[float, float, float], ...],
                                  protected_points_mm: tuple[tuple[float, float, float], ...], *,
                                  minimum_clearance_mm: float) -> float:
-    """Minimum 3D clearance over controlled straight release-path segments."""
+    """Minimum centreline-to-point 3D clearance over controlled straight segments."""
     if type(samples_mm) is not tuple or len(samples_mm) < 2 or type(protected_points_mm) is not tuple or not protected_points_mm:
         raise ValueError("trajectory needs >=2 samples and >=1 protected point")
     gate = _exact_finite_scalar(minimum_clearance_mm, "minimum_clearance_mm")
@@ -165,3 +156,55 @@ def release_trajectory_clearance(samples_mm: tuple[tuple[float, float, float], .
     if dmin < gate:
         raise ValueError(f"release trajectory violates protected clearance: {dmin:.6g} mm < {gate:.6g} mm")
     return dmin
+
+
+def release_capsule_clearance(
+    samples_mm: tuple[tuple[float, float, float], ...],
+    protected_spheres: tuple[tuple[tuple[float, float, float], float], ...], *,
+    moving_radius_mm: float,
+    minimum_surface_clearance_mm: float,
+) -> float:
+    """Conservative finite-body clearance for a swept release feature.
+
+    The moving release feature is bounded by a capsule of ``moving_radius_mm``
+    around each piecewise-linear trajectory segment. Protected regions are bounded
+    by spheres ``(centre_xyz_mm, radius_mm)``. The returned value is minimum
+    surface-to-surface clearance, not centreline distance. This prevents a thin
+    centreline model from clearing geometry even though the physical latch, yoke,
+    finger guard, harness keepout or hair exclusion envelope overlaps it.
+
+    Piecewise-linear sampling still does not prove the true continuous CAD sweep
+    between controlled mechanism poses. It is a stronger preflight, not release proof.
+    """
+    if type(samples_mm) is not tuple or len(samples_mm) < 2:
+        raise ValueError("trajectory needs >=2 samples")
+    if type(protected_spheres) is not tuple or not protected_spheres:
+        raise ValueError("protected_spheres must be a non-empty tuple")
+    moving_r = _exact_finite_scalar(moving_radius_mm, "moving_radius_mm")
+    gate = _exact_finite_scalar(minimum_surface_clearance_mm, "minimum_surface_clearance_mm")
+    if moving_r < 0 or gate < 0:
+        raise ValueError("radii and clearance gates must be non-negative")
+    for i, point in enumerate(samples_mm):
+        _vector_mm(point, f"trajectory sample {i}")
+
+    bounded: list[tuple[tuple[float, float, float], float]] = []
+    for i, item in enumerate(protected_spheres):
+        if type(item) is not tuple or len(item) != 2:
+            raise ValueError(f"protected sphere {i} must be (xyz, radius_mm)")
+        centre = _vector_mm(item[0], f"protected sphere {i} centre")
+        radius = _exact_finite_scalar(item[1], f"protected sphere {i} radius_mm")
+        if radius < 0:
+            raise ValueError("protected radii must be non-negative")
+        bounded.append((centre, radius))
+
+    surface_min = min(
+        _point_segment_distance_3d(centre, a, b) - moving_r - radius
+        for a, b in zip(samples_mm, samples_mm[1:])
+        for centre, radius in bounded
+    )
+    if surface_min < gate:
+        raise ValueError(
+            f"finite release sweep violates protected surface clearance: "
+            f"{surface_min:.6g} mm < {gate:.6g} mm"
+        )
+    return surface_min
