@@ -8,9 +8,9 @@ workspaces:
   web:
     future_repository: MasckOne-Web
     current_prefix: products/web/
-    build_command: npm run build
-    test_command: npm test --if-present
-    typecheck_command: npm run typecheck --if-present
+    build_command: "npm run build"
+    test_command: "npm test"
+    typecheck_command: "npm run typecheck --if-present"
     deployment_target: Vercel
     environment_schema:
       - name: NEXT_PUBLIC_DIGITAL_RELEASE_URL
@@ -21,20 +21,20 @@ workspaces:
         secret: true
       - name: RESERVATION_PROVIDER_SECRET
         secret: true
-    history_split_command: git filter-repo --path products/web/ --path-rename products/web/:
+    history_split_command: "git filter-repo --path products/web/ --path-rename products/web/:"
   app:
     future_repository: MasckOne-App
     current_prefix: products/app/
-    build_command: npm run build
-    test_command: npm test --if-present
-    typecheck_command: npm run typecheck --if-present
+    build_command: "npm run build"
+    test_command: "npm test"
+    typecheck_command: "npm run typecheck --if-present"
     deployment_target: Expo-EAS
     environment_schema:
       - name: EXPO_PUBLIC_DIGITAL_RELEASE_URL
         secret: false
       - name: EXPO_PUBLIC_ANALYTICS_PROVIDER
         secret: false
-    history_split_command: git filter-repo --path products/app/ --path-rename products/app/:
+    history_split_command: "git filter-repo --path products/app/ --path-rename products/app/:"
 import_policy:
   rule: FRONTENDS_CONSUME_EXPORTED_RELEASES_ONLY
   forbidden_direct_roots:
