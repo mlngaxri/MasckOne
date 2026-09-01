@@ -110,14 +110,7 @@ class QuickReleaseRequirements:
             raise RetentionReleaseContractError("wet/unpowered release classification drift")
 
     def validate_invariants(self) -> None:
-        QuickReleaseRequirements(
-            self.time_max_s,
-            self.time_status,
-            tuple(self.force_target_N),
-            self.force_status,
-            self.one_hand_wet_unpowered,
-            self.one_hand_wet_unpowered_status,
-        )
+        self.__post_init__()
 
     def manifest(self) -> dict[str, object]:
         self.validate_invariants()
@@ -306,16 +299,7 @@ class RetentionLoadPathTopology:
             )
 
     def validate_invariants(self) -> None:
-        RetentionLoadPathTopology(
-            topology_id=self.topology_id,
-            nodes=tuple(self.nodes),
-            edges=tuple(self.edges),
-            crown_node_id=self.crown_node_id,
-            occipital_node_id=self.occipital_node_id,
-            release_control_id=self.release_control_id,
-            preload_adjuster_id=self.preload_adjuster_id,
-            geometry_status=self.geometry_status,
-        )
+        self.__post_init__()
 
     def manifest(self) -> dict[str, object]:
         self.validate_invariants()
@@ -356,13 +340,7 @@ class ReleaseArchitectureOption:
         object.__setattr__(self, "disposition", _text("disposition", self.disposition))
 
     def validate_invariants(self) -> None:
-        ReleaseArchitectureOption(
-            self.option_id,
-            self.concept,
-            tuple(self.strengths),
-            tuple(self.material_risks),
-            self.disposition,
-        )
+        self.__post_init__()
 
     def manifest(self) -> dict[str, object]:
         self.validate_invariants()
@@ -467,21 +445,7 @@ class RetentionReleasePreworkContract:
             )
 
     def validate_invariants(self) -> None:
-        RetentionReleasePreworkContract(
-            source_structural_frame_sha256=self.source_structural_frame_sha256,
-            source_retention_reservation_status=self.source_retention_reservation_status,
-            requirements=self.requirements,
-            load_path_topology=self.load_path_topology,
-            architecture_options=tuple(self.architecture_options),
-            preferred_evaluation_lane=self.preferred_evaluation_lane,
-            selection_status=self.selection_status,
-            required_digital_artifacts=tuple(self.required_digital_artifacts),
-            required_physical_evidence=tuple(self.required_physical_evidence),
-            customer_friction_hypotheses=tuple(self.customer_friction_hypotheses),
-            digital_geometry_status=self.digital_geometry_status,
-            physical_validation_status=self.physical_validation_status,
-            physical_validation_eligible=self.physical_validation_eligible,
-        )
+        self.__post_init__()
 
     @property
     def provenance_sha256(self) -> str:
