@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import replace
 
 import pytest
 
@@ -106,6 +107,39 @@ def test_iteration27_rejects_postconstruction_direct_pump_to_cartridge_bypass():
             authority=model.authority,
             pump=corrupted,
             acquisition=acquisition,
+            distribution=distribution,
+            frame=frame,
+        )
+
+
+def test_iteration27_rejects_locally_self_consistent_stale_iteration25_lineage():
+    model, frame, distribution, acquisition, pump, cartridge = _released_chain()
+
+    stale_acquisition = replace(acquisition, source_distribution_sha256="a" * 64)
+    stale_pump = replace(
+        pump,
+        source_waste_acquisition_sha256=stale_acquisition.architecture_sha256,
+        station=replace(
+            pump.station,
+            source_waste_acquisition_sha256=stale_acquisition.architecture_sha256,
+        ),
+    )
+    stale_cartridge = replace(
+        cartridge,
+        source_waste_pump_sha256=stale_pump.architecture_sha256,
+    )
+
+    assert stale_pump.source_waste_acquisition_sha256 == stale_acquisition.architecture_sha256
+    assert stale_cartridge.source_waste_pump_sha256 == stale_pump.architecture_sha256
+
+    with pytest.raises(
+        WasteCartridgeError,
+        match="Iteration 26 waste-pump architecture is stale for current sources",
+    ):
+        stale_cartridge.validate_current_sources(
+            authority=model.authority,
+            pump=stale_pump,
+            acquisition=stale_acquisition,
             distribution=distribution,
             frame=frame,
         )
