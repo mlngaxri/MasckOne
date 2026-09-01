@@ -70,6 +70,7 @@ def test_rotational_moment_requires_reaction_span_even_without_translation():
         bilateral_support_span_mm=0.0, yaw_inertia_kg_m2=0.001, yaw_angular_accel_rad_s2=4.0))
     assert not r.yaw_load_path_closed and r.yaw_couple_force_n is None
     assert not r.bilateral_load_path_closed and r.bilateral_resultant_couple_force_n is None
+    assert r.right_support_reaction_n is None and r.max_bilateral_support_resultant_n is None
 
 
 def test_nonzero_yaw_moment_requires_bilateral_span():
@@ -104,6 +105,36 @@ def test_simultaneous_yaw_and_roll_resolve_to_bilateral_vector_demand():
     assert r.bilateral_resultant_couple_force_n == pytest.approx(expected)
     assert r.bilateral_resultant_couple_force_n > max(r.yaw_couple_force_n, r.roll_couple_force_n)
     assert r.bilateral_load_path_closed
+
+
+def test_support_reactions_close_translation_and_yaw_roll_moments():
+    r = evaluate_inertial_retention(base(vertical_accel_g=0.3))
+    right, left = r.right_support_reaction_n, r.left_support_reaction_n
+    assert right is not None and left is not None
+    assert right[0] + left[0] == pytest.approx(-r.lateral_force_n)
+    assert right[1] + left[1] == pytest.approx(-r.fore_aft_force_n)
+    assert right[2] + left[2] == pytest.approx(-r.vertical_force_n)
+    span = 0.120
+    support_yaw = 0.5 * span * right[1] - 0.5 * span * left[1]
+    support_roll = -0.5 * span * right[2] + 0.5 * span * left[2]
+    assert support_yaw == pytest.approx(-r.yaw_moment_nm)
+    assert support_roll == pytest.approx(-r.roll_moment_nm)
+
+
+def test_translation_preload_can_raise_peak_local_support_above_couple_only_demand():
+    r = evaluate_inertial_retention(base(lateral_accel_g=0.5, fore_aft_accel_g=0.5,
+                                         vertical_accel_g=0.5))
+    assert r.max_bilateral_support_resultant_n is not None
+    assert r.bilateral_resultant_couple_force_n is not None
+    assert r.max_bilateral_support_resultant_n > r.bilateral_resultant_couple_force_n
+
+
+def test_pure_translation_with_zero_span_retains_bookkeeping_but_no_moment_capability():
+    r = evaluate_inertial_retention(base(bilateral_support_span_mm=0.0,
+        cg_lateral_mm=0.0, cg_anterior_mm=0.0, cg_vertical_mm=0.0))
+    assert r.bilateral_load_path_closed
+    assert r.right_support_reaction_n == pytest.approx((-0.5 * r.lateral_force_n,
+        -0.5 * r.fore_aft_force_n, -0.5 * r.vertical_force_n))
 
 
 def test_single_axis_bilateral_demand_does_not_inflate_resultant():
