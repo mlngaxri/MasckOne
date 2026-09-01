@@ -209,6 +209,12 @@ def validate_current_actuator_motion_track(
 ) -> MotionIdentityRegistry:
     """Retired ambiguous API. Use the explicit identity or trajectory-authority gate."""
 
+    if type(track) is not MotionTrack:
+        raise TypeError("track must be exact MotionTrack")
+    if type(authority) is not Authority:
+        raise TypeError("authority must be exact Authority")
+    if type(structural_frame) is not StructuralFrameTopology:
+        raise TypeError("structural_frame must be exact StructuralFrameTopology")
     raise MotionIdentitySourceError(
         "validate_current_actuator_motion_track is retired because identity validation does not prove trajectory authority; "
         "use validate_current_actuator_motion_identity"
@@ -218,6 +224,8 @@ def validate_current_actuator_motion_track(
 def validate_repository_actuator_motion_track(track: MotionTrack) -> MotionIdentityRegistry:
     """Retired ambiguous API. Use the explicit identity or trajectory-authority gate."""
 
+    if type(track) is not MotionTrack:
+        raise TypeError("track must be exact MotionTrack")
     raise MotionIdentitySourceError(
         "validate_repository_actuator_motion_track is retired because identity validation does not prove trajectory authority; "
         "use validate_repository_actuator_motion_identity or require_repository_actuator_spatial_trajectory_authority"
