@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
+from hashlib import sha256
+import json
 import math
 
 from .authority import Authority
@@ -58,6 +60,7 @@ THERMAL_RISK_IDS = (
     "COOL_CONDENSATION_DEW_POINT",
 )
 
+POWER_THERMAL_CONTRACT_REVISION = "CELL4_POWER_THERMAL_V1_2026_09_01"
 BATTERY_REFERENCE_STATUS = "PACKAGING_BENCHMARK_NOT_PRODUCTION_FREEZE"
 ENERGY_BOUND_STATUS = "MODELED_ENERGY_BOUND_ONLY_NOT_RUNTIME_EVIDENCE"
 CHARGING_PREFERENCE = "USB_C_PREFERRED_IF_INGRESS_ELECTRICAL_AND_SERVICE_ARCHITECTURE_PERMIT"
@@ -118,6 +121,16 @@ def _validate_measurement_evidence_kind(kind: EvidenceKind | None, *, label: str
         raise PowerThermalContractError(
             f"{label} requires CONTROLLED_PRODUCT_MEASUREMENT provenance"
         )
+
+
+def _digest(payload: object) -> str:
+    raw = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    return sha256(raw).hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
@@ -395,6 +408,7 @@ class ChargingArchitectureBoundary:
 
 @dataclass(frozen=True, slots=True)
 class PowerThermalEvidenceContract:
+    contract_revision: str
     authority_revision: str
     battery: BatteryPackagingBenchmark
     power_budget: PowerBudget
@@ -403,6 +417,8 @@ class PowerThermalEvidenceContract:
     physical_validation_eligible: bool = False
 
     def __post_init__(self) -> None:
+        if type(self.contract_revision) is not str or self.contract_revision != POWER_THERMAL_CONTRACT_REVISION:
+            raise PowerThermalContractError("power/thermal contract revision is not controlled")
         _text(self.authority_revision, label="power/thermal authority revision")
         if type(self.battery) is not BatteryPackagingBenchmark:
             raise PowerThermalContractError(
@@ -432,7 +448,77 @@ class PowerThermalEvidenceContract:
             )
         object.__setattr__(self, "thermal_gates", tuple(gates))
 
+    def _revalidate_nested(self) -> None:
+        self.__post_init__()
+        self.battery.__post_init__()
+        self.power_budget.__post_init__()
+        for load in self.power_budget.loads:
+            load.__post_init__()
+        for gate in self.thermal_gates:
+            gate.__post_init__()
+        self.charging.__post_init__()
+
+    def manifest(self) -> dict[str, object]:
+        """Return canonical evidence semantics for revisioned consumer provenance."""
+        self._revalidate_nested()
+        return {
+            "contract_revision": self.contract_revision,
+            "authority_revision": self.authority_revision,
+            "battery": {
+                "candidate": self.battery.candidate,
+                "nominal_voltage_V": self.battery.nominal_voltage_V,
+                "capacity_mAh": self.battery.capacity_mAh,
+                "envelope_mm": list(self.battery.envelope_mm),
+                "mass_g": self.battery.mass_g,
+                "status": self.battery.status,
+                "production_selected": self.battery.production_selected,
+                "runtime_claim_eligible": self.battery.runtime_claim_eligible,
+            },
+            "power_budget": {
+                "result_status": self.power_budget.result_status,
+                "runtime_claim_eligible": self.power_budget.runtime_claim_eligible,
+                "loads": [
+                    {
+                        "load_id": item.load_id,
+                        "status": item.status.value,
+                        "minimum_power_W": item.minimum_power_W,
+                        "maximum_power_W": item.maximum_power_W,
+                        "minimum_duration_s": item.minimum_duration_s,
+                        "maximum_duration_s": item.maximum_duration_s,
+                        "evidence_kind": item.evidence_kind.value if item.evidence_kind is not None else None,
+                        "evidence_ids": list(item.evidence_ids),
+                    }
+                    for item in self.power_budget.loads
+                ],
+            },
+            "thermal_gates": [
+                {
+                    "risk_id": item.risk_id,
+                    "status": item.status.value,
+                    "model_bounds": list(item.model_bounds) if item.model_bounds is not None else None,
+                    "unit": item.unit,
+                    "evidence_kind": item.evidence_kind.value if item.evidence_kind is not None else None,
+                    "evidence_ids": list(item.evidence_ids),
+                }
+                for item in self.thermal_gates
+            ],
+            "charging": {
+                "convention": self.charging.convention,
+                "status": self.charging.status.value,
+                "active_wet_cycle_charging_allowed": self.charging.active_wet_cycle_charging_allowed,
+                "app_required_for_charge_recovery": self.charging.app_required_for_charge_recovery,
+                "ingress_architecture_verified": self.charging.ingress_architecture_verified,
+                "electrical_protection_verified": self.charging.electrical_protection_verified,
+            },
+            "physical_validation_eligible": self.physical_validation_eligible,
+        }
+
+    @property
+    def contract_sha256(self) -> str:
+        return _digest(self.manifest())
+
     def validate_current_authority(self, authority: Authority) -> None:
+        self._revalidate_nested()
         if type(authority) is not Authority:
             raise PowerThermalContractError(
                 "authority must use the exact controlled Authority type"
@@ -511,6 +597,7 @@ def build_cell4_power_thermal_contract(authority: Authority) -> PowerThermalEvid
         electrical_protection_verified=False,
     )
     contract = PowerThermalEvidenceContract(
+        contract_revision=POWER_THERMAL_CONTRACT_REVISION,
         authority_revision=revision,
         battery=battery,
         power_budget=power_budget,
