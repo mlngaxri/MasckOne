@@ -151,14 +151,8 @@ def test_postconstruction_corruption_anywhere_in_inherited_graph_fails_closed():
     for label, mutate in mutations:
         graph = deepcopy(baseline)
         mutate(graph)
-        with pytest.raises(Iteration25SourceIntegrityError), pytest.raises(Exception) if False else _nullcontext():
+        with pytest.raises(Iteration25SourceIntegrityError):
             _validate(graph)
-
-
-def _nullcontext():
-    from contextlib import nullcontext
-
-    return nullcontext()
 
 
 def test_same_value_hostile_string_subclass_cannot_hide_in_legacy_child_record():
