@@ -48,6 +48,29 @@ def test_zero_vertical_offset_eliminates_pitch_and_roll_not_yaw():
     assert r.yaw_moment_nm != 0.0
 
 
+def test_rotational_inertia_creates_moment_without_translation():
+    r = evaluate_inertial_retention(base(lateral_accel_g=0.0, fore_aft_accel_g=0.0,
+        pitch_inertia_kg_m2=0.002, pitch_angular_accel_rad_s2=3.0))
+    assert r.translational_resultant_n == 0.0
+    assert r.translational_pitch_moment_nm == 0.0
+    assert r.rotational_pitch_moment_nm == pytest.approx(0.006)
+    assert r.pitch_moment_nm == pytest.approx(0.006)
+    assert r.pitch_couple_force_n == pytest.approx(0.006 / 0.080)
+
+
+def test_rotational_and_translational_moments_superpose_with_sign():
+    p = base(lateral_accel_g=0.0, fore_aft_accel_g=0.5,
+             pitch_inertia_kg_m2=0.002, pitch_angular_accel_rad_s2=3.0)
+    r = evaluate_inertial_retention(p)
+    assert r.pitch_moment_nm == pytest.approx(r.translational_pitch_moment_nm + r.rotational_pitch_moment_nm)
+
+
+def test_rotational_moment_requires_reaction_span_even_without_translation():
+    r = evaluate_inertial_retention(base(lateral_accel_g=0.0, fore_aft_accel_g=0.0,
+        bilateral_support_span_mm=0.0, yaw_inertia_kg_m2=0.001, yaw_angular_accel_rad_s2=4.0))
+    assert not r.yaw_load_path_closed and r.yaw_couple_force_n is None
+
+
 def test_nonzero_yaw_moment_requires_bilateral_span():
     r = evaluate_inertial_retention(base(bilateral_support_span_mm=0.0, fore_aft_accel_g=0.0,
                                          cg_vertical_mm=0.0))
@@ -96,7 +119,8 @@ def test_doe_is_cartesian_and_deterministic():
 
 @pytest.mark.parametrize("field,value", [("loaded_mass_g", 0.0), ("bilateral_support_span_mm", -1.0),
     ("vertical_support_span_mm", -1.0), ("lateral_accel_g", math.inf),
-    ("fore_aft_accel_g", math.nan), ("cg_vertical_mm", math.inf)])
+    ("fore_aft_accel_g", math.nan), ("cg_vertical_mm", math.inf),
+    ("pitch_inertia_kg_m2", -0.001), ("yaw_angular_accel_rad_s2", math.inf)])
 def test_invalid_inputs_fail_closed(field, value):
     with pytest.raises(ValueError):
         evaluate_inertial_retention(base(**{field: value}))
