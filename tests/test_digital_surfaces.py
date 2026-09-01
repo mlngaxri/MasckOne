@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from html.parser import HTMLParser
+import json
 from pathlib import Path
+import shutil
+import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -123,3 +126,48 @@ def test_web_navigation_and_motion_accessibility_contract() -> None:
     assert "@media(max-width:420px)" in css
     assert ":focus-visible" in css
     assert ".skip:focus" in css
+
+
+def test_history_split_workspaces_keep_mandatory_tests_and_build_cleanly(tmp_path: Path) -> None:
+    npm = shutil.which("npm")
+    assert npm is not None, "split-artifact verification requires npm in CI"
+
+    for workspace in ("web", "app"):
+        source = ROOT / "products" / workspace
+        exported = tmp_path / workspace
+        shutil.copytree(source, exported)
+
+        package = json.loads((exported / "package.json").read_text(encoding="utf-8"))
+        scripts = package.get("scripts", {})
+        assert scripts.get("test") == "node test.mjs"
+        assert scripts.get("prebuild") == "npm test"
+        assert "--if-present" not in scripts.get("test", "")
+        assert (exported / "test.mjs").is_file()
+
+        # This temp tree is equivalent to the documented prefix-only history split:
+        # no monorepo engineering source, authority, schema or root tests are present.
+        assert not (exported / "config").exists()
+        assert not (exported / "schemas").exists()
+        assert not (exported / "src" / "masck_one").exists()
+
+        commands = (
+            [npm, "install", "--ignore-scripts", "--no-audit", "--no-fund", "--package-lock=false"],
+            [npm, "test"],
+            [npm, "run", "build"],
+        )
+        for command in commands:
+            completed = subprocess.run(
+                command,
+                cwd=exported,
+                capture_output=True,
+                text=True,
+                timeout=60,
+                check=False,
+            )
+            assert completed.returncode == 0, (
+                f"{workspace} split-artifact command failed: {' '.join(command)}\n"
+                f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+            )
+
+        dist_files = {path.name for path in (exported / "dist").iterdir() if path.is_file()}
+        assert {"index.html", "styles.css", "app.js"} <= dist_files
