@@ -275,3 +275,5 @@ if(gsap&&ScrollTrigger&&!reducedMotion){
 }else{
   document.documentElement.classList.add('motion-static');
 }
+
+import('./cinematic.js').catch(()=>{});
