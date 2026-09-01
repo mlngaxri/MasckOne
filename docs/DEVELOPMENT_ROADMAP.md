@@ -23,22 +23,22 @@ Digital completion is not physical validation. Physical evidence, supplier evide
 ## Phase 2 — compliant facial interface and nose/T-zone architecture
 
 10. Main compliant facial-interface topology and parameter zones. **COMPLETE**
-11. Dedicated nasal saddle, bridge/dorsum/sidewall and philtrum continuity architecture. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
-12. Perimeter interface, seal/compliance zones and aperture-edge transitions.
-13. Interface-to-structural-frame attachment/clamp architecture.
-14. First nonlinear membrane/contact simulation framework with evidence-gated material cards.
+11. Dedicated nasal saddle, bridge/dorsum/sidewall and philtrum continuity architecture. **COMPLETE**
+12. Perimeter interface, seal/compliance zones and aperture-edge transitions. **COMPLETE**
+13. Interface-to-structural-frame attachment/clamp architecture. **COMPLETE**
+14. First nonlinear membrane/contact simulation framework with evidence-gated material cards. **COMPLETE**
 
 ## Phase 3 — rigid structure, shell and actuation
 
-15. Functional structural frame topology and mechanical datum network.
-16. Exterior engineering surface/Class-A reference workflow and deviation governance.
-17. Four actuator local frames, supplier/development envelopes and mounts.
-18. Actuator coupling, flexure/load paths, swept volumes and collision assertions.
-19. Actuation parameter/sensitivity framework and impedance-test handoff.
+15. Functional structural frame topology and mechanical datum network. **COMPLETE**
+16. Exterior engineering surface/Class-A reference workflow and deviation governance. **COMPLETE**
+17. Four actuator local frames, supplier/development envelopes and mounts. **COMPLETE**
+18. Actuator coupling, flexure/load paths, swept volumes and collision assertions. **COMPLETE**
+19. Actuation parameter/sensitivity framework and impedance-test handoff. **COMPLETE**
 
 ## Phase 4 — fresh fluid delivery
 
-20. Water reservoir architecture, fill/vent/usable-volume/service geometry.
+20. Water reservoir architecture, fill/vent/usable-volume/service geometry. **COMPLETE**
 21. Cleanser storage, refill, compatibility metadata and purge architecture. **COMPLETE**
 22. Water/cleanser pump packaging and tubing-interface architecture. **COMPLETE**
 23. Parametric manifold branching/metering model. **COMPLETE**
@@ -46,9 +46,9 @@ Digital completion is not physical validation. Physical evidence, supplier evide
 
 ## Phase 5 — waste acquisition and containment
 
-25. Facial waste gutters, capillary paths and regional transient buffers.
-26. Mixed-phase waste-pump packaging, routing and fault-state architecture.
-27. Waste cartridge keyed insertion, sealing, internal capacity reservation and service geometry.
+25. Facial waste gutters, capillary paths and regional transient buffers. **COMPLETE**
+26. Mixed-phase waste-pump packaging, routing and fault-state architecture. **COMPLETE**
+27. Waste cartridge keyed insertion, sealing, internal capacity reservation and service geometry. **COMPLETE**
 28. Complete fresh/waste routing, bend-radius, dead-volume and service-clearance checks.
 
 ## Phase 6 — retention, power, HMI and thermal reservations
