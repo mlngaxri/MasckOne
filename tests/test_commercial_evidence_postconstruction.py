@@ -1,6 +1,3 @@
-from dataclasses import replace
-from datetime import date
-
 import pytest
 
 from masck_one.commercial_evidence import (
@@ -9,7 +6,6 @@ from masck_one.commercial_evidence import (
     CommercialBurden,
     CommercialEvidenceRegistry,
     EvidenceClass,
-    EvidenceRecord,
     EvidenceStatus,
     SupplierState,
     build_cell4_reference_registry,
@@ -71,25 +67,11 @@ def test_lookup_revalidates_negative_signed_zero_after_construction() -> None:
         controlled.burden(BurdenKind.SETUP)
 
 
-def test_registry_revalidates_evidence_id_reference_integrity_after_construction() -> None:
+def test_registry_revalidates_referenced_evidence_id_after_construction() -> None:
     registry = build_cell4_reference_registry()
-    evidence = registry.evidence[0]
+    supplier = registry.supplier("PLANET_INNOVATION")
+    evidence_id = supplier.public_evidence_ids[0]
+    evidence = next(item for item in registry.evidence if item.evidence_id == evidence_id)
     object.__setattr__(evidence, "evidence_id", "MUTATED_ID")
-    measured = EvidenceRecord(
-        "MEAS_ALPHA_CHARGING_POST",
-        EvidenceClass.PRODUCT_MEASUREMENT,
-        EvidenceStatus.CONTROLLED,
-        date(2026, 9, 1),
-        None,
-        "Controlled test artifact.",
-    )
-    measured_burden = CommercialBurden(
-        BurdenKind.CHARGING,
-        BurdenStatus.MEASURED,
-        1.0,
-        "cycles_per_week",
-        (measured.evidence_id,),
-    )
-    assert measured_burden.status is BurdenStatus.MEASURED
     with pytest.raises(ValueError, match="unknown evidence ids"):
         registry.validate_invariants()
