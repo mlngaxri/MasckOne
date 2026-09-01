@@ -6,6 +6,7 @@ from masck_one.fluid_geometry_evidence import (
     PrimePurgeBound,
     RouteGeometryEvidence,
     circular_area_mm2,
+    require_exact_route_coverage,
     require_route_preflight_pass,
     route_set_dead_volume_mL,
 )
@@ -61,6 +62,11 @@ def test_unknown_provenance_and_nonfinite_geometry_rejected():
         route(centerline_length_mm=math.inf).validate_invariants()
 
 
+def test_cad_measurement_cannot_authorize_bend_requirement():
+    with pytest.raises(FluidGeometryEvidenceError):
+        route(bend_spec_provenance="CAD_MEASURED").validate_invariants()
+
+
 def test_post_construction_corruption_fails_before_consumption():
     r = route()
     object.__setattr__(r, "internal_area_mm2", -1.0)
@@ -84,3 +90,27 @@ def test_signed_zero_is_canonicalized_for_nonnegative_prime_allowances():
     p = PrimePurgeBound(0.20, -0.0, -0.0, -0.0)
     p.validate_invariants()
     assert p.conservative_prime_bound_mL == pytest.approx(0.20)
+
+
+def test_exact_coverage_rejects_incomplete_and_unknown_routes():
+    manifest = ("WATER_SOURCE_TO_PUMP", "PUMP_TO_MANIFOLD")
+    with pytest.raises(FluidGeometryEvidenceError):
+        require_exact_route_coverage((route(),), manifest)
+    with pytest.raises(FluidGeometryEvidenceError):
+        require_exact_route_coverage((route(segment_id="INVENTED_SEGMENT"),), manifest)
+
+
+def test_exact_coverage_accepts_only_one_to_one_manifest_identity():
+    manifest = ("WATER_SOURCE_TO_PUMP", "PUMP_TO_MANIFOLD")
+    routes = (route(), route(segment_id="PUMP_TO_MANIFOLD"))
+    require_exact_route_coverage(routes, manifest)
+
+
+def test_manifest_rejects_hostile_string_subclass_and_duplicates():
+    class HostileStr(str):
+        pass
+
+    with pytest.raises(FluidGeometryEvidenceError):
+        require_exact_route_coverage((route(),), (HostileStr("WATER_SOURCE_TO_PUMP"),))
+    with pytest.raises(FluidGeometryEvidenceError):
+        require_exact_route_coverage((route(),), ("WATER_SOURCE_TO_PUMP", "WATER_SOURCE_TO_PUMP"))
