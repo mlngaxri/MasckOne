@@ -117,7 +117,7 @@ def test_mutually_consistent_graph_from_mutated_inmemory_authority_is_not_curren
 
     with pytest.raises(
         Iteration25SourceIntegrityError,
-        match="differs from the current repository authority file",
+        match="differs from the canonical current repository source graph",
     ):
         _validate(stale_but_consistent)
 
