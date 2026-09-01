@@ -21,6 +21,10 @@ from .distribution_geometry import (
 )
 from .distribution_manifold import DistributionManifoldArchitecture
 from .fresh_pump_packaging import FreshPumpPackagingArchitecture
+from .iteration25_source_integrity import (
+    Iteration25SourceIntegrityError,
+    validate_iteration25_source_graph,
+)
 from .protected_volumes import ProtectedVolumeSet
 from .structural_frame import StructuralFrameTopology
 from .water_reservoir import WaterReservoirArchitecture
@@ -214,6 +218,23 @@ class WasteAcquisitionArchitecture:
             raise WasteAcquisitionError(
                 "distribution must be the exact Iteration 24 architecture type"
             )
+
+        try:
+            validate_iteration25_source_graph(
+                authority=authority,
+                water=water,
+                cleanser=cleanser,
+                frame=frame,
+                pump=pump,
+                manifold=manifold,
+                coverage=coverage,
+                protected=protected,
+                distribution=distribution,
+            )
+        except Iteration25SourceIntegrityError as exc:
+            raise WasteAcquisitionError(
+                "waste acquisition inherited source graph is not canonical current"
+            ) from exc
 
         try:
             distribution.validate_current_sources(
