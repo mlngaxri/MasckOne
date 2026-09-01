@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import replace
 
 import pytest
@@ -183,12 +184,13 @@ def test_current_source_validation_composes_full_iteration25_proof(built):
         frame=frame,
     )
 
-    object.__setattr__(distribution.grooves[0], "width_mm", 0.4)
+    corrupted_distribution = deepcopy(distribution)
+    object.__setattr__(corrupted_distribution.grooves[0], "width_mm", 0.4)
     with pytest.raises(WastePumpArchitectureError, match="Iteration 25 waste acquisition"):
         architecture.validate_current_sources(
             authority=model.authority,
             acquisition=acquisition,
-            distribution=distribution,
+            distribution=corrupted_distribution,
             frame=frame,
         )
 
