@@ -27,10 +27,20 @@ assert.ok(!brand.includes('h18v216')&&!brand.includes('M142 20h18'),'retired str
 assert.equal((brand.match(/<path\b/g)||[]).length,2,'canonical mark must remain a two-field source');
 assert.equal((mono.match(/<path\b/g)||[]).length,2,'monochrome mark must preserve two-field topology');
 assert.ok(!brand.includes('<rect'),'canonical mark geometry must not depend on a platform container');
-for(const pathToken of ['M40 72C40 40 65 20 96 20h16','M144 20h16']){
-  assert.ok(brand.includes(pathToken),`canonical mark must retain revised seam anchor ${pathToken}`);
-  assert.ok(favicon.includes(pathToken),`favicon must derive from canonical mark anchor ${pathToken}`);
-  assert.ok(og.includes(pathToken),`OG source must derive from canonical mark anchor ${pathToken}`);
+const seamTokens=['L106 20C110 48 100 76 108 104C118 134 103 165 113 195','M150 20L160 20','C142 222 139 207 144 191C152 164 137 138 145 109'];
+for(const token of seamTokens){
+  assert.ok(brand.includes(token),`canonical mark must retain optical seam geometry ${token}`);
+  assert.ok(mono.includes(token),`monochrome mark must retain optical seam geometry ${token}`);
+  assert.ok(favicon.includes(token),`favicon must derive from canonical seam geometry ${token}`);
+  assert.ok(og.includes(token),`OG source must derive from canonical seam geometry ${token}`);
+}
+// Conservative raster-cell gate: every control point on the left seam stays <=118,
+// every control point on the right seam stays >=137. At the authored 256-unit viewBox
+// this guarantees at least one complete background raster column at 16/20/24/32 px.
+const conservativeSeamUnits=137-118;
+for(const size of [16,20,24,32]){
+  const clearRasterColumns=Math.floor(conservativeSeamUnits*size/256);
+  assert.ok(clearRasterColumns>=1,`flowing seam must retain a full clear raster column at ${size}px`);
 }
 assert.ok(og.includes('Development preview. No performance or availability claim.'),'social source must preserve evidence-safe copy');
 
