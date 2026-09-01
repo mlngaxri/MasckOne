@@ -23,7 +23,7 @@ from masck_one.iteration25_source_integrity import (
 from masck_one.protected_volumes import build_protected_volumes
 from masck_one.spatial import CanonicalDatums
 from masck_one.structural_frame import build_structural_frame_topology
-from masck_one.water_reservoir import build_water_reservoir_architecture
+from masck_one.water_reservoir import ReservoirPort, build_water_reservoir_architecture
 from masck_one.waste_acquisition import WasteAcquisitionError, build_waste_acquisition_architecture
 
 
@@ -147,10 +147,8 @@ def test_old_consistent_objects_fail_when_presented_with_current_live_authority(
     )
     old_graph = _sources(historical_authority)
 
-    # This models the real stale-graph threat: the caller supplies the current trusted
-    # Authority object but reuses an internally consistent object graph built from an
-    # older source state. Local sibling hashes can agree; canonical reconstruction must
-    # still reject the graph against the live repository source.
+    # Real stale-graph threat: current trusted Authority, old internally consistent graph.
+    # Sibling hashes may agree with each other, but canonical reconstruction must reject it.
     old_graph["authority"] = current
 
     with pytest.raises(
@@ -201,6 +199,26 @@ def test_same_value_hostile_string_subclass_cannot_hide_in_legacy_child_record()
     current = graph["water"].ports[0].geometry_status
     object.__setattr__(graph["water"].ports[0], "geometry_status", Alias(current))
     with pytest.raises(Iteration25SourceIntegrityError, match="unsupported/non-canonical type Alias"):
+        _validate(graph)
+
+
+def test_nested_dataclass_subclass_cannot_hide_behind_identical_serialization():
+    class ReservoirPortAlias(ReservoirPort):
+        pass
+
+    graph = _sources()
+    current = graph["water"].ports[0]
+    alias = ReservoirPortAlias(
+        port_id=current.port_id,
+        role=current.role,
+        fluid_identity=current.fluid_identity,
+        geometry_status=current.geometry_status,
+        sealing_status=current.sealing_status,
+        service_status=current.service_status,
+    )
+    object.__setattr__(graph["water"], "ports", (alias,) + graph["water"].ports[1:])
+
+    with pytest.raises(Iteration25SourceIntegrityError, match="type ReservoirPortAlias differs"):
         _validate(graph)
 
 
