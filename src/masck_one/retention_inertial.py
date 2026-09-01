@@ -10,7 +10,7 @@ Outputs do not establish comfort, damping, resonance or fatigue life.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import hypot, isfinite
+from math import isfinite, sqrt
 
 G = 9.80665
 
@@ -34,6 +34,7 @@ class InertialRetentionInputs:
     cg_vertical_mm: float
     bilateral_support_span_mm: float
     vertical_support_span_mm: float
+    vertical_accel_g: float = 0.0
     pitch_angular_accel_rad_s2: float = 0.0
     roll_angular_accel_rad_s2: float = 0.0
     yaw_angular_accel_rad_s2: float = 0.0
@@ -56,6 +57,7 @@ class InertialRetentionInputs:
 class InertialRetentionResult:
     lateral_force_n: float
     fore_aft_force_n: float
+    vertical_force_n: float
     translational_resultant_n: float
     yaw_moment_nm: float
     pitch_moment_nm: float
@@ -84,25 +86,29 @@ def _resolve_couple(moment_nm: float, span_mm: float) -> tuple[float | None, boo
 
 
 def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetentionResult:
-    """Resolve prescribed translational and rotational inertia into support couples.
+    """Resolve prescribed 3D translation and principal-axis rotation into support couples.
 
-    With r=(x,y,z) and F=(Fx,Fy,0), r x F gives pitch Mx=-z*Fy,
-    roll My=z*Fx, and yaw Mz=x*Fy-y*Fx. Principal-axis rotational inertia adds
-    I*alpha on each corresponding axis. A nonzero total moment with no controlled
-    reaction span fails closed. Cross-axis products of inertia are intentionally not
-    invented; they require controlled CAD mass properties before higher-fidelity use.
+    With r=(x,y,z) and F=(Fx,Fy,Fz), r x F gives pitch Mx=y*Fz-z*Fy,
+    roll My=z*Fx-x*Fz, and yaw Mz=x*Fy-y*Fx. This deliberately includes vertical
+    translation: crown unloading/reloading at an anterior or lateral CG creates real
+    pitch/roll demand that a planar model misses. Principal-axis rotational inertia
+    adds I*alpha. Gravity is handled by the separate quasi-static retention ledger and
+    is not silently added here. A nonzero total moment with no controlled reaction span
+    fails closed. Products of inertia and gyroscopic terms require controlled CAD mass
+    properties and angular-velocity inputs and are intentionally not invented here.
     """
     p.validate()
     mass_kg = p.loaded_mass_g / 1000.0
     lateral = mass_kg * p.lateral_accel_g * G
     fore_aft = mass_kg * p.fore_aft_accel_g * G
-    resultant = hypot(lateral, fore_aft)
+    vertical = mass_kg * p.vertical_accel_g * G
+    resultant = sqrt(lateral * lateral + fore_aft * fore_aft + vertical * vertical)
     x = p.cg_lateral_mm / 1000.0
     y = p.cg_anterior_mm / 1000.0
     z = p.cg_vertical_mm / 1000.0
 
-    t_pitch = -z * fore_aft
-    t_roll = z * lateral
+    t_pitch = y * vertical - z * fore_aft
+    t_roll = z * lateral - x * vertical
     t_yaw = x * fore_aft - y * lateral
     r_pitch = p.pitch_inertia_kg_m2 * p.pitch_angular_accel_rad_s2
     r_roll = p.roll_inertia_kg_m2 * p.roll_angular_accel_rad_s2
@@ -116,7 +122,7 @@ def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetention
     roll_force, roll_closed = _resolve_couple(roll, p.bilateral_support_span_mm)
 
     return InertialRetentionResult(
-        lateral, fore_aft, resultant, yaw, pitch, roll,
+        lateral, fore_aft, vertical, resultant, yaw, pitch, roll,
         yaw_force, pitch_force, roll_force,
         yaw_closed, pitch_closed, roll_closed,
         t_yaw, t_pitch, t_roll, r_yaw, r_pitch, r_roll,
@@ -127,19 +133,23 @@ def inertial_retention_doe(
     base: InertialRetentionInputs, *,
     lateral_accel_g: tuple[float, ...] = (-0.5, 0.0, 0.5),
     fore_aft_accel_g: tuple[float, ...] = (-0.5, 0.0, 0.5),
+    vertical_accel_g: tuple[float, ...] = (0.0,),
 ) -> tuple[InertialRetentionResult, ...]:
     """Bounded prescribed-acceleration sweep, not a human-motion claim."""
     base.validate()
-    if type(lateral_accel_g) is not tuple or not lateral_accel_g:
-        raise ValueError("lateral_accel_g DOE must be a non-empty tuple")
-    if type(fore_aft_accel_g) is not tuple or not fore_aft_accel_g:
-        raise ValueError("fore_aft_accel_g DOE must be a non-empty tuple")
+    for label, values in (("lateral_accel_g", lateral_accel_g),
+                          ("fore_aft_accel_g", fore_aft_accel_g),
+                          ("vertical_accel_g", vertical_accel_g)):
+        if type(values) is not tuple or not values:
+            raise ValueError(f"{label} DOE must be a non-empty tuple")
     out: list[InertialRetentionResult] = []
     for lat in lateral_accel_g:
         lat = _finite(lat, "DOE lateral_accel_g")
         for fore in fore_aft_accel_g:
             fore = _finite(fore, "DOE fore_aft_accel_g")
-            q = InertialRetentionInputs(**{**base.__dict__, "lateral_accel_g": lat,
-                                          "fore_aft_accel_g": fore})
-            out.append(evaluate_inertial_retention(q))
+            for vert in vertical_accel_g:
+                vert = _finite(vert, "DOE vertical_accel_g")
+                q = InertialRetentionInputs(**{**base.__dict__, "lateral_accel_g": lat,
+                    "fore_aft_accel_g": fore, "vertical_accel_g": vert})
+                out.append(evaluate_inertial_retention(q))
     return tuple(out)
