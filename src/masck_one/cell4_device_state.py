@@ -112,7 +112,7 @@ class DeviceStateSnapshot:
             ("charging", self.charging, ChargingState),
             ("cartridge", self.cartridge, CartridgeState),
             ("service", self.service, ServiceState),
-            ("fluid_animation", self.fluid_animation, FluidAnimationState),
+            ("fluid animation", self.fluid_animation, FluidAnimationState),
         ):
             if type(value) is not enum_type:
                 raise Cell4DeviceStateError(f"{label} must use the exact controlled enum")
