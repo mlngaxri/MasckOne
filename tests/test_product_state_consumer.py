@@ -93,7 +93,17 @@ def test_idle_manifest_exposes_only_legal_ui_intents_and_explicit_nonhardware_se
     assert manifest["available_simulated_mechanical_events"] == ["ENGAGE_RETENTION"]
     assert manifest["available_simulated_device_events"] == ["LATCH_FAULT"]
     assert all(item["hardware_command"] is False for item in manifest["action_semantics"])
-    assert not any("ble" in key.lower() or "connected" in key.lower() for key in manifest)
+    forbidden_connectivity_fields = {
+        "ble",
+        "ble_connected",
+        "connected",
+        "connection_state",
+        "connectivity_state",
+        "hardware_connected",
+        "telemetry",
+        "telemetry_data",
+    }
+    assert forbidden_connectivity_fields.isdisjoint(manifest)
 
 
 def test_manifest_conforms_to_strict_cross_language_schema():
