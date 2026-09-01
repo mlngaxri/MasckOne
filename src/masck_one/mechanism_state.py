@@ -286,6 +286,21 @@ class SimulatedTransport:
         self._current_mechanism_provenance_sha256 = current
         self._state = initial
         self._sequence = 0
+        self.validate_invariants()
+
+    def validate_invariants(self) -> None:
+        """Revalidate internal simulation-only state before any consumer-visible use."""
+
+        current = _require_sha256(
+            "current_mechanism_provenance_sha256", self._current_mechanism_provenance_sha256
+        )
+        if type(self._state) is not MechanismState:
+            raise TypeError("internal state must be exact MechanismState")
+        self._state.validate_invariants()
+        if self._state.mechanism_provenance_sha256 != current:
+            raise ValueError("stale mechanism provenance")
+        if type(self._sequence) is not int or self._sequence < 0:
+            raise TypeError("simulation sequence must be exact nonnegative int")
 
     @property
     def transport_kind(self) -> str:
@@ -301,15 +316,17 @@ class SimulatedTransport:
 
     @property
     def sequence(self) -> int:
+        self.validate_invariants()
         return self._sequence
 
     def snapshot(self) -> MechanismState:
+        self.validate_invariants()
         return _copy_state(self._state)
 
     def dispatch(self, action: TransitionAction) -> MechanismState:
         if type(action) is not TransitionAction:
             raise TypeError("action must be exact TransitionAction")
-        self._state.validate_invariants()
+        self.validate_invariants()
         next_state = derive_next_state(
             self._state,
             action,
@@ -317,11 +334,12 @@ class SimulatedTransport:
         )
         self._state = next_state
         self._sequence += 1
+        self.validate_invariants()
         return self.snapshot()
 
     @property
     def provenance_sha256(self) -> str:
-        self._state.validate_invariants()
+        self.validate_invariants()
         payload = {
             "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V1",
             "transport_kind": self.transport_kind,
@@ -335,6 +353,7 @@ class SimulatedTransport:
         return hashlib.sha256(encoded).hexdigest()
 
     def manifest(self) -> dict[str, object]:
+        self.validate_invariants()
         snapshot = self.snapshot()
         return {
             "schema": "MASCK_ONE_SIMULATED_TRANSPORT_V1",
