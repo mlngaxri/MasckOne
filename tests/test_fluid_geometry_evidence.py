@@ -68,6 +68,19 @@ def test_post_construction_corruption_fails_before_consumption():
         _ = r.geometric_dead_volume_mL
 
 
+def test_post_construction_identity_corruption_fails_before_set_consumption():
+    r = route()
+    object.__setattr__(r, "segment_id", " WATER_SOURCE_TO_PUMP")
+    with pytest.raises(FluidGeometryEvidenceError):
+        route_set_dead_volume_mL((r,))
+
+
 def test_boolean_numeric_alias_rejected():
     with pytest.raises(FluidGeometryEvidenceError):
         route(centerline_length_mm=True).validate_invariants()
+
+
+def test_signed_zero_is_canonicalized_for_nonnegative_prime_allowances():
+    p = PrimePurgeBound(0.20, -0.0, -0.0, -0.0)
+    p.validate_invariants()
+    assert p.conservative_prime_bound_mL == pytest.approx(0.20)
