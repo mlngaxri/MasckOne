@@ -1,23 +1,13 @@
 import math
 import pytest
 
-from masck_one.retention_inertial import (
-    InertialRetentionInputs,
-    evaluate_inertial_retention,
-    inertial_retention_doe,
-)
+from masck_one.retention_inertial import InertialRetentionInputs, evaluate_inertial_retention, inertial_retention_doe
 
 
 def base(**kw):
-    values = dict(
-        loaded_mass_g=255.0,
-        lateral_accel_g=0.5,
-        fore_aft_accel_g=0.5,
-        cg_lateral_mm=5.0,
-        cg_anterior_mm=25.0,
-        bilateral_support_span_mm=120.0,
-        vertical_support_span_mm=80.0,
-    )
+    values = dict(loaded_mass_g=255.0, lateral_accel_g=0.5, fore_aft_accel_g=0.5,
+                  cg_lateral_mm=5.0, cg_anterior_mm=25.0, cg_vertical_mm=20.0,
+                  bilateral_support_span_mm=120.0, vertical_support_span_mm=80.0)
     values.update(kw)
     return InertialRetentionInputs(**values)
 
@@ -28,16 +18,31 @@ def test_translation_uses_prescribed_acceleration_and_mass():
     assert r.translational_resultant_n == pytest.approx(abs(r.lateral_force_n))
 
 
+def test_yaw_is_cross_product_not_scalar_offset_sum():
+    r = evaluate_inertial_retention(base(lateral_accel_g=0.5, fore_aft_accel_g=0.5))
+    expected = (0.005 * r.fore_aft_force_n) - (0.025 * r.lateral_force_n)
+    assert r.yaw_moment_nm == pytest.approx(expected)
+
+
+def test_fore_aft_force_parallel_to_anterior_offset_creates_no_pitch():
+    r = evaluate_inertial_retention(base(lateral_accel_g=0.0, cg_vertical_mm=0.0,
+                                         cg_lateral_mm=0.0, cg_anterior_mm=40.0))
+    assert r.pitch_moment_nm == 0.0
+
+
+def test_vertical_cg_offset_creates_pitch_from_fore_aft_force():
+    r = evaluate_inertial_retention(base(lateral_accel_g=0.0, cg_vertical_mm=20.0))
+    assert r.pitch_moment_nm == pytest.approx(-0.020 * r.fore_aft_force_n)
+
+
 def test_nonzero_yaw_moment_requires_bilateral_span():
     r = evaluate_inertial_retention(base(bilateral_support_span_mm=0.0, fore_aft_accel_g=0.0))
-    assert not r.yaw_load_path_closed
-    assert r.yaw_couple_force_n is None
+    assert not r.yaw_load_path_closed and r.yaw_couple_force_n is None
 
 
 def test_nonzero_pitch_moment_requires_vertical_span():
     r = evaluate_inertial_retention(base(vertical_support_span_mm=0.0, lateral_accel_g=0.0))
-    assert not r.pitch_load_path_closed
-    assert r.pitch_couple_force_n is None
+    assert not r.pitch_load_path_closed and r.pitch_couple_force_n is None
 
 
 def test_support_span_reduces_required_couple_force():
@@ -66,13 +71,9 @@ def test_doe_is_cartesian_and_deterministic():
     assert r == inertial_retention_doe(base(), lateral_accel_g=(-0.5, 0.0, 0.5), fore_aft_accel_g=(-0.25, 0.25))
 
 
-@pytest.mark.parametrize("field,value", [
-    ("loaded_mass_g", 0.0),
-    ("bilateral_support_span_mm", -1.0),
-    ("vertical_support_span_mm", -1.0),
-    ("lateral_accel_g", math.inf),
-    ("fore_aft_accel_g", math.nan),
-])
+@pytest.mark.parametrize("field,value", [("loaded_mass_g", 0.0), ("bilateral_support_span_mm", -1.0),
+    ("vertical_support_span_mm", -1.0), ("lateral_accel_g", math.inf),
+    ("fore_aft_accel_g", math.nan), ("cg_vertical_mm", math.inf)])
 def test_invalid_inputs_fail_closed(field, value):
     with pytest.raises(ValueError):
         evaluate_inertial_retention(base(**{field: value}))
