@@ -5,6 +5,8 @@ from masck_one.mechanism_state import (
     OperatingMode,
     ReadinessState,
     SimulatedTransport,
+    STATE_CONTRACT,
+    TRANSITION_CONTRACT,
     TransitionAction,
     derive_next_state,
     validate_transition,
@@ -71,18 +73,16 @@ def test_exact_types_and_canonical_mechanism_identity_are_required():
         state(mechanism_provenance_sha256="A" * 64)
 
 
-def test_nominal_retention_cycle_release_sequence_is_explicit():
+def test_nominal_retention_cycle_and_normal_doff_sequence_is_explicit():
     idle = state()
     retained = state(retention_engaged=True)
     clean = state(mode=OperatingMode.CLEAN, cycle_active=True, retention_engaged=True)
-    released = state(quick_release_open=True)
     transition(idle, retained, TransitionAction.ENGAGE_RETENTION)
     transition(retained, clean, TransitionAction.START_CLEAN)
     transition(clean, retained, TransitionAction.STOP_CYCLE)
-    transition(retained, released, TransitionAction.RELEASE_RETENTION)
-    transition(released, idle, TransitionAction.RESET_RELEASE)
+    transition(retained, idle, TransitionAction.RELEASE_RETENTION)
     assert retained.readiness is ReadinessState.READY_FOR_CYCLE
-    assert released.readiness is ReadinessState.RELEASE_OPEN
+    assert idle.readiness is ReadinessState.NOT_RETAINED
 
 
 def test_service_requires_unretained_closed_release_and_explicit_access_steps():
@@ -204,10 +204,15 @@ def test_derive_next_state_is_the_canonical_transition_constructor():
 def test_simulated_transport_has_no_ble_or_measured_telemetry_semantics():
     transport = SimulatedTransport(state(), current_mechanism_provenance_sha256=MECH)
     manifest = transport.manifest()
+    assert manifest["schema"] == "MASCK_ONE_SIMULATED_TRANSPORT_V3"
+    assert manifest["state_contract"] == STATE_CONTRACT
+    assert manifest["transition_contract"] == TRANSITION_CONTRACT
     assert manifest["transport_kind"] == "SIMULATED_LOCAL_ONLY"
     assert manifest["telemetry_source"] == "NONE"
     assert manifest["measured_hardware"] is False
+    assert manifest["dispatch_semantics"] == "LOCAL_SIMULATED_STATE_EVENT_ONLY_NOT_HARDWARE_COMMAND"
     assert manifest["sequence"] == 0
+    assert manifest["last_event"] is None
     assert manifest["state"]["readiness"] == "NOT_RETAINED"
     assert manifest["state"]["evidence_state"] == "SIMULATED_DIGITAL_STATE_ONLY"
 
@@ -222,10 +227,34 @@ def test_simulated_transport_dispatches_only_legal_canonical_states():
     idle_retained = transport.dispatch(TransitionAction.STOP_CYCLE)
     assert idle_retained == state(retention_engaged=True)
     assert transport.sequence == 3
+    assert transport.last_event == "STOP_CYCLE"
     with pytest.raises(ValueError, match="illegal"):
         transport.dispatch(TransitionAction.ENTER_SERVICE)
     with pytest.raises(TypeError, match="action"):
         transport.dispatch("STOP_CYCLE")
+
+
+def _cycle_transport() -> SimulatedTransport:
+    transport = SimulatedTransport(state(), current_mechanism_provenance_sha256=MECH)
+    transport.dispatch(TransitionAction.ENGAGE_RETENTION)
+    transport.dispatch(TransitionAction.START_CLEAN)
+    return transport
+
+
+def test_normal_completion_and_user_stop_have_same_snapshot_but_distinct_event_provenance():
+    stopped = _cycle_transport()
+    completed = _cycle_transport()
+
+    stopped_state = stopped.dispatch(TransitionAction.STOP_CYCLE)
+    completed_state = completed.dispatch(TransitionAction.COMPLETE_CYCLE)
+
+    assert stopped_state == completed_state == state(retention_engaged=True)
+    assert stopped.sequence == completed.sequence == 3
+    assert stopped.last_event == "STOP_CYCLE"
+    assert completed.last_event == "COMPLETE_CYCLE"
+    assert stopped.manifest()["last_event"] == "STOP_CYCLE"
+    assert completed.manifest()["last_event"] == "COMPLETE_CYCLE"
+    assert stopped.provenance_sha256 != completed.provenance_sha256
 
 
 def test_simulated_transport_defensive_copy_blocks_caller_state_mutation():
