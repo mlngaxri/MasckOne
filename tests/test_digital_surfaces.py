@@ -48,26 +48,21 @@ def test_app_is_explicitly_simulated_and_has_no_dead_primary_controls() -> None:
     html = (APP / "index.html").read_text(encoding="utf-8")
     js = (APP / "app.js").read_text(encoding="utf-8")
     parser = parse(APP / "index.html")
-
     _, home = element(parser, "home")
     assert home["data-state-source"] == "simulated"
     assert home["data-device-transport"] == "none"
     assert "not live telemetry" in html
     assert "No device command is sent" in html
-
     _, live = element(parser, "simulation-status")
     assert live["role"] == "status"
     assert live["aria-live"] == "polite"
     assert live["aria-atomic"] == "true"
-
     preview = next(button for button in parser.buttons if button.get("id") == "preview-cleanse")
     assert preview["aria-controls"] == "simulation-status"
     assert "preview.disabled=true" in js
     assert "No device command was sent" in js
-
     assert not any(button.get("aria-label") == "Device settings" for button in parser.buttons)
     assert "Device settings are unavailable in this interaction prototype." in html
-
     forbidden_transport = ("fetch(", "XMLHttpRequest", "WebSocket", "navigator.bluetooth", "BluetoothRemoteGATT")
     assert not any(token in js for token in forbidden_transport)
 
@@ -103,10 +98,8 @@ def test_web_live_region_exists_before_mutation_and_early_access_fails_closed() 
     assert status["role"] == "status"
     assert status["aria-live"] == "polite"
     assert status["aria-atomic"] == "true"
-
     notify = next(button for button in parser.buttons if button.get("id") == "notify")
     assert notify["aria-describedby"] == "access-status"
-
     js = (WEB / "app.js").read_text(encoding="utf-8")
     assert "button.disabled=true" in js
     assert "No signup or availability is implied" in js
@@ -118,7 +111,6 @@ def test_web_navigation_and_motion_accessibility_contract() -> None:
     internal = [anchor for anchor in parser.anchors if anchor.get("href", "").startswith("#")]
     assert internal
     assert all(anchor["href"][1:] in parser.ids for anchor in internal)
-
     css = (WEB / "styles.css").read_text(encoding="utf-8")
     assert "prefers-reduced-motion:reduce" in css
     assert "prefers-contrast:more" in css
@@ -128,46 +120,45 @@ def test_web_navigation_and_motion_accessibility_contract() -> None:
     assert ".skip:focus" in css
 
 
+def test_brand_mark_is_identical_across_split_roots() -> None:
+    web_mark = ROOT / "products" / "web" / "public" / "brand" / "brand-mark.svg"
+    app_mark = ROOT / "products" / "app" / "assets" / "brand" / "brand-mark.svg"
+    assert web_mark.read_bytes() == app_mark.read_bytes()
+
+
 def test_history_split_workspaces_keep_mandatory_tests_and_build_cleanly(tmp_path: Path) -> None:
     npm = shutil.which("npm")
     assert npm is not None, "split-artifact verification requires npm in CI"
-
     for workspace in ("web", "app"):
         source = ROOT / "products" / workspace
         exported = tmp_path / workspace
         shutil.copytree(source, exported)
-
         package = json.loads((exported / "package.json").read_text(encoding="utf-8"))
         scripts = package.get("scripts", {})
         assert scripts.get("test") == "node test.mjs"
         assert scripts.get("prebuild") == "npm test"
         assert "--if-present" not in scripts.get("test", "")
         assert (exported / "test.mjs").is_file()
-
-        # This temp tree is equivalent to the documented prefix-only history split:
-        # no monorepo engineering source, authority, schema or root tests are present.
         assert not (exported / "config").exists()
         assert not (exported / "schemas").exists()
         assert not (exported / "src" / "masck_one").exists()
-
         commands = (
             [npm, "install", "--ignore-scripts", "--no-audit", "--no-fund", "--package-lock=false"],
             [npm, "test"],
             [npm, "run", "build"],
         )
         for command in commands:
-            completed = subprocess.run(
-                command,
-                cwd=exported,
-                capture_output=True,
-                text=True,
-                timeout=60,
-                check=False,
-            )
+            completed = subprocess.run(command, cwd=exported, capture_output=True, text=True, timeout=60, check=False)
             assert completed.returncode == 0, (
                 f"{workspace} split-artifact command failed: {' '.join(command)}\n"
                 f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
             )
-
         dist_files = {path.name for path in (exported / "dist").iterdir() if path.is_file()}
         assert {"index.html", "styles.css", "app.js"} <= dist_files
+        if workspace == "web":
+            assert (exported / "dist" / "favicon.svg").is_file()
+            assert (exported / "dist" / "brand" / "brand-mark.svg").is_file()
+            assert (exported / "dist" / "brand" / "og-source.svg").is_file()
+        else:
+            assert (exported / "dist" / "assets" / "brand" / "brand-mark.svg").is_file()
+            assert (exported / "dist" / "assets" / "brand" / "app-icon-source.svg").is_file()
