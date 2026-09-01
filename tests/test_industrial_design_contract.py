@@ -10,10 +10,12 @@ def nominal():
         "ID_SIDE_TRANSITION_DEPTH_L": 4.0, "ID_SIDE_TRANSITION_DEPTH_R": 4.0,
         "ID_REAR_FRONTAL_OVERHANG_L": 0.0, "ID_REAR_FRONTAL_OVERHANG_R": 0.0,
         "ID_REAR_FRONTAL_OVERHANG_T": 0.0, "ID_REAR_FRONTAL_OVERHANG_B": 0.0,
-        "ID_SERVICE_GRIP_DEPTH": 0.9, "ID_CONTROL_TACTILE_LAND_CLEAN": 10.0,
-        "ID_CONTROL_TACTILE_LAND_SECONDARY": 8.0, "ID_CONTROL_TACTILE_SEPARATION": 2.0,
-        "ID_EYE_APERTURE_CANT_L": -2.0, "ID_EYE_APERTURE_CANT_R": 2.0,
-        "ID_NOSE_PROJECTION_ABOVE_FIELD": 1.0,
+        "ID_SERVICE_GRIP_DEPTH": 0.9, "ID_SERVICE_GRIP_LAND": 12.0,
+        "ID_SERVICE_RELEASE_CLEARANCE": 1.5, "ID_QUICK_RELEASE_TACTILE_LAND": 10.0,
+        "ID_HAIR_PINCH_CLEARANCE_L": 2.0, "ID_HAIR_PINCH_CLEARANCE_R": 2.0,
+        "ID_CONTROL_TACTILE_LAND_CLEAN": 10.0, "ID_CONTROL_TACTILE_LAND_SECONDARY": 8.0,
+        "ID_CONTROL_TACTILE_SEPARATION": 2.0, "ID_EYE_APERTURE_CANT_L": -2.0,
+        "ID_EYE_APERTURE_CANT_R": 2.0, "ID_NOSE_PROJECTION_ABOVE_FIELD": 1.0,
     }
 
 
@@ -54,12 +56,25 @@ def test_rear_layer_visual_dominance_fails():
 def test_service_grip_and_control_tactility_fail_closed():
     values = nominal(); values["ID_SERVICE_GRIP_DEPTH"] = 0.4
     with pytest.raises(IndustrialDesignContractError, match="service grip depth"): validate_measurements(values)
+    values = nominal(); values["ID_SERVICE_GRIP_LAND"] = 11.9
+    with pytest.raises(IndustrialDesignContractError, match="service grip land"): validate_measurements(values)
+    values = nominal(); values["ID_SERVICE_RELEASE_CLEARANCE"] = 1.4
+    with pytest.raises(IndustrialDesignContractError, match="service release"): validate_measurements(values)
+    values = nominal(); values["ID_QUICK_RELEASE_TACTILE_LAND"] = 9.9
+    with pytest.raises(IndustrialDesignContractError, match="quick release tactile land"): validate_measurements(values)
     values = nominal(); values["ID_CONTROL_TACTILE_LAND_CLEAN"] = 9.9
     with pytest.raises(IndustrialDesignContractError, match="CLEAN tactile land"): validate_measurements(values)
     values = nominal(); values["ID_CONTROL_TACTILE_LAND_SECONDARY"] = 7.9
     with pytest.raises(IndustrialDesignContractError, match="secondary tactile land"): validate_measurements(values)
     values = nominal(); values["ID_CONTROL_TACTILE_SEPARATION"] = 1.9
     with pytest.raises(IndustrialDesignContractError, match="tactile separation"): validate_measurements(values)
+
+
+def test_hair_pinch_clearance_fails_bilaterally():
+    values = nominal(); values["ID_HAIR_PINCH_CLEARANCE_L"] = 1.9
+    with pytest.raises(IndustrialDesignContractError, match="hair-pinch clearance"): validate_measurements(values)
+    values = nominal(); values["ID_HAIR_PINCH_CLEARANCE_R"] = 1.9
+    with pytest.raises(IndustrialDesignContractError, match="hair-pinch clearance"): validate_measurements(values)
 
 
 def test_hostile_or_asymmetric_eye_expression_fails():
