@@ -1,9 +1,5 @@
-const visualsStyles=document.createElement('link');
-visualsStyles.rel='stylesheet';
-visualsStyles.href='/visuals.css';
-document.head.append(visualsStyles);
-
-const MASCK_ASSETS=Object.freeze({hero:'/product/hero.svg',shell:'/product/shell.svg',fluid:'/product/fluid.svg',interface:'/product/interface.svg',core:'/product/core.svg',cartridge:'/product/cartridge.svg'});
+const PRODUCT_ASSET_BASE='https://cdn.jsdelivr.net/gh/mlngaxri/MasckOne@0ce6725175f972465efc4cbe0434777a90c10ea4/products/web/public/product';
+const MASCK_ASSETS=Object.freeze({hero:`${PRODUCT_ASSET_BASE}/hero.svg`,shell:`${PRODUCT_ASSET_BASE}/shell.svg`,fluid:`${PRODUCT_ASSET_BASE}/fluid.svg`,interface:`${PRODUCT_ASSET_BASE}/interface.svg`,core:`${PRODUCT_ASSET_BASE}/core.svg`,cartridge:`${PRODUCT_ASSET_BASE}/cartridge.svg`});
 
 const clamp=(min,max,value)=>Math.min(max,Math.max(min,value));
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -11,12 +7,13 @@ const desktop=window.matchMedia('(min-width: 861px)').matches;
 const q=(selector,root=document)=>root.querySelector(selector);
 const qa=(selector,root=document)=>[...root.querySelectorAll(selector)];
 
-const makeImage=(src,className,alt='')=>{
+const makeImage=(src,className,alt='',priority='auto')=>{
   const image=new Image();
   image.src=src;
   image.alt=alt;
   image.decoding='async';
   image.loading='eager';
+  image.fetchPriority=priority;
   image.className=className;
   image.draggable=false;
   return image;
@@ -24,7 +21,7 @@ const makeImage=(src,className,alt='')=>{
 
 const heroProduct=q('[data-hero-product]');
 if(heroProduct){
-  heroProduct.replaceChildren(makeImage(MASCK_ASSETS.hero,'hero-render',''));
+  heroProduct.replaceChildren(makeImage(MASCK_ASSETS.hero,'hero-render','', 'high'));
 }
 
 const layerSources={shell:MASCK_ASSETS.shell,fluid:MASCK_ASSETS.fluid,interface:MASCK_ASSETS.interface,core:MASCK_ASSETS.core,cartridge:MASCK_ASSETS.cartridge};
