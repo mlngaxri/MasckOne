@@ -16,6 +16,8 @@ def nominal():
         "ID_CONTROL_TACTILE_LAND_CLEAN": 10.0, "ID_CONTROL_TACTILE_LAND_SECONDARY": 8.0,
         "ID_CONTROL_TACTILE_SEPARATION": 2.0, "ID_EYE_APERTURE_CANT_L": -2.0,
         "ID_EYE_APERTURE_CANT_R": 2.0, "ID_NOSE_PROJECTION_ABOVE_FIELD": 1.0,
+        "ID_RETENTION_VISIBLE_WIDTH_L": 10.0, "ID_RETENTION_VISIBLE_WIDTH_R": 10.0,
+        "ID_SIDE_HARDWARE_PROJECTION_L": 1.0, "ID_SIDE_HARDWARE_PROJECTION_R": 1.0,
     }
 
 
@@ -51,6 +53,17 @@ def test_rear_mass_outside_frontal_field_fails():
 def test_rear_layer_visual_dominance_fails():
     values = nominal(); values["ID_REAR_MAX_Z"] = 15.1
     with pytest.raises(IndustrialDesignContractError, match="too visually dominant"): validate_measurements(values)
+
+
+def test_retention_visual_burden_and_side_hardware_integration_fail_closed():
+    values = nominal(); values["ID_RETENTION_VISIBLE_WIDTH_L"] = 12.1
+    with pytest.raises(IndustrialDesignContractError, match="retention member is too visually dominant"): validate_measurements(values)
+    values = nominal(); values["ID_RETENTION_VISIBLE_WIDTH_R"] = 11.1
+    with pytest.raises(IndustrialDesignContractError, match="retention visual width asymmetry"): validate_measurements(values)
+    values = nominal(); values["ID_SIDE_HARDWARE_PROJECTION_L"] = 2.1
+    with pytest.raises(IndustrialDesignContractError, match="attached pod"): validate_measurements(values)
+    values = nominal(); values["ID_SIDE_HARDWARE_PROJECTION_R"] = 1.8
+    with pytest.raises(IndustrialDesignContractError, match="side hardware projection asymmetry"): validate_measurements(values)
 
 
 def test_service_grip_and_control_tactility_fail_closed():
