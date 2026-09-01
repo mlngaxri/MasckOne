@@ -51,7 +51,7 @@ for(const token of ['being engineered','Final service geometry remains subject t
 for(const id of ['system','sequence','anatomy','service','development','access'])assert.ok(ids.has(id));
 for(const token of ['THE ROUTINE, REBUILT.','DELIVER','WORK','COLLECT','VALIDATION-GATED','NOT IMPLIED'])assert.ok(html.includes(token));
 assert.ok(html.includes('gsap@3.13.0')&&html.includes('ScrollTrigger.min.js')&&html.includes('lenis@1.3.11'));
-for(const token of ['window.gsap','window.ScrollTrigger','window.Lenis','lerp:0.085','data.explodeX','ScrollTrigger.refresh','prefers-reduced-motion: reduce','pointer: fine'])assert.ok(js.includes(token));
+for(const token of ['window.gsap','window.ScrollTrigger','window.Lenis','lerp:0.085','dataset.explodeX','ScrollTrigger.refresh','prefers-reduced-motion: reduce','pointer: fine'])assert.ok(js.includes(token));
 for(const token of ['.exploded-product','position:sticky','.cursor','.sequence-track','.service-cartridge','Instrument Serif','Instrument Sans','prefers-reduced-motion:reduce','prefers-contrast:more','forced-colors:active','@media(max-width:420px)',':focus-visible','.skip:focus'])assert.ok(css.includes(token));
 assert.ok(css.includes('--canvas:#edeae3')&&css.includes('--ink:#2c2a27')&&css.includes('--champagne:#c9b99f'));
 
