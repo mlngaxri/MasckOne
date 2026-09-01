@@ -128,6 +128,15 @@ def legal_actions_for_channel(
     )
 
 
+def _hash_payload(payload: dict[str, object]) -> str:
+    """Hash exactly one already-captured consumer payload."""
+
+    if type(payload) is not dict:
+        raise TypeError("payload must be exact dict")
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("ascii")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 class ProductStateConsumer:
     """Narrow Web/App facade over canonical simulation-only mechanism state.
 
@@ -222,7 +231,18 @@ class ProductStateConsumer:
     def _manifest_payload(self) -> dict[str, object]:
         self.validate_invariants()
         snapshot = self.snapshot()
+        snapshot_provenance = snapshot.provenance_sha256
         transport = self._transport.manifest()
+        if transport["state"]["provenance_sha256"] != snapshot_provenance:
+            raise RuntimeError("simulated transport changed during consumer manifest capture")
+
+        ui_intents = legal_actions_for_channel(snapshot, ConsumerInputChannel.UI_INTENT)
+        mechanical_events = legal_actions_for_channel(
+            snapshot, ConsumerInputChannel.SIMULATED_MECHANICAL_EVENT
+        )
+        device_events = legal_actions_for_channel(
+            snapshot, ConsumerInputChannel.SIMULATED_DEVICE_EVENT
+        )
         return {
             "schema": CONSUMER_CONTRACT,
             "transport_schema": transport["schema"],
@@ -237,30 +257,26 @@ class ProductStateConsumer:
             "ui_intent_semantics": UI_INTENT_SEMANTICS,
             "telemetry_source": transport["telemetry_source"],
             "measured_hardware": transport["measured_hardware"],
-            "sequence": self.sequence,
-            "last_event": self.last_event,
+            "sequence": transport["sequence"],
+            "last_event": transport["last_event"],
             "previous_state_provenance_sha256": transport["previous_state_provenance_sha256"],
             "current_mechanism_provenance_sha256": transport["current_mechanism_provenance_sha256"],
             "state": transport["state"],
-            "available_ui_intents": [action.value for action in self.available_ui_intents()],
+            "available_ui_intents": [action.value for action in ui_intents],
             "available_simulated_mechanical_events": [
-                action.value for action in self.available_simulated_mechanical_events()
+                action.value for action in mechanical_events
             ],
-            "available_simulated_device_events": [
-                action.value for action in self.available_simulated_device_events()
-            ],
+            "available_simulated_device_events": [action.value for action in device_events],
             "action_semantics": [item.manifest() for item in _ACTION_SEMANTICS],
-            "state_provenance_sha256": snapshot.provenance_sha256,
+            "state_provenance_sha256": snapshot_provenance,
             "source_transport_provenance_sha256": transport["transport_provenance_sha256"],
         }
 
     @property
     def provenance_sha256(self) -> str:
-        payload = self._manifest_payload()
-        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("ascii")
-        return hashlib.sha256(encoded).hexdigest()
+        return _hash_payload(self._manifest_payload())
 
     def manifest(self) -> dict[str, object]:
         payload = self._manifest_payload()
-        payload["consumer_provenance_sha256"] = self.provenance_sha256
+        payload["consumer_provenance_sha256"] = _hash_payload(payload)
         return payload
