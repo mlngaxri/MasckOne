@@ -6,9 +6,10 @@ from masck_one.digital_motion import MotionIdentityBinding, MotionIdentityRegist
 from masck_one.interface_attachment import build_interface_attachment_architecture
 from masck_one.model import build_model
 from masck_one.motion_identity_sources import (
-    MotionIdentitySourceError,
     build_current_actuator_motion_identity_registry,
+    build_repository_actuator_motion_identity_registry,
     validate_current_actuator_motion_track,
+    validate_repository_actuator_motion_track,
 )
 from masck_one.structural_frame import build_structural_frame_topology
 
@@ -53,11 +54,27 @@ def test_registry_is_rebuilt_from_current_actuator_architecture_without_caller_i
     assert all(binding.allowed_kinds == (MotionKind.ACTUATOR,) for binding in registry.bindings)
 
 
+def test_repository_registry_matches_explicit_canonical_graph_rebuild():
+    authority, frame = _current_sources()
+    explicit = build_current_actuator_motion_identity_registry(authority=authority, structural_frame=frame)
+    repository = build_repository_actuator_motion_identity_registry()
+    assert repository.registry_sha256 == explicit.registry_sha256
+    assert repository.bindings == explicit.bindings
+    assert repository.mechanism_sha256 == explicit.mechanism_sha256
+
+
 def test_current_actuator_track_validates_against_freshly_reconstructed_registry():
     authority, frame = _current_sources()
     registry = build_current_actuator_motion_identity_registry(authority=authority, structural_frame=frame)
     track = _track(registry)
     returned = validate_current_actuator_motion_track(track, authority=authority, structural_frame=frame)
+    assert returned.registry_sha256 == registry.registry_sha256
+
+
+def test_repository_validator_accepts_only_repository_derived_registry_identity():
+    registry = build_repository_actuator_motion_identity_registry()
+    track = _track(registry)
+    returned = validate_repository_actuator_motion_track(track)
     assert returned.registry_sha256 == registry.registry_sha256
 
 
@@ -85,6 +102,8 @@ def test_caller_authored_registry_cannot_substitute_for_controlled_current_sourc
     )
     with pytest.raises(ValueError, match="identity registry provenance"):
         validate_current_actuator_motion_track(forged_track, authority=authority, structural_frame=frame)
+    with pytest.raises(ValueError, match="identity registry provenance"):
+        validate_repository_actuator_motion_track(forged_track)
 
 
 def test_non_actuator_motion_remains_blocked_until_equivalent_controlled_source_exists():
@@ -96,6 +115,9 @@ def test_non_actuator_motion_remains_blocked_until_equivalent_controlled_source_
             authority=authority,
             structural_frame=frame,
         )
+    repository = build_repository_actuator_motion_identity_registry()
+    with pytest.raises(ValueError, match="motion kind"):
+        validate_repository_actuator_motion_track(_track(repository, kind=MotionKind.SERVICE))
 
 
 def test_source_factory_rejects_structural_aliases_instead_of_duck_typing():
