@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://masck.one/schemas/digital_product_release.schema.json",
+  "title": "Masck One Digital Product Release",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "release_id",
+    "hardware_commit_sha",
+    "authority_sha256",
+    "evidence_boundary",
+    "physical_evidence_promoted",
+    "artifacts"
+  ],
+  "properties": {
+    "schema": {"const": "MASCK_ONE_DIGITAL_PRODUCT_RELEASE_V1"},
+    "release_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,63}$"},
+    "hardware_commit_sha": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+    "authority_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "evidence_boundary": {"const": "DIGITAL_BINDING_ONLY_NOT_PHYSICAL_EVIDENCE"},
+    "physical_evidence_promoted": {"const": false},
+    "artifacts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/artifact"}
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "kind",
+        "relative_path",
+        "media_type",
+        "revision",
+        "content_sha256",
+        "source_provenance_sha256"
+      ],
+      "properties": {
+        "artifact_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,63}$"},
+        "kind": {
+          "type": "string",
+          "enum": [
+            "PRODUCT_MANIFEST",
+            "CLAIMS_MANIFEST",
+            "COMPONENT_MANIFEST",
+            "ANIMATION_MANIFEST",
+            "DEVICE_STATE_MANIFEST",
+            "VISUAL_SYSTEM_MANIFEST",
+            "WEB_GLTF",
+            "EXPLODED_TRANSFORMS",
+            "FLUID_ROUTES",
+            "MATERIAL_SLOTS",
+            "CAMERA_PRESETS",
+            "POSTER_ASSET"
+          ]
+        },
+        "relative_path": {
+          "type": "string",
+          "pattern": "^generated/digital_product_release/[A-Za-z0-9._/-]+$"
+        },
+        "media_type": {"type": "string", "minLength": 1},
+        "revision": {"type": "integer", "minimum": 1},
+        "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "source_provenance_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}
