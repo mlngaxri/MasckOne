@@ -8,6 +8,7 @@ const css=read('./src/styles.css');
 const build=read('./build.mjs');
 const pkg=JSON.parse(read('./package.json'));
 const brand=read('./public/brand/brand-mark.svg');
+const mono=read('./public/brand/brand-mark-mono.svg');
 const favicon=read('./public/favicon.svg');
 const og=read('./public/brand/og-source.svg');
 
@@ -20,6 +21,16 @@ assert.ok(html.includes('rel="icon" href="/favicon.svg"'),'web must expose the s
 for(const asset of [brand,favicon]){
   assert.ok(asset.includes('#314f38')&&asset.includes('#1d211f'),'brand source must use the controlled digital palette');
   assert.ok(!/<(?:linearGradient|radialGradient|filter|mask)\b/.test(asset),'canonical small-scale brand source must remain flat and unmasked');
+}
+assert.ok(brand.includes('controlled flowing seam'),'canonical mark must identify the revised flowing-seam geometry');
+assert.ok(!brand.includes('h18v216')&&!brand.includes('M142 20h18'),'retired straight parallel-bar geometry must not return');
+assert.equal((brand.match(/<path\b/g)||[]).length,2,'canonical mark must remain a two-field source');
+assert.equal((mono.match(/<path\b/g)||[]).length,2,'monochrome mark must preserve two-field topology');
+assert.ok(!brand.includes('<rect'),'canonical mark geometry must not depend on a platform container');
+for(const pathToken of ['M40 72C40 40 65 20 96 20h16','M144 20h16']){
+  assert.ok(brand.includes(pathToken),`canonical mark must retain revised seam anchor ${pathToken}`);
+  assert.ok(favicon.includes(pathToken),`favicon must derive from canonical mark anchor ${pathToken}`);
+  assert.ok(og.includes(pathToken),`OG source must derive from canonical mark anchor ${pathToken}`);
 }
 assert.ok(og.includes('Development preview. No performance or availability claim.'),'social source must preserve evidence-safe copy');
 
