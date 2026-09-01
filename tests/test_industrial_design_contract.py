@@ -12,13 +12,18 @@ def nominal():
         "ID_REAR_FRONTAL_OVERHANG_T": 0.0, "ID_REAR_FRONTAL_OVERHANG_B": 0.0,
         "ID_SERVICE_GRIP_DEPTH": 0.9, "ID_CONTROL_TACTILE_LAND_CLEAN": 10.0,
         "ID_CONTROL_TACTILE_LAND_SECONDARY": 8.0, "ID_CONTROL_TACTILE_SEPARATION": 2.0,
-        "ID_EYE_APERTURE_CANT_L": 2.0, "ID_EYE_APERTURE_CANT_R": 2.0,
+        "ID_EYE_APERTURE_CANT_L": -2.0, "ID_EYE_APERTURE_CANT_R": 2.0,
         "ID_NOSE_PROJECTION_ABOVE_FIELD": 1.0,
     }
 
 
 def test_nominal_contract_passes():
     validate_measurements(nominal()); validate_surface_boundary("A", 0.05, 1.0); validate_surface_boundary("B", 0.10, 2.0)
+
+
+def test_mirrored_signed_eye_cant_is_valid():
+    values = nominal(); values["ID_EYE_APERTURE_CANT_L"] = -3.0; values["ID_EYE_APERTURE_CANT_R"] = 3.0
+    validate_measurements(values)
 
 
 def test_missing_named_measurement_fails_closed():
@@ -51,13 +56,22 @@ def test_service_grip_and_control_tactility_fail_closed():
     with pytest.raises(IndustrialDesignContractError, match="service grip depth"): validate_measurements(values)
     values = nominal(); values["ID_CONTROL_TACTILE_LAND_CLEAN"] = 9.9
     with pytest.raises(IndustrialDesignContractError, match="CLEAN tactile land"): validate_measurements(values)
+    values = nominal(); values["ID_CONTROL_TACTILE_LAND_SECONDARY"] = 7.9
+    with pytest.raises(IndustrialDesignContractError, match="secondary tactile land"): validate_measurements(values)
+    values = nominal(); values["ID_CONTROL_TACTILE_SEPARATION"] = 1.9
+    with pytest.raises(IndustrialDesignContractError, match="tactile separation"): validate_measurements(values)
 
 
 def test_hostile_or_asymmetric_eye_expression_fails():
-    values = nominal(); values["ID_EYE_APERTURE_CANT_L"] = 4.1
+    values = nominal(); values["ID_EYE_APERTURE_CANT_L"] = -4.1
     with pytest.raises(IndustrialDesignContractError, match="facial-neutrality"): validate_measurements(values)
     values = nominal(); values["ID_EYE_APERTURE_CANT_R"] = 3.6
     with pytest.raises(IndustrialDesignContractError, match="unintended expression"): validate_measurements(values)
+
+
+def test_nonfinite_signed_eye_geometry_fails_closed():
+    values = nominal(); values["ID_EYE_APERTURE_CANT_L"] = float("nan")
+    with pytest.raises(IndustrialDesignContractError, match="must be finite"): validate_measurements(values)
 
 
 def test_protruding_nose_cone_fails():
