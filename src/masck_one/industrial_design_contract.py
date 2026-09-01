@@ -22,6 +22,7 @@ class IDLimits:
     max_b_surface_gap_mm: float = 0.10
     max_b_surface_tangent_deg: float = 2.0
     min_primary_control_land_mm: float = 10.0
+    min_secondary_control_land_mm: float = 8.0
     min_control_separation_mm: float = 2.0
     service_grip_depth_min_mm: float = 0.6
     service_grip_depth_max_mm: float = 1.2
@@ -43,24 +44,42 @@ REQUIRED_MEASUREMENTS = (
     "ID_NOSE_PROJECTION_ABOVE_FIELD",
 )
 
+SIGNED_MEASUREMENTS = frozenset(("ID_EYE_APERTURE_CANT_L", "ID_EYE_APERTURE_CANT_R"))
+
 
 class IndustrialDesignContractError(ValueError):
     """Raised when physical CAD evidence violates the ID contract."""
 
 
-def _finite_nonnegative(name: str, value: float) -> float:
+def _finite(name: str, value: float) -> float:
     value = float(value)
-    if not isfinite(value) or value < 0:
-        raise IndustrialDesignContractError(f"{name} must be finite and >= 0")
+    if not isfinite(value):
+        raise IndustrialDesignContractError(f"{name} must be finite")
+    return value
+
+
+def _finite_nonnegative(name: str, value: float) -> float:
+    value = _finite(name, value)
+    if value < 0:
+        raise IndustrialDesignContractError(f"{name} must be >= 0")
     return value
 
 
 def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimits()) -> None:
-    """Fail closed on absent, malformed or packaging-degrading ID evidence."""
+    """Fail closed on absent, malformed or packaging-degrading ID evidence.
+
+    Eye-aperture cant is signed in the canonical facial coordinate frame. Mirrored
+    left/right geometry can therefore carry opposite signs. Expression neutrality
+    is evaluated on cant magnitude and bilateral magnitude mismatch, rather than
+    incorrectly rejecting a valid mirrored aperture because one angle is negative.
+    """
     missing = sorted(set(REQUIRED_MEASUREMENTS) - set(values))
     if missing:
         raise IndustrialDesignContractError("missing stable ID measurements: " + ", ".join(missing))
-    v = {name: _finite_nonnegative(name, values[name]) for name in REQUIRED_MEASUREMENTS}
+    v = {
+        name: (_finite(name, values[name]) if name in SIGNED_MEASUREMENTS else _finite_nonnegative(name, values[name]))
+        for name in REQUIRED_MEASUREMENTS
+    }
 
     for side in ("L", "R"):
         run = v[f"ID_SIDE_TRANSITION_RUN_{side}"]
@@ -86,13 +105,15 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
         raise IndustrialDesignContractError("service grip depth is outside the wet-finger prototype exploration band")
     if v["ID_CONTROL_TACTILE_LAND_CLEAN"] < limits.min_primary_control_land_mm:
         raise IndustrialDesignContractError("CLEAN tactile land is below prototype discoverability target")
+    if v["ID_CONTROL_TACTILE_LAND_SECONDARY"] < limits.min_secondary_control_land_mm:
+        raise IndustrialDesignContractError("secondary tactile land is below prototype discoverability target")
     if v["ID_CONTROL_TACTILE_SEPARATION"] < limits.min_control_separation_mm:
         raise IndustrialDesignContractError("adjacent physical controls lack tactile separation")
 
     cant_l, cant_r = v["ID_EYE_APERTURE_CANT_L"], v["ID_EYE_APERTURE_CANT_R"]
-    if max(cant_l, cant_r) > limits.max_eye_aperture_hostile_cant_deg:
+    if max(abs(cant_l), abs(cant_r)) > limits.max_eye_aperture_hostile_cant_deg:
         raise IndustrialDesignContractError("eye aperture cant exceeds facial-neutrality target")
-    if abs(cant_l - cant_r) > limits.max_eye_aperture_angle_asymmetry_deg:
+    if abs(abs(cant_l) - abs(cant_r)) > limits.max_eye_aperture_angle_asymmetry_deg:
         raise IndustrialDesignContractError("eye aperture asymmetry creates unintended expression")
     if v["ID_NOSE_PROJECTION_ABOVE_FIELD"] > limits.max_nose_projection_above_field_mm:
         raise IndustrialDesignContractError("nose bridge reads as a protruding cone rather than part of the facial field")
