@@ -53,18 +53,26 @@ def test_doe_spans_cg_friction_and_crown_uncertainty():
     assert max(r.vertical_slip_margin_n for r in results) > min(r.vertical_slip_margin_n for r in results)
 
 
-def test_piecewise_linear_release_clearance_uses_segments_not_only_samples():
-    # Protected point is far from both endpoints but intersects the segment midpoint.
+def test_piecewise_linear_release_clearance_catches_3d_mid_segment_collision():
     with pytest.raises(ValueError, match="violates protected clearance"):
-        release_trajectory_clearance(((0.0, 0.0), (10.0, 0.0)), ((5.0, 0.5),), minimum_clearance_mm=1.0)
+        release_trajectory_clearance(((0.0, 0.0, 0.0), (10.0, 10.0, 10.0)),
+                                     ((5.0, 5.0, 5.5),), minimum_clearance_mm=1.0)
 
 
-def test_release_trajectory_reports_segment_clearance_when_gate_passes():
-    d = release_trajectory_clearance(((0.0, 0.0), (10.0, 0.0)), ((5.0, 5.0),), minimum_clearance_mm=4.0)
+def test_release_trajectory_reports_true_3d_segment_clearance():
+    d = release_trajectory_clearance(((0.0, 0.0, 0.0), (10.0, 0.0, 0.0)),
+                                     ((5.0, 3.0, 4.0),), minimum_clearance_mm=4.0)
     assert d == pytest.approx(5.0)
 
 
+def test_release_trajectory_rejects_2d_or_mixed_frame_like_geometry():
+    with pytest.raises(ValueError, match="xyz 3-tuple"):
+        release_trajectory_clearance(((0.0, 0.0), (10.0, 0.0)), ((5.0, 5.0, 0.0),), minimum_clearance_mm=1.0)
+    with pytest.raises(ValueError, match="xyz 3-tuple"):
+        release_trajectory_clearance(((0.0, 0.0, 0.0), (10.0, 0.0, 0.0)), ((5.0, 5.0),), minimum_clearance_mm=1.0)
+
+
 def test_release_trajectory_requires_real_motion_and_finite_coordinates():
-    with pytest.raises(ValueError): release_trajectory_clearance((), ((0.0, 0.0),), minimum_clearance_mm=1.0)
-    with pytest.raises(ValueError): release_trajectory_clearance(((0.0, 0.0),), ((0.0, 0.0),), minimum_clearance_mm=1.0)
-    with pytest.raises(ValueError): release_trajectory_clearance(((0.0, 0.0), (math.inf, 1.0)), ((0.0, 0.0),), minimum_clearance_mm=1.0)
+    with pytest.raises(ValueError): release_trajectory_clearance((), ((0.0, 0.0, 0.0),), minimum_clearance_mm=1.0)
+    with pytest.raises(ValueError): release_trajectory_clearance(((0.0, 0.0, 0.0),), ((0.0, 0.0, 0.0),), minimum_clearance_mm=1.0)
+    with pytest.raises(ValueError): release_trajectory_clearance(((0.0, 0.0, 0.0), (math.inf, 1.0, 2.0)), ((0.0, 0.0, 0.0),), minimum_clearance_mm=1.0)
