@@ -171,6 +171,7 @@
       "additionalProperties": false,
       "required": ["action", "channel", "ui_control_exposed", "hardware_command"],
       "properties": {
+        "action": {"type": "string"},
         "channel": {"const": "SIMULATED_MECHANICAL_EVENT"},
         "ui_control_exposed": {"const": false},
         "hardware_command": {"const": false}
@@ -181,6 +182,7 @@
       "additionalProperties": false,
       "required": ["action", "channel", "ui_control_exposed", "hardware_command"],
       "properties": {
+        "action": {"type": "string"},
         "channel": {"const": "UI_INTENT"},
         "ui_control_exposed": {"const": true},
         "hardware_command": {"const": false}
@@ -191,6 +193,7 @@
       "additionalProperties": false,
       "required": ["action", "channel", "ui_control_exposed", "hardware_command"],
       "properties": {
+        "action": {"type": "string"},
         "channel": {"const": "SIMULATED_DEVICE_EVENT"},
         "ui_control_exposed": {"const": false},
         "hardware_command": {"const": false}
