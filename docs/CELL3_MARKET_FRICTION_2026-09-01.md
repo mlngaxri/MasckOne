@@ -10,6 +10,8 @@ Status: public-market observations translated into engineering hypotheses. These
 4. FOREO support, accessed 2026-09-01: devices can be used manually after initial setup, without continuing app dependency; cleaning is described as soap/water, rinse, dry. Source: https://www.foreo.com/support/faq/general
 5. FOREO LUNA 4 manual, accessed 2026-09-01: explicit physical travel-lock gesture is provided and cleaning is a short direct procedure. Source: https://www.foreo.com/manuals/luna-4
 6. Therabody TheraFace Mask Glo manual mirror, accessed 2026-09-01: cleaning is required after each use, the device is not waterproof, USB-C charging is used, and storage/transport conditions are explicit. Source: https://device.report/manual/19462059
+7. Oura Member Care Airplane Mode, last updated 2026-08-03 and accessed 2026-09-01: radio-off state is explicitly represented in the app, the ring continues local data collection while disconnected, and placing the ring on its charger is a deliberate physical action that restores connectivity. Source: https://support.ouraring.com/hc/en-us/articles/360025445814-Airplane-Mode
+8. Oura Member Care Battery Tips, last updated 2026-07-27 and accessed 2026-09-01: low-battery notification is optional app assistance, while battery state and product function remain device realities rather than app-created state. Source: https://support.ouraring.com/hc/en-us/articles/360046218953-Oura-Ring-Battery-Tips
 
 ## Masck One engineering hypotheses derived from recurring friction
 
@@ -45,8 +47,12 @@ H-STATE-02: Core physical operation must remain intelligible without an app. Web
 
 H-STATE-03: Automatic cycle termination is a useful low-burden pattern, but Masck One must distinguish normal cycle completion, user stop, mechanical/service inhibit and fault termination so consumers cannot display impossible or misleading combinations.
 
+H-STATE-04: Connectivity state and mechanism state must be separate domains. A disconnected app must not imply that the physical mechanism changed state, and a simulated prototype must never present inferred connection, telemetry or sensed readiness as hardware truth. This directly motivates the Cell 3 `SimulatedTransport` contract using explicit `SIMULATED_LOCAL_ONLY`, `telemetry_source=NONE` and derived digital readiness semantics.
+
+H-STATE-05: App notifications can reduce burden, but they are assistance rather than authority. Battery, service, release and readiness truth should remain available through physical-device semantics or future authenticated telemetry, with app-only reminders treated as optional presentation behavior.
+
 ## Required downstream adversarial checks
 
-When controlled geometry and physical inputs become available, Cell 3 should add or consume protocols covering: facial-size/shape retention DOE; nose/upper-lip/chin hotspot and stand-off reporting; retention slip under representative head motion; wet one-hand release; hair/pinch clearance; accidental release; service-state collision; travel/storage envelope; assembly compatibility; cleaning-state accessibility; and physical-control versus app-state reconciliation.
+When controlled geometry and physical inputs become available, Cell 3 should add or consume protocols covering: facial-size/shape retention DOE; nose/upper-lip/chin hotspot and stand-off reporting; retention slip under representative head motion; wet one-hand release; hair/pinch clearance; accidental release; service-state collision; travel/storage envelope; assembly compatibility; cleaning-state accessibility; physical-control versus app-state reconciliation; disconnected-app versus unchanged-mechanism state; stale telemetry rejection; and simulated-versus-measured state labeling.
 
 No item above is a PASS claim. It is a dated hypothesis/requirements input for subsequent controlled simulation and bench/human-factors validation.
