@@ -9,6 +9,16 @@ Web and app surfaces need exact state semantics before real transport exists. Wi
 
 The executable contract is `src/masck_one/cell4_device_state.py`.
 
+## Source provenance and freshness
+
+Every payload now binds the exact deterministic SHA-256 of the `PowerThermalEvidenceContract` that supplied its battery and charging semantics through `source_power_thermal_sha256`.
+
+That source hash is calculated from a revisioned canonical manifest covering the authority revision, battery-reference semantics, complete power-load ledger, thermal-risk ledger, charging boundary and physical-evidence status. Hash production revalidates the nested records first, so post-construction corruption cannot silently retain a trusted identity.
+
+`build_simulated_cell4_device_state()` also requires the current controlled `Authority` object and calls the power/thermal source's current-authority validation before constructing a consumer payload. A stale authority revision, changed battery reference or corrupted power/thermal source therefore fails before export.
+
+The source SHA proves exact semantic identity and freshness against the supplied current authority. It is not, by itself, release authentication. A future production consumer path must obtain the accepted source identity through the repository's authenticated release boundary rather than trusting an arbitrary caller-provided digest.
+
 ## Transport boundary
 
 The only legal transport value is:
@@ -102,7 +112,7 @@ Once a routing contract is independently released, a later change may bind anima
 
 The current contract exports categorical simulated battery states only. It intentionally does not export a numerical battery percentage because current architecture does not establish a real battery telemetry or state-of-charge sensing path.
 
-If future firmware exposes a measured/estimated state of charge, that capability must be represented explicitly with sensor/estimator provenance, accuracy/uncertainty semantics and transport identity before consumer surfaces display it as hardware truth.
+If future firmware exposes a measured or estimated state of charge, that capability must be represented explicitly with sensor or estimator provenance, accuracy and uncertainty semantics, and transport identity before consumer surfaces display it as hardware truth.
 
 ## No invented cartridge capacity or cycle count
 
