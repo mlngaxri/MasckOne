@@ -13,8 +13,9 @@ The release boundary therefore uses two independent checks:
    from that repository authority.
 
 The canonical graph is the current planar-development engineering lineage used by released
-Iterations 15 and 20-25. Registered-anatomy or supplier-evidence variants require their own
-explicit release lineage; they are not silently accepted here.
+Iterations 15 and 20-25. Registered-anatomy, supplier-evidence, or compatibility-evidence
+variants require their own explicit released provenance lineage; they are not silently
+accepted here.
 """
 from __future__ import annotations
 
@@ -264,10 +265,7 @@ def _repository_authority(authority: Authority) -> Authority:
     return fresh
 
 
-def _canonical_sources(
-    authority: Authority,
-    compatibility_evidence: tuple[CompatibilityEvidence, ...],
-) -> CanonicalIteration25Sources:
+def _canonical_sources(authority: Authority) -> CanonicalIteration25Sources:
     datums = CanonicalDatums.from_authority(authority)
     reference = build_facial_reference(authority, datums)
     surface = build_planar_development_surface(authority)
@@ -284,8 +282,6 @@ def _canonical_sources(
     frame = build_structural_frame_topology(authority, attachment)
     water = build_water_reservoir_architecture(authority)
     cleanser = build_cleanser_storage_architecture(authority)
-    if compatibility_evidence:
-        cleanser = cleanser.with_compatibility_evidence(compatibility_evidence)
     pump = build_fresh_pump_packaging_architecture(authority, water, cleanser, frame)
     manifold = build_distribution_manifold_architecture(
         authority,
@@ -358,7 +354,11 @@ def validate_iteration25_source_graph(
         raise Iteration25SourceIntegrityError(
             "cleanser compatibility evidence must remain an exact immutable evidence tuple"
         )
-    canonical = _canonical_sources(fresh_authority, evidence)
+    if evidence:
+        raise Iteration25SourceIntegrityError(
+            "cleanser compatibility evidence is not part of the released canonical Iteration 25 lineage"
+        )
+    canonical = _canonical_sources(fresh_authority)
 
     _require_exact_graph(water, canonical.water, path="water architecture")
     _require_exact_graph(cleanser, canonical.cleanser, path="cleanser architecture")
