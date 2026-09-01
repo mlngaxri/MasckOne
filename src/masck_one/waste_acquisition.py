@@ -23,6 +23,8 @@ from .distribution_manifold import DistributionManifoldArchitecture
 from .fresh_pump_packaging import FreshPumpPackagingArchitecture
 from .iteration25_source_integrity import (
     Iteration25SourceIntegrityError,
+    _canonical_sources,
+    _repository_authority,
     validate_iteration25_source_graph,
 )
 from .protected_volumes import ProtectedVolumeSet
@@ -99,6 +101,61 @@ def _digest(value: object) -> str:
         allow_nan=False,
     ).encode("utf-8")
     return sha256(payload).hexdigest()
+
+
+def _resolve_inherited_sources(
+    *,
+    authority: Authority,
+    manifold: DistributionManifoldArchitecture | None,
+    pump: FreshPumpPackagingArchitecture | None,
+    water: WaterReservoirArchitecture | None,
+    cleanser: CleanserStorageArchitecture | None,
+    frame: StructuralFrameTopology | None,
+    coverage: FacialCoverageMesh | None,
+    protected: ProtectedVolumeSet | None,
+) -> tuple[
+    DistributionManifoldArchitecture,
+    FreshPumpPackagingArchitecture,
+    WaterReservoirArchitecture,
+    CleanserStorageArchitecture,
+    StructuralFrameTopology,
+    FacialCoverageMesh,
+    ProtectedVolumeSet,
+]:
+    """Resolve omitted released siblings from the repository-rooted canonical graph.
+
+    This preserves the released downstream validation call shape used by Iteration 26
+    without weakening the Iteration 25 provenance proof. Supplied siblings remain subject
+    to exact canonical comparison; only omitted siblings are filled from a fresh rebuild.
+    """
+
+    values = (manifold, pump, water, cleanser, frame, coverage, protected)
+    if all(value is not None for value in values):
+        return (
+            manifold,
+            pump,
+            water,
+            cleanser,
+            frame,
+            coverage,
+            protected,
+        )  # type: ignore[return-value]
+    try:
+        fresh_authority = _repository_authority(authority)
+        canonical = _canonical_sources(fresh_authority)
+    except Iteration25SourceIntegrityError as exc:
+        raise WasteAcquisitionError(
+            "waste acquisition inherited source graph is not canonical current"
+        ) from exc
+    return (
+        manifold if manifold is not None else canonical.manifold,
+        pump if pump is not None else canonical.pump,
+        water if water is not None else canonical.water,
+        cleanser if cleanser is not None else canonical.cleanser,
+        frame if frame is not None else canonical.frame,
+        coverage if coverage is not None else canonical.coverage,
+        protected if protected is not None else canonical.protected,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -202,13 +259,13 @@ class WasteAcquisitionArchitecture:
         *,
         authority: Authority,
         distribution: DistributionGeometryArchitecture,
-        manifold: DistributionManifoldArchitecture,
-        pump: FreshPumpPackagingArchitecture,
-        water: WaterReservoirArchitecture,
-        cleanser: CleanserStorageArchitecture,
-        frame: StructuralFrameTopology,
-        coverage: FacialCoverageMesh,
-        protected: ProtectedVolumeSet,
+        manifold: DistributionManifoldArchitecture | None = None,
+        pump: FreshPumpPackagingArchitecture | None = None,
+        water: WaterReservoirArchitecture | None = None,
+        cleanser: CleanserStorageArchitecture | None = None,
+        frame: StructuralFrameTopology | None = None,
+        coverage: FacialCoverageMesh | None = None,
+        protected: ProtectedVolumeSet | None = None,
     ) -> None:
         """Fail closed when any direct or inherited Iteration 25 source is stale."""
         self.validate_invariants()
@@ -218,6 +275,25 @@ class WasteAcquisitionArchitecture:
             raise WasteAcquisitionError(
                 "distribution must be the exact Iteration 24 architecture type"
             )
+
+        (
+            manifold,
+            pump,
+            water,
+            cleanser,
+            frame,
+            coverage,
+            protected,
+        ) = _resolve_inherited_sources(
+            authority=authority,
+            manifold=manifold,
+            pump=pump,
+            water=water,
+            cleanser=cleanser,
+            frame=frame,
+            coverage=coverage,
+            protected=protected,
+        )
 
         try:
             validate_iteration25_source_graph(
@@ -302,13 +378,13 @@ class WasteAcquisitionArchitecture:
 def build_waste_acquisition_architecture(
     authority: Authority,
     distribution: DistributionGeometryArchitecture,
-    manifold: DistributionManifoldArchitecture,
-    pump: FreshPumpPackagingArchitecture,
-    water: WaterReservoirArchitecture,
-    cleanser: CleanserStorageArchitecture,
-    frame: StructuralFrameTopology,
-    coverage: FacialCoverageMesh,
-    protected: ProtectedVolumeSet,
+    manifold: DistributionManifoldArchitecture | None = None,
+    pump: FreshPumpPackagingArchitecture | None = None,
+    water: WaterReservoirArchitecture | None = None,
+    cleanser: CleanserStorageArchitecture | None = None,
+    frame: StructuralFrameTopology | None = None,
+    coverage: FacialCoverageMesh | None = None,
+    protected: ProtectedVolumeSet | None = None,
 ) -> WasteAcquisitionArchitecture:
     if type(authority) is not Authority:
         raise WasteAcquisitionError("authority must be the exact Authority type")
