@@ -16,6 +16,9 @@ def valid():
         "HMI_CONTROL_TO_SERVICE_SEPARATION_MM": 8.0,
         "HMI_CONTROL_CENTER_SPACING_MM": 12.0,
         "HMI_SECONDARY_GUARD_OFFSET_MM": 0.80,
+        "HMI_PRIMARY_EDGE_RADIUS_MM": 0.80,
+        "HMI_SECONDARY_EDGE_RADIUS_MM": 0.70,
+        "HMI_SECONDARY_GUARD_ROOT_RADIUS_MM": 1.00,
     }
 
 
@@ -34,6 +37,9 @@ def test_valid_physical_hmi_passes():
     ("HMI_CONTROL_CENTER_SPACING_MM", 7.0),
     ("HMI_SECONDARY_GUARD_OFFSET_MM", 0.20),
     ("HMI_SECONDARY_GUARD_OFFSET_MM", 2.0),
+    ("HMI_PRIMARY_EDGE_RADIUS_MM", 0.30),
+    ("HMI_SECONDARY_EDGE_RADIUS_MM", 0.30),
+    ("HMI_SECONDARY_GUARD_ROOT_RADIUS_MM", 0.30),
 ])
 def test_hostile_hmi_geometry_fails(key, value):
     evidence = valid()
