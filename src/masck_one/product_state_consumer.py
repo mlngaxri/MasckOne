@@ -19,9 +19,11 @@ from .mechanism_state import (
     derive_next_state,
 )
 
-CONSUMER_CONTRACT = "MASCK_ONE_PRODUCT_STATE_CONSUMER_V1"
+CONSUMER_CONTRACT = "MASCK_ONE_PRODUCT_STATE_CONSUMER_V2"
 HARDWARE_COMMAND_CAPABILITY = "NONE_SIMULATION_ONLY"
 CONNECTIVITY_MODEL = "ABSENT_NOT_MODELED"
+AVAILABILITY_SEMANTICS = "DERIVED_FROM_SIMULATED_STATE_ONLY"
+UI_INTENT_SEMANTICS = "LOCAL_SIMULATION_INPUT_ONLY_NOT_HARDWARE_COMMAND"
 
 
 class ConsumerInputChannel(str, Enum):
@@ -226,12 +228,19 @@ class ProductStateConsumer:
             "transport_schema": transport["schema"],
             "state_contract": transport["state_contract"],
             "transition_contract": transport["transition_contract"],
+            "transport_kind": transport["transport_kind"],
+            "dispatch_semantics": transport["dispatch_semantics"],
+            "mechanism_provenance_authority": transport["mechanism_provenance_authority"],
             "hardware_command_capability": HARDWARE_COMMAND_CAPABILITY,
             "connectivity_model": CONNECTIVITY_MODEL,
-            "telemetry_source": "NONE",
-            "measured_hardware": False,
+            "availability_semantics": AVAILABILITY_SEMANTICS,
+            "ui_intent_semantics": UI_INTENT_SEMANTICS,
+            "telemetry_source": transport["telemetry_source"],
+            "measured_hardware": transport["measured_hardware"],
             "sequence": self.sequence,
             "last_event": self.last_event,
+            "previous_state_provenance_sha256": transport["previous_state_provenance_sha256"],
+            "current_mechanism_provenance_sha256": transport["current_mechanism_provenance_sha256"],
             "state": transport["state"],
             "available_ui_intents": [action.value for action in self.available_ui_intents()],
             "available_simulated_mechanical_events": [
