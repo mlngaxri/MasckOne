@@ -1,4 +1,5 @@
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from masck_one.mechanism_state import (
     MECHANISM_PROVENANCE_AUTHORITY,
     MechanismState,
     OperatingMode,
+    SimulatedTransport,
     TransitionAction,
 )
 from masck_one.product_state_consumer import (
@@ -232,6 +234,26 @@ def test_consumer_provenance_is_deterministic_and_event_sensitive():
     a.submit_ui_intent(TransitionAction.START_CLEAN)
     assert a.provenance_sha256 != b.provenance_sha256
     assert a.manifest()["consumer_provenance_sha256"] == a.provenance_sha256
+
+
+def test_manifest_hash_covers_exact_returned_payload():
+    manifest = consumer(state(retention_engaged=True)).manifest()
+    claimed = manifest.pop("consumer_provenance_sha256")
+    encoded = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("ascii")
+    assert hashlib.sha256(encoded).hexdigest() == claimed
+
+
+def test_manifest_capture_fails_closed_if_transport_changes_mid_capture(monkeypatch):
+    c = consumer()
+    original_manifest = SimulatedTransport.manifest
+
+    def mutating_manifest(transport):
+        transport.dispatch(TransitionAction.ENGAGE_RETENTION)
+        return original_manifest(transport)
+
+    monkeypatch.setattr(SimulatedTransport, "manifest", mutating_manifest)
+    with pytest.raises(RuntimeError, match="changed during consumer manifest capture"):
+        c.manifest()
 
 
 def test_internal_transport_corruption_cannot_be_exported_through_consumer_boundary():
