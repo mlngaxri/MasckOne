@@ -1,7 +1,8 @@
 """Physical retention and emergency-release engineering model.
 
-This module deliberately models mechanical requirements and sensitivity only.  It does
-not claim human comfort, production fit, or measured release performance.
+Calculations are deterministic engineering preflight only. They do not establish human
+comfort, universal fit, production release force, release time, fatigue life or acoustic
+performance.
 """
 from __future__ import annotations
 
@@ -11,12 +12,22 @@ from math import hypot, isfinite
 G = 9.80665
 
 
+def _exact_finite_scalar(value: object, label: str) -> float:
+    if type(value) not in (int, float):
+        raise ValueError(f"{label} must be an exact numeric scalar")
+    value = float(value)
+    if not isfinite(value):
+        raise ValueError(f"{label} must be finite")
+    return value
+
+
 @dataclass(frozen=True)
 class RetentionInputs:
     """Controlled inputs for a quasi-static retention/load-path check.
 
-    Coordinates use the product sagittal plane: +z is anterior of the support
-    resultant, +y is superior. Forces are magnitudes in newtons.
+    +z is anterior of the support resultant. Forces are magnitudes in newtons.
+    ``support_vertical_offset_mm`` is retained as a controlled datum but is not used to
+    manufacture a moment without a controlled horizontal reaction force.
     """
 
     loaded_mass_g: float
@@ -33,9 +44,8 @@ class RetentionInputs:
     hair_keepout_mm: float
 
     def validate(self) -> None:
-        vals = self.__dict__
-        if not all(isfinite(float(v)) for v in vals.values()):
-            raise ValueError("retention inputs must be finite")
+        for label, value in self.__dict__.items():
+            _exact_finite_scalar(value, label)
         if not 0.0 <= self.occipital_share <= 1.0:
             raise ValueError("occipital_share outside [0,1]")
         if not 0.0 <= self.crown_share <= 1.0:
@@ -65,27 +75,19 @@ class RetentionResult:
     evidence_status: str = "DIGITAL_SENSITIVITY_ONLY"
 
 
-def evaluate_retention(
-    p: RetentionInputs,
-    *,
-    min_grip_clearance_mm: float = 12.0,
-    min_hair_keepout_mm: float = 5.0,
-) -> RetentionResult:
-    """Resolve the primary quasi-static load path and release margins.
-
-    Vertical weight is intentionally split into crown, occipital and residual
-    facial reactions. Facial friction is not allowed to disappear from the
-    ledger. A positive slip margin means the specified facial preload can
-    frictionally react the residual vertical demand under this simple model.
-    """
+def evaluate_retention(p: RetentionInputs, *, min_grip_clearance_mm: float = 12.0,
+                       min_hair_keepout_mm: float = 5.0) -> RetentionResult:
     p.validate()
+    grip_gate = _exact_finite_scalar(min_grip_clearance_mm, "min_grip_clearance_mm")
+    hair_gate = _exact_finite_scalar(min_hair_keepout_mm, "min_hair_keepout_mm")
+    if grip_gate < 0 or hair_gate < 0:
+        raise ValueError("clearance gates must be non-negative")
     weight = p.loaded_mass_g / 1000.0 * G
     occ = weight * p.occipital_share
     crown = weight * p.crown_share
     facial = max(0.0, weight - occ - crown)
     friction = p.facial_preload_n * p.friction_coefficient
     pitch = weight * p.cg_anterior_mm / 1000.0
-    release_work = p.release_force_n * p.release_travel_mm
     return RetentionResult(
         weight_n=weight,
         pitch_moment_nm=pitch,
@@ -94,54 +96,60 @@ def evaluate_retention(
         facial_vertical_n=facial,
         available_facial_friction_n=friction,
         vertical_slip_margin_n=friction - facial,
-        release_work_mj=release_work,
+        release_work_mj=p.release_force_n * p.release_travel_mm,
         accidental_release_margin_n=p.release_force_n - p.accidental_pull_n,
-        grip_access_ok=p.grip_clearance_mm >= min_grip_clearance_mm,
-        hair_keepout_ok=p.hair_keepout_mm >= min_hair_keepout_mm,
+        grip_access_ok=p.grip_clearance_mm >= grip_gate,
+        hair_keepout_ok=p.hair_keepout_mm >= hair_gate,
     )
 
 
-def retention_doe(
-    base: RetentionInputs,
-    *,
-    cg_mm=(20.0, 25.0, 30.0),
-    friction=(0.25, 0.40, 0.55),
-    crown_share=(0.35, 0.50, 0.65),
-) -> tuple[RetentionResult, ...]:
+def retention_doe(base: RetentionInputs, *, cg_mm=(20.0, 25.0, 30.0),
+                  friction=(0.25, 0.40, 0.55), crown_share=(0.35, 0.50, 0.65)) -> tuple[RetentionResult, ...]:
     """Bounded sensitivity sweep for unresolved fit/material inputs."""
+    base.validate()
     out: list[RetentionResult] = []
     for z in cg_mm:
         for mu in friction:
             for crown in crown_share:
+                z = _exact_finite_scalar(z, "DOE cg")
+                mu = _exact_finite_scalar(mu, "DOE friction")
+                crown = _exact_finite_scalar(crown, "DOE crown_share")
                 occ = min(base.occipital_share, 1.0 - crown)
-                p = RetentionInputs(**{
-                    **base.__dict__,
-                    "cg_anterior_mm": float(z),
-                    "friction_coefficient": float(mu),
-                    "crown_share": float(crown),
-                    "occipital_share": float(occ),
-                })
+                p = RetentionInputs(**{**base.__dict__, "cg_anterior_mm": z,
+                    "friction_coefficient": mu, "crown_share": crown, "occipital_share": occ})
                 out.append(evaluate_retention(p))
     return tuple(out)
 
 
-def release_trajectory_clearance(
-    samples_mm: tuple[tuple[float, float], ...],
-    protected_points_mm: tuple[tuple[float, float], ...],
-    *,
-    minimum_clearance_mm: float,
-) -> float:
-    """Return minimum sampled 2D clearance for a release trajectory.
-
-    Sampling is a digital preflight, not proof of continuous collision safety.
-    The caller must choose sampling density from the real latch trajectory and
-    preserve a separate continuous-sweep or physical-fixture gate.
-    """
-    if not samples_mm or not protected_points_mm:
-        raise ValueError("trajectory and protected points must be non-empty")
-    if minimum_clearance_mm < 0 or not isfinite(minimum_clearance_mm):
-        raise ValueError("minimum_clearance_mm must be finite and non-negative")
-    dmin = min(hypot(sx-px, sy-py) for sx, sy in samples_mm for px, py in protected_points_mm)
-    if not isfinite(dmin):
+def _point_segment_distance(p: tuple[float, float], a: tuple[float, float],
+                            b: tuple[float, float]) -> float:
+    px, py = map(float, p); ax, ay = map(float, a); bx, by = map(float, b)
+    if not all(isfinite(v) for v in (px, py, ax, ay, bx, by)):
         raise ValueError("trajectory coordinates must be finite")
+    vx, vy = bx - ax, by - ay
+    vv = vx * vx + vy * vy
+    if vv == 0.0:
+        return hypot(px - ax, py - ay)
+    t = max(0.0, min(1.0, ((px - ax) * vx + (py - ay) * vy) / vv))
+    return hypot(px - (ax + t * vx), py - (ay + t * vy))
+
+
+def release_trajectory_clearance(samples_mm: tuple[tuple[float, float], ...],
+                                 protected_points_mm: tuple[tuple[float, float], ...], *,
+                                 minimum_clearance_mm: float) -> float:
+    """Return conservative clearance over every straight segment between samples.
+
+    This closes the previous endpoint-only blind spot for piecewise-linear controlled
+    trajectories. It is still not proof for an unknown curved path between CAD samples.
+    ``minimum_clearance_mm`` is an enforced gate, not decorative metadata.
+    """
+    if type(samples_mm) is not tuple or len(samples_mm) < 2 or type(protected_points_mm) is not tuple or not protected_points_mm:
+        raise ValueError("trajectory needs >=2 samples and >=1 protected point")
+    gate = _exact_finite_scalar(minimum_clearance_mm, "minimum_clearance_mm")
+    if gate < 0:
+        raise ValueError("minimum_clearance_mm must be non-negative")
+    dmin = min(_point_segment_distance(p, a, b)
+               for a, b in zip(samples_mm, samples_mm[1:]) for p in protected_points_mm)
+    if dmin < gate:
+        raise ValueError(f"release trajectory violates protected clearance: {dmin:.6g} mm < {gate:.6g} mm")
     return dmin
