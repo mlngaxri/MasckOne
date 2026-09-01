@@ -9,7 +9,7 @@ from masck_one.distribution_manifold import build_distribution_manifold_architec
 from masck_one.fresh_pump_packaging import build_fresh_pump_packaging_architecture
 from masck_one.interface_attachment import build_interface_attachment_architecture
 from masck_one.model import build_model
-from masck_one.structural_frame import build_structural_frame_topology
+from masck_one.structural_frame import RESERVATION_WASTE, build_structural_frame_topology
 from masck_one.water_reservoir import build_water_reservoir_architecture
 from masck_one.waste_acquisition import build_waste_acquisition_architecture
 from masck_one.waste_pump_architecture import (
@@ -216,6 +216,27 @@ def test_current_source_validation_rejects_waste_and_frame_drift(current_sources
     changed_frame = replace(frame, functional_frame_status=frame.functional_frame_status + "_CHANGED")
     with pytest.raises(WastePumpArchitectureError, match="stale for current structural frame"):
         architecture.validate_current_sources(waste=waste, frame=changed_frame)
+
+
+def test_structural_reservation_container_and_identity_aliases_fail_closed(current_sources, architecture):
+    _, frame, waste = current_sources
+    list_backed_frame = replace(frame, reservations=list(frame.reservations))
+    assert list_backed_frame.topology_sha256 == frame.topology_sha256
+    with pytest.raises(WastePumpArchitectureError, match="immutable tuple"):
+        architecture.validate_current_sources(waste=waste, frame=list_backed_frame)
+
+    reservations = list(frame.reservations)
+    waste_index = next(
+        index for index, item in enumerate(reservations)
+        if item.reservation_id == RESERVATION_WASTE
+    )
+    aliased_waste_reservation = replace(reservations[waste_index])
+    object.__setattr__(aliased_waste_reservation, "reservation_id", Alias(RESERVATION_WASTE))
+    reservations[waste_index] = aliased_waste_reservation
+    aliased_frame = replace(frame, reservations=tuple(reservations))
+    assert aliased_frame.topology_sha256 == frame.topology_sha256
+    with pytest.raises(WastePumpArchitectureError, match="exact built-in text"):
+        architecture.validate_current_sources(waste=waste, frame=aliased_frame)
 
 
 def test_architecture_source_and_interface_aliases_fail_closed(architecture):
