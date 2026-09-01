@@ -313,6 +313,34 @@ def _canonical_sources(authority: Authority) -> CanonicalIteration25Sources:
     )
 
 
+def canonical_iteration25_sources(
+    authority: Authority,
+    *,
+    distribution: DistributionGeometryArchitecture | None = None,
+) -> CanonicalIteration25Sources:
+    """Rebuild the released canonical source graph from repository authority.
+
+    When ``distribution`` is supplied it must itself be the exact current Iteration 24
+    distribution object. This gives downstream iterations a strict compatibility bridge:
+    they may omit the inherited source objects, but they may not omit source proof.
+    """
+
+    fresh_authority = _repository_authority(authority)
+    canonical = _canonical_sources(fresh_authority)
+    if distribution is not None:
+        if type(distribution) is not DistributionGeometryArchitecture:
+            raise Iteration25SourceIntegrityError(
+                "distribution must use the exact Iteration 24 architecture type"
+            )
+        _revalidate_exact_graph(distribution, path="distribution geometry")
+        _require_exact_graph(
+            distribution,
+            canonical.distribution,
+            path="distribution geometry",
+        )
+    return canonical
+
+
 def validate_iteration25_source_graph(
     *,
     authority: Authority,
@@ -348,7 +376,6 @@ def validate_iteration25_source_graph(
             )
         _revalidate_exact_graph(value, path=label)
 
-    fresh_authority = _repository_authority(authority)
     evidence = cleanser.compatibility_evidence
     if type(evidence) is not tuple or any(type(item) is not CompatibilityEvidence for item in evidence):
         raise Iteration25SourceIntegrityError(
@@ -358,7 +385,7 @@ def validate_iteration25_source_graph(
         raise Iteration25SourceIntegrityError(
             "cleanser compatibility evidence is not part of the released canonical Iteration 25 lineage"
         )
-    canonical = _canonical_sources(fresh_authority)
+    canonical = canonical_iteration25_sources(authority)
 
     _require_exact_graph(water, canonical.water, path="water architecture")
     _require_exact_graph(cleanser, canonical.cleanser, path="cleanser architecture")
