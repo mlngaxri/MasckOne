@@ -8,6 +8,7 @@ from masck_one.power_thermal_contract import (
     CHARGING_PREFERENCE,
     ENERGY_BOUND_STATUS,
     LOAD_IDS,
+    POWER_THERMAL_CONTRACT_REVISION,
     THERMAL_RISK_IDS,
     BatteryPackagingBenchmark,
     ChargingArchitectureBoundary,
@@ -28,6 +29,7 @@ def test_reference_contract_binds_current_authority_without_promoting_evidence()
     authority = load_authority()
     contract = build_cell4_power_thermal_contract(authority)
 
+    assert contract.contract_revision == POWER_THERMAL_CONTRACT_REVISION
     assert contract.authority_revision == authority.get("project", "authority_revision")
     assert contract.battery.candidate == "EEMB LP603450HA"
     assert contract.battery.status == BATTERY_REFERENCE_STATUS
@@ -39,6 +41,7 @@ def test_reference_contract_binds_current_authority_without_promoting_evidence()
     assert tuple(item.risk_id for item in contract.thermal_gates) == THERMAL_RISK_IDS
     assert all(item.status is ThermalStatus.BLOCKED for item in contract.thermal_gates)
     assert contract.physical_validation_eligible is False
+    assert len(contract.contract_sha256) == 64
     contract.validate_current_authority(authority)
 
 
@@ -307,7 +310,7 @@ def test_current_authority_validation_rejects_revision_and_battery_drift() -> No
         stale_contract.validate_current_authority(authority)
 
 
-def test_contract_rejects_subclassed_nested_types_and_status_aliases() -> None:
+def test_contract_rejects_subclassed_nested_types_status_aliases_and_revision_drift() -> None:
     class BatteryAlias(BatteryPackagingBenchmark):
         pass
 
@@ -324,6 +327,39 @@ def test_contract_rejects_subclassed_nested_types_and_status_aliases() -> None:
         replace(contract, battery=aliased_battery)
     with pytest.raises(PowerThermalContractError, match="exact controlled enum"):
         replace(contract.power_budget.loads[0], status="UNRESOLVED")
+    with pytest.raises(PowerThermalContractError, match="revision is not controlled"):
+        replace(contract, contract_revision="CELL4_POWER_THERMAL_V2")
+
+
+def test_contract_sha_is_deterministic_semantic_and_revalidates_nested_state() -> None:
+    authority = load_authority()
+    first = build_cell4_power_thermal_contract(authority)
+    second = build_cell4_power_thermal_contract(authority)
+    assert first.manifest() == second.manifest()
+    assert first.contract_sha256 == second.contract_sha256
+
+    bounded_first = PowerLoadWindow(
+        LOAD_IDS[0],
+        LoadStatus.BOUNDED_MODEL_INPUT,
+        minimum_power_W=0.1,
+        maximum_power_W=0.2,
+        minimum_duration_s=1.0,
+        maximum_duration_s=2.0,
+        evidence_kind=EvidenceKind.BOUNDED_MODEL_INPUT,
+        evidence_ids=("BOUND-ACTUATOR",),
+    )
+    changed = replace(
+        first,
+        power_budget=replace(
+            first.power_budget,
+            loads=(bounded_first,) + first.power_budget.loads[1:],
+        ),
+    )
+    assert changed.contract_sha256 != first.contract_sha256
+
+    object.__setattr__(second.power_budget.loads[0], "status", "UNRESOLVED")
+    with pytest.raises(PowerThermalContractError, match="exact controlled enum"):
+        _ = second.contract_sha256
 
 
 def test_charge_boundary_constructor_rejects_uncontrolled_convention() -> None:
@@ -342,6 +378,7 @@ def test_power_thermal_contract_constructor_rejects_wrong_nested_types() -> None
     contract = build_cell4_power_thermal_contract(load_authority())
     with pytest.raises(PowerThermalContractError, match="exact controlled type"):
         PowerThermalEvidenceContract(
+            contract_revision=contract.contract_revision,
             authority_revision=contract.authority_revision,
             battery=object(),
             power_budget=contract.power_budget,
