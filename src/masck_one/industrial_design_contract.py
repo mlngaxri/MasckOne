@@ -34,6 +34,10 @@ class IDLimits:
     max_eye_aperture_hostile_cant_deg: float = 4.0
     max_nose_projection_above_field_mm: float = 2.0
     max_rear_depth_fraction_of_front_field: float = 0.75
+    max_retention_visible_width_mm: float = 12.0
+    max_retention_width_asymmetry_mm: float = 1.0
+    max_side_hardware_projection_mm: float = 2.0
+    max_side_hardware_projection_asymmetry_mm: float = 0.75
 
 
 REQUIRED_MEASUREMENTS = (
@@ -48,6 +52,8 @@ REQUIRED_MEASUREMENTS = (
     "ID_CONTROL_TACTILE_LAND_CLEAN", "ID_CONTROL_TACTILE_LAND_SECONDARY",
     "ID_CONTROL_TACTILE_SEPARATION", "ID_EYE_APERTURE_CANT_L",
     "ID_EYE_APERTURE_CANT_R", "ID_NOSE_PROJECTION_ABOVE_FIELD",
+    "ID_RETENTION_VISIBLE_WIDTH_L", "ID_RETENTION_VISIBLE_WIDTH_R",
+    "ID_SIDE_HARDWARE_PROJECTION_L", "ID_SIDE_HARDWARE_PROJECTION_R",
 )
 
 SIGNED_MEASUREMENTS = frozenset(("ID_EYE_APERTURE_CANT_L", "ID_EYE_APERTURE_CANT_R"))
@@ -99,6 +105,16 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
         raise IndustrialDesignContractError("front field depth must be positive")
     if v["ID_REAR_MAX_Z"] > limits.max_rear_depth_fraction_of_front_field * v["ID_FRONT_FIELD_MAX_Z"]:
         raise IndustrialDesignContractError("rear/service layer is too visually dominant relative to facial field")
+
+    for side in ("L", "R"):
+        if v[f"ID_RETENTION_VISIBLE_WIDTH_{side}"] > limits.max_retention_visible_width_mm:
+            raise IndustrialDesignContractError(f"{side} retention member is too visually dominant in the worn silhouette")
+        if v[f"ID_SIDE_HARDWARE_PROJECTION_{side}"] > limits.max_side_hardware_projection_mm:
+            raise IndustrialDesignContractError(f"{side} side hardware reads as an attached pod rather than an integrated transition")
+    if abs(v["ID_RETENTION_VISIBLE_WIDTH_L"] - v["ID_RETENTION_VISIBLE_WIDTH_R"]) > limits.max_retention_width_asymmetry_mm:
+        raise IndustrialDesignContractError("retention visual width asymmetry creates unintended worn imbalance")
+    if abs(v["ID_SIDE_HARDWARE_PROJECTION_L"] - v["ID_SIDE_HARDWARE_PROJECTION_R"]) > limits.max_side_hardware_projection_asymmetry_mm:
+        raise IndustrialDesignContractError("side hardware projection asymmetry creates unintended visual weight")
 
     grip = v["ID_SERVICE_GRIP_DEPTH"]
     if not limits.service_grip_depth_min_mm <= grip <= limits.service_grip_depth_max_mm:
