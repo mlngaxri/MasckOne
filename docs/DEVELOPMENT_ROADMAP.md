@@ -49,7 +49,7 @@ Digital completion is not physical validation. Physical evidence, supplier evide
 25. Facial waste gutters, capillary paths and regional transient buffers. **COMPLETE**
 26. Mixed-phase waste-pump packaging, routing and fault-state architecture. **COMPLETE**
 27. Waste cartridge keyed insertion, sealing, internal capacity reservation and service geometry. **COMPLETE**
-28. Complete fresh/waste routing, bend-radius, dead-volume and service-clearance checks.
+28. Complete fresh/waste routing, bend-radius, dead-volume and service-clearance checks. **RELEASE CANDIDATE — EXACT-HEAD CI REQUIRED**
 
 ## Phase 6 — retention, power, HMI and thermal reservations
 
