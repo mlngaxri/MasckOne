@@ -35,6 +35,7 @@ from masck_one.waste_pump_architecture import (
     build_waste_pump_architecture,
 )
 from masck_one.waste_routes import WasteNode, WasteNodeKind, WasteRouteSegment
+from masck_one.waste_system import REQUIRED_MIXED_PHASE_FAULTS
 
 
 class Alias(str):
@@ -160,6 +161,8 @@ def test_pump_evidence_states_cannot_be_promoted_or_reworded(architecture):
 def test_fault_registry_is_complete_ordered_and_validation_gated(architecture):
     a = architecture
     assert tuple(case.fault_id for case in a.faults) == FAULT_IDS
+    assert frozenset(case.fault_id.lower() for case in a.faults) == REQUIRED_MIXED_PHASE_FAULTS
+    assert "PROTECTED_REGION_POOLING" in FAULT_IDS
     assert all(case.evidence_status == FAULT_EVIDENCE_STATUS for case in a.faults)
     assert a.backflow_status == BACKFLOW_STATUS
     assert a.cartridge_state_status == CARTRIDGE_STATE_STATUS
