@@ -1,6 +1,7 @@
 import pytest
 
 from masck_one.mechanism_state import (
+    MECHANISM_PROVENANCE_AUTHORITY,
     MechanismState,
     OperatingMode,
     ReadinessState,
@@ -204,23 +205,28 @@ def test_derive_next_state_is_the_canonical_transition_constructor():
 def test_simulated_transport_has_no_ble_or_measured_telemetry_semantics():
     transport = SimulatedTransport(state(), current_mechanism_provenance_sha256=MECH)
     manifest = transport.manifest()
-    assert manifest["schema"] == "MASCK_ONE_SIMULATED_TRANSPORT_V3"
+    assert manifest["schema"] == "MASCK_ONE_SIMULATED_TRANSPORT_V4"
     assert manifest["state_contract"] == STATE_CONTRACT
     assert manifest["transition_contract"] == TRANSITION_CONTRACT
     assert manifest["transport_kind"] == "SIMULATED_LOCAL_ONLY"
     assert manifest["telemetry_source"] == "NONE"
     assert manifest["measured_hardware"] is False
     assert manifest["dispatch_semantics"] == "LOCAL_SIMULATED_STATE_EVENT_ONLY_NOT_HARDWARE_COMMAND"
+    assert manifest["mechanism_provenance_authority"] == MECHANISM_PROVENANCE_AUTHORITY
     assert manifest["sequence"] == 0
     assert manifest["last_event"] is None
+    assert manifest["previous_state_provenance_sha256"] is None
     assert manifest["state"]["readiness"] == "NOT_RETAINED"
     assert manifest["state"]["evidence_state"] == "SIMULATED_DIGITAL_STATE_ONLY"
 
 
 def test_simulated_transport_dispatches_only_legal_canonical_states():
     transport = SimulatedTransport(state(), current_mechanism_provenance_sha256=MECH)
+    initial_sha = transport.snapshot().provenance_sha256
     retained = transport.dispatch(TransitionAction.ENGAGE_RETENTION)
     assert retained.readiness is ReadinessState.READY_FOR_CYCLE
+    first_manifest = transport.manifest()
+    assert first_manifest["previous_state_provenance_sha256"] == initial_sha
     clean = transport.dispatch(TransitionAction.START_CLEAN)
     assert clean.mode is OperatingMode.CLEAN
     assert clean.readiness is ReadinessState.CYCLE_ACTIVE
@@ -254,6 +260,7 @@ def test_normal_completion_and_user_stop_have_same_snapshot_but_distinct_event_p
     assert completed.last_event == "COMPLETE_CYCLE"
     assert stopped.manifest()["last_event"] == "STOP_CYCLE"
     assert completed.manifest()["last_event"] == "COMPLETE_CYCLE"
+    assert stopped.manifest()["previous_state_provenance_sha256"] == completed.manifest()["previous_state_provenance_sha256"]
     assert stopped.provenance_sha256 != completed.provenance_sha256
 
 
