@@ -1,8 +1,9 @@
 """Prototype physical-HMI convergence gates for Masck One.
 
 These checks prevent the CLEAN and secondary controls from becoming visually or
-tactually ambiguous and keep mode/status feedback legible without app dependence.
-They are CAD/prototype hypotheses, not validated accessibility or usability claims.
+tactually ambiguous, reduce accidental wet-hand actuation risk, and keep mode/status
+feedback legible without app dependence. They are CAD/prototype hypotheses, not
+validated accessibility, usability, or accidental-activation claims.
 """
 from __future__ import annotations
 
@@ -20,6 +21,9 @@ class PhysicalHMILimits:
     max_status_window_recess_mm: float = 0.60
     min_status_window_edge_radius_mm: float = 0.50
     min_control_to_service_separation_mm: float = 6.0
+    min_control_center_spacing_mm: float = 10.0
+    min_secondary_guard_offset_mm: float = 0.50
+    max_secondary_guard_offset_mm: float = 1.50
 
 
 REQUIRED_MEASUREMENTS = (
@@ -31,6 +35,8 @@ REQUIRED_MEASUREMENTS = (
     "HMI_STATUS_WINDOW_RECESS_MM",
     "HMI_STATUS_WINDOW_EDGE_RADIUS_MM",
     "HMI_CONTROL_TO_SERVICE_SEPARATION_MM",
+    "HMI_CONTROL_CENTER_SPACING_MM",
+    "HMI_SECONDARY_GUARD_OFFSET_MM",
 )
 
 
@@ -65,3 +71,10 @@ def validate_measurements(values: Mapping[str, float], limits: PhysicalHMILimits
         raise PhysicalHMIContractError("status window edge is too sharp for wet exterior cleanability")
     if v["HMI_CONTROL_TO_SERVICE_SEPARATION_MM"] < limits.min_control_to_service_separation_mm:
         raise PhysicalHMIContractError("controls are too close to service actuation, increasing mode/service confusion")
+    if v["HMI_CONTROL_CENTER_SPACING_MM"] < limits.min_control_center_spacing_mm:
+        raise PhysicalHMIContractError("primary and secondary controls are too crowded for deliberate wet-hand targeting")
+    guard = v["HMI_SECONDARY_GUARD_OFFSET_MM"]
+    if guard < limits.min_secondary_guard_offset_mm:
+        raise PhysicalHMIContractError("secondary control lacks enough local guarding against incidental contact")
+    if guard > limits.max_secondary_guard_offset_mm:
+        raise PhysicalHMIContractError("secondary-control guard is too proud and creates an avoidable snag/residue feature")
