@@ -1,19 +1,21 @@
 """Canonical source-graph integrity for the Iteration 25 Cell-4 release boundary.
 
-This module deliberately does not promote any geometry or physical evidence.  It closes a
+This module deliberately does not promote any geometry or physical evidence. It closes a
 software provenance problem: a graph of frozen dataclasses can be post-construction mutated
-with ``object.__setattr__`` or rebuilt from mutually-consistent stale inputs.  Iteration 25
+with ``object.__setattr__`` or rebuilt from mutually-consistent stale inputs. Iteration 25
 must not treat such a graph as current merely because sibling hashes still agree.
 
-The release boundary therefore uses two independent checks:
+The release boundary therefore uses independent checks:
 
-1. the supplied Authority must exactly match the validated repository authority file/schema;
+1. the supplied Authority must exactly match the freshly validated repository authority;
 2. every supplied dataclass graph is recursively reconstructed to re-run constructor
-   invariants, then compared with a deterministic canonical Iteration 15/20-24 graph rebuilt
-   from that repository authority.
+   invariants;
+3. the complete runtime graph, including exact nested dataclass/container/scalar types, is
+   compared with a deterministic canonical Iteration 15/20-24 graph rebuilt from that
+   repository authority.
 
 The canonical graph is the current planar-development engineering lineage used by released
-Iterations 15 and 20-25.  Registered-anatomy or supplier-evidence variants require their own
+Iterations 15 and 20-25. Registered-anatomy or supplier-evidence variants require their own
 explicit release lineage; they are not silently accepted here.
 """
 from __future__ import annotations
@@ -21,7 +23,6 @@ from __future__ import annotations
 from dataclasses import dataclass, fields, is_dataclass
 import math
 from pathlib import Path
-from typing import Any
 
 from .anatomy import build_facial_reference
 from .authority import (
@@ -138,6 +139,70 @@ def _revalidate_exact_graph(value: object, *, path: str) -> None:
     )
 
 
+def _require_exact_graph(actual: object, expected: object, *, path: str) -> None:
+    """Compare the complete canonical graph without erasing runtime type information."""
+
+    if type(actual) is not type(expected):
+        raise Iteration25SourceIntegrityError(
+            f"{path} type {type(actual).__name__} differs from canonical type {type(expected).__name__}"
+        )
+
+    if actual is None or type(actual) in {bool, str, int}:
+        if actual != expected:
+            raise Iteration25SourceIntegrityError(
+                f"{path} differs from the canonical current repository source graph"
+            )
+        return
+
+    if type(actual) is float:
+        if not math.isfinite(actual) or actual != expected:
+            raise Iteration25SourceIntegrityError(
+                f"{path} differs from the canonical current repository source graph"
+            )
+        return
+
+    if type(actual) is tuple:
+        if len(actual) != len(expected):
+            raise Iteration25SourceIntegrityError(
+                f"{path} length differs from the canonical current repository source graph"
+            )
+        for index, (actual_item, expected_item) in enumerate(zip(actual, expected, strict=True)):
+            _require_exact_graph(actual_item, expected_item, path=f"{path}[{index}]")
+        return
+
+    if type(actual) is frozenset:
+        actual_items = sorted(actual, key=lambda item: (type(item).__qualname__, repr(item)))
+        expected_items = sorted(expected, key=lambda item: (type(item).__qualname__, repr(item)))
+        if len(actual_items) != len(expected_items):
+            raise Iteration25SourceIntegrityError(
+                f"{path} size differs from the canonical current repository source graph"
+            )
+        for index, (actual_item, expected_item) in enumerate(
+            zip(actual_items, expected_items, strict=True)
+        ):
+            _require_exact_graph(actual_item, expected_item, path=f"{path}{{{index}}}")
+        return
+
+    if is_dataclass(actual) and not isinstance(actual, type):
+        actual_fields = fields(actual)
+        expected_fields = fields(expected)
+        if tuple(field.name for field in actual_fields) != tuple(field.name for field in expected_fields):
+            raise Iteration25SourceIntegrityError(
+                f"{path} dataclass field schema differs from the canonical source graph"
+            )
+        for field in actual_fields:
+            _require_exact_graph(
+                getattr(actual, field.name),
+                getattr(expected, field.name),
+                path=f"{path}.{field.name}",
+            )
+        return
+
+    raise Iteration25SourceIntegrityError(
+        f"{path} contains unsupported canonical comparison type {type(actual).__name__}"
+    )
+
+
 def _repository_authority(authority: Authority) -> Authority:
     if type(authority) is not Authority:
         raise Iteration25SourceIntegrityError("authority must be the exact Authority contract")
@@ -233,13 +298,6 @@ def _canonical_sources(
     )
 
 
-def _require_equal(label: str, actual: Any, expected: Any) -> None:
-    if actual != expected:
-        raise Iteration25SourceIntegrityError(
-            f"{label} differs from the canonical current repository source graph"
-        )
-
-
 def validate_iteration25_source_graph(
     *,
     authority: Authority,
@@ -254,7 +312,7 @@ def validate_iteration25_source_graph(
 ) -> None:
     """Prove Iteration-25 inputs are canonical, uncorrupted and current for this repo.
 
-    This is a digital provenance gate only.  Passing it does not prove hydraulic,
+    This is a digital provenance gate only. Passing it does not prove hydraulic,
     anatomical, hygiene, service, orientation, leakage, or cleansing performance.
     """
 
@@ -283,35 +341,11 @@ def validate_iteration25_source_graph(
         )
     canonical = _canonical_sources(fresh_authority, evidence)
 
-    _require_equal(
-        "water architecture",
-        water.manifest(include_sha=False),
-        canonical.water.manifest(include_sha=False),
-    )
-    _require_equal(
-        "cleanser architecture",
-        cleanser.manifest(include_sha=False),
-        canonical.cleanser.manifest(include_sha=False),
-    )
-    _require_equal(
-        "structural-frame topology",
-        frame.manifest(include_sha=False),
-        canonical.frame.manifest(include_sha=False),
-    )
-    _require_equal("coverage segmentation", coverage.manifest(), canonical.coverage.manifest())
-    _require_equal("protected-volume set", protected.manifest(), canonical.protected.manifest())
-    _require_equal(
-        "fresh-pump architecture",
-        pump.manifest(include_sha=False),
-        canonical.pump.manifest(include_sha=False),
-    )
-    _require_equal(
-        "distribution manifold",
-        manifold.manifest(include_sha=False),
-        canonical.manifold.manifest(include_sha=False),
-    )
-    _require_equal(
-        "distribution geometry",
-        distribution.manifest(include_sha=False),
-        canonical.distribution.manifest(include_sha=False),
-    )
+    _require_exact_graph(water, canonical.water, path="water architecture")
+    _require_exact_graph(cleanser, canonical.cleanser, path="cleanser architecture")
+    _require_exact_graph(frame, canonical.frame, path="structural-frame topology")
+    _require_exact_graph(coverage, canonical.coverage, path="coverage segmentation")
+    _require_exact_graph(protected, canonical.protected, path="protected-volume set")
+    _require_exact_graph(pump, canonical.pump, path="fresh-pump architecture")
+    _require_exact_graph(manifold, canonical.manifold, path="distribution manifold")
+    _require_exact_graph(distribution, canonical.distribution, path="distribution geometry")
