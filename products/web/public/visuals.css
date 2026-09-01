@@ -24,13 +24,44 @@
 .exploded-product[data-layer-focus="4"] .part-cartridge .layer-render{filter:drop-shadow(0 34px 38px rgba(0,0,0,.26)) brightness(1.06)}
 .exploded-product:before{content:"";position:absolute;width:min(43vw,570px);aspect-ratio:1;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(201,185,159,.08),transparent 67%);pointer-events:none}
 
-/* Native motion fallback when CDN animation libraries are missing or fail to initialise. */
+/* Native motion fallback when animation libraries are missing or fail to initialise. */
 .masck-native-motion .hero-title__line i,.masck-native-motion .hero-meta,.masck-native-motion .hero-bottom,.masck-native-motion .hero-render{transition:opacity .9s cubic-bezier(.2,.75,.2,1),transform 1.05s cubic-bezier(.16,.8,.2,1)}
 .masck-native-motion:not(.masck-native-entered) .hero-title__line i{transform:translateY(108%);opacity:0}
 .masck-native-motion:not(.masck-native-entered) .hero-meta,.masck-native-motion:not(.masck-native-entered) .hero-bottom{transform:translateY(28px);opacity:0}
 .masck-native-motion:not(.masck-native-entered) .hero-render{transform:scale(.78) rotate(-4deg);opacity:0}
 .masck-native-motion .sequence-track,.masck-native-motion .product-part,.masck-native-motion .hero-render{will-change:transform}
 .motion-health{position:fixed;right:12px;bottom:12px;z-index:1200;font:500 8px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:rgba(44,42,39,.42);pointer-events:none;opacity:0;transition:opacity .25s}.motion-health[data-visible="true"]{opacity:1}
+
+/* Premium motion compositing. These rules intentionally favour transform and
+   opacity animation and isolate the heavy product planes from the rest of the
+   page so Lenis + ScrollTrigger remain smooth during long pinned sequences. */
+html.cinematic-ready .product-stage,
+html.cinematic-ready .exploded-product,
+html.cinematic-ready .anatomy-visual,
+html.cinematic-ready .service-object{transform-style:preserve-3d;perspective:1600px}
+html.cinematic-ready .hero-render,
+html.cinematic-ready .product-part,
+html.cinematic-ready .layer-render,
+html.cinematic-ready .sequence-track,
+html.cinematic-ready .sequence-panel__word,
+html.cinematic-ready .flow-orbit,
+html.cinematic-ready .anatomy-visual,
+html.cinematic-ready .service-object,
+html.cinematic-ready .service-cartridge{backface-visibility:hidden;will-change:transform,opacity}
+html.cinematic-ready .product-part{transform-style:preserve-3d;contain:layout paint}
+html.cinematic-ready .mechanism-sticky,
+html.cinematic-ready .sequence-sticky,
+html.cinematic-ready .anatomy,
+html.cinematic-ready .service{backface-visibility:hidden;will-change:transform,clip-path}
+html.cinematic-ready .sequence-panel{perspective:1200px}
+html.cinematic-ready .sequence-copy{transform-style:preserve-3d;backface-visibility:hidden}
+html.cinematic-ready .sequence-panel.is-current .sequence-copy{filter:none}
+html.cinematic-ready .sequence-panel:not(.is-current) .sequence-copy{filter:saturate(.9)}
+html.cinematic-ready .sequence-panel.is-current .flow-orbit:after{opacity:.72;transform:scale(1)}
+html.cinematic-ready .flow-orbit:after{content:"";position:absolute;inset:10%;border-radius:50%;background:radial-gradient(circle,rgba(201,185,159,.18),transparent 68%);opacity:0;transform:scale(.76);transition:opacity .42s ease,transform .52s cubic-bezier(.2,.75,.2,1);pointer-events:none}
+html.cinematic-ready .focus-list [data-focus]{will-change:transform,opacity}
+html.cinematic-ready .statement-word{display:inline-block;transform-style:preserve-3d;backface-visibility:hidden}
+html.cinematic-ready .grain{will-change:transform}
 
 @media(max-width:1120px){.hero-product{width:94%!important;left:3%!important}.product-part{width:min(39vw,420px)!important}}
 @media(max-width:860px){
@@ -41,7 +72,7 @@
   .part-core .layer-render{transform:scale(.9) translateY(4%)}
 }
 @media(max-width:560px){.hero-render{width:116%;margin-left:-8%}.product-part{width:min(78vw,350px)!important}.part-cartridge{width:86px!important}}
-@media(prefers-reduced-motion:reduce){.motion-health{display:none}.hero-render,.layer-render{transition:none!important}.hero-render{transform:none!important}.product-part{filter:none!important}}
+@media(prefers-reduced-motion:reduce){.motion-health{display:none}.hero-render,.layer-render{transition:none!important}.hero-render{transform:none!important}.product-part{filter:none!important}.mechanism-sticky,.sequence-sticky,.anatomy,.service{will-change:auto!important}}
 
 /* Reuse the same current-iteration renders in the interface and service chapters. */
 .face-field{background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible}
