@@ -69,6 +69,7 @@ def test_rotational_moment_requires_reaction_span_even_without_translation():
     r = evaluate_inertial_retention(base(lateral_accel_g=0.0, fore_aft_accel_g=0.0,
         bilateral_support_span_mm=0.0, yaw_inertia_kg_m2=0.001, yaw_angular_accel_rad_s2=4.0))
     assert not r.yaw_load_path_closed and r.yaw_couple_force_n is None
+    assert not r.bilateral_load_path_closed and r.bilateral_resultant_couple_force_n is None
 
 
 def test_nonzero_yaw_moment_requires_bilateral_span():
@@ -93,13 +94,32 @@ def test_bilateral_span_reduces_yaw_and_roll_couple_force():
     large = evaluate_inertial_retention(base(bilateral_support_span_mm=120.0))
     assert small.yaw_couple_force_n == pytest.approx(2.0 * large.yaw_couple_force_n)
     assert small.roll_couple_force_n == pytest.approx(2.0 * large.roll_couple_force_n)
+    assert small.bilateral_resultant_couple_force_n == pytest.approx(2.0 * large.bilateral_resultant_couple_force_n)
+
+
+def test_simultaneous_yaw_and_roll_resolve_to_bilateral_vector_demand():
+    r = evaluate_inertial_retention(base(lateral_accel_g=0.5, fore_aft_accel_g=0.0))
+    assert r.yaw_couple_force_n != 0.0 and r.roll_couple_force_n != 0.0
+    expected = math.hypot(r.yaw_couple_force_n, r.roll_couple_force_n)
+    assert r.bilateral_resultant_couple_force_n == pytest.approx(expected)
+    assert r.bilateral_resultant_couple_force_n > max(r.yaw_couple_force_n, r.roll_couple_force_n)
+    assert r.bilateral_load_path_closed
+
+
+def test_single_axis_bilateral_demand_does_not_inflate_resultant():
+    r = evaluate_inertial_retention(base(lateral_accel_g=0.5, fore_aft_accel_g=0.0,
+                                         cg_vertical_mm=0.0))
+    assert r.roll_couple_force_n == 0.0
+    assert r.bilateral_resultant_couple_force_n == pytest.approx(r.yaw_couple_force_n)
 
 
 def test_zero_acceleration_closes_without_artificial_couple():
     r = evaluate_inertial_retention(base(lateral_accel_g=0.0, fore_aft_accel_g=0.0,
                                          bilateral_support_span_mm=0.0, vertical_support_span_mm=0.0))
     assert r.yaw_load_path_closed and r.pitch_load_path_closed and r.roll_load_path_closed
+    assert r.bilateral_load_path_closed
     assert r.yaw_couple_force_n == 0.0 and r.pitch_couple_force_n == 0.0 and r.roll_couple_force_n == 0.0
+    assert r.bilateral_resultant_couple_force_n == 0.0
 
 
 def test_signed_acceleration_preserves_moment_direction():
@@ -109,6 +129,7 @@ def test_signed_acceleration_preserves_moment_direction():
     assert pos.roll_moment_nm == pytest.approx(-neg.roll_moment_nm)
     assert pos.yaw_couple_force_n == pytest.approx(neg.yaw_couple_force_n)
     assert pos.roll_couple_force_n == pytest.approx(neg.roll_couple_force_n)
+    assert pos.bilateral_resultant_couple_force_n == pytest.approx(neg.bilateral_resultant_couple_force_n)
 
 
 def test_doe_is_cartesian_and_deterministic():
