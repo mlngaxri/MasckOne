@@ -1,7 +1,8 @@
 import math
 import pytest
 
-from masck_one.retention_release import RetentionInputs, evaluate_retention, release_trajectory_clearance, retention_doe
+from masck_one.retention_release import (RetentionInputs, evaluate_retention,
+    release_trajectory_clearance, release_capsule_clearance, retention_doe)
 
 
 def baseline(**overrides):
@@ -93,3 +94,35 @@ def test_release_trajectory_requires_real_motion_and_finite_coordinates():
     with pytest.raises(ValueError): release_trajectory_clearance((), ((0.0, 0.0, 0.0),), minimum_clearance_mm=1.0)
     with pytest.raises(ValueError): release_trajectory_clearance(((0.0, 0.0, 0.0),), ((0.0, 0.0, 0.0),), minimum_clearance_mm=1.0)
     with pytest.raises(ValueError): release_trajectory_clearance(((0.0, 0.0, 0.0), (math.inf, 1.0, 2.0)), ((0.0, 0.0, 0.0),), minimum_clearance_mm=1.0)
+
+
+def test_finite_body_sweep_catches_collision_that_centerline_point_model_misses():
+    path = ((0.0, 0.0, 0.0), (10.0, 0.0, 0.0))
+    protected_point = ((5.0, 5.0, 0.0),)
+    assert release_trajectory_clearance(path, protected_point, minimum_clearance_mm=1.0) == pytest.approx(5.0)
+    with pytest.raises(ValueError, match="finite release sweep"):
+        release_capsule_clearance(path, (((5.0, 5.0, 0.0), 2.0),),
+                                  moving_radius_mm=2.5, minimum_surface_clearance_mm=1.0)
+
+
+def test_finite_body_sweep_returns_surface_not_centerline_clearance():
+    d = release_capsule_clearance(((0.0, 0.0, 0.0), (10.0, 0.0, 0.0)),
+        (((5.0, 6.0, 0.0), 1.5),), moving_radius_mm=2.0,
+        minimum_surface_clearance_mm=2.0)
+    assert d == pytest.approx(2.5)
+
+
+def test_finite_body_sweep_handles_multiple_protected_envelopes_and_midsegment_minimum():
+    d = release_capsule_clearance(((0.0, 0.0, 0.0), (10.0, 0.0, 0.0)),
+        (((0.0, 20.0, 0.0), 3.0), ((5.0, 8.0, 0.0), 2.0)),
+        moving_radius_mm=1.0, minimum_surface_clearance_mm=4.0)
+    assert d == pytest.approx(5.0)
+
+
+@pytest.mark.parametrize("moving_r,protected_r,gate", [(-1.0, 1.0, 0.0), (1.0, -1.0, 0.0),
+    (1.0, 1.0, -1.0), (math.inf, 1.0, 0.0)])
+def test_finite_body_sweep_invalid_geometry_fails_closed(moving_r, protected_r, gate):
+    with pytest.raises(ValueError):
+        release_capsule_clearance(((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+            (((0.0, 5.0, 0.0), protected_r),), moving_radius_mm=moving_r,
+            minimum_surface_clearance_mm=gate)
