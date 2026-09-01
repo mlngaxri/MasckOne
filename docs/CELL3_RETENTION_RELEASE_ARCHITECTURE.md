@@ -26,7 +26,7 @@ The 5 to 12 N release-force corridor remains validation-gated. It is not a PASS 
 
 The production-intent latch cannot be frozen until all of the following exist: exact yoke and crown/occipital datums; continuous release trajectory; hard-stop geometry; latch engagement depth and tolerance stack; wet-finger grip envelope; hair and pinch exclusion volumes; harness/fluid strain-relief sweep; service-tool exclusion; accidental snag load cases; one-hand left/right reach assessment; and a reset confirmation feature that is mechanically inspectable.
 
-The current sampled trajectory helper is intentionally weaker than a continuous swept-volume solver. It may detect obvious clearance loss, but it must never be used to claim continuous collision safety.
+Release preflight now has two geometry levels. The legacy centreline-to-point check is retained for simple regression cases. `release_capsule_clearance` adds finite moving-feature radius and finite protected-region radius, so a centreline that appears clear cannot hide overlap of the physical latch/yoke/grip envelope with a harness, hair, pinch or protected-region envelope. Both are piecewise-linear approximations. Neither is continuous CAD collision proof, and the capsule bounds must come from controlled geometry rather than guessed radii before they can gate release.
 
 ## Retention DOE and physical handoff
 
@@ -44,8 +44,8 @@ WEBSITE: future fit/removal explanation must show crown load support, occipital 
 
 APP: basic removal must never depend on the app. Any future device-state display should distinguish latched/ready from service/reset-required only when physical sensing actually exists.
 
-ASSETS/DATA: future mechanism animation requires the released continuous latch/yoke trajectory and verified swept volume. Current sampled trajectory data is insufficient for cinematic mechanism claims.
+ASSETS/DATA: future mechanism animation requires the released continuous latch/yoke trajectory and verified finite swept volume. Centreline paths alone are explicitly insufficient. Exported animation geometry must preserve the physical moving envelope and protected keepouts.
 
-CLAIMS: do not claim universal fit, pressure-free comfort, sub-2-second removal in users, accidental-release immunity, quiet operation or production-ready retention.
+CLAIMS: do not claim universal fit, pressure-free comfort, sub-2-second removal in users, accidental-release immunity, collision-safe release, quiet operation or production-ready retention.
 
-BLOCKERS: representative headform pressure/migration data, exact retention datums, continuous release sweep, latch tolerance stack, wet one-hand force/time tests, hair/pinch tests, fatigue and vibration-transfer measurements.
+BLOCKERS: representative headform pressure/migration data, exact retention datums, controlled finite-body bounds, continuous CAD release sweep, latch tolerance stack, wet one-hand force/time tests, hair/pinch tests, fatigue and vibration-transfer measurements.
