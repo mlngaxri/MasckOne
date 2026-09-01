@@ -83,7 +83,7 @@
     transitionMark.getAnimations().forEach(a => a.cancel());
     transitionMark.style.opacity = '0';
     transitionMark.style.transform = 'translateY(18px)';
-    strips.map((el, i) => {
+    const inAnims = strips.map((el, i) => {
       el.getAnimations().forEach(a => a.cancel());
       return el.animate(
         [{ transform: 'translateY(-105%)' }, { transform: 'translateY(0%)' }],
@@ -114,7 +114,7 @@
       ],
       { duration: 150, easing: 'ease-in', fill: 'forwards' }
     );
-    strips.map((el, i) => el.animate(
+    const outAnims = strips.map((el, i) => el.animate(
       [{ transform: 'translateY(0%)' }, { transform: 'translateY(-105%)' }],
       {
         duration: 580,
