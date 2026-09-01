@@ -24,6 +24,18 @@ def _idle() -> MechanismState:
     )
 
 
+def _retained() -> MechanismState:
+    return MechanismState(
+        mode=OperatingMode.IDLE,
+        cycle_active=False,
+        retention_engaged=True,
+        quick_release_open=False,
+        service_access_open=False,
+        fault_latched=False,
+        mechanism_provenance_sha256=MECH,
+    )
+
+
 def _clean() -> MechanismState:
     return MechanismState(
         mode=OperatingMode.CLEAN,
@@ -70,6 +82,23 @@ def test_negative_internal_sequence_is_value_domain_failure():
         transport.manifest()
 
 
+def test_internal_last_event_corruption_and_sequence_mismatch_fail_closed():
+    transport = SimulatedTransport(_idle(), current_mechanism_provenance_sha256=MECH)
+    transport._last_action = "ENGAGE_RETENTION"
+    with pytest.raises(TypeError, match="last simulated action"):
+        transport.manifest()
+
+    transport = SimulatedTransport(_idle(), current_mechanism_provenance_sha256=MECH)
+    transport._last_action = TransitionAction.ENGAGE_RETENTION
+    with pytest.raises(ValueError, match="zero-sequence"):
+        transport.manifest()
+
+    transport = SimulatedTransport(_idle(), current_mechanism_provenance_sha256=MECH)
+    transport._sequence = 1
+    with pytest.raises(ValueError, match="requires a last action"):
+        transport.manifest()
+
+
 def test_internal_state_corruption_cannot_be_exported_as_simulated_truth():
     transport = SimulatedTransport(_idle(), current_mechanism_provenance_sha256=MECH)
     object.__setattr__(transport._state, "cycle_active", True)
@@ -99,7 +128,7 @@ def test_internal_contract_object_alias_is_rejected():
         transport.manifest()
 
 
-def test_illegal_dispatch_is_transactional_and_does_not_advance_sequence_or_state():
+def test_illegal_dispatch_is_transactional_and_does_not_advance_sequence_state_or_event():
     transport = SimulatedTransport(_idle(), current_mechanism_provenance_sha256=MECH)
     before = transport.manifest()
     with pytest.raises(ValueError, match="illegal"):
@@ -107,6 +136,7 @@ def test_illegal_dispatch_is_transactional_and_does_not_advance_sequence_or_stat
     after = transport.manifest()
     assert after == before
     assert transport.sequence == 0
+    assert transport.last_event is None
 
 
 def test_mechanical_quick_release_does_not_require_stop_cycle_or_firmware_command():
@@ -119,10 +149,12 @@ def test_mechanical_quick_release_does_not_require_stop_cycle_or_firmware_comman
     assert released.service_access_open is False
     assert released.fault_latched is False
     assert transport.sequence == 1
+    assert transport.last_event == "MECHANICAL_QUICK_RELEASE"
 
     manifest = transport.manifest()
-    assert manifest["schema"] == "MASCK_ONE_SIMULATED_TRANSPORT_V2"
+    assert manifest["schema"] == "MASCK_ONE_SIMULATED_TRANSPORT_V3"
     assert manifest["transition_contract"] == TRANSITION_CONTRACT
+    assert manifest["last_event"] == "MECHANICAL_QUICK_RELEASE"
     assert manifest["dispatch_semantics"] == "LOCAL_SIMULATED_STATE_EVENT_ONLY_NOT_HARDWARE_COMMAND"
     assert manifest["telemetry_source"] == "NONE"
     assert manifest["measured_hardware"] is False
@@ -136,14 +168,21 @@ def test_mechanical_quick_release_remains_available_from_retained_fault_without_
     assert released.retention_engaged is False
     assert released.quick_release_open is True
     assert released.fault_latched is True
+    assert transport.last_event == "MECHANICAL_QUICK_RELEASE"
 
 
-def test_normal_doff_event_stays_idle_only_while_mechanical_release_is_cycle_independent():
-    normal = SimulatedTransport(_clean(), current_mechanism_provenance_sha256=MECH)
-    before = normal.manifest()
+def test_normal_doff_is_distinct_from_emergency_release_and_stays_idle_only():
+    normal = SimulatedTransport(_retained(), current_mechanism_provenance_sha256=MECH)
+    doffed = normal.dispatch(TransitionAction.RELEASE_RETENTION)
+    assert doffed == _idle()
+    assert doffed.quick_release_open is False
+    assert normal.last_event == "RELEASE_RETENTION"
+
+    invalid_normal = SimulatedTransport(_clean(), current_mechanism_provenance_sha256=MECH)
+    before = invalid_normal.manifest()
     with pytest.raises(ValueError, match="illegal"):
-        normal.dispatch(TransitionAction.RELEASE_RETENTION)
-    assert normal.manifest() == before
+        invalid_normal.dispatch(TransitionAction.RELEASE_RETENTION)
+    assert invalid_normal.manifest() == before
 
     emergency = SimulatedTransport(_clean(), current_mechanism_provenance_sha256=MECH)
     released = emergency.dispatch(TransitionAction.MECHANICAL_QUICK_RELEASE)
