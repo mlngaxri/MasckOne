@@ -94,3 +94,5 @@ if(gsap&&ScrollTrigger&&!reducedMotion){
   if(document.readyState==='complete')ScrollTrigger.refresh();
   else window.addEventListener('load',()=>ScrollTrigger.refresh(),{once:true});
 }
+
+import('/visuals.js').catch(()=>{});
