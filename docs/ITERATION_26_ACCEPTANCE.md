@@ -26,13 +26,15 @@ The Iteration 25 recovery minimum of 0.90 and residual-free-liquid maximum of 40
 
 ## Evidence firewall
 
-The architecture rejects invented pump, routing, tubing, connector, flow, and pressure values; uncontrolled status promotion; incomplete or reordered fault registries; hidden or parallel route topology; pump-stage bypasses; passive-barrier bypasses; stale source hashes; uncontrolled string aliases; and post-construction corruption of nested pump or fault records.
+The architecture rejects invented pump, routing, tubing, connector, flow, and pressure values; uncontrolled status promotion; incomplete or reordered fault registries; hidden or parallel route topology; pump-stage bypasses; passive-barrier bypasses; stale source hashes; uncontrolled string aliases; mutable or aliased structural-frame reservation containers and identities; and post-construction corruption of nested pump or fault records.
+
+The structural-frame reservation boundary is checked independently of the frame SHA because equivalent Python container or string-subclass substitutions can serialize to the same JSON representation while violating the exact runtime contract consumed by Iteration 26.
 
 Manifest generation revalidates the complete nested architecture before hashing. The route network also preserves its own mixed-phase, pump-boundary, terminal-containment, and passive-backflow invariants.
 
 ## Provenance and current-source contract
 
-The architecture binds the exact Iteration 25 waste-acquisition SHA, the structural-frame topology SHA, and the authority revision carried by Iteration 25. Current-source validation fails closed when either direct source changes, when the frame no longer exposes exactly one waste-routing reservation, or when Iteration 25 regional destinations no longer terminate at the controlled Iteration 26 inlet interface.
+The architecture binds the exact Iteration 25 waste-acquisition SHA, the structural-frame topology SHA, and the authority revision carried by Iteration 25. Current-source validation fails closed when either direct source changes, when the frame no longer exposes exactly one exact-type waste-routing reservation, when the reservation container or identity crosses the controlled type boundary, or when Iteration 25 regional destinations no longer terminate at the controlled Iteration 26 inlet interface.
 
 Iteration 25 remains responsible for validating its own distribution and authority sources. The structural-frame contract remains responsible for its own upstream topology.
 
