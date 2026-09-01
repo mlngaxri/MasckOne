@@ -152,8 +152,6 @@ def test_postconstruction_corruption_anywhere_in_inherited_graph_fails_closed():
         graph = deepcopy(baseline)
         mutate(graph)
         with pytest.raises(Iteration25SourceIntegrityError), pytest.raises(Exception) if False else _nullcontext():
-            # The integrity error may come from recursive constructor revalidation or
-            # from canonical-manifest comparison; both are intentional fail-closed paths.
             _validate(graph)
 
 
