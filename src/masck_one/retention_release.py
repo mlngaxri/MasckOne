@@ -7,7 +7,7 @@ performance.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import hypot, isfinite
+from math import sqrt, isfinite
 
 G = 9.80665
 
@@ -23,13 +23,7 @@ def _exact_finite_scalar(value: object, label: str) -> float:
 
 @dataclass(frozen=True)
 class RetentionInputs:
-    """Controlled inputs for a quasi-static retention/load-path check.
-
-    +z is anterior of the support resultant. Forces are magnitudes in newtons.
-    ``support_vertical_offset_mm`` is retained as a controlled datum but is not used to
-    manufacture a moment without a controlled horizontal reaction force.
-    """
-
+    """Controlled inputs for a quasi-static retention/load-path check."""
     loaded_mass_g: float
     cg_anterior_mm: float
     support_vertical_offset_mm: float
@@ -88,19 +82,9 @@ def evaluate_retention(p: RetentionInputs, *, min_grip_clearance_mm: float = 12.
     facial = max(0.0, weight - occ - crown)
     friction = p.facial_preload_n * p.friction_coefficient
     pitch = weight * p.cg_anterior_mm / 1000.0
-    return RetentionResult(
-        weight_n=weight,
-        pitch_moment_nm=pitch,
-        occipital_vertical_n=occ,
-        crown_vertical_n=crown,
-        facial_vertical_n=facial,
-        available_facial_friction_n=friction,
-        vertical_slip_margin_n=friction - facial,
-        release_work_mj=p.release_force_n * p.release_travel_mm,
-        accidental_release_margin_n=p.release_force_n - p.accidental_pull_n,
-        grip_access_ok=p.grip_clearance_mm >= grip_gate,
-        hair_keepout_ok=p.hair_keepout_mm >= hair_gate,
-    )
+    return RetentionResult(weight, pitch, occ, crown, facial, friction, friction - facial,
+        p.release_force_n * p.release_travel_mm, p.release_force_n - p.accidental_pull_n,
+        p.grip_clearance_mm >= grip_gate, p.hair_keepout_mm >= hair_gate)
 
 
 def retention_doe(base: RetentionInputs, *, cg_mm=(20.0, 25.0, 30.0),
@@ -121,34 +105,44 @@ def retention_doe(base: RetentionInputs, *, cg_mm=(20.0, 25.0, 30.0),
     return tuple(out)
 
 
-def _point_segment_distance(p: tuple[float, float], a: tuple[float, float],
-                            b: tuple[float, float]) -> float:
-    px, py = map(float, p); ax, ay = map(float, a); bx, by = map(float, b)
-    if not all(isfinite(v) for v in (px, py, ax, ay, bx, by)):
-        raise ValueError("trajectory coordinates must be finite")
-    vx, vy = bx - ax, by - ay
-    vv = vx * vx + vy * vy
+def _vector_mm(value: object, label: str) -> tuple[float, float, float]:
+    """Normalize a physical point to xyz millimetres and reject ambiguous geometry."""
+    if type(value) is not tuple or len(value) != 3:
+        raise ValueError(f"{label} must be an xyz 3-tuple in millimetres")
+    xyz = tuple(_exact_finite_scalar(v, f"{label} coordinate") for v in value)
+    return xyz  # type: ignore[return-value]
+
+
+def _point_segment_distance_3d(p: object, a: object, b: object) -> float:
+    p3, a3, b3 = _vector_mm(p, "protected point"), _vector_mm(a, "trajectory point"), _vector_mm(b, "trajectory point")
+    v = tuple(b3[i] - a3[i] for i in range(3))
+    w = tuple(p3[i] - a3[i] for i in range(3))
+    vv = sum(q * q for q in v)
     if vv == 0.0:
-        return hypot(px - ax, py - ay)
-    t = max(0.0, min(1.0, ((px - ax) * vx + (py - ay) * vy) / vv))
-    return hypot(px - (ax + t * vx), py - (ay + t * vy))
+        return sqrt(sum((p3[i] - a3[i]) ** 2 for i in range(3)))
+    t = max(0.0, min(1.0, sum(w[i] * v[i] for i in range(3)) / vv))
+    closest = tuple(a3[i] + t * v[i] for i in range(3))
+    return sqrt(sum((p3[i] - closest[i]) ** 2 for i in range(3)))
 
 
-def release_trajectory_clearance(samples_mm: tuple[tuple[float, float], ...],
-                                 protected_points_mm: tuple[tuple[float, float], ...], *,
+def release_trajectory_clearance(samples_mm: tuple[tuple[float, float, float], ...],
+                                 protected_points_mm: tuple[tuple[float, float, float], ...], *,
                                  minimum_clearance_mm: float) -> float:
-    """Return conservative clearance over every straight segment between samples.
+    """Minimum 3D clearance over each controlled straight release-path segment.
 
-    This closes the previous endpoint-only blind spot for piecewise-linear controlled
-    trajectories. It is still not proof for an unknown curved path between CAD samples.
-    ``minimum_clearance_mm`` is an enforced gate, not decorative metadata.
+    Coordinates are xyz millimetres in one controlled mechanism frame. This is a
+    piecewise-linear physical kinematic gate, not continuous curved-CAD collision proof.
     """
     if type(samples_mm) is not tuple or len(samples_mm) < 2 or type(protected_points_mm) is not tuple or not protected_points_mm:
         raise ValueError("trajectory needs >=2 samples and >=1 protected point")
     gate = _exact_finite_scalar(minimum_clearance_mm, "minimum_clearance_mm")
     if gate < 0:
         raise ValueError("minimum_clearance_mm must be non-negative")
-    dmin = min(_point_segment_distance(p, a, b)
+    for i, point in enumerate(samples_mm):
+        _vector_mm(point, f"trajectory sample {i}")
+    for i, point in enumerate(protected_points_mm):
+        _vector_mm(point, f"protected point {i}")
+    dmin = min(_point_segment_distance_3d(p, a, b)
                for a, b in zip(samples_mm, samples_mm[1:]) for p in protected_points_mm)
     if dmin < gate:
         raise ValueError(f"release trajectory violates protected clearance: {dmin:.6g} mm < {gate:.6g} mm")
