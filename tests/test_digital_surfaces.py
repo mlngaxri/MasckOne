@@ -86,6 +86,9 @@ def test_app_build_copies_runtime_script_and_accessibility_css_is_present() -> N
     css = (APP / "styles.css").read_text(encoding="utf-8")
     assert "'app.js'" in build
     assert "prefers-reduced-motion:reduce" in css
+    assert "prefers-contrast:more" in css
+    assert "forced-colors:active" in css
+    assert "safe-area-inset-bottom" in css
     assert ":focus-visible" in css
     assert ".sr-only" in css
     assert "@media(max-width:340px)" in css
@@ -115,5 +118,8 @@ def test_web_navigation_and_motion_accessibility_contract() -> None:
 
     css = (WEB / "styles.css").read_text(encoding="utf-8")
     assert "prefers-reduced-motion:reduce" in css
+    assert "prefers-contrast:more" in css
+    assert "forced-colors:active" in css
+    assert "@media(max-width:420px)" in css
     assert ":focus-visible" in css
     assert ".skip:focus" in css
