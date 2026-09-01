@@ -120,10 +120,19 @@ def test_web_navigation_and_motion_accessibility_contract() -> None:
     assert ".skip:focus" in css
 
 
-def test_brand_mark_is_identical_across_split_roots() -> None:
-    web_mark = ROOT / "products" / "web" / "public" / "brand" / "brand-mark.svg"
-    app_mark = ROOT / "products" / "app" / "assets" / "brand" / "brand-mark.svg"
-    assert web_mark.read_bytes() == app_mark.read_bytes()
+def test_brand_sources_are_identical_across_split_roots() -> None:
+    pairs = (
+        (
+            ROOT / "products" / "web" / "public" / "brand" / "brand-mark.svg",
+            ROOT / "products" / "app" / "assets" / "brand" / "brand-mark.svg",
+        ),
+        (
+            ROOT / "products" / "web" / "public" / "brand" / "brand-mark-mono.svg",
+            ROOT / "products" / "app" / "assets" / "brand" / "brand-mark-mono.svg",
+        ),
+    )
+    for web_source, app_source in pairs:
+        assert web_source.read_bytes() == app_source.read_bytes()
 
 
 def test_history_split_workspaces_keep_mandatory_tests_and_build_cleanly(tmp_path: Path) -> None:
@@ -156,9 +165,18 @@ def test_history_split_workspaces_keep_mandatory_tests_and_build_cleanly(tmp_pat
         dist_files = {path.name for path in (exported / "dist").iterdir() if path.is_file()}
         assert {"index.html", "styles.css", "app.js"} <= dist_files
         if workspace == "web":
-            assert (exported / "dist" / "favicon.svg").is_file()
-            assert (exported / "dist" / "brand" / "brand-mark.svg").is_file()
-            assert (exported / "dist" / "brand" / "og-source.svg").is_file()
+            for relative in (
+                "favicon.svg",
+                "brand/brand-mark.svg",
+                "brand/brand-mark-mono.svg",
+                "brand/og-source.svg",
+                "brand/social-avatar-source.svg",
+            ):
+                assert (exported / "dist" / relative).is_file()
         else:
-            assert (exported / "dist" / "assets" / "brand" / "brand-mark.svg").is_file()
-            assert (exported / "dist" / "assets" / "brand" / "app-icon-source.svg").is_file()
+            for relative in (
+                "assets/brand/brand-mark.svg",
+                "assets/brand/brand-mark-mono.svg",
+                "assets/brand/app-icon-source.svg",
+            ):
+                assert (exported / "dist" / relative).is_file()
