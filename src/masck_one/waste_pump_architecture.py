@@ -12,7 +12,7 @@ from hashlib import sha256
 import json
 import re
 
-from .structural_frame import RESERVATION_WASTE, StructuralFrameTopology
+from .structural_frame import FrameReservation, RESERVATION_WASTE, StructuralFrameTopology
 from .waste_acquisition import (
     PHASE_MIXED_WASTE,
     REGIONS,
@@ -449,6 +449,12 @@ class WastePumpArchitecture:
             raise WastePumpArchitectureError("Iteration 26 architecture is stale for current authority revision")
         if self.source_structural_frame_sha256 != frame.topology_sha256:
             raise WastePumpArchitectureError("Iteration 26 architecture is stale for current structural frame")
+        if type(frame.reservations) is not tuple:
+            raise WastePumpArchitectureError("structural frame reservations must remain an immutable tuple")
+        if any(type(item) is not FrameReservation for item in frame.reservations):
+            raise WastePumpArchitectureError("structural frame reservations must contain exact FrameReservation values")
+        if any(type(item.reservation_id) is not str for item in frame.reservations):
+            raise WastePumpArchitectureError("structural frame reservation IDs must be exact built-in text")
         reservations = tuple(item for item in frame.reservations if item.reservation_id == RESERVATION_WASTE)
         if len(reservations) != 1:
             raise WastePumpArchitectureError("structural frame must expose exactly one waste-routing reservation")
