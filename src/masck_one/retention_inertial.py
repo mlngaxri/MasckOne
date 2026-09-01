@@ -65,9 +65,11 @@ class InertialRetentionResult:
     yaw_couple_force_n: float | None
     pitch_couple_force_n: float | None
     roll_couple_force_n: float | None
+    bilateral_resultant_couple_force_n: float | None
     yaw_load_path_closed: bool
     pitch_load_path_closed: bool
     roll_load_path_closed: bool
+    bilateral_load_path_closed: bool
     translational_yaw_moment_nm: float = 0.0
     translational_pitch_moment_nm: float = 0.0
     translational_roll_moment_nm: float = 0.0
@@ -89,13 +91,14 @@ def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetention
     """Resolve prescribed 3D translation and principal-axis rotation into support couples.
 
     With r=(x,y,z) and F=(Fx,Fy,Fz), r x F gives pitch Mx=y*Fz-z*Fy,
-    roll My=z*Fx-x*Fz, and yaw Mz=x*Fy-y*Fx. This deliberately includes vertical
-    translation: crown unloading/reloading at an anterior or lateral CG creates real
-    pitch/roll demand that a planar model misses. Principal-axis rotational inertia
-    adds I*alpha. Gravity is handled by the separate quasi-static retention ledger and
-    is not silently added here. A nonzero total moment with no controlled reaction span
-    fails closed. Products of inertia and gyroscopic terms require controlled CAD mass
-    properties and angular-velocity inputs and are intentionally not invented here.
+    roll My=z*Fx-x*Fz, and yaw Mz=x*Fy-y*Fx. Vertical translation is included.
+    Principal-axis rotational inertia adds I*alpha. Gravity is handled by the separate
+    quasi-static ledger. Yaw and roll both terminate through the bilateral support span,
+    so their orthogonal couple-force components are also resolved as one resultant.
+    Reporting only the two scalar components would understate the actual bilateral
+    interface demand when yaw and roll occur simultaneously. Products of inertia and
+    gyroscopic terms remain blocked pending controlled CAD mass properties and angular
+    velocity inputs.
     """
     p.validate()
     mass_kg = p.loaded_mass_g / 1000.0
@@ -120,12 +123,35 @@ def evaluate_inertial_retention(p: InertialRetentionInputs) -> InertialRetention
     yaw_force, yaw_closed = _resolve_couple(yaw, p.bilateral_support_span_mm)
     pitch_force, pitch_closed = _resolve_couple(pitch, p.vertical_support_span_mm)
     roll_force, roll_closed = _resolve_couple(roll, p.bilateral_support_span_mm)
+    bilateral_closed = yaw_closed and roll_closed
+    bilateral_force = (
+        sqrt(yaw_force * yaw_force + roll_force * roll_force)
+        if bilateral_closed and yaw_force is not None and roll_force is not None
+        else None
+    )
 
     return InertialRetentionResult(
-        lateral, fore_aft, vertical, resultant, yaw, pitch, roll,
-        yaw_force, pitch_force, roll_force,
-        yaw_closed, pitch_closed, roll_closed,
-        t_yaw, t_pitch, t_roll, r_yaw, r_pitch, r_roll,
+        lateral_force_n=lateral,
+        fore_aft_force_n=fore_aft,
+        vertical_force_n=vertical,
+        translational_resultant_n=resultant,
+        yaw_moment_nm=yaw,
+        pitch_moment_nm=pitch,
+        roll_moment_nm=roll,
+        yaw_couple_force_n=yaw_force,
+        pitch_couple_force_n=pitch_force,
+        roll_couple_force_n=roll_force,
+        bilateral_resultant_couple_force_n=bilateral_force,
+        yaw_load_path_closed=yaw_closed,
+        pitch_load_path_closed=pitch_closed,
+        roll_load_path_closed=roll_closed,
+        bilateral_load_path_closed=bilateral_closed,
+        translational_yaw_moment_nm=t_yaw,
+        translational_pitch_moment_nm=t_pitch,
+        translational_roll_moment_nm=t_roll,
+        rotational_yaw_moment_nm=r_yaw,
+        rotational_pitch_moment_nm=r_pitch,
+        rotational_roll_moment_nm=r_roll,
     )
 
 
