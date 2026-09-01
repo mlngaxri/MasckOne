@@ -1,10 +1,22 @@
+from copy import deepcopy
+import json
+from pathlib import Path
+
+from jsonschema import Draft202012Validator, ValidationError
 import pytest
 
-from masck_one.mechanism_state import MechanismState, OperatingMode, TransitionAction
+from masck_one.mechanism_state import (
+    MECHANISM_PROVENANCE_AUTHORITY,
+    MechanismState,
+    OperatingMode,
+    TransitionAction,
+)
 from masck_one.product_state_consumer import (
+    AVAILABILITY_SEMANTICS,
     CONNECTIVITY_MODEL,
     CONSUMER_CONTRACT,
     HARDWARE_COMMAND_CAPABILITY,
+    UI_INTENT_SEMANTICS,
     ConsumerInputChannel,
     ProductStateConsumer,
     legal_actions_for_channel,
@@ -12,6 +24,7 @@ from masck_one.product_state_consumer import (
 )
 
 MECH = "1" * 64
+SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schemas" / "product_state_consumer.schema.json"
 
 
 def state(**overrides):
@@ -35,6 +48,12 @@ def consumer(initial=None):
     )
 
 
+def load_schema():
+    schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    return schema
+
+
 def test_every_transition_has_one_canonical_consumer_channel():
     channels = {action: transition_semantics(action).channel for action in TransitionAction}
     assert set(channels) == set(TransitionAction)
@@ -53,18 +72,55 @@ def test_idle_manifest_exposes_only_legal_ui_intents_and_explicit_nonhardware_se
     c = consumer()
     manifest = c.manifest()
 
-    assert manifest["schema"] == CONSUMER_CONTRACT
+    assert manifest["schema"] == CONSUMER_CONTRACT == "MASCK_ONE_PRODUCT_STATE_CONSUMER_V2"
+    assert manifest["transport_schema"] == "MASCK_ONE_SIMULATED_TRANSPORT_V4"
+    assert manifest["transport_kind"] == "SIMULATED_LOCAL_ONLY"
     assert manifest["hardware_command_capability"] == HARDWARE_COMMAND_CAPABILITY == "NONE_SIMULATION_ONLY"
     assert manifest["connectivity_model"] == CONNECTIVITY_MODEL == "ABSENT_NOT_MODELED"
+    assert manifest["availability_semantics"] == AVAILABILITY_SEMANTICS == "DERIVED_FROM_SIMULATED_STATE_ONLY"
+    assert manifest["ui_intent_semantics"] == UI_INTENT_SEMANTICS == "LOCAL_SIMULATION_INPUT_ONLY_NOT_HARDWARE_COMMAND"
+    assert manifest["mechanism_provenance_authority"] == MECHANISM_PROVENANCE_AUTHORITY
+    assert manifest["current_mechanism_provenance_sha256"] == MECH
+    assert manifest["previous_state_provenance_sha256"] is None
     assert manifest["telemetry_source"] == "NONE"
     assert manifest["measured_hardware"] is False
     assert manifest["sequence"] == 0
     assert manifest["last_event"] is None
+    assert manifest["state_provenance_sha256"] == manifest["state"]["provenance_sha256"]
     assert manifest["available_ui_intents"] == ["ENTER_SERVICE"]
     assert manifest["available_simulated_mechanical_events"] == ["ENGAGE_RETENTION"]
     assert manifest["available_simulated_device_events"] == ["LATCH_FAULT"]
     assert all(item["hardware_command"] is False for item in manifest["action_semantics"])
     assert not any("ble" in key.lower() or "connected" in key.lower() for key in manifest)
+
+
+def test_manifest_conforms_to_strict_cross_language_schema():
+    validator = Draft202012Validator(load_schema())
+    validator.validate(consumer().manifest())
+    retained = consumer(state(retention_engaged=True))
+    retained.submit_ui_intent(TransitionAction.START_CLEAN)
+    validator.validate(retained.manifest())
+
+
+def test_schema_rejects_invented_connectivity_cross_channel_actions_and_bad_identity():
+    validator = Draft202012Validator(load_schema())
+    manifest = consumer(state(retention_engaged=True)).manifest()
+
+    invented_connection = deepcopy(manifest)
+    invented_connection["connected"] = True
+    with pytest.raises(ValidationError):
+        validator.validate(invented_connection)
+
+    forged_channel = deepcopy(manifest)
+    forged_channel["action_semantics"][2]["channel"] = "UI_INTENT"
+    forged_channel["action_semantics"][2]["ui_control_exposed"] = True
+    with pytest.raises(ValidationError):
+        validator.validate(forged_channel)
+
+    bad_identity = deepcopy(manifest)
+    bad_identity["current_mechanism_provenance_sha256"] = "A" * 64
+    with pytest.raises(ValidationError):
+        validator.validate(bad_identity)
 
 
 def test_retained_state_exposes_cycle_intents_but_never_quick_release_as_ui_control():
@@ -131,7 +187,10 @@ def test_quick_release_remains_available_as_unpowered_mechanical_observation_dur
     assert released.quick_release_open is True
     assert c.sequence == 1
     assert c.last_event == "MECHANICAL_QUICK_RELEASE"
-    assert c.manifest()["available_ui_intents"] == []
+    manifest = c.manifest()
+    assert manifest["available_ui_intents"] == []
+    assert manifest["previous_state_provenance_sha256"] == clean.provenance_sha256
+    assert manifest["current_mechanism_provenance_sha256"] == MECH
 
 
 def test_completion_and_fault_clear_are_simulated_device_events_not_ui_authority():
