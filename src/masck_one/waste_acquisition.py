@@ -13,7 +13,17 @@ import math
 import re
 
 from .authority import Authority
-from .distribution_geometry import DistributionGeometryArchitecture
+from .cleanser_storage import CleanserStorageArchitecture
+from .coverage import FacialCoverageMesh
+from .distribution_geometry import (
+    DistributionGeometryArchitecture,
+    DistributionGeometryError,
+)
+from .distribution_manifold import DistributionManifoldArchitecture
+from .fresh_pump_packaging import FreshPumpPackagingArchitecture
+from .protected_volumes import ProtectedVolumeSet
+from .structural_frame import StructuralFrameTopology
+from .water_reservoir import WaterReservoirArchitecture
 
 
 class WasteAcquisitionError(ValueError):
@@ -188,13 +198,15 @@ class WasteAcquisitionArchitecture:
         *,
         authority: Authority,
         distribution: DistributionGeometryArchitecture,
+        manifold: DistributionManifoldArchitecture,
+        pump: FreshPumpPackagingArchitecture,
+        water: WaterReservoirArchitecture,
+        cleanser: CleanserStorageArchitecture,
+        frame: StructuralFrameTopology,
+        coverage: FacialCoverageMesh,
+        protected: ProtectedVolumeSet,
     ) -> None:
-        """Fail closed when the Iteration 25 snapshot is stale for current inputs.
-
-        This validates the direct Iteration 25 dependencies. The Iteration 24
-        distribution contract remains responsible for validating its own manifold,
-        coverage, protected-volume, reservoir, cleanser, pump, and frame sources.
-        """
+        """Fail closed when any direct or inherited Iteration 25 source is stale."""
         self.validate_invariants()
         if type(authority) is not Authority:
             raise WasteAcquisitionError("authority must be the exact Authority type")
@@ -202,6 +214,23 @@ class WasteAcquisitionArchitecture:
             raise WasteAcquisitionError(
                 "distribution must be the exact Iteration 24 architecture type"
             )
+
+        try:
+            distribution.validate_current_sources(
+                authority=authority,
+                manifold=manifold,
+                pump=pump,
+                water=water,
+                cleanser=cleanser,
+                frame=frame,
+                coverage=coverage,
+                protected=protected,
+            )
+        except DistributionGeometryError as exc:
+            raise WasteAcquisitionError(
+                "waste acquisition inherited Iteration 24 source chain is stale"
+            ) from exc
+
         if self.source_distribution_sha256 != distribution.architecture_sha256:
             raise WasteAcquisitionError("waste acquisition is stale for current distribution geometry")
 
@@ -252,6 +281,13 @@ class WasteAcquisitionArchitecture:
 def build_waste_acquisition_architecture(
     authority: Authority,
     distribution: DistributionGeometryArchitecture,
+    manifold: DistributionManifoldArchitecture,
+    pump: FreshPumpPackagingArchitecture,
+    water: WaterReservoirArchitecture,
+    cleanser: CleanserStorageArchitecture,
+    frame: StructuralFrameTopology,
+    coverage: FacialCoverageMesh,
+    protected: ProtectedVolumeSet,
 ) -> WasteAcquisitionArchitecture:
     if type(authority) is not Authority:
         raise WasteAcquisitionError("authority must be the exact Authority type")
@@ -298,5 +334,15 @@ def build_waste_acquisition_architecture(
         False,
         EVIDENCE_STATUS,
     )
-    architecture.validate_current_sources(authority=authority, distribution=distribution)
+    architecture.validate_current_sources(
+        authority=authority,
+        distribution=distribution,
+        manifold=manifold,
+        pump=pump,
+        water=water,
+        cleanser=cleanser,
+        frame=frame,
+        coverage=coverage,
+        protected=protected,
+    )
     return architecture

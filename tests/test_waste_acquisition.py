@@ -1,7 +1,9 @@
+from copy import deepcopy
 from dataclasses import replace
 
 import pytest
 
+from masck_one.authority import Authority
 from masck_one.boundary_release import build_verified_interface_boundary_topology
 from masck_one.cleanser_storage import build_cleanser_storage_architecture
 from masck_one.distribution_geometry import build_distribution_geometry_architecture
@@ -86,7 +88,45 @@ def current_sources():
         model.coverage_mesh,
         model.protected_volumes,
     )
-    return model, distribution
+    return model, water, cleanser, frame, pump, manifold, distribution
+
+
+def build_current_waste(current_sources):
+    model, water, cleanser, frame, pump, manifold, distribution = current_sources
+    return build_waste_acquisition_architecture(
+        model.authority,
+        distribution,
+        manifold,
+        pump,
+        water,
+        cleanser,
+        frame,
+        model.coverage_mesh,
+        model.protected_volumes,
+    )
+
+
+def validate_current(current_sources, waste, *, authority=None):
+    model, water, cleanser, frame, pump, manifold, distribution = current_sources
+    waste.validate_current_sources(
+        authority=model.authority if authority is None else authority,
+        distribution=distribution,
+        manifold=manifold,
+        pump=pump,
+        water=water,
+        cleanser=cleanser,
+        frame=frame,
+        coverage=model.coverage_mesh,
+        protected=model.protected_volumes,
+    )
+
+
+def copied_authority(authority):
+    return Authority(
+        data=deepcopy(authority.data),
+        source=authority.source,
+        validation_report=authority.validation_report,
+    )
 
 
 def test_topology_preserves_mixed_phase_and_unresolved_geometry():
@@ -212,30 +252,79 @@ def test_manifest_revalidates_post_construction_architecture_corruption():
 
 
 def test_current_source_validation_rejects_distribution_and_authority_drift(current_sources):
-    model, distribution = current_sources
-    a = build_waste_acquisition_architecture(model.authority, distribution)
-    a.validate_current_sources(authority=model.authority, distribution=distribution)
+    waste = build_current_waste(current_sources)
+    validate_current(current_sources, waste)
 
     with pytest.raises(WasteAcquisitionError, match="stale for current distribution geometry"):
-        replace(a, source_distribution_sha256="a" * 64).validate_current_sources(
-            authority=model.authority,
-            distribution=distribution,
+        validate_current(
+            current_sources,
+            replace(waste, source_distribution_sha256="a" * 64),
         )
     with pytest.raises(WasteAcquisitionError, match="stale for current authority revision"):
-        replace(a, authority_revision="STALE-REVISION").validate_current_sources(
-            authority=model.authority,
-            distribution=distribution,
+        validate_current(
+            current_sources,
+            replace(waste, authority_revision="STALE-REVISION"),
         )
     with pytest.raises(WasteAcquisitionError, match="recovery requirement is stale"):
-        replace(a, recovery_ratio_min=a.recovery_ratio_min - 0.01).validate_current_sources(
-            authority=model.authority,
-            distribution=distribution,
+        validate_current(
+            current_sources,
+            replace(waste, recovery_ratio_min=waste.recovery_ratio_min - 0.01),
         )
     with pytest.raises(WasteAcquisitionError, match="residual-liquid requirement is stale"):
-        replace(
-            a,
-            residual_free_liquid_max_uL=a.residual_free_liquid_max_uL + 1.0,
-        ).validate_current_sources(
-            authority=model.authority,
+        validate_current(
+            current_sources,
+            replace(
+                waste,
+                residual_free_liquid_max_uL=waste.residual_free_liquid_max_uL + 1.0,
+            ),
+        )
+
+
+def test_post_validation_authority_mutation_cannot_bypass_iteration25_freshness(current_sources):
+    model, *_ = current_sources
+    waste = build_current_waste(current_sources)
+    mutated = copied_authority(model.authority)
+    mutated.data["fluid"]["waste"]["recovery_ratio_min"] = waste.recovery_ratio_min - 0.01
+    with pytest.raises(WasteAcquisitionError, match="recovery requirement is stale"):
+        validate_current(current_sources, waste, authority=mutated)
+
+
+def test_upstream_iteration24_source_drift_propagates_through_iteration25(current_sources):
+    model, water, cleanser, frame, pump, manifold, distribution = current_sources
+    waste = build_current_waste(current_sources)
+    drifted = copied_authority(model.authority)
+    drifted.data["fluid"]["outlets"]["outlet_position_sensitivity_mm"] = (
+        float(drifted.data["fluid"]["outlets"]["outlet_position_sensitivity_mm"]) + 0.1
+    )
+
+    with pytest.raises(
+        WasteAcquisitionError,
+        match="inherited Iteration 24 source chain is stale",
+    ):
+        waste.validate_current_sources(
+            authority=drifted,
             distribution=distribution,
+            manifold=manifold,
+            pump=pump,
+            water=water,
+            cleanser=cleanser,
+            frame=frame,
+            coverage=model.coverage_mesh,
+            protected=model.protected_volumes,
+        )
+
+    with pytest.raises(
+        WasteAcquisitionError,
+        match="inherited Iteration 24 source chain is stale",
+    ):
+        build_waste_acquisition_architecture(
+            drifted,
+            distribution,
+            manifold,
+            pump,
+            water,
+            cleanser,
+            frame,
+            model.coverage_mesh,
+            model.protected_volumes,
         )

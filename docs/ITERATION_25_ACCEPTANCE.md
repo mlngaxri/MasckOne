@@ -20,8 +20,8 @@ The architecture rejects invented dimensions/capacity, incomplete or reordered r
 
 ## Provenance/current-source contract
 
-The architecture binds the exact Iteration 24 distribution-geometry SHA, authority revision, validation-gated recovery requirement, and residual-liquid requirement. `validate_current_sources()` fails closed when any of those direct inputs drift. Iteration 24 remains responsible for validating its own manifold, coverage, protected-volume, reservoir, cleanser, pump, frame, and geometry sources.
+The architecture binds the exact Iteration 24 distribution-geometry SHA, authority revision, validation-gated recovery requirement, and residual-liquid requirement. The authoritative Iteration 25 freshness API composes Iteration 24 `validate_current_sources()` across manifold, pump, water-reservoir, cleanser-storage, structural-frame, coverage, and protected-volume dependencies before checking its own direct provenance. A syntactically valid but stale Iteration 24 distribution object therefore cannot mint or preserve a consumable Iteration 25 snapshot. Current authority values are re-read during validation, so post-validation authority mutation also fails closed.
 
 ## Downstream contract
 
-Iteration 26 may consume the canonical region identities, mixed-phase semantics, hygiene class, unresolved geometry/buffer states, waste-pump destination, and the exact Iteration 25 architecture SHA. It may not infer pump pressure/flow, tubing dimensions, buffer capacity, recovery, leakage, orientation independence, or hygiene performance from this topology.
+Iteration 26 may consume the canonical region identities, mixed-phase semantics, hygiene class, unresolved geometry/buffer states, waste-pump destination, and the exact Iteration 25 architecture SHA only after this complete inherited-source freshness contract has passed. It may not infer pump pressure/flow, tubing dimensions, buffer capacity, recovery, leakage, orientation independence, or hygiene performance from this topology.
