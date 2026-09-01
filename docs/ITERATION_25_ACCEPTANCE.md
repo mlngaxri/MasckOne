@@ -16,8 +16,12 @@ Gutter width/depth/cross-section, capillary feature geometry, transient-buffer c
 
 ## Evidence firewall
 
-The architecture rejects invented dimensions/capacity, incomplete or reordered region sets, mutable region containers, uncontrolled phase/service/evidence states, physical-evidence promotion, and hostile string subclasses at controlled boundaries. The waste phase is never simplified to liquid-only flow.
+The architecture rejects invented dimensions/capacity, incomplete or reordered region sets, mutable region containers, uncontrolled phase/service/evidence states, physical-evidence promotion, non-finite or boolean numeric aliases, and hostile string subclasses at controlled boundaries. Manifest generation revalidates each nested region and the architecture itself, so post-construction corruption cannot silently mint a new trusted provenance hash. The waste phase is never simplified to liquid-only flow.
+
+## Provenance/current-source contract
+
+The architecture binds the exact Iteration 24 distribution-geometry SHA, authority revision, validation-gated recovery requirement, and residual-liquid requirement. `validate_current_sources()` fails closed when any of those direct inputs drift. Iteration 24 remains responsible for validating its own manifold, coverage, protected-volume, reservoir, cleanser, pump, frame, and geometry sources.
 
 ## Downstream contract
 
-Iteration 26 may consume the canonical region identities, mixed-phase semantics, hygiene class, unresolved geometry/buffer states, and waste-pump destination. It may not infer pump pressure/flow, tubing dimensions, buffer capacity, recovery, leakage, orientation independence, or hygiene performance from this topology.
+Iteration 26 may consume the canonical region identities, mixed-phase semantics, hygiene class, unresolved geometry/buffer states, waste-pump destination, and the exact Iteration 25 architecture SHA. It may not infer pump pressure/flow, tubing dimensions, buffer capacity, recovery, leakage, orientation independence, or hygiene performance from this topology.
