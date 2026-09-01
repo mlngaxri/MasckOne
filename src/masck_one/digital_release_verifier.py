@@ -1,12 +1,15 @@
-"""Filesystem and authority verification for Masck One digital product releases.
+"""Filesystem, authority, and commit-bound provenance verification for digital releases.
 
-The release manifest is a declaration until this module verifies the actual exported
-bytes, the exact currently validated authority content, and the concrete owning
-source-provenance files. This is a digital trust boundary only; it never promotes
+A digital release manifest is only a declaration until this module verifies the actual
+exported bytes, the exact freshly validated authority content, and each artifact's
+owning engineering source from the hardware commit named by the release. The owning
+source is selected by a versioned registry stored in that same commit, never by a
+caller-supplied path. This remains a digital trust boundary only and cannot promote
 any artifact to physical evidence.
 """
 from __future__ import annotations
 
+from collections.abc import Hashable
 from dataclasses import dataclass
 from hashlib import sha256
 import json
@@ -15,18 +18,35 @@ import os
 from pathlib import Path, PurePosixPath
 import re
 import stat
+import subprocess
+
+import yaml
 
 from .authority import Authority, AuthorityError, validate_authority_data
 from .digital_release import (
+    ArtifactKind,
     DigitalProductRelease,
     DigitalReleaseError,
     validate_current_hardware_commit,
 )
 
 
-_PROVENANCE_SCHEMA = "MASCK_ONE_SOURCE_PROVENANCE_V1"
+_PROVENANCE_SCHEMA = "MASCK_ONE_SOURCE_PROVENANCE_V2"
+_REGISTRY_SCHEMA = "MASCK_ONE_DIGITAL_PROVENANCE_REGISTRY_V1"
+_REGISTRY_PATH = "config/digital_provenance_registry.yaml"
+_RELEASE_ROOT = "generated/digital_product_release/"
 _SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
+_GIT_OBJECT_RE = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 _ID_RE = re.compile(r"[A-Z][A-Z0-9_]{0,63}\Z")
+_REGISTRY_KINDS = frozenset(
+    {
+        ArtifactKind.PRODUCT_MANIFEST,
+        ArtifactKind.CLAIMS_MANIFEST,
+        ArtifactKind.COMPONENT_MANIFEST,
+        ArtifactKind.DEVICE_STATE_MANIFEST,
+        ArtifactKind.VISUAL_SYSTEM_MANIFEST,
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -44,6 +64,7 @@ class DigitalReleaseVerificationReport:
     release_sha256: str
     hardware_commit_sha: str
     authority_sha256: str
+    provenance_registry_sha256: str
     artifacts: tuple[VerifiedArtifactRecord, ...]
     physical_evidence_promoted: bool = False
 
@@ -61,6 +82,13 @@ def _sha256_text(value: object, label: str) -> str:
     return value
 
 
+def _git_object(value: object, label: str = "hardware_commit_sha") -> str:
+    value = _exact_text(value, label)
+    if _GIT_OBJECT_RE.fullmatch(value) is None:
+        raise DigitalReleaseError(f"{label} must be canonical lowercase Git object identity")
+    return value
+
+
 def _artifact_id(value: object) -> str:
     value = _exact_text(value, "artifact_id")
     if _ID_RE.fullmatch(value) is None:
@@ -68,9 +96,15 @@ def _artifact_id(value: object) -> str:
     return value
 
 
+def _artifact_kind(value: object) -> ArtifactKind:
+    if type(value) is not ArtifactKind:
+        raise DigitalReleaseError("artifact kind must be exact ArtifactKind")
+    return value
+
+
 def _canonical_repo_path(value: object, label: str) -> str:
     value = _exact_text(value, label)
-    if "\\" in value or value.startswith("/"):
+    if "\\" in value or value.startswith("/") or "\x00" in value:
         raise DigitalReleaseError(f"{label} must be canonical POSIX repository-relative path")
     path = PurePosixPath(value)
     if path.as_posix() != value or any(part in ("", ".", "..") for part in path.parts):
@@ -151,11 +185,15 @@ def authority_content_sha256(authority: Authority) -> str:
 def source_provenance_identity_sha256(
     *,
     artifact_id: str,
+    artifact_kind: ArtifactKind,
+    hardware_commit_sha: str,
     source_path: str,
     source_content_sha256: str,
 ) -> str:
-    """Bind an artifact to one named owning source contract/report/manifest file."""
+    """Bind one artifact to its authorized source file from one exact hardware commit."""
     artifact_id = _artifact_id(artifact_id)
+    artifact_kind = _artifact_kind(artifact_kind)
+    hardware_commit_sha = _git_object(hardware_commit_sha)
     source_path = _canonical_repo_path(source_path, "source_path")
     source_content_sha256 = _sha256_text(
         source_content_sha256,
@@ -166,6 +204,8 @@ def source_provenance_identity_sha256(
             {
                 "schema": _PROVENANCE_SCHEMA,
                 "artifact_id": artifact_id,
+                "artifact_kind": artifact_kind.value,
+                "hardware_commit_sha": hardware_commit_sha,
                 "source_path": source_path,
                 "source_content_sha256": source_content_sha256,
             }
@@ -250,28 +290,192 @@ def _hash_controlled_file(root: Path, relative_path: str, *, label: str) -> str:
     return digest.hexdigest()
 
 
+def _run_git(root: Path, args: list[str], *, label: str) -> bytes:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), *args],
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except OSError as exc:
+        raise DigitalReleaseError(f"git unavailable while verifying {label}") from exc
+    if completed.returncode != 0:
+        raise DigitalReleaseError(f"git could not verify {label}")
+    return completed.stdout
+
+
+def _require_git_repository_root(root: Path) -> None:
+    raw = _run_git(root, ["rev-parse", "--show-toplevel"], label="repository root")
+    try:
+        reported = Path(raw.decode("utf-8").strip()).resolve(strict=True)
+    except (UnicodeDecodeError, OSError) as exc:
+        raise DigitalReleaseError("git repository root could not be resolved") from exc
+    if reported != root:
+        raise DigitalReleaseError("repository_root must be the exact Git worktree root")
+
+
+def _git_blob_bytes(
+    root: Path,
+    *,
+    commit_sha: str,
+    relative_path: str,
+    label: str,
+) -> bytes:
+    """Read one regular file exactly as stored by the declared Git commit."""
+    commit_sha = _git_object(commit_sha)
+    relative_path = _canonical_repo_path(relative_path, label)
+    tree = _run_git(
+        root,
+        ["ls-tree", "-z", commit_sha, "--", relative_path],
+        label=label,
+    )
+    entries = tuple(item for item in tree.split(b"\x00") if item)
+    if len(entries) != 1:
+        raise DigitalReleaseError(f"{label} is not one regular file in declared hardware commit")
+    try:
+        metadata, encoded_path = entries[0].split(b"\t", 1)
+        mode, object_type, object_id = metadata.decode("ascii").split(" ")
+        stored_path = encoded_path.decode("utf-8")
+    except (ValueError, UnicodeDecodeError) as exc:
+        raise DigitalReleaseError(f"{label} Git tree entry is malformed") from exc
+    if stored_path != relative_path:
+        raise DigitalReleaseError(f"{label} Git tree path identity mismatch")
+    if mode not in {"100644", "100755"} or object_type != "blob":
+        raise DigitalReleaseError(f"{label} must be a regular file in declared hardware commit")
+    object_id = _git_object(object_id, f"{label} Git blob identity")
+    return _run_git(root, ["cat-file", "blob", object_id], label=label)
+
+
+class _UniqueKeySafeLoader(yaml.SafeLoader):
+    """Safe YAML loader that rejects duplicate mapping keys."""
+
+
+def _construct_unique_mapping(
+    loader: _UniqueKeySafeLoader,
+    node: yaml.nodes.MappingNode,
+    deep: bool = False,
+) -> dict[object, object]:
+    loader.flatten_mapping(node)
+    mapping: dict[object, object] = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if not isinstance(key, Hashable):
+            raise DigitalReleaseError("provenance registry contains an unhashable key")
+        if key in mapping:
+            raise DigitalReleaseError("provenance registry contains a duplicate mapping key")
+        mapping[key] = loader.construct_object(value_node, deep=deep)
+    return mapping
+
+
+_UniqueKeySafeLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    _construct_unique_mapping,
+)
+
+
+def _parse_provenance_registry(raw: bytes) -> dict[ArtifactKind, str]:
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise DigitalReleaseError("provenance registry must be UTF-8") from exc
+    try:
+        payload = yaml.load(text, Loader=_UniqueKeySafeLoader)
+    except yaml.YAMLError as exc:
+        raise DigitalReleaseError("provenance registry YAML cannot be parsed") from exc
+    if type(payload) is not dict or any(type(key) is not str for key in payload):
+        raise DigitalReleaseError("provenance registry must be an exact string-keyed mapping")
+    if set(payload) != {"schema", "artifact_kind_sources"}:
+        raise DigitalReleaseError("provenance registry top-level contract drift")
+    if _exact_text(payload["schema"], "provenance registry schema") != _REGISTRY_SCHEMA:
+        raise DigitalReleaseError("unsupported provenance registry schema")
+    sources = payload["artifact_kind_sources"]
+    if type(sources) is not dict or any(type(key) is not str for key in sources):
+        raise DigitalReleaseError("artifact_kind_sources must be an exact mapping")
+    expected_names = {kind.value for kind in _REGISTRY_KINDS}
+    if set(sources) != expected_names:
+        raise DigitalReleaseError("provenance registry must authorize exactly the V1 manifest kinds")
+
+    registry: dict[ArtifactKind, str] = {}
+    for kind in sorted(_REGISTRY_KINDS, key=lambda item: item.value):
+        path = _canonical_repo_path(sources[kind.value], f"source path for {kind.value}")
+        if path.startswith(_RELEASE_ROOT) or path.startswith("products/") or path.startswith("generated/"):
+            raise DigitalReleaseError(
+                f"source path for {kind.value} must remain in controlled engineering source"
+            )
+        registry[kind] = path
+    return registry
+
+
+def _provenance_registry_for_commit(
+    root: Path,
+    hardware_commit_sha: str,
+) -> tuple[dict[ArtifactKind, str], str]:
+    hardware_commit_sha = _git_object(hardware_commit_sha)
+    committed = _git_blob_bytes(
+        root,
+        commit_sha=hardware_commit_sha,
+        relative_path=_REGISTRY_PATH,
+        label="digital provenance registry",
+    )
+    committed_sha = sha256(committed).hexdigest()
+    working_sha = _hash_controlled_file(
+        root,
+        _REGISTRY_PATH,
+        label="working digital provenance registry",
+    )
+    if working_sha != committed_sha:
+        raise DigitalReleaseError(
+            "working provenance registry differs from declared hardware commit"
+        )
+    return _parse_provenance_registry(committed), committed_sha
+
+
 def controlled_file_sha256(*, repository_root: str, relative_path: str) -> str:
     """Compute a SHA-256 only after repository-relative file safety checks pass."""
     root = _resolve_repository_root(repository_root)
     return _hash_controlled_file(root, relative_path, label="controlled file")
 
 
-def source_provenance_for_file(
+def source_provenance_for_registered_source(
     *,
     repository_root: str,
     artifact_id: str,
-    source_path: str,
+    artifact_kind: ArtifactKind,
+    hardware_commit_sha: str,
 ) -> str:
-    """Compute the provenance identity from an actual controlled source file."""
+    """Compute provenance only from the kind-authorized source in the bound commit."""
+    artifact_id = _artifact_id(artifact_id)
+    artifact_kind = _artifact_kind(artifact_kind)
+    hardware_commit_sha = _git_object(hardware_commit_sha)
     root = _resolve_repository_root(repository_root)
-    source_path = _canonical_repo_path(source_path, "source_path")
-    source_content_sha256 = _hash_controlled_file(
+    _require_git_repository_root(root)
+    registry, _ = _provenance_registry_for_commit(root, hardware_commit_sha)
+    if artifact_kind not in registry:
+        raise DigitalReleaseError(
+            f"artifact kind {artifact_kind.value} has no authorized provenance source"
+        )
+    source_path = registry[artifact_kind]
+    committed_source = _git_blob_bytes(
+        root,
+        commit_sha=hardware_commit_sha,
+        relative_path=source_path,
+        label=f"authorized source for {artifact_kind.value}",
+    )
+    source_content_sha256 = sha256(committed_source).hexdigest()
+    working_source_sha256 = _hash_controlled_file(
         root,
         source_path,
-        label="source provenance file",
+        label=f"working source for {artifact_kind.value}",
     )
+    if working_source_sha256 != source_content_sha256:
+        raise DigitalReleaseError(
+            f"working source for {artifact_kind.value} differs from declared hardware commit"
+        )
     return source_provenance_identity_sha256(
         artifact_id=artifact_id,
+        artifact_kind=artifact_kind,
+        hardware_commit_sha=hardware_commit_sha,
         source_path=source_path,
         source_content_sha256=source_content_sha256,
     )
@@ -283,36 +487,36 @@ def verify_digital_release_export(
     repository_root: str,
     current_authority: Authority,
     current_hardware_commit_sha: str,
-    provenance_paths: dict[str, str],
 ) -> DigitalReleaseVerificationReport:
-    """Verify a release against actual bytes and current engineering identities.
+    """Verify release bytes and commit-authorized provenance fail closed.
 
-    ``provenance_paths`` maps each artifact ID to the repository-relative path of the
-    released owning source contract/report/manifest whose content the artifact's
-    ``source_provenance_sha256`` binds via :func:`source_provenance_identity_sha256`.
+    The provenance registry is read from ``release.hardware_commit_sha`` at the fixed
+    repository path ``config/digital_provenance_registry.yaml``. Each source file is
+    read from that same commit and must also match the current worktree byte-for-byte.
+    Callers therefore cannot choose a convenient provenance file after the fact.
     """
     if type(release) is not DigitalProductRelease:
         raise DigitalReleaseError("release must be exact DigitalProductRelease")
     release.validate_invariants()
+    release_sha256 = release.release_sha256
     validate_current_hardware_commit(
         release,
         current_hardware_commit_sha=current_hardware_commit_sha,
     )
-    if type(provenance_paths) is not dict or any(
-        type(key) is not str or type(value) is not str
-        for key, value in provenance_paths.items()
-    ):
-        raise DigitalReleaseError("provenance_paths must be exact string-to-string mapping")
-    artifact_ids = tuple(artifact.artifact_id for artifact in release.artifacts)
-    if set(provenance_paths) != set(artifact_ids):
-        raise DigitalReleaseError("provenance_paths must cover every artifact exactly once")
 
     authority_sha256 = authority_content_sha256(current_authority)
     if release.authority_sha256 != authority_sha256:
         raise DigitalReleaseError("digital release is stale or forged for current authority content")
 
     root = _resolve_repository_root(repository_root)
+    _require_git_repository_root(root)
+    registry, registry_sha256 = _provenance_registry_for_commit(
+        root,
+        release.hardware_commit_sha,
+    )
+
     verified: list[VerifiedArtifactRecord] = []
+    source_commit_hashes: dict[str, str] = {}
     for artifact in release.artifacts:
         actual_content_sha256 = _hash_controlled_file(
             root,
@@ -324,21 +528,36 @@ def verify_digital_release_export(
                 f"artifact {artifact.artifact_id} content SHA-256 mismatch"
             )
 
-        source_path = _canonical_repo_path(
-            provenance_paths[artifact.artifact_id],
-            f"provenance path for {artifact.artifact_id}",
-        )
+        if artifact.kind not in registry:
+            raise DigitalReleaseError(
+                f"artifact {artifact.artifact_id} kind {artifact.kind.value} has no authorized provenance source"
+            )
+        source_path = registry[artifact.kind]
         if source_path == artifact.relative_path:
             raise DigitalReleaseError(
                 f"artifact {artifact.artifact_id} cannot self-declare source provenance"
             )
-        source_content_sha256 = _hash_controlled_file(
+        committed_source = _git_blob_bytes(
+            root,
+            commit_sha=release.hardware_commit_sha,
+            relative_path=source_path,
+            label=f"authorized source for {artifact.artifact_id}",
+        )
+        source_content_sha256 = sha256(committed_source).hexdigest()
+        working_source_sha256 = _hash_controlled_file(
             root,
             source_path,
-            label=f"source provenance for {artifact.artifact_id}",
+            label=f"working source for {artifact.artifact_id}",
         )
+        if working_source_sha256 != source_content_sha256:
+            raise DigitalReleaseError(
+                f"working source for {artifact.artifact_id} differs from declared hardware commit"
+            )
+        source_commit_hashes[source_path] = source_content_sha256
         expected_provenance = source_provenance_identity_sha256(
             artifact_id=artifact.artifact_id,
+            artifact_kind=artifact.kind,
+            hardware_commit_sha=release.hardware_commit_sha,
             source_path=source_path,
             source_content_sha256=source_content_sha256,
         )
@@ -359,11 +578,38 @@ def verify_digital_release_export(
 
     if authority_content_sha256(current_authority) != authority_sha256:
         raise DigitalReleaseError("authority changed while digital release was being verified")
+    if release.release_sha256 != release_sha256:
+        raise DigitalReleaseError("release changed while digital release was being verified")
+    if _hash_controlled_file(
+        root,
+        _REGISTRY_PATH,
+        label="working digital provenance registry",
+    ) != registry_sha256:
+        raise DigitalReleaseError("provenance registry changed while release was being verified")
+    for source_path, committed_sha256 in source_commit_hashes.items():
+        if _hash_controlled_file(
+            root,
+            source_path,
+            label=f"working provenance source {source_path}",
+        ) != committed_sha256:
+            raise DigitalReleaseError(
+                f"provenance source changed while release was being verified: {source_path}"
+            )
+    for record in verified:
+        if _hash_controlled_file(
+            root,
+            record.relative_path,
+            label=f"artifact {record.artifact_id}",
+        ) != record.content_sha256:
+            raise DigitalReleaseError(
+                f"artifact {record.artifact_id} changed while release was being verified"
+            )
 
     return DigitalReleaseVerificationReport(
-        release_sha256=release.release_sha256,
+        release_sha256=release_sha256,
         hardware_commit_sha=release.hardware_commit_sha,
         authority_sha256=authority_sha256,
+        provenance_registry_sha256=registry_sha256,
         artifacts=tuple(verified),
         physical_evidence_promoted=False,
     )
