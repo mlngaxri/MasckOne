@@ -1,1 +1,7 @@
-const button=document.querySelector('#notify');button?.addEventListener('click',()=>{button.textContent='Early access opening later';button.setAttribute('aria-live','polite')});
+const button=document.querySelector('#notify');
+const status=document.querySelector('#access-status');
+button?.addEventListener('click',()=>{
+  button.disabled=true;
+  button.textContent='Early access opening later';
+  if(status) status.textContent='Early access is not open yet. No signup or availability is implied by this preview.';
+});
