@@ -93,6 +93,8 @@ def _real(
         raise DistributionGeometryError(f"{label} must be representable as a finite float") from exc
     if not math.isfinite(result):
         raise DistributionGeometryError(f"{label} must be finite")
+    if result == 0.0:
+        result = 0.0
     if positive and result <= 0.0:
         raise DistributionGeometryError(f"{label} must be positive")
     if nonnegative and result < 0.0:
@@ -143,16 +145,12 @@ def _clearance_to_zone_mm(point: Point2, volume: ProtectedVolume) -> float:
     b = volume.zone.envelope_height_mm / 2.0
     normalized = (x / a) ** 2 + (y / b) ** 2
     if normalized <= 1.0:
-        # Interior points are always ineligible. A negative conservative sentinel is
-        # sufficient; exterior candidates receive the exact Euclidean solution below.
         if x <= 1e-15 and y <= 1e-15:
             return -min(a, b)
         return -min(a, b) * (1.0 - math.sqrt(normalized))
     if math.isclose(a, b, rel_tol=0.0, abs_tol=1e-15):
         return math.hypot(x, y) - a
 
-    # For an exterior point, the closest ellipse point is obtained from the unique
-    # non-negative Lagrange multiplier satisfying this monotone equation.
     def residual(multiplier: float) -> float:
         return (
             (a * x / (multiplier + a * a)) ** 2
@@ -266,6 +264,17 @@ class OutletPlacement:
     evidence_status: str
 
     def __post_init__(self) -> None:
+        center = _point3(self.center_xyz_mm, label="outlet center")
+        direction = _vector3(self.lateral_direction_xyz, label="outlet lateral direction")
+        margin = _real(self.protected_clearance_mm, label="protected clearance", nonnegative=True)
+        required = _real(self.required_clearance_mm, label="required clearance", positive=True)
+        object.__setattr__(self, "center_xyz_mm", center)
+        object.__setattr__(self, "lateral_direction_xyz", direction)
+        object.__setattr__(self, "protected_clearance_mm", margin)
+        object.__setattr__(self, "required_clearance_mm", required)
+        self.validate_invariants()
+
+    def validate_invariants(self) -> None:
         _text(self.outlet_id, label="outlet placement ID")
         if type(self.fluid_identity) is not str or self.fluid_identity not in {
             FLUID_FRESH_WATER,
@@ -278,12 +287,12 @@ class OutletPlacement:
             raise DistributionGeometryError("outlet placement must use a controlled active target region")
         center = _point3(self.center_xyz_mm, label="outlet center")
         direction = _vector3(self.lateral_direction_xyz, label="outlet lateral direction")
-        margin = _real(
-            self.protected_clearance_mm,
-            label="protected clearance",
-            nonnegative=True,
-        )
+        margin = _real(self.protected_clearance_mm, label="protected clearance", nonnegative=True)
         required = _real(self.required_clearance_mm, label="required clearance", positive=True)
+        if center != self.center_xyz_mm or direction != self.lateral_direction_xyz:
+            raise DistributionGeometryError("outlet vectors must remain canonical normalized tuples")
+        if margin != self.protected_clearance_mm or required != self.required_clearance_mm:
+            raise DistributionGeometryError("outlet numeric fields must remain canonical finite scalars")
         if margin + 1e-12 < required:
             raise DistributionGeometryError("outlet placement violates protected-region clearance")
         controlled = (
@@ -294,12 +303,9 @@ class OutletPlacement:
         for value, expected, label in controlled:
             if type(value) is not str or value != expected:
                 raise DistributionGeometryError(f"{label} must use its controlled state")
-        object.__setattr__(self, "center_xyz_mm", center)
-        object.__setattr__(self, "lateral_direction_xyz", direction)
-        object.__setattr__(self, "protected_clearance_mm", margin)
-        object.__setattr__(self, "required_clearance_mm", required)
 
     def manifest(self) -> dict[str, object]:
+        self.validate_invariants()
         return {
             "outlet_id": self.outlet_id,
             "fluid_identity": self.fluid_identity,
@@ -328,22 +334,30 @@ class DistributionGrooveIntent:
     evidence_status: str
 
     def __post_init__(self) -> None:
+        origin = _point3(self.origin_xyz_mm, label="groove origin")
+        direction = _vector3(self.lateral_direction_xyz, label="groove lateral direction")
+        object.__setattr__(self, "origin_xyz_mm", origin)
+        object.__setattr__(self, "lateral_direction_xyz", direction)
+        self.validate_invariants()
+
+    def validate_invariants(self) -> None:
         _text(self.groove_id, label="groove ID")
         _text(self.outlet_id, label="groove outlet ID")
         if self.groove_id != f"DISTRIBUTION-GROOVE-{self.outlet_id}":
             raise DistributionGeometryError("groove ID must derive from its outlet ID")
         origin = _point3(self.origin_xyz_mm, label="groove origin")
         direction = _vector3(self.lateral_direction_xyz, label="groove lateral direction")
+        if origin != self.origin_xyz_mm or direction != self.lateral_direction_xyz:
+            raise DistributionGeometryError("groove vectors must remain canonical normalized tuples")
         if any(value is not None for value in (self.width_mm, self.depth_mm, self.length_mm)):
             raise DistributionGeometryError("Iteration 24 cannot invent distribution-groove dimensions")
         if type(self.surface_status) is not str or self.surface_status != GROOVE_SURFACE_STATUS:
             raise DistributionGeometryError("groove surface status must use the controlled unresolved state")
         if type(self.evidence_status) is not str or self.evidence_status != GROOVE_EVIDENCE_STATUS:
             raise DistributionGeometryError("groove evidence status must use the controlled unresolved state")
-        object.__setattr__(self, "origin_xyz_mm", origin)
-        object.__setattr__(self, "lateral_direction_xyz", direction)
 
     def manifest(self) -> dict[str, object]:
+        self.validate_invariants()
         return {
             "groove_id": self.groove_id,
             "outlet_id": self.outlet_id,
@@ -370,16 +384,25 @@ class DistributionGeometryArchitecture:
     evidence_status: str
 
     def __post_init__(self) -> None:
+        required = _real(self.required_clearance_mm, label="required clearance", positive=True)
+        object.__setattr__(self, "required_clearance_mm", required)
+        self.validate_invariants()
+
+    def validate_invariants(self) -> None:
         _sha(self.source_manifold_architecture_sha256, label="source manifold architecture")
         _sha(self.source_coverage_segmentation_sha256, label="source coverage segmentation")
         _sha(self.source_protected_volumes_sha256, label="source protected volumes")
         if type(self.eligible_candidate_count) is not int or self.eligible_candidate_count <= 0:
             raise DistributionGeometryError("eligible candidate count must be an exact positive integer")
         required = _real(self.required_clearance_mm, label="required clearance", positive=True)
+        if required != self.required_clearance_mm:
+            raise DistributionGeometryError("required clearance must remain a canonical finite scalar")
         if type(self.placements) is not tuple or not self.placements or any(
             type(item) is not OutletPlacement for item in self.placements
         ):
             raise DistributionGeometryError("outlet placements must be an immutable tuple of exact records")
+        for item in self.placements:
+            item.validate_invariants()
         outlet_ids = tuple(item.outlet_id for item in self.placements)
         if len(outlet_ids) != len(set(outlet_ids)):
             raise DistributionGeometryError("outlet placement IDs cannot repeat")
@@ -392,6 +415,8 @@ class DistributionGeometryArchitecture:
             type(item) is not DistributionGrooveIntent for item in self.grooves
         ):
             raise DistributionGeometryError("grooves must be an immutable tuple of exact intent records")
+        for item in self.grooves:
+            item.validate_invariants()
         if tuple(item.outlet_id for item in self.grooves) != outlet_ids:
             raise DistributionGeometryError("every outlet requires one ordered distribution-groove intent")
         for placement, groove in zip(self.placements, self.grooves, strict=True):
@@ -404,7 +429,6 @@ class DistributionGeometryArchitecture:
             raise DistributionGeometryError("digital distribution geometry cannot be physical validation evidence")
         if type(self.evidence_status) is not str or self.evidence_status != ARCHITECTURE_EVIDENCE_STATUS:
             raise DistributionGeometryError("distribution geometry evidence status must use the controlled state")
-        object.__setattr__(self, "required_clearance_mm", required)
 
     def validate_current_sources(
         self,
@@ -418,6 +442,7 @@ class DistributionGeometryArchitecture:
         coverage: FacialCoverageMesh,
         protected: ProtectedVolumeSet,
     ) -> None:
+        self.validate_invariants()
         if type(authority) is not Authority:
             raise DistributionGeometryError("authority must be an exact Authority contract")
         if type(manifold) is not DistributionManifoldArchitecture:
@@ -503,14 +528,17 @@ class DistributionGeometryArchitecture:
 
     @property
     def architecture_sha256(self) -> str:
+        self.validate_invariants()
         raw = json.dumps(
             self.manifest(include_sha=False),
             sort_keys=True,
             separators=(",", ":"),
+            allow_nan=False,
         ).encode("utf-8")
         return sha256(raw).hexdigest()
 
     def manifest(self, *, include_sha: bool = True) -> dict[str, object]:
+        self.validate_invariants()
         payload: dict[str, object] = {
             "source_manifold_architecture_sha256": self.source_manifold_architecture_sha256,
             "source_coverage_segmentation_sha256": self.source_coverage_segmentation_sha256,
@@ -523,7 +551,13 @@ class DistributionGeometryArchitecture:
             "evidence_status": self.evidence_status,
         }
         if include_sha:
-            payload["architecture_sha256"] = self.architecture_sha256
+            raw = json.dumps(
+                payload,
+                sort_keys=True,
+                separators=(",", ":"),
+                allow_nan=False,
+            ).encode("utf-8")
+            payload["architecture_sha256"] = sha256(raw).hexdigest()
         return payload
 
 
