@@ -26,6 +26,10 @@ class IDLimits:
     min_control_separation_mm: float = 2.0
     service_grip_depth_min_mm: float = 0.6
     service_grip_depth_max_mm: float = 1.2
+    min_service_grip_land_mm: float = 12.0
+    min_service_release_clearance_mm: float = 1.5
+    min_quick_release_tactile_land_mm: float = 10.0
+    min_hair_pinch_clearance_mm: float = 2.0
     max_eye_aperture_angle_asymmetry_deg: float = 1.5
     max_eye_aperture_hostile_cant_deg: float = 4.0
     max_nose_projection_above_field_mm: float = 2.0
@@ -38,10 +42,12 @@ REQUIRED_MEASUREMENTS = (
     "ID_SIDE_TRANSITION_DEPTH_L", "ID_SIDE_TRANSITION_DEPTH_R",
     "ID_REAR_FRONTAL_OVERHANG_L", "ID_REAR_FRONTAL_OVERHANG_R",
     "ID_REAR_FRONTAL_OVERHANG_T", "ID_REAR_FRONTAL_OVERHANG_B",
-    "ID_SERVICE_GRIP_DEPTH", "ID_CONTROL_TACTILE_LAND_CLEAN",
-    "ID_CONTROL_TACTILE_LAND_SECONDARY", "ID_CONTROL_TACTILE_SEPARATION",
-    "ID_EYE_APERTURE_CANT_L", "ID_EYE_APERTURE_CANT_R",
-    "ID_NOSE_PROJECTION_ABOVE_FIELD",
+    "ID_SERVICE_GRIP_DEPTH", "ID_SERVICE_GRIP_LAND",
+    "ID_SERVICE_RELEASE_CLEARANCE", "ID_QUICK_RELEASE_TACTILE_LAND",
+    "ID_HAIR_PINCH_CLEARANCE_L", "ID_HAIR_PINCH_CLEARANCE_R",
+    "ID_CONTROL_TACTILE_LAND_CLEAN", "ID_CONTROL_TACTILE_LAND_SECONDARY",
+    "ID_CONTROL_TACTILE_SEPARATION", "ID_EYE_APERTURE_CANT_L",
+    "ID_EYE_APERTURE_CANT_R", "ID_NOSE_PROJECTION_ABOVE_FIELD",
 )
 
 SIGNED_MEASUREMENTS = frozenset(("ID_EYE_APERTURE_CANT_L", "ID_EYE_APERTURE_CANT_R"))
@@ -66,13 +72,7 @@ def _finite_nonnegative(name: str, value: float) -> float:
 
 
 def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimits()) -> None:
-    """Fail closed on absent, malformed or packaging-degrading ID evidence.
-
-    Eye-aperture cant is signed in the canonical facial coordinate frame. Mirrored
-    left/right geometry can therefore carry opposite signs. Expression neutrality
-    is evaluated on cant magnitude and bilateral magnitude mismatch, rather than
-    incorrectly rejecting a valid mirrored aperture because one angle is negative.
-    """
+    """Fail closed on absent, malformed or packaging-degrading ID evidence."""
     missing = sorted(set(REQUIRED_MEASUREMENTS) - set(values))
     if missing:
         raise IndustrialDesignContractError("missing stable ID measurements: " + ", ".join(missing))
@@ -103,6 +103,15 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
     grip = v["ID_SERVICE_GRIP_DEPTH"]
     if not limits.service_grip_depth_min_mm <= grip <= limits.service_grip_depth_max_mm:
         raise IndustrialDesignContractError("service grip depth is outside the wet-finger prototype exploration band")
+    if v["ID_SERVICE_GRIP_LAND"] < limits.min_service_grip_land_mm:
+        raise IndustrialDesignContractError("service grip land is too small for deliberate wet-finger acquisition")
+    if v["ID_SERVICE_RELEASE_CLEARANCE"] < limits.min_service_release_clearance_mm:
+        raise IndustrialDesignContractError("service release lacks prototype finger/tool clearance")
+    if v["ID_QUICK_RELEASE_TACTILE_LAND"] < limits.min_quick_release_tactile_land_mm:
+        raise IndustrialDesignContractError("quick release tactile land is below prototype discoverability target")
+    for side in ("L", "R"):
+        if v[f"ID_HAIR_PINCH_CLEARANCE_{side}"] < limits.min_hair_pinch_clearance_mm:
+            raise IndustrialDesignContractError(f"{side} retention/service interface lacks prototype hair-pinch clearance")
     if v["ID_CONTROL_TACTILE_LAND_CLEAN"] < limits.min_primary_control_land_mm:
         raise IndustrialDesignContractError("CLEAN tactile land is below prototype discoverability target")
     if v["ID_CONTROL_TACTILE_LAND_SECONDARY"] < limits.min_secondary_control_land_mm:
