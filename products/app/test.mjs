@@ -29,7 +29,12 @@ assert.ok(previewTag.includes('aria-controls="simulation-status"'));
 assert.ok(js.includes('preview.disabled=true'),'preview action must settle deterministically');
 assert.ok(js.includes('No device command was sent'),'runtime feedback must preserve simulation boundary');
 assert.ok(!/<button[^>]*aria-label="Device settings"/i.test(html),'unavailable settings must not masquerade as an interactive control');
-assert.ok(html.includes('Device settings are unavailable in this interaction prototype.'));
+const settingsGlyph=html.match(/<span[^>]*\bclass="settings-unavailable"[^>]*>/)?.[0]??'';
+assert.ok(settingsGlyph.includes('aria-hidden="true"'),'visual unavailable-settings glyph must remain decorative');
+assert.ok(!settingsGlyph.includes('aria-describedby'),'aria-hidden glyph must not own an inaccessible description relationship');
+const settingsNote=html.match(/<p[^>]*\bid="settings-note"[^>]*>/)?.[0]??'';
+assert.ok(settingsNote.includes('class="sr-only"'),'unavailable-settings message must remain discoverable semantic text');
+assert.ok(html.includes('>Device settings are unavailable in this interaction prototype.</p>'));
 for(const token of ['fetch(','XMLHttpRequest','WebSocket','navigator.bluetooth','BluetoothRemoteGATT']) assert.ok(!js.includes(token),`unexpected device/network transport token: ${token}`);
 
 const ids=new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((match)=>match[1]));

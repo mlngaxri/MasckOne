@@ -18,6 +18,10 @@ for(const match of html.matchAll(/\shref="#([^"]+)"/g)){
   assert.ok(ids.has(match[1]),`internal navigation target #${match[1]} must exist`);
 }
 
+const productTag=html.match(/<div[^>]*\bclass="product-stage"[^>]*>/)?.[0]??'';
+assert.ok(productTag.includes('role="img"'),'labelled product silhouette must expose image semantics');
+assert.ok(productTag.includes('aria-label="Abstract Masck One product silhouette"'));
+
 const statusTag=html.match(/<[^>]*\bid="access-status"[^>]*>/)?.[0]??'';
 assert.ok(statusTag.includes('role="status"'),'early-access status must be a live status region before mutation');
 assert.ok(statusTag.includes('aria-live="polite"'));
