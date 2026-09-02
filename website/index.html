@@ -234,14 +234,14 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1590;op
 .handoff-kicker{position:absolute;left:var(--pad);top:108px;font:400 8px/1 DM Mono,monospace;letter-spacing:.15em;text-transform:uppercase;opacity:.48}
 .handoff-index{position:absolute;right:var(--pad);top:100px;min-width:150px;padding-top:9px;border-top:1px solid rgba(24,33,28,.24);text-align:right;font:400 8px/1.5 DM Mono,monospace;letter-spacing:.1em;text-transform:uppercase;opacity:.48}
 .handoff-index b{display:block;font:300 28px/.9 Fraunces,serif;letter-spacing:-.05em;margin-bottom:7px}
-.mask-orbit-overlay{position:fixed;left:50%;top:52%;z-index:1110;width:clamp(600px,62vw,940px);aspect-ratio:1;transform:translate(-50%,-50%) rotate(-7deg) scaleY(.42);opacity:0;pointer-events:none;will-change:opacity;overflow:visible}
+.mask-orbit-overlay{--stream-y:118vh;position:fixed;left:50%;top:0;z-index:1110;width:clamp(600px,62vw,940px);aspect-ratio:1;transform:translate(-50%,-50%) translateY(var(--stream-y)) rotate(-7deg) scaleY(.42);opacity:0;pointer-events:none;will-change:opacity,transform;overflow:visible}
 .mask-orbit-overlay.orbit-back{clip-path:inset(-24% -30% 50% -30%)}
 .mask-orbit-overlay.orbit-front{z-index:1130;clip-path:inset(50% -30% -24% -30%)}
 .mask-orbit-node{--delay:0s;position:absolute;inset:0;animation:orbitEllipseSpin 18s linear infinite;animation-delay:var(--delay)}
 .mask-orbit-node span{position:absolute;left:50%;top:0;white-space:nowrap;font:300 clamp(42px,4.7vw,76px)/.9 Fraunces,serif;letter-spacing:-.065em;color:rgba(24,33,28,.94);text-shadow:0 8px 28px rgba(246,241,232,.72);transform:translate(-50%,-50%) rotate(7deg) scaleY(2.38095);animation:orbitEllipseCounter 18s linear infinite;animation-delay:var(--delay)}
 @keyframes orbitEllipseSpin{to{transform:rotate(360deg)}}
 @keyframes orbitEllipseCounter{to{transform:translate(-50%,-50%) rotate(-353deg) scaleY(2.38095)}}
-.handoff-halo{position:absolute;z-index:2;left:50%;top:52%;width:clamp(430px,49vw,740px);height:clamp(230px,22vw,340px);transform:translate(-50%,-50%) rotate(-7deg);border:1px solid rgba(24,33,28,.18);border-radius:50%;pointer-events:none}
+.handoff-halo{--halo-y:122vh;position:fixed;z-index:1115;left:50%;top:0;width:clamp(430px,49vw,740px);height:clamp(230px,22vw,340px);transform:translate(-50%,-50%) translateY(var(--halo-y)) rotate(-7deg);border:1px solid rgba(24,33,28,.18);border-radius:50%;pointer-events:none;opacity:0;will-change:opacity,transform}
 .handoff-halo:before,.handoff-halo:after{content:"";position:absolute;border:1px solid rgba(24,33,28,.12);border-radius:50%;inset:13%}.handoff-halo:after{inset:29%;border-style:dashed;animation:spin 24s linear infinite}.handoff-halo .orbit{position:absolute;inset:-8%;border:1px solid rgba(185,126,101,.22);border-radius:50%;transform:rotate(19deg) scaleY(.72)}.handoff-halo .axis{position:absolute;left:50%;top:-5%;bottom:-5%;width:1px;background:linear-gradient(transparent,rgba(24,33,28,.16),transparent)}
 .handoff-caption{position:absolute;z-index:4;left:var(--pad);bottom:42px;width:min(520px,42vw);padding:0;border:0;background:none;backdrop-filter:none;box-shadow:none;font-size:12.5px;line-height:1.72;letter-spacing:-.01em;opacity:1}.handoff-caption:before{content:"";display:block;width:54px;height:1px;margin-bottom:14px;background:linear-gradient(90deg,var(--clay),rgba(24,33,28,.18))}.handoff-caption b{display:block;margin-bottom:9px;font:300 clamp(23px,2vw,31px)/1 Fraunces,serif;letter-spacing:-.045em}.handoff-caption span{display:block;max-width:430px;opacity:.66}
 .view[data-view="object"]>.page.paper{min-height:112svh}.view[data-view="object"]>.page.paper .visual{transition:opacity .28s linear}
@@ -314,8 +314,8 @@ body:before{inset:5px;border-radius:15px}
 }
 
 @media(min-width:901px) and (max-width:1120px){.hero-subject{right:-5vw;height:106vh}.band{height:clamp(86px,9vw,112px)}.band span{font-size:clamp(50px,6.2vw,72px)}.handoff-words{font-size:clamp(72px,11.7vw,126px)}}
-@media(max-width:900px){.hero-subject{right:-43vw;bottom:4vh;height:76vh;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%);mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%)}.hero-copy{top:11.2vh;z-index:10}.hero h1{max-width:80%;font-size:clamp(50px,14vw,72px)}.hero-copy p{max-width:66%}.band{left:-28vw;width:156vw;height:72px}.band span{font-size:46px}.band.masck{top:49%}.band.one{top:65%}.mask-journey{width:clamp(190px,58vw,300px)}.handoff-page{height:122svh}.handoff-stage{padding:80px 24px 45px}.handoff-kicker{left:24px;top:84px}.handoff-index{right:24px;top:80px;min-width:118px}.handoff-words{padding:7vh 22px 5vh;font-size:clamp(68px,22vw,112px);line-height:.8}.handoff-words span:nth-child(2){align-self:flex-start;margin-left:8vw}.handoff-words span:nth-child(3){align-self:flex-end}.handoff-halo{top:53%;width:min(82vw,480px)}.handoff-caption{left:24px;bottom:30px;width:min(72vw,330px);font-size:10px}}
-@media(max-width:900px){.mask-orbit-overlay{top:53%;width:min(128vw,650px)}.mask-orbit-node span{font-size:clamp(30px,9vw,44px)}.handoff-caption{left:24px;bottom:28px;width:min(calc(100vw - 48px),410px);padding:0;font-size:11px}.handoff-caption b{font-size:21px}.nav-progress{left:0;right:0;bottom:0;height:3px}}
+@media(max-width:900px){.hero-subject{right:-43vw;bottom:4vh;height:76vh;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%);mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%)}.hero-copy{top:11.2vh;z-index:10}.hero h1{max-width:80%;font-size:clamp(50px,14vw,72px)}.hero-copy p{max-width:66%}.band{left:-28vw;width:156vw;height:72px}.band span{font-size:46px}.band.masck{top:49%}.band.one{top:65%}.mask-journey{width:clamp(190px,58vw,300px)}.handoff-page{height:122svh}.handoff-stage{padding:80px 24px 45px}.handoff-kicker{left:24px;top:84px}.handoff-index{right:24px;top:80px;min-width:118px}.handoff-words{padding:7vh 22px 5vh;font-size:clamp(68px,22vw,112px);line-height:.8}.handoff-words span:nth-child(2){align-self:flex-start;margin-left:8vw}.handoff-words span:nth-child(3){align-self:flex-end}.handoff-halo{width:min(82vw,480px)}.handoff-caption{left:24px;bottom:30px;width:min(72vw,330px);font-size:10px}}
+@media(max-width:900px){.mask-orbit-overlay{width:min(128vw,650px)}.mask-orbit-node span{font-size:clamp(30px,9vw,44px)}.handoff-caption{left:24px;bottom:28px;width:min(calc(100vw - 48px),410px);padding:0;font-size:11px}.handoff-caption b{font-size:21px}.nav-progress{left:0;right:0;bottom:0;height:3px}}
 @media(max-width:900px) and (prefers-reduced-motion:reduce){.band-track,.float,.object-disc,.fluid-path .route,.motion-rings,.motion-rings:before,.motion-rings:after,.zone-labels span,.proof-scan,.hero-bottom .line,.glimmer-pass:before,.glimmer-pass:after{animation:none!important}
 .fluid-path .fluid-particle{display:none}
 .mask-orbit-node,.mask-orbit-node span{animation:none!important}
@@ -356,7 +356,8 @@ body:before{inset:5px;border-radius:15px}
 <div class="mask-journey" aria-hidden="true"><img src="https://masck-one.vercel.app/images/masck-one-product-angle.webp" alt="" /></div>
 <div class="mask-orbit-overlay orbit-back" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
 <div class="mask-orbit-overlay orbit-front" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
-<section class="handoff-page" aria-label="Architecture Systems Proof overview"><div class="handoff-stage"><div class="handoff-index"><b>02</b>Architecture / systems / proof</div><div class="handoff-halo" aria-hidden="true"><span class="orbit"></span><span class="axis"></span></div><div class="handoff-caption"><b>The same object, followed downward.</b><span>As you scroll, MASCK ONE moves from its exterior form into the architecture, systems and proof behind the product.</span></div></div></section>
+<div class="handoff-halo handoff-halo-stream" aria-hidden="true"><span class="orbit"></span><span class="axis"></span></div>
+<section class="handoff-page" aria-label="Architecture Systems Proof overview"><div class="handoff-stage"><div class="handoff-index"><b>02</b>Architecture / systems / proof</div><div class="handoff-caption"><b>The same object, followed downward.</b><span>As you scroll, MASCK ONE moves from its exterior form into the architecture, systems and proof behind the product.</span></div></div></section>
 <section class="page paper">
 <div class="section-tag"><span>Object</span><b>03 / 03</b></div>
 <div class="page-copy reveal" data-page-copy>
@@ -463,6 +464,7 @@ const heroSubject=document.querySelector('.hero-subject');
 const handoff=document.querySelector('.handoff-page');
 const objectPaper=document.querySelector('.view[data-view="object"] > .page.paper');
 const orbitCopies=[...document.querySelectorAll('.mask-orbit-overlay')];
+const haloStream=document.querySelector('.handoff-halo-stream');
 
 const lenis=window.Lenis?new Lenis({autoRaf:true,lerp:.085,smoothWheel:true,syncTouch:false,wheelMultiplier:.92,touchMultiplier:1,overscroll:false}):null;
 
@@ -550,7 +552,7 @@ else window.scrollTo(0,0);
 function setActive(name){
 active=name;
 if(journey&&name!=='object')journey.style.opacity='0';
-if(name!=='object')orbitCopies.forEach(el=>el.style.opacity='0');
+if(name!=='object'){orbitCopies.forEach(el=>el.style.opacity='0');if(haloStream)haloStream.style.opacity='0'}
 views.forEach(v=>v.classList.toggle('active',v.dataset.view===name));
 nav.forEach(b=>{
 const isActive=b.dataset.viewTarget===name;
@@ -648,14 +650,24 @@ if(heroCopy)heroCopy.style.transform=`translate3d(${mx*2.5}px,${-p*24+my*1.8}px,
 if(journey&&handoff&&objectPaper){
 const heroH=Math.max(1,hero.offsetHeight);const paperTop=objectPaper.offsetTop;
 const detach=smooth(clamp((sy-heroH*.18)/(heroH*.68),0,1));const paperEntry=smooth(clamp((sy-(paperTop-innerHeight*.72))/(innerHeight*.9),0,1));const fadeOut=smooth(clamp((sy-(paperTop+innerHeight*.02))/(innerHeight*.5),0,1));const show=smooth(clamp((sy-heroH*.22)/(heroH*.28),0,1));
-const orbitReveal=smooth(clamp((detach-.86)/.12,0,1))*(1-smooth(clamp((paperEntry-.55)/.32,0,1)));
-orbitCopies.forEach(el=>el.style.opacity=String(orbitReveal));
+const handoffTop=handoff.offsetTop;
+const textEnter=smooth(clamp((sy-heroH*.72)/(innerHeight*.72),0,1));
+const textExit=smooth(clamp((sy-(paperTop-innerHeight*.92))/(innerHeight*.96),0,1));
+const textY=mix(mix(innerHeight*1.22,innerHeight*.52,textEnter),innerHeight*1.26,textExit);
+const textOpacity=smooth(clamp((textEnter-.05)/.22,0,1))*(1-smooth(clamp((textExit-.78)/.2,0,1)));
+orbitCopies.forEach(el=>{el.style.opacity=String(textOpacity);el.style.setProperty('--stream-y',`${textY}px`)});
+
+const haloEnter=smooth(clamp((sy-(handoffTop-innerHeight*.12))/(innerHeight*.76),0,1));
+const haloExit=smooth(clamp((sy-(paperTop-innerHeight*1.02))/(innerHeight*.9),0,1));
+const haloY=mix(mix(innerHeight*1.22,innerHeight*.52,haloEnter),-innerHeight*.24,haloExit);
+const haloOpacity=smooth(clamp((haloEnter-.04)/.2,0,1))*(1-smooth(clamp((haloExit-.82)/.16,0,1)));
+if(haloStream){haloStream.style.opacity=String(haloOpacity);haloStream.style.setProperty('--halo-y',`${haloY}px`)}
 const sx=innerWidth*(desktop()?.735:.68),sy0=innerHeight*(desktop()?.46:.56),cx=innerWidth*.5,cy=innerHeight*.52,tx2=innerWidth*(desktop()?.72:.5),ty2=innerHeight*(desktop()?.49:.31);
 const x=mix(mix(sx,cx,detach),tx2,paperEntry),y=mix(mix(sy0,cy,detach),ty2,paperEntry),scale=mix(mix(desktop()?.58:.72,1,detach),desktop()?.82:.76,paperEntry);
 journey.style.opacity=String(show*(1-fadeOut));journey.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) scale(${scale}) rotate(${mix(-5,0,detach)+mix(0,4,paperEntry)}deg)`;
 if(heroSubject)heroSubject.style.opacity=String(1-smooth(clamp((sy-heroH*.6)/(heroH*.34),0,1))*.72);
 }
-}else if(journey){journey.style.opacity='0';orbitCopies.forEach(el=>el.style.opacity='0')}
+}else if(journey){journey.style.opacity='0';orbitCopies.forEach(el=>el.style.opacity='0');if(haloStream)haloStream.style.opacity='0'}
 
 if(desktop()){
 const current=document.querySelector('.view.active');
