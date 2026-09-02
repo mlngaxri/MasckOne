@@ -325,11 +325,11 @@ body:before{inset:5px;border-radius:15px}
 .glimmer-pass{display:none}
 }
 
-/* Persistent navigation + visible earth-tone shader */
-.header{overflow:hidden;opacity:1;pointer-events:auto;clip-path:none;transform:translateX(-50%);border:2px solid transparent;background:linear-gradient(rgba(248,250,248,.82),rgba(248,250,248,.76)) padding-box,linear-gradient(112deg,#f6f1e8 0%,#738267 20%,#b97e65 42%,#8fa6a2 64%,#c7b28f 82%,#f6f1e8 100%) border-box;background-size:100% 100%,260% 100%;background-position:0 0,0% 50%;backdrop-filter:blur(18px) saturate(1.08);box-shadow:0 14px 42px rgba(24,33,28,.075),inset 0 1px 0 rgba(255,255,255,.38);animation:navShader 12s ease-in-out infinite alternate}
+/* Persistent navigation, intentionally outline-free */
+.header{overflow:hidden;opacity:1;pointer-events:auto;clip-path:none;transform:translateX(-50%);border:0;background:rgba(248,250,248,.78);backdrop-filter:blur(18px) saturate(1.08);box-shadow:0 14px 42px rgba(24,33,28,.07),inset 0 1px 0 rgba(255,255,255,.34);animation:none}
 .header>*{opacity:1}
-.nav-progress{left:2px;right:2px;bottom:2px;height:3px;border-radius:0 0 999px 999px;background:rgba(24,33,28,.07)}
-.nav-progress-fill{background:#738267;box-shadow:0 0 9px rgba(115,130,103,.38)}
+.nav-progress{left:0;right:0;bottom:0;height:3px;border-radius:0 0 999px 999px;background:rgba(24,33,28,.07)}
+.nav-progress-fill{background:#738267;box-shadow:0 0 9px rgba(115,130,103,.30)}
 
 /* Seamless campaign ribbons, deliberately slow */
 .band-track{display:flex;flex:none;width:max-content;min-width:0;gap:0;animation:marquee 38s linear infinite;will-change:transform}
