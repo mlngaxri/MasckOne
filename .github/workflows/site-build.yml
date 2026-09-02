@@ -19,9 +19,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply and validate feature stage refinement
+      - name: Apply and validate quality polish
         run: |
-          python .site-build/refine_feature_stage.py
+          python .site-build/refine_quality_polish.py
           python - <<'PY'
           from pathlib import Path
           import re
@@ -36,6 +36,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add website/index.html
           if ! git diff --cached --quiet; then
-            git commit -m 'refine: simplify feature stage and reveal navbar'
+            git commit -m 'refine: slow ribbons and strengthen navigation polish'
             git push origin HEAD:main
           fi
