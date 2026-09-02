@@ -33,6 +33,14 @@ def _point_dist(a: Vec3, b: Vec3) -> float:
     return sqrt(sum((a[i] - b[i]) ** 2 for i in range(3)))
 
 
+def _validate_datums(label: str, datums: RetentionDatums) -> None:
+    for name, point in datums.__dict__.items():
+        if not isinstance(point, tuple) or len(point) != 3:
+            raise ValueError(f"{label}.{name} must be a 3-vector")
+        if any(not isinstance(v, (int, float)) or isinstance(v, bool) or not isfinite(v) for v in point):
+            raise ValueError(f"{label}.{name} must contain finite numeric coordinates")
+
+
 def _datums_at(a: RetentionDatums, b: RetentionDatums, t: float) -> RetentionDatums:
     return RetentionDatums(**{name: _point_lerp(getattr(a, name), getattr(b, name), t) for name in a.__dict__})
 
@@ -64,6 +72,9 @@ def evaluate_adjustment_sweep(
         raise ValueError("proof_tolerance_mm must be positive")
     if not isinstance(max_depth, int) or isinstance(max_depth, bool) or max_depth < 1:
         raise ValueError("max_depth must be a positive integer")
+
+    _validate_datums("minimum_fit", minimum_fit)
+    _validate_datums("maximum_fit", maximum_fit)
 
     start_members = _members(minimum_fit)
     end_members = _members(maximum_fit)
