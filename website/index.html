@@ -345,6 +345,17 @@ body:before{inset:5px;border-radius:15px}
 @media(hover:none){.nav button:hover{transform:none}}
 @media(max-width:900px){.hero-copy p{font-size:11.5px;line-height:1.68}.page-copy>p{font-size:12.5px;line-height:1.7}.header{backdrop-filter:blur(14px) saturate(1.05)}}
 
+/* Final product-first hero */
+.hero{background:linear-gradient(145deg,#f3eee6 0%,#edf1ed 50%,#dce8eb 100%)}
+.hero-vignette{background:radial-gradient(circle at 70% 47%,rgba(255,255,255,.08) 0%,rgba(245,242,234,.03) 38%,rgba(233,240,241,.58) 100%)}
+.hero-clouds.hero-sky-orb{inset:auto;right:8vw;top:13vh;width:clamp(350px,39vw,590px);height:auto;aspect-ratio:1;border-radius:50%;opacity:.88;z-index:1;background:radial-gradient(circle at 42% 36%,rgba(255,255,255,.98) 0 7%,rgba(255,255,255,.42) 18%,transparent 31%),radial-gradient(circle at 64% 66%,rgba(255,255,255,.92) 0 10%,rgba(255,255,255,.28) 25%,transparent 40%),radial-gradient(circle at 52% 48%,#8fc0df 0%,#a9cfe4 42%,#dcebf1 69%,rgba(232,241,242,0) 78%);filter:saturate(.82);-webkit-mask-image:radial-gradient(circle,#000 59%,rgba(0,0,0,.94) 66%,rgba(0,0,0,.42) 74%,transparent 82%);mask-image:radial-gradient(circle,#000 59%,rgba(0,0,0,.94) 66%,rgba(0,0,0,.42) 74%,transparent 82%);will-change:transform}
+.hero-mask-wrap.hero-subject{position:absolute;z-index:5;right:6.5vw;top:12vh;bottom:auto;width:clamp(390px,42vw,620px);height:auto;filter:none;-webkit-mask-image:none;mask-image:none;will-change:transform,opacity}
+.hero-mask-product{width:100%;height:auto;object-fit:contain;transform:rotate(-4deg);transform-origin:50% 50%;filter:drop-shadow(0 22px 30px rgba(24,33,28,.13)) drop-shadow(0 54px 72px rgba(24,33,28,.12))}
+.mask-journey{width:clamp(390px,42vw,620px)}
+.mask-journey img{filter:drop-shadow(0 22px 32px rgba(24,33,28,.14)) drop-shadow(0 52px 70px rgba(24,33,28,.10))}
+@media(min-width:901px) and (max-width:1120px){.hero-mask-wrap.hero-subject{right:0;top:15vh;width:clamp(410px,49vw,560px)}.hero-clouds.hero-sky-orb{right:1vw;top:17vh;width:clamp(350px,45vw,510px)}}
+@media(max-width:900px){.hero-clouds.hero-sky-orb{right:-14vw;top:25vh;width:82vw;height:auto;opacity:.78}.hero-mask-wrap.hero-subject{right:-17vw;top:30vh;bottom:auto;width:88vw;height:auto;-webkit-mask-image:none;mask-image:none}.hero-mask-product{transform:rotate(-4deg)}.mask-journey{width:88vw;max-width:500px}.hero-copy{z-index:10}.band.masck{z-index:3}.band.one{z-index:6}}
+
 </style>
 </head>
 <body>
@@ -361,18 +372,18 @@ body:before{inset:5px;border-radius:15px}
 <main>
 <section class="view active" data-view="object" aria-label="Architecture section">
 <section class="hero" id="top">
-<img class="hero-clouds hero-bg" data-depth=".13" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-sky-ribbons-v1.webp" alt="" fetchpriority="high" />
+<div class="hero-clouds hero-sky-orb" data-depth=".13" aria-hidden="true"></div>
 <div class="hero-vignette"></div>
 <div class="hero-copy" data-depth-copy>
 <h1><span>Less time.</span><span>More you.</span></h1>
 <p>MASCK ONE is a contained facial-cleansing wearable engineered to deliver, move and recover cleansing fluid while your hands stay free.</p>
 </div>
 <div class="band masck" data-depth=".25" aria-hidden="true"><div class="band-track"><span>MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK</span><span>MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK</span></div></div>
-<img class="hero-person hero-subject" data-depth=".52" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-caucasian-mask-v1.webp" alt="Woman looking upward while wearing a MASCK ONE concept render" fetchpriority="high" />
+<div class="hero-mask-wrap hero-subject" data-depth=".52"><img class="hero-mask-product" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-mask-v2.webp" alt="MASCK ONE product render" fetchpriority="high" /></div>
 <div class="band one" data-depth=".31" aria-hidden="true"><div class="band-track"><span>ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE</span><span>ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE</span></div></div>
 <div class="hero-bottom"><span><div class="line"></div>Scroll / follow the object</span><span>MASCK ONE / 2026</span></div>
 </section>
-<div class="mask-journey" aria-hidden="true"><img src="https://masck-one.vercel.app/images/masck-one-product-angle.webp" alt="" /></div>
+<div class="mask-journey" aria-hidden="true"><img src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-mask-v2.webp" alt="" /></div>
 <div class="mask-orbit-overlay orbit-back" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
 <div class="mask-orbit-overlay orbit-front" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
 <div class="handoff-halo handoff-halo-stream" aria-hidden="true"><span class="orbit"></span><span class="axis"></span></div>
@@ -655,7 +666,7 @@ el.style.transform=`translate3d(${x+p*18}px,${y*.62}px,0) scale(${1+p*.018})`}
 if(heroCopy)heroCopy.style.transform=`translate3d(${mx*2.5}px,${-p*24+my*1.8}px,0)`;
 if(journey&&handoff){
 const heroH=Math.max(1,hero.offsetHeight);const handoffTop=handoff.offsetTop;const handoffEnd=handoffTop+handoff.offsetHeight;
-const detach=smooth(clamp((sy-heroH*.18)/(heroH*.68),0,1));const show=smooth(clamp((sy-heroH*.22)/(heroH*.28),0,1));
+const detach=smooth(clamp((sy-heroH*.20)/(heroH*.66),0,1));const show=smooth(clamp((sy-heroH*.06)/(heroH*.16),0,1));
 const textEnter=smooth(clamp((sy-heroH*.72)/(innerHeight*.72),0,1));
 const textExit=smooth(clamp((sy-(handoffEnd-innerHeight*.56))/(innerHeight*.5),0,1));
 const textY=mix(mix(innerHeight*1.22,innerHeight*.52,textEnter),innerHeight*1.28,textExit);
@@ -667,10 +678,10 @@ const haloExit=smooth(clamp((sy-(handoffEnd-innerHeight*.72))/(innerHeight*.58),
 const haloY=mix(mix(innerHeight*1.22,innerHeight*.52,haloEnter),-innerHeight*.24,haloExit);
 const haloOpacity=smooth(clamp((haloEnter-.04)/.2,0,1))*(1-smooth(clamp((haloExit-.8)/.17,0,1)));
 if(haloStream){haloStream.style.opacity=String(haloOpacity);haloStream.style.setProperty('--halo-y',`${haloY}px`)}
-const sx=innerWidth*(desktop()?.735:.68),sy0=innerHeight*(desktop()?.46:.56),cx=innerWidth*.5,cy=innerHeight*.52;
-const x=mix(sx,cx,detach),y=mix(sy0,cy,detach),scale=mix(desktop()?.58:.72,1,detach);
-journey.style.opacity=String(show);journey.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) scale(${scale}) rotate(${mix(-5,0,detach)}deg)`;
-if(heroSubject)heroSubject.style.opacity=String(1-smooth(clamp((sy-heroH*.6)/(heroH*.34),0,1))*.72);
+const sx=innerWidth*(desktop()?.72:.67),sy0=innerHeight*(desktop()?.55:.56),cx=innerWidth*.5,cy=innerHeight*.52;
+const x=mix(sx,cx,detach),y=mix(sy0,cy,detach),scale=mix(1,desktop()?.72:.80,detach);
+journey.style.opacity=String(show);journey.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) scale(${scale}) rotate(${mix(-4,0,detach)}deg)`;
+if(heroSubject)heroSubject.style.opacity=String(1-show);
 }
 }else if(journey){journey.style.opacity='0';orbitCopies.forEach(el=>el.style.opacity='0');if(haloStream)haloStream.style.opacity='0'}
 
@@ -727,7 +738,6 @@ passive:true}
 );
 
 clearDesktopResidue();
-updateHeaderVisibility();
 updateNavProgress();
 requestFrame();
 
