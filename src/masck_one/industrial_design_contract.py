@@ -34,6 +34,8 @@ class IDLimits:
     max_eye_aperture_hostile_cant_deg: float = 4.0
     max_eye_surround_width_asymmetry_mm: float = 1.5
     max_eye_surround_width_range_mm: float = 5.0
+    max_mouth_surround_width_range_mm: float = 6.0
+    max_mouth_surround_side_asymmetry_mm: float = 1.5
     max_nose_projection_above_field_mm: float = 2.0
     max_rear_depth_fraction_of_front_field: float = 0.75
     max_retention_visible_width_mm: float = 12.0
@@ -60,7 +62,9 @@ REQUIRED_MEASUREMENTS = (
     "ID_CONTROL_TACTILE_SEPARATION", "ID_EYE_APERTURE_CANT_L",
     "ID_EYE_APERTURE_CANT_R", "ID_EYE_SURROUND_WIDTH_MIN_L",
     "ID_EYE_SURROUND_WIDTH_MAX_L", "ID_EYE_SURROUND_WIDTH_MIN_R",
-    "ID_EYE_SURROUND_WIDTH_MAX_R", "ID_NOSE_PROJECTION_ABOVE_FIELD",
+    "ID_EYE_SURROUND_WIDTH_MAX_R", "ID_MOUTH_SURROUND_WIDTH_MIN",
+    "ID_MOUTH_SURROUND_WIDTH_MAX", "ID_MOUTH_SURROUND_SIDE_WIDTH_L",
+    "ID_MOUTH_SURROUND_SIDE_WIDTH_R", "ID_NOSE_PROJECTION_ABOVE_FIELD",
     "ID_RETENTION_VISIBLE_WIDTH_L", "ID_RETENTION_VISIBLE_WIDTH_R",
     "ID_SIDE_HARDWARE_PROJECTION_L", "ID_SIDE_HARDWARE_PROJECTION_R",
     "ID_SIDE_HARDWARE_STEP_L", "ID_SIDE_HARDWARE_STEP_R",
@@ -168,6 +172,16 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
             raise IndustrialDesignContractError(f"{side} eye surround has excessive local width variation and reads as a goggle rim")
     if abs(v["ID_EYE_SURROUND_WIDTH_MIN_L"] - v["ID_EYE_SURROUND_WIDTH_MIN_R"]) > limits.max_eye_surround_width_asymmetry_mm or abs(v["ID_EYE_SURROUND_WIDTH_MAX_L"] - v["ID_EYE_SURROUND_WIDTH_MAX_R"]) > limits.max_eye_surround_width_asymmetry_mm:
         raise IndustrialDesignContractError("eye surround width asymmetry creates unintended facial expression")
+
+    mouth_min = v["ID_MOUTH_SURROUND_WIDTH_MIN"]
+    mouth_max = v["ID_MOUTH_SURROUND_WIDTH_MAX"]
+    if mouth_max < mouth_min:
+        raise IndustrialDesignContractError("mouth surround evidence has max width below min width")
+    if mouth_max - mouth_min > limits.max_mouth_surround_width_range_mm:
+        raise IndustrialDesignContractError("mouth surround has excessive local width variation and reads as a separate ring")
+    if abs(v["ID_MOUTH_SURROUND_SIDE_WIDTH_L"] - v["ID_MOUTH_SURROUND_SIDE_WIDTH_R"]) > limits.max_mouth_surround_side_asymmetry_mm:
+        raise IndustrialDesignContractError("mouth surround side asymmetry creates unintended facial expression")
+
     if v["ID_NOSE_PROJECTION_ABOVE_FIELD"] > limits.max_nose_projection_above_field_mm:
         raise IndustrialDesignContractError("nose bridge reads as a protruding cone rather than part of the facial field")
 
