@@ -57,29 +57,24 @@ new_subject = "else if(el.classList.contains('hero-subject')){\nif(desktop())el.
 if old_subject in s:
     s = s.replace(old_subject, new_subject, 1)
 
-# Phones use native touch scrolling. This avoids a second always-running RAF loop
-# while desktop keeps the intended smooth wheel treatment.
 s = s.replace(
     "const lenis=window.Lenis?new Lenis({autoRaf:true,lerp:.085,smoothWheel:true,syncTouch:false,wheelMultiplier:.92,touchMultiplier:1,overscroll:false}):null;",
     "const lenis=window.Lenis&&desktop()?new Lenis({autoRaf:true,lerp:.085,smoothWheel:true,syncTouch:false,wheelMultiplier:.92,touchMultiplier:1,overscroll:false}):null;",
     1,
 )
 
-# Mobile scroll choreography follows native scroll exactly instead of trailing.
 s = s.replace(
     "sy+=(scrollY-sy)*(desktop()?.13:.28);",
     "sy=desktop()?sy+(scrollY-sy)*.13:scrollY;",
     1,
 )
 
-# Glimmers are retained on desktop but disabled on touch/mobile to preserve frame rate.
 s = s.replace(
     "if(lowMotion()||document.hidden)return;",
     "if(!desktop()||lowMotion()||document.hidden)return;",
     1,
 )
 
-# Later mobile crossfade keeps one visible mask at a time.
 s = s.replace(
     "const detach=isDesktop?smooth(clamp((sy-heroH*.20)/(heroH*.66),0,1)):smooth(clamp((sy-heroH*.60)/(heroH*.32),0,1));\nconst show=isDesktop?smooth(clamp((sy-heroH*.06)/(heroH*.16),0,1)):smooth(clamp((sy-heroH*.58)/(heroH*.12),0,1));",
     "const detach=isDesktop?smooth(clamp((sy-heroH*.20)/(heroH*.66),0,1)):smooth(clamp((sy-heroH*.62)/(heroH*.30),0,1));\nconst show=isDesktop?smooth(clamp((sy-heroH*.06)/(heroH*.16),0,1)):smooth(clamp((sy-heroH*.61)/(heroH*.11),0,1));",
@@ -105,13 +100,13 @@ polish_css = r'''
   .header{top:12px;width:calc(100vw - 20px);height:50px;padding:0 7px 0 14px;backdrop-filter:blur(9px) saturate(1.04);-webkit-backdrop-filter:blur(9px) saturate(1.04);box-shadow:0 9px 28px rgba(24,33,28,.065),inset 0 1px 0 rgba(255,255,255,.32)}
   .brand{font-size:8.5px;letter-spacing:.18em}
   .nav{gap:1px;padding:2px}
-  .nav button{min-height:38px;padding:8px 9px;font-size:8.5px;letter-spacing:.015em}
+  .nav button{min-height:38px;padding:8px 9px;font-size:9px;letter-spacing:.015em;touch-action:manipulation}
   .nav-progress-fill{box-shadow:none}
 
   .hero{height:100svh;min-height:680px}
   .hero-copy{top:11.5svh;left:22px;right:22px}
   .hero h1{max-width:76%;font-size:clamp(44px,12.6vw,62px);line-height:.86;letter-spacing:-.056em}
-  .hero-copy p{max-width:72%;margin-top:17px;padding-top:10px;font-size:clamp(11.25px,3vw,12px);line-height:1.62}
+  .hero-copy p{max-width:72%;margin-top:17px;padding-top:10px;font-size:clamp(12px,3vw,12.5px);line-height:1.62}
   .hero-clouds.hero-sky-orb{right:-1vw;top:27svh;width:68vw;opacity:.70;filter:saturate(.78)}
   .hero-mask-wrap.hero-subject{right:-2vw;top:34svh;width:72vw;max-width:none;will-change:opacity}
   .hero-mask-product{filter:drop-shadow(0 18px 28px rgba(24,33,28,.12))}
@@ -127,12 +122,12 @@ polish_css = r'''
   .mask-journey img{filter:drop-shadow(0 16px 25px rgba(24,33,28,.12))}
   .mask-journey:after{inset:18%;filter:blur(7px);opacity:.7}
   .mask-orbit-overlay{width:min(94vw,480px);will-change:transform,opacity}
-  .mask-orbit-node{animation-duration:22s}
-  .mask-orbit-node span{font-size:clamp(25px,7vw,36px);text-shadow:0 5px 18px rgba(246,241,232,.54);animation-duration:22s}
+  .mask-orbit-node{animation-duration:18s}
+  .mask-orbit-node span{font-size:clamp(25px,7vw,36px);text-shadow:0 5px 18px rgba(246,241,232,.54);animation-duration:18s}
   .handoff-halo{width:min(84vw,410px);height:min(43vw,225px);will-change:transform,opacity}
   .handoff-halo:after{animation-duration:30s}
   .handoff-stage:before{background:radial-gradient(circle at 50% 52%,rgba(255,255,255,.48),transparent 34%),linear-gradient(90deg,transparent 49.92%,rgba(24,33,28,.065) 50%,transparent 50.08%)}
-  .handoff-caption{left:22px;right:22px;bottom:26px;width:auto;max-width:410px;font-size:11.5px;line-height:1.64}
+  .handoff-caption{left:22px;right:22px;bottom:26px;width:auto;max-width:410px;font-size:12px;line-height:1.64}
   .handoff-caption b{font-size:clamp(23px,6.4vw,28px);line-height:1.02}
 
   .page{padding:82px 22px 60px;gap:20px}
@@ -140,7 +135,7 @@ polish_css = r'''
   .visual:before{filter:blur(6px)}
   .visual:after{filter:blur(8px)}
   .page h2{font-size:clamp(42px,11.8vw,62px);line-height:.88;letter-spacing:-.055em}
-  .page-copy>p{font-size:12.25px;line-height:1.68}
+  .page-copy>p{font-size:12.5px;line-height:1.68}
   .page-label,.section-tag,.page-index{letter-spacing:.11em}
   .detail-card{font-size:10.5px;line-height:1.55}
   .glimmer-pass{display:none!important}
@@ -150,10 +145,10 @@ polish_css = r'''
   .header{top:9px;width:calc(100vw - 14px);padding:0 6px;grid-template-columns:1fr}
   .brand{display:none}
   .nav{justify-self:center}
-  .nav button{padding-inline:8px;font-size:8.25px}
+  .nav button{padding-inline:8px;font-size:9px}
   .hero-copy{left:18px;right:18px;top:11svh}
   .hero h1{max-width:88%;font-size:clamp(42px,13.4vw,54px)}
-  .hero-copy p{max-width:78%;font-size:11.25px}
+  .hero-copy p{max-width:78%;font-size:12px}
   .hero-clouds.hero-sky-orb{right:-5vw;top:30svh;width:72vw}
   .hero-mask-wrap.hero-subject{right:-5vw;top:37svh;width:76vw}
   .hero-bottom{left:18px;right:18px}
@@ -166,7 +161,7 @@ polish_css = r'''
   .header{top:8px;height:44px}
   .hero-copy{top:15svh;left:24px}
   .hero h1{max-width:50%;font-size:clamp(38px,7.2vw,54px)}
-  .hero-copy p{max-width:45%;margin-top:12px;font-size:10.5px;line-height:1.5}
+  .hero-copy p{max-width:45%;margin-top:12px;font-size:11.5px;line-height:1.5}
   .hero-clouds.hero-sky-orb{right:4vw;top:13svh;width:44vw}
   .hero-mask-wrap.hero-subject{right:5vw;top:18svh;width:46vw}
   .band{height:48px}
@@ -185,6 +180,16 @@ polish_css = r'''
 '''
 if '/* Responsive performance polish v3 */' not in s:
     s = s.replace('\n</style>\n</head>', polish_css + '\n</style>\n</head>', 1)
+else:
+    s = s.replace('.nav button{min-height:38px;padding:8px 9px;font-size:8.5px;letter-spacing:.015em}', '.nav button{min-height:38px;padding:8px 9px;font-size:9px;letter-spacing:.015em;touch-action:manipulation}', 1)
+    s = s.replace('font-size:clamp(11.25px,3vw,12px);line-height:1.62', 'font-size:clamp(12px,3vw,12.5px);line-height:1.62', 1)
+    s = s.replace('.mask-orbit-node{animation-duration:22s}', '.mask-orbit-node{animation-duration:18s}', 1)
+    s = s.replace('animation-duration:22s}\n  .handoff-halo', 'animation-duration:18s}\n  .handoff-halo', 1)
+    s = s.replace('max-width:410px;font-size:11.5px;line-height:1.64', 'max-width:410px;font-size:12px;line-height:1.64', 1)
+    s = s.replace('.page-copy>p{font-size:12.25px;line-height:1.68}', '.page-copy>p{font-size:12.5px;line-height:1.68}', 1)
+    s = s.replace('.nav button{padding-inline:8px;font-size:8.25px}', '.nav button{padding-inline:8px;font-size:9px}', 1)
+    s = s.replace('.hero-copy p{max-width:78%;font-size:11.25px}', '.hero-copy p{max-width:78%;font-size:12px}', 1)
+    s = s.replace('max-width:45%;margin-top:12px;font-size:10.5px;line-height:1.5', 'max-width:45%;margin-top:12px;font-size:11.5px;line-height:1.5', 1)
 
 if 'masck-hero-caucasian-mask-v1.webp' in s:
     raise RuntimeError('old portrait reference returned')
@@ -202,6 +207,8 @@ if 'sy=desktop()?sy+(scrollY-sy)*.13:scrollY;' not in s:
     raise RuntimeError('native mobile scroll tracking missing')
 if 'window.Lenis&&desktop()?' not in s:
     raise RuntimeError('mobile Lenis disable missing')
+if '.mask-orbit-node{animation-duration:18s}' not in s:
+    raise RuntimeError('orbit cadence no longer phase-safe')
 
 INDEX.write_text(s)
 print('responsive motion and typography polish complete')
