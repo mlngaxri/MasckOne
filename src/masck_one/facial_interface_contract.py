@@ -19,6 +19,9 @@ class FacialInterfaceLimits:
     min_rigid_edge_setback_mm: float = 3.0
     max_bilateral_transition_run_mismatch_mm: float = 2.0
     max_bilateral_edge_thickness_mismatch_mm: float = 0.5
+    min_edge_return_radius_mm: float = 1.0
+    min_edge_terminal_land_mm: float = 1.5
+    max_bilateral_edge_return_radius_mismatch_mm: float = 0.5
 
 
 REQUIRED_MEASUREMENTS = (
@@ -30,6 +33,10 @@ REQUIRED_MEASUREMENTS = (
     "HF_PRESSURE_TRANSITION_RISE_R",
     "HF_RIGID_EDGE_SETBACK_L",
     "HF_RIGID_EDGE_SETBACK_R",
+    "HF_EDGE_RETURN_RADIUS_L",
+    "HF_EDGE_RETURN_RADIUS_R",
+    "HF_EDGE_TERMINAL_LAND_L",
+    "HF_EDGE_TERMINAL_LAND_R",
 )
 
 
@@ -56,6 +63,8 @@ def validate_facial_interface(values: Mapping[str, float], limits: FacialInterfa
         run = v[f"HF_PRESSURE_TRANSITION_RUN_{side}"]
         rise = v[f"HF_PRESSURE_TRANSITION_RISE_{side}"]
         setback = v[f"HF_RIGID_EDGE_SETBACK_{side}"]
+        return_radius = v[f"HF_EDGE_RETURN_RADIUS_{side}"]
+        terminal_land = v[f"HF_EDGE_TERMINAL_LAND_{side}"]
         if edge > limits.max_contact_edge_thickness_mm:
             raise FacialInterfaceContractError(f"{side} contact edge is too thick for the low-ridge prototype target")
         if run < limits.min_pressure_transition_run_mm:
@@ -64,8 +73,14 @@ def validate_facial_interface(values: Mapping[str, float], limits: FacialInterfa
             raise FacialInterfaceContractError(f"{side} pressure transition is too abrupt")
         if setback < limits.min_rigid_edge_setback_mm:
             raise FacialInterfaceContractError(f"{side} rigid structure approaches the skin-contact edge too closely")
+        if return_radius < limits.min_edge_return_radius_mm:
+            raise FacialInterfaceContractError(f"{side} compliant edge return is too sharp")
+        if terminal_land < limits.min_edge_terminal_land_mm:
+            raise FacialInterfaceContractError(f"{side} compliant edge termination is too narrow for a calm wipeable return")
 
     if abs(v["HF_PRESSURE_TRANSITION_RUN_L"] - v["HF_PRESSURE_TRANSITION_RUN_R"]) > limits.max_bilateral_transition_run_mismatch_mm:
         raise FacialInterfaceContractError("bilateral pressure-transition run mismatch may create uneven facial loading")
     if abs(v["HF_CONTACT_EDGE_THICKNESS_L"] - v["HF_CONTACT_EDGE_THICKNESS_R"]) > limits.max_bilateral_edge_thickness_mismatch_mm:
         raise FacialInterfaceContractError("bilateral contact-edge thickness mismatch creates uneven interface geometry")
+    if abs(v["HF_EDGE_RETURN_RADIUS_L"] - v["HF_EDGE_RETURN_RADIUS_R"]) > limits.max_bilateral_edge_return_radius_mismatch_mm:
+        raise FacialInterfaceContractError("bilateral compliant edge-return mismatch creates uneven termination geometry")
