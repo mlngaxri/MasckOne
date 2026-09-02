@@ -359,12 +359,13 @@ body:before{inset:5px;border-radius:15px}
 /* Mobile stability repair */
 @media(max-width:900px){
   .hero{min-height:100svh}
-  .hero-mask-wrap.hero-subject{right:-8vw;top:31vh;width:82vw;max-width:none}
-  .hero-mask-product{width:100%;transform:rotate(-4deg)}
-  .mask-journey{width:82vw;max-width:480px}
-  .mask-orbit-overlay{width:min(108vw,560px)}
-  .mask-orbit-node span{font-size:clamp(28px,7.8vw,40px)}
-  .handoff-halo{width:min(88vw,440px)}
+  .hero-clouds.hero-sky-orb{right:-3vw;top:26vh;width:70vw;height:auto;opacity:.72}
+  .hero-mask-wrap.hero-subject{right:-4vw;top:33vh;width:74vw;max-width:none;will-change:opacity}
+  .hero-mask-product{width:100%;transform:rotate(-4deg);filter:drop-shadow(0 16px 24px rgba(24,33,28,.12)) drop-shadow(0 34px 48px rgba(24,33,28,.10))}
+  .mask-journey{width:74vw;max-width:400px;will-change:transform,opacity}
+  .mask-orbit-overlay{width:min(96vw,500px)}
+  .mask-orbit-node span{font-size:clamp(25px,7vw,36px)}
+  .handoff-halo{width:min(86vw,420px)}
 }
 
 </style>
@@ -678,7 +679,9 @@ else el.style.transform='translate3d(0,0,0)' }
 if(heroCopy)heroCopy.style.transform=`translate3d(${mx*2.5}px,${-p*24+my*1.8}px,0)`;
 if(journey&&handoff){
 const heroH=Math.max(1,hero.offsetHeight);const handoffTop=handoff.offsetTop;const handoffEnd=handoffTop+handoff.offsetHeight;
-const detach=smooth(clamp((sy-heroH*.20)/(heroH*.66),0,1));const show=smooth(clamp((sy-heroH*.06)/(heroH*.16),0,1));
+const isDesktop=desktop();
+const detach=isDesktop?smooth(clamp((sy-heroH*.20)/(heroH*.66),0,1)):smooth(clamp((sy-heroH*.60)/(heroH*.32),0,1));
+const show=isDesktop?smooth(clamp((sy-heroH*.06)/(heroH*.16),0,1)):smooth(clamp((sy-heroH*.58)/(heroH*.12),0,1));
 const textEnter=smooth(clamp((sy-heroH*.72)/(innerHeight*.72),0,1));
 const textExit=smooth(clamp((sy-(handoffEnd-innerHeight*.56))/(innerHeight*.5),0,1));
 const textY=mix(mix(innerHeight*1.22,innerHeight*.52,textEnter),innerHeight*1.28,textExit);
@@ -690,8 +693,8 @@ const haloExit=smooth(clamp((sy-(handoffEnd-innerHeight*.72))/(innerHeight*.58),
 const haloY=mix(mix(innerHeight*1.22,innerHeight*.52,haloEnter),-innerHeight*.24,haloExit);
 const haloOpacity=smooth(clamp((haloEnter-.04)/.2,0,1))*(1-smooth(clamp((haloExit-.8)/.17,0,1)));
 if(haloStream){haloStream.style.opacity=String(haloOpacity);haloStream.style.setProperty('--halo-y',`${haloY}px`)}
-const sx=innerWidth*(desktop()?.72:.67),sy0=innerHeight*(desktop()?.55:.54),cx=innerWidth*.5,cy=innerHeight*.52;
-const x=mix(sx,cx,detach),y=mix(sy0,cy,detach),scale=mix(1,desktop()?.72:.80,detach);
+const sx=innerWidth*(isDesktop?.72:.67),sy0=innerHeight*(isDesktop?.55:.54),cx=innerWidth*.5,cy=innerHeight*.52;
+const x=mix(sx,cx,detach),y=mix(sy0,cy,detach),scale=mix(1,isDesktop?.72:.82,detach);
 journey.style.opacity=String(show);journey.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) scale(${scale}) rotate(${mix(-4,0,detach)}deg)`;
 if(heroSubject)heroSubject.style.opacity=String(1-show);
 }
