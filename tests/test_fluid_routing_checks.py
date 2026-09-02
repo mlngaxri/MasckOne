@@ -87,13 +87,18 @@ def test_stage_ledger_matches_controlled_complete_topology(built):
     assert actual == expected
 
 
-def test_waste_backflow_chain_is_explicit_and_continuous(built):
-    *_, routing = built
+def test_waste_backflow_chain_is_explicit_and_component_bound(built):
+    *_, waste_pump, _, routing = built
     pump_to_barrier = next(item for item in routing.segments if item.stage == STAGE_WASTE_PUMP_TO_BACKFLOW_BARRIER)
     barrier_to_cartridge = next(item for item in routing.segments if item.stage == STAGE_WASTE_BACKFLOW_BARRIER_TO_CARTRIDGE)
     assert pump_to_barrier.phase_identity == PHASE_MIXED_WASTE
     assert barrier_to_cartridge.phase_identity == PHASE_MIXED_WASTE
-    assert pump_to_barrier.target_interface_id == barrier_to_cartridge.source_interface_id
+    # The passive barrier is a component boundary, not a zero-length alias. Its
+    # inlet and outlet interfaces are intentionally distinct and are bound to
+    # the controlled waste-pump architecture by the routing builder.
+    assert pump_to_barrier.target_interface_id == waste_pump.passive_backflow_barrier_id
+    assert barrier_to_cartridge.source_interface_id == waste_pump.backflow_barrier_outlet_interface_id
+    assert pump_to_barrier.target_interface_id != barrier_to_cartridge.source_interface_id
 
 
 def test_fresh_and_waste_phase_semantics_never_cross(built):
