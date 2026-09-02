@@ -21,6 +21,8 @@ def nominal():
         "ID_EYE_SURROUND_WIDTH_MAX_R": 10.0, "ID_MOUTH_SURROUND_WIDTH_MIN": 8.0,
         "ID_MOUTH_SURROUND_WIDTH_MAX": 12.0, "ID_MOUTH_SURROUND_SIDE_WIDTH_L": 10.0,
         "ID_MOUTH_SURROUND_SIDE_WIDTH_R": 10.0, "ID_NOSE_PROJECTION_ABOVE_FIELD": 1.0,
+        "ID_PHILTRUM_BRIDGE_PROJECTION": 1.0, "ID_PHILTRUM_BRIDGE_BLEND_RUN_L": 7.0,
+        "ID_PHILTRUM_BRIDGE_BLEND_RUN_R": 7.0,
         "ID_RETENTION_VISIBLE_WIDTH_L": 10.0, "ID_RETENTION_VISIBLE_WIDTH_R": 10.0,
         "ID_SIDE_HARDWARE_PROJECTION_L": 1.0, "ID_SIDE_HARDWARE_PROJECTION_R": 1.0,
         "ID_SIDE_HARDWARE_STEP_L": 0.25, "ID_SIDE_HARDWARE_STEP_R": 0.25,
@@ -140,6 +142,15 @@ def test_nonfinite_signed_eye_geometry_fails_closed():
 def test_protruding_nose_cone_fails():
     values = nominal(); values["ID_NOSE_PROJECTION_ABOVE_FIELD"] = 2.1
     with pytest.raises(IndustrialDesignContractError, match="protruding cone"): validate_measurements(values)
+
+
+def test_philtrum_bridge_integration_fails_closed():
+    values = nominal(); values["ID_PHILTRUM_BRIDGE_PROJECTION"] = 1.51
+    with pytest.raises(IndustrialDesignContractError, match="lower-nose tab"): validate_measurements(values)
+    values = nominal(); values["ID_PHILTRUM_BRIDGE_BLEND_RUN_L"] = 5.9
+    with pytest.raises(IndustrialDesignContractError, match="too abrupt"): validate_measurements(values)
+    values = nominal(); values["ID_PHILTRUM_BRIDGE_BLEND_RUN_R"] = 7.8
+    with pytest.raises(IndustrialDesignContractError, match="blend asymmetry"): validate_measurements(values)
 
 
 def test_surface_continuity_over_limit_fails():
