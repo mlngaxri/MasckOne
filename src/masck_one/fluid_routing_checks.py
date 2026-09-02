@@ -150,13 +150,21 @@ def _expected_segment_specs(*, fresh_pump, manifold, distribution, acquisition, 
         "PUMP_TO_PASSIVE_BACKFLOW_BARRIER":STAGE_WASTE_PUMP_TO_BACKFLOW_BARRIER,
         "PASSIVE_BACKFLOW_BARRIER_TO_CARTRIDGE_HANDOFF":STAGE_WASTE_BACKFLOW_BARRIER_TO_CARTRIDGE,
     }
-    previous_target=None
+    if len(waste_pump.routes) != 3:
+        raise FluidRoutingClosureError("waste-pump architecture must expose exactly three controlled route stages")
+    acquisition_to_pump, pump_to_barrier, barrier_to_cartridge = waste_pump.routes
+    if acquisition_to_pump.target_interface_id != waste_pump.station.station_id:
+        raise FluidRoutingClosureError("acquisition route does not terminate at the controlled waste-pump station")
+    if pump_to_barrier.source_interface_id != waste_pump.station.pump_outlet_interface_id:
+        raise FluidRoutingClosureError("pump discharge route does not originate at the controlled pump outlet")
+    if pump_to_barrier.target_interface_id != waste_pump.barrier.barrier_id:
+        raise FluidRoutingClosureError("pump discharge route does not terminate at the controlled passive backflow barrier")
+    if barrier_to_cartridge.source_interface_id != waste_pump.barrier.target_interface_id:
+        raise FluidRoutingClosureError("barrier discharge route does not originate at the controlled barrier outlet")
     for route in waste_pump.routes:
         stage=waste_stage.get(route.stage)
         if stage is None: raise FluidRoutingClosureError("waste-pump route exposes an uncontrolled stage")
-        if previous_target is not None and route.source_interface_id!=previous_target: raise FluidRoutingClosureError("waste pump/backflow route chain is discontinuous")
         specs.append(_SegmentSpec(route.route_id,SYSTEM_WASTE,PHASE_MIXED_WASTE,stage,route.source_interface_id,route.target_interface_id))
-        previous_target=route.target_interface_id
     if waste_pump.routes[-1].target_interface_id!=cartridge.interfaces.inlet_interface_id: raise FluidRoutingClosureError("waste backflow-barrier-to-cartridge handoff is discontinuous")
     specs.append(_SegmentSpec("I28-WASTE-CARTRIDGE-INLET-TO-RETENTION-REGION",SYSTEM_WASTE,PHASE_MIXED_WASTE,STAGE_WASTE_CARTRIDGE_TO_RETENTION,cartridge.interfaces.inlet_interface_id,cartridge.interfaces.retention_region_id))
     return tuple(specs)
