@@ -24,7 +24,7 @@ img{display:block;max-width:100%;user-select:none;-webkit-user-drag:none}
 body:before{content:"";position:fixed;inset:8px;border:1px solid rgba(24,33,28,.12);border-radius:22px;pointer-events:none;z-index:1600}
 body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1590;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.83' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E")}
 
-.header{position:fixed;z-index:1400;top:20px;left:50%;transform:translateX(-50%);width:min(92vw,1140px);height:var(--nav-h);padding:0 9px 0 20px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border:1px solid rgba(255,255,255,.64);border-radius:999px;background:rgba(248,250,248,.74);backdrop-filter:blur(24px) saturate(1.14);box-shadow:0 13px 40px rgba(24,33,28,.065),inset 0 1px 0 rgba(255,255,255,.34)}
+.header{position:fixed;z-index:1400;top:20px;left:50%;transform:translateX(-50%);width:min(92vw,1140px);height:var(--nav-h);padding:0 9px 0 20px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border:1px solid transparent;border-radius:999px;background:linear-gradient(rgba(248,250,248,.78),rgba(248,250,248,.72)) padding-box,linear-gradient(112deg,rgba(255,255,255,.96),rgba(185,126,101,.58),rgba(142,174,181,.58),rgba(198,207,185,.7),rgba(255,255,255,.96)) border-box;background-size:100% 100%,240% 100%;background-position:0 0,0% 50%;backdrop-filter:blur(24px) saturate(1.14);box-shadow:0 13px 40px rgba(24,33,28,.065),inset 0 1px 0 rgba(255,255,255,.34);animation:navShader 11s ease-in-out infinite alternate}
 
 .brand{font-size:10px;font-weight:600;letter-spacing:.235em;text-transform:uppercase}
 .nav{display:flex;gap:2px;padding:3px;border-radius:999px;background:rgba(24,33,28,.045)}
@@ -32,10 +32,9 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1590;op
 .nav button:hover{transform:translateY(-1px)}
 .nav button:focus-visible{outline:1px solid currentColor;outline-offset:3px}
 .nav button.active{background:var(--ink);color:var(--white);box-shadow:0 4px 14px rgba(24,33,28,.12)}
-.status-chip{justify-self:end;display:flex;align-items:center;gap:8px;font:400 9px/1 DM Mono,monospace;letter-spacing:.08em;text-transform:uppercase;opacity:.62}
-.status-chip:before{content:"";width:6px;height:6px;border-radius:50%;background:#738269;box-shadow:0 0 0 5px rgba(115,130,105,.1)}
-.nav-progress{position:absolute;left:22px;right:22px;bottom:4px;height:1px;overflow:hidden;border-radius:999px;background:rgba(24,33,28,.095);pointer-events:none}
-.nav-progress-fill{position:absolute;inset:0;background:rgba(185,126,101,.9);transform:scaleX(0);transform-origin:left center;will-change:transform;box-shadow:0 0 7px rgba(185,126,101,.22)}
+.nav-progress{position:absolute;z-index:3;left:0;right:0;bottom:0;height:3px;overflow:hidden;border-radius:0 0 999px 999px;background:rgba(24,33,28,.085);pointer-events:none}
+.nav-progress-fill{position:absolute;inset:0;background:linear-gradient(90deg,#b97e65 0%,#d9b19d 42%,#8faeb4 72%,#9eaa8d 100%);transform:scaleX(0);transform-origin:left center;will-change:transform;box-shadow:0 0 10px rgba(185,126,101,.34)}
+@keyframes navShader{to{background-position:0 0,100% 50%}}
 
 .staircase{position:fixed;z-index:1500;inset:0;display:grid;grid-template-columns:repeat(10,1fr);pointer-events:none}
 .staircase i{display:block;background:#18201b;transform:scaleY(0);transform-origin:bottom}
@@ -235,14 +234,16 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1590;op
 .handoff-kicker{position:absolute;left:var(--pad);top:108px;font:400 8px/1 DM Mono,monospace;letter-spacing:.15em;text-transform:uppercase;opacity:.48}
 .handoff-index{position:absolute;right:var(--pad);top:100px;min-width:150px;padding-top:9px;border-top:1px solid rgba(24,33,28,.24);text-align:right;font:400 8px/1.5 DM Mono,monospace;letter-spacing:.1em;text-transform:uppercase;opacity:.48}
 .handoff-index b{display:block;font:300 28px/.9 Fraunces,serif;letter-spacing:-.05em;margin-bottom:7px}
-.handoff-orbit-copy{position:absolute;z-index:3;left:50%;top:52%;width:clamp(430px,50vw,760px);aspect-ratio:1;transform:translate(-50%,-50%);opacity:0;pointer-events:none;will-change:opacity}
-.handoff-orbit-node{--delay:0s;position:absolute;inset:0;animation:orbitLabelSpin 18s linear infinite;animation-delay:var(--delay)}
-.handoff-orbit-node span{position:absolute;left:50%;top:-1%;padding:.18em .4em;border:1px solid rgba(24,33,28,.12);border-radius:999px;background:rgba(246,241,232,.68);backdrop-filter:blur(10px);white-space:nowrap;font:300 clamp(25px,3.2vw,48px)/1 Fraunces,serif;letter-spacing:-.055em;box-shadow:0 10px 32px rgba(24,33,28,.055);transform:translate(-50%,-50%);animation:orbitLabelCounter 18s linear infinite;animation-delay:var(--delay)}
-@keyframes orbitLabelSpin{to{transform:rotate(360deg)}}
-@keyframes orbitLabelCounter{to{transform:translate(-50%,-50%) rotate(-360deg)}}
-.handoff-halo{position:absolute;z-index:2;left:50%;top:52%;width:clamp(360px,43vw,660px);aspect-ratio:1;transform:translate(-50%,-50%);border:1px solid rgba(24,33,28,.18);border-radius:50%;pointer-events:none}
+.mask-orbit-overlay{position:fixed;left:50%;top:52%;z-index:1110;width:clamp(600px,62vw,940px);aspect-ratio:1;transform:translate(-50%,-50%) rotate(-7deg) scaleY(.42);opacity:0;pointer-events:none;will-change:opacity;overflow:visible}
+.mask-orbit-overlay.orbit-back{clip-path:inset(-24% -30% 50% -30%)}
+.mask-orbit-overlay.orbit-front{z-index:1130;clip-path:inset(50% -30% -24% -30%)}
+.mask-orbit-node{--delay:0s;position:absolute;inset:0;animation:orbitEllipseSpin 18s linear infinite;animation-delay:var(--delay)}
+.mask-orbit-node span{position:absolute;left:50%;top:0;white-space:nowrap;font:300 clamp(42px,4.7vw,76px)/.9 Fraunces,serif;letter-spacing:-.065em;color:rgba(24,33,28,.94);text-shadow:0 8px 28px rgba(246,241,232,.72);transform:translate(-50%,-50%) rotate(7deg) scaleY(2.38095);animation:orbitEllipseCounter 18s linear infinite;animation-delay:var(--delay)}
+@keyframes orbitEllipseSpin{to{transform:rotate(360deg)}}
+@keyframes orbitEllipseCounter{to{transform:translate(-50%,-50%) rotate(-353deg) scaleY(2.38095)}}
+.handoff-halo{position:absolute;z-index:2;left:50%;top:52%;width:clamp(430px,49vw,740px);height:clamp(230px,22vw,340px);transform:translate(-50%,-50%) rotate(-7deg);border:1px solid rgba(24,33,28,.18);border-radius:50%;pointer-events:none}
 .handoff-halo:before,.handoff-halo:after{content:"";position:absolute;border:1px solid rgba(24,33,28,.12);border-radius:50%;inset:13%}.handoff-halo:after{inset:29%;border-style:dashed;animation:spin 24s linear infinite}.handoff-halo .orbit{position:absolute;inset:-8%;border:1px solid rgba(185,126,101,.22);border-radius:50%;transform:rotate(19deg) scaleY(.72)}.handoff-halo .axis{position:absolute;left:50%;top:-5%;bottom:-5%;width:1px;background:linear-gradient(transparent,rgba(24,33,28,.16),transparent)}
-.handoff-caption{position:absolute;z-index:4;left:var(--pad);bottom:42px;width:min(455px,37vw);padding:16px 18px 17px;border:1px solid rgba(24,33,28,.14);border-radius:14px;background:rgba(247,247,242,.68);backdrop-filter:blur(14px);font-size:12.5px;line-height:1.7;letter-spacing:-.01em;opacity:.88;box-shadow:0 14px 36px rgba(24,33,28,.055)}.handoff-caption b{display:block;margin-bottom:8px;font:300 21px/1.05 Fraunces,serif;letter-spacing:-.035em}.handoff-caption span{display:block;max-width:390px;opacity:.72}
+.handoff-caption{position:absolute;z-index:4;left:var(--pad);bottom:42px;width:min(520px,42vw);padding:0;border:0;background:none;backdrop-filter:none;box-shadow:none;font-size:12.5px;line-height:1.72;letter-spacing:-.01em;opacity:1}.handoff-caption:before{content:"";display:block;width:54px;height:1px;margin-bottom:14px;background:linear-gradient(90deg,var(--clay),rgba(24,33,28,.18))}.handoff-caption b{display:block;margin-bottom:9px;font:300 clamp(23px,2vw,31px)/1 Fraunces,serif;letter-spacing:-.045em}.handoff-caption span{display:block;max-width:430px;opacity:.66}
 .view[data-view="object"]>.page.paper{min-height:112svh}.view[data-view="object"]>.page.paper .visual{transition:opacity .28s linear}
 
 @media(min-width:901px){.view[data-view="system"] .page:nth-child(2){grid-template-columns:1.18fr .82fr}
@@ -262,7 +263,6 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1590;op
 @media(max-width:900px){
 body:before{inset:5px;border-radius:15px}
 .header{top:14px;width:calc(100vw - 26px);height:50px;grid-template-columns:1fr auto;padding:0 8px 0 14px}
-.nav-progress{left:15px;right:15px;bottom:3px}
 .status-chip{display:none}
 .nav button{padding:8px 10px;font-size:9px;min-height:38px}
 .hero{min-height:730px}
@@ -315,9 +315,10 @@ body:before{inset:5px;border-radius:15px}
 
 @media(min-width:901px) and (max-width:1120px){.hero-subject{right:-5vw;height:106vh}.band{height:clamp(86px,9vw,112px)}.band span{font-size:clamp(50px,6.2vw,72px)}.handoff-words{font-size:clamp(72px,11.7vw,126px)}}
 @media(max-width:900px){.hero-subject{right:-43vw;bottom:4vh;height:76vh;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%);mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%)}.hero-copy{top:11.2vh;z-index:10}.hero h1{max-width:80%;font-size:clamp(50px,14vw,72px)}.hero-copy p{max-width:66%}.band{left:-28vw;width:156vw;height:72px}.band span{font-size:46px}.band.masck{top:49%}.band.one{top:65%}.mask-journey{width:clamp(190px,58vw,300px)}.handoff-page{height:122svh}.handoff-stage{padding:80px 24px 45px}.handoff-kicker{left:24px;top:84px}.handoff-index{right:24px;top:80px;min-width:118px}.handoff-words{padding:7vh 22px 5vh;font-size:clamp(68px,22vw,112px);line-height:.8}.handoff-words span:nth-child(2){align-self:flex-start;margin-left:8vw}.handoff-words span:nth-child(3){align-self:flex-end}.handoff-halo{top:53%;width:min(82vw,480px)}.handoff-caption{left:24px;bottom:30px;width:min(72vw,330px);font-size:10px}}
-@media(max-width:900px){.handoff-orbit-copy{top:53%;width:min(88vw,520px)}.handoff-orbit-node span{font-size:clamp(22px,7.5vw,34px);padding:.2em .42em}.handoff-caption{left:24px;bottom:28px;width:min(calc(100vw - 48px),390px);padding:14px 15px 15px;font-size:11px}.handoff-caption b{font-size:18px}}
+@media(max-width:900px){.mask-orbit-overlay{top:53%;width:min(128vw,650px)}.mask-orbit-node span{font-size:clamp(30px,9vw,44px)}.handoff-caption{left:24px;bottom:28px;width:min(calc(100vw - 48px),410px);padding:0;font-size:11px}.handoff-caption b{font-size:21px}.nav-progress{left:0;right:0;bottom:0;height:3px}}
 @media(max-width:900px) and (prefers-reduced-motion:reduce){.band-track,.float,.object-disc,.fluid-path .route,.motion-rings,.motion-rings:before,.motion-rings:after,.zone-labels span,.proof-scan,.hero-bottom .line,.glimmer-pass:before,.glimmer-pass:after{animation:none!important}
 .fluid-path .fluid-particle{display:none}
+.mask-orbit-node,.mask-orbit-node span{animation:none!important}
 .hero-clouds,.hero-person,.visual-stage,.mask-journey{transform:none!important}
 .staircase{display:none}
 .reveal{opacity:1;translate:0 0;clip-path:none}
@@ -334,7 +335,6 @@ body:before{inset:5px;border-radius:15px}
 <button type="button" data-view-target="system" aria-pressed="false">System</button>
 <button type="button" data-view-target="proof" aria-pressed="false">Proof</button>
 </nav>
-<div class="status-chip">Engineering development</div>
 <div class="nav-progress" aria-hidden="true"><span class="nav-progress-fill"></span></div>
 </header>
 <div class="staircase" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -354,7 +354,9 @@ body:before{inset:5px;border-radius:15px}
 <div class="hero-bottom"><span><div class="line"></div>Scroll / follow the object</span><span>MASCK ONE / 2026</span></div>
 </section>
 <div class="mask-journey" aria-hidden="true"><img src="https://masck-one.vercel.app/images/masck-one-product-angle.webp" alt="" /></div>
-<section class="handoff-page" aria-label="Object System Proof overview"><div class="handoff-stage"><div class="handoff-index"><b>02</b>Object / system / proof</div><div class="handoff-orbit-copy" aria-hidden="true"><div class="handoff-orbit-node" style="--delay:0s"><span>Object.</span></div><div class="handoff-orbit-node" style="--delay:-6s"><span>System.</span></div><div class="handoff-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div><div class="handoff-halo" aria-hidden="true"><span class="orbit"></span><span class="axis"></span></div><div class="handoff-caption"><b>The same object, followed downward.</b><span>As you scroll, MASCK ONE moves from its exterior form into the architecture, systems and evidence behind the product.</span></div></div></section>
+<div class="mask-orbit-overlay orbit-back" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
+<div class="mask-orbit-overlay orbit-front" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
+<section class="handoff-page" aria-label="Architecture Systems Proof overview"><div class="handoff-stage"><div class="handoff-index"><b>02</b>Architecture / systems / proof</div><div class="handoff-halo" aria-hidden="true"><span class="orbit"></span><span class="axis"></span></div><div class="handoff-caption"><b>The same object, followed downward.</b><span>As you scroll, MASCK ONE moves from its exterior form into the architecture, systems and proof behind the product.</span></div></div></section>
 <section class="page paper">
 <div class="section-tag"><span>Object</span><b>03 / 03</b></div>
 <div class="page-copy reveal" data-page-copy>
@@ -460,7 +462,7 @@ const journey=document.querySelector('.mask-journey');
 const heroSubject=document.querySelector('.hero-subject');
 const handoff=document.querySelector('.handoff-page');
 const objectPaper=document.querySelector('.view[data-view="object"] > .page.paper');
-const orbitCopy=document.querySelector('.handoff-orbit-copy');
+const orbitCopies=[...document.querySelectorAll('.mask-orbit-overlay')];
 
 const lenis=window.Lenis?new Lenis({autoRaf:true,lerp:.085,smoothWheel:true,syncTouch:false,wheelMultiplier:.92,touchMultiplier:1,overscroll:false}):null;
 
@@ -548,7 +550,7 @@ else window.scrollTo(0,0);
 function setActive(name){
 active=name;
 if(journey&&name!=='object')journey.style.opacity='0';
-if(orbitCopy&&name!=='object')orbitCopy.style.opacity='0';
+if(name!=='object')orbitCopies.forEach(el=>el.style.opacity='0');
 views.forEach(v=>v.classList.toggle('active',v.dataset.view===name));
 nav.forEach(b=>{
 const isActive=b.dataset.viewTarget===name;
@@ -647,13 +649,13 @@ if(journey&&handoff&&objectPaper){
 const heroH=Math.max(1,hero.offsetHeight);const paperTop=objectPaper.offsetTop;
 const detach=smooth(clamp((sy-heroH*.18)/(heroH*.68),0,1));const paperEntry=smooth(clamp((sy-(paperTop-innerHeight*.72))/(innerHeight*.9),0,1));const fadeOut=smooth(clamp((sy-(paperTop+innerHeight*.02))/(innerHeight*.5),0,1));const show=smooth(clamp((sy-heroH*.22)/(heroH*.28),0,1));
 const orbitReveal=smooth(clamp((detach-.86)/.12,0,1))*(1-smooth(clamp((paperEntry-.55)/.32,0,1)));
-if(orbitCopy)orbitCopy.style.opacity=String(orbitReveal);
+orbitCopies.forEach(el=>el.style.opacity=String(orbitReveal));
 const sx=innerWidth*(desktop()?.735:.68),sy0=innerHeight*(desktop()?.46:.56),cx=innerWidth*.5,cy=innerHeight*.52,tx2=innerWidth*(desktop()?.72:.5),ty2=innerHeight*(desktop()?.49:.31);
 const x=mix(mix(sx,cx,detach),tx2,paperEntry),y=mix(mix(sy0,cy,detach),ty2,paperEntry),scale=mix(mix(desktop()?.58:.72,1,detach),desktop()?.82:.76,paperEntry);
 journey.style.opacity=String(show*(1-fadeOut));journey.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) scale(${scale}) rotate(${mix(-5,0,detach)+mix(0,4,paperEntry)}deg)`;
 if(heroSubject)heroSubject.style.opacity=String(1-smooth(clamp((sy-heroH*.6)/(heroH*.34),0,1))*.72);
 }
-}else if(journey){journey.style.opacity='0';if(orbitCopy)orbitCopy.style.opacity='0'}
+}else if(journey){journey.style.opacity='0';orbitCopies.forEach(el=>el.style.opacity='0')}
 
 if(desktop()){
 const current=document.querySelector('.view.active');
