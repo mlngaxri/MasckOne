@@ -19,31 +19,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Reconstruct and validate site
+      - name: Apply and validate orbit refinement
         run: |
-          git show 961cced7b293e5faf5aefc13dc9477ea0eb93afa:website/index.html > website/index.html
-          python .site-build/apply.py
-          python - <<'PY'
-          from pathlib import Path
-          import base64
-
-          parts = Path('.site-build')
-          fg = (
-              (parts / 'hero-fg-1.b64').read_text().strip()[:18190]
-              + (parts / 'hero-fg-2.b64').read_text().strip()
-              + (parts / 'hero-fg-3.b64').read_text().strip()
-          )
-          Path('website/images/masck-hero-caucasian-mask-v1.webp').write_bytes(base64.b64decode(fg))
-
-          p = Path('website/index.html')
-          s = p.read_text()
-          raw = 'https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/'
-          s = s.replace('src="images/masck-hero-caucasian-mask-v1.webp"', f'src="{raw}masck-hero-caucasian-mask-v1.webp"')
-          s = s.replace('src="images/masck-hero-sky-ribbons-v1.webp"', f'src="{raw}masck-hero-sky-ribbons-v1.webp"')
-          s = s.replace('-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 100%);mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 100%);', '')
-          s = s.replace('-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%);mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%);', '')
-          p.write_text(s)
-          PY
+          python .site-build/refine_orbit.py
           python - <<'PY'
           from pathlib import Path
           import re
@@ -52,24 +30,12 @@ jobs:
           Path('/tmp/masck-site.js').write_text('\n'.join(scripts))
           PY
           node --check /tmp/masck-site.js
-          python - <<'PY'
-          from pathlib import Path
-          expected = {
-              Path('website/images/masck-hero-caucasian-mask-v1.webp'): 40924,
-              Path('website/images/masck-hero-sky-ribbons-v1.webp'): 16334,
-          }
-          for path, size in expected.items():
-              data = path.read_bytes()
-              if len(data) != size or data[:4] != b'RIFF' or data[8:12] != b'WEBP':
-                  raise SystemExit(f'invalid WebP: {path} size={len(data)}')
-              print(path, len(data), 'OK')
-          PY
-      - name: Commit generated website
+      - name: Commit refined website
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add website/index.html website/images/masck-hero-caucasian-mask-v1.webp website/images/masck-hero-sky-ribbons-v1.webp
+          git add website/index.html
           if ! git diff --cached --quiet; then
-            git commit -m 'website: add cinematic Lenis scroll handoff'
+            git commit -m 'refine: orbit Object System Proof around mask'
             git push origin HEAD:main
           fi
