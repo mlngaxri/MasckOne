@@ -32,6 +32,8 @@ class IDLimits:
     min_hair_pinch_clearance_mm: float = 2.0
     max_eye_aperture_angle_asymmetry_deg: float = 1.5
     max_eye_aperture_hostile_cant_deg: float = 4.0
+    max_eye_surround_width_asymmetry_mm: float = 1.5
+    max_eye_surround_width_range_mm: float = 5.0
     max_nose_projection_above_field_mm: float = 2.0
     max_rear_depth_fraction_of_front_field: float = 0.75
     max_retention_visible_width_mm: float = 12.0
@@ -56,7 +58,9 @@ REQUIRED_MEASUREMENTS = (
     "ID_HAIR_PINCH_CLEARANCE_L", "ID_HAIR_PINCH_CLEARANCE_R",
     "ID_CONTROL_TACTILE_LAND_CLEAN", "ID_CONTROL_TACTILE_LAND_SECONDARY",
     "ID_CONTROL_TACTILE_SEPARATION", "ID_EYE_APERTURE_CANT_L",
-    "ID_EYE_APERTURE_CANT_R", "ID_NOSE_PROJECTION_ABOVE_FIELD",
+    "ID_EYE_APERTURE_CANT_R", "ID_EYE_SURROUND_WIDTH_MIN_L",
+    "ID_EYE_SURROUND_WIDTH_MAX_L", "ID_EYE_SURROUND_WIDTH_MIN_R",
+    "ID_EYE_SURROUND_WIDTH_MAX_R", "ID_NOSE_PROJECTION_ABOVE_FIELD",
     "ID_RETENTION_VISIBLE_WIDTH_L", "ID_RETENTION_VISIBLE_WIDTH_R",
     "ID_SIDE_HARDWARE_PROJECTION_L", "ID_SIDE_HARDWARE_PROJECTION_R",
     "ID_SIDE_HARDWARE_STEP_L", "ID_SIDE_HARDWARE_STEP_R",
@@ -155,6 +159,15 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
         raise IndustrialDesignContractError("eye aperture cant exceeds facial-neutrality target")
     if abs(abs(cant_l) - abs(cant_r)) > limits.max_eye_aperture_angle_asymmetry_deg:
         raise IndustrialDesignContractError("eye aperture asymmetry creates unintended expression")
+    for side in ("L", "R"):
+        eye_min = v[f"ID_EYE_SURROUND_WIDTH_MIN_{side}"]
+        eye_max = v[f"ID_EYE_SURROUND_WIDTH_MAX_{side}"]
+        if eye_max < eye_min:
+            raise IndustrialDesignContractError(f"{side} eye surround evidence has max width below min width")
+        if eye_max - eye_min > limits.max_eye_surround_width_range_mm:
+            raise IndustrialDesignContractError(f"{side} eye surround has excessive local width variation and reads as a goggle rim")
+    if abs(v["ID_EYE_SURROUND_WIDTH_MIN_L"] - v["ID_EYE_SURROUND_WIDTH_MIN_R"]) > limits.max_eye_surround_width_asymmetry_mm or abs(v["ID_EYE_SURROUND_WIDTH_MAX_L"] - v["ID_EYE_SURROUND_WIDTH_MAX_R"]) > limits.max_eye_surround_width_asymmetry_mm:
+        raise IndustrialDesignContractError("eye surround width asymmetry creates unintended facial expression")
     if v["ID_NOSE_PROJECTION_ABOVE_FIELD"] > limits.max_nose_projection_above_field_mm:
         raise IndustrialDesignContractError("nose bridge reads as a protruding cone rather than part of the facial field")
 
