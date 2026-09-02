@@ -6,6 +6,7 @@ from masck_one.industrial_design_contract import IndustrialDesignContractError, 
 def nominal():
     return {
         "ID_FRONT_FIELD_MAX_Z": 20.0, "ID_REAR_MAX_Z": 14.0,
+        "ID_FRONT_FLAT_PATCH_MAX_AREA": 600.0, "ID_FRONT_FIELD_DEPTH_RANGE": 4.0,
         "ID_SIDE_TRANSITION_RUN_L": 12.0, "ID_SIDE_TRANSITION_RUN_R": 12.0,
         "ID_SIDE_TRANSITION_DEPTH_L": 4.0, "ID_SIDE_TRANSITION_DEPTH_R": 4.0,
         "ID_REAR_FRONTAL_OVERHANG_L": 0.0, "ID_REAR_FRONTAL_OVERHANG_R": 0.0,
@@ -34,6 +35,13 @@ def test_mirrored_signed_eye_cant_is_valid():
 def test_missing_named_measurement_fails_closed():
     values = nominal(); del values["ID_SERVICE_GRIP_DEPTH"]
     with pytest.raises(IndustrialDesignContractError, match="missing stable ID measurements"): validate_measurements(values)
+
+
+def test_front_field_dead_zones_fail_closed():
+    values = nominal(); values["ID_FRONT_FLAT_PATCH_MAX_AREA"] = 900.1
+    with pytest.raises(IndustrialDesignContractError, match="flat dead zone"): validate_measurements(values)
+    values = nominal(); values["ID_FRONT_FIELD_DEPTH_RANGE"] = 1.99
+    with pytest.raises(IndustrialDesignContractError, match="flat plate"): validate_measurements(values)
 
 
 def test_abrupt_side_mass_fails():
