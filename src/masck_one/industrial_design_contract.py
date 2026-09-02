@@ -37,6 +37,9 @@ class IDLimits:
     max_mouth_surround_width_range_mm: float = 6.0
     max_mouth_surround_side_asymmetry_mm: float = 1.5
     max_nose_projection_above_field_mm: float = 2.0
+    max_philtrum_bridge_projection_mm: float = 1.5
+    max_philtrum_bridge_side_asymmetry_mm: float = 0.75
+    min_philtrum_bridge_blend_run_mm: float = 6.0
     max_rear_depth_fraction_of_front_field: float = 0.75
     max_retention_visible_width_mm: float = 12.0
     max_retention_width_asymmetry_mm: float = 1.0
@@ -65,9 +68,11 @@ REQUIRED_MEASUREMENTS = (
     "ID_EYE_SURROUND_WIDTH_MAX_R", "ID_MOUTH_SURROUND_WIDTH_MIN",
     "ID_MOUTH_SURROUND_WIDTH_MAX", "ID_MOUTH_SURROUND_SIDE_WIDTH_L",
     "ID_MOUTH_SURROUND_SIDE_WIDTH_R", "ID_NOSE_PROJECTION_ABOVE_FIELD",
-    "ID_RETENTION_VISIBLE_WIDTH_L", "ID_RETENTION_VISIBLE_WIDTH_R",
-    "ID_SIDE_HARDWARE_PROJECTION_L", "ID_SIDE_HARDWARE_PROJECTION_R",
-    "ID_SIDE_HARDWARE_STEP_L", "ID_SIDE_HARDWARE_STEP_R",
+    "ID_PHILTRUM_BRIDGE_PROJECTION", "ID_PHILTRUM_BRIDGE_BLEND_RUN_L",
+    "ID_PHILTRUM_BRIDGE_BLEND_RUN_R", "ID_RETENTION_VISIBLE_WIDTH_L",
+    "ID_RETENTION_VISIBLE_WIDTH_R", "ID_SIDE_HARDWARE_PROJECTION_L",
+    "ID_SIDE_HARDWARE_PROJECTION_R", "ID_SIDE_HARDWARE_STEP_L",
+    "ID_SIDE_HARDWARE_STEP_R",
 )
 
 SIGNED_MEASUREMENTS = frozenset(("ID_EYE_APERTURE_CANT_L", "ID_EYE_APERTURE_CANT_R"))
@@ -96,10 +101,7 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
     missing = sorted(set(REQUIRED_MEASUREMENTS) - set(values))
     if missing:
         raise IndustrialDesignContractError("missing stable ID measurements: " + ", ".join(missing))
-    v = {
-        name: (_finite(name, values[name]) if name in SIGNED_MEASUREMENTS else _finite_nonnegative(name, values[name]))
-        for name in REQUIRED_MEASUREMENTS
-    }
+    v = {name: (_finite(name, values[name]) if name in SIGNED_MEASUREMENTS else _finite_nonnegative(name, values[name])) for name in REQUIRED_MEASUREMENTS}
 
     if v["ID_FRONT_FLAT_PATCH_MAX_AREA"] > limits.max_front_flat_patch_area_mm2:
         raise IndustrialDesignContractError("front facial field contains an oversized flat dead zone")
@@ -107,12 +109,9 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
         raise IndustrialDesignContractError("front facial field lacks sufficient authored depth variation and reads as a flat plate")
 
     for side in ("L", "R"):
-        run = v[f"ID_SIDE_TRANSITION_RUN_{side}"]
-        depth = v[f"ID_SIDE_TRANSITION_DEPTH_{side}"]
+        run = v[f"ID_SIDE_TRANSITION_RUN_{side}"]; depth = v[f"ID_SIDE_TRANSITION_DEPTH_{side}"]
         if depth > limits.max_unseamed_depth_step_mm and run < limits.min_side_transition_run_depth_ratio * depth:
-            raise IndustrialDesignContractError(
-                f"{side} side transition is too abrupt: run/depth={run / depth:.2f}, requires >= {limits.min_side_transition_run_depth_ratio:.2f}"
-            )
+            raise IndustrialDesignContractError(f"{side} side transition is too abrupt: run/depth={run / depth:.2f}, requires >= {limits.min_side_transition_run_depth_ratio:.2f}")
     if abs(v["ID_SIDE_TRANSITION_DEPTH_L"] - v["ID_SIDE_TRANSITION_DEPTH_R"]) > limits.max_side_depth_asymmetry_mm:
         raise IndustrialDesignContractError("side depth asymmetry creates unintended visual weight")
     if abs(v["ID_SIDE_TRANSITION_RUN_L"] - v["ID_SIDE_TRANSITION_RUN_R"]) > limits.max_side_run_asymmetry_mm:
@@ -164,8 +163,7 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
     if abs(abs(cant_l) - abs(cant_r)) > limits.max_eye_aperture_angle_asymmetry_deg:
         raise IndustrialDesignContractError("eye aperture asymmetry creates unintended expression")
     for side in ("L", "R"):
-        eye_min = v[f"ID_EYE_SURROUND_WIDTH_MIN_{side}"]
-        eye_max = v[f"ID_EYE_SURROUND_WIDTH_MAX_{side}"]
+        eye_min = v[f"ID_EYE_SURROUND_WIDTH_MIN_{side}"]; eye_max = v[f"ID_EYE_SURROUND_WIDTH_MAX_{side}"]
         if eye_max < eye_min:
             raise IndustrialDesignContractError(f"{side} eye surround evidence has max width below min width")
         if eye_max - eye_min > limits.max_eye_surround_width_range_mm:
@@ -173,8 +171,7 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
     if abs(v["ID_EYE_SURROUND_WIDTH_MIN_L"] - v["ID_EYE_SURROUND_WIDTH_MIN_R"]) > limits.max_eye_surround_width_asymmetry_mm or abs(v["ID_EYE_SURROUND_WIDTH_MAX_L"] - v["ID_EYE_SURROUND_WIDTH_MAX_R"]) > limits.max_eye_surround_width_asymmetry_mm:
         raise IndustrialDesignContractError("eye surround width asymmetry creates unintended facial expression")
 
-    mouth_min = v["ID_MOUTH_SURROUND_WIDTH_MIN"]
-    mouth_max = v["ID_MOUTH_SURROUND_WIDTH_MAX"]
+    mouth_min = v["ID_MOUTH_SURROUND_WIDTH_MIN"]; mouth_max = v["ID_MOUTH_SURROUND_WIDTH_MAX"]
     if mouth_max < mouth_min:
         raise IndustrialDesignContractError("mouth surround evidence has max width below min width")
     if mouth_max - mouth_min > limits.max_mouth_surround_width_range_mm:
@@ -184,21 +181,20 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
 
     if v["ID_NOSE_PROJECTION_ABOVE_FIELD"] > limits.max_nose_projection_above_field_mm:
         raise IndustrialDesignContractError("nose bridge reads as a protruding cone rather than part of the facial field")
+    if v["ID_PHILTRUM_BRIDGE_PROJECTION"] > limits.max_philtrum_bridge_projection_mm:
+        raise IndustrialDesignContractError("philtrum bridge protrudes as a separate lower-nose tab rather than blending into the facial field")
+    if min(v["ID_PHILTRUM_BRIDGE_BLEND_RUN_L"], v["ID_PHILTRUM_BRIDGE_BLEND_RUN_R"]) < limits.min_philtrum_bridge_blend_run_mm:
+        raise IndustrialDesignContractError("philtrum bridge transition is too abrupt for a calm nose-to-mouth field")
+    if abs(v["ID_PHILTRUM_BRIDGE_BLEND_RUN_L"] - v["ID_PHILTRUM_BRIDGE_BLEND_RUN_R"]) > limits.max_philtrum_bridge_side_asymmetry_mm:
+        raise IndustrialDesignContractError("philtrum bridge blend asymmetry creates unintended lower-face expression")
 
 
-def validate_surface_boundary(surface_class: str, positional_gap_mm: float, tangent_discontinuity_deg: float,
-                              limits: IDLimits = IDLimits()) -> None:
+def validate_surface_boundary(surface_class: str, positional_gap_mm: float, tangent_discontinuity_deg: float, limits: IDLimits = IDLimits()) -> None:
     """Validate intended-continuous A/B appearance boundaries."""
-    gap = _finite_nonnegative("positional_gap_mm", positional_gap_mm)
-    tangent = _finite_nonnegative("tangent_discontinuity_deg", tangent_discontinuity_deg)
+    gap = _finite_nonnegative("positional_gap_mm", positional_gap_mm); tangent = _finite_nonnegative("tangent_discontinuity_deg", tangent_discontinuity_deg)
     cls = surface_class.upper()
-    if cls == "A":
-        max_gap, max_tangent = limits.max_a_surface_gap_mm, limits.max_a_surface_tangent_deg
-    elif cls == "B":
-        max_gap, max_tangent = limits.max_b_surface_gap_mm, limits.max_b_surface_tangent_deg
-    else:
-        raise IndustrialDesignContractError("surface_class must be A or B for appearance-boundary QA")
+    if cls == "A": max_gap, max_tangent = limits.max_a_surface_gap_mm, limits.max_a_surface_tangent_deg
+    elif cls == "B": max_gap, max_tangent = limits.max_b_surface_gap_mm, limits.max_b_surface_tangent_deg
+    else: raise IndustrialDesignContractError("surface_class must be A or B for appearance-boundary QA")
     if gap > max_gap or tangent > max_tangent:
-        raise IndustrialDesignContractError(
-            f"{cls}-surface continuity failed: gap={gap:.3f} mm, tangent={tangent:.3f} deg; limits={max_gap:.3f} mm/{max_tangent:.3f} deg"
-        )
+        raise IndustrialDesignContractError(f"{cls}-surface continuity failed: gap={gap:.3f} mm, tangent={tangent:.3f} deg; limits={max_gap:.3f} mm/{max_tangent:.3f} deg")
