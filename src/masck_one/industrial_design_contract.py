@@ -40,10 +40,13 @@ class IDLimits:
     max_side_hardware_projection_asymmetry_mm: float = 0.75
     max_side_hardware_step_mm: float = 0.50
     max_side_hardware_step_asymmetry_mm: float = 0.25
+    max_front_flat_patch_area_mm2: float = 900.0
+    min_front_field_depth_range_mm: float = 2.0
 
 
 REQUIRED_MEASUREMENTS = (
     "ID_FRONT_FIELD_MAX_Z", "ID_REAR_MAX_Z",
+    "ID_FRONT_FLAT_PATCH_MAX_AREA", "ID_FRONT_FIELD_DEPTH_RANGE",
     "ID_SIDE_TRANSITION_RUN_L", "ID_SIDE_TRANSITION_RUN_R",
     "ID_SIDE_TRANSITION_DEPTH_L", "ID_SIDE_TRANSITION_DEPTH_R",
     "ID_REAR_FRONTAL_OVERHANG_L", "ID_REAR_FRONTAL_OVERHANG_R",
@@ -89,6 +92,11 @@ def validate_measurements(values: Mapping[str, float], limits: IDLimits = IDLimi
         name: (_finite(name, values[name]) if name in SIGNED_MEASUREMENTS else _finite_nonnegative(name, values[name]))
         for name in REQUIRED_MEASUREMENTS
     }
+
+    if v["ID_FRONT_FLAT_PATCH_MAX_AREA"] > limits.max_front_flat_patch_area_mm2:
+        raise IndustrialDesignContractError("front facial field contains an oversized flat dead zone")
+    if v["ID_FRONT_FIELD_DEPTH_RANGE"] < limits.min_front_field_depth_range_mm:
+        raise IndustrialDesignContractError("front facial field lacks sufficient authored depth variation and reads as a flat plate")
 
     for side in ("L", "R"):
         run = v[f"ID_SIDE_TRANSITION_RUN_{side}"]
