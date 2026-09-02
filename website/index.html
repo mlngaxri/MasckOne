@@ -325,9 +325,18 @@ body:before{inset:5px;border-radius:15px}
 .glimmer-pass{display:none}
 }
 
-/* Object cleanup + navbar progress clipping */
-.header{overflow:hidden}
+/* Feature-stage navbar */
+.header{overflow:hidden;opacity:0;pointer-events:none;clip-path:inset(0 50% 0 50% round 999px);transform:translateX(-50%) scaleX(.08);transition:clip-path .72s cubic-bezier(.22,.78,.18,1),transform .72s cubic-bezier(.22,.78,.18,1),opacity .22s ease}
+.header>*{opacity:0;transition:opacity .24s ease .18s}
+.header.is-visible{opacity:1;pointer-events:auto;clip-path:inset(0 0 0 0 round 999px);transform:translateX(-50%) scaleX(1)}
+.header.is-visible>*{opacity:1}
 .nav-progress{left:1px;right:1px;bottom:1px;height:3px;border-radius:0 0 999px 999px}
+.nav-progress-fill{background:#788970;box-shadow:0 0 10px rgba(120,137,112,.34)}
+
+/* Seamless campaign ribbons */
+.band-track{display:flex;flex:none;width:max-content;min-width:0;gap:0;animation:marquee 16s linear infinite;will-change:transform}
+.band-track>span{display:block;flex:0 0 auto;white-space:nowrap;margin:0;padding:0}
+@keyframes marquee{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 
 </style>
 </head>
@@ -335,15 +344,15 @@ body:before{inset:5px;border-radius:15px}
 <header class="header">
 <div class="brand">MASCK ONE</div>
 <nav class="nav" aria-label="MASCK ONE sections">
-<button class="active" type="button" data-view-target="object" aria-pressed="true">Object</button>
-<button type="button" data-view-target="system" aria-pressed="false">System</button>
+<button class="active" type="button" data-view-target="object" aria-pressed="true">Architecture</button>
+<button type="button" data-view-target="system" aria-pressed="false">Systems</button>
 <button type="button" data-view-target="proof" aria-pressed="false">Proof</button>
 </nav>
 <div class="nav-progress" aria-hidden="true"><span class="nav-progress-fill"></span></div>
 </header>
 <div class="staircase" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <main>
-<section class="view active" data-view="object" aria-label="Object section">
+<section class="view active" data-view="object" aria-label="Architecture section">
 <section class="hero" id="top">
 <img class="hero-clouds hero-bg" data-depth=".13" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-sky-ribbons-v1.webp" alt="" fetchpriority="high" />
 <div class="hero-vignette"></div>
@@ -351,28 +360,16 @@ body:before{inset:5px;border-radius:15px}
 <h1><span>Less time.</span><span>More you.</span></h1>
 <p>MASCK ONE is a contained facial-cleansing wearable engineered to deliver, move and recover cleansing fluid while your hands stay free.</p>
 </div>
-<div class="band masck" data-depth=".25" aria-hidden="true"><div class="band-track"><span>MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i></span><span>MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i></span></div></div>
+<div class="band masck" data-depth=".25" aria-hidden="true"><div class="band-track"><span>MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK</span><span>MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK <i>•</i> MASCK</span></div></div>
 <img class="hero-person hero-subject" data-depth=".52" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-caucasian-mask-v1.webp" alt="Woman looking upward while wearing a MASCK ONE concept render" fetchpriority="high" />
-<div class="band one" data-depth=".31" aria-hidden="true"><div class="band-track"><span>ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i></span><span>ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i></span></div></div>
+<div class="band one" data-depth=".31" aria-hidden="true"><div class="band-track"><span>ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE</span><span>ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE <i>•</i> ONE</span></div></div>
 <div class="hero-bottom"><span><div class="line"></div>Scroll / follow the object</span><span>MASCK ONE / 2026</span></div>
 </section>
 <div class="mask-journey" aria-hidden="true"><img src="https://masck-one.vercel.app/images/masck-one-product-angle.webp" alt="" /></div>
 <div class="mask-orbit-overlay orbit-back" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
 <div class="mask-orbit-overlay orbit-front" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
 <div class="handoff-halo handoff-halo-stream" aria-hidden="true"><span class="orbit"></span><span class="axis"></span></div>
-<section class="handoff-page" aria-label="Architecture Systems Proof overview"><div class="handoff-stage"><div class="handoff-index"><b>02</b>Architecture / systems / proof</div><div class="handoff-caption"><b>The same object, followed downward.</b><span>As you scroll, MASCK ONE moves from its exterior form into the architecture, systems and proof behind the product.</span></div></div></section>
-<section class="page paper">
-<div class="section-tag"><span>Object</span><b>03 / 03</b></div>
-<div class="page-copy reveal" data-page-copy>
-<h2>One object.<br>Layered by function.</h2>
-<p>The floating object resolves into a physical stack: protective shell, compliant facial interface and serviceable internal structure. Each layer carries a different job.</p>
-<div class="detail-grid"><div class="detail-card"><b>Exterior</b>Thin protective shell with restrained visual mass.</div><div class="detail-card"><b>Contact</b>Soft compliant interface around the face and openings.</div></div>
-</div>
-<div class="visual object-stack">
-<div class="object-disc"></div><div class="annotation a">Exterior shell</div><div class="annotation b">Facial interface</div>
-<div class="visual-stage float" data-visual><img class="front" src="https://masck-one.vercel.app/images/masck-one-product-front.webp" alt="" /><img class="interface" src="https://masck-one.vercel.app/images/chapter-interface-v2.webp" alt="MASCK ONE facial interface" /><img class="shell" src="https://masck-one.vercel.app/images/chapter-shell-v2.webp" alt="MASCK ONE exterior shell" /></div>
-</div>
-</section>
+<section class="handoff-page" aria-label="Architecture Systems Proof overview"><div class="handoff-stage"><div class="handoff-caption"><b>Architecture. Systems. Proof.</b><span>Explore what MASCK ONE is, how it works, and the evidence behind it.</span></div></div></section>
 </section>
 
 <section class="view" data-view="system" aria-label="System section">
@@ -459,11 +456,11 @@ const heroLayers=[...document.querySelectorAll('.hero [data-depth]')];
 const heroCopy=document.querySelector('[data-depth-copy]');
 
 const navProgressFill=document.querySelector('.nav-progress-fill');
+const header=document.querySelector('.header');
 
 const journey=document.querySelector('.mask-journey');
 const heroSubject=document.querySelector('.hero-subject');
 const handoff=document.querySelector('.handoff-page');
-const objectPaper=document.querySelector('.view[data-view="object"] > .page.paper');
 const orbitCopies=[...document.querySelectorAll('.mask-orbit-overlay')];
 const haloStream=document.querySelector('.handoff-halo-stream');
 
@@ -537,20 +534,28 @@ if(document.hidden)clearTimeout(glimmerTimer);
 else queueGlimmer(true)}
 );
 
+function updateHeaderVisibility(position=scrollY){
+if(!header)return;
+const threshold=handoff?Math.max(0,handoff.offsetTop-24):innerHeight;
+const visible=active!=='object'||position>=threshold;
+header.classList.toggle('is-visible',visible);
+}
+
 function updateNavProgress(position=scrollY){
 const current=document.querySelector('.view.active');
 if(!current||!navProgressFill)return;
 const max=Math.max(0,current.scrollHeight-innerHeight);
 const progress=max>0?clamp(position/max,0,1):0;
 navProgressFill.style.transform=`scaleX(${progress})`;
+updateHeaderVisibility(position);
 }
 
-function jumpToTop(){
-if(lenis)lenis.scrollTo(0,{immediate:true,force:true});
-else window.scrollTo(0,0);
+function jumpToPosition(y=0){
+if(lenis)lenis.scrollTo(y,{immediate:true,force:true});
+else window.scrollTo(0,y);
 }
 
-function setActive(name){
+function setActive(name,featureAnchor=false){
 active=name;
 if(journey&&name!=='object')journey.style.opacity='0';
 if(name!=='object'){orbitCopies.forEach(el=>el.style.opacity='0');if(haloStream)haloStream.style.opacity='0'}
@@ -560,10 +565,11 @@ const isActive=b.dataset.viewTarget===name;
 b.classList.toggle('active',isActive);
 b.setAttribute('aria-pressed',String(isActive))}
 );
-jumpToTop();
-sy=0;
+const target=name==='object'&&featureAnchor&&handoff?handoff.offsetTop:0;
+jumpToPosition(target);
+sy=target;
 if(lenis)lenis.resize();
-updateNavProgress(0);
+updateNavProgress(target);
 requestFrame();
 setTimeout(()=>{
 document.querySelectorAll('.view.active .reveal').forEach(el=>{
@@ -573,14 +579,15 @@ if(el.getBoundingClientRect().top<innerHeight*.92)el.classList.add('seen')}
 
 async function switchView(name){
 if(name===active){
-if(lenis)lenis.scrollTo(0,{duration:1.05});
-else window.scrollTo({top:0,behavior:'smooth'});
+const target=name==='object'&&handoff?handoff.offsetTop:0;
+if(lenis)lenis.scrollTo(target,{duration:1.05});
+else window.scrollTo({top:target,behavior:'smooth'});
 return}
 if(switching)return;
 switching=true;
 const bars=[...staircase.children];
 if(!desktop()){
-setActive(name);
+setActive(name,name==='object');
 switching=false;
 return}
 if(lenis)lenis.stop();
@@ -592,7 +599,7 @@ transform:'scaleY(1)'}
 ],{
 duration:330,delay:i*24,easing:'cubic-bezier(.65,0,.35,1)',fill:'forwards'}
 ).finished));
-setActive(name);
+setActive(name,name==='object');
 staircase.classList.add('exit');
 await Promise.all(bars.map((bar,i)=>bar.animate([{
 transform:'scaleY(1)'}
@@ -648,24 +655,23 @@ el.style.transform=`translate3d(${x+p*18}px,${y*.62}px,0) scale(${1+p*.018})`}
 }
 );
 if(heroCopy)heroCopy.style.transform=`translate3d(${mx*2.5}px,${-p*24+my*1.8}px,0)`;
-if(journey&&handoff&&objectPaper){
-const heroH=Math.max(1,hero.offsetHeight);const paperTop=objectPaper.offsetTop;
-const detach=smooth(clamp((sy-heroH*.18)/(heroH*.68),0,1));const paperEntry=smooth(clamp((sy-(paperTop-innerHeight*.72))/(innerHeight*.9),0,1));const fadeOut=smooth(clamp((sy-(paperTop+innerHeight*.02))/(innerHeight*.5),0,1));const show=smooth(clamp((sy-heroH*.22)/(heroH*.28),0,1));
-const handoffTop=handoff.offsetTop;
+if(journey&&handoff){
+const heroH=Math.max(1,hero.offsetHeight);const handoffTop=handoff.offsetTop;const handoffEnd=handoffTop+handoff.offsetHeight;
+const detach=smooth(clamp((sy-heroH*.18)/(heroH*.68),0,1));const show=smooth(clamp((sy-heroH*.22)/(heroH*.28),0,1));
 const textEnter=smooth(clamp((sy-heroH*.72)/(innerHeight*.72),0,1));
-const textExit=smooth(clamp((sy-(paperTop-innerHeight*.92))/(innerHeight*.96),0,1));
-const textY=mix(mix(innerHeight*1.22,innerHeight*.52,textEnter),innerHeight*1.26,textExit);
-const textOpacity=smooth(clamp((textEnter-.05)/.22,0,1))*(1-smooth(clamp((textExit-.78)/.2,0,1)));
+const textExit=smooth(clamp((sy-(handoffEnd-innerHeight*.56))/(innerHeight*.5),0,1));
+const textY=mix(mix(innerHeight*1.22,innerHeight*.52,textEnter),innerHeight*1.28,textExit);
+const textOpacity=smooth(clamp((textEnter-.05)/.22,0,1))*(1-smooth(clamp((textExit-.76)/.2,0,1)));
 orbitCopies.forEach(el=>{el.style.opacity=String(textOpacity);el.style.setProperty('--stream-y',`${textY}px`)});
 
-const haloEnter=smooth(clamp((sy-(handoffTop-innerHeight*.12))/(innerHeight*.76),0,1));
-const haloExit=smooth(clamp((sy-(paperTop-innerHeight*1.02))/(innerHeight*.9),0,1));
+const haloEnter=smooth(clamp((sy-(handoffTop-innerHeight*.08))/(innerHeight*.72),0,1));
+const haloExit=smooth(clamp((sy-(handoffEnd-innerHeight*.72))/(innerHeight*.58),0,1));
 const haloY=mix(mix(innerHeight*1.22,innerHeight*.52,haloEnter),-innerHeight*.24,haloExit);
-const haloOpacity=smooth(clamp((haloEnter-.04)/.2,0,1))*(1-smooth(clamp((haloExit-.82)/.16,0,1)));
+const haloOpacity=smooth(clamp((haloEnter-.04)/.2,0,1))*(1-smooth(clamp((haloExit-.8)/.17,0,1)));
 if(haloStream){haloStream.style.opacity=String(haloOpacity);haloStream.style.setProperty('--halo-y',`${haloY}px`)}
-const sx=innerWidth*(desktop()?.735:.68),sy0=innerHeight*(desktop()?.46:.56),cx=innerWidth*.5,cy=innerHeight*.52,tx2=innerWidth*(desktop()?.72:.5),ty2=innerHeight*(desktop()?.49:.31);
-const x=mix(mix(sx,cx,detach),tx2,paperEntry),y=mix(mix(sy0,cy,detach),ty2,paperEntry),scale=mix(mix(desktop()?.58:.72,1,detach),desktop()?.82:.76,paperEntry);
-journey.style.opacity=String(show*(1-fadeOut));journey.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) scale(${scale}) rotate(${mix(-5,0,detach)+mix(0,4,paperEntry)}deg)`;
+const sx=innerWidth*(desktop()?.735:.68),sy0=innerHeight*(desktop()?.46:.56),cx=innerWidth*.5,cy=innerHeight*.52;
+const x=mix(sx,cx,detach),y=mix(sy0,cy,detach),scale=mix(desktop()?.58:.72,1,detach);
+journey.style.opacity=String(show);journey.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) scale(${scale}) rotate(${mix(-5,0,detach)}deg)`;
 if(heroSubject)heroSubject.style.opacity=String(1-smooth(clamp((sy-heroH*.6)/(heroH*.34),0,1))*.72);
 }
 }else if(journey){journey.style.opacity='0';orbitCopies.forEach(el=>el.style.opacity='0');if(haloStream)haloStream.style.opacity='0'}
@@ -723,6 +729,7 @@ passive:true}
 );
 
 clearDesktopResidue();
+updateHeaderVisibility();
 updateNavProgress();
 requestFrame();
 
