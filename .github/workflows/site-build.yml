@@ -21,9 +21,20 @@ jobs:
           node-version: '22'
       - name: Reconstruct and validate site
         run: |
+          git show 961cced7b293e5faf5aefc13dc9477ea0eb93afa:website/index.html > website/index.html
           python .site-build/apply.py
           python - <<'PY'
           from pathlib import Path
+          import base64
+
+          parts = Path('.site-build')
+          fg = (
+              (parts / 'hero-fg-1.b64').read_text().strip()[:18190]
+              + (parts / 'hero-fg-2.b64').read_text().strip()
+              + (parts / 'hero-fg-3.b64').read_text().strip()
+          )
+          Path('website/images/masck-hero-caucasian-mask-v1.webp').write_bytes(base64.b64decode(fg))
+
           p = Path('website/index.html')
           s = p.read_text()
           raw = 'https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/'
@@ -41,6 +52,17 @@ jobs:
           Path('/tmp/masck-site.js').write_text('\n'.join(scripts))
           PY
           node --check /tmp/masck-site.js
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          for path in [
+              Path('website/images/masck-hero-caucasian-mask-v1.webp'),
+              Path('website/images/masck-hero-sky-ribbons-v1.webp'),
+          ]:
+              with Image.open(path) as im:
+                  im.verify()
+              print(path, path.stat().st_size)
+          PY
       - name: Commit generated website
         run: |
           git config user.name 'github-actions[bot]'
