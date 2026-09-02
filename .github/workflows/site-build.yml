@@ -19,29 +19,39 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply and validate final product hero
+      - name: Install image validator
+        run: python -m pip install --disable-pip-version-check pillow
+      - name: Repair mask and mobile handoff
         run: |
-          python .site-build/refine_product_hero.py
+          python .site-build/repair_mask_mobile.py
           python - <<'PY'
           from pathlib import Path
+          from PIL import Image
           import re
           s = Path('website/index.html').read_text()
           scripts = re.findall(r'<script>(.*?)</script>', s, re.S)
           Path('/tmp/masck-site.js').write_text('\n'.join(scripts))
-          assert 'updateHeaderVisibility();' not in s
+          local = 'https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-mask-v2.webp'
+          fallback = 'https://masck-one.vercel.app/images/masck-one-product-angle.webp'
           assert 'masck-hero-caucasian-mask-v1.webp' not in s
-          assert s.count('masck-hero-mask-v2.webp') == 2
-          asset = Path('website/images/masck-hero-mask-v2.webp').read_bytes()
-          assert len(asset) == 48844
-          assert asset[:4] == b'RIFF' and asset[8:12] == b'WEBP'
+          assert 'updateHeaderVisibility();' not in s
+          assert '/* Mobile stability repair */' in s
+          if local in s:
+              with Image.open('website/images/masck-hero-mask-v2.webp') as im:
+                  im.load()
+                  assert 'A' in im.getbands()
+                  assert im.width >= 300 and im.height >= 300
+              assert s.count(local) == 2
+          else:
+              assert s.count(fallback) >= 2
           PY
           node --check /tmp/masck-site.js
-      - name: Commit refined website
+      - name: Commit repaired website
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add website/index.html website/images/masck-hero-mask-v2.webp
           if ! git diff --cached --quiet; then
-            git commit -m 'website: finalize product-first landing hero'
+            git commit -m 'fix: repair hero mask and mobile handoff'
             git push origin HEAD:main
           fi
