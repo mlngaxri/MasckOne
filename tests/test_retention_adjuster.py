@@ -24,10 +24,13 @@ def base(**overrides):
 def test_nominal_adjuster_closes():
     r = base()
     assert r.usable_travel_mm == 22.0
+    assert r.reachable_discrete_travel_mm == 22.0
     assert r.required_positions == 21
+    assert r.available_positions == 23
     assert r.maximum_quantization_error_mm == 0.5
     assert r.maximum_quantization_tension_error_n == 1.0
     assert r.retention_margin_n == 3.0
+    assert r.discrete_range_ok
     assert r.adjuster_ok
 
 
@@ -36,6 +39,42 @@ def test_end_stop_uncertainty_can_consume_travel():
     assert r.usable_travel_mm == 19.0
     assert r.travel_margin_mm == -1.0
     assert not r.adjuster_ok
+
+
+def test_continuous_travel_can_pass_while_discrete_positions_cannot_reach_span():
+    r = base(
+        required_adjustment_span_mm=20.5,
+        nominal_travel_mm=23.5,
+        end_stop_uncertainty_mm=1.0,
+        position_increment_mm=1.0,
+        member_stiffness_n_per_mm=1.0,
+    )
+    assert r.usable_travel_mm == 21.5
+    assert r.travel_margin_mm == 1.0
+    assert r.reachable_discrete_travel_mm == 21.0
+    assert r.discrete_travel_margin_mm == 0.5
+    assert r.required_positions == 22
+    assert r.available_positions == 22
+    assert r.discrete_range_ok
+
+    failing = base(
+        required_adjustment_span_mm=21.25,
+        nominal_travel_mm=23.5,
+        end_stop_uncertainty_mm=1.0,
+        position_increment_mm=1.0,
+        member_stiffness_n_per_mm=1.0,
+    )
+    assert failing.usable_travel_mm == 21.5
+    assert failing.travel_margin_mm == 0.25
+    assert failing.reachable_discrete_travel_mm == 21.0
+    assert failing.discrete_travel_margin_mm == pytest.approx(-0.25)
+    assert not failing.discrete_range_ok
+    assert not failing.adjuster_ok
+
+
+def test_required_position_count_uses_ceiling_not_floor():
+    r = base(required_adjustment_span_mm=20.01, position_increment_mm=1.0, member_stiffness_n_per_mm=1.0)
+    assert r.required_positions == 22
 
 
 def test_coarse_increment_can_fail_tension_resolution():
