@@ -50,3 +50,25 @@ def test_missing_member_envelope_fails_closed():
         pass
     else:
         raise AssertionError("incomplete envelope mapping must fail closed")
+
+
+def test_nonfinite_minimum_fit_datum_fails_closed_before_geometry():
+    bad = _datums(0.0)
+    bad = RetentionDatums(**{**bad.__dict__, "left_yoke": (-30.0, float("nan"), 0.0)})
+    try:
+        evaluate_adjustment_sweep(bad, _datums(1.0), _envs(), {}, minimum_residual_clearance_mm=0.0)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("nonfinite minimum-fit datum must fail closed")
+
+
+def test_boolean_coordinate_fails_closed_before_geometry():
+    bad = _datums(1.0)
+    bad = RetentionDatums(**{**bad.__dict__, "crown_apex": (0.0, True, 70.0)})
+    try:
+        evaluate_adjustment_sweep(_datums(0.0), bad, _envs(), {}, minimum_residual_clearance_mm=0.0)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("boolean maximum-fit coordinate must fail closed")
