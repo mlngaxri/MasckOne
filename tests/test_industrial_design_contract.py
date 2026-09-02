@@ -18,7 +18,9 @@ def nominal():
         "ID_CONTROL_TACTILE_SEPARATION": 2.0, "ID_EYE_APERTURE_CANT_L": -2.0,
         "ID_EYE_APERTURE_CANT_R": 2.0, "ID_EYE_SURROUND_WIDTH_MIN_L": 7.0,
         "ID_EYE_SURROUND_WIDTH_MAX_L": 10.0, "ID_EYE_SURROUND_WIDTH_MIN_R": 7.0,
-        "ID_EYE_SURROUND_WIDTH_MAX_R": 10.0, "ID_NOSE_PROJECTION_ABOVE_FIELD": 1.0,
+        "ID_EYE_SURROUND_WIDTH_MAX_R": 10.0, "ID_MOUTH_SURROUND_WIDTH_MIN": 8.0,
+        "ID_MOUTH_SURROUND_WIDTH_MAX": 12.0, "ID_MOUTH_SURROUND_SIDE_WIDTH_L": 10.0,
+        "ID_MOUTH_SURROUND_SIDE_WIDTH_R": 10.0, "ID_NOSE_PROJECTION_ABOVE_FIELD": 1.0,
         "ID_RETENTION_VISIBLE_WIDTH_L": 10.0, "ID_RETENTION_VISIBLE_WIDTH_R": 10.0,
         "ID_SIDE_HARDWARE_PROJECTION_L": 1.0, "ID_SIDE_HARDWARE_PROJECTION_R": 1.0,
         "ID_SIDE_HARDWARE_STEP_L": 0.25, "ID_SIDE_HARDWARE_STEP_R": 0.25,
@@ -118,6 +120,15 @@ def test_eye_surround_goggle_rim_and_asymmetry_fail_closed():
     values = nominal(); values["ID_EYE_SURROUND_WIDTH_MIN_R"] = 8.6
     with pytest.raises(IndustrialDesignContractError, match="unintended facial expression"): validate_measurements(values)
     values = nominal(); values["ID_EYE_SURROUND_WIDTH_MIN_L"] = 11.0; values["ID_EYE_SURROUND_WIDTH_MAX_L"] = 10.0
+    with pytest.raises(IndustrialDesignContractError, match="max width below min width"): validate_measurements(values)
+
+
+def test_mouth_surround_ring_and_asymmetry_fail_closed():
+    values = nominal(); values["ID_MOUTH_SURROUND_WIDTH_MAX"] = 14.1
+    with pytest.raises(IndustrialDesignContractError, match="separate ring"): validate_measurements(values)
+    values = nominal(); values["ID_MOUTH_SURROUND_SIDE_WIDTH_R"] = 11.6
+    with pytest.raises(IndustrialDesignContractError, match="mouth surround side asymmetry"): validate_measurements(values)
+    values = nominal(); values["ID_MOUTH_SURROUND_WIDTH_MIN"] = 13.0; values["ID_MOUTH_SURROUND_WIDTH_MAX"] = 12.0
     with pytest.raises(IndustrialDesignContractError, match="max width below min width"): validate_measurements(values)
 
 
