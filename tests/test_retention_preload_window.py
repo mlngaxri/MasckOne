@@ -6,15 +6,10 @@ from masck_one.retention_preload_window import evaluate_preload_window
 
 def test_full_adjustment_range_decouples_size_from_tension():
     result = evaluate_preload_window(
-        nominal_path_length_mm=420,
-        path_length_variation_mm=40,
-        adjustment_travel_each_side_mm=22,
-        member_stiffness_n_per_mm=0.5,
-        nominal_tension_n=8,
-        minimum_tension_n=5,
-        maximum_tension_n=12,
-        assembly_length_uncertainty_mm=2,
-        stiffness_uncertainty_fraction=0.2,
+        nominal_path_length_mm=420, path_length_variation_mm=40,
+        adjustment_travel_each_side_mm=22, member_stiffness_n_per_mm=0.5,
+        nominal_tension_n=8, minimum_tension_n=5, maximum_tension_n=12,
+        assembly_length_uncertainty_mm=2, stiffness_uncertainty_fraction=0.2,
     )
     assert result.preload_window_ok
     assert result.worst_short_tension_n == pytest.approx(8)
@@ -24,19 +19,14 @@ def test_full_adjustment_range_decouples_size_from_tension():
 
 def test_insufficient_travel_exposes_tension_excursion():
     result = evaluate_preload_window(
-        nominal_path_length_mm=420,
-        path_length_variation_mm=40,
-        adjustment_travel_each_side_mm=15,
-        member_stiffness_n_per_mm=0.5,
-        nominal_tension_n=8,
-        minimum_tension_n=5,
-        maximum_tension_n=12,
-        assembly_length_uncertainty_mm=2,
-        stiffness_uncertainty_fraction=0.2,
+        nominal_path_length_mm=420, path_length_variation_mm=40,
+        adjustment_travel_each_side_mm=15, member_stiffness_n_per_mm=0.5,
+        nominal_tension_n=8, minimum_tension_n=5, maximum_tension_n=12,
+        assembly_length_uncertainty_mm=2, stiffness_uncertainty_fraction=0.2,
     )
     assert not result.preload_window_ok
     assert result.adjustment_margin_mm == pytest.approx(-14)
-    assert result.worst_short_tension_n == pytest.approx(5.2)
+    assert result.worst_short_tension_n == pytest.approx(3.8)
     assert result.worst_long_tension_n == pytest.approx(12.2)
 
 
@@ -56,7 +46,7 @@ def test_assembly_uncertainty_consumes_adjustment_range():
     assert not uncertain.preload_window_ok
 
 
-def test_stiffness_uncertainty_worsens_both_tension_bounds_when_travel_saturates():
+def test_stiffness_uncertainty_worsens_both_tension_extremes_when_travel_saturates():
     base = evaluate_preload_window(
         nominal_path_length_mm=400, path_length_variation_mm=30,
         adjustment_travel_each_side_mm=10, member_stiffness_n_per_mm=0.5,
@@ -68,7 +58,7 @@ def test_stiffness_uncertainty_worsens_both_tension_bounds_when_travel_saturates
         nominal_tension_n=8, minimum_tension_n=0, maximum_tension_n=20,
         stiffness_uncertainty_fraction=0.25,
     )
-    assert uncertain.worst_short_tension_n > base.worst_short_tension_n
+    assert uncertain.worst_short_tension_n < base.worst_short_tension_n
     assert uncertain.worst_long_tension_n > base.worst_long_tension_n
 
 
