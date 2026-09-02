@@ -37,6 +37,19 @@ def _finite_nonnegative(value: float) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and isfinite(value) and value >= 0.0
 
 
+def _valid_vec3(value: Vec3) -> bool:
+    return isinstance(value, (tuple, list)) and len(value) == 3 and all(
+        isinstance(v, (int, float)) and not isinstance(v, bool) and isfinite(v) for v in value
+    )
+
+
+def _validate_box(name: str, box: AABB) -> None:
+    if not _valid_vec3(box.lo) or not _valid_vec3(box.hi):
+        raise ValueError(f"invalid keepout AABB coordinates: {name}")
+    if any(box.lo[i] > box.hi[i] for i in range(3)):
+        raise ValueError(f"inverted keepout AABB: {name}")
+
+
 def _point_aabb_distance_sq(p: Vec3, box: AABB) -> float:
     return sum(max(box.lo[i] - p[i], 0.0, p[i] - box.hi[i]) ** 2 for i in range(3))
 
@@ -95,6 +108,11 @@ def evaluate_member_envelopes(
         "occipital_left": (datums.left_junction, datums.occipital_center),
         "occipital_right": (datums.occipital_center, datums.right_junction),
     }
+    for member_name, (a, b) in members.items():
+        if not _valid_vec3(a) or not _valid_vec3(b):
+            raise ValueError(f"invalid retention datum coordinates: {member_name}")
+        if a == b:
+            raise ValueError(f"degenerate retention member: {member_name}")
     missing = sorted(set(members) - set(member_envelopes))
     extra = sorted(set(member_envelopes) - set(members))
     if missing or extra:
@@ -103,8 +121,7 @@ def evaluate_member_envelopes(
         if not all(_finite_nonnegative(v) for v in (env.half_envelope_mm, env.positional_tolerance_mm, env.manufacturing_tolerance_mm)):
             raise ValueError(f"invalid envelope for {name}")
     for name, box in protected_keepouts.items():
-        if any(not _finite_nonnegative(box.hi[i] - box.lo[i]) for i in range(3)):
-            raise ValueError(f"invalid keepout AABB: {name}")
+        _validate_box(name, box)
 
     failures: list[str] = []
     minimum = float("inf")
