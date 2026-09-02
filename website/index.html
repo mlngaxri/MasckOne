@@ -18,7 +18,7 @@
 *{box-sizing:border-box}html{background:var(--cloud);scroll-behavior:auto}body{margin:0;background:var(--cloud);color:var(--ink);font-family:Manrope,system-ui,sans-serif;overflow-x:hidden}button{font:inherit;color:inherit}img{display:block;max-width:100%;user-select:none;-webkit-user-drag:none}::selection{background:var(--ink);color:var(--white)}
 body:before{content:"";position:fixed;inset:8px;border:1px solid rgba(24,33,28,.12);border-radius:22px;pointer-events:none;z-index:1600}body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1590;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.83' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E")}
 .header{position:fixed;z-index:1400;top:20px;left:50%;transform:translateX(-50%);width:min(92vw,1110px);height:var(--nav-h);padding:0 9px 0 18px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border:1px solid rgba(255,255,255,.58);border-radius:999px;background:rgba(248,250,248,.68);backdrop-filter:blur(22px) saturate(1.18);box-shadow:0 10px 34px rgba(24,33,28,.07)}
-.brand{font-size:11px;font-weight:600;letter-spacing:.17em}.nav{display:flex;gap:2px;padding:3px;border-radius:999px;background:rgba(24,33,28,.045)}.nav button{position:relative;appearance:none;border:0;background:transparent;padding:8px 14px;border-radius:999px;font-size:10px;cursor:pointer;transition:background .22s,color .22s,transform .22s}.nav button:hover{transform:translateY(-1px)}.nav button.active{background:var(--ink);color:var(--white)}.status-chip{justify-self:end;display:flex;align-items:center;gap:8px;font:400 9px/1 DM Mono,monospace;letter-spacing:.08em;text-transform:uppercase;opacity:.62}.status-chip:before{content:"";width:6px;height:6px;border-radius:50%;background:#738269;box-shadow:0 0 0 5px rgba(115,130,105,.1)}
+.brand{font-size:11px;font-weight:600;letter-spacing:.17em}.nav{display:flex;gap:2px;padding:3px;border-radius:999px;background:rgba(24,33,28,.045)}.nav button{position:relative;appearance:none;border:0;background:transparent;padding:8px 14px;border-radius:999px;font-size:10px;cursor:pointer;transition:background .22s,color .22s,transform .22s}.nav button:hover{transform:translateY(-1px)}.nav button:focus-visible{outline:1px solid currentColor;outline-offset:3px}.nav button.active{background:var(--ink);color:var(--white)}.status-chip{justify-self:end;display:flex;align-items:center;gap:8px;font:400 9px/1 DM Mono,monospace;letter-spacing:.08em;text-transform:uppercase;opacity:.62}.status-chip:before{content:"";width:6px;height:6px;border-radius:50%;background:#738269;box-shadow:0 0 0 5px rgba(115,130,105,.1)}
 .staircase{position:fixed;z-index:1500;inset:0;display:grid;grid-template-columns:repeat(10,1fr);pointer-events:none}.staircase i{display:block;background:#18201b;transform:scaleY(0);transform-origin:bottom}.staircase.exit i{transform-origin:top}
 .view{display:none}.view.active{display:block}
 .hero{position:relative;height:100svh;min-height:700px;overflow:hidden;background:linear-gradient(180deg,#d4e5ea 0%,#eaf1f3 70%,#f2f3ed 100%)}
@@ -50,9 +50,9 @@ body:before{content:"";position:fixed;inset:8px;border:1px solid rgba(24,33,28,.
 <header class="header">
   <div class="brand">MASCK ONE</div>
   <nav class="nav" aria-label="MASCK ONE sections">
-    <button class="active" type="button" data-view-target="object">Object</button>
-    <button type="button" data-view-target="system">System</button>
-    <button type="button" data-view-target="proof">Proof</button>
+    <button class="active" type="button" data-view-target="object" aria-pressed="true">Object</button>
+    <button type="button" data-view-target="system" aria-pressed="false">System</button>
+    <button type="button" data-view-target="proof" aria-pressed="false">Proof</button>
   </nav>
   <div class="status-chip">Engineering development</div>
 </header>
@@ -78,7 +78,7 @@ body:before{content:"";position:fixed;inset:8px;border:1px solid rgba(24,33,28,.
     <div class="section-tag"><span>Object</span><b>02 / 02</b></div>
     <div class="page-copy reveal" data-page-copy>
       <div class="page-label">Physical architecture</div>
-      <h2>One object.<br>Three interfaces.</h2>
+      <h2>One object.<br>Layered by function.</h2>
       <p>The product reads as one quiet surface, but it is engineered as a stack: protective shell, compliant facial interface and serviceable internal structure. Each layer carries a different job.</p>
       <div class="detail-grid">
         <div class="detail-card"><b>Exterior</b>Thin protective shell with restrained visual mass.</div>
@@ -159,7 +159,7 @@ let active='object',mx=0,my=0,tx=0,ty=0,raf=0,switching=false;
 const reveals=[...document.querySelectorAll('.reveal')];
 const io='IntersectionObserver' in window?new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('seen');io.unobserve(e.target)}}),{threshold:.18,rootMargin:'0px 0px -7% 0px'}):null;
 if(io)reveals.forEach(el=>io.observe(el));else reveals.forEach(el=>el.classList.add('seen'));
-function setActive(name){active=name;views.forEach(v=>v.classList.toggle('active',v.dataset.view===name));nav.forEach(b=>b.classList.toggle('active',b.dataset.viewTarget===name));window.scrollTo(0,0);requestFrame();setTimeout(()=>{document.querySelectorAll('.view.active .reveal').forEach(el=>{if(el.getBoundingClientRect().top<innerHeight*.92)el.classList.add('seen')})},30)}
+function setActive(name){active=name;views.forEach(v=>v.classList.toggle('active',v.dataset.view===name));nav.forEach(b=>{const isActive=b.dataset.viewTarget===name;b.classList.toggle('active',isActive);b.setAttribute('aria-pressed',String(isActive))});window.scrollTo(0,0);requestFrame();setTimeout(()=>{document.querySelectorAll('.view.active .reveal').forEach(el=>{if(el.getBoundingClientRect().top<innerHeight*.92)el.classList.add('seen')})},30)}
 async function switchView(name){if(name===active){window.scrollTo({top:0,behavior:'smooth'});return}if(switching)return;switching=true;const bars=[...staircase.children];if(!desktop()){setActive(name);switching=false;return}await Promise.all(bars.map((bar,i)=>bar.animate([{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:330,delay:i*24,easing:'cubic-bezier(.65,0,.35,1)',fill:'forwards'}).finished));setActive(name);staircase.classList.add('exit');await Promise.all(bars.map((bar,i)=>bar.animate([{transform:'scaleY(1)'},{transform:'scaleY(0)'}],{duration:380,delay:(bars.length-1-i)*22,easing:'cubic-bezier(.65,0,.35,1)',fill:'forwards'}).finished));staircase.classList.remove('exit');bars.forEach(b=>b.getAnimations().forEach(a=>a.cancel()));switching=false}
 nav.forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.viewTarget)));
 addEventListener('mousemove',e=>{if(!desktop())return;tx=(e.clientX/innerWidth-.5)*2;ty=(e.clientY/innerHeight-.5)*2;requestFrame()},{passive:true});
