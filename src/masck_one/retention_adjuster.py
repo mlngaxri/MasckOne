@@ -8,7 +8,7 @@ validation.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import ceil, isfinite
+from math import floor, isfinite
 
 
 def _finite(value: object, label: str) -> float:
@@ -23,13 +23,17 @@ def _finite(value: object, label: str) -> float:
 @dataclass(frozen=True)
 class AdjusterResult:
     usable_travel_mm: float
+    reachable_discrete_travel_mm: float
     required_positions: int
+    available_positions: int
     maximum_quantization_error_mm: float
     maximum_quantization_tension_error_n: float
     retention_margin_n: float
     travel_margin_mm: float
+    discrete_travel_margin_mm: float
     resolution_ok: bool
     retention_ok: bool
+    discrete_range_ok: bool
     adjuster_ok: bool
     evidence_status: str = "DIGITAL_SENSITIVITY_ONLY"
 
@@ -47,14 +51,18 @@ def evaluate_retention_adjuster(
     backdrive_load_uncertainty_n: float = 0.0,
     service_tension_uncertainty_n: float = 0.0,
 ) -> AdjusterResult:
-    """Evaluate travel, discrete resolution, and conservative backdrive margin.
+    """Evaluate continuous travel, discrete reachability, resolution and backdrive margin.
 
-    End-stop uncertainty is removed from both ends of nominal travel. A discrete
-    adjuster can leave at most half one position increment of path-length error.
-    That error is converted to tension error using member stiffness. Backdrive
-    capacity is reduced by its uncertainty while service demand is increased by
-    its uncertainty. The calculation deliberately does not infer accidental-release,
-    wear, wet-grip usability, ratchet fatigue, or human comfort.
+    End-stop uncertainty is removed from both ends of nominal travel. The remaining
+    continuous span is not automatically reachable by a discrete mechanism: only
+    complete increments between the conservative stops are counted. A discrete
+    adjuster can leave at most half one position increment of path-length error only
+    when that interval is bracketed by reachable positions; therefore the reachable
+    discrete span is gated independently from nominal/usable travel. Quantization
+    error is converted to tension error using member stiffness. Backdrive capacity is
+    reduced by its uncertainty while service demand is increased by its uncertainty.
+    The calculation deliberately does not infer accidental-release, wear, wet-grip
+    usability, ratchet fatigue, or human comfort.
     """
     required = _finite(required_adjustment_span_mm, "required_adjustment_span_mm")
     nominal = _finite(nominal_travel_mm, "nominal_travel_mm")
@@ -75,25 +83,38 @@ def evaluate_retention_adjuster(
         raise ValueError("loads and load uncertainties must be non-negative")
 
     usable = max(0.0, nominal - 2.0 * stop_unc)
+    available_intervals = floor(usable / increment + 1e-12)
+    available_positions = available_intervals + 1
+    reachable_discrete_travel = available_intervals * increment
+    required_intervals = floor(required / increment + 1e-12)
+    if required - required_intervals * increment > 1e-12:
+        required_intervals += 1
+    required_positions = required_intervals + 1
+
     quant_error = increment / 2.0
     tension_error = stiffness * quant_error
     conservative_capacity = max(0.0, backdrive - backdrive_unc)
     conservative_demand = service + service_unc
     retention_margin = conservative_capacity - conservative_demand
     travel_margin = usable - required
-    positions = ceil(required / increment) + 1 if required > 0 else 1
+    discrete_travel_margin = reachable_discrete_travel - required
     resolution_ok = tension_error <= allowed_error
     retention_ok = retention_margin >= 0
-    adjuster_ok = travel_margin >= 0 and resolution_ok and retention_ok
+    discrete_range_ok = discrete_travel_margin >= -1e-12
+    adjuster_ok = travel_margin >= 0 and discrete_range_ok and resolution_ok and retention_ok
 
     return AdjusterResult(
         usable_travel_mm=usable,
-        required_positions=positions,
+        reachable_discrete_travel_mm=reachable_discrete_travel,
+        required_positions=required_positions,
+        available_positions=available_positions,
         maximum_quantization_error_mm=quant_error,
         maximum_quantization_tension_error_n=tension_error,
         retention_margin_n=retention_margin,
         travel_margin_mm=travel_margin,
+        discrete_travel_margin_mm=discrete_travel_margin,
         resolution_ok=resolution_ok,
         retention_ok=retention_ok,
+        discrete_range_ok=discrete_range_ok,
         adjuster_ok=adjuster_ok,
     )
