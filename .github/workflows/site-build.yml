@@ -1,0 +1,52 @@
+name: Build cinematic website
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.site-build/run.flag'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reconstruct and validate site
+        run: |
+          python .site-build/apply.py
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('website/index.html')
+          s = p.read_text()
+          raw = 'https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/'
+          s = s.replace('src="images/masck-hero-caucasian-mask-v1.webp"', f'src="{raw}masck-hero-caucasian-mask-v1.webp"')
+          s = s.replace('src="images/masck-hero-sky-ribbons-v1.webp"', f'src="{raw}masck-hero-sky-ribbons-v1.webp"')
+          s = s.replace('-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 100%);mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 100%);', '')
+          s = s.replace('-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%);mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 100%);', '')
+          p.write_text(s)
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s = Path('website/index.html').read_text()
+          scripts = re.findall(r'<script>(.*?)</script>', s, re.S)
+          Path('/tmp/masck-site.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/masck-site.js
+      - name: Commit generated website
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add website/index.html website/images/masck-hero-caucasian-mask-v1.webp website/images/masck-hero-sky-ribbons-v1.webp
+          if ! git diff --cached --quiet; then
+            git commit -m 'website: add cinematic Lenis scroll handoff'
+            git push origin HEAD:main
+          fi
