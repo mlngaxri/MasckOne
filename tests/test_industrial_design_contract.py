@@ -16,7 +16,9 @@ def nominal():
         "ID_HAIR_PINCH_CLEARANCE_L": 2.0, "ID_HAIR_PINCH_CLEARANCE_R": 2.0,
         "ID_CONTROL_TACTILE_LAND_CLEAN": 10.0, "ID_CONTROL_TACTILE_LAND_SECONDARY": 8.0,
         "ID_CONTROL_TACTILE_SEPARATION": 2.0, "ID_EYE_APERTURE_CANT_L": -2.0,
-        "ID_EYE_APERTURE_CANT_R": 2.0, "ID_NOSE_PROJECTION_ABOVE_FIELD": 1.0,
+        "ID_EYE_APERTURE_CANT_R": 2.0, "ID_EYE_SURROUND_WIDTH_MIN_L": 7.0,
+        "ID_EYE_SURROUND_WIDTH_MAX_L": 10.0, "ID_EYE_SURROUND_WIDTH_MIN_R": 7.0,
+        "ID_EYE_SURROUND_WIDTH_MAX_R": 10.0, "ID_NOSE_PROJECTION_ABOVE_FIELD": 1.0,
         "ID_RETENTION_VISIBLE_WIDTH_L": 10.0, "ID_RETENTION_VISIBLE_WIDTH_R": 10.0,
         "ID_SIDE_HARDWARE_PROJECTION_L": 1.0, "ID_SIDE_HARDWARE_PROJECTION_R": 1.0,
         "ID_SIDE_HARDWARE_STEP_L": 0.25, "ID_SIDE_HARDWARE_STEP_R": 0.25,
@@ -108,6 +110,15 @@ def test_hostile_or_asymmetric_eye_expression_fails():
     with pytest.raises(IndustrialDesignContractError, match="facial-neutrality"): validate_measurements(values)
     values = nominal(); values["ID_EYE_APERTURE_CANT_R"] = 3.6
     with pytest.raises(IndustrialDesignContractError, match="unintended expression"): validate_measurements(values)
+
+
+def test_eye_surround_goggle_rim_and_asymmetry_fail_closed():
+    values = nominal(); values["ID_EYE_SURROUND_WIDTH_MAX_L"] = 12.1
+    with pytest.raises(IndustrialDesignContractError, match="goggle rim"): validate_measurements(values)
+    values = nominal(); values["ID_EYE_SURROUND_WIDTH_MIN_R"] = 8.6
+    with pytest.raises(IndustrialDesignContractError, match="unintended facial expression"): validate_measurements(values)
+    values = nominal(); values["ID_EYE_SURROUND_WIDTH_MIN_L"] = 11.0; values["ID_EYE_SURROUND_WIDTH_MAX_L"] = 10.0
+    with pytest.raises(IndustrialDesignContractError, match="max width below min width"): validate_measurements(values)
 
 
 def test_nonfinite_signed_eye_geometry_fails_closed():
