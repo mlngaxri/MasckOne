@@ -45,13 +45,13 @@ def evaluate_preload_window(
     assembly_length_uncertainty_mm: float = 0.0,
     stiffness_uncertainty_fraction: float = 0.0,
 ) -> PreloadWindowResult:
-    """Bound the tension and adjustment travel of one retention member.
+    """Bound tension and adjustment travel for one retention member.
 
     ``path_length_variation_mm`` is the full shortest-to-longest anatomical/donning
-    path range around the nominal fit. Adjustment is assumed symmetric about nominal.
-    Assembly length uncertainty consumes travel and creates additional extension.
-    Stiffness uncertainty is applied adversarially: low stiffness for minimum-tension
-    closure and high stiffness for maximum-tension closure.
+    path range around nominal. Adjustment is symmetric about nominal. Assembly length
+    uncertainty consumes travel and adds dimensional mismatch. When adjustment travel
+    saturates, the upper stiffness bound is adversarial for both extremes because it
+    maximizes the tension decrease on the short fit and increase on the long fit.
     """
     length = _finite(nominal_path_length_mm, "nominal_path_length_mm")
     variation = _finite(path_length_variation_mm, "path_length_variation_mm")
@@ -76,12 +76,10 @@ def evaluate_preload_window(
     required_each_side = half_variation + assembly_unc
     required_span = 2.0 * required_each_side
     available_span = 2.0 * travel
-
     uncompensated = max(0.0, required_each_side - travel)
-    k_low = stiffness * (1.0 - stiffness_unc)
     k_high = stiffness * (1.0 + stiffness_unc)
 
-    worst_short = max(0.0, nominal_tension - k_low * uncompensated)
+    worst_short = max(0.0, nominal_tension - k_high * uncompensated)
     worst_long = nominal_tension + k_high * uncompensated
     low_margin = worst_short - min_tension
     high_margin = max_tension - worst_long
