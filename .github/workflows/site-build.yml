@@ -27,6 +27,7 @@ jobs:
           python .site-build/systems_experience_v9.py
           python .site-build/awwwards_finish_v11.py
           python .site-build/awwwards_finish_v12.py
+          python .site-build/finalize_website_v13.py
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
@@ -51,6 +52,8 @@ jobs:
           assert '/* End Awwwards editorial finish v11 */' in s
           assert '/* Awwwards art-direction finish v12 */' in s
           assert '/* End Awwwards art-direction finish v12 */' in s
+          assert '/* Final website closure v13 */' in s
+          assert '/* End final website closure v13 */' in s
           assert 'Instrument+Serif' in s
           assert '--display:"Instrument Serif"' in s
           assert 'background-image:none;' in s
@@ -71,6 +74,18 @@ jobs:
           assert 'env(safe-area-inset-top)' in s
           assert 'aria-current="page">Architecture' in s
           assert 'loading="lazy" decoding="async"' in s
+
+          # Final production/document closure.
+          assert s.count('class="closing-chamber"') == 1
+          assert s.count('class="closing-return"') == 1
+          assert s.count('class="skip-link"') == 1
+          assert s.count('id="main-content"') == 1
+          assert '<link rel="canonical" href="https://masck-one-final.vercel.app/" />' in s
+          assert '<meta property="og:type" content="website" />' in s
+          assert 'Current state / engineering development' in s
+          assert 'Built toward evidence.' in s
+          assert 'No paid pre-orders.' in s
+          assert "closingReturn.addEventListener('click',()=>switchView('object'))" in s
 
           # One untouched approved product image from hero through Architecture.
           assert 'hero-mask-wrap hero-subject' not in s
@@ -109,12 +124,12 @@ jobs:
           assert amin < 32 and amax > 240, (amin, amax)
           PY
           node --check /tmp/masck-site.js
-      - name: Commit polished website
+      - name: Commit finalized website
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add website/index.html
           if ! git diff --cached --quiet; then
-            git commit -m 'refine: Awwwards art direction and hierarchy'
+            git commit -m 'finalize: production website experience'
             git push origin HEAD:main
           fi
