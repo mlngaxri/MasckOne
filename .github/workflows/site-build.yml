@@ -28,6 +28,7 @@ jobs:
           python .site-build/awwwards_finish_v11.py
           python .site-build/awwwards_finish_v12.py
           python .site-build/finalize_website_v13.py
+          python .site-build/restraint_v14.py
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
@@ -54,13 +55,15 @@ jobs:
           assert '/* End Awwwards art-direction finish v12 */' in s
           assert '/* Final website closure v13 */' in s
           assert '/* End final website closure v13 */' in s
+          assert '/* Restraint pass v14 */' in s
+          assert '/* End restraint pass v14 */' in s
           assert 'Instrument+Serif' in s
           assert '--display:"Instrument Serif"' in s
           assert 'background-image:none;' in s
           assert '.band-track{animation-duration:38s}' in s
           assert '.systems-copy h2{' in s
-          assert 'class="hero-editorial-kicker"' in s
-          assert 'class="nav-status"' in s
+          assert 'class="hero-editorial-kicker"' not in s
+          assert 'class="nav-status"' not in s
           assert 'data-index="01"' in s and 'data-index="02"' in s and 'data-index="03"' in s
           assert 'data-page-no="01"' in s and 'data-page-no="02"' in s
           assert '@keyframes heroLineIn' in s
@@ -82,10 +85,19 @@ jobs:
           assert s.count('id="main-content"') == 1
           assert '<link rel="canonical" href="https://masck-one-final.vercel.app/" />' in s
           assert '<meta property="og:type" content="website" />' in s
-          assert 'Current state / engineering development' in s
+          assert 'Current state / engineering development' not in s
           assert 'Built toward evidence.' in s
           assert 'No paid pre-orders.' in s
           assert "closingReturn.addEventListener('click',()=>switchView('object'))" in s
+
+          # Deliberate restraint: no duplicated status/kicker/readout copy.
+          assert '>In development<' not in s
+          assert 'Contained fluid circuit' not in s
+          assert 'Local motion architecture' not in s
+          assert 'Explore what MASCK ONE is, how it works, and the evidence behind it.' not in s
+          assert '03 / Proof / 01' not in s and '03 / Proof / 02' not in s
+          assert s.count('class="systems-readout') == 0
+          assert s.count('class="page-label"') == 0
 
           # One untouched approved product image from hero through Architecture.
           assert 'hero-mask-wrap hero-subject' not in s
@@ -130,6 +142,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add website/index.html
           if ! git diff --cached --quiet; then
-            git commit -m 'finalize: production website experience'
+            git commit -m 'refine: reduce website copy and UI noise'
             git push origin HEAD:main
           fi
