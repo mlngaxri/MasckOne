@@ -6,6 +6,14 @@
 <meta name="theme-color" content="#eaf1f3" />
 <title>MASCK ONE | Cleansing, re-engineered</title>
 <meta name="description" content="MASCK ONE is a contained-fluid facial cleansing system in engineering development." />
+<link rel="canonical" href="https://masck-one-final.vercel.app/" />
+<meta name="robots" content="index,follow" />
+<meta name="color-scheme" content="light" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="MASCK ONE | Cleansing, re-engineered" />
+<meta property="og:description" content="A contained facial-cleansing wearable in engineering development." />
+<meta property="og:url" content="https://masck-one-final.vercel.app/" />
+<meta name="twitter:card" content="summary" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -624,6 +632,7 @@ body:before{border-color:rgba(24,33,28,.10)}
 
 
 
+
 /* Continuous approved product mask v10 */
 .mask-journey.hero-mask-single{
   position:fixed;
@@ -1231,9 +1240,71 @@ body{font-synthesis:none}
 }
 /* End Awwwards art-direction finish v12 */
 
+
+/* Final website closure v13 */
+.skip-link{
+  position:fixed;z-index:2200;left:18px;top:14px;
+  padding:10px 14px;border-radius:999px;background:#18211c;color:#fbfcf9;
+  font:400 8px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  transform:translateY(-180%);transition:transform .2s var(--ease)
+}
+.skip-link:focus{transform:translateY(0)}
+
+.closing-chamber{
+  position:relative;min-height:100svh;padding:clamp(100px,12vh,150px) max(var(--pad),5.2vw) 34px;
+  display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+  background:#f1efe8;color:#18211c;border-top:1px solid rgba(24,33,28,.12);isolation:isolate
+}
+.closing-chamber::before{
+  content:"";position:absolute;z-index:0;right:-17vw;top:-23vw;width:58vw;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,rgba(189,211,215,.50),rgba(189,211,215,.13) 43%,transparent 70%);filter:blur(9px);pointer-events:none
+}
+.closing-chamber::after{
+  content:"03";position:absolute;z-index:0;right:-.025em;bottom:-.12em;
+  font:400 clamp(240px,35vw,580px)/.7 var(--display);letter-spacing:-.08em;color:#18211c;opacity:.025;pointer-events:none
+}
+.closing-rule{position:relative;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;color:rgba(24,33,28,.30)}
+.closing-rule span{height:1px;background:currentColor}.closing-rule i{width:5px;height:5px;border:1px solid currentColor;border-radius:50%}
+.closing-kicker{position:relative;z-index:2;margin-top:25px;font:400 7px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:rgba(24,33,28,.48)}
+.closing-wordmark{position:relative;z-index:1;align-self:center;width:min(92vw,1260px);margin:auto 0;display:flex;justify-content:center;gap:.12em;
+  font:400 clamp(110px,18vw,290px)/.68 var(--display);letter-spacing:-.075em;white-space:nowrap}
+.closing-wordmark span:last-child{font-style:italic}
+.closing-bottom{position:relative;z-index:2;display:grid;grid-template-columns:minmax(250px,1fr) auto auto;gap:clamp(28px,5vw,76px);align-items:end;border-top:1px solid rgba(24,33,28,.14);padding-top:20px}
+.closing-statement{max-width:410px}.closing-statement b{display:block;margin-bottom:8px;font:400 clamp(25px,2.3vw,36px)/.95 var(--display);letter-spacing:-.04em}
+.closing-statement span{display:block;max-width:350px;font-size:10.5px;line-height:1.62;color:rgba(24,33,28,.60)}
+.closing-meta{display:grid;gap:7px;min-width:150px;font:400 6.5px/1.2 var(--mono);letter-spacing:.11em;text-transform:uppercase;color:rgba(24,33,28,.45)}
+.closing-return{appearance:none;border:0;border-bottom:1px solid rgba(24,33,28,.28);background:transparent;padding:8px 0;display:flex;align-items:center;gap:24px;
+  font:400 8px/1 var(--mono);letter-spacing:.105em;text-transform:uppercase;cursor:pointer;color:#18211c;transition:border-color .25s var(--ease),gap .25s var(--ease)}
+.closing-return i{font-style:normal;font-size:12px;transition:transform .25s var(--ease)}
+.closing-return:focus-visible{outline:2px solid #77866f;outline-offset:6px}
+@media(hover:hover) and (pointer:fine){.closing-return:hover{gap:32px;border-color:#18211c}.closing-return:hover i{transform:translate(2px,-2px)}}
+
+/* Final interaction consistency. */
+button{-webkit-tap-highlight-color:transparent}
+.nav button,.closing-return{touch-action:manipulation}
+@media(max-width:900px){
+  .nav button{min-height:40px}
+  .closing-chamber{min-height:100svh;padding:92px 22px max(24px,env(safe-area-inset-bottom))}
+  .closing-chamber::before{right:-32vw;top:-8vw;width:100vw}
+  .closing-wordmark{width:100%;margin:auto 0;font-size:clamp(75px,24vw,118px);line-height:.72;flex-direction:column;gap:0;align-items:flex-start}
+  .closing-wordmark span:last-child{margin-left:18vw}
+  .closing-bottom{grid-template-columns:1fr;gap:25px;padding-top:17px}
+  .closing-statement b{font-size:clamp(29px,8.7vw,38px)}
+  .closing-statement span{font-size:10.5px}
+  .closing-meta{grid-template-columns:repeat(3,auto);justify-content:space-between;min-width:0;gap:8px;font-size:5.8px}
+  .closing-return{width:100%;justify-content:space-between;min-height:44px}
+}
+@media(max-width:390px){
+  .closing-chamber{padding-left:18px;padding-right:18px}
+  .closing-meta{grid-template-columns:1fr;gap:5px}
+}
+@media(max-width:900px) and (prefers-reduced-motion:reduce){.skip-link,.closing-return,.closing-return i{transition:none!important}}
+/* End final website closure v13 */
+
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to content</a>
 <header class="header">
 <div class="brand">MASCK ONE</div>
 <nav class="nav" aria-label="MASCK ONE sections">
@@ -1245,7 +1316,7 @@ body{font-synthesis:none}
 <div class="nav-progress" aria-hidden="true"><span class="nav-progress-fill"></span></div>
 </header>
 <div class="staircase" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-<main>
+<main id="main-content">
 <section class="view active" data-view="object" aria-label="Architecture section">
 <section class="hero" id="top">
 <div class="hero-clouds hero-sky-orb" data-depth=".13" aria-hidden="true"></div>
@@ -1361,6 +1432,16 @@ body{font-synthesis:none}
 </div>
 <div class="visual exploded"><div class="proof-grid"></div><div class="assembly-axis"></div><div class="visual-stage" data-visual><img class="layer-shell" src="https://masck-one.vercel.app/images/masck-one-shell.webp" alt="Exterior shell layer"  loading="lazy" decoding="async" /><img class="layer-manifold" src="https://masck-one.vercel.app/images/masck-one-manifold.webp" alt="Fresh manifold layer"  loading="lazy" decoding="async" /><img class="layer-interface" src="https://masck-one.vercel.app/images/masck-one-interface.webp" alt="Facial interface layer"  loading="lazy" decoding="async" /><img class="layer-chassis" src="https://masck-one.vercel.app/images/masck-one-chassis.webp" alt="Actuator chassis layer"  loading="lazy" decoding="async" /><img class="layer-cartridge" src="https://masck-one.vercel.app/images/masck-one-cartridge.webp" alt="Waste cartridge layer"  loading="lazy" decoding="async" /></div><div class="proof-note">Every layer shown remains subordinate to physical validation.</div></div>
 <div class="page-index">03 / Proof / 02</div><div class="evidence-line">No paid pre-orders. Product visuals may change as physical evidence closes.</div>
+</section>
+<section class="closing-chamber" aria-label="MASCK ONE development status">
+<div class="closing-rule" aria-hidden="true"><span></span><i></i><span></span></div>
+<div class="closing-kicker">Current state / engineering development</div>
+<div class="closing-wordmark" aria-hidden="true"><span>MASCK</span><span>ONE</span></div>
+<div class="closing-bottom">
+<div class="closing-statement"><b>Built toward evidence.</b><span>MASCK ONE advances when the physical system earns the claims the digital system proposes.</span></div>
+<div class="closing-meta"><span>Product visuals may change.</span><span>No paid pre-orders.</span><span>2026</span></div>
+<button class="closing-return" type="button" data-return-architecture><span>Return to Architecture</span><i aria-hidden="true">↗</i></button>
+</div>
 </section>
 </section>
 </main>
@@ -1564,6 +1645,9 @@ switching=false}
 }
 
 nav.forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.viewTarget)));
+const closingReturn=document.querySelector('[data-return-architecture]');
+if(closingReturn)closingReturn.addEventListener('click',()=>switchView('object'));
+
 
 addEventListener('mousemove',e=>{
 if(!desktop())return;
