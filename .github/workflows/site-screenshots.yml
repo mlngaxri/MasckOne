@@ -1,0 +1,117 @@
+name: Capture website screenshots
+
+on:
+  push:
+    paths:
+      - '.site-build/screenshot.flag'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0
+          npx playwright install chromium --with-deps
+      - name: Capture current live website
+        run: |
+          mkdir -p screenshots
+          cat > /tmp/capture.mjs <<'JS'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const browser = await chromium.launch({headless:true,args:['--disable-dev-shm-usage']});
+          const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+          page.setDefaultTimeout(30000);
+          await page.goto('https://masck-one-final.vercel.app/', { waitUntil: 'domcontentloaded', timeout: 60000 });
+          await page.waitForSelector('[data-view="object"].active');
+          await page.waitForFunction(() => document.fonts ? document.fonts.status === 'loaded' : true);
+          await page.waitForTimeout(1600);
+
+          async function shot(name){
+            await page.waitForTimeout(450);
+            await page.screenshot({path:`screenshots/${name}.png`, fullPage:false});
+          }
+          async function scrollTo(y){
+            await page.evaluate(v => window.scrollTo(0,v), y);
+            await page.waitForTimeout(900);
+          }
+          async function clickView(name){
+            await page.locator(`[data-view-target="${name}"]`).click();
+            await page.waitForSelector(`[data-view="${name}"].active`);
+            await page.waitForTimeout(1300);
+          }
+
+          await scrollTo(0);
+          await shot('01-architecture-hero');
+
+          const handoffY = await page.evaluate(() => {
+            const el=document.querySelector('.handoff-page');
+            return el ? Math.max(0,el.offsetTop + innerHeight*.08) : 0;
+          });
+          await scrollTo(handoffY);
+          await shot('02-architecture-handoff');
+
+          await clickView('system');
+          await scrollTo(0);
+          await shot('03-systems-flow');
+
+          const motionY = await page.evaluate(() => {
+            const el=document.querySelector('.systems-experience');
+            if(!el) return 0;
+            const range=Math.max(1,el.offsetHeight-innerHeight);
+            return Math.round(range*.72);
+          });
+          await scrollTo(motionY);
+          await shot('04-systems-motion');
+
+          await clickView('proof');
+          await scrollTo(0);
+          await shot('05-proof-containment');
+
+          const proof2Y = await page.evaluate(() => document.querySelector('.page.clay')?.offsetTop || 0);
+          await scrollTo(proof2Y);
+          await shot('06-proof-integrated-evidence');
+
+          const closingY = await page.evaluate(() => document.querySelector('.closing-chamber')?.offsetTop || 0);
+          await scrollTo(closingY);
+          await shot('07-closing-chamber');
+
+          // A single contact sheet for quick viewing.
+          await browser.close();
+          JS
+          node /tmp/capture.mjs
+          python - <<'PY'
+          from PIL import Image, ImageOps, ImageDraw
+          from pathlib import Path
+          files=sorted(Path('screenshots').glob('*.png'))
+          thumbs=[]
+          for p in files:
+              im=Image.open(p).convert('RGB')
+              im.thumbnail((640,445))
+              canvas=Image.new('RGB',(680,500),'white')
+              x=(680-im.width)//2; y=18
+              canvas.paste(im,(x,y))
+              d=ImageDraw.Draw(canvas)
+              d.text((20,470),p.stem,fill='black')
+              thumbs.append(canvas)
+          sheet=Image.new('RGB',(1360,500*((len(thumbs)+1)//2)),(238,238,234))
+          for i,im in enumerate(thumbs):
+              sheet.paste(im,((i%2)*680,(i//2)*500))
+          sheet.save('screenshots/00-contact-sheet.jpg',quality=90)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: masck-one-website-screenshots
+          path: screenshots/
+          if-no-files-found: error
+          retention-days: 7
