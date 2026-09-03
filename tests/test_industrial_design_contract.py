@@ -81,7 +81,7 @@ def test_retention_visual_burden_and_side_hardware_integration_fail_closed():
     with pytest.raises(IndustrialDesignContractError, match="side hardware projection asymmetry"): validate_measurements(values)
     values = nominal(); values["ID_SIDE_HARDWARE_STEP_L"] = 0.51
     with pytest.raises(IndustrialDesignContractError, match="abrupt local step"): validate_measurements(values)
-    values = nominal(); values["ID_SIDE_HARDWARE_STEP_R"] = 0.50
+    values = nominal(); values["ID_SIDE_HARDWARE_STEP_L"] = 0.0; values["ID_SIDE_HARDWARE_STEP_R"] = 0.26
     with pytest.raises(IndustrialDesignContractError, match="local-step asymmetry"): validate_measurements(values)
 
 
