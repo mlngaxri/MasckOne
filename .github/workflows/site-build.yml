@@ -21,12 +21,8 @@ jobs:
           node-version: '22'
       - name: Install image validator
         run: python -m pip install --disable-pip-version-check pillow
-      - name: Repair and validate responsive website
+      - name: Tidy and validate final website
         run: |
-          python .site-build/repair_mask_mobile.py
-          python .site-build/polish_v4.py
-          python .site-build/polish_v5.py
-          python .site-build/single_mask_v6.py
           python .site-build/tidy_v7.py
           python - <<'PY'
           from pathlib import Path
@@ -66,7 +62,7 @@ jobs:
           assert '.mask-journey.hero-mask-single::before' in s
           assert '.mask-journey.hero-mask-single::after' in s
 
-          # Validate actual transparent apertures, not merely presence of an alpha band.
+          # Confirm the alpha image contains enclosed transparent apertures.
           with Image.open('website/images/masck-hero-mask-v2.webp') as src:
               im = src.convert('RGBA')
           w, h = im.size
