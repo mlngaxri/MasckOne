@@ -621,7 +621,8 @@ body:before{border-color:rgba(24,33,28,.10)}
 
 
 
-/* Continuous transparent product mask v8 */
+
+/* Continuous approved product mask v10 */
 .mask-journey.hero-mask-single{
   position:fixed;
   left:0;
@@ -645,11 +646,12 @@ body:before{border-color:rgba(24,33,28,.10)}
   display:block;
   width:100%;
   height:100%;
-  overflow:visible;
+  object-fit:contain;
   background:transparent!important;
   filter:drop-shadow(0 18px 26px rgba(24,33,28,.105)) drop-shadow(0 40px 54px rgba(24,33,28,.075));
   backface-visibility:hidden;
   -webkit-backface-visibility:hidden;
+  transform:translateZ(0);
 }
 .mask-journey.hero-mask-single::before,
 .mask-journey.hero-mask-single::after{
@@ -789,17 +791,7 @@ body:before{border-color:rgba(24,33,28,.10)}
 <div class="hero-bottom"><span><div class="line"></div>Scroll / follow the object</span><span>MASCK ONE / 2026</span></div>
 </section>
 <div class="mask-journey hero-mask-single" role="img" aria-label="MASCK ONE product render">
-<svg class="hero-mask-art" viewBox="0 0 573 700" aria-hidden="true" focusable="false">
-<defs>
-<mask id="masck-aperture-mask" x="0" y="0" width="573" height="700" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" style="mask-type:luminance">
-<rect width="573" height="700" fill="white"/>
-<ellipse data-aperture="left-eye" cx="286" cy="261" rx="80" ry="46" fill="black"/>
-<path data-aperture="right-eye" d="M472 212 C462 217 459 229 462 240 C468 258 485 284 507 302 C510 304 512 305 514 304 C511 274 502 241 485 213 C481 209 476 209 472 212 Z" fill="black"/>
-<path data-aperture="nose" d="M451.6 327.4 C439.2 331.3 431.8 339.3 428.2 345.8 L399.1 430.8 C400.0 448.0 399.8 455.3 402.0 460.3 C410.8 468.8 418.2 471.1 425.4 471.9 C441.0 472.0 456.6 471.0 465.9 469.5 C474.0 465.2 477.0 460.0 476.4 461.8 C482.0 452.0 484.0 444.0 484.0 443.9 C484.3 428.0 484.0 418.0 483.5 411.0 C481.0 393.0 478.0 376.0 475.0 366.1 C471.0 350.0 467.0 340.0 464.0 336.6 C459.0 331.0 455.0 328.0 451.6 327.4 Z" fill="black"/>
-</mask>
-</defs>
-<image href="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-mask-v2.webp" x="0" y="0" width="573" height="700" preserveAspectRatio="xMidYMid meet" mask="url(#masck-aperture-mask)"/>
-</svg>
+<img class="hero-mask-art" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-mask-v2.webp" alt="" fetchpriority="high" decoding="async" draggable="false" />
 </div>
 <div class="mask-orbit-overlay orbit-back" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
 <div class="mask-orbit-overlay orbit-front" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
