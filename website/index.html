@@ -635,6 +635,7 @@ body:before{border-color:rgba(24,33,28,.10)}
 
 
 
+
 /* Continuous approved product mask v10 */
 .mask-journey.hero-mask-single{
   position:fixed;
@@ -1385,6 +1386,63 @@ button{-webkit-tap-highlight-color:transparent}
 @media(prefers-reduced-motion:reduce){.brand-field{display:none!important}[data-wind]{filter:none!important;transform:none!important}}
 /* End Stage 4 final composition + interaction v15 */
 
+/* Stage 4 rendered visual QA v16 */
+/* The current approved alpha render contains chromatic corruption in its lower
+   region. Neutralise colour only; do not redraw, crop or alter its silhouette. */
+.hero-mask-art{
+  filter:grayscale(.76) sepia(.10) saturate(.48) contrast(.96) brightness(1.035)!important;
+}
+
+/* The Architecture object is the focal point. Supporting orbit words stay
+   legible but deliberately recede instead of all competing at full weight. */
+.mask-orbit-node span{
+  font-size:clamp(34px,4.35vw,64px)!important;
+  opacity:.20;
+  text-shadow:none!important;
+}
+.mask-orbit-node:nth-child(1) span{opacity:.90}
+.mask-orbit-node:nth-child(2) span,.mask-orbit-node:nth-child(3) span{opacity:.18}
+.handoff-halo{opacity:.12!important}
+
+/* Remove decorative words/numerals that repeat information already provided
+   by headline, navigation and composition. */
+.systems-word{display:none!important}
+.page[data-page-no]::before{display:none!important}
+
+/* Temporary integration treatment for the existing raster engineering images.
+   The final transparent assets can replace these one-for-one through their
+   data-asset-slot hooks without changing layout or motion. */
+.systems-flow-visual .systems-product-frame img{
+  mix-blend-mode:multiply;
+  filter:grayscale(.52) sepia(.08) saturate(.62) contrast(1.12) brightness(1.04)!important;
+  -webkit-mask-image:radial-gradient(ellipse 72% 68% at 50% 50%,#000 42%,rgba(0,0,0,.96) 60%,rgba(0,0,0,.38) 78%,transparent 96%);
+  mask-image:radial-gradient(ellipse 72% 68% at 50% 50%,#000 42%,rgba(0,0,0,.96) 60%,rgba(0,0,0,.38) 78%,transparent 96%);
+}
+.systems-motion-visual .systems-product-frame img{
+  mix-blend-mode:screen;
+  filter:grayscale(.50) sepia(.06) saturate(.62) contrast(1.05) brightness(.94)!important;
+  -webkit-mask-image:radial-gradient(ellipse 74% 70% at 50% 50%,#000 44%,rgba(0,0,0,.96) 62%,rgba(0,0,0,.32) 80%,transparent 97%);
+  mask-image:radial-gradient(ellipse 74% 70% at 50% 50%,#000 44%,rgba(0,0,0,.96) 62%,rgba(0,0,0,.32) 80%,transparent 97%);
+}
+.page.dark .visual-stage .primary{
+  -webkit-mask-image:radial-gradient(ellipse 76% 72% at 50% 50%,#000 48%,rgba(0,0,0,.96) 64%,rgba(0,0,0,.30) 82%,transparent 98%);
+  mask-image:radial-gradient(ellipse 76% 72% at 50% 50%,#000 48%,rgba(0,0,0,.96) 64%,rgba(0,0,0,.30) 82%,transparent 98%);
+}
+
+/* Make the technical visual itself quieter: no ornamental frame around a
+   rectangular raster that will disappear once the transparent asset lands. */
+.systems-product-frame:before{opacity:.28!important;border-radius:50%!important}
+.systems-core-axis{opacity:.55}
+
+@media(max-width:900px){
+  .hero-mask-art{filter:grayscale(.72) sepia(.08) saturate(.52) contrast(.97) brightness(1.03)!important}
+  .mask-orbit-node span{font-size:clamp(27px,7.2vw,38px)!important}
+  .systems-flow-visual .systems-product-frame img,.systems-motion-visual .systems-product-frame img,.page.dark .visual-stage .primary{
+    mix-blend-mode:normal;
+  }
+}
+/* End Stage 4 rendered visual QA v16 */
+
 </style>
 </head>
 <body>
@@ -1499,7 +1557,7 @@ button{-webkit-tap-highlight-color:transparent}
 <p>Fit, flow, airway, motion and recovery still require physical evidence.</p>
 </div>
 </div>
-<div class="visual exploded"><div class="proof-grid"></div><div class="assembly-axis"></div><div class="visual-stage" data-visual><img class="layer-shell" data-asset-slot="explode-shell" src="https://masck-one.vercel.app/images/masck-one-shell.webp" alt="Exterior shell layer"  loading="lazy" decoding="async" /><img class="layer-manifold" data-asset-slot="explode-distribution" src="https://masck-one.vercel.app/images/masck-one-manifold.webp" alt="Fresh manifold layer"  loading="lazy" decoding="async" /><img class="layer-interface" data-asset-slot="explode-interface" src="https://masck-one.vercel.app/images/masck-one-interface.webp" alt="Facial interface layer"  loading="lazy" decoding="async" /><img class="layer-chassis" data-asset-slot="explode-chassis" src="https://masck-one.vercel.app/images/masck-one-chassis.webp" alt="Actuator chassis layer"  loading="lazy" decoding="async" /><img class="layer-cartridge" data-asset-slot="explode-cartridge" src="https://masck-one.vercel.app/images/masck-one-cartridge.webp" alt="Waste cartridge layer"  loading="lazy" decoding="async" /></div></div>
+<div class="visual exploded"><div class="proof-grid"></div><div class="assembly-axis"></div><div class="visual-stage" data-visual><img class="layer-shell" data-asset-slot="explode-shell" data-asset-slot="explode-shell" src="https://masck-one.vercel.app/images/masck-one-shell.webp" alt="Exterior shell layer"  loading="lazy" decoding="async" /><img class="layer-manifold" data-asset-slot="explode-distribution" data-asset-slot="explode-distribution" src="https://masck-one.vercel.app/images/masck-one-manifold.webp" alt="Fresh manifold layer"  loading="lazy" decoding="async" /><img class="layer-interface" data-asset-slot="explode-interface" data-asset-slot="explode-interface" src="https://masck-one.vercel.app/images/masck-one-interface.webp" alt="Facial interface layer"  loading="lazy" decoding="async" /><img class="layer-chassis" data-asset-slot="explode-chassis" data-asset-slot="explode-chassis" src="https://masck-one.vercel.app/images/masck-one-chassis.webp" alt="Actuator chassis layer"  loading="lazy" decoding="async" /><img class="layer-cartridge" data-asset-slot="explode-cartridge" data-asset-slot="explode-cartridge" src="https://masck-one.vercel.app/images/masck-one-cartridge.webp" alt="Waste cartridge layer"  loading="lazy" decoding="async" /></div></div>
 <div class="evidence-line"></div>
 </section>
 <section class="closing-chamber" aria-label="MASCK ONE development status">
