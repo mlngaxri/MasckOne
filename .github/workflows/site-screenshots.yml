@@ -17,17 +17,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install Playwright
+      - name: Install screenshot tooling
         run: |
           npm init -y >/dev/null 2>&1
           npm install playwright@1.55.0
           npx playwright install chromium --with-deps
+          python -m pip install --disable-pip-version-check pillow
       - name: Capture current live website
         run: |
           mkdir -p screenshots
-          cat > /tmp/capture.mjs <<'JS'
+          cat > capture.mjs <<'JS'
           import { chromium } from 'playwright';
-          import fs from 'node:fs';
 
           const browser = await chromium.launch({headless:true,args:['--disable-dev-shm-usage']});
           const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
@@ -35,20 +35,20 @@ jobs:
           await page.goto('https://masck-one-final.vercel.app/', { waitUntil: 'domcontentloaded', timeout: 60000 });
           await page.waitForSelector('[data-view="object"].active');
           await page.waitForFunction(() => document.fonts ? document.fonts.status === 'loaded' : true);
-          await page.waitForTimeout(1600);
+          await page.waitForTimeout(1800);
 
           async function shot(name){
-            await page.waitForTimeout(450);
+            await page.waitForTimeout(500);
             await page.screenshot({path:`screenshots/${name}.png`, fullPage:false});
           }
           async function scrollTo(y){
             await page.evaluate(v => window.scrollTo(0,v), y);
-            await page.waitForTimeout(900);
+            await page.waitForTimeout(950);
           }
           async function clickView(name){
             await page.locator(`[data-view-target="${name}"]`).click();
             await page.waitForSelector(`[data-view="${name}"].active`);
-            await page.waitForTimeout(1300);
+            await page.waitForTimeout(1400);
           }
 
           await scrollTo(0);
@@ -86,12 +86,11 @@ jobs:
           await scrollTo(closingY);
           await shot('07-closing-chamber');
 
-          // A single contact sheet for quick viewing.
           await browser.close();
           JS
-          node /tmp/capture.mjs
+          node capture.mjs
           python - <<'PY'
-          from PIL import Image, ImageOps, ImageDraw
+          from PIL import Image, ImageDraw
           from pathlib import Path
           files=sorted(Path('screenshots').glob('*.png'))
           thumbs=[]
@@ -99,15 +98,14 @@ jobs:
               im=Image.open(p).convert('RGB')
               im.thumbnail((640,445))
               canvas=Image.new('RGB',(680,500),'white')
-              x=(680-im.width)//2; y=18
-              canvas.paste(im,(x,y))
-              d=ImageDraw.Draw(canvas)
-              d.text((20,470),p.stem,fill='black')
+              x=(680-im.width)//2
+              canvas.paste(im,(x,18))
+              ImageDraw.Draw(canvas).text((20,470),p.stem,fill='black')
               thumbs.append(canvas)
           sheet=Image.new('RGB',(1360,500*((len(thumbs)+1)//2)),(238,238,234))
           for i,im in enumerate(thumbs):
               sheet.paste(im,((i%2)*680,(i//2)*500))
-          sheet.save('screenshots/00-contact-sheet.jpg',quality=90)
+          sheet.save('screenshots/00-contact-sheet.jpg',quality=91)
           PY
       - uses: actions/upload-artifact@v4
         with:
