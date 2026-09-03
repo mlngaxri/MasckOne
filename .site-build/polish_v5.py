@@ -67,31 +67,35 @@ body:before{border-color:rgba(24,33,28,.10)}
 if '/* Micro finish polish v5 */' not in s:
     s=s.replace('\n</style>\n</head>',css+'\n</style>\n</head>',1)
 
-# Add aria-current to current nav item and maintain it during view changes.
 s=s.replace('data-view-target="object" aria-pressed="true">Architecture</button>','data-view-target="object" aria-pressed="true" aria-current="page">Architecture</button>',1)
 old="b.setAttribute('aria-pressed',String(isActive))}"
 new="b.setAttribute('aria-pressed',String(isActive));if(isActive)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')}"
 if old in s and new not in s:
     s=s.replace(old,new,1)
 
-# Lazy decode imagery in hidden Systems/Proof views; keep hero and journey eager.
 def lazy_tag(m):
     tag=m.group(0)
-    if 'hero-mask-product' in tag or 'mask-journey' in tag:
-        return tag
     if 'loading=' not in tag:
         tag=tag[:-2]+' loading="lazy" decoding="async" />' if tag.endswith('/>') else tag
     return tag
 
-# Restrict to content after Systems begins so hero/handoff stay untouched.
 marker='<section class="view" data-view="system"'
 if marker in s:
     a,b=s.split(marker,1)
     b=re.sub(r'<img\b[^>]*?/>',lazy_tag,b)
     s=a+marker+b
 
+# Older polish passes may be re-run by CI. Collapse repeated zero-cost-looking
+# calls so the scroll path stays genuinely minimal and idempotent.
+while 'setOrbitMotion(textOpacity>.012);setOrbitMotion(textOpacity>.012);' in s:
+    s=s.replace('setOrbitMotion(textOpacity>.012);setOrbitMotion(textOpacity>.012);','setOrbitMotion(textOpacity>.012);')
+while 'setHaloMotion(haloOpacity>.012);setHaloMotion(haloOpacity>.012);' in s:
+    s=s.replace('setHaloMotion(haloOpacity>.012);setHaloMotion(haloOpacity>.012);','setHaloMotion(haloOpacity>.012);')
+
 if '/* Micro finish polish v5 */' not in s: raise RuntimeError('v5 css missing')
 if 'aria-current="page">Architecture' not in s: raise RuntimeError('nav semantics missing')
 if 'loading="lazy" decoding="async"' not in s: raise RuntimeError('lazy imagery missing')
+if 'setOrbitMotion(textOpacity>.012);setOrbitMotion' in s: raise RuntimeError('duplicate orbit toggle remains')
+if 'setHaloMotion(haloOpacity>.012);setHaloMotion' in s: raise RuntimeError('duplicate halo toggle remains')
 INDEX.write_text(s)
 print('micro finish polish v5 complete')
