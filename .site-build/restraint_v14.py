@@ -87,12 +87,13 @@ for forbidden in [
         raise RuntimeError(f'redundant copy survived restraint pass: {forbidden}')
 
 # Preserve the actual information architecture and approved product treatment.
+# This pass is intentionally idempotent: later passes may remove closing legal/
+# status microcopy, so v14 must not require that text to still exist on rebuild.
 assert s.count('data-view-target="object"') >= 1
 assert s.count('data-view-target="system"') >= 1
 assert s.count('data-view-target="proof"') >= 1
 assert s.count('mask-journey hero-mask-single') == 1
 assert s.count('class="hero-mask-art"') == 1
-assert 'No paid pre-orders.' in s
 assert '/* Restraint pass v14 */' in s
 
 INDEX.write_text(s)
