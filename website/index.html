@@ -560,13 +560,71 @@ body:before{inset:5px;border-radius:15px}
   .band.masck{top:57%}.band.one{top:75%}
 }
 
+/* Micro finish polish v5 */
+body:before{border-color:rgba(24,33,28,.10)}
+.header{height:52px;padding-left:18px;padding-right:8px}
+.brand{letter-spacing:.21em}
+.nav{gap:1px;padding:2px}
+.nav button{padding:8px 14px;color:rgba(24,33,28,.70)}
+.nav button.active{color:var(--white);transform:none}
+.nav button:focus-visible{outline:2px solid #75866c;outline-offset:3px}
+@media(hover:hover) and (pointer:fine){.nav button:not(.active):hover{background:rgba(24,33,28,.055);color:var(--ink);transform:translateY(-1px)}}
+
+.hero{background:radial-gradient(circle at 74% 34%,rgba(255,255,255,.48),transparent 26%),linear-gradient(145deg,#f4efe7 0%,#edf1ed 51%,#dce8eb 100%)}
+.hero-copy p{border-top-color:rgba(24,33,28,.18)}
+.hero-clouds.hero-sky-orb{box-shadow:inset 0 0 55px rgba(255,255,255,.16)}
+.hero-mask-product{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.band{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.band-track{transform:translateZ(0)}
+.hero-bottom{letter-spacing:.105em}
+
+.handoff-caption b{max-width:430px;text-wrap:balance}
+.handoff-caption span{max-width:405px}
+.mask-orbit-node span{font-kerning:normal}
+
+.page{border-top-color:rgba(24,33,28,.11)}
+.page-copy{max-width:520px}
+.page-copy>p{max-width:420px}
+.page-label{letter-spacing:.14em}
+.detail-card b{letter-spacing:.125em}
+.detail-card{color:color-mix(in srgb,currentColor 76%,transparent)}
+.visual-stage img.primary{max-width:92%;max-height:92%}
+.page.dark .visual-stage img.primary,.page.clay .visual-stage img.primary{max-width:94%;max-height:94%}
+.section-tag{letter-spacing:.125em}
+.page-index{letter-spacing:.105em}
+.evidence-line{letter-spacing:.045em}
+
+@media(max-width:900px){
+  body:before{border-color:rgba(24,33,28,.085)}
+  .header{height:49px;padding-left:13px;padding-right:6px}
+  .nav button{padding:8px 9px}
+  .hero-copy{top:12.2svh}
+  .hero h1{letter-spacing:-.052em}
+  .hero-clouds.hero-sky-orb{top:29svh;width:62vw}
+  .hero-mask-wrap.hero-subject{top:35.5svh;width:67vw}
+  .band{height:clamp(55px,14.6vw,63px)}
+  .band.masck{top:51.5%}.band.one{top:67%}
+  .handoff-caption{line-height:1.62}
+  .page{padding-top:82px}
+  .visual-stage img.primary{max-width:96%;max-height:96%}
+  .detail-card{line-height:1.58}
+}
+
+@media(max-width:390px){
+  .header{height:47px}
+  .nav button{padding-inline:7px}
+  .hero-copy{top:11.7svh}
+  .hero-clouds.hero-sky-orb{top:31.5svh;width:65vw}
+  .hero-mask-wrap.hero-subject{top:38.5svh;width:69vw}
+}
+
 </style>
 </head>
 <body>
 <header class="header">
 <div class="brand">MASCK ONE</div>
 <nav class="nav" aria-label="MASCK ONE sections">
-<button class="active" type="button" data-view-target="object" aria-pressed="true">Architecture</button>
+<button class="active" type="button" data-view-target="object" aria-pressed="true" aria-current="page">Architecture</button>
 <button type="button" data-view-target="system" aria-pressed="false">Systems</button>
 <button type="button" data-view-target="proof" aria-pressed="false">Proof</button>
 </nav>
@@ -609,7 +667,7 @@ body:before{inset:5px;border-radius:15px}
 <circle class="fluid-particle" r="1.15"><animateMotion dur="5.5s" repeatCount="indefinite" path="M7 72 C24 19,42 82,58 35 S84 22,94 61" /></circle>
 </svg>
 <div class="flow-key"><span><i></i>Supply</span><span><i></i>Return</span></div>
-<div class="visual-stage" data-visual><img class="ghost" src="https://masck-one.vercel.app/images/masck-one-manifold.webp" alt="" /><img class="primary" src="https://masck-one.vercel.app/images/chapter-manifold-v2.webp" alt="MASCK ONE fluid manifold" /></div>
+<div class="visual-stage" data-visual><img class="ghost" src="https://masck-one.vercel.app/images/masck-one-manifold.webp" alt=""  loading="lazy" decoding="async" /><img class="primary" src="https://masck-one.vercel.app/images/chapter-manifold-v2.webp" alt="MASCK ONE fluid manifold"  loading="lazy" decoding="async" /></div>
 </div>
 <div class="page-index">02 / Systems / 01</div><div class="evidence-line">Flow rate, recovery efficiency and leakage remain physical evidence gates.</div>
 </section>
@@ -621,7 +679,7 @@ body:before{inset:5px;border-radius:15px}
 <p>Actuation is divided into localized facial regions so movement can be controlled without making the entire wearable behave as one rigid mechanism.</p>
 <div class="detail-grid"><div class="detail-card"><b>Four zones</b>Localized actuation architecture across the face.</div><div class="detail-card"><b>Control</b>Amplitude and timing remain engineering variables, not efficacy claims.</div></div>
 </div>
-<div class="visual"><div class="motion-rings"></div><div class="zone-labels"><span>A</span><span>B</span><span>C</span><span>D</span></div><div class="visual-stage float" data-visual><img class="ghost" src="https://masck-one.vercel.app/images/masck-one-chassis.webp" alt="" /><img class="primary" src="https://masck-one.vercel.app/images/chapter-chassis-v2.webp" alt="MASCK ONE actuator chassis" /></div></div>
+<div class="visual"><div class="motion-rings"></div><div class="zone-labels"><span>A</span><span>B</span><span>C</span><span>D</span></div><div class="visual-stage float" data-visual><img class="ghost" src="https://masck-one.vercel.app/images/masck-one-chassis.webp" alt=""  loading="lazy" decoding="async" /><img class="primary" src="https://masck-one.vercel.app/images/chapter-chassis-v2.webp" alt="MASCK ONE actuator chassis"  loading="lazy" decoding="async" /></div></div>
 <div class="page-index">02 / Systems / 02</div><div class="evidence-line">Motion amplitude, force, acoustic perception and comfort remain unvalidated.</div>
 </section>
 </section>
@@ -635,7 +693,7 @@ body:before{inset:5px;border-radius:15px}
 <p>The return circuit terminates in a removable cartridge architecture. Recovery and servicing are treated as physical evidence problems, not claims inferred from a render.</p>
 <div class="detail-grid"><div class="detail-card"><b>Containment</b>Dedicated removable waste architecture.</div><div class="detail-card"><b>Validation</b>Recovery and handling must be demonstrated physically.</div></div>
 </div>
-<div class="visual"><div class="proof-grid"></div><div class="proof-scan"></div><div class="proof-corners"></div><div class="visual-stage" data-visual><img class="ghost" src="https://masck-one.vercel.app/images/masck-one-cartridge.webp" alt="" /><img class="primary" src="https://masck-one.vercel.app/images/chapter-cartridge-v2.webp" alt="MASCK ONE cartridge" /></div></div>
+<div class="visual"><div class="proof-grid"></div><div class="proof-scan"></div><div class="proof-corners"></div><div class="visual-stage" data-visual><img class="ghost" src="https://masck-one.vercel.app/images/masck-one-cartridge.webp" alt=""  loading="lazy" decoding="async" /><img class="primary" src="https://masck-one.vercel.app/images/chapter-cartridge-v2.webp" alt="MASCK ONE cartridge"  loading="lazy" decoding="async" /></div></div>
 <div class="page-index">03 / Proof / 01</div><div class="evidence-line">Recovery performance, hygiene and servicing remain evidence-gated.</div>
 </section>
 <section class="page clay">
@@ -646,7 +704,7 @@ body:before{inset:5px;border-radius:15px}
 <p>The digital assembly resolves the major physical layers and interfaces. The final product only advances when those layers survive fit, flow, airway, motion, recovery, comfort, durability, hygiene and safety evidence.</p>
 <div class="detail-grid"><div class="detail-card"><b>Now</b>Digital integration and interface closure.</div><div class="detail-card"><b>Next</b>Subsystem evidence followed by integrated alpha testing.</div></div>
 </div>
-<div class="visual exploded"><div class="proof-grid"></div><div class="assembly-axis"></div><div class="visual-stage" data-visual><img class="layer-shell" src="https://masck-one.vercel.app/images/masck-one-shell.webp" alt="Exterior shell layer" /><img class="layer-manifold" src="https://masck-one.vercel.app/images/masck-one-manifold.webp" alt="Fresh manifold layer" /><img class="layer-interface" src="https://masck-one.vercel.app/images/masck-one-interface.webp" alt="Facial interface layer" /><img class="layer-chassis" src="https://masck-one.vercel.app/images/masck-one-chassis.webp" alt="Actuator chassis layer" /><img class="layer-cartridge" src="https://masck-one.vercel.app/images/masck-one-cartridge.webp" alt="Waste cartridge layer" /></div><div class="proof-note">Every layer shown remains subordinate to physical validation.</div></div>
+<div class="visual exploded"><div class="proof-grid"></div><div class="assembly-axis"></div><div class="visual-stage" data-visual><img class="layer-shell" src="https://masck-one.vercel.app/images/masck-one-shell.webp" alt="Exterior shell layer"  loading="lazy" decoding="async" /><img class="layer-manifold" src="https://masck-one.vercel.app/images/masck-one-manifold.webp" alt="Fresh manifold layer"  loading="lazy" decoding="async" /><img class="layer-interface" src="https://masck-one.vercel.app/images/masck-one-interface.webp" alt="Facial interface layer"  loading="lazy" decoding="async" /><img class="layer-chassis" src="https://masck-one.vercel.app/images/masck-one-chassis.webp" alt="Actuator chassis layer"  loading="lazy" decoding="async" /><img class="layer-cartridge" src="https://masck-one.vercel.app/images/masck-one-cartridge.webp" alt="Waste cartridge layer"  loading="lazy" decoding="async" /></div><div class="proof-note">Every layer shown remains subordinate to physical validation.</div></div>
 <div class="page-index">03 / Proof / 02</div><div class="evidence-line">No paid pre-orders. Product visuals may change as physical evidence closes.</div>
 </section>
 </section>
@@ -781,7 +839,7 @@ views.forEach(v=>v.classList.toggle('active',v.dataset.view===name));
 nav.forEach(b=>{
 const isActive=b.dataset.viewTarget===name;
 b.classList.toggle('active',isActive);
-b.setAttribute('aria-pressed',String(isActive))}
+b.setAttribute('aria-pressed',String(isActive));if(isActive)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')}
 );
 const target=name==='object'&&featureAnchor&&handoff?handoff.offsetTop:0;
 jumpToPosition(target);
@@ -883,13 +941,13 @@ const textEnter=smooth(clamp((sy-heroH*.72)/(innerHeight*.72),0,1));
 const textExit=smooth(clamp((sy-(handoffEnd-innerHeight*.56))/(innerHeight*.5),0,1));
 const textY=mix(mix(innerHeight*1.22,innerHeight*.52,textEnter),innerHeight*1.28,textExit);
 const textOpacity=smooth(clamp((textEnter-.05)/.22,0,1))*(1-smooth(clamp((textExit-.76)/.2,0,1)));
-orbitCopies.forEach(el=>{el.style.opacity=String(textOpacity);el.style.setProperty('--stream-y',`${textY}px`)});setOrbitMotion(textOpacity>.012);
+orbitCopies.forEach(el=>{el.style.opacity=String(textOpacity);el.style.setProperty('--stream-y',`${textY}px`)});setOrbitMotion(textOpacity>.012);setOrbitMotion(textOpacity>.012);
 
 const haloEnter=smooth(clamp((sy-(handoffTop-innerHeight*.08))/(innerHeight*.72),0,1));
 const haloExit=smooth(clamp((sy-(handoffEnd-innerHeight*.72))/(innerHeight*.58),0,1));
 const haloY=mix(mix(innerHeight*1.22,innerHeight*.52,haloEnter),-innerHeight*.24,haloExit);
 const haloOpacity=smooth(clamp((haloEnter-.04)/.2,0,1))*(1-smooth(clamp((haloExit-.8)/.17,0,1)));
-if(haloStream){haloStream.style.opacity=String(haloOpacity);haloStream.style.setProperty('--halo-y',`${haloY}px`)}setHaloMotion(haloOpacity>.012);
+if(haloStream){haloStream.style.opacity=String(haloOpacity);haloStream.style.setProperty('--halo-y',`${haloY}px`)}setHaloMotion(haloOpacity>.012);setHaloMotion(haloOpacity>.012);
 const sx=innerWidth*(isDesktop?.72:.67),sy0=innerHeight*(isDesktop?.55:.54),cx=innerWidth*.5,cy=innerHeight*.52;
 const x=mix(sx,cx,detach),y=mix(sy0,cy,detach),scale=mix(1,isDesktop?.72:.82,detach);
 journey.style.opacity=String(show);journey.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) scale(${scale}) rotate(${mix(-4,0,detach)}deg)`;
