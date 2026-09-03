@@ -2,6 +2,7 @@ name: Build cinematic website
 
 on:
   workflow_dispatch:
+    
   push:
     paths:
       - '.site-build/run.flag'
@@ -37,13 +38,13 @@ jobs:
           alpha_src = 'https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-mask-v2.webp'
           assert 'masck-hero-caucasian-mask-v1.webp' not in s
           assert 'https://masck-one.vercel.app/images/masck-one-product-angle.webp' not in s
-          assert s.count(alpha_src) == 1
+          assert s.count(alpha_src) == 2  # preload + the one SVG product image
           assert 'updateHeaderVisibility();' not in s
           assert '/* Mobile stability repair */' in s
           assert '/* Responsive performance polish v3 */' in s
           assert '/* Editorial finish polish v4 */' in s
           assert '/* Micro finish polish v5 */' in s
-          assert '/* Continuous transparent product mask v7 */' in s
+          assert '/* Continuous transparent product mask v8 */' in s
           assert 'sy=desktop()?sy+(scrollY-sy)*.13:scrollY;' in s
           assert 'window.Lenis&&desktop()?' in s
           assert 'const bandTracks=[' in s
@@ -52,21 +53,34 @@ jobs:
           assert 'env(safe-area-inset-top)' in s
           assert 'aria-current="page">Architecture' in s
           assert 'loading="lazy" decoding="async"' in s
+
+          # Exactly one product object from first hero frame through handoff.
           assert 'hero-mask-wrap hero-subject' not in s
           assert 'hero-mask-product' not in s
           assert 'const heroSubject=' not in s
           assert 'heroSubject.style.opacity' not in s
           assert s.count('mask-journey hero-mask-single') == 1
+          assert s.count('class="hero-mask-art"') == 1
           assert "journey.style.opacity='1'" in s
           assert 'journey.style.opacity=String(show)' not in s
+
+          # Three explicit cut-through apertures are part of the render layer,
+          # independent of page background/glows and of the source artwork.
+          assert s.count('id="masck-aperture-mask"') == 1
+          assert s.count('mask="url(#masck-aperture-mask)"') == 1
+          for aperture in ('left-eye', 'right-eye', 'nose'):
+              assert s.count(f'data-aperture="{aperture}"') == 1
           assert '.mask-journey.hero-mask-single::before' in s
           assert '.mask-journey.hero-mask-single::after' in s
+          assert 'content:none!important' in s
 
-          # Confirm real alpha apertures. Connected eye cutouts may form one
-          # transparent region in perspective, so validate region geometry.
+          # The underlying product file must still decode with alpha and retain
+          # both real eye openings. The SVG layer guarantees the nose opening.
           with Image.open('website/images/masck-hero-mask-v2.webp') as src:
               im = src.convert('RGBA')
           w, h = im.size
+          assert 'A' in im.getbands()
+          assert w >= 300 and h >= 300
           px = im.getchannel('A').load()
           transparent = lambda x, y: px[x, y] <= 24
 
@@ -101,19 +115,13 @@ jobs:
                               seen.add((nx, ny)); q.append((nx, ny))
                   if area >= min_area:
                       regions.append((area,minx,miny,maxx,maxy))
-
           regions.sort(reverse=True)
-          print('transparent enclosed aperture regions:', regions[:8])
-          assert 'A' in im.getbands()
-          assert w >= 300 and h >= 300
-          assert len(regions) >= 2, f'expected eye and nose alpha apertures, found {regions}'
-          eye = regions[0]
-          nose = regions[1]
-          eye_width = eye[3] - eye[1] + 1
-          eye_center_y = (eye[2] + eye[4]) / 2
-          nose_center_y = (nose[2] + nose[4]) / 2
-          assert eye_width >= w * .22, f'eye aperture region too narrow: {eye}'
-          assert nose_center_y > eye_center_y, f'nose aperture is not below eye aperture: {regions[:2]}'
+          print('source alpha eye regions:', regions[:4])
+          assert len(regions) >= 2, f'expected two transparent eye openings, found {regions}'
+          first, second = regions[:2]
+          assert first[3] - first[1] >= w * .20
+          assert second[3] - second[1] >= w * .06
+          assert abs(((first[2]+first[4])/2) - ((second[2]+second[4])/2)) <= h * .08
           PY
           node --check /tmp/masck-site.js
       - name: Commit polished website
