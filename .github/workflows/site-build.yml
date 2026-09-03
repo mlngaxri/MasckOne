@@ -25,6 +25,7 @@ jobs:
         run: |
           python .site-build/tidy_v7.py
           python .site-build/systems_experience_v9.py
+          python .site-build/awwwards_finish_v11.py
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
@@ -45,6 +46,13 @@ jobs:
           assert '/* Micro finish polish v5 */' in s
           assert '/* Continuous approved product mask v10 */' in s
           assert '/* Systems live circuit v9 */' in s
+          assert '/* Awwwards editorial finish v11 */' in s
+          assert '/* End Awwwards editorial finish v11 */' in s
+          assert 'Instrument+Serif' in s
+          assert '--display:"Instrument Serif"' in s
+          assert 'background-image:none;' in s
+          assert '.band-track{animation-duration:38s}' in s
+          assert '.systems-copy h2{' in s
           assert 'sy=desktop()?sy+(scrollY-sy)*.13:scrollY;' in s
           assert 'window.Lenis&&desktop()?' in s
           assert 'const bandTracks=[' in s
@@ -81,8 +89,6 @@ jobs:
           assert 'systemsTimelineFill.style.transform' in s
           assert 'systems-copy-flow' in s and 'systems-copy-motion' in s
           assert 'systems-flow-visual' in s and 'systems-motion-visual' in s
-          assert 'Contained fluid circuit</div>\n<h2>Fresh in.' not in s
-          assert 'Motion only<br>where needed.' not in s
 
           # Approved source file still has real transparency and valid dimensions.
           with Image.open('website/images/masck-hero-mask-v2.webp') as src:
@@ -99,6 +105,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add website/index.html
           if ! git diff --cached --quiet; then
-            git commit -m 'fix: restore approved mask appearance'
+            git commit -m 'refine: editorial typography and UI system'
             git push origin HEAD:main
           fi
