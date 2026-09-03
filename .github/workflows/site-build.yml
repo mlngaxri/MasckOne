@@ -26,6 +26,7 @@ jobs:
           python .site-build/tidy_v7.py
           python .site-build/systems_experience_v9.py
           python .site-build/awwwards_finish_v11.py
+          python .site-build/awwwards_finish_v12.py
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
@@ -48,11 +49,20 @@ jobs:
           assert '/* Systems live circuit v9 */' in s
           assert '/* Awwwards editorial finish v11 */' in s
           assert '/* End Awwwards editorial finish v11 */' in s
+          assert '/* Awwwards art-direction finish v12 */' in s
+          assert '/* End Awwwards art-direction finish v12 */' in s
           assert 'Instrument+Serif' in s
           assert '--display:"Instrument Serif"' in s
           assert 'background-image:none;' in s
           assert '.band-track{animation-duration:38s}' in s
           assert '.systems-copy h2{' in s
+          assert 'class="hero-editorial-kicker"' in s
+          assert 'class="nav-status"' in s
+          assert 'data-index="01"' in s and 'data-index="02"' in s and 'data-index="03"' in s
+          assert 'data-page-no="01"' in s and 'data-page-no="02"' in s
+          assert '@keyframes heroLineIn' in s
+          assert '.nav button::before' in s
+          assert '.page[data-page-no]::before' in s
           assert 'sy=desktop()?sy+(scrollY-sy)*.13:scrollY;' in s
           assert 'window.Lenis&&desktop()?' in s
           assert 'const bandTracks=[' in s
@@ -105,6 +115,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add website/index.html
           if ! git diff --cached --quiet; then
-            git commit -m 'refine: editorial typography and UI system'
+            git commit -m 'refine: Awwwards art direction and hierarchy'
             git push origin HEAD:main
           fi
