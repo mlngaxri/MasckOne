@@ -2,7 +2,6 @@ name: Build cinematic website
 
 on:
   workflow_dispatch:
-    
   push:
     paths:
       - '.site-build/run.flag'
@@ -25,6 +24,7 @@ jobs:
       - name: Tidy and validate final website
         run: |
           python .site-build/tidy_v7.py
+          python .site-build/systems_experience_v9.py
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
@@ -38,13 +38,14 @@ jobs:
           alpha_src = 'https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-mask-v2.webp'
           assert 'masck-hero-caucasian-mask-v1.webp' not in s
           assert 'https://masck-one.vercel.app/images/masck-one-product-angle.webp' not in s
-          assert s.count(alpha_src) == 2  # preload + the one SVG product image
+          assert s.count(alpha_src) == 2
           assert 'updateHeaderVisibility();' not in s
           assert '/* Mobile stability repair */' in s
           assert '/* Responsive performance polish v3 */' in s
           assert '/* Editorial finish polish v4 */' in s
           assert '/* Micro finish polish v5 */' in s
           assert '/* Continuous transparent product mask v8 */' in s
+          assert '/* Systems live circuit v9 */' in s
           assert 'sy=desktop()?sy+(scrollY-sy)*.13:scrollY;' in s
           assert 'window.Lenis&&desktop()?' in s
           assert 'const bandTracks=[' in s
@@ -54,7 +55,7 @@ jobs:
           assert 'aria-current="page">Architecture' in s
           assert 'loading="lazy" decoding="async"' in s
 
-          # Exactly one product object from first hero frame through handoff.
+          # One product object from first hero frame through Architecture handoff.
           assert 'hero-mask-wrap hero-subject' not in s
           assert 'hero-mask-product' not in s
           assert 'const heroSubject=' not in s
@@ -64,8 +65,7 @@ jobs:
           assert "journey.style.opacity='1'" in s
           assert 'journey.style.opacity=String(show)' not in s
 
-          # Three explicit cut-through apertures are part of the render layer,
-          # independent of page background/glows and of the source artwork.
+          # Explicit hero apertures.
           assert s.count('id="masck-aperture-mask"') == 1
           assert s.count('mask="url(#masck-aperture-mask)"') == 1
           for aperture in ('left-eye', 'right-eye', 'nose'):
@@ -74,8 +74,20 @@ jobs:
           assert '.mask-journey.hero-mask-single::after' in s
           assert 'content:none!important' in s
 
-          # The underlying product file must still decode with alpha and retain
-          # both real eye openings. The SVG layer guarantees the nose opening.
+          # Systems is one scroll-driven cinematic chamber, not two legacy pages.
+          assert s.count('class="systems-experience"') == 1
+          assert s.count('class="systems-sticky"') == 1
+          assert s.count('class="systems-circuit"') == 1
+          assert s.count('data-systems-core') >= 1
+          assert 'const systemExperience=' in s
+          assert "if(active==='system'&&systemExperience&&systemSticky)" in s
+          assert 'systemsTimelineFill.style.transform' in s
+          assert 'systems-copy-flow' in s and 'systems-copy-motion' in s
+          assert 'systems-flow-visual' in s and 'systems-motion-visual' in s
+          assert 'Contained fluid circuit</div>\n<h2>Fresh in.' not in s
+          assert 'Motion only<br>where needed.' not in s
+
+          # Source product alpha sanity.
           with Image.open('website/images/masck-hero-mask-v2.webp') as src:
               im = src.convert('RGBA')
           w, h = im.size
@@ -117,7 +129,7 @@ jobs:
                       regions.append((area,minx,miny,maxx,maxy))
           regions.sort(reverse=True)
           print('source alpha eye regions:', regions[:4])
-          assert len(regions) >= 2, f'expected two transparent eye openings, found {regions}'
+          assert len(regions) >= 2
           first, second = regions[:2]
           assert first[3] - first[1] >= w * .20
           assert second[3] - second[1] >= w * .06
@@ -130,6 +142,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add website/index.html
           if ! git diff --cached --quiet; then
-            git commit -m 'fix: finalize one transparent product mask'
+            git commit -m 'feat: reinvent systems as live circuit'
             git push origin HEAD:main
           fi
