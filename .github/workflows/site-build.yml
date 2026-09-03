@@ -62,16 +62,15 @@ jobs:
           assert '.mask-journey.hero-mask-single::before' in s
           assert '.mask-journey.hero-mask-single::after' in s
 
-          # Confirm the alpha image contains enclosed transparent apertures.
+          # Confirm real alpha apertures. Connected eye cutouts may form one
+          # transparent region in perspective, so validate region geometry.
           with Image.open('website/images/masck-hero-mask-v2.webp') as src:
               im = src.convert('RGBA')
           w, h = im.size
-          alpha = im.getchannel('A')
-          px = alpha.load()
+          px = im.getchannel('A').load()
           transparent = lambda x, y: px[x, y] <= 24
 
-          outside = set()
-          q = deque()
+          outside = set(); q = deque()
           for x in range(w):
               for y in (0, h - 1):
                   if transparent(x, y) and (x, y) not in outside:
@@ -86,29 +85,35 @@ jobs:
                   if 0 <= nx < w and 0 <= ny < h and (nx, ny) not in outside and transparent(nx, ny):
                       outside.add((nx, ny)); q.append((nx, ny))
 
-          seen = set(outside)
-          enclosed = []
+          seen = set(outside); regions = []
           min_area = max(120, int(w * h * 0.0012))
           for y in range(1, h - 1):
               for x in range(1, w - 1):
                   if (x, y) in seen or not transparent(x, y):
                       continue
-                  area = 0
-                  q = deque([(x, y)])
-                  seen.add((x, y))
+                  area = 0; minx = maxx = x; miny = maxy = y
+                  q = deque([(x, y)]); seen.add((x, y))
                   while q:
                       cx, cy = q.popleft(); area += 1
+                      minx=min(minx,cx); maxx=max(maxx,cx); miny=min(miny,cy); maxy=max(maxy,cy)
                       for nx, ny in ((cx-1,cy),(cx+1,cy),(cx,cy-1),(cx,cy+1)):
                           if 0 <= nx < w and 0 <= ny < h and (nx, ny) not in seen and transparent(nx, ny):
                               seen.add((nx, ny)); q.append((nx, ny))
                   if area >= min_area:
-                      enclosed.append(area)
+                      regions.append((area,minx,miny,maxx,maxy))
 
-          enclosed.sort(reverse=True)
-          print('transparent enclosed aperture areas:', enclosed[:8])
+          regions.sort(reverse=True)
+          print('transparent enclosed aperture regions:', regions[:8])
           assert 'A' in im.getbands()
           assert w >= 300 and h >= 300
-          assert len(enclosed) >= 3, f'expected eye/eye/nose transparent openings, found {enclosed}'
+          assert len(regions) >= 2, f'expected eye and nose alpha apertures, found {regions}'
+          eye = regions[0]
+          nose = regions[1]
+          eye_width = eye[3] - eye[1] + 1
+          eye_center_y = (eye[2] + eye[4]) / 2
+          nose_center_y = (nose[2] + nose[4]) / 2
+          assert eye_width >= w * .22, f'eye aperture region too narrow: {eye}'
+          assert nose_center_y > eye_center_y, f'nose aperture is not below eye aperture: {regions[:2]}'
           PY
           node --check /tmp/masck-site.js
       - name: Commit polished website
