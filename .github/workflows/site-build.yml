@@ -30,6 +30,7 @@ jobs:
           python .site-build/finalize_website_v13.py
           python .site-build/restraint_v14.py
           python .site-build/stage4_final_v15.py
+          python .site-build/stage4_dom_fix_v15b.py
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
@@ -65,7 +66,6 @@ jobs:
           assert 'aria-current="page">Architecture' in s
           assert 'loading="lazy" decoding="async"' in s
 
-          # Stage 4 attention hierarchy.
           assert 'A hands-free facial-cleansing wearable.' in s
           assert 'Fresh in.<br>Used out.' in s
           assert 'Recovered liquid returns to a removable cartridge.' in s
@@ -78,14 +78,12 @@ jobs:
           assert 'Built toward evidence.' not in s
           assert s.count('data-asset-slot=') >= 7
 
-          # Final motion/effects architecture is progressive enhancement only.
           assert s.count('id="brand-field"') == 1
           assert s.count('id="windText"') == 1
           assert "getContext('webgl'" in s
           assert "matchMedia('(prefers-reduced-motion: reduce)')" in s
           assert "matchMedia('(hover:hover) and (pointer:fine)')" in s
 
-          # Final production/document closure.
           assert s.count('class="closing-chamber"') == 1
           assert s.count('class="closing-return"') == 1
           assert s.count('class="closing-year"') == 1
@@ -100,7 +98,6 @@ jobs:
           assert s.count('class="systems-readout') == 0
           assert s.count('class="page-label"') == 0
 
-          # One untouched approved product image from hero through Architecture.
           assert 'hero-mask-wrap hero-subject' not in s
           assert 'hero-mask-product' not in s
           assert 'const heroSubject=' not in s
@@ -117,7 +114,6 @@ jobs:
           assert '.mask-journey.hero-mask-single::after' in s
           assert 'content:none!important' in s
 
-          # Systems remains one scroll-driven cinematic chamber.
           assert s.count('class="systems-experience"') == 1
           assert s.count('class="systems-sticky"') == 1
           assert s.count('class="systems-circuit"') == 1
