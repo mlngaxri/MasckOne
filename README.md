@@ -37,6 +37,12 @@ The engineering foundation now includes:
 - Missing real-world evidence is represented explicitly rather than fabricated.
 - Generated STEP files are build artifacts and are not source authority.
 
+## Digital product vision
+
+The repository also carries a deliberately **non-authoritative** digital product vision for the marketing website, companion app, commercial backend and future connected-device experience. Read [`docs/DIGITAL_PRODUCT_VISION.md`](docs/DIGITAL_PRODUCT_VISION.md) for the target iOS/Android app, usage-session experience, capability-gated wear-state/device controls, Supabase-backed account/reservation architecture, website app showcase and preorder path.
+
+That document defines product intent and software architecture only. It does not override `config/masck_one_authority.yaml`, released engineering code/CAD, validation evidence or [`DIGITAL_PRODUCT_HANDOFF_README.md`](DIGITAL_PRODUCT_HANDOFF_README.md). Future BLE, wear detection, session telemetry, device control, measured performance and paid preorder activation remain gated by their physical/commercial dependencies.
+
 Key engineering modules:
 
 - `src/masck_one/spatial.py` — canonical points, vectors, datums and rigid transforms.
