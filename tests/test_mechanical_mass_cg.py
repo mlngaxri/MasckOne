@@ -60,6 +60,7 @@ def test_unknown_material_components_remain_unresolved_and_do_not_enter_cg_arith
     assert all(entry.centroid_xyz_mm is None for entry in unresolved)
     assert "FRAME-PERIMETER-REACTION" in ledger.unresolved_component_ids
     assert "RETENTION-HALO-OCCIPITAL-CROWN" in ledger.unresolved_component_ids
+    assert "QUICK-RELEASE-GUARD" in ledger.unresolved_component_ids
     assert "WATER-RESERVOIR-DRY-ASSEMBLY" in ledger.unresolved_component_ids
     assert "WASTE-CARTRIDGE-DRY-ASSEMBLY" in ledger.unresolved_component_ids
 
