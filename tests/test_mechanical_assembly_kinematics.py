@@ -107,7 +107,16 @@ def test_capture_invariants_close_geometry_without_promoting_physical_validation
     assert invariants["RIGHT-TONGUE-CHANNEL-MIN-XY-CLEARANCE"].value > 0.0
     assert invariants["DOG-FULL-WITHDRAWAL-CLEARS-RIGHT-TONGUE"].value is True
     assert invariants["ACCIDENTAL-ACTUATION-GUARD-ATTACHES-TO-RIGHT-SOCKET"].value > 0.0
-    assert all("PHYSICAL" not in item.evidence_status or "UNVALIDATED" in item.evidence_status or "GATES" in item.evidence_status for item in invariants.values())
+    forbidden_positive_claims = (
+        "PHYSICAL_VALIDATION_COMPLETE",
+        "PHYSICAL_LOAD_CAPACITY_VALIDATED",
+        "RELEASE_FORCE_VALIDATED",
+        "RELEASE_TIME_VALIDATED",
+    )
+    assert all(
+        not any(claim in item.evidence_status for claim in forbidden_positive_claims)
+        for item in invariants.values()
+    )
 
 
 def test_downstream_lane_owned_assembly_remains_blocked_not_fabricated(assembly):
