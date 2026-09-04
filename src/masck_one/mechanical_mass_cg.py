@@ -18,14 +18,21 @@ from .mechanical_integration import MechanicalRealization, build_mechanical_real
 from .model import MasckOneModel, build_model
 
 
-SCHEMA = "MASCK_ONE_MECHANICAL_MASS_CG_V1"
+SCHEMA = "MASCK_ONE_MECHANICAL_MASS_CG_V2"
 STANDARD_GRAVITY_M_S2 = 9.80665
 
+# The package candidate remains the hollow-shaft 2IBH reference. H2W's currently
+# published 5.6 g total mass is for the closely related 2IB model, so it is carried
+# only as an explicit sibling-model benchmark. It is not an exact 2IBH production mass.
 SUPPLIER_ACTUATOR_MODEL = "H2W NCM01-04-001-2IBH"
+SUPPLIER_ACTUATOR_MASS_SOURCE_MODEL = "H2W NCM01-04-001-2IB"
 SUPPLIER_ACTUATOR_TOTAL_MASS_G = 5.6
-SUPPLIER_ACTUATOR_SOURCE_URL = "https://www.h2wtech.com/product/voice-coil-actuators/NCM01-04-001-2IBH"
+SUPPLIER_ACTUATOR_SOURCE_URL = "https://www.h2wtech.com/product/voice-coil-actuators/NCM01-04-001-2IB"
 SUPPLIER_ACTUATOR_SOURCE_RETRIEVED = "2026-09-04"
-SUPPLIER_ACTUATOR_PROVENANCE = "SUPPLIER_PUBLISHED_TOTAL_MASS_BENCHMARK_NOT_PRODUCTION_FREEZE"
+SUPPLIER_ACTUATOR_PROVENANCE = (
+    "SUPPLIER_PUBLISHED_SIBLING_MODEL_TOTAL_MASS_BENCHMARK_"
+    "NOT_EXACT_2IBH_OR_PRODUCTION_FREEZE"
+)
 
 
 class MechanicalMassCgError(ValueError):
@@ -216,10 +223,12 @@ def _entries(
                 component_id=f"ACTUATOR-ZONE-{zone}",
                 mass_g=SUPPLIER_ACTUATOR_TOTAL_MASS_G,
                 centroid_xyz_mm=actuator.centroid_xyz_mm,
-                source_kind="SUPPLIER_PUBLISHED_BENCHMARK",
+                source_kind="SUPPLIER_SIBLING_MODEL_MASS_BENCHMARK",
                 source_reference=(
-                    f"{SUPPLIER_ACTUATOR_MODEL}; total mass {SUPPLIER_ACTUATOR_TOTAL_MASS_G} g; "
-                    f"{SUPPLIER_ACTUATOR_SOURCE_URL}; retrieved {SUPPLIER_ACTUATOR_SOURCE_RETRIEVED}"
+                    f"package candidate {SUPPLIER_ACTUATOR_MODEL}; mass source sibling "
+                    f"{SUPPLIER_ACTUATOR_MASS_SOURCE_MODEL}; published total mass "
+                    f"{SUPPLIER_ACTUATOR_TOTAL_MASS_G} g; {SUPPLIER_ACTUATOR_SOURCE_URL}; "
+                    f"retrieved {SUPPLIER_ACTUATOR_SOURCE_RETRIEVED}"
                 ),
                 geometry_status=actuator.geometry_status,
                 mass_status=SUPPLIER_ACTUATOR_PROVENANCE,
@@ -265,7 +274,7 @@ def _known_arithmetic(entries: tuple[MassEntry, ...]) -> tuple[float, tuple[floa
 
     grouped: dict[str, float] = {
         "BATTERY_REFERENCE_BENCHMARK": sum(float(entry.mass_g) for entry in known if entry.component_id.startswith("BATTERY-")),
-        "FOUR_ACTUATOR_SUPPLIER_BENCHMARKS": sum(float(entry.mass_g) for entry in known if entry.component_id.startswith("ACTUATOR-ZONE-")),
+        "FOUR_ACTUATOR_SIBLING_MODEL_MASS_BENCHMARKS": sum(float(entry.mass_g) for entry in known if entry.component_id.startswith("ACTUATOR-ZONE-")),
     }
     dominant = tuple(
         KnownContributor(key, value, value / total)
@@ -304,7 +313,8 @@ def build_mechanical_mass_cg_ledger(
             "WASTE_LOAD_MASS_BLOCKED_PENDING_REALIZED_CARTRIDGE_MEDIA_AND_CONTROLLED_PHYSICAL_MASS_EVIDENCE",
         ),
         evidence_status=(
-            "KNOWN_DRY_SUBSET_USES_AUTHORITY_BATTERY_BENCHMARK_AND_H2W_PUBLISHED_ACTUATOR_TOTAL_MASS_ONLY_"
+            "KNOWN_DRY_SUBSET_USES_AUTHORITY_BATTERY_BENCHMARK_AND_H2W_2IB_SIBLING_MODEL_"
+            "PUBLISHED_MASS_BENCHMARK_ONLY_EXACT_2IBH_MASS_UNRESOLVED_"
             "FULL_DRY_LOADED_CG_AND_PITCH_REMAIN_BLOCKED_NOT_PHYSICAL_VALIDATION"
         ),
     )
