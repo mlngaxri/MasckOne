@@ -11,6 +11,7 @@ from masck_one.mechanical_candidate_packaging import (
     build_mechanical_candidate_package_audit,
 )
 from masck_one.mechanical_integration import build_mechanical_realization
+from masck_one.mechanical_structure import build_manual_a_mechanical_structure
 from masck_one.whole_product_interference import build_whole_product_interference_audit
 from masck_one.model import build_model
 
@@ -40,15 +41,24 @@ def test_actuator_repackaging_explicitly_supersedes_all_four_released_positions(
     assert all("REPACKAGING_CANDIDATE" in record.status for record in audit.actuator_supersession)
 
 
-def test_candidate_manual_a_parts_clear_released_water_cartridge_and_battery(audit):
+def test_candidate_manual_a_parts_including_release_guard_clear_released_packages(audit):
     failures = [check.manifest() for check in audit.required_clear_failures]
     assert not failures, f"Manual A candidate has cross-package conflicts: {failures}"
+    guard_checks = tuple(
+        check for check in audit.cross_package_checks
+        if check.candidate_part_id == "QUICK-RELEASE-GUARD"
+    )
+    assert len(guard_checks) == len(BASELINE_EXTERNAL_PACKAGE_IDS)
+    assert all(check.required_clear for check in guard_checks)
+    assert all(check.passes for check in guard_checks)
 
 
 def test_candidate_relocation_resolves_released_upper_actuator_eye_screen_conflict():
     authority = load_authority()
-    baseline = build_whole_product_interference_audit(build_model(authority))
+    model = build_model(authority)
+    baseline = build_whole_product_interference_audit(model)
     realization = build_mechanical_realization(authority)
+    structure = build_manual_a_mechanical_structure(authority, model)
 
     baseline_intrusions = {
         (record.package_id, record.screen_id): record.intersection_mm3
@@ -57,12 +67,22 @@ def test_candidate_relocation_resolves_released_upper_actuator_eye_screen_confli
     assert baseline_intrusions[("ACTUATOR_1", "PROTECTED-SCREEN-EYE-LEFT")] > 0.0
     assert baseline_intrusions[("ACTUATOR_2", "PROTECTED-SCREEN-EYE-RIGHT")] > 0.0
 
-    candidate_checks = {
-        (check.first_id, check.second_id): check
-        for check in realization.shape_checks
-    }
-    assert candidate_checks[("ACTUATOR-ZONE-A", "KEEPOUT-EYE-LEFT")].passes
-    assert candidate_checks[("ACTUATOR-ZONE-B", "KEEPOUT-EYE-RIGHT")].passes
+    # The integration projection must consume the canonical structure result rather
+    # than re-authoring a second actuator/keepout coordinate system.
+    assert realization.source_structure_sha256 == structure.package_sha256
+    assert structure.all_required_clear, structure.conflict_ids
+    left_checks = tuple(
+        item for item in structure.clearance_results
+        if item.moving_id == "ACTUATOR_ZONE_SUPERIOR_LEFT"
+        and item.obstacle_id == "MASCK_ONE-PROTECTED-EYE-LEFT"
+    )
+    right_checks = tuple(
+        item for item in structure.clearance_results
+        if item.moving_id == "ACTUATOR_ZONE_SUPERIOR_RIGHT"
+        and item.obstacle_id == "MASCK_ONE-PROTECTED-EYE-RIGHT"
+    )
+    assert left_checks and all(item.passes for item in left_checks)
+    assert right_checks and all(item.passes for item in right_checks)
 
 
 def test_other_lane_geometry_remains_explicitly_unresolved(audit):
