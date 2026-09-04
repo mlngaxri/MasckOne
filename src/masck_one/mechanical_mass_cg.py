@@ -228,7 +228,6 @@ def _entries(
 
     unresolved_realized_ids = (
         "LIVE-MAIN-RIGID-SHELL",
-        "SERVICE-STATE-SHELL",
         "LOWER-SERVICE-DOOR-ENVELOPE",
         "FRAME-PERIMETER-REACTION",
         *(f"REACTION-ACTUATOR-ZONE-{zone}" for zone in "ABCD"),
