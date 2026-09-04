@@ -244,6 +244,7 @@ def _entries(
         "RETENTION-YOKE-LEFT",
         "RETENTION-YOKE-RIGHT-FIXED",
         "QUICK-RELEASE-LATCH-MOVING",
+        "QUICK-RELEASE-GUARD",
     )
     for part_id in unresolved_realized_ids:
         part = parts[part_id]
