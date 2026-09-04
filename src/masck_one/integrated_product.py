@@ -10,7 +10,7 @@ review are green, the final integration owner can promote the shell deliberately
 
 from dataclasses import replace
 
-from .authority import Authority
+from .authority import Authority, load_authority
 from .exterior_surface import build_refined_exterior_shell, exterior_surface_manifest
 from .model import Component, MasckOneModel, build_model
 
@@ -35,7 +35,7 @@ def build_mvp_product_candidate(authority: Authority | None = None) -> MasckOneM
 
 
 def integrated_exterior_manifest(authority: Authority | None = None) -> dict[str, object]:
-    authority = authority or build_model().authority
+    authority = authority or load_authority()
     manifest = dict(exterior_surface_manifest(authority))
     manifest["integration_status"] = MVP_EXTERIOR_STATUS
     manifest["integration_policy"] = (
