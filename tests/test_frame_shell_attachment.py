@@ -44,7 +44,7 @@ def test_three_point_support_has_real_lateral_and_superior_reaction_span(attachm
     assert attachment.lower_center_service_preserved
 
 
-def test_actuator_load_paths_use_authority_force_demands_without_claiming_capacity(attachment):
+def test_actuator_load_paths_are_derived_from_exact_connectivity_and_do_not_claim_capacity(attachment):
     authority = load_authority()
     continuous = float(authority.get("actuation", "clean", "continuous_force_requirement_N"))
     transient = float(authority.get("actuation", "clean", "transient_force_requirement_N"))
@@ -52,14 +52,31 @@ def test_actuator_load_paths_use_authority_force_demands_without_claiming_capaci
     assert len(actuator_paths) == 8
     assert sorted(path.demand_N for path in actuator_paths).count(continuous) == 4
     assert sorted(path.demand_N for path in actuator_paths).count(transient) == 4
-    assert all(path.geometry_closed for path in actuator_paths)
-    assert all(not path.physical_capacity_validated for path in actuator_paths)
+    for path in actuator_paths:
+        assert path.source_part_id.startswith("REACTION-ACTUATOR-ZONE-")
+        assert path.geometry_closed
+        assert all(metric.engaged for metric in path.connectivity_metrics)
+        assert all(metric.exact_intersection_mm3 > 0.0 for metric in path.connectivity_metrics)
+        assert path.manifest()["geometry_closed_derivation"] == "ALL_EXACT_BREP_CONNECTIVITY_METRICS_POSITIVE"
+        assert not path.physical_capacity_validated
+        assert "EXACT_BREP_INTERSECTIONS" in path.evidence_status
+        assert "UNVALIDATED" in path.evidence_status
 
 
-def test_retention_load_path_is_geometry_closed_but_force_and_capacity_remain_unresolved(attachment):
+def test_retention_load_path_requires_bilateral_halo_yoke_frame_and_bridge_connectivity(attachment):
     retention = next(path for path in attachment.load_paths if path.load_path_id == "RETENTION-HALO-TO-SHELL")
     assert retention.geometry_closed
+    metric_ids = {metric.metric_id for metric in retention.connectivity_metrics}
+    assert {
+        "RETENTION-HALO-TO-LEFT-YOKE",
+        "RETENTION-HALO-TO-RIGHT-YOKE",
+        "RETENTION-LEFT-YOKE-TO-FRAME",
+        "RETENTION-RIGHT-YOKE-TO-FRAME",
+    }.issubset(metric_ids)
+    assert all(metric.engaged for metric in retention.connectivity_metrics)
+    assert all(metric.exact_intersection_mm3 > 0.0 for metric in retention.connectivity_metrics)
     assert retention.demand_N is None
     assert "UNRESOLVED" in retention.demand_status
     assert not retention.physical_capacity_validated
+    assert "EXACT_BREP_CONNECTIVITY" in attachment.evidence_status
     assert "NOT_MATERIAL_STIFFNESS_STRESS_FATIGUE_FASTENER_OR_PHYSICAL_VALIDATION" in attachment.evidence_status
