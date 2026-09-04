@@ -6,7 +6,9 @@ import pytest
 from masck_one.authority import load_authority
 from masck_one.mechanical_mass_cg import (
     SCHEMA,
+    SUPPLIER_ACTUATOR_MASS_SOURCE_MODEL,
     SUPPLIER_ACTUATOR_MODEL,
+    SUPPLIER_ACTUATOR_PROVENANCE,
     SUPPLIER_ACTUATOR_SOURCE_URL,
     SUPPLIER_ACTUATOR_TOTAL_MASS_G,
     build_mechanical_mass_cg_ledger,
@@ -38,8 +40,11 @@ def test_known_dry_subset_is_battery_plus_four_traceable_actuator_benchmarks_onl
     assert len(actuators) == 4
     assert all(entry.mass_g == pytest.approx(SUPPLIER_ACTUATOR_TOTAL_MASS_G) for entry in actuators)
     assert all(SUPPLIER_ACTUATOR_MODEL in entry.source_reference for entry in actuators)
+    assert all(SUPPLIER_ACTUATOR_MASS_SOURCE_MODEL in entry.source_reference for entry in actuators)
     assert all(SUPPLIER_ACTUATOR_SOURCE_URL in entry.source_reference for entry in actuators)
-    assert all(entry.source_kind == "SUPPLIER_PUBLISHED_BENCHMARK" for entry in actuators)
+    assert all(entry.source_kind == "SUPPLIER_SIBLING_MODEL_MASS_BENCHMARK" for entry in actuators)
+    assert all(entry.mass_status == SUPPLIER_ACTUATOR_PROVENANCE for entry in actuators)
+    assert all("NOT_EXACT_2IBH" in entry.mass_status for entry in actuators)
 
 
 def test_alternate_service_shell_state_is_not_double_counted_as_a_component(ledger):
@@ -66,13 +71,14 @@ def test_known_subset_cg_and_pitch_are_reported_but_never_promoted_to_whole_prod
     assert ledger.loaded_total_g is None
     assert ledger.whole_product_cg_xyz_mm is None
     assert ledger.whole_product_pitch_moment_Nm is None
+    assert "EXACT_2IBH_MASS_UNRESOLVED" in ledger.evidence_status
     assert "FULL_DRY_LOADED_CG_AND_PITCH_REMAIN_BLOCKED" in ledger.evidence_status
 
 
-def test_dominant_known_contributors_are_actuators_then_battery_without_claiming_full_mass_dominance(ledger):
+def test_dominant_known_contributors_are_actuator_benchmark_then_battery_without_claiming_full_mass_dominance(ledger):
     contributors = ledger.dominant_known_contributors
     assert tuple(item.contributor_id for item in contributors) == (
-        "FOUR_ACTUATOR_SUPPLIER_BENCHMARKS",
+        "FOUR_ACTUATOR_SIBLING_MODEL_MASS_BENCHMARKS",
         "BATTERY_REFERENCE_BENCHMARK",
     )
     assert contributors[0].known_mass_g == pytest.approx(22.4)
