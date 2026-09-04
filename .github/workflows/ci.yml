@@ -57,7 +57,18 @@ jobs:
         run: python -m masck_one.surface_workflow_preflight
 
       - name: Unit and integration tests
-        run: python -m pytest
+        run: |
+          set -o pipefail
+          python -m pytest -x -vv 2>&1 | tee /tmp/pytest-first-failure.log
+
+      - name: Upload pytest failure log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-first-failure
+          path: /tmp/pytest-first-failure.log
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Deterministic CAD smoke build
         run: python -m masck_one.cli --output /tmp/masck-one-generated
