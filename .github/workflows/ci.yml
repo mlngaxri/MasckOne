@@ -12,7 +12,12 @@ permissions:
 jobs:
   engineering-integrity:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Current released main passes the full 726-test suite in about 18 minutes, then
+    # enters the required deterministic CAD smoke build. A 20-minute job ceiling
+    # therefore cancels valid smoke execution before evidence can be collected.
+    # Thirty minutes preserves every existing gate while providing measured runtime
+    # margin for the full test suite plus deterministic CAD export.
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -57,7 +62,7 @@ jobs:
         run: python -m masck_one.surface_workflow_preflight
 
       - name: Unit and integration tests
-        run: python -m pytest
+        run: python -m pytest --durations=20
 
       - name: Deterministic CAD smoke build
         run: python -m masck_one.cli --output /tmp/masck-one-generated
