@@ -83,7 +83,7 @@ def render_exterior_view_evidence(
     bb = shape.BoundingBox()
     report: dict[str, object] = {
         "schema": "MASCK_ONE_CELL2_EXTERIOR_VIEW_EVIDENCE_V2",
-        "coordinate_frame": "MASCK_ONE_CANONICAL_WORLD_X_WEARER_RIGHT_Y_SUPERIOR_Z_ANTERIOR",
+        "coordinate_frame": "MASCK_ONE_AUTHORITY_WORLD_MM",
         "surface": integrated_exterior_manifest(candidate.authority),
         "shell_valid": bool(shape.isValid()),
         "shell_solid_count": int(candidate.shell.solid.solids().size()),
