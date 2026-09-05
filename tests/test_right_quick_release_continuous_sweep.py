@@ -6,7 +6,8 @@ import math
 import cadquery as cq
 
 from masck_one.model import build_model
-from masck_one.right_quick_release_latch import RELEASE_TRAVEL_MM
+from masck_one.realized_waste_backbone_release import build_current_cell4_waste_backbone_release
+from masck_one.right_quick_release_latch import RELEASE_TRAVEL_MM, WORLD_FRAME_ID
 from masck_one.right_quick_release_reset import build_right_quick_release_reset_mechanics
 from masck_one.right_quick_release_sweep import (
     build_right_quick_release_continuous_sweep,
@@ -98,3 +99,29 @@ def test_exact_continuous_release_sweep_covers_complete_withdrawal_and_roundtrip
     )
     assert payload["package_sha256"] == sweep.package_sha256
     assert payload["source_reset_package_sha256"] == reset.package_sha256
+
+
+def test_exact_release_sweep_is_separated_from_released_cell4_waste_service_envelopes() -> None:
+    """Bind Cell 3 withdrawal to the now-released Cell 4 route reservation.
+
+    Each route centerline bound is inflated by its controlled provisional service-envelope
+    radius. A strict X separating plane is sufficient here because all released mixed-waste
+    routing is wearer-left while the right latch is wearer-right. This is digital reservation
+    evidence only, not tubing deformation or physical service-clearance validation.
+    """
+    model = build_model()
+    reset = build_right_quick_release_reset_mechanics(
+        authority=model.authority,
+        model=model,
+    )
+    sweep = build_right_quick_release_continuous_sweep(reset=reset, model=model)
+    sweep_xmin = float(sweep.exact_slider_sweep.val().BoundingBox().xmin)
+
+    release = build_current_cell4_waste_backbone_release()
+    assert release.realization.authority_revision == reset.latch.source_authority_revision
+    for route in release.realization.routes:
+        assert route.world_frame_id == WORLD_FRAME_ID
+        _, route_max = route.bounds_xyz_mm
+        inflated_route_xmax = float(route_max[0]) + route.service_envelope_radius_mm
+        assert inflated_route_xmax < sweep_xmin
+        assert sweep_xmin - inflated_route_xmax > 0.0
