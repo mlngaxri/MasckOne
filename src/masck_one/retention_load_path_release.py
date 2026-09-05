@@ -18,6 +18,11 @@ from hashlib import sha1, sha256
 import json
 from pathlib import Path
 
+from .occipital_stabilizer import (
+    CENTRAL_REAR_PACKAGE_KEEP_OUT_CENTER_MM,
+    CENTRAL_REAR_PACKAGE_KEEP_OUT_XYZ_MM,
+    SOURCE_AUTHORITY_BLOB_SHA,
+)
 from .retention_load_path import (
     ATTACHMENT_FEATURE_OPEN,
     ATTACHMENT_INTEGRAL,
@@ -30,6 +35,7 @@ from .retention_load_path import (
 
 SCHEMA = "MASCK_ONE_CELL3_RETENTION_LOAD_PATH_RELEASE_V2"
 SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA = "6c851aafe1a7f5e2a33fc8214c0cadb79d12c6ff"
+SOURCE_MODEL_GIT_BLOB_SHA = "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"
 DIGITAL_ONLY = "DIGITAL_LOAD_PATH_RELEASE_SEMANTICS_NOT_STRUCTURAL_OR_SERVICE_VALIDATION"
 
 
@@ -43,13 +49,19 @@ def _git_blob_sha(path: Path) -> str:
     return sha1(header + raw).hexdigest()
 
 
-def _assert_source_blob() -> None:
-    path = Path(__file__).with_name("retention_load_path.py")
-    observed = _git_blob_sha(path)
-    if observed != SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA:
-        raise RetentionLoadPathReleaseError(
-            "retention_load_path.py changed; release semantics require explicit rebind"
-        )
+def _assert_source_blobs() -> None:
+    module_dir = Path(__file__).resolve().parent
+    expected = {
+        module_dir / "retention_load_path.py": SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA,
+        module_dir / "model.py": SOURCE_MODEL_GIT_BLOB_SHA,
+        module_dir.parents[1] / "config" / "masck_one_authority.yaml": SOURCE_AUTHORITY_BLOB_SHA,
+    }
+    for path, expected_sha in expected.items():
+        observed = _git_blob_sha(path)
+        if observed != expected_sha:
+            raise RetentionLoadPathReleaseError(
+                f"{path.name} changed; retention load-path release requires explicit rebind"
+            )
 
 
 def _edge_manifest(edge) -> dict[str, object]:
@@ -99,6 +111,26 @@ def _edge_manifest(edge) -> dict[str, object]:
     }
 
 
+def _carrier_rear_package_x_separation(source: RetentionLoadPathPackage) -> dict[str, float]:
+    center_x = float(CENTRAL_REAR_PACKAGE_KEEP_OUT_CENTER_MM[0])
+    half_x = float(CENTRAL_REAR_PACKAGE_KEEP_OUT_XYZ_MM[0]) / 2.0
+    keepout_xmin = center_x - half_x
+    keepout_xmax = center_x + half_x
+
+    left_xmax = float(source.left.carrier.solid.val().BoundingBox().xmax)
+    right_xmin = float(source.right.carrier.solid.val().BoundingBox().xmin)
+    left_gap = keepout_xmin - left_xmax
+    right_gap = right_xmin - keepout_xmax
+    if left_gap <= 0.0 or right_gap <= 0.0:
+        raise RetentionLoadPathReleaseError(
+            "retention carrier encroaches Prompt 08 central rear package keepout in X"
+        )
+    return {
+        "wearer_left_mm": left_gap,
+        "wearer_right_mm": right_gap,
+    }
+
+
 @dataclass(frozen=True, slots=True)
 class RetentionLoadPathRelease:
     source: RetentionLoadPathPackage
@@ -134,10 +166,13 @@ class RetentionLoadPathRelease:
             for edge in edges
             if bool(edge["integral_material_continuity"])
         )
+        rear_package_gap = _carrier_rear_package_x_separation(self.source)
 
         payload: dict[str, object] = {
             "schema": SCHEMA,
             "source_retention_load_path_git_blob_sha": SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA,
+            "source_model_git_blob_sha": SOURCE_MODEL_GIT_BLOB_SHA,
+            "source_authority_git_blob_sha": SOURCE_AUTHORITY_BLOB_SHA,
             "source_retention_load_path_package_sha256": self.source.package_sha256,
             "source_current_main_sha": source_manifest["source_current_main_sha"],
             "source_prompt10_head_sha": source_manifest["source_prompt10_head_sha"],
@@ -169,6 +204,13 @@ class RetentionLoadPathRelease:
                 "facial_reaction_to_front_perimeter_positive_attachment_realized": False,
                 "facial_reaction_to_front_perimeter_path_closed": False,
                 "whole_retention_load_path_closed": False,
+            },
+            "rear_packaging_discipline": {
+                "source_keepout_center_xyz_mm": list(CENTRAL_REAR_PACKAGE_KEEP_OUT_CENTER_MM),
+                "source_keepout_xyz_mm": list(CENTRAL_REAR_PACKAGE_KEEP_OUT_XYZ_MM),
+                "carrier_x_separation_mm": rear_package_gap,
+                "strict_x_separating_plane_proof": True,
+                "clearance_is_load_transfer": False,
             },
             "service_maturity": {
                 "capture_pin_withdrawal_travel_mm": CAPTURE_PIN_SERVICE_WITHDRAWAL_MM,
@@ -229,7 +271,7 @@ class RetentionLoadPathRelease:
 def build_retention_load_path_release(
     source: RetentionLoadPathPackage | None = None,
 ) -> RetentionLoadPathRelease:
-    _assert_source_blob()
+    _assert_source_blobs()
     source = source or build_retention_load_path()
     release = RetentionLoadPathRelease(source)
 
