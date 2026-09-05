@@ -5,7 +5,7 @@ Status: provisional digital CAD engineering baseline, not physical validation.
 Authored-against Git provenance: `5fce2a43a34d8be49256677a35af60c906dc1653`.
 World frame: frozen Masck One authority datum, millimetres, +X wearer right, +Y superior, +Z anterior.
 
-The authored-against Git SHA is historical provenance only. Release freshness is not self-certified from that SHA or from a copied authority revision. The release wrapper reconstructs the current repository-rooted fluid source graph, calls `WastePumpArchitecture.validate_current_sources(...)`, binds the live `WastePumpArchitecture.architecture_sha256`, and exact-compares every realized route ID, stage, phase, source and target against that live architecture.
+The authored-against Git SHA is historical provenance only. Release freshness is not self-certified from that SHA or from a copied authority revision. Trusted release build, manifest and manifest-hash paths reconstruct the repository-current fluid source graph internally, call `WastePumpArchitecture.validate_current_sources(...)`, bind the live `WastePumpArchitecture.architecture_sha256`, and exact-compare every realized route ID, stage, phase, source and target against that live architecture. A caller-supplied source bundle cannot certify a trusted release manifest.
 
 ## Realized scope
 
@@ -23,17 +23,17 @@ The adjusted centerlines total approximately 64.255 mm and produce approximately
 
 Cell 5 rejected the prior release binding because it compared source SHA and authority revision only against constants owned by the same module. That could remain internally consistent after an upstream authority or routing change.
 
-The current release path instead rebuilds the authority, structural frame, distribution geometry, waste acquisition and waste-pump architecture from current repository sources. The upstream `WastePumpArchitecture` then validates the complete inherited source graph before its deterministic architecture digest is accepted. A well-formed but stale 64-hex architecture digest and a changed current distribution/source graph are hostile regression cases and must fail closed.
+The current release path rebuilds the authority, structural frame, distribution geometry, waste acquisition and waste-pump architecture from repository-current sources. The upstream `WastePumpArchitecture` validates the complete inherited source graph before its deterministic architecture digest is accepted. A well-formed but stale 64-hex architecture digest and a changed current distribution/source graph are hostile regression cases and must fail closed.
 
 The realized geometry manifest retains the authored-against Git SHA only as historical provenance. It is not used as proof that current routing authority is unchanged.
 
 ## Integration correction in this revision
 
-The previous acquisition handoff began inside the authority-derived mouth hard envelope, and the previous lower `x=-62 mm` leg was too close to the current Cell 2 tapered lower shell for the provisional service reservation. The revised wearer-left inferior route shifts those sections laterally inward while preserving all controlled fluid identities and topology.
+The previous acquisition handoff began inside the authority-derived mouth hard envelope, and the previous lower `x=-62 mm` leg was too close to the Cell 2 tapered lower shell for the provisional service reservation. The revised wearer-left inferior route shifts those sections laterally inward while preserving all controlled fluid identities and topology.
 
-A control-profile screening against Cell 2 branch head `372ae29bffd9d2b3d9f78430b84362aa8977e1c7` indicates about 3.6 mm additional inward margin beyond the provisional 3.2 mm route envelope in the tight lower profile region. This is digital source screening only. It is not a B-rep collision certificate, a production clearance, or physical service evidence.
+Cell 2 advanced during this work. The current Cell 2 branch head is `8f165049c4ff95cc706f2e106c8b58c3876f6b6f`, with current `exterior_surface.py` blob `b04f2651cf035e0cc3744be8b7e8eb7e68de0feb`. The route occupies Z = 12 to 16 mm. Cell 2's newer anterior-crown material begins conservatively above about Z = 20.1 mm, while the lower side-profile station scales and normalized tapered perimeter used by the route-envelope screen remain applicable in the route Z band. Re-screening therefore retains about 3.6 mm additional inward profile margin beyond the provisional 3.2 mm route envelope in the tight lower region. This is source-profile screening only, not a B-rep collision certificate, production clearance, or physical service evidence.
 
-The current Cell 3 recovery branch does not provide a newer controlled realized 3D mechanism or service envelope than released `main`. Exact mechanism swept-volume clearance therefore remains blocked rather than inferred.
+The current Cell 3 recovery branch remains at `8a5f7b60edaea36f9cfcd33770375127d1e70e65` and provides no newer controlled realized 3D mechanism or service envelope than released `main`. Exact mechanism swept-volume clearance therefore remains blocked rather than inferred.
 
 ## Explicit provisional baselines
 
