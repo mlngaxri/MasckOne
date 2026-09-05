@@ -2,12 +2,12 @@ from __future__ import annotations
 
 """Source-bound whole-product collision matrix V1.
 
-Released finite B-reps receive exact intersection/distance checks. Released mixed-waste
-centerlines are represented only by conservative service AABBs, so any overlap involving
-those AABBs is review-required broad phase rather than an exact product interference.
-Authority protected regions remain 2.5D XY hard envelopes with unresolved Z; for a
-finite participant the exact XY footprint is extruded only through that participant's
-own Z span. Candidate Cell 2/3/4 geometry is recorded but never consumed.
+Released finite B-reps receive exact solid-to-solid checks. Authority protected regions
+receive their own 2.5D hard-envelope conflict class because their Z depth is intentionally
+unresolved. Released mixed-waste centerlines are represented only by conservative service
+AABBs, so any overlap involving those AABBs is review-required broad phase rather than
+an exact route/product collision. Candidate Cell 2/3/4 geometry is recorded but never
+consumed.
 
 All outputs are digital engineering evidence only, never physical validation.
 """
@@ -51,10 +51,11 @@ CATEGORY_RIGID = "RIGID_OR_PACKAGE_GEOMETRY"
 CATEGORY_ROUTE = "ROUTE_SERVICE_RESERVATION"
 METHOD_BREP = "EXACT_BREP_INTERSECTION_AND_DISTANCE"
 METHOD_ROUTE = "CONSERVATIVE_ROUTE_SERVICE_AABB_BROAD_PHASE"
-METHOD_PROTECTED = "EXACT_XY_PROTECTED_FOOTPRINT_OVER_FINITE_SOLID_Z_SPAN"
+METHOD_PROTECTED = "AUTHORITY_2P5D_PROTECTED_XY_HARD_ENVELOPE_SCREEN"
 METHOD_UNRESOLVED = "BLOCKED_NO_RELEASED_GEOMETRY"
 CLEAR = "CLEAR_DIGITAL"
-INTERFERENCE = "INTERFERENCE_DETECTED"
+INTERFERENCE = "EXACT_BREP_INTERFERENCE_DETECTED"
+PROTECTED_CONFLICT = "PROTECTED_HARD_ENVELOPE_CONFLICT"
 TOUCHING = "TOUCHING_REVIEW_REQUIRED"
 REVIEW = "CONSERVATIVE_RESERVATION_OVERLAP_REVIEW_REQUIRED"
 BLOCKED = "BLOCKED_UNRESOLVED_GEOMETRY"
@@ -225,7 +226,7 @@ class CollisionCheck:
             ("method", self.method), ("status", self.status), ("evidence status", self.evidence_status),
         ):
             _text(value, label)
-        if self.status not in {CLEAR, INTERFERENCE, TOUCHING, REVIEW, BLOCKED}:
+        if self.status not in {CLEAR, INTERFERENCE, PROTECTED_CONFLICT, TOUCHING, REVIEW, BLOCKED}:
             raise WholeProductCollisionMatrixError("collision status is uncontrolled")
         if self.status == BLOCKED:
             if self.intersection_volume_mm3 is not None or self.minimum_distance_mm is not None:
@@ -235,6 +236,10 @@ class CollisionCheck:
                 raise WholeProductCollisionMatrixError("geometric row requires metrics")
             if self.intersection_volume_mm3 < 0.0 or self.minimum_distance_mm < 0.0:
                 raise WholeProductCollisionMatrixError("collision metrics must be nonnegative")
+        if self.status == INTERFERENCE and self.method != METHOD_BREP:
+            raise WholeProductCollisionMatrixError("exact interference status requires finite B-rep pair")
+        if self.status == PROTECTED_CONFLICT and self.method != METHOD_PROTECTED:
+            raise WholeProductCollisionMatrixError("protected conflict status requires protected-envelope method")
         if self.status == REVIEW and self.method not in {METHOD_ROUTE, METHOD_PROTECTED}:
             raise WholeProductCollisionMatrixError("conservative review status used by exact B-rep row")
 
@@ -335,6 +340,10 @@ class WholeProductCollisionMatrix:
         return sum(item.status == INTERFERENCE for item in self.checks)
 
     @property
+    def protected_conflict_count(self) -> int:
+        return sum(item.status == PROTECTED_CONFLICT for item in self.checks)
+
+    @property
     def review_required_count(self) -> int:
         return sum(item.status in {TOUCHING, REVIEW} for item in self.checks)
 
@@ -344,10 +353,10 @@ class WholeProductCollisionMatrix:
 
     @property
     def matrix_status(self) -> str:
-        if self.exact_interference_count:
-            return "DIGITAL_INTERFERENCE_PRESENT_RELEASE_BLOCKED"
+        if self.exact_interference_count or self.protected_conflict_count:
+            return "DIGITAL_CONFLICT_PRESENT_RELEASE_BLOCKED"
         if self.review_required_count or self.blocked_count:
-            return "NO_EXACT_INTERFERENCE_IN_CHECKED_PAIRS_BUT_MATRIX_INCOMPLETE"
+            return "NO_RELEASED_CONFLICT_IN_CHECKED_PAIRS_BUT_MATRIX_INCOMPLETE"
         return "CHECKED_DIGITAL_PAIRS_CLEAR_PHYSICAL_VALIDATION_STILL_REQUIRED"
 
     @property
@@ -369,6 +378,7 @@ class WholeProductCollisionMatrix:
                 for label, number, head in self.observed_candidates
             ],
             "exact_interference_count": self.exact_interference_count,
+            "protected_conflict_count": self.protected_conflict_count,
             "review_required_count": self.review_required_count,
             "blocked_count": self.blocked_count,
             "matrix_status": self.matrix_status,
@@ -403,14 +413,18 @@ def _route_check(route: CollisionParticipant, obstacle: CollisionParticipant) ->
 def _protected_check(participant: CollisionParticipant, zone: PlanarProtectedZone) -> CollisionCheck:
     *_, zmin, zmax = _bounds(participant.geometry)
     volume, distance, raw = _narrow_phase(participant.geometry, _protected_prism(zone, zmin, zmax))
-    conservative = participant.category == CATEGORY_ROUTE
-    status = REVIEW if conservative and raw in {INTERFERENCE, TOUCHING} else raw
-    evidence = (
-        "CONSERVATIVE_ROUTE_SERVICE_AABB_VS_AUTHORITY_XY_FOOTPRINT;OVERLAP_REQUIRES_NARROW_PHASE_ROUTE_GEOMETRY;"
-        "NOT_REGISTERED_DYNAMIC_3D_ANATOMY"
-        if conservative else
-        "EXACT_FOR_CURRENT_FINITE_BREP_VS_AUTHORITY_XY_FOOTPRINT;NOT_REGISTERED_DYNAMIC_3D_ANATOMY_OR_PHYSICAL_FIT_EVIDENCE"
-    )
+    if participant.category == CATEGORY_ROUTE:
+        status = REVIEW if raw in {INTERFERENCE, TOUCHING} else CLEAR
+        evidence = (
+            "CONSERVATIVE_ROUTE_SERVICE_AABB_VS_AUTHORITY_2P5D_XY_HARD_ENVELOPE;"
+            "OVERLAP_REQUIRES_NARROW_PHASE_ROUTE_GEOMETRY;NOT_REGISTERED_DYNAMIC_3D_ANATOMY"
+        )
+    else:
+        status = PROTECTED_CONFLICT if raw == INTERFERENCE else raw
+        evidence = (
+            "CURRENT_FINITE_BREP_VS_AUTHORITY_2P5D_XY_HARD_ENVELOPE;"
+            "SOURCE_PROTECTED_Z_POLICY_REMAINS_UNBOUNDED;NOT_REGISTERED_DYNAMIC_3D_ANATOMY_OR_PHYSICAL_FIT_EVIDENCE"
+        )
     return CollisionCheck(
         f"PROTECTED::{participant.participant_id}::{zone.zone_id}", participant.participant_id,
         f"PROTECTED:{zone.zone_id}:FOR:{participant.participant_id}", METHOD_PROTECTED, status, volume, distance, evidence,
@@ -478,7 +492,7 @@ def build_whole_product_collision_matrix(model: MasckOneModel | None = None) -> 
     checks: list[CollisionCheck] = []
     for index, left in enumerate(rigid):
         for right in rigid[index + 1:]:
-            checks.append(_exact_check(f"BREP::{left.participant_id}::{right.participant_id}", left, right, "DIGITAL_BREP_NARROW_PHASE_ONLY"))
+            checks.append(_exact_check(f"BREP::{left.participant_id}::{right.participant_id}", left, right, "DIGITAL_FINITE_BREP_NARROW_PHASE_ONLY"))
     for route in routes:
         for obstacle in rigid:
             checks.append(_route_check(route, obstacle))
