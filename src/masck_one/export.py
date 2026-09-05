@@ -10,6 +10,7 @@ from .boundary_release import (
     boundary_release_manifest,
     build_verified_interface_boundary_topology,
 )
+from .cleanser_service_interfaces import build_cleanser_service_geometry
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
@@ -39,6 +40,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
     cleanser = build_realized_cleanser_storage(model.authority)
+    cleanser_service = build_cleanser_service_geometry(model.authority)
 
     export_map = {
         "rigid_shell": model.shell.solid,
@@ -46,16 +48,25 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "water_reservoir_envelope": model.water_reservoir_envelope.solid,
         "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
         "battery_reference_envelope": model.battery_reference_envelope.solid,
-        "cleanser_storage_body": cleanser.body_solid,
+        "cleanser_storage_body": cleanser_service.ported_body_solid,
         "cleanser_storage_cradle": cleanser.cradle_solid,
         "cleanser_storage_retention_key": cleanser.retention_key_solid,
+        "cleanser_storage_refill_purge_service_closure": cleanser_service.service_closure_solid,
+        "cleanser_storage_service_closure_key": cleanser_service.service_retention_key_solid,
         "cleanser_storage_internal_cavity_reference": cleanser.internal_cavity_solid,
-        "cleanser_storage_refill_closure_reservation_reference": cleanser.refill_closure_reservation_solid,
+        "cleanser_storage_fill_seal_reference": cleanser_service.fill_seal_reference_solid,
+        "cleanser_storage_purge_seal_reference": cleanser_service.purge_seal_reference_solid,
+        "cleanser_storage_vent_lumen_reference": cleanser_service.vent_lumen_solid,
+        "cleanser_storage_vent_barrier_reservation_reference": cleanser_service.vent_barrier_reservation_solid,
+        "cleanser_storage_pickup_tube_detail_reference": cleanser_service.pickup_tube_solid,
+        "cleanser_storage_pickup_lumen_reference": cleanser_service.pickup_lumen_solid,
         "cleanser_storage_purge_connector_reservation_reference": cleanser.purge_connector_reservation_solid,
         "cleanser_storage_outlet_connector_reservation_reference": cleanser.outlet_connector_reservation_solid,
         "cleanser_storage_low_point_drain_reference": cleanser.drain_path_reference_solid,
         "cleanser_storage_cassette_service_sweep_reference": cleanser.cassette_service_sweep_solid,
         "cleanser_storage_key_service_sweep_reference": cleanser.key_service_sweep_solid,
+        "cleanser_storage_service_closure_sweep_reference": cleanser_service.service_closure_sweep_solid,
+        "cleanser_storage_service_key_sweep_reference": cleanser_service.service_key_sweep_solid,
     }
     for index, actuator in enumerate(model.actuator_envelopes, start=1):
         export_map[f"actuator_envelope_{index}"] = actuator.solid
@@ -64,12 +75,16 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
     # Reference/reservation solids are exported for review but are not assembly material.
+    # The successor ported cleanser body already contains the pickup-tube material, so the
+    # pickup detail reference is not duplicated into the development compound.
     shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
     shapes.extend(
         (
-            cleanser.body_solid.val(),
+            cleanser_service.ported_body_solid.val(),
             cleanser.cradle_solid.val(),
             cleanser.retention_key_solid.val(),
+            cleanser_service.service_closure_solid.val(),
+            cleanser_service.service_retention_key_solid.val(),
         )
     )
     compound = cq.Compound.makeCompound(shapes)
@@ -109,6 +124,8 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "digital_geometry": {
             "realized_cleanser_storage": cleanser.manifest(),
             "realized_cleanser_storage_manifest_sha256": cleanser.manifest_sha256,
+            "cleanser_service_interfaces": cleanser_service.manifest(),
+            "cleanser_service_interfaces_manifest_sha256": cleanser_service.manifest_sha256,
         },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
@@ -119,10 +136,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "The realized cleanser cassette, cradle, ports, drain opening and retention key are provisional digital "
-            "geometry only. Geometric cavity volume is not drawable volume or service cadence; closure, connector, "
-            "isolation, purge, compatibility, leakage, hygiene, drying, wet-hand service and durability performance "
-            "remain unresolved or validation-gated. Digital topology/manifests and analysis frameworks are not "
+            "The realized cleanser cassette now carries provisional digital refill/purge closure geometry, seal lands, "
+            "headspace vent geometry and an internal pickup tube while retaining exact CLEANSER identity and the three "
+            "controlled liquid-port IDs. Vent-barrier and seal materials remain unselected. No viscosity limit, flow, "
+            "priming, sealing, leakage, compatibility, usable capacity, purge, hygiene, drying, wet-hand service or "
+            "durability performance is established. Digital topology/manifests and analysis frameworks are not "
             "physical validation evidence."
         ),
     }
