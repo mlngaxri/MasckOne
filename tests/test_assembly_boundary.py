@@ -1,5 +1,6 @@
 from dataclasses import replace
 
+import cadquery as cq
 import pytest
 
 import masck_one.assembly_boundary as assembly_boundary_module
@@ -7,10 +8,11 @@ from masck_one.assembly_boundary import (
     AssemblyBoundaryError,
     ROLE_PACKAGE_REFERENCE,
     ROLE_PHYSICAL_MATERIAL,
+    SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES,
     build_current_main_assembly_boundary,
 )
 from masck_one.export import export_release
-from masck_one.model import build_model
+from masck_one.model import Component, build_model
 
 
 @pytest.fixture(scope="module")
@@ -74,18 +76,56 @@ def test_frame_and_evidence_status_spoofing_fail_closed(boundary):
         replace(shell, evidence_status="PHYSICALLY_VALIDATED")
 
 
-def test_source_blob_movement_requires_explicit_rebind(monkeypatch, model):
+def test_model_source_blob_movement_requires_explicit_rebind(monkeypatch, model):
     monkeypatch.setattr(assembly_boundary_module, "SOURCE_MODEL_GIT_BLOB_SHA", "0" * 40)
     with pytest.raises(AssemblyBoundaryError, match="assembly source moved"):
         build_current_main_assembly_boundary(model=model)
 
 
-def test_manifest_is_deterministic_and_preserves_physical_evidence_firewall(model, boundary):
+def test_direct_geometry_producer_movement_requires_explicit_rebind(monkeypatch, model):
+    tampered = tuple(
+        (path, "0" * 40 if path == "src/masck_one/anatomy.py" else digest)
+        for path, digest in SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES
+    )
+    monkeypatch.setattr(assembly_boundary_module, "SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES", tampered)
+    with pytest.raises(AssemblyBoundaryError, match=r"assembly source moved at src/masck_one/anatomy\.py"):
+        build_current_main_assembly_boundary(model=model)
+
+
+def test_same_name_status_geometry_substitution_fails_closed(boundary):
+    shell = boundary.physical_material_instances[0]
+    spoof = Component(
+        name=shell.source_component.name,
+        solid=cq.Workplane("XY").box(1.0, 1.0, 1.0),
+        status=shell.source_component.status,
+        notes=shell.source_component.notes,
+    )
+    with pytest.raises(AssemblyBoundaryError, match="source-component B-rep moved"):
+        replace(shell, source_component=spoof)
+
+
+def test_supplied_model_geometry_must_match_released_canonical_build(model):
+    spoof_shell = replace(
+        model.shell,
+        solid=cq.Workplane("XY").box(1.0, 1.0, 1.0),
+    )
+    spoof_model = replace(model, shell=spoof_shell)
+    with pytest.raises(AssemblyBoundaryError, match="supplied model B-rep differs"):
+        build_current_main_assembly_boundary(model=spoof_model)
+
+
+def test_manifest_is_deterministic_and_preserves_source_graph_and_brep_identity(model, boundary):
     second = build_current_main_assembly_boundary(model=model)
-    assert second.manifest() == boundary.manifest()
-    assert len(boundary.manifest()["manifest_sha256"]) == 64
-    assert boundary.manifest()["physical_validation_eligible"] is False
-    assert boundary.manifest()["physical_material_names"] == ["rigid_shell"]
+    manifest = boundary.manifest()
+    assert second.manifest() == manifest
+    assert len(manifest["manifest_sha256"]) == 64
+    assert manifest["physical_validation_eligible"] is False
+    assert manifest["physical_material_names"] == ["rigid_shell"]
+    assert manifest["source_geometry_git_blob_identities"] == [
+        list(item) for item in SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES
+    ]
+    assert len(manifest["source_geometry_git_blob_identities"]) == 11
+    assert all(len(item["source_component_brep_sha256"]) == 64 for item in manifest["instances"])
 
 
 def test_material_and_reference_compounds_are_separate(boundary):
@@ -101,6 +141,8 @@ def test_release_export_uses_boundary_and_retains_reference_review_geometry(tmp_
     assert manifest["physical_material_names"] == ["rigid_shell"]
     assert "waste_cartridge_envelope" in manifest["reference_review_names"]
     assert "waste_cartridge_envelope" in report["development_assembly_exclusions"]
+    assert len(manifest["source_geometry_git_blob_identities"]) == 11
+    assert all(len(item["source_component_brep_sha256"]) == 64 for item in manifest["instances"])
     assert "masck_one_reference_review_compound.step" in report["exported_step_files"]
     assert (tmp_path / "masck_one_development_assembly.step").is_file()
     assert (tmp_path / "masck_one_reference_review_compound.step").is_file()
