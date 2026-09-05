@@ -49,7 +49,7 @@ def test_registry_is_deterministic_complete_and_source_bound() -> None:
     assert tuple(item.component_id for item in first.components) == tuple(
         sorted(item.component_id for item in first.components)
     )
-    assert len(first.components) == 34
+    assert len(first.components) == 36
     assert set(item.status for item in first.components) <= set(STATUS_VOCABULARY)
 
 
