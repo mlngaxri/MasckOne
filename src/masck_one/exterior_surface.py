@@ -61,7 +61,7 @@ ANTERIOR_CROWN_RELIEF_MAX_MM = 6.4
 # the nasal valley is allowed to decay slowly into that field instead of recovering
 # abruptly into a visor-like ledge.
 ANTERIOR_BROW_CHEEK_LIFT_MM = 0.10
-ANTERIOR_SUPERIOR_CONTINUITY_LIFT_MM = 0.50
+ANTERIOR_SUPERIOR_CONTINUITY_LIFT_MM = 0.55
 ANTERIOR_NASAL_VALLEY_MM = 1.05
 
 # The lower face stays deliberately low-expression. Residual positive relief is biased
