@@ -15,6 +15,10 @@ from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
+from .whole_product_collision_matrix import (
+    build_whole_product_collision_matrix,
+    export_whole_product_collision_review,
+)
 
 
 def _ensure_output_dir(path: str | Path) -> Path:
@@ -65,6 +69,15 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     attachment = build_interface_attachment_architecture(model.authority, boundary_topology)
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
+
+    collision_matrix = build_whole_product_collision_matrix(model)
+    collision_outputs = export_whole_product_collision_review(
+        output,
+        collision_matrix,
+        model,
+    )
+    collision_step_names = [path.name for path in collision_outputs if path.suffix.lower() == ".step"]
+
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -89,13 +102,22 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "integration_ledgers": {
+            "whole_product_collision_matrix_v1": collision_matrix.manifest(),
+        },
+        "exported_step_files": [f"{name}.step" for name in export_map]
+        + ["masck_one_development_assembly.step"]
+        + collision_step_names,
+        "exported_collision_review_files": [path.name for path in collision_outputs],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "The whole-product collision matrix reports exact released B-rep interference, conservative route-service "
+            "reservation overlap, authority-derived protected-region checks, and explicit unresolved cross-system rows; "
+            "it does not promote candidate Cell 2/3/4 geometry or physical validation. Digital topology/manifests and "
+            "analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
