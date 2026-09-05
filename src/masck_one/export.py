@@ -15,6 +15,7 @@ from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .realized_water_reservoir import build_realized_water_reservoir
 from .structural_frame import build_structural_frame_topology
+from .water_reservoir_interfaces import build_water_reservoir_interface_geometry
 
 
 def _ensure_output_dir(path: str | Path) -> Path:
@@ -27,14 +28,20 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
     realized_water = build_realized_water_reservoir(model.authority)
+    water_interfaces = build_water_reservoir_interface_geometry(model.authority, realized_water)
 
     export_map = {
         "rigid_shell": model.shell.solid,
         "nasal_lobe_membrane_reference": model.nasal_interface.solid,
-        "water_reservoir_body": model.water_reservoir_body.solid,
-        "water_reservoir_lid": model.water_reservoir_lid.solid,
+        "water_reservoir_body": water_interfaces.body_with_pickup_port_solid,
+        "water_reservoir_lid": water_interfaces.lid_with_fill_vent_ports_solid,
         "water_reservoir_internal_cavity_reference": model.water_reservoir_envelope.solid,
         "water_reservoir_service_sweep_reference": realized_water.service_sweep_solid,
+        "water_reservoir_fill_closure_reservation_reference": water_interfaces.fill_closure_reservation_solid,
+        "water_reservoir_vent_path_reference": water_interfaces.vent_path_solid,
+        "water_reservoir_vent_barrier_reservation_reference": water_interfaces.vent_external_barrier_reservation_solid,
+        "water_reservoir_pickup_passage_reference": water_interfaces.pickup_passage_solid,
+        "water_reservoir_pickup_connector_reservation_reference": water_interfaces.pickup_connector_reservation_solid,
         "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
         "battery_reference_envelope": model.battery_reference_envelope.solid,
     }
@@ -44,7 +51,18 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
-    shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
+    # The service/reference reservations above are voids/keepouts, not assembly material.
+    # Substitute only the ported body/lid for their parent solids in the physical compound.
+    shapes = []
+    for component in model.components:
+        if component.status == "REFERENCE_ONLY":
+            continue
+        if component.name == "water_reservoir_body":
+            shapes.append(water_interfaces.body_with_pickup_port_solid.val())
+        elif component.name == "water_reservoir_lid":
+            shapes.append(water_interfaces.lid_with_fill_vent_ports_solid.val())
+        else:
+            shapes.append(component.solid.val())
     compound = cq.Compound.makeCompound(shapes)
     cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
 
@@ -81,6 +99,8 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "digital_geometry": {
             "water_reservoir": realized_water.manifest(),
             "water_reservoir_manifest_sha256": realized_water.manifest_sha256,
+            "water_reservoir_interfaces": water_interfaces.manifest(),
+            "water_reservoir_interfaces_manifest_sha256": water_interfaces.manifest_sha256,
         },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
@@ -89,10 +109,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
-            "released by Iteration 15. The realized water reservoir records digital cavity volume, provisional walls, "
-            "datums and a removal reservation only; its cavity and service-sweep STEP outputs are review references, "
-            "not physical assembly material or leakage, orientation, hygiene, drying, serviceability, durability or "
-            "physical-safety evidence. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "released by Iteration 15. The water-reservoir assembly uses the ported body/lid candidate while cavity, "
+            "service sweep, fill-closure, vent-path/barrier and pickup-passage/connector STEP outputs remain digital "
+            "review references or keepouts. Their provisional geometry does not establish sealing, leakage, ingress, "
+            "priming, spill behavior, orientation performance, hygiene, drying, serviceability, durability or physical "
+            "safety. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
