@@ -36,6 +36,7 @@ from .retention_load_path import (
 SCHEMA = "MASCK_ONE_CELL3_RETENTION_LOAD_PATH_RELEASE_V2"
 SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA = "6c851aafe1a7f5e2a33fc8214c0cadb79d12c6ff"
 SOURCE_MODEL_GIT_BLOB_SHA = "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"
+SOURCE_OCCIPITAL_STABILIZER_GIT_BLOB_SHA = "1139b675c4758d8580cf5a18fa7a0b87b2d6ef99"
 DIGITAL_ONLY = "DIGITAL_LOAD_PATH_RELEASE_SEMANTICS_NOT_STRUCTURAL_OR_SERVICE_VALIDATION"
 
 
@@ -54,6 +55,7 @@ def _assert_source_blobs() -> None:
     expected = {
         module_dir / "retention_load_path.py": SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA,
         module_dir / "model.py": SOURCE_MODEL_GIT_BLOB_SHA,
+        module_dir / "occipital_stabilizer.py": SOURCE_OCCIPITAL_STABILIZER_GIT_BLOB_SHA,
         module_dir.parents[1] / "config" / "masck_one_authority.yaml": SOURCE_AUTHORITY_BLOB_SHA,
     }
     for path, expected_sha in expected.items():
@@ -172,6 +174,7 @@ class RetentionLoadPathRelease:
             "schema": SCHEMA,
             "source_retention_load_path_git_blob_sha": SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA,
             "source_model_git_blob_sha": SOURCE_MODEL_GIT_BLOB_SHA,
+            "source_occipital_stabilizer_git_blob_sha": SOURCE_OCCIPITAL_STABILIZER_GIT_BLOB_SHA,
             "source_authority_git_blob_sha": SOURCE_AUTHORITY_BLOB_SHA,
             "source_retention_load_path_package_sha256": self.source.package_sha256,
             "source_current_main_sha": source_manifest["source_current_main_sha"],
