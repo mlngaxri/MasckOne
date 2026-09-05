@@ -31,7 +31,20 @@ def test_frame_dfm_binds_exact_released_source_blob_graph():
         for item in audit.manifest()["source_git_blob_identities"]
     )
     assert manifest_pairs == SOURCE_GIT_BLOB_IDENTITIES
-    assert len(SOURCE_GIT_BLOB_IDENTITIES) >= 10
+    required_reconstruction_paths = {
+        "config/masck_one_authority.yaml",
+        "src/masck_one/model.py",
+        "src/masck_one/nasal_subsystem.py",
+        "src/masck_one/protected_volumes.py",
+        "src/masck_one/reference_surfaces.py",
+        "src/masck_one/spatial.py",
+        "src/masck_one/worn_pose.py",
+        "src/masck_one/boundary_release.py",
+        "src/masck_one/interface_attachment.py",
+        "src/masck_one/structural_frame.py",
+    }
+    assert required_reconstruction_paths.issubset({path for path, _ in SOURCE_GIT_BLOB_IDENTITIES})
+    assert len(SOURCE_GIT_BLOB_IDENTITIES) >= 17
     assert len({path for path, _ in SOURCE_GIT_BLOB_IDENTITIES}) == len(SOURCE_GIT_BLOB_IDENTITIES)
     assert all(len(blob_sha) == 40 for _, blob_sha in SOURCE_GIT_BLOB_IDENTITIES)
 
