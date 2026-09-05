@@ -8,6 +8,11 @@ from masck_one.exterior_inferior_turnover import (
     INFERIOR_TURNOVER_EXTRA_RECESS_MM,
     INFERIOR_TURNOVER_SPREAD_X_NORM,
     INFERIOR_TURNOVER_SPREAD_Y_NORM,
+    SIDE_MASS_FEATHER_CENTER_Y_NORM,
+    SIDE_MASS_FEATHER_FULL_X_NORM,
+    SIDE_MASS_FEATHER_RECESS_MM,
+    SIDE_MASS_FEATHER_SPREAD_Y_NORM,
+    SIDE_MASS_FEATHER_START_X_NORM,
     build_inferior_turnover_exterior_shell,
     inferior_turnover_manifest,
 )
@@ -65,13 +70,18 @@ def test_final_brep_inferior_turnover_reduces_chin_projection_without_moving_foo
 def test_inferior_turnover_manifest_keeps_soft_interface_and_package_footprint_uninvented():
     authority = load_authority()
     manifest = inferior_turnover_manifest(authority)
-    assert manifest["schema"] == "MASCK_ONE_CELL2_INFERIOR_TURNOVER_V1"
+    assert manifest["schema"] == "MASCK_ONE_CELL2_INFERIOR_TURNOVER_V2"
     assert manifest["extra_anterior_recess_mm"] == INFERIOR_TURNOVER_EXTRA_RECESS_MM
     assert manifest["center_y_offset_from_mouth_norm"] == (
         INFERIOR_TURNOVER_CENTER_Y_OFFSET_FROM_MOUTH_NORM
     )
     assert manifest["spread_x_norm"] == INFERIOR_TURNOVER_SPREAD_X_NORM
     assert manifest["spread_y_norm"] == INFERIOR_TURNOVER_SPREAD_Y_NORM
+    assert manifest["side_mass_feather_recess_mm"] == SIDE_MASS_FEATHER_RECESS_MM
+    assert manifest["side_mass_feather_start_x_norm"] == SIDE_MASS_FEATHER_START_X_NORM
+    assert manifest["side_mass_feather_full_x_norm"] == SIDE_MASS_FEATHER_FULL_X_NORM
+    assert manifest["side_mass_feather_center_y_norm"] == SIDE_MASS_FEATHER_CENTER_Y_NORM
+    assert manifest["side_mass_feather_spread_y_norm"] == SIDE_MASS_FEATHER_SPREAD_Y_NORM
     assert manifest["side_body_station_policy"] == "UNCHANGED_FROM_PROMPT08"
     assert manifest["rear_cavity_policy"] == "UNCHANGED_FROM_PROMPT08"
     assert manifest["perimeter_footprint_policy"] == "UNCHANGED_FROM_PROMPT08"
