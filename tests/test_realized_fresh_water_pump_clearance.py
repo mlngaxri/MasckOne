@@ -34,6 +34,23 @@ def _primitive_edge(primitive: Line3 | ArcXY) -> cq.Edge:
     raise AssertionError(f"uncontrolled released waste primitive type: {type(primitive)!r}")
 
 
+def _protected_zone_prism(zone) -> cq.Workplane:
+    prism = (
+        cq.Workplane("XY")
+        .workplane(offset=-100.0)
+        .center(zone.center.x, zone.center.y)
+        .ellipse(zone.envelope_width_mm / 2.0, zone.envelope_height_mm / 2.0)
+        .extrude(200.0)
+    )
+    if zone.angle_deg:
+        prism = prism.rotate(
+            (zone.center.x, zone.center.y, 0.0),
+            (zone.center.x, zone.center.y, 1.0),
+            zone.angle_deg,
+        )
+    return prism
+
+
 def test_complete_local_service_reservation_clears_released_product_packages(release_geometry):
     sources, realized = release_geometry
     model = sources.model
@@ -76,6 +93,23 @@ def test_port_reservations_do_not_consume_released_water_reservoir_or_shell(rele
         assert port.val().intersect(model.shell.solid.val()).Volume() <= 1e-7
         assert port.val().distance(model.water_reservoir_envelope.solid.val()) >= PACKAGE_CLEARANCE_RESERVATION_MM
         assert port.val().distance(model.shell.solid.val()) >= PACKAGE_CLEARANCE_RESERVATION_MM
+
+
+def test_complete_pump_service_reservation_clears_authority_derived_planar_hard_envelopes(
+    release_geometry,
+):
+    sources, realized = release_geometry
+    service = realized.service_clearance_solid.val()
+    margins: list[float] = []
+
+    for protected in sources.model.protected_volumes.all:
+        # Protected-volume Z depth is intentionally unresolved, so extrude the exact
+        # authority-derived XY hard envelope far through the complete pump package.
+        prism = _protected_zone_prism(protected.zone)
+        assert service.intersect(prism.val()).Volume() <= 1e-7
+        margins.append(float(service.distance(prism.val())))
+
+    assert min(margins) > 4.5
 
 
 def test_complete_pump_service_reservation_clears_every_released_mixed_waste_service_envelope(
