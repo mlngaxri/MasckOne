@@ -6,6 +6,8 @@ from masck_one.anatomy import build_facial_reference
 from masck_one.authority import load_authority
 from masck_one.exterior_surface import (
     ANTERIOR_CROWN_HEIGHT_MM,
+    ANTERIOR_CROWN_RELIEF_MAX_MM,
+    ANTERIOR_CROWN_RELIEF_MIN_MM,
     EXTERIOR_SCALE_X,
     EXTERIOR_SCALE_Y,
     EXTERIOR_Z_STATIONS_MM,
@@ -60,6 +62,10 @@ def test_manifest_records_curved_consumer_form_policy_without_physical_claims():
     assert manifest["schema"] == "MASCK_ONE_CELL2_EXTERIOR_SURFACE_V2"
     assert manifest["loft_mode"] == "smooth_non_ruled_profile_spline_with_interpolated_anterior_crown"
     assert manifest["anterior_crown"]["height_mm"] == ANTERIOR_CROWN_HEIGHT_MM
+    assert manifest["anterior_crown"]["visible_relief_guard_mm"] == [
+        ANTERIOR_CROWN_RELIEF_MIN_MM,
+        ANTERIOR_CROWN_RELIEF_MAX_MM,
+    ]
     assert manifest["anterior_crown"]["join_overlap_status"] == "NUMERICAL_BOOLEAN_CONSTRUCTION_ONLY"
     assert manifest["visible_face_policy"] == "CURVED_ANTERIOR_FACIAL_FIELD_WITH_AUTHORITY_BACKED_APERTURES"
     assert manifest["design_intent"]["side_mass"] == "laterally_blended_not_podded"
@@ -82,6 +88,8 @@ def test_anterior_crown_removes_large_planar_prototype_face():
     _, _, shell = _build_shell()
     solid = shell.val()
     bb = solid.BoundingBox()
+    visible_relief = bb.zmax - EXTERIOR_Z_STATIONS_MM[-1]
+    assert ANTERIOR_CROWN_RELIEF_MIN_MM <= visible_relief <= ANTERIOR_CROWN_RELIEF_MAX_MM
     assert bb.zmax >= EXTERIOR_Z_STATIONS_MM[-1] + 0.95 * ANTERIOR_CROWN_HEIGHT_MM
     anterior_planar_faces = [
         face
