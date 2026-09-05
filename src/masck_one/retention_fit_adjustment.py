@@ -19,6 +19,16 @@ from .authority import Authority, load_authority
 from .model import MasckOneModel, build_model
 from .occipital_stabilizer import (
     AUTHORITY_REVISION,
+    PAD_BACKER_XYZ_MM,
+    PAD_CENTER_X_MM,
+    PAD_CENTER_Y_MM,
+    PAD_CENTER_Z_MM,
+    RAIL_END_X_MM,
+    RAIL_END_Z_MM,
+    RAIL_LOWER_Y_MM,
+    RAIL_RADIUS_MM,
+    RAIL_UPPER_Y_MM,
+    ROOT_BOSS_XYZ_MM,
     SOURCE_AUTHORITY_BLOB_SHA,
     SOURCE_MAIN_SHA,
     WORLD_FRAME_ID,
@@ -351,13 +361,99 @@ def _translated(solid: cq.Workplane, dx_mm: float) -> cq.Workplane:
     return _single(solid.translate((dx_mm, 0.0, 0.0)), "translated retention adjustment state")
 
 
-def _analytic_translation_envelope(nominal: cq.Workplane) -> cq.Workplane:
-    bounds = _bbox(nominal)
-    minimum = (bounds[0] - HARD_STOP_TRAVEL_MM, bounds[2], bounds[4])
-    maximum = (bounds[1] + HARD_STOP_TRAVEL_MM, bounds[3], bounds[5])
+def _box_from_bounds(
+    minimum: tuple[float, float, float],
+    maximum: tuple[float, float, float],
+    label: str,
+) -> cq.Workplane:
     size = tuple(maximum[i] - minimum[i] for i in range(3))
     center = tuple((minimum[i] + maximum[i]) / 2.0 for i in range(3))
-    return _single(_box(size, center), "analytic complete fit-adjustment translation envelope")
+    return _single(_box(size, center), label)
+
+
+def _feature_translation_envelope(
+    side_sign: int,
+    root: tuple[float, float, float],
+) -> cq.Workplane:
+    """Conservative connected union of per-feature complete pure-X motion bounds.
+
+    A single whole-yoke AABB would fill the empty space between the fork rails and can
+    falsely collide with facial protected volumes. Each box here bounds one actual source
+    feature for every translation in the closed +/-2 mm interval, and the boxes overlap
+    through the real root/rail/pad/tongue connectivity. The union is therefore a
+    conservative continuous-motion bound without inventing the large inter-feature voids.
+    """
+
+    root_x, root_y, root_z = root
+    expand = HARD_STOP_TRAVEL_MM
+    parts: list[cq.Workplane] = []
+
+    root_half = tuple(float(value) / 2.0 for value in ROOT_BOSS_XYZ_MM)
+    parts.append(
+        _box_from_bounds(
+            (root_x - root_half[0] - expand, root_y - root_half[1], root_z - root_half[2]),
+            (root_x + root_half[0] + expand, root_y + root_half[1], root_z + root_half[2]),
+            "root-boss complete translation bound",
+        )
+    )
+
+    pad_center = (side_sign * PAD_CENTER_X_MM, PAD_CENTER_Y_MM, PAD_CENTER_Z_MM)
+    pad_half = tuple(float(value) / 2.0 for value in PAD_BACKER_XYZ_MM)
+    parts.append(
+        _box_from_bounds(
+            (
+                pad_center[0] - pad_half[0] - expand,
+                pad_center[1] - pad_half[1],
+                pad_center[2] - pad_half[2],
+            ),
+            (
+                pad_center[0] + pad_half[0] + expand,
+                pad_center[1] + pad_half[1],
+                pad_center[2] + pad_half[2],
+            ),
+            "contact-backer complete translation bound",
+        )
+    )
+
+    for rail_name, rail_end_y in (("upper", RAIL_UPPER_Y_MM), ("lower", RAIL_LOWER_Y_MM)):
+        end = (side_sign * RAIL_END_X_MM, rail_end_y, RAIL_END_Z_MM)
+        minimum = (
+            min(root_x, end[0]) - RAIL_RADIUS_MM - expand,
+            min(root_y, end[1]) - RAIL_RADIUS_MM,
+            min(root_z, end[2]) - RAIL_RADIUS_MM,
+        )
+        maximum = (
+            max(root_x, end[0]) + RAIL_RADIUS_MM + expand,
+            max(root_y, end[1]) + RAIL_RADIUS_MM,
+            max(root_z, end[2]) + RAIL_RADIUS_MM,
+        )
+        parts.append(_box_from_bounds(minimum, maximum, f"{rail_name} rail complete translation bound"))
+
+    tongue_center = (
+        root_x + side_sign * TONGUE_CENTER_OUTBOARD_FROM_ROOT_MM,
+        root_y,
+        root_z,
+    )
+    parts.append(
+        _box_from_bounds(
+            (
+                tongue_center[0] - TONGUE_LENGTH_MM / 2.0 - expand,
+                tongue_center[1] - TONGUE_Y_MM / 2.0,
+                tongue_center[2] - TONGUE_Z_MM / 2.0,
+            ),
+            (
+                tongue_center[0] + TONGUE_LENGTH_MM / 2.0 + expand,
+                tongue_center[1] + TONGUE_Y_MM / 2.0,
+                tongue_center[2] + TONGUE_Z_MM / 2.0,
+            ),
+            "tongue complete translation bound",
+        )
+    )
+
+    result = parts[0]
+    for part in parts[1:]:
+        result = result.union(part)
+    return _single(result, "connected per-feature complete fit-adjustment translation envelope")
 
 
 def _two_state_aabb(first: cq.Workplane, second: cq.Workplane, label: str) -> cq.Workplane:
@@ -365,9 +461,7 @@ def _two_state_aabb(first: cq.Workplane, second: cq.Workplane, label: str) -> cq
     b = _bbox(second)
     minimum = (min(a[0], b[0]), min(a[2], b[2]), min(a[4], b[4]))
     maximum = (max(a[1], b[1]), max(a[3], b[3]), max(a[5], b[5]))
-    size = tuple(maximum[i] - minimum[i] for i in range(3))
-    center = tuple((minimum[i] + maximum[i]) / 2.0 for i in range(3))
-    return _single(_box(size, center), label)
+    return _box_from_bounds(minimum, maximum, label)
 
 
 @dataclass(frozen=True, slots=True)
@@ -523,7 +617,7 @@ class RetentionFitAdjustment:
                 "index_offsets_mm": list(INDEX_OFFSETS_MM),
                 "hard_stop_travel_mm": HARD_STOP_TRAVEL_MM,
                 "index_offset_semantics": "NEGATIVE_TOWARD_SAGITTAL_POSITIVE_OUTWARD",
-                "continuous_motion_primary_proof": "ANALYTIC_AXIS_ALIGNED_BOUND_FOR_PURE_X_TRANSLATION",
+                "continuous_motion_primary_proof": "CONNECTED_UNION_OF_PER_FEATURE_ANALYTIC_TRANSLATION_BOUNDS",
                 "sampled_waypoints_primary_proof": False,
                 "retention_during_adjustment": "PERMANENT_STOP_PIN_REMAINS_IN_LONGITUDINAL_SLOT",
                 "index_lock": "REMOVABLE_SERVICE_INDEX_PIN_THROUGH_DISCRETE_TONGUE_HOLES",
@@ -587,7 +681,7 @@ def _build_side(
     index_engaged = _build_index_pin(root, side_sign, retracted=False)
     index_retracted = _build_index_pin(root, side_sign, retracted=True)
     index_envelope = _two_state_aabb(index_engaged, index_retracted, "complete index-pin retraction envelope")
-    motion_envelope = _analytic_translation_envelope(nominal)
+    motion_envelope = _feature_translation_envelope(side_sign, root)
 
     states: list[AdjustmentState] = []
     for offset in INDEX_OFFSETS_MM:
