@@ -21,9 +21,9 @@ Authority remains unchanged: outer XY envelope 172 x 210 mm, shell nominal wall 
 
 ## Actual B-rep inspection
 
-CadQuery reconstruction of the current superior candidate gives one valid solid at approximately 163.603323 x 208.060777 x 27.162805 mm. The XY span is unchanged from the prior accepted Cell 2 proportion pass and remains inside the authority 172 x 210 mm envelope. Shell intersection with the released 74 x 36 x 20 mm waste-cartridge envelope centered at `(0,-80,8)` is 0.0 mm3.
+CadQuery reconstruction of the current superior candidate gives one valid solid at approximately 163.603323 x 208.060777 x 27.206243 mm. The XY span is unchanged from the prior accepted Cell 2 proportion pass and remains inside the authority 172 x 210 mm envelope. Shell intersection with the released 74 x 36 x 20 mm waste-cartridge envelope centered at `(0,-80,8)` is 0.0 mm3.
 
-The centerline superior control field changes materially without increasing the upper package envelope. At normalized Y 0.12, the local brow ridge above the interpolation of neighboring Y 0.00 and Y 0.24 controls decreases from approximately 0.805 mm to approximately 0.374 mm. The superior centerline drop from Y 0.12 to Y 0.36 decreases from approximately 2.847 mm to approximately 2.078 mm. Visible crown relief remains approximately 5.263 mm above the 21.9 mm crown boundary, inside the existing 5.2 to 6.4 mm digital guard.
+The centerline superior control field changes materially without increasing the upper package envelope. At normalized Y 0.12, the local brow ridge above the interpolation of neighboring Y 0.00 and Y 0.24 controls decreases from approximately 0.805 mm to approximately 0.378 mm. The superior centerline drop from Y 0.12 to Y 0.36 decreases from approximately 2.847 mm to approximately 2.076 mm. Visible crown relief is approximately 5.206 mm above the Z 22 side-body station and therefore remains inside the existing 5.2 to 6.4 mm digital guard.
 
 Front, both three-quarter, both side, rear/wearer-side, top, bottom and center YZ/XZ evidence is generated directly from the B-rep. The superior change reads as a continuous forehead-to-brow surface rather than a local brow ledge while retaining the global silhouette and all protected-aperture centers and sizes.
 
