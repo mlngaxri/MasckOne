@@ -19,8 +19,9 @@ from .authority import Authority, load_authority
 
 SCHEMA = "MASCK_ONE_CELL2_REAR_SERVICE_SKIN_V1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
-SOURCE_CELL3_RETENTION_HEAD_SHA = "5a74a129def7e96e58aa1db4c85989bbfd315a9e"
+SOURCE_CELL3_RETENTION_HEAD_SHA = "ee9d10cbc6446703372c7cd8a9557209aec2011a"
 SOURCE_CELL3_OCCIPITAL_BLOB_SHA = "1139b675c4758d8580cf5a18fa7a0b87b2d6ef99"
+SOURCE_CELL3_RETENTION_LOAD_PATH_BLOB_SHA = "6c851aafe1a7f5e2a33fc8214c0cadb79d12c6ff"
 SOURCE_INTERFACE_STATUS = "UNMERGED_SPECIALIST_CANDIDATE_INTERFACE_RESCREEN_BEFORE_PROMOTION"
 
 CELL3_CENTRAL_REAR_KEEP_OUT_XYZ_MM = (68.0, 104.0, 24.0)
@@ -147,6 +148,7 @@ class RearServiceSkin:
             "coordinate_frame_id": WORLD_FRAME_ID,
             "source_cell3_retention_head_sha": SOURCE_CELL3_RETENTION_HEAD_SHA,
             "source_cell3_occipital_blob_sha": SOURCE_CELL3_OCCIPITAL_BLOB_SHA,
+            "source_cell3_retention_load_path_blob_sha": SOURCE_CELL3_RETENTION_LOAD_PATH_BLOB_SHA,
             "source_interface_status": SOURCE_INTERFACE_STATUS,
             "cover": {
                 "front_xy_mm": list(REAR_SKIN_FRONT_XY_MM),
