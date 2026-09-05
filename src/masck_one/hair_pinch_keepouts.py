@@ -58,6 +58,10 @@ RIGHT_LATCH_OPERATIONAL_BOUNDS_MM = (73.5, 100.0, -5.0, 5.0, -22.5, -15.5)
 RIGHT_LATCH_PINCH_MARGIN_MM = 1.50
 RIGHT_LATCH_DETENT_BOUNDS_MM = (81.0, 90.0, -3.5, 3.5, -18.8, -13.5)
 RIGHT_LATCH_ACCESS_BOUNDS_MM = (91.0, 104.0, -7.0, 7.0, -25.0, -13.0)
+RIGHT_LATCH_GRIP_CLOSED_BOUNDS_MM = (91.5, 92.7, -5.0, 5.0, -22.5, -15.5)
+RIGHT_LATCH_GRIP_RELEASED_BOUNDS_MM = (98.8, 100.0, -5.0, 5.0, -22.5, -15.5)
+RIGHT_LATCH_GRIP_COMPLETE_TRANSLATION_BOUNDS_MM = (91.5, 100.0, -5.0, 5.0, -22.5, -15.5)
+RIGHT_LATCH_CANDIDATE_CONTRACT_SHA256 = "3a32222a49e6b58916901a6cc4ef42d2e448a478b728355b5072b1a094bbba0f"
 
 
 class HairPinchKeepoutError(ValueError):
@@ -189,6 +193,33 @@ def _assert_retention_fit_source_blob() -> None:
     if observed != SOURCE_RETENTION_FIT_GIT_BLOB_SHA:
         raise HairPinchKeepoutError(
             "retention-fit source blob changed; hair/pinch keepouts require explicit rebind"
+        )
+
+
+def _right_latch_contract_payload() -> dict[str, object]:
+    return {
+        "source_head_sha": SOURCE_RIGHT_LATCH_HEAD_SHA,
+        "source_latch_git_blob_sha": SOURCE_RIGHT_LATCH_GIT_BLOB_SHA,
+        "operational_bounds_mm": list(RIGHT_LATCH_OPERATIONAL_BOUNDS_MM),
+        "detent_bounds_mm": list(RIGHT_LATCH_DETENT_BOUNDS_MM),
+        "emergency_pull_access_bounds_mm": list(RIGHT_LATCH_ACCESS_BOUNDS_MM),
+        "grip_closed_bounds_mm": list(RIGHT_LATCH_GRIP_CLOSED_BOUNDS_MM),
+        "grip_released_bounds_mm": list(RIGHT_LATCH_GRIP_RELEASED_BOUNDS_MM),
+        "grip_complete_translation_bounds_mm": list(RIGHT_LATCH_GRIP_COMPLETE_TRANSLATION_BOUNDS_MM),
+    }
+
+
+def _assert_right_latch_candidate_contract() -> None:
+    raw = json.dumps(
+        _right_latch_contract_payload(),
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    observed = sha256(raw).hexdigest()
+    if observed != RIGHT_LATCH_CANDIDATE_CONTRACT_SHA256:
+        raise HairPinchKeepoutError(
+            "right-latch candidate source/bounds changed; explicit hazard-access revalidation required"
         )
 
 
@@ -335,10 +366,15 @@ class HairPinchKeepoutPackage:
                 "source_pr": 71,
                 "source_head_sha": SOURCE_RIGHT_LATCH_HEAD_SHA,
                 "source_latch_git_blob_sha": SOURCE_RIGHT_LATCH_GIT_BLOB_SHA,
+                "candidate_contract_sha256": RIGHT_LATCH_CANDIDATE_CONTRACT_SHA256,
                 "authority_status": "NON_AUTHORITATIVE_UNMERGED_CANDIDATE_OVERLAY",
                 "runtime_source_imported": False,
                 "promotion_requires_live_head_revalidation": True,
                 "operational_bounds_mm": list(RIGHT_LATCH_OPERATIONAL_BOUNDS_MM),
+                "grip_closed_bounds_mm": list(RIGHT_LATCH_GRIP_CLOSED_BOUNDS_MM),
+                "grip_released_bounds_mm": list(RIGHT_LATCH_GRIP_RELEASED_BOUNDS_MM),
+                "grip_complete_translation_bounds_mm": list(RIGHT_LATCH_GRIP_COMPLETE_TRANSLATION_BOUNDS_MM),
+                "emergency_pull_access_contains_complete_grip_translation": True,
                 "physical_release_performance_promoted": False,
             },
             "adjustment_hazard_semantics": {
@@ -359,6 +395,11 @@ class HairPinchKeepoutPackage:
                 "reference_solids_are_product_material": False,
                 "reference_solids_are_physical_guards": False,
             },
+            "unresolved_digital_requirements": [
+                "PROTECTIVE_GUARD_SHROUD_OR_EDGE_TREATMENT_PRODUCT_GEOMETRY",
+                "FRAME_SIDE_RETENTION_ROOT_CAPTURE_COUNTERPART_GEOMETRY",
+                "RIGHT_LATCH_CANDIDATE_OVERLAY_RELEASE_RECONCILIATION",
+            ],
             "clearance_checks": [check.manifest() for check in self.clearance_checks],
             "four_zone_actuation_preserved": True,
             "hair_model": {
@@ -378,9 +419,8 @@ class HairPinchKeepoutPackage:
             "unresolved_physical_gates": [
                 "HAIR_ENTRAPMENT_AND_PULLING_WITH_REPRESENTATIVE_HAIR_TYPES",
                 "FINGER_AND_SKIN_PINCH_ACCESS_DURING_REAL_USE_AND_SERVICE",
-                "PRODUCTION_GUARD_SHROUD_OR_EDGE_TREATMENT_GEOMETRY",
-                "FRAME_SIDE_RETENTION_ROOT_CAPTURE_AND_LOAD_PATH",
-                "RIGHT_LATCH_EXACT_HEAD_RECONCILIATION_AND_HAZARD_TESTING",
+                "FRAME_SIDE_RETENTION_ROOT_CAPTURE_LOAD_CAPACITY",
+                "RIGHT_LATCH_HAIR_PINCH_PHYSICAL_VALIDATION",
                 "WET_ONE_HAND_RELEASE_FORCE_5_TO_12_N_AND_TIME_LE_2_S",
                 "WHOLE_HEAD_REMOVAL_AFTER_RELEASE",
             ],
@@ -541,6 +581,15 @@ def _right_latch_candidate_regions() -> tuple[tuple[HazardRegion, ...], tuple[Ac
     detent = _box_from_bounds(_expanded_bounds(RIGHT_LATCH_DETENT_BOUNDS_MM, RIGHT_LATCH_PINCH_MARGIN_MM))
     combined = _single(operational.union(detent), "right latch candidate hair pinch keepout")
     access = _single(_box_from_bounds(RIGHT_LATCH_ACCESS_BOUNDS_MM), "right latch release access corridor")
+    grip_sweep = _single(
+        _box_from_bounds(RIGHT_LATCH_GRIP_COMPLETE_TRANSLATION_BOUNDS_MM),
+        "right latch copied complete grip translation bound",
+    )
+    outside_access_mm3 = float(grip_sweep.val().cut(access.val()).Volume())
+    if not math.isfinite(outside_access_mm3) or outside_access_mm3 > KERNEL_ZERO_MM3:
+        raise HairPinchKeepoutError(
+            "emergency pull access no longer contains the copied complete right-latch grip translation"
+        )
     return (
         (
             HazardRegion(
@@ -570,6 +619,7 @@ def build_hair_pinch_keepouts(
     adjustment: RetentionFitAdjustment | None = None,
 ) -> HairPinchKeepoutPackage:
     _assert_retention_fit_source_blob()
+    _assert_right_latch_candidate_contract()
     authority = authority or load_authority()
     model = model or build_model(authority)
     adjustment = adjustment or build_retention_fit_adjustment(authority, model)
