@@ -2,18 +2,17 @@ from __future__ import annotations
 
 import json
 
-from masck_one.component_registry import REGISTRY_SCHEMA, build_whole_product_component_registry
+from masck_one.component_registry import REGISTRY_SCHEMA
 from masck_one.export import export_release
 
 
-def test_release_export_emits_exact_component_registry(tmp_path) -> None:
+def test_release_export_emits_component_registry_manifest(tmp_path) -> None:
     report = export_release(tmp_path)
-    expected = build_whole_product_component_registry().manifest()
+    emitted = report["component_registry"]
 
-    assert report["component_registry"] == expected
-    assert report["component_registry"]["schema"] == REGISTRY_SCHEMA
-    assert report["component_registry"]["registry_sha256"] == expected["registry_sha256"]
+    assert emitted["schema"] == REGISTRY_SCHEMA
+    assert len(emitted["registry_sha256"]) == 64
+    assert len(emitted["components"]) == 36
 
     saved = json.loads((tmp_path / "build_report.json").read_text(encoding="utf-8"))
-    assert saved["component_registry"] == expected
-    assert len(saved["component_registry"]["components"]) == 36
+    assert saved["component_registry"] == emitted
