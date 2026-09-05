@@ -70,7 +70,7 @@ def test_final_brep_inferior_turnover_reduces_chin_projection_without_moving_foo
 def test_inferior_turnover_manifest_keeps_soft_interface_and_package_footprint_uninvented():
     authority = load_authority()
     manifest = inferior_turnover_manifest(authority)
-    assert manifest["schema"] == "MASCK_ONE_CELL2_INFERIOR_TURNOVER_V2"
+    assert manifest["schema"] == "MASCK_ONE_CELL2_INFERIOR_TURNOVER_V3"
     assert manifest["extra_anterior_recess_mm"] == INFERIOR_TURNOVER_EXTRA_RECESS_MM
     assert manifest["center_y_offset_from_mouth_norm"] == (
         INFERIOR_TURNOVER_CENTER_Y_OFFSET_FROM_MOUTH_NORM
@@ -85,4 +85,7 @@ def test_inferior_turnover_manifest_keeps_soft_interface_and_package_footprint_u
     assert manifest["side_body_station_policy"] == "UNCHANGED_FROM_PROMPT08"
     assert manifest["rear_cavity_policy"] == "UNCHANGED_FROM_PROMPT08"
     assert manifest["perimeter_footprint_policy"] == "UNCHANGED_FROM_PROMPT08"
+    assert manifest["rigid_protected_face_policy"] == (
+        "CONSUME_RELEASED_PLANAR_HARD_ENVELOPES_AS_THROUGH_CUTS"
+    )
     assert manifest["soft_interface_geometry_status"] == "UNRESOLVED_NOT_INVENTED"
