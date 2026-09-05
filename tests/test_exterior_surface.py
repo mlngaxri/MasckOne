@@ -114,7 +114,7 @@ def test_protected_aperture_centerlines_remain_open_through_crown():
     )
     for point in points:
         for z in (0.0, 10.0, 20.0, 23.0, 25.0):
-            assert not solid.isInside(cq.Vector(point.x, point.y, z), 1e-6, True)
+            assert not solid.isInside(cq.Vector(point.x, point.y, z), 1e-6)
 
 
 def test_crown_starts_anterior_of_current_package_envelopes():
