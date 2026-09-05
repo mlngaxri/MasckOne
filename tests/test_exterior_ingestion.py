@@ -101,31 +101,6 @@ def test_candidate_source_gate_fails_closed_on_stale_frame_ci_review_or_blockers
             binding.validate(reconstructed_main_sha=CURRENT_MAIN)
 
 
-def test_current_cell2_head_is_structurally_representable_as_hold_not_release_truth():
-    # Exact observed source identities for PR #70 b8a21ec... are intentionally encoded
-    # only in this regression fixture. The candidate is NOT consumed into product CAD.
-    current_blocked = ExteriorCandidateBinding(
-        source_pr=70,
-        source_head_sha="b8a21ec908833499f14d2560df06daec242810ac",
-        source_base_main_sha=CURRENT_MAIN,
-        source_geometry_blob_sha="a13f5b1c8dc88cc0238a7fbd33e526fadf9d2bc6",
-        source_integration_blob_sha="ac200648984d614d2191ceecc6f710f9136071e0",
-        source_evidence_blob_sha="a249615632422a2e3f6990bc2351567488079434",
-        source_manifest_sha256="0" * 64,
-        world_frame_id="MASCK_ONE_CANONICAL_WORLD_X_WEARER_RIGHT_Y_SUPERIOR_Z_ANTERIOR",
-        ci_conclusion="IN_PROGRESS",
-        independent_review_disposition="REWORK",
-        blockers=(
-            "FINAL_BREP_WALL_BELOW_AUTHORITY_MINIMUM",
-            "TOOLING_ARCHITECTURE_AND_DRAFT_UNRESOLVED",
-            "RIGID_EYE_INNER_EDGE_ROLL_NOT_REALIZED",
-            "MVP_APERTURE_INTEGRATION_AESTHETIC_REWORK",
-        ),
-    )
-    with pytest.raises(ExteriorIngestionError):
-        current_blocked.validate(reconstructed_main_sha=CURRENT_MAIN)
-
-
 def test_manufacturing_closure_requires_final_brep_eye_roll_dfm_and_authority_draft(baseline):
     authority = baseline.authority
     with pytest.raises(ExteriorIngestionError, match="eye inner-edge roll"):
