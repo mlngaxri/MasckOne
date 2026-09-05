@@ -36,9 +36,9 @@ EVIDENCE_STATUS = (
     "MOLDABILITY_TOOLING_SUPPLIER_FIT_COMFORT_OR_PHYSICAL_VALIDATION"
 )
 
-# Git blob identities from released main. These bind the topology-construction source
-# graph without pretending a self-reported SOURCE_MAIN_SHA proves the checkout content.
-# Any movement requires deliberate reconstruction/review of this audit.
+# Git blob identities from released main. These bind the structural-topology
+# reconstruction graph without pretending a self-reported SOURCE_MAIN_SHA proves
+# checkout content. Any movement requires deliberate reconstruction/review.
 SOURCE_GIT_BLOB_IDENTITIES: tuple[tuple[str, str], ...] = (
     ("config/masck_one_authority.yaml", "2608dda483b995539de422290371c219668a1527"),
     ("src/masck_one/anatomy.py", "872d1e5be1b9ce9baa5b63cb53462eb7b36f40ab"),
@@ -51,7 +51,12 @@ SOURCE_GIT_BLOB_IDENTITIES: tuple[tuple[str, str], ...] = (
     ("src/masck_one/interface_boundaries.py", "496c9b50867ca0bb319175d1d2e47caf4bc4fb64"),
     ("src/masck_one/interface_topology.py", "38b7c932f71a8675d45d098ac65154f98ff8bbb5"),
     ("src/masck_one/model.py", "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"),
+    ("src/masck_one/nasal_subsystem.py", "f1f22b828d0465636579fc31eff0bfb6a6bf2507"),
+    ("src/masck_one/protected_volumes.py", "ff2b9b288559f9b268e5d08a1d6c78335f745cf1"),
+    ("src/masck_one/reference_surfaces.py", "299e4ebb5946c2b1ac56b2c64dde2c0a8744abf2"),
+    ("src/masck_one/spatial.py", "8c1106b523fef5111009cc56236a53e3bc5ee10e"),
     ("src/masck_one/structural_frame.py", "bda5ba87d232c0e6a22e200975a80414a10c9a83"),
+    ("src/masck_one/worn_pose.py", "9d4ed65246fbc92ac577ce38bceb95cd2253607b"),
 )
 
 REQ_FRAME_MEMBER = "FRAME_MEMBER_3D_REALIZATION"
