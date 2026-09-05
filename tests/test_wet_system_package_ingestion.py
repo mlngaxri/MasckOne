@@ -10,7 +10,12 @@ import pytest
 from masck_one.fresh_pump_packaging import ROUTE_IDS as FRESH_ROUTE_IDS
 from masck_one.realized_waste_backbone import PHASE_MIXED_WASTE
 from masck_one.structural_frame import RESERVATION_HMI_ELECTRONICS
-from masck_one.waste_pump_architecture import ROUTE_IDS as WASTE_ROUTE_IDS
+from masck_one.waste_pump_architecture import (
+    BARRIER_WASTE,
+    INTERFACE_BARRIER_OUTLET,
+    INTERFACE_CARTRIDGE_INLET_I27,
+    ROUTE_IDS as WASTE_ROUTE_IDS,
+)
 from masck_one.wet_system_package_ingestion import (
     CONTROLLED_ENVELOPE,
     FROZEN_HYGIENE_CLASSES,
@@ -117,9 +122,9 @@ def test_released_mixed_waste_routes_keep_passive_backflow_order_and_service_aab
         assert len(manifest["service_aabb_brep_sha256"]) == 64
         assert "NOT_TUBING_CHANNEL_OR_PHYSICAL_CLEARANCE_EVIDENCE" in manifest["service_aabb_semantics"]
 
-    assert routes[1].target_interface_id == "WASTE-BACKFLOW-BARRIER-I26"
-    assert routes[2].source_interface_id == "WASTE-BACKFLOW-BARRIER-OUTLET-I26"
-    assert routes[2].target_interface_id == "WASTE-CARTRIDGE-INLET-I27"
+    assert routes[1].target_interface_id == BARRIER_WASTE
+    assert routes[2].source_interface_id == INTERFACE_BARRIER_OUTLET
+    assert routes[2].target_interface_id == INTERFACE_CARTRIDGE_INLET_I27
 
 
 def test_cavity_ledger_uses_only_producer_owned_authority_classes_or_explicit_unresolved(
