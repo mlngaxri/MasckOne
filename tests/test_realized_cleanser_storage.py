@@ -2,7 +2,6 @@ from dataclasses import replace
 
 import pytest
 
-from masck_one.authority import load_authority
 from masck_one.cleanser_storage import PORT_IDS, build_cleanser_storage_architecture
 from masck_one.realized_cleanser_storage import (
     CAVITY_X_MM,
@@ -11,17 +10,18 @@ from masck_one.realized_cleanser_storage import (
     OUTLET_Y_MM,
     RealizedCleanserStorageError,
     SERVICE_SEQUENCE_IDS,
-    build_realized_cleanser_storage,
 )
 
 
-def test_realized_cleanser_storage_binds_current_architecture_without_mutating_topology_contract():
-    authority = load_authority()
-    architecture = build_cleanser_storage_architecture(authority)
-    realized = build_realized_cleanser_storage(authority)
+def test_realized_cleanser_storage_binds_current_architecture_without_mutating_topology_contract(
+    cell4_authority,
+    cell4_cleanser_storage,
+):
+    architecture = build_cleanser_storage_architecture(cell4_authority)
+    realized = cell4_cleanser_storage
 
     assert realized.source_architecture_sha256 == architecture.architecture_sha256
-    assert realized.validate_current_sources(authority) == architecture
+    assert realized.validate_current_sources(cell4_authority) == architecture
     assert realized.fluid_identity == "CLEANSER"
     assert realized.reservoir_cavity_classification == "WET_REMOVABLE"
     assert realized.mount_cavity_classification == "WET_DRAINABLE"
@@ -34,8 +34,10 @@ def test_realized_cleanser_storage_binds_current_architecture_without_mutating_t
     assert architecture.purge_volume_mL is None
 
 
-def test_realized_cleanser_geometry_has_deterministic_cavity_and_exact_controlled_ports():
-    realized = build_realized_cleanser_storage(load_authority())
+def test_realized_cleanser_geometry_has_deterministic_cavity_and_exact_controlled_ports(
+    cell4_cleanser_storage,
+):
+    realized = cell4_cleanser_storage
     manifest = realized.manifest()
 
     assert realized.geometric_cavity_volume_mL == pytest.approx(
@@ -54,8 +56,8 @@ def test_realized_cleanser_geometry_has_deterministic_cavity_and_exact_controlle
     assert manifest["manifest_sha256"] == realized.manifest_sha256
 
 
-def test_material_body_cradle_key_and_reference_solids_are_single_valid_breps():
-    realized = build_realized_cleanser_storage(load_authority())
+def test_material_body_cradle_key_and_reference_solids_are_single_valid_breps(cell4_cleanser_storage):
+    realized = cell4_cleanser_storage
     for shape in (
         realized.body_solid,
         realized.cradle_solid,
@@ -82,8 +84,10 @@ def test_material_body_cradle_key_and_reference_solids_are_single_valid_breps():
     assert realized.body_solid.val().intersect(realized.outlet_bore_solid.val()).Volume() <= 1e-7
 
 
-def test_cradle_key_and_body_are_nonintersecting_in_assembled_state_with_positive_capture_path():
-    realized = build_realized_cleanser_storage(load_authority())
+def test_cradle_key_and_body_are_nonintersecting_in_assembled_state_with_positive_capture_path(
+    cell4_cleanser_storage,
+):
+    realized = cell4_cleanser_storage
 
     assert realized.body_solid.val().intersect(realized.cradle_solid.val()).Volume() <= 1e-7
     assert realized.body_solid.val().intersect(realized.retention_key_solid.val()).Volume() <= 1e-7
@@ -94,12 +98,14 @@ def test_cradle_key_and_body_are_nonintersecting_in_assembled_state_with_positiv
     assert all("MASK_REMOVED" in step.precondition for step in realized.service_sequence)
 
 
-def test_stale_architecture_wrong_fluid_and_evidence_promotion_fail_closed():
-    authority = load_authority()
-    realized = build_realized_cleanser_storage(authority)
+def test_stale_architecture_wrong_fluid_and_evidence_promotion_fail_closed(
+    cell4_authority,
+    cell4_cleanser_storage,
+):
+    realized = cell4_cleanser_storage
 
     with pytest.raises(RealizedCleanserStorageError, match="stale for current cleanser architecture"):
-        replace(realized, source_architecture_sha256="0" * 64).validate_current_sources(authority)
+        replace(realized, source_architecture_sha256="0" * 64).validate_current_sources(cell4_authority)
     with pytest.raises(RealizedCleanserStorageError, match="exact CLEANSER"):
         replace(realized, fluid_identity="FRESH_WATER")
     with pytest.raises(RealizedCleanserStorageError, match="cannot become physical validation"):
