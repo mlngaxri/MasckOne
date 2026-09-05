@@ -19,6 +19,8 @@ For these backbone segments, the controlled route ID is also the routing-ledger 
 
 The adjusted centerlines total approximately 64.255 mm and produce approximately 0.291 mL geometric volume at the provisional 2.4 mm circular internal-diameter seed.
 
+The deterministic release exporter now reconstructs the validated current Cell 4 release and emits its release manifest, all three route manifests and total geometric dead volume in `build_report.json`. This makes the existing deterministic CAD smoke exercise the realized routing source graph rather than leaving the new geometry outside the smoke path.
+
 ## Source-integrity closure
 
 Cell 5 rejected the prior release binding because it compared source SHA and authority revision only against constants owned by the same module. That could remain internally consistent after an upstream authority or routing change.
@@ -27,13 +29,15 @@ The current release path rebuilds the authority, structural frame, distribution 
 
 The realized geometry manifest retains the authored-against Git SHA only as historical provenance. It is not used as proof that current routing authority is unchanged.
 
-## Integration correction in this revision
+## Integration corrections in this revision
 
-The previous acquisition handoff began inside the authority-derived mouth hard envelope, and the previous lower `x=-62 mm` leg was too close to the Cell 2 tapered lower shell for the provisional service reservation. The revised wearer-left inferior route shifts those sections laterally inward while preserving all controlled fluid identities and topology.
+The first realization placed the acquisition handoff inside the authority-derived mouth hard envelope and used a lower `x=-62 mm` leg too close to the Cell 2 tapered lower shell for the provisional service reservation. Those sections were moved inward while preserving controlled route identities and topology.
 
-Cell 2 advanced during this work. The current Cell 2 branch head is `8f165049c4ff95cc706f2e106c8b58c3876f6b6f`, with current `exterior_surface.py` blob `b04f2651cf035e0cc3744be8b7e8eb7e68de0feb`. The route occupies Z = 12 to 16 mm. Cell 2's newer anterior-crown material begins conservatively above about Z = 20.1 mm, while the lower side-profile station scales and normalized tapered perimeter used by the route-envelope screen remain applicable in the route Z band. Re-screening therefore retains about 3.6 mm additional inward profile margin beyond the provisional 3.2 mm route envelope in the tight lower region. This is source-profile screening only, not a B-rep collision certificate, production clearance, or physical service evidence.
+Cell 5 then found that Route A's full 3.2 mm provisional service envelope still intersected the actuator 3 B-rep released on `main`. The acquisition handoff is therefore moved laterally from `(-44, -34, 12) mm` to `(-52, -34, 12) mm`, with its pump endpoint unchanged at `(-48, -44, 16) mm`. This preserves the Route A centerline length and geometric-volume arithmetic. Direct CadQuery distance against the released actuator 3 B-rep increases from approximately 1.939 mm to approximately 5.116 mm, leaving approximately 1.916 mm of digital margin beyond the 3.2 mm provisional route-envelope radius. A targeted regression rebuilds the current released product model and requires Route A's full service-envelope radius to clear the released rigid shell and every released actuator envelope. This is digital B-rep reservation evidence only, not selected tubing, deformation, serviceability or physical clearance evidence.
 
-The current Cell 3 recovery branch remains at `8a5f7b60edaea36f9cfcd33770375127d1e70e65` and provides no newer controlled realized 3D mechanism or service envelope than released `main`. Exact mechanism swept-volume clearance therefore remains blocked rather than inferred.
+Current Cell 2 PR #70 head is `9e0b7a7c5d05106b2782a7346873af9a688668ee`. Route A centerline Z spans 12 to 16 mm and its full provisional envelope reaches Z = 19.2 mm; the candidate crown inner-material guard remains approximately Z = 20.1 mm. A source-profile screen through the current five-station side body retains more than 13 mm horizontal inward margin beyond the provisional 3.2 mm route envelope in the Route A band. This is candidate-source screening only, not a merged cross-branch B-rep certificate.
+
+Current Cell 3 PR #71 head is `a2a3d659a380ccba1ac20621e56be9a2aa6bc104`. Its right-side slider withdrawal reservation is X `[73.5, 100.0]`, Y `[-5.0, 5.0]`, Z `[-22.5, -15.5]` mm. The realized waste route remains entirely wearer-left and anterior of that reservation, so the current candidate-source broad-phase screen is clear. Full post-release head-removal trajectory remains unresolved and is not inferred from the slider reservation.
 
 ## Explicit provisional baselines
 
@@ -55,4 +59,4 @@ Geometric dead volume is only world-centerline length multiplied by controlled p
 
 The exact changed head requires the complete engineering CI and deterministic CAD smoke build, direct generated-output inspection, independent Cell 5 hostile re-review, and Cell 1 release integration.
 
-Whole-product B-rep collision against the accepted Cell 2 exterior and a controlled realized Cell 3 mechanism/service envelope remains a downstream integration gate. Selected pump and barrier envelopes, connector access, tubing or channel selection, supplier bend requirement, deformation/service trajectory, cartridge insertion/removal, drain low points, retained pockets, and wet/dry boundary crossings remain unresolved.
+Selected pump and barrier envelopes, connector access, tubing or channel selection, supplier bend requirement, deformation/service trajectory, cartridge insertion/removal, drain low points, retained pockets, wet/dry boundary crossings, and full Cell 3 post-release removal trajectory remain unresolved.
