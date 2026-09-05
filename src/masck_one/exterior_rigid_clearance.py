@@ -86,15 +86,32 @@ def build_current_protected_volumes(
     return build_protected_volumes(authority, facial_reference, surface)
 
 
-def rigid_clearance_openings(
-    protected_volumes: ProtectedVolumeSet,
-) -> tuple[RigidClearanceOpening, ...]:
+def _validate_protected_source(protected_volumes: ProtectedVolumeSet) -> None:
     if type(protected_volumes) is not ProtectedVolumeSet:
         raise RigidProtectedClearanceError("rigid exterior requires exact ProtectedVolumeSet source")
+    if not protected_volumes.source_surface_id.strip():
+        raise RigidProtectedClearanceError("protected source surface identity must be nonblank")
+    if "DEVELOPMENT_HARD_ENVELOPE" not in protected_volumes.evidence_status:
+        raise RigidProtectedClearanceError("protected source lost development hard-envelope status")
+    if "3D_DYNAMIC_GEOMETRY_BLOCKED" not in protected_volumes.evidence_status:
+        raise RigidProtectedClearanceError("protected source cannot imply resolved 3D dynamic safety")
+
     zone_ids = tuple(volume.zone.zone_id for volume in protected_volumes.all)
     if zone_ids != EXPECTED_ZONE_IDS:
         raise RigidProtectedClearanceError("protected-zone identity or order changed; rebind Cell 2 exterior")
+    for volume in protected_volumes.all:
+        if volume.zone.evidence_status != protected_volumes.evidence_status:
+            raise RigidProtectedClearanceError("protected-zone evidence status drifted from its source set")
+        if volume.z_policy != "UNBOUNDED_UNTIL_REGISTERED_ANATOMICAL_SURFACE":
+            raise RigidProtectedClearanceError("protected-zone Z policy changed; rebind Cell 2 exterior")
+        if volume.anatomical_validation_eligible:
+            raise RigidProtectedClearanceError("development protected source cannot imply anatomical validation")
 
+
+def rigid_clearance_openings(
+    protected_volumes: ProtectedVolumeSet,
+) -> tuple[RigidClearanceOpening, ...]:
+    _validate_protected_source(protected_volumes)
     openings = tuple(
         RigidClearanceOpening(
             zone_id=volume.zone.zone_id,
