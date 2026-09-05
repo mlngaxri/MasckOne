@@ -206,7 +206,7 @@
       "base_ref": "main",
       "base_sha": "b2c2d2d94972e4615e281e86e2feddaaa3c4e0c8",
       "classification": "PORTABLE",
-      "release_disposition": "HOLD_PENDING_EXACT_HEAD_GATE_AND_INDEPENDENT_REVIEW",
+      "release_disposition": "HOLD_PENDING_REBASE_EXACT_HEAD_GATE_AND_INDEPENDENT_REVIEW",
       "unique_work": [
         "WORLD_FRAME_MIXED_WASTE_BACKBONE_CENTERLINES",
         "EXPLICIT_PUMP_TO_PASSIVE_BARRIER_AND_BARRIER_TO_CARTRIDGE_STAGES",
@@ -221,6 +221,14 @@
           "required_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
           "status": "CURRENT_RELEASED_ANCESTOR",
           "digest_status": "NOT_A_GEOMETRY_DIGEST_DEPENDENCY"
+        },
+        {
+          "producer": "MAIN_RELEASE_LINEAGE",
+          "geometry_dependency": false,
+          "observed_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
+          "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+          "status": "STALE",
+          "digest_status": "REBASE_REQUIRED_NO_GEOMETRY_DIGEST_CLAIM"
         }
       ],
       "exact_head_ci": {
@@ -231,6 +239,7 @@
       "independent_review": "MISSING",
       "physical_validation_status": "NOT_CLAIMED",
       "blockers": [
+        "REBASE_OR_REBUILD_ON_RECONSTRUCTED_MAIN_BEFORE_RELEASE",
         "WAIT_FOR_EXACT_HEAD_ENGINEERING_GATE_COMPLETION",
         "CELL5_INDEPENDENT_REVIEW_REQUIRED",
         "INTEGRATE_COLLISION_AND_SERVICE_TRAJECTORY_CHECKS_AGAINST_RELEASED_EXTERIOR_AND_MECHANISM_BEFORE_PROMOTION",
