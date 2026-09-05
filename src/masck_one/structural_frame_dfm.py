@@ -10,6 +10,7 @@ closure required before a whole-product CAD freeze can call the frame digitally 
 from dataclasses import dataclass
 from hashlib import sha1, sha256
 import json
+import math
 from pathlib import Path
 import re
 
@@ -172,15 +173,22 @@ class StructuralFrameDfmAudit:
             raise StructuralFrameDfmError("structural topology digest must be canonical SHA-256")
         if self.current_maturity != "TOPOLOGY_ONLY_3D_FRAME_AND_JOINS_UNRESOLVED":
             raise StructuralFrameDfmError("current frame maturity must remain explicit and fail closed")
-        if type(self.mold_draft_nominal_deg) not in (int, float) or self.mold_draft_nominal_deg <= 0.0:
-            raise StructuralFrameDfmError("mold draft must be a positive numeric authority value")
+        if (
+            type(self.mold_draft_nominal_deg) not in (int, float)
+            or not math.isfinite(float(self.mold_draft_nominal_deg))
+            or self.mold_draft_nominal_deg <= 0.0
+        ):
+            raise StructuralFrameDfmError("mold draft must be a positive finite numeric authority value")
         if (
             type(self.rib_thickness_ratio_range) is not tuple
             or len(self.rib_thickness_ratio_range) != 2
-            or any(type(value) not in (int, float) for value in self.rib_thickness_ratio_range)
+            or any(
+                type(value) not in (int, float) or not math.isfinite(float(value))
+                for value in self.rib_thickness_ratio_range
+            )
             or not (0.0 < self.rib_thickness_ratio_range[0] < self.rib_thickness_ratio_range[1])
         ):
-            raise StructuralFrameDfmError("rib ratio range must be a valid increasing tuple")
+            raise StructuralFrameDfmError("rib ratio range must be a valid finite increasing tuple")
         if type(self.requirements) is not tuple or tuple(item.requirement_id for item in self.requirements) != REQUIREMENT_IDS:
             raise StructuralFrameDfmError("structural-frame DFM requirements must use controlled deterministic order")
         ready = _exact_bool(self.digital_mvp_frame_dfm_ready, "digital_mvp_frame_dfm_ready")
