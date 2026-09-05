@@ -5,6 +5,7 @@ import json
 
 import pytest
 
+from masck_one.occipital_stabilizer import SOURCE_AUTHORITY_BLOB_SHA
 from masck_one.retention_load_path import (
     ATTACHMENT_FEATURE_OPEN,
     ATTACHMENT_INTEGRAL,
@@ -13,6 +14,7 @@ from masck_one.retention_load_path import (
 from masck_one.retention_load_path_release import (
     DIGITAL_ONLY,
     SCHEMA,
+    SOURCE_MODEL_GIT_BLOB_SHA,
     SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA,
     RetentionLoadPathReleaseError,
     build_retention_load_path_release,
@@ -25,11 +27,13 @@ def _release():
     return build_retention_load_path_release()
 
 
-def test_release_is_exactly_bound_to_prompt11_geometry_source():
+def test_release_is_exactly_bound_to_prompt11_geometry_model_and_authority_sources():
     release = _release()
     manifest = release.manifest()
     assert manifest["schema"] == SCHEMA
     assert manifest["source_retention_load_path_git_blob_sha"] == SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA
+    assert manifest["source_model_git_blob_sha"] == SOURCE_MODEL_GIT_BLOB_SHA
+    assert manifest["source_authority_git_blob_sha"] == SOURCE_AUTHORITY_BLOB_SHA
     assert manifest["source_retention_load_path_package_sha256"] == release.source.package_sha256
     assert manifest["source_geometry_binding"]["package_sha256"] == release.source.package_sha256
     assert manifest["source_geometry_binding"]["v1_geometry_bytes_modified_by_v2"] is False
@@ -88,6 +92,16 @@ def test_retained_pin_edges_are_positive_attachments_and_integral_edges_are_not(
     assert len(graph["digitally_closed_edge_ids"]) == 8
     assert graph["crown_lug_integral_to_local_carrier"] is True
     assert graph["facial_handoff_lug_integral_to_local_carrier"] is True
+
+
+def test_carriers_have_strict_separating_plane_from_prompt08_central_rear_package():
+    rear = _release().manifest()["rear_packaging_discipline"]
+    assert rear["source_keepout_center_xyz_mm"] == [0.0, 0.0, -36.0]
+    assert rear["source_keepout_xyz_mm"] == [68.0, 104.0, 24.0]
+    assert rear["strict_x_separating_plane_proof"] is True
+    assert rear["clearance_is_load_transfer"] is False
+    assert rear["carrier_x_separation_mm"]["wearer_left_mm"] == pytest.approx(22.0, abs=1e-6)
+    assert rear["carrier_x_separation_mm"]["wearer_right_mm"] == pytest.approx(22.0, abs=1e-6)
 
 
 def test_service_maturity_does_not_promote_pin_bound_into_complete_carrier_removal():
@@ -150,6 +164,14 @@ def test_release_source_blob_tamper_fails_closed(monkeypatch):
     import masck_one.retention_load_path_release as module
 
     monkeypatch.setattr(module, "SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA", "0" * 40)
+    with pytest.raises(RetentionLoadPathReleaseError, match="requires explicit rebind"):
+        module.build_retention_load_path_release(_release().source)
+
+
+def test_release_model_blob_tamper_fails_closed(monkeypatch):
+    import masck_one.retention_load_path_release as module
+
+    monkeypatch.setattr(module, "SOURCE_MODEL_GIT_BLOB_SHA", "0" * 40)
     with pytest.raises(RetentionLoadPathReleaseError, match="requires explicit rebind"):
         module.build_retention_load_path_release(_release().source)
 
