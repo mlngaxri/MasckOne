@@ -2,16 +2,15 @@ from __future__ import annotations
 
 """Positive digital lid capture and seal-interface geometry for the fresh-water module.
 
-The closure in this module is a manufacturable-in-principle Cell 4 CAD baseline, not
-a production closure selection. Rail, key, groove and service dimensions are explicit
-provisional geometry. No seal material/compression, insertion force, flexure strain,
-leakage, durability, wet-hand usability or hygiene performance is established here.
+This closure is a manufacturable-in-principle Cell 4 CAD baseline, not a production
+closure selection. Rail, key, groove and service dimensions are provisional geometry.
+No seal material/compression, insertion force, flexure strain, leakage, durability,
+wet-hand usability or hygiene performance is established here.
 """
 
 from dataclasses import dataclass
 from hashlib import sha256
 import json
-import math
 
 import cadquery as cq
 
@@ -40,8 +39,8 @@ PHYSICAL_EVIDENCE_STATUS = (
     "MATERIAL_STRAIN_DURABILITY_WET_HAND_HYGIENE_OR_SERVICE_VALIDATION"
 )
 
-# Bilateral guide/capture rails stay outside the continuous seal land. The only package
-# growth is local service/retention material and is separately collision-screened.
+# Capture rails remain outside the continuous seal land. Their local package growth is
+# separately collision-screened and is not authority or production geometry.
 RAIL_SUPPORT_INNER_X_MM = 13.9
 RAIL_SUPPORT_OUTER_X_MM = 15.0
 RAIL_Y_MIN_MM = 64.0
@@ -58,18 +57,17 @@ LID_RELIEF_Y_MIN_MM = 63.70
 LID_RELIEF_Y_MAX_MM = 89.70
 RAIL_RUNNING_CLEARANCE_Z_MM = RAIL_OVERHANG_Z_MIN_MM - LID_OVERHANG_RELIEF_Z_MIN_MM
 
-# Continuous shallow groove in the lid underside. It lies completely inside the 1 mm
-# reservoir wall footprint and outside the fluid cavity. It reserves a seal interface
-# only; no gasket/O-ring section, material or compression ratio is selected.
+# The groove lies fully within the existing 1 mm body-wall footprint. It reserves a
+# continuous seal interface only, without selecting gasket section or compression.
 SEAL_GROOVE_OUTER_X_MM = 27.6
 SEAL_GROOVE_OUTER_Y_MM = 26.6
 SEAL_GROOVE_WIDTH_MM = 0.5
 SEAL_GROOVE_DEPTH_MM = 0.2
 SEAL_LAND_REFERENCE_DEPTH_MM = 0.05
 
-# A removable cross-key prevents the lid from translating out of the capture rails.
-# Its larger distal detent and service head are geometric anti-ejection features. Their
-# insertion/removal compliance and forces remain unvalidated.
+# Cross-key dimensions are provisional. The running stem is smaller than its bore;
+# both the distal detent and service head are larger than the bore for positive axial
+# retention. Detent deformation/force is deliberately not claimed.
 KEY_STEM_DIAMETER_MM = 0.50
 KEY_BORE_DIAMETER_MM = 0.70
 KEY_DETENT_DIAMETER_MM = 1.00
@@ -80,9 +78,7 @@ KEY_HEAD_LENGTH_MM = 1.40
 KEY_Y_MM = 65.0
 KEY_Z_MM = 12.55
 
-# Closure service occurs only after the complete removable reservoir has followed the
-# already-controlled posterior module withdrawal. The lid then slides inferiorly until
-# it is fully clear of the fixed guide rails before being lifted away.
+# Lid service is permitted only after complete reservoir withdrawal from the wearable.
 LID_SLIDE_RELEASE_TRAVEL_MM = 26.0
 LID_LIFT_SERVICE_TRAVEL_MM = 3.0
 KEY_WITHDRAWAL_TRAVEL_MM = 34.0
@@ -121,13 +117,12 @@ def _cylinder(radius_mm: float, length_mm: float, start: Point3, direction: Vect
     if radius_mm <= 0.0 or length_mm <= 0.0:
         raise WaterReservoirError("Closure cylinder requires positive radius and length")
     axis = direction.normalized()
-    solid = cq.Solid.makeCylinder(
+    return cq.Workplane(obj=cq.Solid.makeCylinder(
         radius_mm,
         length_mm,
         cq.Vector(*start.as_tuple()),
         cq.Vector(*axis.as_tuple()),
-    )
-    return cq.Workplane(obj=solid)
+    ))
 
 
 def _rectangular_ring(
@@ -138,13 +133,8 @@ def _rectangular_ring(
     z_min_mm: float,
 ) -> cq.Workplane:
     if width_mm <= 0.0 or 2.0 * width_mm >= min(outer_x_mm, outer_y_mm):
-        raise WaterReservoirError("Seal ring width must fit inside its outer dimensions")
-    outer = (
-        cq.Workplane("XY")
-        .workplane(offset=z_min_mm)
-        .rect(outer_x_mm, outer_y_mm)
-        .extrude(depth_mm)
-    )
+        raise WaterReservoirError("Seal ring width must fit inside outer dimensions")
+    outer = cq.Workplane("XY").workplane(offset=z_min_mm).rect(outer_x_mm, outer_y_mm).extrude(depth_mm)
     inner = (
         cq.Workplane("XY")
         .workplane(offset=z_min_mm - 0.1)
@@ -158,52 +148,32 @@ def _side_rail(sign: float) -> cq.Workplane:
     if sign not in (-1.0, 1.0):
         raise WaterReservoirError("Rail side sign must be -1 or +1")
     if sign > 0.0:
-        support_xmin, support_xmax = RAIL_SUPPORT_INNER_X_MM, RAIL_SUPPORT_OUTER_X_MM
-        overhang_xmin, overhang_xmax = RAIL_OVERHANG_INNER_X_MM, RAIL_SUPPORT_OUTER_X_MM
+        sx0, sx1 = RAIL_SUPPORT_INNER_X_MM, RAIL_SUPPORT_OUTER_X_MM
+        ox0, ox1 = RAIL_OVERHANG_INNER_X_MM, RAIL_SUPPORT_OUTER_X_MM
     else:
-        support_xmin, support_xmax = -RAIL_SUPPORT_OUTER_X_MM, -RAIL_SUPPORT_INNER_X_MM
-        overhang_xmin, overhang_xmax = -RAIL_SUPPORT_OUTER_X_MM, -RAIL_OVERHANG_INNER_X_MM
+        sx0, sx1 = -RAIL_SUPPORT_OUTER_X_MM, -RAIL_SUPPORT_INNER_X_MM
+        ox0, ox1 = -RAIL_SUPPORT_OUTER_X_MM, -RAIL_OVERHANG_INNER_X_MM
     support = _box_from_bounds(
-        support_xmin,
-        support_xmax,
-        RAIL_Y_MIN_MM,
-        RAIL_Y_MAX_MM,
-        RAIL_SUPPORT_Z_MIN_MM,
-        RAIL_SUPPORT_Z_MAX_MM,
+        sx0, sx1, RAIL_Y_MIN_MM, RAIL_Y_MAX_MM, RAIL_SUPPORT_Z_MIN_MM, RAIL_SUPPORT_Z_MAX_MM
     )
     overhang = _box_from_bounds(
-        overhang_xmin,
-        overhang_xmax,
-        RAIL_Y_MIN_MM,
-        RAIL_Y_MAX_MM,
-        RAIL_OVERHANG_Z_MIN_MM,
-        RAIL_OVERHANG_Z_MAX_MM,
+        ox0, ox1, RAIL_Y_MIN_MM, RAIL_Y_MAX_MM, RAIL_OVERHANG_Z_MIN_MM, RAIL_OVERHANG_Z_MAX_MM
     )
     return support.union(overhang)
 
 
 def _lid_side_relief(sign: float) -> tuple[cq.Workplane, cq.Workplane]:
     if sign > 0.0:
-        support_xmin, support_xmax = LID_SUPPORT_CLEARANCE_INNER_X_MM, 14.2
-        overhang_xmin, overhang_xmax = LID_OVERHANG_RELIEF_INNER_X_MM, 14.2
+        sx0, sx1 = LID_SUPPORT_CLEARANCE_INNER_X_MM, 14.2
+        ox0, ox1 = LID_OVERHANG_RELIEF_INNER_X_MM, 14.2
     else:
-        support_xmin, support_xmax = -14.2, -LID_SUPPORT_CLEARANCE_INNER_X_MM
-        overhang_xmin, overhang_xmax = -14.2, -LID_OVERHANG_RELIEF_INNER_X_MM
+        sx0, sx1 = -14.2, -LID_SUPPORT_CLEARANCE_INNER_X_MM
+        ox0, ox1 = -14.2, -LID_OVERHANG_RELIEF_INNER_X_MM
     support_clearance = _box_from_bounds(
-        support_xmin,
-        support_xmax,
-        LID_RELIEF_Y_MIN_MM,
-        LID_RELIEF_Y_MAX_MM,
-        11.9,
-        13.1,
+        sx0, sx1, LID_RELIEF_Y_MIN_MM, LID_RELIEF_Y_MAX_MM, 11.9, 13.1
     )
     overhang_relief = _box_from_bounds(
-        overhang_xmin,
-        overhang_xmax,
-        LID_RELIEF_Y_MIN_MM,
-        LID_RELIEF_Y_MAX_MM,
-        LID_OVERHANG_RELIEF_Z_MIN_MM,
-        13.1,
+        ox0, ox1, LID_RELIEF_Y_MIN_MM, LID_RELIEF_Y_MAX_MM, LID_OVERHANG_RELIEF_Z_MIN_MM, 13.1
     )
     return support_clearance, overhang_relief
 
@@ -211,8 +181,8 @@ def _lid_side_relief(sign: float) -> tuple[cq.Workplane, cq.Workplane]:
 def _key_bore() -> cq.Workplane:
     return _cylinder(
         KEY_BORE_DIAMETER_MM / 2.0,
-        (RAIL_SUPPORT_OUTER_X_MM - KEY_STEM_X_MIN_MM) + 0.5,
-        Point3(KEY_STEM_X_MIN_MM - 0.25, KEY_Y_MM, KEY_Z_MM),
+        31.0,
+        Point3(-15.75, KEY_Y_MM, KEY_Z_MM),
         Vector3(1.0, 0.0, 0.0),
     )
 
@@ -235,10 +205,6 @@ def _retention_key() -> cq.Workplane:
         Vector3(1.0, 0.0, 0.0),
     )
     return stem.union(detent).union(head)
-
-
-def _translate(shape: cq.Workplane, vector: Vector3) -> cq.Workplane:
-    return cq.Workplane(obj=shape.val().moved(cq.Location(cq.Vector(*vector.as_tuple()))))
 
 
 @dataclass(frozen=True, slots=True)
@@ -314,26 +280,32 @@ class WaterReservoirClosureGeometry:
         if not (KEY_STEM_DIAMETER_MM < KEY_BORE_DIAMETER_MM < KEY_DETENT_DIAMETER_MM):
             raise WaterReservoirError("Closure key must have running stem clearance and positive distal detent")
         if KEY_HEAD_DIAMETER_MM <= KEY_BORE_DIAMETER_MM:
-            raise WaterReservoirError("Closure key head must be larger than the service bore")
+            raise WaterReservoirError("Closure key head must be larger than service bore")
         if RAIL_RUNNING_CLEARANCE_Z_MM <= 0.0:
             raise WaterReservoirError("Closure rail must retain positive digital running clearance")
 
-        for label, shape in (
-            ("closure body", self.closure_body_solid),
-            ("closure lid", self.closure_lid_solid),
-            ("retention key", self.retention_key_solid),
-            ("key bore", self.key_bore_solid),
-            ("seal groove", self.seal_groove_reservation_solid),
-            ("seal land", self.seal_land_reference_solid),
-            ("capture rails", self.bilateral_capture_rails_solid),
-            ("module service sweep", self.module_service_sweep_solid),
-            ("lid service sweep", self.lid_service_sweep_solid),
-            ("key service sweep", self.key_service_sweep_solid),
-        ):
-            if not shape.val().isValid() or shape.solids().size() != 1:
-                raise WaterReservoirError(f"Water reservoir {label} must be one valid deterministic solid")
+        expected = (
+            ("closure body", self.closure_body_solid, 1),
+            ("closure lid", self.closure_lid_solid, 1),
+            ("retention key", self.retention_key_solid, 1),
+            ("key bore", self.key_bore_solid, 1),
+            ("seal groove", self.seal_groove_reservation_solid, 1),
+            ("seal land", self.seal_land_reference_solid, 1),
+            ("capture rails", self.bilateral_capture_rails_solid, 2),
+            ("module service sweep", self.module_service_sweep_solid, 1),
+            ("lid service sweep", self.lid_service_sweep_solid, 1),
+            ("key service sweep", self.key_service_sweep_solid, 1),
+        )
+        for label, shape, expected_solids in expected:
+            if not shape.val().isValid() or shape.solids().size() != expected_solids:
+                raise WaterReservoirError(
+                    f"Water reservoir {label} must contain {expected_solids} valid deterministic solid(s)"
+                )
 
-    def validate_current_sources(self, authority: Authority) -> tuple[RealizedWaterReservoir, WaterReservoirInterfaceGeometry]:
+    def validate_current_sources(
+        self,
+        authority: Authority,
+    ) -> tuple[RealizedWaterReservoir, WaterReservoirInterfaceGeometry]:
         realized = build_realized_water_reservoir(authority)
         interfaces = build_water_reservoir_interface_geometry(authority, realized)
         if self.source_authority_revision != str(authority.get("project", "authority_revision")):
@@ -411,13 +383,13 @@ def _service_sequence() -> tuple[ClosureServiceStep, ...]:
             SERVICE_SEQUENCE_IDS[2],
             "ported closure lid",
             Vector3(0.0, -LID_SLIDE_RELEASE_TRAVEL_MM, 0.0),
-            "retention key removed; lid stays guided beneath bilateral capture rails",
+            "retention key removed; lid remains guided beneath bilateral capture rails",
         ),
         ClosureServiceStep(
             SERVICE_SEQUENCE_IDS[3],
             "ported closure lid",
             Vector3(0.0, 0.0, LID_LIFT_SERVICE_TRAVEL_MM),
-            "lid has fully cleared the fixed capture-rail Y span",
+            "lid has fully cleared fixed capture-rail Y span",
         ),
     )
 
@@ -433,7 +405,7 @@ def build_water_reservoir_closure_geometry(
 
     left_rail = _side_rail(-1.0)
     right_rail = _side_rail(1.0)
-    rails = left_rail.union(right_rail)
+    rails = cq.Workplane(obj=cq.Compound.makeCompound([left_rail.val(), right_rail.val()]))
     body = interfaces.body_with_pickup_port_solid.union(left_rail).union(right_rail)
 
     groove = _rectangular_ring(
@@ -460,7 +432,7 @@ def build_water_reservoir_closure_geometry(
     lid = lid.cut(key_bore)
     key = _retention_key()
 
-    # Conservative continuous service reservations. These are not assembly material.
+    # Conservative service reservations only. They are not assembly material.
     closure_x_half = KEY_STEM_X_MAX_MM + KEY_HEAD_LENGTH_MM + KEY_HEAD_DIAMETER_MM / 2.0
     module_sweep = _box_from_bounds(
         -closure_x_half,
