@@ -1,9 +1,8 @@
-"""Deterministic Cell 4 realization of the dedicated cleanser storage module.
+"""Deterministic realized CAD for the dedicated cleanser-storage architecture.
 
-This module converts the released cleanser-storage topology into bounded CAD geometry
-without promoting storage, purge, compatibility, leakage, hygiene, service, or dosing
-performance. Every dimension introduced here is an explicit provisional engineering
-CAD baseline, not a supplier dimension or a machine-authority value.
+All geometry added here is a provisional Cell 4 CAD baseline. It is digital closure,
+not supplier selection or physical evidence for dosing, sealing, leakage, compatibility,
+hygiene, drying, serviceability, durability, or purge/backflow performance.
 """
 from __future__ import annotations
 
@@ -36,8 +35,6 @@ SERVICE_STATUS = "MASK_REMOVED_UNPOWERED_DIGITAL_SERVICE_SEQUENCE_NOT_WET_USE_VA
 COMPATIBILITY_STATUS = "BLOCKED_PENDING_SELECTED_CLEANSER_CHEMISTRY_WETTED_MATERIALS_AND_CONTROLLED_EVIDENCE"
 PHYSICAL_EVIDENCE_STATUS = "DIGITAL_GEOMETRY_ONLY_NOT_PHYSICAL_PERFORMANCE_EVIDENCE"
 
-# Dedicated cassette. The released architecture intentionally leaves storage capacity
-# unset; 3.072 mL below is therefore realized geometric cavity accounting only.
 CAVITY_X_MM = 16.0
 CAVITY_Y_MM = 16.0
 CAVITY_Z_MM = 12.0
@@ -49,7 +46,6 @@ CENTER_X_MM = 26.5
 CENTER_Y_MM = 72.0
 CENTER_Z_MM = 8.0
 
-# Open-posterior drainable sleeve. Nominal X/Y running clearance is 0.5 mm per side.
 CRADLE_OUTER_X_MM = 22.0
 CRADLE_OUTER_Y_MM = 22.0
 CRADLE_OUTER_Z_MM = 16.0
@@ -65,7 +61,6 @@ DRAIN_SLOT_CENTER_X_MM = 21.5
 DRAIN_SLOT_CENTER_Y_MM = 61.5
 DRAIN_SLOT_CENTER_Z_MM = 1.5
 
-# Hidden posterior refill and purge, plus lateral dedicated metering handoff.
 REFILL_X_MM = 23.5
 REFILL_Y_MM = 76.0
 REFILL_BORE_DIAMETER_MM = 4.0
@@ -88,7 +83,6 @@ OUTLET_CRADLE_PASSAGE_DIAMETER_MM = 5.0
 BOSS_PROJECTION_MM = 1.0
 BOSS_BODY_OVERLAP_MM = 1.0
 
-# Cross-key retention through a molded body lug and the sleeve sidewalls.
 RETENTION_LUG_X_MM = 4.0
 RETENTION_LUG_Y_MM = 1.4
 RETENTION_LUG_Z_MM = 3.0
@@ -99,10 +93,10 @@ RETENTION_KEY_Z_MM = RETENTION_LUG_CENTER_Z_MM
 RETENTION_KEY_STEM_DIAMETER_MM = 1.4
 RETENTION_KEY_BORE_DIAMETER_MM = 1.8
 RETENTION_KEY_HEAD_DIAMETER_MM = 3.5
-RETENTION_KEY_X_MIN_MM = 15.0
-RETENTION_KEY_X_MAX_MM = 38.0
-RETENTION_KEY_HEAD_X_MIN_MM = 37.0
-RETENTION_KEY_HEAD_X_MAX_MM = 39.0
+RETENTION_KEY_X_MIN_MM = 15.2
+RETENTION_KEY_X_MAX_MM = 38.5
+RETENTION_KEY_HEAD_X_MIN_MM = 37.5
+RETENTION_KEY_HEAD_X_MAX_MM = 39.5
 RETENTION_LUG_CHANNEL_X_MM = 6.0
 RETENTION_LUG_CHANNEL_Y_MM = 3.0
 RETENTION_LUG_CHANNEL_Z_MM = 4.5
@@ -123,41 +117,37 @@ class RealizedCleanserStorageError(ValueError):
     pass
 
 
-def _canonical_sha256(value: object, *, label: str) -> str:
-    if type(value) is not str or _SHA256_RE.fullmatch(value) is None:
-        raise RealizedCleanserStorageError(f"{label} must be a canonical lowercase SHA-256")
-    return value
-
-
-def _git_sha(value: object, *, label: str) -> str:
-    if type(value) is not str or _GIT_SHA_RE.fullmatch(value) is None:
-        raise RealizedCleanserStorageError(f"{label} must be exact lowercase 40-hex")
-    return value
-
-
 def _box(dx: float, dy: float, dz: float, x: float, y: float, z: float) -> cq.Workplane:
     return cq.Workplane("XY").box(dx, dy, dz, centered=(True, True, True)).translate((x, y, z))
 
 
-def _z_cylinder(x: float, y: float, z0: float, diameter: float, length: float) -> cq.Workplane:
-    return cq.Workplane("XY").workplane(offset=z0).center(x, y).circle(diameter / 2.0).extrude(length)
+def _z_cylinder(x: float, y: float, z0: float, d: float, length: float) -> cq.Workplane:
+    return cq.Workplane("XY").workplane(offset=z0).center(x, y).circle(d / 2.0).extrude(length)
 
 
-def _x_cylinder(y: float, z: float, x0: float, diameter: float, length: float) -> cq.Workplane:
-    return cq.Workplane("YZ").workplane(offset=x0).center(y, z).circle(diameter / 2.0).extrude(length)
+def _x_cylinder(y: float, z: float, x0: float, d: float, length: float) -> cq.Workplane:
+    return cq.Workplane("YZ").workplane(offset=x0).center(y, z).circle(d / 2.0).extrude(length)
 
 
 def _z_ring(x: float, y: float, z0: float, outer_d: float, inner_d: float, length: float) -> cq.Workplane:
-    return _z_cylinder(x, y, z0, outer_d, length).cut(_z_cylinder(x, y, z0 - 0.1, inner_d, length + 0.2))
+    return _z_cylinder(x, y, z0, outer_d, length).cut(
+        _z_cylinder(x, y, z0 - 0.1, inner_d, length + 0.2)
+    )
 
 
 def _x_ring(y: float, z: float, x0: float, outer_d: float, inner_d: float, length: float) -> cq.Workplane:
-    return _x_cylinder(y, z, x0, outer_d, length).cut(_x_cylinder(y, z, x0 - 0.1, inner_d, length + 0.2))
+    return _x_cylinder(y, z, x0, outer_d, length).cut(
+        _x_cylinder(y, z, x0 - 0.1, inner_d, length + 0.2)
+    )
 
 
-def _one_valid_solid(shape: cq.Workplane, *, label: str) -> None:
+def _one_valid_solid(shape: cq.Workplane, label: str) -> None:
     if shape.solids().size() != 1 or not shape.val().isValid():
-        raise RealizedCleanserStorageError(f"{label} must resolve as one valid deterministic solid")
+        raise RealizedCleanserStorageError(f"{label} must be one valid deterministic solid")
+
+
+def _intersection_volume(a: cq.Workplane, b: cq.Workplane) -> float:
+    return float(a.val().intersect(b.val()).Volume())
 
 
 @dataclass(frozen=True, slots=True)
@@ -227,7 +217,7 @@ class RealizedCleanserStorage:
 
     @property
     def geometric_cavity_volume_mL(self) -> float:
-        return self.internal_cavity_solid.val().Volume() / 1000.0
+        return float(self.internal_cavity_solid.val().Volume()) / 1000.0
 
     @property
     def neutral_geometry_below_outlet_center_plane_mL(self) -> float:
@@ -236,12 +226,14 @@ class RealizedCleanserStorage:
 
     @property
     def manifest_sha256(self) -> str:
-        raw = json.dumps(self.manifest(include_sha=False), sort_keys=True, separators=(",", ":")).encode("utf-8")
+        raw = json.dumps(self.manifest(include_sha=False), sort_keys=True, separators=(",", ":")).encode()
         return sha256(raw).hexdigest()
 
     def validate_invariants(self) -> None:
-        _canonical_sha256(self.source_architecture_sha256, label="cleanser architecture source")
-        _git_sha(self.authored_against_git_sha, label="authored-against Git provenance")
+        if type(self.source_architecture_sha256) is not str or _SHA256_RE.fullmatch(self.source_architecture_sha256) is None:
+            raise RealizedCleanserStorageError("cleanser architecture source must be a canonical lowercase SHA-256")
+        if type(self.authored_against_git_sha) is not str or _GIT_SHA_RE.fullmatch(self.authored_against_git_sha) is None:
+            raise RealizedCleanserStorageError("authored-against Git provenance must be exact lowercase 40-hex")
         if type(self.source_authority_revision) is not str or not self.source_authority_revision:
             raise RealizedCleanserStorageError("realized cleanser geometry requires exact authority revision")
         if self.fluid_identity != "CLEANSER":
@@ -251,34 +243,44 @@ class RealizedCleanserStorage:
         if self.reservoir_cavity_classification != "WET_REMOVABLE" or self.mount_cavity_classification != "WET_DRAINABLE":
             raise RealizedCleanserStorageError("cleanser body/cradle hygiene classes changed")
         if self.geometry_status != GEOMETRY_STATUS or self.compatibility_status != COMPATIBILITY_STATUS:
-            raise RealizedCleanserStorageError("realized cleanser provenance/status boundary changed")
+            raise RealizedCleanserStorageError("realized cleanser status boundary changed")
         if type(self.physical_validation_eligible) is not bool or self.physical_validation_eligible:
             raise RealizedCleanserStorageError("realized cleanser geometry cannot become physical validation evidence")
         if self.evidence_status != PHYSICAL_EVIDENCE_STATUS:
-            raise RealizedCleanserStorageError("realized cleanser evidence firewall must remain exact")
+            raise RealizedCleanserStorageError("realized cleanser evidence firewall changed")
         if tuple(step.step_id for step in self.service_sequence) != SERVICE_SEQUENCE_IDS:
             raise RealizedCleanserStorageError("cleanser service sequence order is not controlled")
         if not (RETENTION_KEY_STEM_DIAMETER_MM < RETENTION_KEY_BORE_DIAMETER_MM < RETENTION_KEY_HEAD_DIAMETER_MM):
-            raise RealizedCleanserStorageError("retention key requires running clearance and a larger service head")
+            raise RealizedCleanserStorageError("retention key clearance hierarchy changed")
         if WALL_MM <= 0.0 or CRADLE_WALL_MIN_MM <= 0.0 or PACKAGE_CLEARANCE_RESERVATION_MM <= 0.0:
-            raise RealizedCleanserStorageError("cleanser wall/clearance baselines must remain positive")
+            raise RealizedCleanserStorageError("wall and clearance baselines must remain positive")
         for label, shape in (
-            ("body", self.body_solid), ("cavity", self.internal_cavity_solid),
-            ("cradle", self.cradle_solid), ("retention key", self.retention_key_solid),
-            ("refill bore", self.refill_bore_solid), ("purge bore", self.purge_bore_solid),
+            ("body", self.body_solid),
+            ("cavity", self.internal_cavity_solid),
+            ("cradle", self.cradle_solid),
+            ("retention key", self.retention_key_solid),
+            ("refill bore", self.refill_bore_solid),
+            ("purge bore", self.purge_bore_solid),
             ("outlet bore", self.outlet_bore_solid),
             ("refill closure reservation", self.refill_closure_reservation_solid),
             ("purge connector reservation", self.purge_connector_reservation_solid),
             ("outlet connector reservation", self.outlet_connector_reservation_solid),
-            ("drain path reference", self.drain_path_reference_solid),
+            ("drain path", self.drain_path_reference_solid),
             ("cassette service sweep", self.cassette_service_sweep_solid),
             ("key service sweep", self.key_service_sweep_solid),
         ):
-            _one_valid_solid(shape, label=f"cleanser {label}")
+            _one_valid_solid(shape, f"cleanser {label}")
         if not math.isclose(self.geometric_cavity_volume_mL, 3.072, abs_tol=1e-8):
             raise RealizedCleanserStorageError("cleanser cavity B-rep volume changed")
         if not math.isclose(self.neutral_geometry_below_outlet_center_plane_mL, 0.192, abs_tol=1e-12):
-            raise RealizedCleanserStorageError("cleanser neutral geometric low-band accounting changed")
+            raise RealizedCleanserStorageError("cleanser geometric low-band accounting changed")
+        for label, a, b in (
+            ("body/cradle", self.body_solid, self.cradle_solid),
+            ("body/key", self.body_solid, self.retention_key_solid),
+            ("cradle/key", self.cradle_solid, self.retention_key_solid),
+        ):
+            if _intersection_volume(a, b) > 1e-7:
+                raise RealizedCleanserStorageError(f"assembled cleanser {label} material overlaps")
 
     def validate_current_sources(self, authority: Authority) -> CleanserStorageArchitecture:
         if type(authority) is not Authority:
@@ -296,8 +298,8 @@ class RealizedCleanserStorage:
         return architecture
 
     def manifest(self, *, include_sha: bool = True) -> dict[str, object]:
-        lateral_face_x = CENTER_X_MM + BODY_X_MM / 2.0
-        rear_face_z = CENTER_Z_MM - BODY_Z_MM / 2.0
+        rear_z = CENTER_Z_MM - BODY_Z_MM / 2.0
+        lateral_x = CENTER_X_MM + BODY_X_MM / 2.0
         payload: dict[str, object] = {
             "schema": "MASCK_ONE_CELL4_REALIZED_CLEANSER_STORAGE_V1",
             "source_authority_revision": self.source_authority_revision,
@@ -327,13 +329,13 @@ class RealizedCleanserStorage:
                 "retention_key_stem_diameter_mm": RETENTION_KEY_STEM_DIAMETER_MM,
                 "retention_key_bore_diameter_mm": RETENTION_KEY_BORE_DIAMETER_MM,
                 "retention_key_head_diameter_mm": RETENTION_KEY_HEAD_DIAMETER_MM,
-                "retention_status": "POSITIVE_DIGITAL_CAPTURE_PROVISIONAL_GEOMETRY_FORCE_WEAR_AND_DURABILITY_UNVALIDATED",
+                "retention_status": "POSITIVE_DIGITAL_CAPTURE_FORCE_WEAR_AND_DURABILITY_UNVALIDATED",
             },
             "ports": [
                 {
                     "port_id": PORT_REFILL,
                     "fluid_identity": "CLEANSER",
-                    "center_world_mm": [REFILL_X_MM, REFILL_Y_MM, rear_face_z],
+                    "center_world_mm": [REFILL_X_MM, REFILL_Y_MM, rear_z],
                     "axis": "+Z_FROM_POSTERIOR_SERVICE_SIDE_INTO_CASSETTE",
                     "bore_diameter_mm": REFILL_BORE_DIAMETER_MM,
                     "boss_outer_diameter_mm": REFILL_BOSS_OUTER_DIAMETER_MM,
@@ -343,7 +345,7 @@ class RealizedCleanserStorage:
                 {
                     "port_id": PORT_OUTLET,
                     "fluid_identity": "CLEANSER",
-                    "center_world_mm": [lateral_face_x, OUTLET_Y_MM, OUTLET_Z_MM],
+                    "center_world_mm": [lateral_x, OUTLET_Y_MM, OUTLET_Z_MM],
                     "axis": "-X_FROM_LATERAL_DEDICATED_METERING_HANDOFF_INTO_CASSETTE",
                     "bore_diameter_mm": OUTLET_BORE_DIAMETER_MM,
                     "boss_outer_diameter_mm": OUTLET_BOSS_OUTER_DIAMETER_MM,
@@ -353,7 +355,7 @@ class RealizedCleanserStorage:
                 {
                     "port_id": PORT_PURGE,
                     "fluid_identity": "CLEANSER",
-                    "center_world_mm": [PURGE_X_MM, PURGE_Y_MM, rear_face_z],
+                    "center_world_mm": [PURGE_X_MM, PURGE_Y_MM, rear_z],
                     "axis": "+Z_FROM_POSTERIOR_SERVICE_SIDE_INTO_CASSETTE",
                     "bore_diameter_mm": PURGE_BORE_DIAMETER_MM,
                     "boss_outer_diameter_mm": PURGE_BOSS_OUTER_DIAMETER_MM,
@@ -388,57 +390,93 @@ def build_realized_cleanser_storage(authority: Authority) -> RealizedCleanserSto
     architecture.validate_current_authority(authority)
 
     cavity = _box(CAVITY_X_MM, CAVITY_Y_MM, CAVITY_Z_MM, CENTER_X_MM, CENTER_Y_MM, CENTER_Z_MM)
-    outer = _box(BODY_X_MM, BODY_Y_MM, BODY_Z_MM, CENTER_X_MM, CENTER_Y_MM, CENTER_Z_MM)
-    body = outer.cut(cavity)
-    rear_face_z = CENTER_Z_MM - BODY_Z_MM / 2.0
-    boss_z0 = rear_face_z - BOSS_PROJECTION_MM
-    boss_z_len = BOSS_PROJECTION_MM + BOSS_BODY_OVERLAP_MM
-    body = body.union(_z_ring(REFILL_X_MM, REFILL_Y_MM, boss_z0, REFILL_BOSS_OUTER_DIAMETER_MM, REFILL_BORE_DIAMETER_MM, boss_z_len))
-    body = body.union(_z_ring(PURGE_X_MM, PURGE_Y_MM, boss_z0, PURGE_BOSS_OUTER_DIAMETER_MM, PURGE_BORE_DIAMETER_MM, boss_z_len))
+    body = _box(BODY_X_MM, BODY_Y_MM, BODY_Z_MM, CENTER_X_MM, CENTER_Y_MM, CENTER_Z_MM).cut(cavity)
+    rear_z = CENTER_Z_MM - BODY_Z_MM / 2.0
+    boss_z0 = rear_z - BOSS_PROJECTION_MM
+    body = body.union(_z_ring(REFILL_X_MM, REFILL_Y_MM, boss_z0, REFILL_BOSS_OUTER_DIAMETER_MM, REFILL_BORE_DIAMETER_MM, 2.0))
+    body = body.union(_z_ring(PURGE_X_MM, PURGE_Y_MM, boss_z0, PURGE_BOSS_OUTER_DIAMETER_MM, PURGE_BORE_DIAMETER_MM, 2.0))
+    lateral_x = CENTER_X_MM + BODY_X_MM / 2.0
+    outlet_boss_x0 = lateral_x - BOSS_BODY_OVERLAP_MM
+    body = body.union(_x_ring(OUTLET_Y_MM, OUTLET_Z_MM, outlet_boss_x0, OUTLET_BOSS_OUTER_DIAMETER_MM, OUTLET_BORE_DIAMETER_MM, 2.0))
+    body = body.union(_box(RETENTION_LUG_X_MM, RETENTION_LUG_Y_MM, RETENTION_LUG_Z_MM, CENTER_X_MM, RETENTION_LUG_CENTER_Y_MM, RETENTION_LUG_CENTER_Z_MM))
 
-    lateral_face_x = CENTER_X_MM + BODY_X_MM / 2.0
-    outlet_boss_x0 = lateral_face_x - BOSS_BODY_OVERLAP_MM
-    outlet_boss_len = BOSS_PROJECTION_MM + BOSS_BODY_OVERLAP_MM
-    body = body.union(_x_ring(OUTLET_Y_MM, OUTLET_Z_MM, outlet_boss_x0, OUTLET_BOSS_OUTER_DIAMETER_MM, OUTLET_BORE_DIAMETER_MM, outlet_boss_len))
-    lug = _box(RETENTION_LUG_X_MM, RETENTION_LUG_Y_MM, RETENTION_LUG_Z_MM, CENTER_X_MM, RETENTION_LUG_CENTER_Y_MM, RETENTION_LUG_CENTER_Z_MM)
-    body = body.union(lug)
-
-    refill_bore = _z_cylinder(REFILL_X_MM, REFILL_Y_MM, boss_z0 - 0.5, REFILL_BORE_DIAMETER_MM, WALL_MM + BOSS_PROJECTION_MM + 2.0)
-    purge_bore = _z_cylinder(PURGE_X_MM, PURGE_Y_MM, boss_z0 - 0.5, PURGE_BORE_DIAMETER_MM, WALL_MM + BOSS_PROJECTION_MM + 2.0)
-    outlet_bore = _x_cylinder(OUTLET_Y_MM, OUTLET_Z_MM, lateral_face_x - WALL_MM - 0.5, OUTLET_BORE_DIAMETER_MM, WALL_MM + BOSS_PROJECTION_MM + 2.0)
-    key_bore = _x_cylinder(RETENTION_KEY_Y_MM, RETENTION_KEY_Z_MM, RETENTION_KEY_X_MIN_MM - 0.5, RETENTION_KEY_BORE_DIAMETER_MM, RETENTION_KEY_X_MAX_MM - RETENTION_KEY_X_MIN_MM + 1.0)
+    refill_bore = _z_cylinder(REFILL_X_MM, REFILL_Y_MM, boss_z0 - 0.5, REFILL_BORE_DIAMETER_MM, 4.0)
+    purge_bore = _z_cylinder(PURGE_X_MM, PURGE_Y_MM, boss_z0 - 0.5, PURGE_BORE_DIAMETER_MM, 4.0)
+    outlet_bore = _x_cylinder(OUTLET_Y_MM, OUTLET_Z_MM, lateral_x - WALL_MM - 0.5, OUTLET_BORE_DIAMETER_MM, 4.0)
+    key_bore = _x_cylinder(
+        RETENTION_KEY_Y_MM,
+        RETENTION_KEY_Z_MM,
+        RETENTION_KEY_X_MIN_MM - 0.5,
+        RETENTION_KEY_BORE_DIAMETER_MM,
+        RETENTION_KEY_X_MAX_MM - RETENTION_KEY_X_MIN_MM + 1.0,
+    )
     body = body.cut(refill_bore).cut(purge_bore).cut(outlet_bore).cut(key_bore)
-    _one_valid_solid(body, label="realized cleanser body")
+    _one_valid_solid(body, "realized cleanser body")
 
-    cradle_outer = _box(CRADLE_OUTER_X_MM, CRADLE_OUTER_Y_MM, CRADLE_OUTER_Z_MM, CENTER_X_MM, CENTER_Y_MM, CENTER_Z_MM)
     inner_z = (CRADLE_INNER_Z_MIN_MM + CRADLE_INNER_Z_MAX_MM) / 2.0
     inner_dz = CRADLE_INNER_Z_MAX_MM - CRADLE_INNER_Z_MIN_MM
-    cradle_inner = _box(CRADLE_INNER_X_MM, CRADLE_INNER_Y_MM, inner_dz, CENTER_X_MM, CENTER_Y_MM, inner_z)
-    cradle = cradle_outer.cut(cradle_inner)
-    lug_channel = _box(RETENTION_LUG_CHANNEL_X_MM, RETENTION_LUG_CHANNEL_Y_MM, RETENTION_LUG_CHANNEL_Z_MM, CENTER_X_MM, RETENTION_LUG_CENTER_Y_MM, RETENTION_LUG_CENTER_Z_MM)
-    drain_slot = _box(DRAIN_SLOT_X_MM, DRAIN_SLOT_Y_MM, DRAIN_SLOT_Z_MM, DRAIN_SLOT_CENTER_X_MM, DRAIN_SLOT_CENTER_Y_MM, DRAIN_SLOT_CENTER_Z_MM)
-    lateral_passage_x0 = CENTER_X_MM + CRADLE_INNER_X_MM / 2.0 - 0.5
-    outlet_cradle_passage = _x_cylinder(OUTLET_Y_MM, OUTLET_Z_MM, lateral_passage_x0, OUTLET_CRADLE_PASSAGE_DIAMETER_MM, CRADLE_WALL_MIN_MM + 2.0)
-    cradle = cradle.cut(lug_channel).cut(drain_slot).cut(key_bore).cut(outlet_cradle_passage)
-    _one_valid_solid(cradle, label="realized cleanser cradle")
+    cradle = _box(CRADLE_OUTER_X_MM, CRADLE_OUTER_Y_MM, CRADLE_OUTER_Z_MM, CENTER_X_MM, CENTER_Y_MM, CENTER_Z_MM)
+    cradle = cradle.cut(_box(CRADLE_INNER_X_MM, CRADLE_INNER_Y_MM, inner_dz, CENTER_X_MM, CENTER_Y_MM, inner_z))
+    cradle = cradle.cut(_box(RETENTION_LUG_CHANNEL_X_MM, RETENTION_LUG_CHANNEL_Y_MM, RETENTION_LUG_CHANNEL_Z_MM, CENTER_X_MM, RETENTION_LUG_CENTER_Y_MM, RETENTION_LUG_CENTER_Z_MM))
+    drain = _box(DRAIN_SLOT_X_MM, DRAIN_SLOT_Y_MM, DRAIN_SLOT_Z_MM, DRAIN_SLOT_CENTER_X_MM, DRAIN_SLOT_CENTER_Y_MM, DRAIN_SLOT_CENTER_Z_MM)
+    cradle = cradle.cut(drain).cut(key_bore)
+    passage_x0 = CENTER_X_MM + CRADLE_INNER_X_MM / 2.0 - 0.5
+    cradle = cradle.cut(_x_cylinder(OUTLET_Y_MM, OUTLET_Z_MM, passage_x0, OUTLET_CRADLE_PASSAGE_DIAMETER_MM, CRADLE_WALL_MIN_MM + 2.0))
+    _one_valid_solid(cradle, "realized cleanser cradle")
 
-    key_stem = _x_cylinder(RETENTION_KEY_Y_MM, RETENTION_KEY_Z_MM, RETENTION_KEY_X_MIN_MM, RETENTION_KEY_STEM_DIAMETER_MM, RETENTION_KEY_X_MAX_MM - RETENTION_KEY_X_MIN_MM)
-    key_head = _x_cylinder(RETENTION_KEY_Y_MM, RETENTION_KEY_Z_MM, RETENTION_KEY_HEAD_X_MIN_MM, RETENTION_KEY_HEAD_DIAMETER_MM, RETENTION_KEY_HEAD_X_MAX_MM - RETENTION_KEY_HEAD_X_MIN_MM)
-    key = key_stem.union(key_head)
-    _one_valid_solid(key, label="cleanser retention key")
+    key = _x_cylinder(
+        RETENTION_KEY_Y_MM,
+        RETENTION_KEY_Z_MM,
+        RETENTION_KEY_X_MIN_MM,
+        RETENTION_KEY_STEM_DIAMETER_MM,
+        RETENTION_KEY_X_MAX_MM - RETENTION_KEY_X_MIN_MM,
+    ).union(
+        _x_cylinder(
+            RETENTION_KEY_Y_MM,
+            RETENTION_KEY_Z_MM,
+            RETENTION_KEY_HEAD_X_MIN_MM,
+            RETENTION_KEY_HEAD_DIAMETER_MM,
+            RETENTION_KEY_HEAD_X_MAX_MM - RETENTION_KEY_HEAD_X_MIN_MM,
+        )
+    )
+    _one_valid_solid(key, "realized cleanser retention key")
 
-    refill_closure_reservation = _z_cylinder(REFILL_X_MM, REFILL_Y_MM, boss_z0 - REFILL_CLOSURE_RESERVATION_DEPTH_MM, REFILL_CLOSURE_RESERVATION_DIAMETER_MM, REFILL_CLOSURE_RESERVATION_DEPTH_MM)
-    purge_connector_reservation = _z_cylinder(PURGE_X_MM, PURGE_Y_MM, boss_z0 - PURGE_CONNECTOR_RESERVATION_DEPTH_MM, PURGE_CONNECTOR_RESERVATION_DIAMETER_MM, PURGE_CONNECTOR_RESERVATION_DEPTH_MM)
-    outlet_connector_reservation = _x_cylinder(OUTLET_Y_MM, OUTLET_Z_MM, outlet_boss_x0 + outlet_boss_len, OUTLET_CONNECTOR_RESERVATION_DIAMETER_MM, OUTLET_CONNECTOR_RESERVATION_DEPTH_MM)
+    refill_res = _z_cylinder(REFILL_X_MM, REFILL_Y_MM, boss_z0 - REFILL_CLOSURE_RESERVATION_DEPTH_MM, REFILL_CLOSURE_RESERVATION_DIAMETER_MM, REFILL_CLOSURE_RESERVATION_DEPTH_MM)
+    purge_res = _z_cylinder(PURGE_X_MM, PURGE_Y_MM, boss_z0 - PURGE_CONNECTOR_RESERVATION_DEPTH_MM, PURGE_CONNECTOR_RESERVATION_DIAMETER_MM, PURGE_CONNECTOR_RESERVATION_DEPTH_MM)
+    outlet_res = _x_cylinder(OUTLET_Y_MM, OUTLET_Z_MM, outlet_boss_x0 + 2.0, OUTLET_CONNECTOR_RESERVATION_DIAMETER_MM, OUTLET_CONNECTOR_RESERVATION_DEPTH_MM)
 
     body_bb = body.val().BoundingBox()
-    cassette_sweep = _box(float(body_bb.xlen), float(body_bb.ylen), float(body_bb.zlen) + CASSETTE_WITHDRAWAL_TRAVEL_MM, (float(body_bb.xmin) + float(body_bb.xmax)) / 2.0, (float(body_bb.ymin) + float(body_bb.ymax)) / 2.0, (float(body_bb.zmin) + float(body_bb.zmax) - CASSETTE_WITHDRAWAL_TRAVEL_MM) / 2.0)
+    cassette_sweep = _box(
+        float(body_bb.xlen),
+        float(body_bb.ylen),
+        float(body_bb.zlen) + CASSETTE_WITHDRAWAL_TRAVEL_MM,
+        (float(body_bb.xmin) + float(body_bb.xmax)) / 2.0,
+        (float(body_bb.ymin) + float(body_bb.ymax)) / 2.0,
+        (float(body_bb.zmin) + float(body_bb.zmax) - CASSETTE_WITHDRAWAL_TRAVEL_MM) / 2.0,
+    )
     key_bb = key.val().BoundingBox()
-    key_sweep = _box(float(key_bb.xlen) + RETENTION_KEY_WITHDRAWAL_TRAVEL_MM, float(key_bb.ylen), float(key_bb.zlen), (float(key_bb.xmin) + float(key_bb.xmax) + RETENTION_KEY_WITHDRAWAL_TRAVEL_MM) / 2.0, (float(key_bb.ymin) + float(key_bb.ymax)) / 2.0, (float(key_bb.zmin) + float(key_bb.zmax)) / 2.0)
+    key_sweep = _box(
+        float(key_bb.xlen) + RETENTION_KEY_WITHDRAWAL_TRAVEL_MM,
+        float(key_bb.ylen),
+        float(key_bb.zlen),
+        (float(key_bb.xmin) + float(key_bb.xmax) + RETENTION_KEY_WITHDRAWAL_TRAVEL_MM) / 2.0,
+        (float(key_bb.ymin) + float(key_bb.ymax)) / 2.0,
+        (float(key_bb.zmin) + float(key_bb.zmax)) / 2.0,
+    )
 
-    service_sequence = (
-        CleanserServiceStep(SERVICE_SEQUENCE_IDS[0], "cleanser_retention_key", (RETENTION_KEY_WITHDRAWAL_TRAVEL_MM, 0.0, 0.0), "MASK_REMOVED_UNPOWERED_CLEANSER_SERVICE"),
-        CleanserServiceStep(SERVICE_SEQUENCE_IDS[1], "cleanser_cassette", (0.0, 0.0, -CASSETTE_WITHDRAWAL_TRAVEL_MM), "RETENTION_KEY_RETRACTED_AND_MASK_REMOVED_UNPOWERED"),
+    sequence = (
+        CleanserServiceStep(
+            SERVICE_SEQUENCE_IDS[0],
+            "cleanser_retention_key",
+            (RETENTION_KEY_WITHDRAWAL_TRAVEL_MM, 0.0, 0.0),
+            "MASK_REMOVED_UNPOWERED_CLEANSER_SERVICE",
+        ),
+        CleanserServiceStep(
+            SERVICE_SEQUENCE_IDS[1],
+            "cleanser_cassette",
+            (0.0, 0.0, -CASSETTE_WITHDRAWAL_TRAVEL_MM),
+            "RETENTION_KEY_RETRACTED_AND_MASK_REMOVED_UNPOWERED",
+        ),
     )
     realized = RealizedCleanserStorage(
         source_authority_revision=str(authority.get("project", "authority_revision")),
@@ -451,13 +489,13 @@ def build_realized_cleanser_storage(authority: Authority) -> RealizedCleanserSto
         refill_bore_solid=refill_bore,
         purge_bore_solid=purge_bore,
         outlet_bore_solid=outlet_bore,
-        refill_closure_reservation_solid=refill_closure_reservation,
-        purge_connector_reservation_solid=purge_connector_reservation,
-        outlet_connector_reservation_solid=outlet_connector_reservation,
-        drain_path_reference_solid=drain_slot,
+        refill_closure_reservation_solid=refill_res,
+        purge_connector_reservation_solid=purge_res,
+        outlet_connector_reservation_solid=outlet_res,
+        drain_path_reference_solid=drain,
         cassette_service_sweep_solid=cassette_sweep,
         key_service_sweep_solid=key_sweep,
-        service_sequence=service_sequence,
+        service_sequence=sequence,
     )
     realized.validate_current_sources(authority)
     return realized
