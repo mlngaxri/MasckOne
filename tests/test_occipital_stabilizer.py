@@ -19,6 +19,12 @@ from masck_one.occipital_stabilizer import (
 )
 
 
+@pytest.fixture(scope="module")
+def stabilizer():
+    """Build the immutable deterministic Prompt 08 package once for read-only regressions."""
+    return build_occipital_stabilizer()
+
+
 def _bounds(solid: cq.Workplane) -> tuple[float, float, float, float, float, float]:
     bb = solid.val().BoundingBox()
     return tuple(float(value) for value in (bb.xmin, bb.xmax, bb.ymin, bb.ymax, bb.zmin, bb.zmax))
@@ -28,8 +34,7 @@ def _intersection_mm3(first: cq.Workplane, second: cq.Workplane) -> float:
     return float(first.val().intersect(second.val()).Volume())
 
 
-def test_occipital_geometry_is_distinct_from_crown_and_facial_reaction() -> None:
-    stabilizer = build_occipital_stabilizer()
+def test_occipital_geometry_is_distinct_from_crown_and_facial_reaction(stabilizer) -> None:
     manifest = stabilizer.manifest()
 
     separation = manifest["functional_separation"]
@@ -46,8 +51,7 @@ def test_occipital_geometry_is_distinct_from_crown_and_facial_reaction() -> None
     assert manifest["four_zone_actuation_preserved"] is True
 
 
-def test_lateral_yokes_leave_central_rear_packaging_window_and_crown_corridor_clear() -> None:
-    stabilizer = build_occipital_stabilizer()
+def test_lateral_yokes_leave_central_rear_packaging_window_and_crown_corridor_clear(stabilizer) -> None:
     left = _bounds(stabilizer.left.solid)
     right = _bounds(stabilizer.right.solid)
     central = _bounds(stabilizer.central_rear_package_keepout)
@@ -64,8 +68,7 @@ def test_lateral_yokes_leave_central_rear_packaging_window_and_crown_corridor_cl
     assert max(left[3], right[3]) < crown[2]
 
 
-def test_yokes_clear_released_packages_protected_regions_and_cell4_waste_route_bounds() -> None:
-    stabilizer = build_occipital_stabilizer()
+def test_yokes_clear_released_packages_protected_regions_and_cell4_waste_route_bounds(stabilizer) -> None:
     manifest = stabilizer.manifest()
     assert manifest["source_authority_revision"] == AUTHORITY_REVISION
 
@@ -79,8 +82,7 @@ def test_yokes_clear_released_packages_protected_regions_and_cell4_waste_route_b
     assert any("PROTECTED-EYE" in obstacle for obstacle in obstacle_ids)
 
 
-def test_positive_capture_root_bores_exist_without_friction_attachment_claim() -> None:
-    stabilizer = build_occipital_stabilizer()
+def test_positive_capture_root_bores_exist_without_friction_attachment_claim(stabilizer) -> None:
     manifest = stabilizer.manifest()
     root = manifest["root_capture_interface"]
     assert root["positive_capture_bore_realized"] is True
@@ -91,8 +93,8 @@ def test_positive_capture_root_bores_exist_without_friction_attachment_claim() -
         assert _intersection_mm3(yoke, bore) == 0.0
 
 
-def test_human_fit_uncertainty_and_physical_gates_remain_open() -> None:
-    manifest = build_occipital_stabilizer().manifest()
+def test_human_fit_uncertainty_and_physical_gates_remain_open(stabilizer) -> None:
+    manifest = stabilizer.manifest()
     contact = manifest["nominal_contact_geometry"]
     assert contact["backer_face_z_mm"] == PAD_CONTACT_FACE_Z_MM
     assert contact["contact_layer_material"] is None
@@ -117,8 +119,8 @@ def test_occipital_source_model_binding_fails_closed_on_modified_current_main_ge
         build_occipital_stabilizer(authority=model.authority, model=modified)
 
 
-def test_occipital_package_is_deterministic_and_step_roundtrips(tmp_path) -> None:
-    first = build_occipital_stabilizer()
+def test_occipital_package_is_deterministic_and_step_roundtrips(tmp_path, stabilizer) -> None:
+    first = stabilizer
     second = build_occipital_stabilizer()
     assert first.package_sha256 == second.package_sha256
     assert first.manifest() == second.manifest()
