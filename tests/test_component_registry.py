@@ -78,7 +78,7 @@ def test_realized_solids_and_controlled_envelopes_are_not_overstated() -> None:
     ):
         assert by_id[component_id].status == CONTROLLED_ENVELOPE
 
-    assert "PHYSICAL_VALIDATION" not in by_id["MASCK_ONE-COMP-RIGID-SHELL"].evidence_status
+    assert "NOT_CLASS_A_OR_PHYSICAL_VALIDATION" in by_id["MASCK_ONE-COMP-RIGID-SHELL"].evidence_status
     assert "PACKAGING_BENCHMARK_ONLY" in by_id["MASCK_ONE-COMP-BATTERY"].evidence_status
 
 
