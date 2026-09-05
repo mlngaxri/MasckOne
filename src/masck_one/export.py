@@ -12,6 +12,8 @@ from .boundary_release import (
     build_verified_interface_boundary_topology,
 )
 from .contact_simulation import build_contact_simulation_framework
+from .exterior_eye_roll import build_eye_rolled_exterior_shell
+from .integrated_product import integrated_exterior_manifest
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
@@ -19,6 +21,8 @@ from .rear_service_skin import build_rear_service_skin
 from .structural_frame import build_structural_frame_topology
 
 
+CELL2_EXTERIOR_REVIEW_STEP = "cell2_rigid_shell_candidate_review.step"
+CELL2_EXTERIOR_REVIEW_MANIFEST = "cell2_exterior_candidate_manifest.json"
 CELL2_REAR_REVIEW_EXPORT_NAMES = (
     "cell2_rear_service_skin_review",
     "cell2_rear_service_cover_removal_reference",
@@ -42,6 +46,60 @@ def _realized_waste_backbone_manifest() -> dict[str, object]:
         "routes": [route.manifest() for route in release.realization.routes],
         "total_geometric_dead_volume_mL": release.realization.total_geometric_dead_volume_mL,
     }
+
+
+def _export_cell2_exterior_candidate_review(
+    output: Path,
+    model: MasckOneModel,
+) -> dict[str, object]:
+    """Exercise and export the exact Cell 2 shell without promoting it into released material."""
+    candidate = build_eye_rolled_exterior_shell(
+        model.authority,
+        model.facial_reference,
+    )
+    shape = candidate.val()
+    if not shape.isValid() or candidate.solids().size() != 1 or float(shape.Volume()) <= 0.0:
+        raise ValueError("Cell 2 exterior smoke candidate must be one valid positive solid")
+
+    cq.exporters.export(candidate, str(output / CELL2_EXTERIOR_REVIEW_STEP))
+    imported = cq.importers.importStep(str(output / CELL2_EXTERIOR_REVIEW_STEP))
+    if imported.solids().size() != 1 or not imported.val().isValid():
+        raise ValueError("Cell 2 exterior smoke STEP must round-trip as one valid solid")
+
+    bb = shape.BoundingBox()
+    imported_bb = imported.val().BoundingBox()
+    for expected, actual in (
+        (bb.xlen, imported_bb.xlen),
+        (bb.ylen, imported_bb.ylen),
+        (bb.zlen, imported_bb.zlen),
+    ):
+        if abs(float(expected) - float(actual)) > 1e-4:
+            raise ValueError("Cell 2 exterior smoke STEP bounds changed on round-trip")
+
+    manifest: dict[str, object] = {
+        "schema": "MASCK_ONE_CELL2_EXTERIOR_SMOKE_REVIEW_V1",
+        "coordinate_frame": "MASCK_ONE_AUTHORITY_WORLD_MM",
+        "shell_valid": True,
+        "shell_solid_count": 1,
+        "shell_volume_mm3": float(shape.Volume()),
+        "shell_bounds_mm": [
+            float(bb.xmin),
+            float(bb.xmax),
+            float(bb.ymin),
+            float(bb.ymax),
+            float(bb.zmin),
+            float(bb.zmax),
+        ],
+        "integrated_exterior": integrated_exterior_manifest(model.authority),
+        "assembly_policy": "REVIEW_ONLY_NOT_RELEASED_DEVELOPMENT_ASSEMBLY_MATERIAL",
+        "evidence_status": (
+            "DIGITAL_CELL2_CANDIDATE_SMOKE_NOT_RELEASED_PRODUCT_OR_PHYSICAL_EVIDENCE"
+        ),
+    }
+    with (output / CELL2_EXTERIOR_REVIEW_MANIFEST).open("w", encoding="utf-8") as handle:
+        json.dump(manifest, handle, indent=2, sort_keys=True)
+        handle.write("\n")
+    return manifest
 
 
 def _export_cell2_rear_service_review(
@@ -85,6 +143,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
+    exterior_candidate_manifest = _export_cell2_exterior_candidate_review(output, model)
     rear_service_manifest, rear_review_step_files = _export_cell2_rear_service_review(
         output,
         model.authority,
@@ -126,9 +185,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
         },
         "review_geometry": {
+            "cell2_exterior_candidate": exterior_candidate_manifest,
             "cell2_rear_service_skin": rear_service_manifest,
         },
         "development_assembly_exclusions": [
+            "cell2_rigid_shell_candidate_review",
             *CELL2_REAR_REVIEW_EXPORT_NAMES,
         ],
         "analysis_frameworks": {
@@ -136,18 +197,24 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         },
         "exported_step_files": (
             [f"{name}.step" for name in export_map]
+            + [CELL2_EXTERIOR_REVIEW_STEP]
             + rear_review_step_files
             + ["masck_one_development_assembly.step"]
         ),
-        "exported_manifest_files": [CELL2_REAR_REVIEW_MANIFEST],
+        "exported_manifest_files": [
+            CELL2_EXTERIOR_REVIEW_MANIFEST,
+            CELL2_REAR_REVIEW_MANIFEST,
+        ],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "Cell 2 rear-service STEP files are review-only geometry and references excluded from development assembly "
-            "material until dry-side package reflow, attachment and battery extraction geometry are reconciled. "
-            "Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "The default rigid_shell.step and development assembly retain released-model material. The exact Cell 2 "
+            "eye-rolled shell is independently built and STEP round-tripped during smoke as review-only candidate "
+            "geometry. Cell 2 rear-service STEP files are likewise review-only geometry and references excluded from "
+            "development assembly material until dry-side package reflow, attachment and battery extraction geometry "
+            "are reconciled. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
