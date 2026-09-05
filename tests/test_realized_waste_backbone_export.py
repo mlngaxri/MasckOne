@@ -4,10 +4,20 @@ from masck_one.export import _realized_waste_backbone_manifest
 from masck_one.realized_waste_backbone_release import build_current_waste_routing_sources
 
 
-def test_deterministic_release_artifact_emits_current_waste_backbone_geometry():
+def test_deterministic_release_artifact_emits_current_waste_backbone_geometry(monkeypatch):
+    sources = build_current_waste_routing_sources()
+    from masck_one import realized_waste_backbone_release as release_module
+
+    # Reconstruct the current repository source graph once, then exercise the release
+    # serializer twice against that exact accepted graph. Trusted release-source
+    # reconstruction is independently covered by the dedicated release tests.
+    monkeypatch.setattr(
+        release_module,
+        "build_current_waste_routing_sources",
+        lambda: sources,
+    )
     first = _realized_waste_backbone_manifest()
     second = _realized_waste_backbone_manifest()
-    sources = build_current_waste_routing_sources()
 
     assert json.dumps(first, sort_keys=True, allow_nan=False) == json.dumps(
         second,
