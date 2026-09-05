@@ -13,6 +13,7 @@ from .boundary_release import (
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
+from .realized_water_reservoir import build_realized_water_reservoir
 from .structural_frame import build_structural_frame_topology
 
 
@@ -25,11 +26,13 @@ def _ensure_output_dir(path: str | Path) -> Path:
 def export_release(output_dir: str | Path = "generated", model: MasckOneModel | None = None) -> dict:
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
+    realized_water = build_realized_water_reservoir(model.authority)
 
     export_map = {
         "rigid_shell": model.shell.solid,
         "nasal_lobe_membrane_reference": model.nasal_interface.solid,
-        "water_reservoir_envelope": model.water_reservoir_envelope.solid,
+        "water_reservoir_body": model.water_reservoir_body.solid,
+        "water_reservoir_lid": model.water_reservoir_lid.solid,
         "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
         "battery_reference_envelope": model.battery_reference_envelope.solid,
     }
@@ -73,6 +76,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
         },
+        "digital_geometry": {
+            "water_reservoir": realized_water.manifest(),
+            "water_reservoir_manifest_sha256": realized_water.manifest_sha256,
+        },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
@@ -80,7 +87,9 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
-            "released by Iteration 15. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "released by Iteration 15. The realized water reservoir records digital cavity volume, provisional walls, "
+            "datums and a removal reservation only; it is not leakage, orientation, hygiene, drying, serviceability, "
+            "durability or physical-safety evidence. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
