@@ -13,6 +13,7 @@ from .facial_surface import FacialSurface, build_planar_development_surface
 from .interface_topology import CompliantInterfaceTopology, build_compliant_interface_topology
 from .nasal_subsystem import NasalSubsystemTopology, ROLE_LOBE, build_nasal_subsystem_topology
 from .protected_volumes import ProtectedVolumeSet, build_protected_volumes
+from .realized_water_reservoir import build_realized_water_reservoir
 from .spatial import CanonicalDatums, Point2, Point3
 from .worn_pose import WornPoseRegressionSet, generate_hard_envelope_regression_set
 
@@ -80,6 +81,8 @@ class MasckOneModel:
     nasal_interface: Component
     actuator_envelopes: tuple[Component, ...]
     water_reservoir_envelope: Component
+    water_reservoir_body: Component
+    water_reservoir_lid: Component
     waste_cartridge_envelope: Component
     battery_reference_envelope: Component
     visual_keepouts: tuple[Component, ...]
@@ -90,7 +93,8 @@ class MasckOneModel:
             self.shell,
             self.nasal_interface,
             *self.actuator_envelopes,
-            self.water_reservoir_envelope,
+            self.water_reservoir_body,
+            self.water_reservoir_lid,
             self.waste_cartridge_envelope,
             self.battery_reference_envelope,
             *self.visual_keepouts,
@@ -264,9 +268,24 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE",
         "Only the dedicated nasal-lobe development role carries the 0.30 mm authority thickness; bridge, dorsum, sidewall and philtrum thicknesses remain unresolved. Not final anatomical membrane CAD.",
     )
+    realized_water = build_realized_water_reservoir(authority)
     water_reservoir = Component(
-        "water_reservoir_envelope", _box_centered(26.0, 25.0, 10.0, Point3(0.0, 76.0, 7.0)),
-        "ENGINEERING_BASELINE_ENVELOPE", "6500 mm^3 gross volume; final wall/port geometry not frozen.",
+        "water_reservoir_internal_cavity_reference",
+        realized_water.cavity_solid,
+        "DIGITAL_INTERNAL_CAPACITY_REFERENCE",
+        "Exact fresh-water cavity used for geometric gross/usable-volume accounting; reference volume is not physical material.",
+    )
+    water_reservoir_body = Component(
+        "water_reservoir_body",
+        realized_water.body_solid,
+        "CELL4_PROVISIONAL_WET_REMOVABLE_BODY",
+        "Deterministic removable fresh-water body with provisional 1.0 mm wall; material, sealing, leakage and durability remain unvalidated.",
+    )
+    water_reservoir_lid = Component(
+        "water_reservoir_lid",
+        realized_water.lid_solid,
+        "CELL4_PROVISIONAL_WET_REMOVABLE_LID",
+        "Deterministic removable fresh-water lid/reference closure; seal hardware, ingress and physical serviceability remain unresolved.",
     )
     cw, ch, cd = (float(v) for v in authority.get("fluid", "cartridge", "external_envelope_mm"))
     waste_cartridge = Component(
@@ -292,6 +311,8 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         nasal_interface=nasal_interface,
         actuator_envelopes=_build_actuators(authority),
         water_reservoir_envelope=water_reservoir,
+        water_reservoir_body=water_reservoir_body,
+        water_reservoir_lid=water_reservoir_lid,
         waste_cartridge_envelope=waste_cartridge,
         battery_reference_envelope=battery,
         visual_keepouts=_build_visual_keepouts(authority, facial_reference),
