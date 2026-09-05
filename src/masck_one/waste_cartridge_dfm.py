@@ -113,7 +113,10 @@ def _exact_bool(value: object, *, label: str) -> bool:
 def _finite(value: object, *, label: str, positive: bool = False) -> float:
     if type(value) not in (int, float):
         raise WasteCartridgeDfmError(f"{label} must be an exact finite numeric scalar")
-    result = float(value)
+    try:
+        result = float(value)
+    except (OverflowError, ValueError) as exc:
+        raise WasteCartridgeDfmError(f"{label} must be representable as a finite float") from exc
     if not math.isfinite(result):
         raise WasteCartridgeDfmError(f"{label} must be finite")
     if positive and result <= 0.0:
@@ -228,6 +231,7 @@ class WasteCartridgeDfmRequirement:
             raise WasteCartridgeDfmError("DFM requirement cannot imply physical validation")
 
     def manifest(self) -> dict[str, object]:
+        self.__post_init__()
         return {
             "requirement_id": self.requirement_id,
             "severity": self.severity,
@@ -326,6 +330,7 @@ class WasteCartridgeDfmAudit:
         for req in self.requirements:
             if type(req) is not WasteCartridgeDfmRequirement:
                 raise WasteCartridgeDfmError("waste-cartridge DFM requirement type changed")
+            req.__post_init__()
         if _exact_bool(self.development_assembly_material_eligible, label="assembly-material eligibility"):
             raise WasteCartridgeDfmError("an unresolved package envelope cannot be physical development-assembly material")
         if _exact_bool(self.digital_mvp_cartridge_dfm_ready, label="digital cartridge DFM readiness"):
@@ -341,6 +346,7 @@ class WasteCartridgeDfmAudit:
         return sha256(raw).hexdigest()
 
     def validate_current_sources(self, *, model: MasckOneModel | None = None) -> WasteCartridgeArchitecture:
+        self.__post_init__()
         _require_source_files_current()
         model = model or build_model()
         _require_canonical_authority(model.authority)
@@ -356,6 +362,7 @@ class WasteCartridgeDfmAudit:
         return cartridge
 
     def manifest(self, *, include_sha: bool = True) -> dict[str, object]:
+        self.__post_init__()
         payload: dict[str, object] = {
             "schema": self.schema,
             "source_main_sha": self.source_main_sha,
