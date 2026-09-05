@@ -1,9 +1,12 @@
+import math
+
 from masck_one.anatomy import build_facial_reference
 from masck_one.authority import load_authority
 from masck_one.exterior_surface import (
     EXTERIOR_SCALE_X,
     EXTERIOR_SCALE_Y,
     EXTERIOR_Z_STATIONS_MM,
+    PROFILE_RIGHT,
     build_refined_exterior_shell,
     exterior_sections,
     exterior_surface_manifest,
@@ -33,6 +36,17 @@ def test_authored_sections_stay_inside_authority_envelope():
     sections = exterior_sections(authority)
     assert max(section[1] for section in sections) <= outer_w
     assert max(section[2] for section in sections) <= outer_h
+
+
+def test_control_profile_wall_reserve_exceeds_absolute_development_minimum():
+    authority = load_authority()
+    nominal_wall = authority.number("geometry", "shell_nominal_wall_mm")
+    absolute_min = authority.number("geometry", "shell_absolute_development_min_mm")
+    # Inner sections shrink width and height by two nominal walls. At every authored
+    # profile control point the corresponding XY separation is wall * hypot(x, y).
+    # This is a deterministic control-net guard, not a tooling or molded-wall claim.
+    minimum_control_reserve = nominal_wall * min(math.hypot(x, y) for x, y in PROFILE_RIGHT)
+    assert minimum_control_reserve >= absolute_min
 
 
 def test_manifest_records_non_ruled_consumer_form_policy_without_physical_claims():
