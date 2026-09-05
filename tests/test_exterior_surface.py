@@ -21,11 +21,22 @@ from masck_one.integrated_product import build_mvp_product_candidate
 from masck_one.spatial import CanonicalDatums
 
 
+ACTUAL_SECTION_TAPER_MIN_MM = 4.0
+
+
 def _build_shell():
     authority = load_authority()
     datums = CanonicalDatums.from_authority(authority)
     facial_reference = build_facial_reference(authority, datums)
     return authority, facial_reference, build_refined_exterior_shell(authority, facial_reference)
+
+
+def _section_xy_span_mm(solid: cq.Shape, z_mm: float) -> tuple[float, float]:
+    section = cq.Workplane("XY").workplane(offset=z_mm).newObject([solid]).section()
+    if section.size() == 0:
+        raise AssertionError(f"Exterior section at Z={z_mm} mm is empty")
+    bb = section.val().BoundingBox()
+    return float(bb.xlen), float(bb.ylen)
 
 
 def test_surface_stations_are_controlled_and_taper_before_crown():
@@ -34,8 +45,8 @@ def test_surface_stations_are_controlled_and_taper_before_crown():
     assert all(scale > 0.0 for scale in EXTERIOR_SCALE_X)
     assert all(scale > 0.0 for scale in EXTERIOR_SCALE_Y)
 
-    # Peak side mass must occur before the anterior perimeter. This is the material
-    # silhouette guard that prevents the side body from reverting to a parallel slab.
+    # Peak side mass must occur before the anterior perimeter. This is the authored
+    # construction guard; a separate B-rep regression below verifies the built result.
     peak_x = max(range(len(EXTERIOR_SCALE_X)), key=EXTERIOR_SCALE_X.__getitem__)
     peak_y = max(range(len(EXTERIOR_SCALE_Y)), key=EXTERIOR_SCALE_Y.__getitem__)
     assert 0 < peak_x < len(EXTERIOR_SCALE_X) - 1
@@ -63,6 +74,18 @@ def test_anterior_perimeter_tapers_materially_from_peak_side_mass():
     _, anterior_width, anterior_height = sections[-1]
     assert peak_width - anterior_width >= 4.0
     assert peak_height - anterior_height >= 4.0
+
+
+def test_built_shell_carries_actual_midbody_depth_into_anterior_taper():
+    _, _, shell = _build_shell()
+    solid = shell.val()
+    peak_width, peak_height = _section_xy_span_mm(solid, 16.0)
+    anterior_width, anterior_height = _section_xy_span_mm(solid, 21.5)
+
+    # This protects the visible B-rep result rather than only the authored control net.
+    # The exact current candidate measures roughly 4.59 mm X taper and 4.16 mm Y taper.
+    assert peak_width - anterior_width >= ACTUAL_SECTION_TAPER_MIN_MM
+    assert peak_height - anterior_height >= ACTUAL_SECTION_TAPER_MIN_MM
 
 
 def test_control_profile_wall_reserve_exceeds_absolute_development_minimum():
