@@ -27,8 +27,6 @@ from .waste_pump_architecture import (
 
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 AUTHORITY_REVISION = "2026-08-30-R1"
-AUTHORITY_BLOB_SHA = "2608dda483b995539de422290371c219668a1527"
-ROUTING_TOPOLOGY_BLOB_SHA = "ace02ee529070465b11832f475771125636312cb"
 
 (
     STAGE_ACQUISITION_TO_PUMP,
@@ -69,6 +67,12 @@ def _positive(value: object, label: str) -> float:
 def _git_sha(value: object, label: str) -> str:
     if type(value) is not str or len(value) != 40 or any(c not in "0123456789abcdef" for c in value):
         raise RealizedWasteBackboneError(f"{label} must be exact lowercase 40-hex")
+    return value
+
+
+def _sha256_digest(value: object, label: str) -> str:
+    if type(value) is not str or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+        raise RealizedWasteBackboneError(f"{label} must be exact lowercase SHA-256")
     return value
 
 
@@ -133,7 +137,10 @@ class ArcXY:
         if type(self.center) is not Point3:
             raise RealizedWasteBackboneError("arc center must be an exact Point3")
         _positive(self.radius_mm, "arc radius")
-        for value, label in ((self.start_angle_deg, "arc start angle"), (self.sweep_angle_deg, "arc sweep angle")):
+        for value, label in (
+            (self.start_angle_deg, "arc start angle"),
+            (self.sweep_angle_deg, "arc sweep angle"),
+        ):
             if type(value) not in (int, float) or isinstance(value, bool) or not math.isfinite(float(value)):
                 raise RealizedWasteBackboneError(f"{label} must be finite numeric")
         if not 0.0 < abs(float(self.sweep_angle_deg)) <= 180.0:
@@ -342,19 +349,18 @@ class RealizedWasteRoute:
 @dataclass(frozen=True, slots=True)
 class RealizedWasteBackbone:
     source_git_sha: str
+    source_waste_pump_architecture_sha256: str
     routes: tuple[RealizedWasteRoute, ...]
     authority_revision: str = AUTHORITY_REVISION
-    authority_blob_sha: str = AUTHORITY_BLOB_SHA
-    routing_topology_blob_sha: str = ROUTING_TOPOLOGY_BLOB_SHA
 
     def validate(self) -> None:
-        _git_sha(self.source_git_sha, "source Git SHA")
-        if self.authority_revision != AUTHORITY_REVISION:
-            raise RealizedWasteBackboneError("authority revision is stale")
-        if self.authority_blob_sha != AUTHORITY_BLOB_SHA:
-            raise RealizedWasteBackboneError("authority source blob is stale")
-        if self.routing_topology_blob_sha != ROUTING_TOPOLOGY_BLOB_SHA:
-            raise RealizedWasteBackboneError("routing topology source blob is stale")
+        _git_sha(self.source_git_sha, "authored-against Git SHA")
+        _sha256_digest(
+            self.source_waste_pump_architecture_sha256,
+            "source waste-pump architecture digest",
+        )
+        if type(self.authority_revision) is not str or not self.authority_revision:
+            raise RealizedWasteBackboneError("authority revision provenance must be exact nonblank text")
         expected = (
             (
                 ROUTE_ACQUISITION_TO_PUMP,
@@ -390,7 +396,7 @@ class RealizedWasteBackbone:
         )
         if actual != expected:
             raise RealizedWasteBackboneError(
-                "realized segment binding must match current controlled waste topology and retain passive backflow stage"
+                "realized segment binding must retain the current passive-backflow topology"
             )
         for route in self.routes:
             route.validate()
@@ -405,9 +411,8 @@ class RealizedWasteBackbone:
         self.validate()
         payload = {
             "source_git_sha": self.source_git_sha,
+            "source_waste_pump_architecture_sha256": self.source_waste_pump_architecture_sha256,
             "authority_revision": self.authority_revision,
-            "authority_blob_sha": self.authority_blob_sha,
-            "routing_topology_blob_sha": self.routing_topology_blob_sha,
             "routes": [route.manifest() for route in self.routes],
             "total_geometric_dead_volume_mL": self.total_geometric_dead_volume_mL,
         }
@@ -416,7 +421,12 @@ class RealizedWasteBackbone:
         ).hexdigest()
 
 
-def build_cell4_waste_backbone(*, source_git_sha: str) -> RealizedWasteBackbone:
+def build_cell4_waste_backbone(
+    *,
+    source_git_sha: str,
+    source_waste_pump_architecture_sha256: str,
+    authority_revision: str = AUTHORITY_REVISION,
+) -> RealizedWasteBackbone:
     """Build a hidden wearer-left inferior route baseline in authority world coordinates."""
     route_a = RealizedWasteRoute(
         ROUTE_ACQUISITION_TO_PUMP,
@@ -449,6 +459,8 @@ def build_cell4_waste_backbone(*, source_git_sha: str) -> RealizedWasteBackbone:
     )
     result = RealizedWasteBackbone(
         source_git_sha=source_git_sha,
+        source_waste_pump_architecture_sha256=source_waste_pump_architecture_sha256,
+        authority_revision=authority_revision,
         routes=(route_a, route_b, route_c),
     )
     result.validate()

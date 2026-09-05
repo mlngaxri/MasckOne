@@ -2,11 +2,10 @@
 
 Status: provisional digital CAD engineering baseline, not physical validation.
 
-Current main source: `5fce2a43a34d8be49256677a35af60c906dc1653`.
-Authority revision: `2026-08-30-R1`.
-Authority blob: `2608dda483b995539de422290371c219668a1527`.
-Controlled waste-topology blob: `ace02ee529070465b11832f475771125636312cb`.
+Authored-against Git provenance: `5fce2a43a34d8be49256677a35af60c906dc1653`.
 World frame: frozen Masck One authority datum, millimetres, +X wearer right, +Y superior, +Z anterior.
+
+The authored-against Git SHA is historical provenance only. Release freshness is not self-certified from that SHA or from a copied authority revision. The release wrapper reconstructs the current repository-rooted fluid source graph, calls `WastePumpArchitecture.validate_current_sources(...)`, binds the live `WastePumpArchitecture.architecture_sha256`, and exact-compares every realized route ID, stage, phase, source and target against that live architecture.
 
 ## Realized scope
 
@@ -20,19 +19,27 @@ For these backbone segments, the controlled route ID is also the routing-ledger 
 
 The adjusted centerlines total approximately 64.255 mm and produce approximately 0.291 mL geometric volume at the provisional 2.4 mm circular internal-diameter seed.
 
+## Source-integrity closure
+
+Cell 5 rejected the prior release binding because it compared source SHA and authority revision only against constants owned by the same module. That could remain internally consistent after an upstream authority or routing change.
+
+The current release path instead rebuilds the authority, structural frame, distribution geometry, waste acquisition and waste-pump architecture from current repository sources. The upstream `WastePumpArchitecture` then validates the complete inherited source graph before its deterministic architecture digest is accepted. A well-formed but stale 64-hex architecture digest and a changed current distribution/source graph are hostile regression cases and must fail closed.
+
+The realized geometry manifest retains the authored-against Git SHA only as historical provenance. It is not used as proof that current routing authority is unchanged.
+
 ## Integration correction in this revision
 
 The previous acquisition handoff began inside the authority-derived mouth hard envelope, and the previous lower `x=-62 mm` leg was too close to the current Cell 2 tapered lower shell for the provisional service reservation. The revised wearer-left inferior route shifts those sections laterally inward while preserving all controlled fluid identities and topology.
 
 A control-profile screening against Cell 2 branch head `372ae29bffd9d2b3d9f78430b84362aa8977e1c7` indicates about 3.6 mm additional inward margin beyond the provisional 3.2 mm route envelope in the tight lower profile region. This is digital source screening only. It is not a B-rep collision certificate, a production clearance, or physical service evidence.
 
-The current Cell 3 recovery branch resolves to released passive-routing work and does not provide a newer controlled realized 3D mechanism or service envelope. Exact mechanism swept-volume clearance therefore remains blocked rather than inferred.
+The current Cell 3 recovery branch does not provide a newer controlled realized 3D mechanism or service envelope than released `main`. Exact mechanism swept-volume clearance therefore remains blocked rather than inferred.
 
 ## Explicit provisional baselines
 
 The 2.4 mm circular internal-diameter seed is a Cell 4 engineering baseline used only for controlled geometric accounting. It is not a supplier tubing dimension.
 
-The 2.0 mm service-clearance value is a reservation only. Together with the provisional 1.2 mm fluid radius, it defines a 3.2 mm digital route envelope for conservative screening. It is not a measured service trajectory clearance.
+The 2.0 mm service-clearance value is a reservation only. Together with the provisional 1.2 mm fluid radius, it defines a 3.2 mm digital route envelope for screening. It is not a measured service trajectory clearance.
 
 No supplier minimum bend requirement has been selected. Bend requirement and bend margin remain unset even where the digital route has a realized 8.0 mm arc radius.
 
@@ -46,6 +53,6 @@ Geometric dead volume is only world-centerline length multiplied by controlled p
 
 ## Remaining release gates
 
-Before promotion beyond a provisional CAD baseline, the rebased exact head still requires the complete engineering CI and deterministic CAD smoke build, direct inspection of generated outputs, independent Cell 5 hostile review, and Cell 1 release integration.
+The exact changed head requires the complete engineering CI and deterministic CAD smoke build, direct generated-output inspection, independent Cell 5 hostile re-review, and Cell 1 release integration.
 
 Whole-product B-rep collision against the accepted Cell 2 exterior and a controlled realized Cell 3 mechanism/service envelope remains a downstream integration gate. Selected pump and barrier envelopes, connector access, tubing or channel selection, supplier bend requirement, deformation/service trajectory, cartridge insertion/removal, drain low points, retained pockets, and wet/dry boundary crossings remain unresolved.
