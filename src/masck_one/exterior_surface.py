@@ -43,26 +43,28 @@ PROFILE_RIGHT = (
 # shell stays open and recessive on the wearer side.
 INNER_WEARER_SIDE_OFFSET_MM = -0.6
 
-# The five-station side body terminates at Z=22 mm. A shallow interpolated crown closes
-# that open anterior perimeter and removes the prototype-like planar facial plate.
+# The five-station side body terminates at Z=22 mm. A broad shallow interpolated crown
+# closes that open anterior perimeter and removes the prototype-like planar facial plate.
 # The 0.10 mm join overlap is a numerical Boolean construction allowance only. It is
 # not a product seam, tolerance, manufacturing allowance or physical validation value.
-ANTERIOR_CROWN_HEIGHT_MM = 4.8
+ANTERIOR_CROWN_HEIGHT_MM = 5.8
 ANTERIOR_CROWN_JOIN_OVERLAP_MM = 0.10
 ANTERIOR_CAVITY_CUT_THROUGH_MM = 1.0
-ANTERIOR_CROWN_RADIAL_X_NORM = 0.487
-ANTERIOR_CROWN_RADIAL_Y_NORM = 0.484
-ANTERIOR_CROWN_RADIAL_LIMIT_SQ = 0.72
-ANTERIOR_CROWN_FALLOFF_POWER = 1.35
+ANTERIOR_CROWN_RADIAL_X_NORM = 0.525
+ANTERIOR_CROWN_RADIAL_Y_NORM = 0.520
+ANTERIOR_CROWN_RADIAL_LIMIT_SQ = 0.82
+ANTERIOR_CROWN_FALLOFF_POWER = 1.15
 ANTERIOR_CROWN_SAMPLE_X_NORM = (-0.31, -0.155, 0.0, 0.155, 0.31)
 ANTERIOR_CROWN_SAMPLE_Y_NORM = (-0.36, -0.24, -0.12, 0.0, 0.12, 0.24, 0.36)
+ANTERIOR_CROWN_RELIEF_MIN_MM = 5.2
+ANTERIOR_CROWN_RELIEF_MAX_MM = 6.4
 
 # Small compound-shape amplitudes remove a single nose-like dome peak while preserving
 # one broad facial field. Positions are derived from live facial landmarks and widths
 # scale from the current outer profile. These are Cell 2 digital form parameters only.
 ANTERIOR_BROW_CHEEK_LIFT_MM = 0.55
-ANTERIOR_NASAL_VALLEY_MM = 0.95
-ANTERIOR_LOWER_FACE_LIFT_MM = 0.35
+ANTERIOR_NASAL_VALLEY_MM = 1.05
+ANTERIOR_LOWER_FACE_LIFT_MM = 0.42
 ANTERIOR_BROW_CENTER_Y_OFFSET_NORM = -0.025
 ANTERIOR_BROW_SPREAD_X_NORM = 0.300
 ANTERIOR_BROW_SPREAD_Y_NORM = 0.165
@@ -305,6 +307,13 @@ def exterior_surface_manifest(authority: Authority) -> dict[str, object]:
             "height_mm": ANTERIOR_CROWN_HEIGHT_MM,
             "boundary_z_mm": anterior_crown_boundary_z_mm(authority),
             "inner_min_z_mm": anterior_crown_inner_min_z_mm(authority),
+            "radial_x_norm": ANTERIOR_CROWN_RADIAL_X_NORM,
+            "radial_y_norm": ANTERIOR_CROWN_RADIAL_Y_NORM,
+            "falloff_power": ANTERIOR_CROWN_FALLOFF_POWER,
+            "visible_relief_guard_mm": [
+                ANTERIOR_CROWN_RELIEF_MIN_MM,
+                ANTERIOR_CROWN_RELIEF_MAX_MM,
+            ],
             "construction": "INTERPOLATED_PLATE_THICKENED_TO_NOMINAL_SHELL_WALL",
             "compound_shaping": "BROW_CHEEK_LIFT_RECESSIVE_NASAL_VALLEY_CONTINUOUS_LOWER_FACE",
             "join_overlap_mm": ANTERIOR_CROWN_JOIN_OVERLAP_MM,
@@ -312,7 +321,7 @@ def exterior_surface_manifest(authority: Authority) -> dict[str, object]:
         },
         "visible_face_policy": "CURVED_ANTERIOR_FACIAL_FIELD_WITH_AUTHORITY_BACKED_APERTURES",
         "design_intent": {
-            "facial_field": "broad_continuous_shallow_compound_crown",
+            "facial_field": "broad_continuous_low_gradient_compound_crown",
             "perimeter": "broad_temples_tapered_jaw_soft_chin",
             "side_mass": "laterally_blended_not_podded",
             "rear_mass": "close_and_recessive",
