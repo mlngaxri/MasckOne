@@ -48,10 +48,16 @@ def test_legacy_manual_a_donor_is_never_promoted_and_records_real_collision_defe
     assert manifest["fastener_split_clamp_keyed_orientation_and_final_stop_geometry_observed"] is False
 
     observed = manifest["independent_collision_observations_mm3"]
-    assert observed["baseline_61deg_actuator_vs_shoe"] > 20.0
-    assert observed["baseline_61deg_actuator_vs_frame_max"] > 2.0
-    assert observed["doe_50_to_72deg_actuator_vs_shoe_max"] > observed["baseline_61deg_actuator_vs_shoe"]
-    assert observed["doe_50_to_72deg_actuator_vs_frame_max"] > observed["baseline_61deg_actuator_vs_frame_max"]
+    expected = {
+        "baseline_61deg_actuator_vs_shoe": 21.993454,
+        "baseline_61deg_actuator_vs_frame_max": 2.664932,
+        "doe_50_to_72deg_actuator_vs_shoe_max": 43.628465,
+        "doe_50_to_72deg_actuator_vs_frame_max": 8.185202,
+    }
+    assert set(observed) == set(expected)
+    for key, value in expected.items():
+        assert math.isclose(float(observed[key]), value, rel_tol=0.0, abs_tol=1e-12)
+
     assert math.isclose(manifest["derived_candidate_margins_mm"]["collar_radial_wall"], 1.0, rel_tol=0.0, abs_tol=1e-12)
     assert math.isclose(manifest["derived_candidate_margins_mm"]["collar_actuator_radial_clearance"], 0.2, rel_tol=0.0, abs_tol=1e-12)
 
