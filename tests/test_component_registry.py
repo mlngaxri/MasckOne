@@ -18,6 +18,7 @@ from masck_one.component_registry import (
     ComponentRecord,
     ComponentRegistryError,
     InterfaceDatum,
+    WholeProductComponentRegistry,
     build_whole_product_component_registry,
 )
 from masck_one.fresh_pump_packaging import STATION_CLEANSER, STATION_WATER
@@ -31,26 +32,32 @@ from masck_one.interface_topology import (
 from masck_one.waste_pump_architecture import BARRIER_WASTE, STATION_WASTE
 
 
-def _by_id() -> dict[str, ComponentRecord]:
-    registry = build_whole_product_component_registry()
+@pytest.fixture(scope="module")
+def registry() -> WholeProductComponentRegistry:
+    return build_whole_product_component_registry()
+
+
+@pytest.fixture(scope="module")
+def by_id(registry: WholeProductComponentRegistry) -> dict[str, ComponentRecord]:
     return {item.component_id: item for item in registry.components}
 
 
-def test_registry_is_deterministic_complete_and_source_bound() -> None:
-    first = build_whole_product_component_registry()
+def test_registry_is_deterministic_complete_and_source_bound(
+    registry: WholeProductComponentRegistry,
+) -> None:
     second = build_whole_product_component_registry()
 
-    assert first.manifest() == second.manifest()
-    assert first.registry_sha256 == second.registry_sha256
-    assert first.source_main_sha == SOURCE_MAIN_SHA
-    assert first.authority_revision == AUTHORITY_REVISION
-    assert first.authority_blob_sha == AUTHORITY_BLOB_SHA
-    assert first.physical_validation_eligible is False
-    assert tuple(item.component_id for item in first.components) == tuple(
-        sorted(item.component_id for item in first.components)
+    assert registry.manifest() == second.manifest()
+    assert registry.registry_sha256 == second.registry_sha256
+    assert registry.source_main_sha == SOURCE_MAIN_SHA
+    assert registry.authority_revision == AUTHORITY_REVISION
+    assert registry.authority_blob_sha == AUTHORITY_BLOB_SHA
+    assert registry.physical_validation_eligible is False
+    assert tuple(item.component_id for item in registry.components) == tuple(
+        sorted(item.component_id for item in registry.components)
     )
-    assert len(first.components) == 36
-    assert set(item.status for item in first.components) <= set(STATUS_VOCABULARY)
+    assert len(registry.components) == 36
+    assert set(item.status for item in registry.components) <= set(STATUS_VOCABULARY)
 
 
 def test_registry_git_blob_provenance_matches_checked_out_sources() -> None:
@@ -62,9 +69,9 @@ def test_registry_git_blob_provenance_matches_checked_out_sources() -> None:
         assert actual_sha == expected_sha, f"component registry source binding is stale for {path}"
 
 
-def test_realized_solids_and_controlled_envelopes_are_not_overstated() -> None:
-    by_id = _by_id()
-
+def test_realized_solids_and_controlled_envelopes_are_not_overstated(
+    by_id: dict[str, ComponentRecord],
+) -> None:
     assert by_id["MASCK_ONE-COMP-RIGID-SHELL"].status == REALIZED_SOLID
     assert by_id["MASCK_ONE-COMP-NASAL-LOBE-REFERENCE"].status == REALIZED_SOLID
     for component_id in (
@@ -82,9 +89,9 @@ def test_realized_solids_and_controlled_envelopes_are_not_overstated() -> None:
     assert "PACKAGING_BENCHMARK_ONLY" in by_id["MASCK_ONE-COMP-BATTERY"].evidence_status
 
 
-def test_topology_only_systems_preserve_controlled_interfaces_without_fake_hardware() -> None:
-    by_id = _by_id()
-
+def test_topology_only_systems_preserve_controlled_interfaces_without_fake_hardware(
+    by_id: dict[str, ComponentRecord],
+) -> None:
     assert by_id["MASCK_ONE-COMP-FACIAL-INTERFACE"].status == TOPOLOGY_ONLY
     assert by_id["MASCK_ONE-COMP-CLEANSER-RESERVOIR"].status == TOPOLOGY_ONLY
     assert by_id["MASCK_ONE-COMP-FRESH-MANIFOLD"].status == TOPOLOGY_ONLY
@@ -107,9 +114,9 @@ def test_topology_only_systems_preserve_controlled_interfaces_without_fake_hardw
     assert by_id["MASCK_ONE-COMP-WASTE-BACKFLOW-BARRIER"].source_object_id == BARRIER_WASTE
 
 
-def test_unreleased_specialist_hardware_remains_unresolved_on_main() -> None:
-    by_id = _by_id()
-
+def test_unreleased_specialist_hardware_remains_unresolved_on_main(
+    by_id: dict[str, ComponentRecord],
+) -> None:
     for component_id in (
         "MASCK_ONE-COMP-RETENTION-HALO",
         "MASCK_ONE-COMP-QUICK-RELEASE-RIGHT",
@@ -138,8 +145,10 @@ def test_unreleased_specialist_hardware_remains_unresolved_on_main() -> None:
         assert all(item.xyz_mm is None for item in record.interface_datums)
 
 
-def test_distribution_datums_are_development_references_not_registered_anatomy() -> None:
-    record = _by_id()["MASCK_ONE-COMP-FRESH-DISTRIBUTION"]
+def test_distribution_datums_are_development_references_not_registered_anatomy(
+    by_id: dict[str, ComponentRecord],
+) -> None:
+    record = by_id["MASCK_ONE-COMP-FRESH-DISTRIBUTION"]
     assert len(record.interface_datums) == 24
     assert all(item.xyz_mm is not None for item in record.interface_datums)
     assert all(item.direction_xyz is not None for item in record.interface_datums)
@@ -162,8 +171,9 @@ def test_unresolved_component_cannot_carry_realized_digest() -> None:
         )
 
 
-def test_registry_rejects_promotion_of_unresolved_core_hardware() -> None:
-    registry = build_whole_product_component_registry()
+def test_registry_rejects_promotion_of_unresolved_core_hardware(
+    registry: WholeProductComponentRegistry,
+) -> None:
     components = list(registry.components)
     index = next(
         index
