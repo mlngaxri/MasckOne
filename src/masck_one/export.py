@@ -17,7 +17,11 @@ from .model import MasckOneModel, build_model
 from .occipital_stabilizer import build_occipital_stabilizer, export_occipital_stabilizer
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .retention_fit_adjustment import build_retention_fit_adjustment, export_retention_fit_adjustment
-from .retention_load_path import build_retention_load_path, export_retention_load_path
+from .retention_load_path import build_retention_load_path
+from .retention_load_path_release import (
+    build_retention_load_path_release,
+    export_retention_load_path_release,
+)
 from .structural_frame import build_structural_frame_topology
 
 
@@ -68,7 +72,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         fit_adjustment,
         hair_pinch,
     )
-    retention_load_path_artifact_paths = export_retention_load_path(output, retention_load_path)
+    retention_load_path_release = build_retention_load_path_release(retention_load_path)
+    retention_load_path_artifact_paths = export_retention_load_path_release(
+        output,
+        retention_load_path_release,
+    )
     retention_load_path_step_files = sorted(
         path.name
         for path in retention_load_path_artifact_paths
@@ -131,7 +139,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "occipital_stabilizer": occipital.manifest(),
             "retention_fit_adjustment": fit_adjustment.manifest(),
             "hair_pinch_keepouts": hair_pinch.manifest(),
-            "retention_load_path": retention_load_path.manifest(),
+            "retention_load_path": retention_load_path_release.manifest(),
         },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
@@ -159,13 +167,15 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "root-capture interfaces, scalp-side hair approach and a candidate-only right-latch hazard/access overlay. "
             "Prompt 11 adds bilateral successor fixed-housing bosses, retained dual-pin clevis capture and connected local "
             "reaction carriers with actual crown and facial-reaction handoff lugs. The yoke-to-housing and housing-to-local-"
-            "carrier edges are digitally positive attachment; crown-lug-to-crown-member and facial-handoff-to-front-frame "
-            "edges remain open because those mating structures are not realized. Clearance/reference solids do not carry "
-            "load. The Prompt 08-11 retention package stays outside the development compound until the crown and front "
-            "perimeter counterparts are real and reviewed. No anthropometric fit, comfort, preload, contact pressure, hair "
-            "entrapment prevention, pinch-force safety, structural capacity, pin bearing/shear/fatigue, wear, jam resistance, "
-            "wet one-hand release performance or physical retention performance is established. Digital topology/manifests "
-            "and analysis frameworks are not physical validation evidence."
+            "carrier edges are digitally positive attachments. Crown and facial handoff bores are positive attachment "
+            "features only: the mating crown member and front-frame counterpart are not realized, so those are not positive "
+            "attachments and do not close the whole retention path. Capture-pin removal has a conservative complete pure-Y "
+            "translation bound; a non-teleporting carrier separation/reassembly trajectory remains unresolved. Clearance and "
+            "reference solids do not carry load. The Prompt 08-11 retention package stays outside the development compound "
+            "until the crown and front perimeter counterparts are real and reviewed. No anthropometric fit, comfort, preload, "
+            "contact pressure, hair entrapment prevention, pinch-force safety, structural capacity, pin bearing/shear/fatigue, "
+            "wear, jam resistance, wet one-hand release performance or physical retention performance is established. Digital "
+            "topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
