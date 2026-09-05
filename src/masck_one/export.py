@@ -13,6 +13,10 @@ from .boundary_release import (
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
+from .protected_face_aggregate import (
+    build_protected_face_aggregate_precheck,
+    export_protected_face_aggregate_precheck,
+)
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 
@@ -65,6 +69,8 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     attachment = build_interface_attachment_architecture(model.authority, boundary_topology)
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
+    protected_face_aggregate = build_protected_face_aggregate_precheck(model)
+    protected_face_path = export_protected_face_aggregate_precheck(output, protected_face_aggregate)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -85,17 +91,23 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
+            "protected_face_aggregate_precheck": protected_face_aggregate.manifest(),
         },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
         "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "exported_manifest_files": [protected_face_path.name],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "The protected-face aggregate centralizes released static B-reps, five authority facial hard envelopes, "
+            "the deterministic worn-pose screen, current outlet placement, and explicit moving-sweep blockers. Its "
+            "conflicts and clearances are digital precheck evidence only. The protected Z extent remains unresolved, "
+            "continuous motion and fluid-path geometry remain blocked where stated, and no anatomical or physical "
+            "validation is implied. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
