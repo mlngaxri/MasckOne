@@ -14,6 +14,7 @@ from masck_one.whole_product_dfm import (
     OWNER_CELL_2,
     OWNER_CELL_3,
     PATH_CLOSED,
+    ROLE_CONNECTOR,
     ROLE_SEAL,
     SOURCE_MAIN_SHA,
     CandidateBinding,
@@ -32,7 +33,7 @@ def test_contract_covers_required_part_splits_and_authority_rules():
     assert architecture.schema == DFM_SCHEMA
     assert architecture.source_main_sha == SOURCE_MAIN_SHA
     assert architecture.authority_revision == AUTHORITY_REVISION
-    assert len(architecture.parts) == 42
+    assert len(architecture.parts) == 46
     assert architecture.observed_candidates == ()
     assert architecture.rules.mold_draft_nominal_deg == 1.0
     assert (architecture.rules.rib_thickness_ratio_min, architecture.rules.rib_thickness_ratio_max) == (0.40, 0.60)
@@ -54,6 +55,10 @@ def test_contract_covers_required_part_splits_and_authority_rules():
         "MASCK_ONE-DFM-WATER-RESERVOIR-BODY",
         "MASCK_ONE-DFM-WATER-RESERVOIR-LID",
         "MASCK_ONE-DFM-WATER-RESERVOIR-LID-SEAL",
+        "MASCK_ONE-DFM-WATER-FILL-CLOSURE",
+        "MASCK_ONE-DFM-WATER-FILL-SEAL",
+        "MASCK_ONE-DFM-WATER-VENT-BARRIER",
+        "MASCK_ONE-DFM-WATER-PICKUP-CONNECTOR",
         "MASCK_ONE-DFM-WASTE-CARTRIDGE-BODY",
         "MASCK_ONE-DFM-WASTE-CARTRIDGE-SEAL-KEY",
         "MASCK_ONE-DFM-FRESH-MANIFOLD-BODY",
@@ -67,6 +72,7 @@ def test_contract_covers_required_part_splits_and_authority_rules():
         "MASCK_ONE-DFM-REAR-SERVICE-COVER",
     }
     assert required.issubset(parts)
+    assert parts["MASCK_ONE-DFM-WATER-PICKUP-CONNECTOR"].role == ROLE_CONNECTOR
     for part_id in (
         "MASCK_ONE-DFM-ACTUATOR-PACKAGE",
         "MASCK_ONE-DFM-ACTUATOR-CARRIER",
@@ -78,8 +84,8 @@ def test_contract_covers_required_part_splits_and_authority_rules():
 
 def test_unmerged_candidate_observation_is_optional_and_never_promotes_maturity():
     observations = (
-        CandidateBinding(70, "4d9776305b8c7083c4f3d1f0bf9f9a2e6e9498ac", OWNER_CELL_2, ("MASCK_ONE-DFM-SHELL-PRIMARY",)),
-        CandidateBinding(71, "5ba496a0ac45ea30631aee869d25498eff6679a5", OWNER_CELL_3, ("MASCK_ONE-DFM-LATCH-SOCKET-GUIDE",)),
+        CandidateBinding(70, "1" * 40, OWNER_CELL_2, ("MASCK_ONE-DFM-SHELL-PRIMARY",)),
+        CandidateBinding(71, "2" * 40, OWNER_CELL_3, ("MASCK_ONE-DFM-LATCH-SOCKET-GUIDE",)),
     )
     architecture = build_whole_product_dfm_architecture(observed_candidates=observations)
     parts = _by_id(architecture)
@@ -91,12 +97,27 @@ def test_unmerged_candidate_observation_is_optional_and_never_promotes_maturity(
     assert all(item.authority_status == "OBSERVED_UNMERGED_CANDIDATE_NOT_RELEASE_AUTHORITY" for item in observations)
 
 
+def test_water_service_hardware_remains_distinct_unresolved_part_families():
+    parts = _by_id(build_whole_product_dfm_architecture())
+    for part_id in (
+        "MASCK_ONE-DFM-WATER-FILL-CLOSURE",
+        "MASCK_ONE-DFM-WATER-FILL-SEAL",
+        "MASCK_ONE-DFM-WATER-VENT-BARRIER",
+        "MASCK_ONE-DFM-WATER-PICKUP-CONNECTOR",
+    ):
+        assert parts[part_id].maturity == MATURITY_UNRESOLVED_REQUIRED
+    assert parts["MASCK_ONE-DFM-WATER-FILL-CLOSURE"].prerequisites == ("MASCK_ONE-DFM-WATER-FILL-SEAL",)
+    assert parts["MASCK_ONE-DFM-WATER-PICKUP-CONNECTOR"].prerequisites == ("MASCK_ONE-DFM-WATER-RESERVOIR-BODY",)
+
+
 def test_user_service_items_fail_closed_until_real_trajectories_exist():
     architecture = build_whole_product_dfm_architecture()
     blockers = set(architecture.user_service_blocker_ids)
     assert {
         "MASCK_ONE-DFM-WATER-RESERVOIR-BODY",
         "MASCK_ONE-DFM-WATER-RESERVOIR-LID",
+        "MASCK_ONE-DFM-WATER-FILL-SEAL",
+        "MASCK_ONE-DFM-WATER-FILL-CLOSURE",
         "MASCK_ONE-DFM-WASTE-CARTRIDGE-BODY",
         "MASCK_ONE-DFM-WASTE-CARTRIDGE-CLOSURE",
     }.issubset(blockers)
