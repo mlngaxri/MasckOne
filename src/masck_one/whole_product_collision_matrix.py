@@ -6,8 +6,7 @@ Released finite B-reps receive exact solid-to-solid checks. Authority protected 
 receive their own 2.5D hard-envelope conflict class because their Z depth is intentionally
 unresolved. Released mixed-waste centerlines are represented only by conservative service
 AABBs, so any overlap involving those AABBs is review-required broad phase rather than
-an exact route/product collision. Candidate Cell 2/3/4 geometry is recorded but never
-consumed.
+an exact route/product collision. Current candidate geometry is recorded but never consumed.
 
 All outputs are digital engineering evidence only, never physical validation.
 """
@@ -38,13 +37,18 @@ SOURCE_BLOBS = (
     ("src/masck_one/worn_pose.py", "9d4ed65246fbc92ac577ce38bceb95cd2253607b"),
     ("src/masck_one/realized_waste_backbone.py", "6aa79d9a613e278f32da85b4654c0e35cc09b7ca"),
 )
+# Exact heads observed during the final live Prompt-09 producer refresh. These are
+# navigation/review context only. geometry_consumed=false is enforced in the manifest.
 OBSERVED_CANDIDATES = (
-    ("CELL2_EXTERIOR_PR70", 70, "d95b116c6ebf64bd315dd0ee69c7e5c160de69ff"),
+    ("CELL2_EXTERIOR_PR70", 70, "a5fa95f9b7355e14e72c9dbfc9a81b26a5d966fc"),
     ("CELL3_RIGHT_RELEASE_PR71", 71, "0b5a619c6cea344038b0e8b8cc10a50e3d193390"),
-    ("CELL4_CLEANSER_PR80", 80, "02e1bcd1b0fccacfec134423b9e5cf285108ec1b"),
+    ("CELL4_CLEANSER_PR80", 80, "6e3e05812406620072b37f54827b8345ed55ccea"),
+    ("CELL3_OCCIPITAL_PR83", 83, "8047fda9b835b00add1277868228ad6109779092"),
     ("CELL1_MECHANICAL_PR84", 84, "01c0d77049d19463544911e5e81df3065bea7bc3"),
-    ("CELL4_WATER_PUMP_PR85", 85, "03d82912490f46fc9ef6cbe4f3d2362266cb784c"),
+    ("CELL4_WATER_PUMP_PR85", 85, "668727ad2676a7d41f095878ff5d9110c8f7a44a"),
+    ("CELL3_RETENTION_FIT_PR87", 87, "bf7a199838986f00a84ad48be8c7b3a11401743c"),
     ("CELL1_WET_INGESTION_PR88", 88, "f3377e0b84e60e8a16b8132142d276bc5432b190"),
+    ("CELL3_HAIR_PINCH_PR89", 89, "c900c42ac5f45ad0516b58e408454eb3295d172d"),
 )
 
 CATEGORY_RIGID = "RIGID_OR_PACKAGE_GEOMETRY"
@@ -452,8 +456,10 @@ def _dynamic_screens(model: MasckOneModel) -> tuple[DynamicProtectedScreen, ...]
 
 def _blocked_rows() -> tuple[CollisionCheck, ...]:
     rows = (
-        ("RIGHT_RELEASE_OPERATIONAL_MOTION", "WHOLE_PRODUCT_RELEASED_GEOMETRY", "mechanism B-rep is candidate-only"),
-        ("RIGHT_RELEASE_FACTORY_MOTION", "WHOLE_PRODUCT_RELEASED_GEOMETRY", "factory motion B-rep is candidate-only"),
+        ("RIGHT_RELEASE_OPERATIONAL_MOTION", "WHOLE_PRODUCT_RELEASED_GEOMETRY", "right-release B-rep is candidate-only on PR71/PR84"),
+        ("RIGHT_RELEASE_FACTORY_MOTION", "WHOLE_PRODUCT_RELEASED_GEOMETRY", "factory motion B-rep is candidate-only on PR71/PR84"),
+        ("RETENTION_OCCIPITAL_AND_FIT_MOTION", "WHOLE_PRODUCT_RELEASED_GEOMETRY", "occipital and bounded-fit motion remains unmerged on PR83/PR87"),
+        ("RETENTION_HAIR_PINCH_KEEP_OUTS", "WHOLE_PRODUCT_RELEASED_GEOMETRY", "hair/pinch and emergency-access references remain unmerged on PR89"),
         ("HARNESS", "WET_SYSTEM_AND_MECHANISM", "no released harness centerline, bundle diameter, strain-relief or flex envelope"),
         ("CARTRIDGE_SERVICE_MOTION", "WHOLE_PRODUCT_RELEASED_GEOMETRY", "released cartridge insertion/removal trajectory and clearance are unresolved"),
         ("USER_HAND_SERVICE_KEEP_OUT", "HMI_RELEASE_CARTRIDGE", "no authority-backed hand anthropometry, wet grip envelope or service trajectory is released"),
@@ -465,9 +471,11 @@ def _blocked_rows() -> tuple[CollisionCheck, ...]:
 def _unresolved_interfaces() -> tuple[UnresolvedInterface, ...]:
     return (
         UnresolvedInterface("RIGHT_RELEASE_OPERATIONAL_MOTION", "retention/emergency release", "PR71 + PR84 observed only", ("protected regions", "routes", "shell", "actuators", "water", "cartridge", "battery"), "candidate B-reps are not released on main"),
+        UnresolvedInterface("RETENTION_OCCIPITAL_AND_FIT_MOTION", "occipital stabilization / fit adjustment", "PR83 + PR87 observed only", ("shell", "routes", "rear package", "protected regions", "service access"), "stacked candidate B-reps are not released and frame-side positive capture remains unresolved"),
+        UnresolvedInterface("RETENTION_HAIR_PINCH_KEEP_OUTS", "hair/pinch hazard and emergency access", "PR89 observed only", ("retention motion", "right release", "user access", "rear package"), "candidate reference geometry is not released and physical guard is explicitly unrealized"),
         UnresolvedInterface("HARNESS", "power/electrical harness", None, ("wet routes", "service motions", "retention", "protected regions", "shell"), "no released routed harness geometry or flex/service envelope"),
         UnresolvedInterface("CARTRIDGE_SERVICE_MOTION", "waste cartridge service", None, ("shell", "routes", "harness", "user hand", "retention"), "insertion/removal trajectory and clearance remain explicitly unresolved"),
-        UnresolvedInterface("USER_HAND_SERVICE_KEEP_OUT", "user wet/service interaction", None, ("physical HMI", "quick release", "cartridge service", "wet routes"), "no controlled hand anthropometry or service trajectory source exists"),
+        UnresolvedInterface("USER_HAND_SERVICE_KEEP_OUT", "user wet/service interaction", "PR89 has candidate emergency-access corridor but no hand anthropometry", ("physical HMI", "quick release", "cartridge service", "wet routes"), "no controlled hand anthropometry or service trajectory source exists"),
         UnresolvedInterface("PHYSICAL_HMI", "physical HMI", None, ("user hand", "wet routes", "harness", "shell"), "no current released HMI geometry"),
     )
 
