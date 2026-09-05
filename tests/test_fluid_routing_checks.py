@@ -19,7 +19,8 @@ from masck_one.fluid_routing_checks import (
     STAGE_FRESH_SOURCE_TO_PUMP,
     STAGE_WASTE_ACQUISITION_TO_PUMP,
     STAGE_WASTE_CARTRIDGE_TO_RETENTION,
-    STAGE_WASTE_PUMP_TO_CARTRIDGE,
+    STAGE_WASTE_PASSIVE_BACKFLOW_BARRIER_TO_CARTRIDGE,
+    STAGE_WASTE_PUMP_TO_PASSIVE_BACKFLOW_BARRIER,
     STAGE_WASTE_REGION_TO_PUMP_INLET,
     SYSTEM_FRESH,
     SYSTEM_WASTE,
@@ -146,12 +147,12 @@ def _validate_current(built, routing):
     )
 
 
-def test_complete_operational_route_ledger_has_62_unique_segments(built):
+def test_complete_operational_route_ledger_has_63_unique_segments(built):
     *_, routing = built
-    assert len(routing.segments) == 62
-    assert len({item.segment_id for item in routing.segments}) == 62
+    assert len(routing.segments) == 63
+    assert len({item.segment_id for item in routing.segments}) == 63
     assert sum(item.system == SYSTEM_FRESH for item in routing.segments) == 54
-    assert sum(item.system == SYSTEM_WASTE for item in routing.segments) == 8
+    assert sum(item.system == SYSTEM_WASTE for item in routing.segments) == 9
 
 
 def test_stage_ledger_matches_controlled_complete_topology(built):
@@ -164,7 +165,8 @@ def test_stage_ledger_matches_controlled_complete_topology(built):
         STAGE_FRESH_OUTLET_TO_GROOVE: 24,
         STAGE_WASTE_REGION_TO_PUMP_INLET: 5,
         STAGE_WASTE_ACQUISITION_TO_PUMP: 1,
-        STAGE_WASTE_PUMP_TO_CARTRIDGE: 1,
+        STAGE_WASTE_PUMP_TO_PASSIVE_BACKFLOW_BARRIER: 1,
+        STAGE_WASTE_PASSIVE_BACKFLOW_BARRIER_TO_CARTRIDGE: 1,
         STAGE_WASTE_CARTRIDGE_TO_RETENTION: 1,
     }
     actual = {
