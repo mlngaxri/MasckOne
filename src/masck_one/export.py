@@ -5,6 +5,7 @@ from pathlib import Path
 
 import cadquery as cq
 
+from .assembly_composer import build_integrated_assembly_skeleton
 from .assertions import run_assertions
 from .boundary_release import (
     boundary_release_manifest,
@@ -39,9 +40,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
-    shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
-    compound = cq.Compound.makeCompound(shapes)
-    cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
+    assembly_skeleton = build_integrated_assembly_skeleton(model)
+    cq.exporters.export(
+        assembly_skeleton.development_compound(),
+        str(output / "masck_one_development_assembly.step"),
+    )
 
     checks = run_assertions(model)
     boundary_topology = build_verified_interface_boundary_topology(
@@ -60,6 +63,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "iteration": 15,
         "result": "PASS" if not any(c.status == "FAIL" for c in checks) else "FAIL",
         "checks": [c.to_dict() for c in checks],
+        "assembly_skeleton": assembly_skeleton.manifest(),
         "digital_topology": {
             "coverage": model.coverage_mesh.manifest(),
             "compliant_interface": model.compliant_interface_topology.manifest(model.coverage_mesh),
@@ -80,7 +84,9 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
-            "released by Iteration 15. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "released by Iteration 15. The assembly skeleton composes existing released source geometry with identity "
+            "authority-world transforms and does not promote unreleased specialist candidates or physical validation. "
+            "Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
