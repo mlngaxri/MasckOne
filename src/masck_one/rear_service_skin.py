@@ -19,12 +19,10 @@ from .authority import Authority, load_authority
 
 SCHEMA = "MASCK_ONE_CELL2_REAR_SERVICE_SKIN_V1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
-SOURCE_CELL3_RETENTION_HEAD_SHA = "6c7de6235455a22cd39df4fa0dda6b020adf78c3"
+SOURCE_CELL3_RETENTION_HEAD_SHA = "5a74a129def7e96e58aa1db4c85989bbfd315a9e"
 SOURCE_CELL3_OCCIPITAL_BLOB_SHA = "1139b675c4758d8580cf5a18fa7a0b87b2d6ef99"
 SOURCE_INTERFACE_STATUS = "UNMERGED_SPECIALIST_CANDIDATE_INTERFACE_RESCREEN_BEFORE_PROMOTION"
 
-# Current Cell 3 published rear interfaces. These are consumed as exact candidate-source
-# interface bounds, not copied as Cell 2 physical product material.
 CELL3_CENTRAL_REAR_KEEP_OUT_XYZ_MM = (68.0, 104.0, 24.0)
 CELL3_CENTRAL_REAR_KEEP_OUT_CENTER_MM = (0.0, 0.0, -36.0)
 CELL3_OCCIPITAL_INNER_X_ABS_MM = 44.0
@@ -32,17 +30,11 @@ CELL3_CARRIER_INNER_X_ABS_MM = 56.0
 CELL3_CROWN_CORRIDOR_Y_MIN_MM = 56.0
 CELL3_OCCIPITAL_POSTERIOR_Z_MM = -52.5
 
-# Prompt 11 visible-interface baseline. The installed front profile is intentionally much
-# smaller than the conservative 68 x 104 mm package reservation. A packaging owner must
-# nest selected battery/electronics/service hardware to this visual target before release;
-# Cell 2 will not hide an inefficient package behind a larger rear brick.
 REAR_SKIN_FRONT_XY_MM = (58.0, 86.0)
 REAR_SKIN_REAR_XY_MM = (50.0, 74.0)
 REAR_SKIN_FRONT_CORNER_RADIUS_MM = 28.9
 REAR_SKIN_REAR_CORNER_RADIUS_MM = 24.9
 REAR_COVER_REMOVAL_TRAVEL_MM = 8.0
-
-# Screening-only donor projection. This is not a selected PCB or current package source.
 STALE_MANUAL_B_PCB_PROJECTION_XY_MM = (48.0, 26.0)
 
 DIGITAL_ONLY = "DIGITAL_VISIBLE_INTERFACE_NOT_PHYSICAL_SERVICE_OR_PACKAGE_VALIDATION"
@@ -178,21 +170,11 @@ class RearServiceSkin:
                 "reflow_requirement": PACKAGE_REFLOW_REQUIRED,
             },
             "retention_clearance": {
-                "static_lateral_gap_to_occipital_inner_x_mm": (
-                    CELL3_OCCIPITAL_INNER_X_ABS_MM - REAR_SKIN_FRONT_XY_MM[0] / 2.0
-                ),
-                "service_lateral_gap_to_occipital_inner_x_mm": (
-                    CELL3_OCCIPITAL_INNER_X_ABS_MM - REAR_SKIN_FRONT_XY_MM[0] / 2.0
-                ),
-                "service_lateral_gap_to_carrier_inner_x_mm": (
-                    CELL3_CARRIER_INNER_X_ABS_MM - REAR_SKIN_FRONT_XY_MM[0] / 2.0
-                ),
-                "service_superior_gap_to_crown_corridor_mm": (
-                    CELL3_CROWN_CORRIDOR_Y_MIN_MM - REAR_SKIN_FRONT_XY_MM[1] / 2.0
-                ),
-                "cover_posterior_face_relative_to_occipital_extreme_mm": (
-                    self.rear_z_mm - CELL3_OCCIPITAL_POSTERIOR_Z_MM
-                ),
+                "static_lateral_gap_to_occipital_inner_x_mm": CELL3_OCCIPITAL_INNER_X_ABS_MM - REAR_SKIN_FRONT_XY_MM[0] / 2.0,
+                "service_lateral_gap_to_occipital_inner_x_mm": CELL3_OCCIPITAL_INNER_X_ABS_MM - REAR_SKIN_FRONT_XY_MM[0] / 2.0,
+                "service_lateral_gap_to_carrier_inner_x_mm": CELL3_CARRIER_INNER_X_ABS_MM - REAR_SKIN_FRONT_XY_MM[0] / 2.0,
+                "service_superior_gap_to_crown_corridor_mm": CELL3_CROWN_CORRIDOR_Y_MIN_MM - REAR_SKIN_FRONT_XY_MM[1] / 2.0,
+                "cover_posterior_face_relative_to_occipital_extreme_mm": self.rear_z_mm - CELL3_OCCIPITAL_POSTERIOR_Z_MM,
             },
             "service_reference": {
                 "cover_only_removal_direction": "-Z_POSTERIOR",
@@ -234,18 +216,12 @@ def build_rear_service_skin(authority: Authority | None = None) -> RearServiceSk
 
     seam_gap = authority.number("geometry", "visible_seam", "gap_mm")
     depth = authority.number("geometry", "shell_nominal_wall_mm")
-    keepout_posterior_z = (
-        CELL3_CENTRAL_REAR_KEEP_OUT_CENTER_MM[2]
-        - CELL3_CENTRAL_REAR_KEEP_OUT_XYZ_MM[2] / 2.0
-    )
+    keepout_posterior_z = CELL3_CENTRAL_REAR_KEEP_OUT_CENTER_MM[2] - CELL3_CENTRAL_REAR_KEEP_OUT_XYZ_MM[2] / 2.0
     front_z = keepout_posterior_z - seam_gap
     rear_z = front_z - depth
 
     cover = _build_cover(front_z, depth)
-    keepout = _box(
-        CELL3_CENTRAL_REAR_KEEP_OUT_XYZ_MM,
-        CELL3_CENTRAL_REAR_KEEP_OUT_CENTER_MM,
-    )
+    keepout = _box(CELL3_CENTRAL_REAR_KEEP_OUT_XYZ_MM, CELL3_CENTRAL_REAR_KEEP_OUT_CENTER_MM)
     removal_depth = depth + REAR_COVER_REMOVAL_TRAVEL_MM
     service = _box(
         (REAR_SKIN_FRONT_XY_MM[0], REAR_SKIN_FRONT_XY_MM[1], removal_depth),
@@ -254,13 +230,11 @@ def build_rear_service_skin(authority: Authority | None = None) -> RearServiceSk
 
     if _intersection_mm3(cover.val(), keepout.val()) != 0.0:
         raise RearServiceSkinError("rear-service skin intersects current Cell 3 package keepout")
-    if cover.val().BoundingBox().xlen > authority.pair("geometry", "outer_xy_envelope_mm")[0]:
-        raise RearServiceSkinError("rear-service skin exceeds authority lateral envelope")
-    if cover.val().BoundingBox().ylen > authority.pair("geometry", "outer_xy_envelope_mm")[1]:
-        raise RearServiceSkinError("rear-service skin exceeds authority vertical envelope")
+    outer_w, outer_h = authority.pair("geometry", "outer_xy_envelope_mm")
+    if cover.val().BoundingBox().xlen > outer_w or cover.val().BoundingBox().ylen > outer_h:
+        raise RearServiceSkinError("rear-service skin exceeds authority XY envelope")
 
     battery_w, battery_h, _ = tuple(float(v) for v in authority.get("battery_reference", "envelope_mm"))
-    battery_status = str(authority.get("battery_reference", "status"))
     result = RearServiceSkin(
         cover=cover,
         package_keepout_reference=keepout,
@@ -270,10 +244,9 @@ def build_rear_service_skin(authority: Authority | None = None) -> RearServiceSk
         depth_mm=depth,
         seam_gap_mm=seam_gap,
         battery_benchmark_xy_mm=(battery_w, battery_h),
-        battery_status=battery_status,
+        battery_status=str(authority.get("battery_reference", "status")),
     )
-    manifest = result.manifest()
-    if not manifest["package_screening"]["battery_projection_fits_visible_target"]:
+    if not result.manifest()["package_screening"]["battery_projection_fits_visible_target"]:
         raise RearServiceSkinError("authority battery benchmark no longer fits rear visual target")
     return result
 
