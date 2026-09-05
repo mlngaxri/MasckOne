@@ -1,5 +1,6 @@
 from dataclasses import replace
 
+import cadquery as cq
 import pytest
 
 from masck_one.authority import load_authority
@@ -59,6 +60,27 @@ def test_complete_module_removal_envelope_clears_released_package_geometry():
         model.battery_reference_envelope.solid,
     ):
         assert _distance(sweep, package) >= PACKAGE_CLEARANCE_RESERVATION_MM
+
+
+def test_complete_module_service_envelope_round_trips_through_step(tmp_path):
+    envelope = build_complete_cleanser_module_service_envelope(load_authority())
+    source = envelope.module_removal_sweep_solid
+    path = tmp_path / "cleanser_complete_module_removal_sweep.step"
+    cq.exporters.export(source, str(path))
+
+    assert path.exists() and path.stat().st_size > 0
+    reloaded = cq.importers.importStep(str(path))
+    assert reloaded.solids().size() == 1
+    assert reloaded.val().isValid()
+    assert reloaded.val().Volume() == pytest.approx(source.val().Volume(), rel=2e-6, abs=2e-5)
+    source_bb = source.val().BoundingBox()
+    loaded_bb = reloaded.val().BoundingBox()
+    assert loaded_bb.xmin == pytest.approx(source_bb.xmin, abs=2e-6)
+    assert loaded_bb.xmax == pytest.approx(source_bb.xmax, abs=2e-6)
+    assert loaded_bb.ymin == pytest.approx(source_bb.ymin, abs=2e-6)
+    assert loaded_bb.ymax == pytest.approx(source_bb.ymax, abs=2e-6)
+    assert loaded_bb.zmin == pytest.approx(source_bb.zmin, abs=2e-6)
+    assert loaded_bb.zmax == pytest.approx(source_bb.zmax, abs=2e-6)
 
 
 def test_complete_module_service_manifest_is_explicitly_conservative_and_not_physical_evidence():
