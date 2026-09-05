@@ -20,14 +20,17 @@ from .exterior_construction import (
     constructed_exterior_sections,
     exterior_construction_manifest,
 )
+from .exterior_rigid_clearance import (
+    build_current_protected_volumes,
+    cut_rigid_hard_envelopes,
+)
 from .exterior_surface import (
     _add_profile,
     _anterior_crown_constraints,
-    _ellipse_cutter,
-    _nostril_diameter,
     _profile_loft,
     anterior_crown_boundary_z_mm,
 )
+from .protected_volumes import ProtectedVolumeSet
 
 
 # Prompt 09: a broad, shallow anterior-only setback lightens the chin turnover without
@@ -178,8 +181,9 @@ def _build_inferior_turnover_crown(
 def build_inferior_turnover_exterior_shell(
     authority: Authority,
     facial_reference: FacialReferenceLayer,
+    protected_volumes: ProtectedVolumeSet | None = None,
 ) -> cq.Workplane:
-    """Build the final Prompt 10 rigid shell without changing its package footprint."""
+    """Build the final Prompt 10 rigid shell with released hard-envelope clearance."""
     wall = authority.number("geometry", "shell_nominal_wall_mm")
     outer_sections = constructed_exterior_sections(authority)
     side_body = _profile_loft(outer_sections).cut(
@@ -200,41 +204,15 @@ def build_inferior_turnover_exterior_shell(
         raise ValueError(
             "Inferior-turnover side body and crown must fuse to one valid solid"
         )
-    shell = cq.Workplane(obj=fused)
 
-    eye_w, eye_h = authority.pair("geometry", "eye", "visual_aperture_wh_mm")
-    cant = authority.number("geometry", "eye", "lateral_cant_deg")
-    left_eye = facial_reference.eye_pair.left.point_xy
-    right_eye = facial_reference.eye_pair.right.point_xy
-    shell = shell.cut(
-        _ellipse_cutter(eye_w, eye_h, left_eye.x, left_eye.y, angle_deg=-cant)
+    protected = protected_volumes or build_current_protected_volumes(
+        authority,
+        facial_reference,
     )
-    shell = shell.cut(
-        _ellipse_cutter(eye_w, eye_h, right_eye.x, right_eye.y, angle_deg=cant)
-    )
-
-    mouth_w, mouth_h = authority.pair("geometry", "mouth", "visual_aperture_wh_mm")
-    mouth = facial_reference.mouth_center.point_xy
-    shell = shell.cut(_ellipse_cutter(mouth_w, mouth_h, mouth.x, mouth.y))
-
-    nostril_d = _nostril_diameter(authority)
-    for landmark in (
-        facial_reference.nostril_pair.left,
-        facial_reference.nostril_pair.right,
-    ):
-        point = landmark.point_xy
-        cutter = (
-            cq.Workplane("XY")
-            .workplane(offset=-6.0)
-            .center(point.x, point.y)
-            .circle(nostril_d / 2.0)
-            .extrude(40.0)
-        )
-        shell = shell.cut(cutter)
-
+    shell = cut_rigid_hard_envelopes(cq.Workplane(obj=fused), protected)
     if shell.solids().size() != 1 or not shell.val().isValid():
         raise ValueError(
-            "Inferior-turnover exterior must remain one valid solid after aperture cuts"
+            "Inferior-turnover exterior must remain one valid solid after protected cuts"
         )
     return shell
 
@@ -242,7 +220,7 @@ def build_inferior_turnover_exterior_shell(
 def inferior_turnover_manifest(authority: Authority) -> dict[str, object]:
     """Record the bounded visual-form delta without promoting soft-interface evidence."""
     return {
-        "schema": "MASCK_ONE_CELL2_INFERIOR_TURNOVER_V2",
+        "schema": "MASCK_ONE_CELL2_INFERIOR_TURNOVER_V3",
         "source_construction": exterior_construction_manifest(authority),
         "extra_anterior_recess_mm": INFERIOR_TURNOVER_EXTRA_RECESS_MM,
         "center_y_offset_from_mouth_norm": (
@@ -258,6 +236,7 @@ def inferior_turnover_manifest(authority: Authority) -> dict[str, object]:
         "side_body_station_policy": "UNCHANGED_FROM_PROMPT08",
         "rear_cavity_policy": "UNCHANGED_FROM_PROMPT08",
         "perimeter_footprint_policy": "UNCHANGED_FROM_PROMPT08",
+        "rigid_protected_face_policy": "CONSUME_RELEASED_PLANAR_HARD_ENVELOPES_AS_THROUGH_CUTS",
         "soft_interface_geometry_status": "UNRESOLVED_NOT_INVENTED",
         "visual_intent": (
             "LIGHT_NEUTRAL_INFERIOR_TURNOVER_WITH_GRADUAL_TEMPLE_AND_LATERAL_CROWN_BLEND"
