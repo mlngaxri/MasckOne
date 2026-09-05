@@ -11,6 +11,7 @@ from .boundary_release import (
     build_verified_interface_boundary_topology,
 )
 from .contact_simulation import build_contact_simulation_framework
+from .fluid_routing_dfm import build_fluid_routing_dfm_audit
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
@@ -37,6 +38,7 @@ def _realized_waste_backbone_manifest() -> dict[str, object]:
 def export_release(output_dir: str | Path = "generated", model: MasckOneModel | None = None) -> dict:
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
+    fluid_routing_dfm = build_fluid_routing_dfm_audit()
 
     export_map = {
         "rigid_shell": model.shell.solid,
@@ -86,6 +88,9 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
         },
+        "dfm_gates": {
+            "fluid_routing": fluid_routing_dfm.manifest(),
+        },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
@@ -95,7 +100,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "The Cell 5 fluid-routing DFM gate records unresolved fresh route, manifold body/tooling, connector reach, "
+            "bend/strain-relief/retention, dead-leg/drain, assembly/service and tolerance/separation closure without "
+            "inventing geometry or promoting production moldability or physical validation. Digital topology/manifests "
+            "and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
