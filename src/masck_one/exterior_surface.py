@@ -42,7 +42,10 @@ PROFILE_RIGHT = (
     (0.00, -1.000),
 )
 
-INNER_WEARER_SIDE_OFFSET_MM = -0.6
+# Rear inner boundary shares the outer Z=0 datum. The older -0.6 mm posterior start
+# allowed the inner loft to expand into the first positive-Z sections and reduced the
+# actual final B-rep rear-rim wall below the authority 1.5 mm development minimum.
+INNER_WEARER_SIDE_OFFSET_MM = 0.0
 
 ANTERIOR_CROWN_HEIGHT_MM = 5.8
 ANTERIOR_CROWN_JOIN_OVERLAP_MM = 0.10
