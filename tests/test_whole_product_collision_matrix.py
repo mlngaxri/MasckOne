@@ -14,7 +14,9 @@ from masck_one.whole_product_collision_matrix import (
     CLEAR,
     INTERFERENCE,
     METHOD_PROTECTED,
+    METHOD_ROUTE,
     OBSERVED_CANDIDATES,
+    REVIEW,
     SOURCE_BLOBS,
     SOURCE_MAIN_SHA,
     TOUCHING,
@@ -35,10 +37,7 @@ def _git(*args: str) -> str:
 
 def test_matrix_binds_exact_released_main_and_source_blobs():
     _git("cat-file", "-e", f"{SOURCE_MAIN_SHA}^{{commit}}")
-    assert subprocess.run(
-        ("git", "merge-base", "--is-ancestor", SOURCE_MAIN_SHA, "HEAD"),
-        check=False,
-    ).returncode == 0
+    assert subprocess.run(("git", "merge-base", "--is-ancestor", SOURCE_MAIN_SHA, "HEAD"), check=False).returncode == 0
     for path, expected_blob in SOURCE_BLOBS:
         assert _git("hash-object", path) == expected_blob
 
@@ -62,15 +61,12 @@ def test_matrix_has_complete_released_participant_set(matrix: WholeProductCollis
     assert all(len(item.brep_sha256) == 64 for item in matrix.participants)
 
 
-def test_every_released_pair_and_route_obstacle_pair_is_screened(matrix: WholeProductCollisionMatrix):
+def test_every_released_rigid_pair_is_exactly_screened(matrix: WholeProductCollisionMatrix):
     rigid = tuple(item for item in matrix.participants if item.category == CATEGORY_RIGID)
-    routes = tuple(item for item in matrix.participants if item.category == CATEGORY_ROUTE)
-    brep_rows = tuple(item for item in matrix.checks if item.check_id.startswith("BREP::"))
-    route_rows = tuple(item for item in matrix.checks if item.check_id.startswith("ROUTE::"))
-    assert len(brep_rows) == len(rigid) * (len(rigid) - 1) // 2
-    assert len(route_rows) == len(routes) * len(rigid)
-    assert all(item.status in {CLEAR, INTERFERENCE, TOUCHING} for item in brep_rows + route_rows)
-    for item in brep_rows + route_rows:
+    rows = tuple(item for item in matrix.checks if item.check_id.startswith("BREP::"))
+    assert len(rows) == len(rigid) * (len(rigid) - 1) // 2
+    assert all(item.status in {CLEAR, INTERFERENCE, TOUCHING} for item in rows)
+    for item in rows:
         assert item.intersection_volume_mm3 is not None
         assert item.minimum_distance_mm is not None
         if item.status == INTERFERENCE:
@@ -78,6 +74,22 @@ def test_every_released_pair_and_route_obstacle_pair_is_screened(matrix: WholePr
         if item.status == CLEAR:
             assert item.intersection_volume_mm3 == 0.0
             assert item.minimum_distance_mm > 0.0
+
+
+def test_route_service_aabb_overlap_is_review_not_exact_product_interference(matrix: WholeProductCollisionMatrix):
+    rigid = tuple(item for item in matrix.participants if item.category == CATEGORY_RIGID)
+    routes = tuple(item for item in matrix.participants if item.category == CATEGORY_ROUTE)
+    rows = tuple(item for item in matrix.checks if item.method == METHOD_ROUTE)
+    assert len(rows) == len(routes) * len(rigid)
+    assert all(item.status in {CLEAR, REVIEW} for item in rows)
+    assert all("NARROW_PHASE_ROUTE_GEOMETRY_NOT_PRODUCT_INTERFERENCE_CLAIM" in item.evidence_status for item in rows)
+    for item in rows:
+        assert item.intersection_volume_mm3 is not None
+        assert item.minimum_distance_mm is not None
+        if item.intersection_volume_mm3 > 0.0 or item.minimum_distance_mm == 0.0:
+            assert item.status == REVIEW
+        else:
+            assert item.status == CLEAR
 
 
 def test_every_released_participant_is_checked_against_all_protected_regions(matrix: WholeProductCollisionMatrix):
@@ -95,19 +107,15 @@ def test_dynamic_user_protected_screen_retains_full_worn_pose_set(matrix: WholeP
     assert next(iter(pose_counts)) > 100
     for item in matrix.dynamic_protected_screens:
         xmin, xmax, ymin, ymax, zmin, zmax = item.bounds_mm
-        assert xmin < xmax
-        assert ymin < ymax
-        assert zmin <= zmax
+        assert xmin < xmax and ymin < ymax and zmin <= zmax
         assert "DISCRETE_WORN_POSE" in item.evidence_status
         assert "Z_EXTENT_UNBOUNDED" in item.evidence_status
 
 
-def test_missing_mechanism_harness_cartridge_service_hmi_and_hand_keepout_fail_closed(
-    matrix: WholeProductCollisionMatrix,
-):
+def test_missing_mechanism_harness_cartridge_service_hmi_and_hand_keepout_fail_closed(matrix: WholeProductCollisionMatrix):
     blocked = tuple(item for item in matrix.checks if item.status == BLOCKED)
     assert len(blocked) == 6
-    blocked_text = "\n".join(item.check_id for item in blocked)
+    text = "\n".join(item.check_id for item in blocked)
     for required in (
         "RIGHT_RELEASE_OPERATIONAL_MOTION",
         "RIGHT_RELEASE_FACTORY_MOTION",
@@ -116,12 +124,10 @@ def test_missing_mechanism_harness_cartridge_service_hmi_and_hand_keepout_fail_c
         "USER_HAND_SERVICE_KEEP_OUT",
         "PHYSICAL_HMI",
     ):
-        assert required in blocked_text
+        assert required in text
     unresolved = {item.interface_id: item for item in matrix.unresolved_interfaces}
-    assert "HARNESS" in unresolved
-    assert "CARTRIDGE_SERVICE_MOTION" in unresolved
-    assert "USER_HAND_SERVICE_KEEP_OUT" in unresolved
-    assert "PHYSICAL_HMI" in unresolved
+    for required in ("HARNESS", "CARTRIDGE_SERVICE_MOTION", "USER_HAND_SERVICE_KEEP_OUT", "PHYSICAL_HMI"):
+        assert required in unresolved
     assert all(item.blocker for item in unresolved.values())
 
 
@@ -140,35 +146,28 @@ def test_matrix_manifest_is_deterministic_and_never_promotes_physical_validation
     assert first["matrix_sha256"] == matrix.matrix_sha256
     assert first["physical_validation_eligible"] is False
     assert "NOT_FIT_COMFORT_ANATOMICAL_SERVICE" in first["evidence_status"]
-    assert first["exact_interference_count"] == sum(
-        item.status == INTERFERENCE for item in matrix.checks
-    )
+    assert first["exact_interference_count"] == sum(item.status == INTERFERENCE for item in matrix.checks)
+    assert first["review_required_count"] == sum(item.status in {TOUCHING, REVIEW} for item in matrix.checks)
     assert first["blocked_count"] == 6
     if first["exact_interference_count"]:
         assert first["matrix_status"] == "DIGITAL_INTERFERENCE_PRESENT_RELEASE_BLOCKED"
 
 
-def test_review_exports_round_trip_as_valid_reference_geometry(
-    tmp_path: Path,
-    matrix: WholeProductCollisionMatrix,
-):
+def test_review_exports_round_trip_as_valid_reference_geometry(tmp_path: Path, matrix: WholeProductCollisionMatrix):
     paths = export_whole_product_collision_review(tmp_path, matrix)
     by_name = {path.name: path for path in paths}
-    expected = {
+    assert set(by_name) == {
         "whole_product_collision_rigid_package_reference.step",
         "whole_product_collision_waste_service_aabbs_reference.step",
         "whole_product_collision_protected_prisms_reference.step",
         "whole_product_collision_matrix_v1.json",
     }
-    assert set(by_name) == expected
-
     rigid = cq.importers.importStep(str(by_name["whole_product_collision_rigid_package_reference.step"])).val()
     routes = cq.importers.importStep(str(by_name["whole_product_collision_waste_service_aabbs_reference.step"])).val()
     protected = cq.importers.importStep(str(by_name["whole_product_collision_protected_prisms_reference.step"])).val()
     assert rigid.isValid() and len(rigid.Solids()) == 8
     assert routes.isValid() and len(routes.Solids()) == 3
     assert protected.isValid() and len(protected.Solids()) == 5
-
     manifest = json.loads(by_name["whole_product_collision_matrix_v1.json"].read_text(encoding="utf-8"))
     assert manifest["schema"] == "MASCK_ONE_WHOLE_PRODUCT_COLLISION_MATRIX_V1"
     assert manifest["matrix_sha256"] == matrix.matrix_sha256
