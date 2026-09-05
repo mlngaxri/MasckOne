@@ -1,0 +1,249 @@
+{
+  "schema": "MASCK_ONE_CELL1_LEGACY_BRANCH_SALVAGE_MAP_V1",
+  "authority_revision": "2026-08-30-R1",
+  "authority_blob_sha": "2608dda483b995539de422290371c219668a1527",
+  "reconstructed_main_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+  "released_baseline_repair_pr": 67,
+  "released_baseline_repair_head_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
+  "source_truth_order": [
+    "LIVE_MAIN",
+    "MACHINE_AUTHORITY",
+    "SCHEMAS_VALIDATORS",
+    "MERGED_TESTS_PREFLIGHTS_MANIFESTS",
+    "ACCEPTED_SUBSYSTEM_CAD",
+    "VERIFIED_SUPPLIER_PHYSICAL_EVIDENCE",
+    "LABELLED_INFERENCE"
+  ],
+  "classifications": ["MERGEABLE", "PORTABLE", "SUPERSEDED", "REJECT"],
+  "entries": [
+    {
+      "pr": 62,
+      "title": "Manual B: converge MVP exterior on live main",
+      "head_ref": "manual-b/exterior-mvp-convergence-20260904",
+      "head_sha": "aa250eba05b594c085be4c374f784f20f705750d",
+      "base_ref": "main",
+      "base_sha": "2348fd74e63870f707bb8ce7a9f96a0c4d83d916",
+      "classification": "PORTABLE",
+      "release_disposition": "PORT_ONLY_AFTER_REBIND_AND_REVERIFICATION",
+      "unique_work": [
+        "FIVE_STATION_SMOOTH_NON_RULED_EXTERIOR_SHELL",
+        "AUTHORITY_BACKED_PROTECTED_APERTURES",
+        "CALM_CONTINUOUS_FACIAL_FIELD_AND_BLENDED_SIDE_MASS",
+        "CONTROLLED_MULTI_VIEW_DIGITAL_EVIDENCE"
+      ],
+      "source_bindings": [
+        {
+          "producer": "MAIN",
+          "geometry_dependency": true,
+          "observed_sha": "2348fd74e63870f707bb8ce7a9f96a0c4d83d916",
+          "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+          "status": "STALE",
+          "digest_status": "RECOMPUTE_ALL_RELEASE_FACING_GEOMETRY_DIGESTS_AFTER_REBIND"
+        }
+      ],
+      "exact_head_ci": {
+        "run_id": 33831790886,
+        "conclusion": "FAILURE",
+        "attribution": "INHERITED_PASSIVE_WASTE_BASELINE_FAILURE_NOW_REPAIRED_ON_MAIN_BUT_THIS_HEAD_HAS_NOT_BEEN_REVERIFIED"
+      },
+      "independent_review": "REQUIRED_AFTER_GREEN_REBIND",
+      "physical_validation_status": "NOT_CLAIMED",
+      "blockers": [
+        "PORT_OR_REBASE_ONTO_RECONSTRUCTED_MAIN",
+        "RERUN_COMPLETE_EXACT_HEAD_ENGINEERING_GATE_THROUGH_DETERMINISTIC_CAD_SMOKE",
+        "BIND_RELEASED_PACKAGE_AND_SERVICE_GEOMETRY_BEFORE_FINAL_EXTERIOR_PROMOTION",
+        "CELL2_AND_CELL5_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "pr": 63,
+      "title": "Manual A: integrated mechanical package, retention and service kinematics",
+      "head_ref": "manual-a/mechanical-retention-actuation-20260904",
+      "head_sha": "23b942bbb7f335eac74b42fa1b1613900e5a9347",
+      "base_ref": "main",
+      "base_sha": "b2c2d2d94972e4615e281e86e2feddaaa3c4e0c8",
+      "classification": "PORTABLE",
+      "release_disposition": "PORT_ONLY_AFTER_REBIND_REWORK_AND_REVERIFICATION",
+      "unique_work": [
+        "PERIMETER_REACTION_FRAME_AND_FRAME_TO_SHELL_BRIDGES",
+        "FOUR_ACTUATOR_PACKAGE_CANDIDATES_AND_REACTION_INTERFACES",
+        "RETENTION_HALO_AND_ONE_HAND_UNPOWERED_RELEASE_GEOMETRY",
+        "CARTRIDGE_RELEASE_AND_BATTERY_SERVICE_KINEMATICS",
+        "PROVENANCE_BOUNDED_MECHANICAL_MASS_AND_CG_LEDGER"
+      ],
+      "source_bindings": [
+        {
+          "producer": "MAIN",
+          "geometry_dependency": true,
+          "observed_sha": "b2c2d2d94972e4615e281e86e2feddaaa3c4e0c8",
+          "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+          "status": "STALE",
+          "digest_status": "RECOMPUTE_MECHANICAL_REALIZATION_AND_RELEASE_MANIFEST_DIGESTS_AFTER_REBIND"
+        }
+      ],
+      "exact_head_ci": {
+        "run_id": 33837019940,
+        "conclusion": "FAILURE",
+        "attribution": "INHERITED_PASSIVE_WASTE_BASELINE_FAILURE_NOW_REPAIRED_ON_MAIN_BUT_THIS_HEAD_HAS_NOT_BEEN_REVERIFIED"
+      },
+      "independent_review": "REWORK_RECORDED",
+      "physical_validation_status": "NOT_CLAIMED",
+      "blockers": [
+        "PORT_OR_REBASE_ONTO_RECONSTRUCTED_MAIN",
+        "MODEL_RIGHT_TONGUE_DOG_SOCKET_AND_LEFT_LUG_PIN_CLEVIS_WITH_CLEARANCE_JOINT_CAPTURE_SEMANTICS",
+        "CLOSE_RETAINED_AND_RESET_REQUIRED_RELEASE_STATES_WITHOUT_FAKE_POSITIVE_MATERIAL_OVERLAP",
+        "BOUND_CONTINUOUS_EMERGENCY_REMOVAL_TRAJECTORY_DIGITALLY",
+        "RERUN_COMPLETE_EXACT_HEAD_ENGINEERING_GATE_THROUGH_DETERMINISTIC_CAD_SMOKE",
+        "CELL5_INDEPENDENT_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "pr": 64,
+      "title": "Manual B: realize power electronics HMI and thermal package",
+      "head_ref": "manual-b/power-electronics-hmi-thermal-v2-20260904",
+      "head_sha": "49a32d0c61bd1057ee707ee2ef20b8ff4e6ede01",
+      "base_ref": "manual-a/mechanical-retention-actuation-20260904",
+      "base_sha": "fb01d61f9c83672a0e609d0a562af7c9cc2ab436",
+      "classification": "PORTABLE",
+      "release_disposition": "REJECT_BRANCH_AS_RELEASE_CANDIDATE_PORT_UNIQUE_WORK_AFTER_PRODUCER_REBIND",
+      "unique_work": [
+        "BATTERY_CARRIER_DRY_BAY_AND_PCB_PLACEHOLDER_PACKAGE",
+        "THIRTEEN_DETERMINISTIC_HARNESS_CLEARANCE_ROUTES",
+        "CLEAN_FIRST_PHYSICAL_HMI_AND_STATUS_WINDOW_RESERVATIONS",
+        "DUAL_WARM_AND_BOUNDED_COOL_PACKAGE_RESERVATIONS",
+        "EVIDENCE_BOUNDED_POWER_LOAD_LEDGER"
+      ],
+      "source_bindings": [
+        {
+          "producer": "MAIN",
+          "geometry_dependency": true,
+          "observed_sha": "b2c2d2d94972e4615e281e86e2feddaaa3c4e0c8",
+          "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+          "status": "STALE",
+          "digest_status": "RECOMPUTE_RELEASE_FACING_INTEGRATION_DIGEST_AFTER_MAIN_REBIND"
+        },
+        {
+          "producer": "MANUAL_A_PR_63_V1_AUTHORED_SOURCE",
+          "geometry_dependency": true,
+          "observed_sha": "d49966019e03132edd95d0ad8a390d285a0740c7",
+          "required_sha": "23b942bbb7f335eac74b42fa1b1613900e5a9347",
+          "status": "STALE",
+          "digest_status": "STALE_DIGEST_INVALID_FOR_CURRENT_PRODUCER_RECOMPUTE_AFTER_REBIND"
+        },
+        {
+          "producer": "MANUAL_A_PR_63_V2_INTEGRATION_SOURCE",
+          "geometry_dependency": true,
+          "observed_sha": "4ac8e04cd73e7cc496a381edffd29ca18cf8daf5",
+          "required_sha": "23b942bbb7f335eac74b42fa1b1613900e5a9347",
+          "status": "STALE",
+          "digest_status": "RUNTIME_MANUAL_A_REALIZATION_SHA256_FROM_STALE_SOURCE_MUST_BE_RECOMPUTED_ON_REQUIRED_HEAD"
+        }
+      ],
+      "exact_head_ci": {
+        "run_id": 33836962274,
+        "conclusion": "FAILURE",
+        "attribution": "VALIDATION_WRAPPER_RAN_AGAINST_OLD_RED_MAIN_AND_STALE_MANUAL_A_SOURCE"
+      },
+      "independent_review": "HOLD_FOR_MECHANICAL_DEPENDENCY_BINDING",
+      "physical_validation_status": "NOT_CLAIMED",
+      "blockers": [
+        "DO_NOT_MERGE_STACK_AS_IS",
+        "PORT_AFTER_PR_63_MECHANICAL_SOURCE_IS_ACCEPTED",
+        "RECOMPUTE_MANUAL_A_REALIZATION_SHA256_AND_ALL_COLLISION_SERVICE_EVIDENCE",
+        "RECHECK_AGAINST_RELEASED_CELL4_FLUID_CENTERLINES",
+        "RECONVERGE_HMI_STATUS_CUT_SEAL_FAIRING_WITH_RELEASED_EXTERIOR",
+        "RERUN_COMPLETE_EXACT_HEAD_ENGINEERING_GATE_THROUGH_DETERMINISTIC_CAD_SMOKE",
+        "CELL5_INDEPENDENT_REVIEW_REQUIRED"
+      ]
+    },
+    {
+      "pr": 65,
+      "title": "VALIDATION ONLY: Manual A + Manual B power integration CI",
+      "head_ref": "manual-b/power-electronics-hmi-thermal-v2-20260904",
+      "head_sha": "49a32d0c61bd1057ee707ee2ef20b8ff4e6ede01",
+      "base_ref": "main",
+      "base_sha": "b2c2d2d94972e4615e281e86e2feddaaa3c4e0c8",
+      "classification": "REJECT",
+      "release_disposition": "DO_NOT_MERGE_VALIDATION_ONLY_WRAPPER",
+      "related_pr": 64,
+      "unique_work": ["NO_UNIQUE_PRODUCT_GEOMETRY_VALIDATION_TRIGGER_ONLY"],
+      "source_bindings": [],
+      "exact_head_ci": {
+        "run_id": 33836962274,
+        "conclusion": "FAILURE",
+        "attribution": "VALIDATION_ONLY_WRAPPER"
+      },
+      "independent_review": "NOT_APPLICABLE",
+      "physical_validation_status": "NOT_CLAIMED",
+      "blockers": ["EXPLICIT_PR_CONTRACT_SAYS_DO_NOT_MERGE"]
+    },
+    {
+      "pr": 66,
+      "title": "Cell 1: expose first baseline pytest failure",
+      "head_ref": "cell1/ci-baseline-diagnostics-20260905",
+      "head_sha": "2b8f515fe6d2fc3434267cfff2bf8241160124b5",
+      "base_ref": "main",
+      "base_sha": "b2c2d2d94972e4615e281e86e2feddaaa3c4e0c8",
+      "classification": "SUPERSEDED",
+      "release_disposition": "DIAGNOSTIC_OBJECTIVE_COMPLETE_NO_PRODUCT_RELEASE",
+      "superseded_by_pr": 67,
+      "unique_work": ["FIRST_FAILURE_DIAGNOSTIC_ARTIFACT_CAPTURE"],
+      "source_bindings": [],
+      "exact_head_ci": {
+        "run_id": 33914411125,
+        "conclusion": "FAILURE",
+        "attribution": "EXPECTED_DIAGNOSTIC_CAPTURED_ROOT_CAUSE"
+      },
+      "independent_review": "NOT_APPLICABLE",
+      "physical_validation_status": "NOT_CLAIMED",
+      "blockers": []
+    },
+    {
+      "pr": 68,
+      "title": "Cell 4: realize mixed-waste backbone centerlines",
+      "head_ref": "cell4/realized-waste-backbone-20260905",
+      "head_sha": "46b2d6ea2752da7054382afc67655eed06e47343",
+      "base_ref": "main",
+      "base_sha": "b2c2d2d94972e4615e281e86e2feddaaa3c4e0c8",
+      "classification": "PORTABLE",
+      "release_disposition": "HOLD_PENDING_EXACT_HEAD_GATE_AND_INDEPENDENT_REVIEW",
+      "unique_work": [
+        "WORLD_FRAME_MIXED_WASTE_BACKBONE_CENTERLINES",
+        "EXPLICIT_PUMP_TO_PASSIVE_BARRIER_AND_BARRIER_TO_CARTRIDGE_STAGES",
+        "DETERMINISTIC_CENTERLINE_LENGTH_AND_GEOMETRIC_DEAD_VOLUME_ACCOUNTING",
+        "PROVISIONAL_SERVICE_AND_BEND_EVIDENCE_FIREWALL"
+      ],
+      "source_bindings": [
+        {
+          "producer": "PR_67_PASSIVE_WASTE_BASELINE_REPAIR",
+          "geometry_dependency": false,
+          "observed_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
+          "required_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
+          "status": "CURRENT_RELEASED_ANCESTOR",
+          "digest_status": "NOT_A_GEOMETRY_DIGEST_DEPENDENCY"
+        }
+      ],
+      "exact_head_ci": {
+        "run_id": 33948139680,
+        "conclusion": "IN_PROGRESS",
+        "attribution": "CURRENT_EXACT_HEAD_GATE_RUNNING"
+      },
+      "independent_review": "MISSING",
+      "physical_validation_status": "NOT_CLAIMED",
+      "blockers": [
+        "WAIT_FOR_EXACT_HEAD_ENGINEERING_GATE_COMPLETION",
+        "CELL5_INDEPENDENT_REVIEW_REQUIRED",
+        "INTEGRATE_COLLISION_AND_SERVICE_TRAJECTORY_CHECKS_AGAINST_RELEASED_EXTERIOR_AND_MECHANISM_BEFORE_PROMOTION",
+        "SELECTED_TUBE_OR_CHANNEL_BEND_REQUIREMENT_AND_PHYSICAL_HYDRAULIC_EVIDENCE_REMAIN_BLOCKED"
+      ]
+    }
+  ],
+  "released_and_skipped": [
+    {
+      "pr": 67,
+      "head_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
+      "merge_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+      "reason": "BASELINE_REPAIR_ALREADY_RELEASED_TO_MAIN"
+    }
+  ]
+}
