@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-"""Source-bound whole-product cross-system collision matrix V1.
+"""Source-bound whole-product collision matrix V1.
 
-The matrix consumes released geometry without reauthoring subsystem solids. It performs
-exact B-rep checks where both sides exist, treats released mixed-waste service envelopes
-as conservative route reservations, and emits explicit blocked rows when a required
-subsystem has no released geometry. Facial protected volumes remain authority-derived
-2.5D XY hard envelopes with unbounded Z; a finite participant is therefore checked by
-extruding that exact XY footprint only through that participant's own Z span.
+This Cell 1 integration layer consumes released geometry rather than reauthoring it.
+Exact B-rep interference is reported where both finite solids exist. Released mixed-
+waste centerlines are represented only by conservative service AABBs, whose overlaps
+are review flags rather than exact product collisions. Authority protected regions are
+2.5D XY hard envelopes with intentionally unresolved Z; for a finite participant the
+exact XY footprint is extruded only through that participant's Z span.
 
-Everything in this module is digital engineering evidence only, never physical
-validation of fit, comfort, anatomy, service usability, leakage, hygiene, durability,
-or safety performance.
+All outputs are digital engineering evidence only, never physical validation.
 """
 
 from dataclasses import dataclass
@@ -29,7 +27,6 @@ from .realized_waste_backbone import RealizedWasteRoute
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .worn_pose import protected_zone_regression_bounds
 
-
 SCHEMA = "MASCK_ONE_WHOLE_PRODUCT_COLLISION_MATRIX_V1"
 SOURCE_MAIN_SHA = "21cf8c4fb8ca0d20ddb58f90bcee6275bc98ca30"
 AUTHORITY_REVISION = "2026-08-30-R1"
@@ -42,7 +39,7 @@ SOURCE_BLOBS = (
     ("src/masck_one/realized_waste_backbone.py", "6aa79d9a613e278f32da85b4654c0e35cc09b7ca"),
 )
 
-# Live navigation snapshot only. Candidate B-reps are deliberately not consumed.
+# Live navigation snapshot only. No candidate B-rep is consumed by V1.
 OBSERVED_CANDIDATES = (
     ("CELL2_EXTERIOR_PR70", 70, "d95b116c6ebf64bd315dd0ee69c7e5c160de69ff"),
     ("CELL3_RIGHT_RELEASE_PR71", 71, "0b5a619c6cea344038b0e8b8cc10a50e3d193390"),
@@ -55,12 +52,16 @@ OBSERVED_CANDIDATES = (
 CATEGORY_RIGID = "RIGID_OR_PACKAGE_GEOMETRY"
 CATEGORY_ROUTE = "ROUTE_SERVICE_RESERVATION"
 METHOD_BREP = "EXACT_BREP_INTERSECTION_AND_DISTANCE"
+METHOD_ROUTE = "CONSERVATIVE_ROUTE_SERVICE_AABB_BROAD_PHASE"
 METHOD_PROTECTED = "EXACT_XY_PROTECTED_FOOTPRINT_OVER_FINITE_SOLID_Z_SPAN"
 METHOD_UNRESOLVED = "BLOCKED_NO_RELEASED_GEOMETRY"
+
 CLEAR = "CLEAR_DIGITAL"
 INTERFERENCE = "INTERFERENCE_DETECTED"
 TOUCHING = "TOUCHING_REVIEW_REQUIRED"
+REVIEW = "CONSERVATIVE_RESERVATION_OVERLAP_REVIEW_REQUIRED"
 BLOCKED = "BLOCKED_UNRESOLVED_GEOMETRY"
+
 KERNEL_VOLUME_EPS_MM3 = 1e-7
 KERNEL_DISTANCE_EPS_MM = 1e-7
 DIGITAL_ONLY = (
@@ -109,18 +110,13 @@ def _bounds(workplane: cq.Workplane) -> tuple[float, float, float, float, float,
 
 
 def _narrow_phase(left: cq.Workplane, right: cq.Workplane) -> tuple[float, float, str]:
-    first = _shape(left)
-    second = _shape(right)
+    first, second = _shape(left), _shape(right)
     volume = abs(float(first.intersect(second).Volume()))
-    if not math.isfinite(volume):
-        raise WholeProductCollisionMatrixError("intersection volume must be finite")
-    if volume <= KERNEL_VOLUME_EPS_MM3:
-        volume = 0.0
     distance = float(first.distance(second))
-    if not math.isfinite(distance) or distance < 0.0:
-        raise WholeProductCollisionMatrixError("minimum distance must be finite and nonnegative")
-    if distance <= KERNEL_DISTANCE_EPS_MM:
-        distance = 0.0
+    if not math.isfinite(volume) or not math.isfinite(distance) or distance < 0.0:
+        raise WholeProductCollisionMatrixError("collision metrics must be finite and nonnegative")
+    volume = 0.0 if volume <= KERNEL_VOLUME_EPS_MM3 else volume
+    distance = 0.0 if distance <= KERNEL_DISTANCE_EPS_MM else distance
     if volume > 0.0:
         return volume, distance, INTERFERENCE
     if distance == 0.0:
@@ -143,7 +139,7 @@ def _route_service_aabb(route: RealizedWasteRoute) -> cq.Workplane:
 
 def _protected_prism(zone: PlanarProtectedZone, zmin: float, zmax: float) -> cq.Workplane:
     if not math.isfinite(zmin) or not math.isfinite(zmax) or zmax <= zmin:
-        raise WholeProductCollisionMatrixError("protected prism requires a finite positive Z span")
+        raise WholeProductCollisionMatrixError("protected prism requires finite positive Z span")
     base = cq.Workplane("XY").workplane(offset=zmin).center(zone.center.x, zone.center.y)
     depth = zmax - zmin
     if zone.shape == "CIRCLE":
@@ -153,11 +149,7 @@ def _protected_prism(zone: PlanarProtectedZone, zmin: float, zmax: float) -> cq.
     else:
         raise WholeProductCollisionMatrixError(f"unsupported protected shape {zone.shape!r}")
     if zone.angle_deg:
-        result = result.rotate(
-            (zone.center.x, zone.center.y, 0.0),
-            (zone.center.x, zone.center.y, 1.0),
-            zone.angle_deg,
-        )
+        result = result.rotate((zone.center.x, zone.center.y, 0.0), (zone.center.x, zone.center.y, 1.0), zone.angle_deg)
     _shape(result)
     return result
 
@@ -171,7 +163,7 @@ class SourceBinding:
 
     def validate(self) -> None:
         if _git_sha(self.source_main_sha, "source main") != SOURCE_MAIN_SHA:
-            raise WholeProductCollisionMatrixError("collision matrix is stale for released main")
+            raise WholeProductCollisionMatrixError("matrix is stale for released main")
         if self.authority_revision != AUTHORITY_REVISION or self.world_frame_id != WORLD_FRAME_ID:
             raise WholeProductCollisionMatrixError("authority revision or world frame changed")
         if self.source_blobs != SOURCE_BLOBS:
@@ -234,15 +226,11 @@ class CollisionCheck:
 
     def __post_init__(self) -> None:
         for label, value in (
-            ("check ID", self.check_id),
-            ("left ID", self.left_id),
-            ("right ID", self.right_id),
-            ("method", self.method),
-            ("status", self.status),
-            ("evidence status", self.evidence_status),
+            ("check ID", self.check_id), ("left ID", self.left_id), ("right ID", self.right_id),
+            ("method", self.method), ("status", self.status), ("evidence status", self.evidence_status),
         ):
             _text(value, label)
-        if self.status not in {CLEAR, INTERFERENCE, TOUCHING, BLOCKED}:
+        if self.status not in {CLEAR, INTERFERENCE, TOUCHING, REVIEW, BLOCKED}:
             raise WholeProductCollisionMatrixError("collision status is uncontrolled")
         if self.status == BLOCKED:
             if self.intersection_volume_mm3 is not None or self.minimum_distance_mm is not None:
@@ -252,6 +240,8 @@ class CollisionCheck:
                 raise WholeProductCollisionMatrixError("geometric row requires metrics")
             if self.intersection_volume_mm3 < 0.0 or self.minimum_distance_mm < 0.0:
                 raise WholeProductCollisionMatrixError("collision metrics must be nonnegative")
+        if self.status == REVIEW and self.method != METHOD_ROUTE:
+            raise WholeProductCollisionMatrixError("conservative overlap status is reserved for route broad phase")
 
     def manifest(self) -> dict[str, object]:
         return {
@@ -328,20 +318,20 @@ class WholeProductCollisionMatrix:
                 raise WholeProductCollisionMatrixError("geometric row references unknown left participant")
             if check.method == METHOD_PROTECTED:
                 if not check.right_id.startswith("PROTECTED:"):
-                    raise WholeProductCollisionMatrixError("protected row must identify ephemeral protected prism")
+                    raise WholeProductCollisionMatrixError("protected row must identify ephemeral prism")
             elif check.right_id not in known:
                 raise WholeProductCollisionMatrixError("geometric row references unknown right participant")
         unresolved_ids = tuple(item.interface_id for item in self.unresolved_interfaces)
         if len(unresolved_ids) != len(set(unresolved_ids)):
             raise WholeProductCollisionMatrixError("unresolved interface IDs cannot repeat")
         if self.observed_candidates != OBSERVED_CANDIDATES:
-            raise WholeProductCollisionMatrixError("candidate navigation snapshot changed in frozen matrix")
+            raise WholeProductCollisionMatrixError("candidate snapshot changed inside frozen matrix")
         for _, number, head in self.observed_candidates:
             if type(number) is not int or number <= 0:
                 raise WholeProductCollisionMatrixError("candidate PR number must be positive integer")
             _git_sha(head, "observed candidate head")
         if type(self.physical_validation_eligible) is not bool or self.physical_validation_eligible:
-            raise WholeProductCollisionMatrixError("collision matrix cannot become physical evidence")
+            raise WholeProductCollisionMatrixError("matrix cannot become physical evidence")
         if self.evidence_status != DIGITAL_ONLY:
             raise WholeProductCollisionMatrixError("collision evidence firewall changed")
 
@@ -351,7 +341,7 @@ class WholeProductCollisionMatrix:
 
     @property
     def review_required_count(self) -> int:
-        return sum(item.status == TOUCHING for item in self.checks)
+        return sum(item.status in {TOUCHING, REVIEW} for item in self.checks)
 
     @property
     def blocked_count(self) -> int:
@@ -397,18 +387,27 @@ class WholeProductCollisionMatrix:
 
 
 def _participant(component: Component) -> CollisionParticipant:
-    return CollisionParticipant(
-        component.name,
-        CATEGORY_RIGID,
-        f"model:{component.name}",
-        component.solid,
-        f"RELEASED_MAIN_COMPONENT_STATUS:{component.status}",
-    )
+    return CollisionParticipant(component.name, CATEGORY_RIGID, f"model:{component.name}", component.solid, f"RELEASED_MAIN_COMPONENT_STATUS:{component.status}")
 
 
 def _exact_check(check_id: str, left: CollisionParticipant, right: CollisionParticipant, evidence: str) -> CollisionCheck:
     volume, distance, status = _narrow_phase(left.geometry, right.geometry)
     return CollisionCheck(check_id, left.participant_id, right.participant_id, METHOD_BREP, status, volume, distance, evidence)
+
+
+def _route_check(route: CollisionParticipant, obstacle: CollisionParticipant) -> CollisionCheck:
+    volume, distance, raw_status = _narrow_phase(route.geometry, obstacle.geometry)
+    status = REVIEW if raw_status in {INTERFERENCE, TOUCHING} else CLEAR
+    return CollisionCheck(
+        f"ROUTE::{route.participant_id}::{obstacle.participant_id}",
+        route.participant_id,
+        obstacle.participant_id,
+        METHOD_ROUTE,
+        status,
+        volume,
+        distance,
+        "CONSERVATIVE_ROUTE_SERVICE_AABB_VS_RELEASED_BREP;OVERLAP_REQUIRES_NARROW_PHASE_ROUTE_GEOMETRY_NOT_PRODUCT_INTERFERENCE_CLAIM",
+    )
 
 
 def _protected_check(participant: CollisionParticipant, zone: PlanarProtectedZone) -> CollisionCheck:
@@ -434,21 +433,16 @@ def _dynamic_screens(model: MasckOneModel) -> tuple[DynamicProtectedScreen, ...]
         selected = tuple(item for item in all_bounds if item.zone_id == volume.zone.zone_id)
         if len(selected) != model.worn_pose_regression.pose_count:
             raise WholeProductCollisionMatrixError("worn-pose screen lost pose coverage")
-        result.append(
-            DynamicProtectedScreen(
-                volume.zone.zone_id,
-                len(selected),
-                (
-                    min(item.min_x_mm for item in selected),
-                    max(item.max_x_mm for item in selected),
-                    min(item.min_y_mm for item in selected),
-                    max(item.max_y_mm for item in selected),
-                    min(item.min_z_mm for item in selected),
-                    max(item.max_z_mm for item in selected),
-                ),
-                "DETERMINISTIC_DISCRETE_WORN_POSE_BOUNDARY_SCREEN_ONLY;SOURCE_Z_EXTENT_UNBOUNDED_AND_MEASURED_DONNING_DISTRIBUTION_UNAVAILABLE",
-            )
-        )
+        result.append(DynamicProtectedScreen(
+            volume.zone.zone_id,
+            len(selected),
+            (
+                min(item.min_x_mm for item in selected), max(item.max_x_mm for item in selected),
+                min(item.min_y_mm for item in selected), max(item.max_y_mm for item in selected),
+                min(item.min_z_mm for item in selected), max(item.max_z_mm for item in selected),
+            ),
+            "DETERMINISTIC_DISCRETE_WORN_POSE_BOUNDARY_SCREEN_ONLY;SOURCE_Z_EXTENT_UNBOUNDED_AND_MEASURED_DONNING_DISTRIBUTION_UNAVAILABLE",
+        ))
     return tuple(result)
 
 
@@ -461,12 +455,7 @@ def _blocked_rows() -> tuple[CollisionCheck, ...]:
         ("USER_HAND_SERVICE_KEEP_OUT", "HMI_RELEASE_CARTRIDGE", "no authority-backed hand anthropometry, wet grip envelope or service trajectory is released"),
         ("PHYSICAL_HMI", "WET_ROUTE_AND_USER_HAND", "physical HMI geometry is not released; legacy Manual-B is not authority"),
     )
-    return tuple(
-        CollisionCheck(
-            f"BLOCKED::{left}::{right}", left, right, METHOD_UNRESOLVED, BLOCKED, None, None, reason
-        )
-        for left, right, reason in rows
-    )
+    return tuple(CollisionCheck(f"BLOCKED::{left}::{right}", left, right, METHOD_UNRESOLVED, BLOCKED, None, None, reason) for left, right, reason in rows)
 
 
 def _unresolved_interfaces() -> tuple[UnresolvedInterface, ...]:
@@ -494,25 +483,19 @@ def build_whole_product_collision_matrix(model: MasckOneModel | None = None) -> 
         _participant(model.battery_reference_envelope),
     )
     release = build_current_cell4_waste_backbone_release()
-    routes = tuple(
-        CollisionParticipant(
-            f"WASTE_ROUTE_SERVICE::{route.route_id}",
-            CATEGORY_ROUTE,
-            route.route_id,
-            _route_service_aabb(route),
-            "CONSERVATIVE_AABB_FROM_RELEASED_ROUTE_BOUNDS_PLUS_ROUTE_SERVICE_RADIUS;NOT_SELECTED_TUBING_CHANNEL_OR_PHYSICAL_SERVICE_CLEARANCE",
-        )
-        for route in release.realization.routes
-    )
+    routes = tuple(CollisionParticipant(
+        f"WASTE_ROUTE_SERVICE::{route.route_id}", CATEGORY_ROUTE, route.route_id, _route_service_aabb(route),
+        "CONSERVATIVE_AABB_FROM_RELEASED_ROUTE_BOUNDS_PLUS_ROUTE_SERVICE_RADIUS;NOT_SELECTED_TUBING_CHANNEL_OR_PHYSICAL_SERVICE_CLEARANCE",
+    ) for route in release.realization.routes)
     participants = rigid + routes
 
     checks: list[CollisionCheck] = []
     for index, left in enumerate(rigid):
-        for right in rigid[index + 1 :]:
+        for right in rigid[index + 1:]:
             checks.append(_exact_check(f"BREP::{left.participant_id}::{right.participant_id}", left, right, "DIGITAL_BREP_NARROW_PHASE_ONLY"))
     for route in routes:
         for obstacle in rigid:
-            checks.append(_exact_check(f"ROUTE::{route.participant_id}::{obstacle.participant_id}", route, obstacle, "CONSERVATIVE_ROUTE_SERVICE_AABB_VS_RELEASED_BREP;DIGITAL_RESERVATION_ONLY"))
+            checks.append(_route_check(route, obstacle))
     for participant in participants:
         for volume in model.protected_volumes.all:
             checks.append(_protected_check(participant, volume.zone))
@@ -520,11 +503,7 @@ def build_whole_product_collision_matrix(model: MasckOneModel | None = None) -> 
 
     matrix = WholeProductCollisionMatrix(
         SourceBinding(SOURCE_MAIN_SHA, AUTHORITY_REVISION, WORLD_FRAME_ID, SOURCE_BLOBS),
-        participants,
-        tuple(checks),
-        _dynamic_screens(model),
-        _unresolved_interfaces(),
-        OBSERVED_CANDIDATES,
+        participants, tuple(checks), _dynamic_screens(model), _unresolved_interfaces(), OBSERVED_CANDIDATES,
     )
     matrix.validate()
     return matrix
@@ -532,23 +511,17 @@ def build_whole_product_collision_matrix(model: MasckOneModel | None = None) -> 
 
 def _review_protected_prisms(protected: ProtectedVolumeSet, participants: tuple[CollisionParticipant, ...]) -> tuple[cq.Workplane, ...]:
     spans = tuple(_bounds(item.geometry) for item in participants)
-    zmin = min(item[4] for item in spans)
-    zmax = max(item[5] for item in spans)
+    zmin, zmax = min(item[4] for item in spans), max(item[5] for item in spans)
     return tuple(_protected_prism(volume.zone, zmin, zmax) for volume in protected.all)
 
 
-def export_whole_product_collision_review(
-    output_dir: str | Path,
-    matrix: WholeProductCollisionMatrix | None = None,
-    model: MasckOneModel | None = None,
-) -> tuple[Path, ...]:
+def export_whole_product_collision_review(output_dir: str | Path, matrix: WholeProductCollisionMatrix | None = None, model: MasckOneModel | None = None) -> tuple[Path, ...]:
     model = model or build_model()
     matrix = matrix or build_whole_product_collision_matrix(model)
     matrix.validate()
     output = Path(output_dir).resolve()
     output.mkdir(parents=True, exist_ok=True)
     paths: list[Path] = []
-
     groups = (
         ("whole_product_collision_rigid_package_reference.step", [item.geometry.val() for item in matrix.participants if item.category == CATEGORY_RIGID]),
         ("whole_product_collision_waste_service_aabbs_reference.step", [item.geometry.val() for item in matrix.participants if item.category == CATEGORY_ROUTE]),
@@ -560,7 +533,6 @@ def export_whole_product_collision_review(
         path = output / name
         cq.exporters.export(cq.Compound.makeCompound(shapes), str(path))
         paths.append(path)
-
     manifest_path = output / "whole_product_collision_matrix_v1.json"
     manifest_path.write_text(json.dumps(matrix.manifest(), indent=2) + "\n", encoding="utf-8")
     paths.append(manifest_path)
