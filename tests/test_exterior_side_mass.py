@@ -9,6 +9,7 @@ from masck_one.spatial import CanonicalDatums
 
 PROBE_HALF_WIDTH_MM = 0.70
 BOUND_TOLERANCE_MM = 1e-5
+KERNEL_TOLERANCE_MM = 1e-5
 CENTER_FIELD_CHANGE_MAX_MM = 0.05
 MINIMUM_LATERAL_SETBACK_MM = {
     24.0: 0.15,
@@ -16,6 +17,10 @@ MINIMUM_LATERAL_SETBACK_MM = {
     48.0: 0.55,
 }
 MIRROR_TOLERANCE_MM = 0.01
+SIDE_MASS_WALL_PROBES_XY_MM = (
+    (-48.0, 0.0),
+    (48.0, 0.0),
+)
 
 
 def _models():
@@ -24,7 +29,7 @@ def _models():
     facial_reference = build_facial_reference(authority, datums)
     previous = build_constructed_exterior_shell(authority, facial_reference).val()
     candidate = build_inferior_turnover_exterior_shell(authority, facial_reference).val()
-    return previous, candidate
+    return authority, previous, candidate
 
 
 def _front_z_at_xy(solid: cq.Shape, x_mm: float, y_mm: float) -> float:
@@ -44,8 +49,17 @@ def _front_z_at_xy(solid: cq.Shape, x_mm: float, y_mm: float) -> float:
     return float(intersection.BoundingBox().zmax)
 
 
+def _axial_material_segments_mm(solid: cq.Shape, x_mm: float, y_mm: float) -> list[float]:
+    probe = cq.Edge.makeLine(
+        cq.Vector(x_mm, y_mm, 18.0),
+        cq.Vector(x_mm, y_mm, 35.0),
+    )
+    material = solid.intersect(probe)
+    return [float(segment.Length()) for segment in material.Edges()]
+
+
 def test_final_brep_side_mass_feathers_progressively_without_moving_package_footprint():
-    previous, candidate = _models()
+    _, previous, candidate = _models()
     previous_bb = previous.BoundingBox()
     candidate_bb = candidate.BoundingBox()
     assert abs(candidate_bb.xlen - previous_bb.xlen) <= BOUND_TOLERANCE_MM
@@ -68,3 +82,15 @@ def test_final_brep_side_mass_feathers_progressively_without_moving_package_foot
         setbacks.append(0.5 * (positive + negative))
 
     assert setbacks[0] < setbacks[1] < setbacks[2]
+
+
+def test_final_brep_side_mass_feather_region_meets_absolute_wall_minimum():
+    authority, _, candidate = _models()
+    absolute_min = authority.number(
+        "geometry", "shell_absolute_development_min_mm"
+    )
+
+    for x_mm, y_mm in SIDE_MASS_WALL_PROBES_XY_MM:
+        segments = _axial_material_segments_mm(candidate, x_mm, y_mm)
+        assert segments
+        assert min(segments) + KERNEL_TOLERANCE_MM >= absolute_min
