@@ -130,3 +130,28 @@ def test_cell2_visible_assembly_integrates_rear_skin_without_mutating_product_co
     assert len(compound.Solids()) == 2
     assert assembly.model.shell.name == "rigid_shell"
     assert all(component.name != "rear_service_skin" for component in assembly.model.components)
+
+
+def test_rear_service_review_export_emits_deterministic_review_only_artifacts(tmp_path: Path):
+    from masck_one.export import (
+        CELL2_REAR_REVIEW_EXPORT_NAMES,
+        CELL2_REAR_REVIEW_MANIFEST,
+        _export_cell2_rear_service_review,
+    )
+
+    manifest, step_files = _export_cell2_rear_service_review(
+        tmp_path.resolve(),
+        load_authority(),
+    )
+    assert step_files == [f"{name}.step" for name in CELL2_REAR_REVIEW_EXPORT_NAMES]
+    assert manifest["current_cell3_package_interface"]["package_reflow_required"] is True
+    assert manifest["service_reference"]["battery_extraction_geometry_status"] == "UNRESOLVED"
+    assert manifest["service_reference"]["dry_bay_attachment_geometry_status"] == "UNRESOLVED"
+    assert (tmp_path / CELL2_REAR_REVIEW_MANIFEST).exists()
+
+    for filename in step_files:
+        path = tmp_path / filename
+        assert path.exists()
+        imported = cq.importers.importStep(str(path))
+        assert imported.solids().size() == 1
+        assert imported.val().isValid()
