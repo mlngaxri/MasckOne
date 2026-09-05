@@ -19,6 +19,7 @@ from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .rear_service_skin import build_rear_service_skin
 from .structural_frame import build_structural_frame_topology
+from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
 
 
 CELL2_EXTERIOR_REVIEW_STEP = "cell2_rigid_shell_candidate_review.step"
@@ -149,7 +150,16 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         model.authority,
     )
 
-    shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
+    # The released waste-cartridge solid remains an authority package envelope rather
+    # than cartridge material. Preserve Cell 5's exclusion while Cell 2 review geometry
+    # remains independently exported and never enters this compound.
+    physical_component_exclusions = ("waste_cartridge_envelope",)
+    shapes = [
+        component.solid.val()
+        for component in model.components
+        if component.status != "REFERENCE_ONLY"
+        and component.name not in physical_component_exclusions
+    ]
     compound = cq.Compound.makeCompound(shapes)
     cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
 
@@ -163,6 +173,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     attachment = build_interface_attachment_architecture(model.authority, boundary_topology)
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
+    waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -188,7 +199,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "cell2_exterior_candidate": exterior_candidate_manifest,
             "cell2_rear_service_skin": rear_service_manifest,
         },
+        "dfm_gates": {
+            "waste_cartridge": waste_cartridge_dfm.manifest(),
+        },
         "development_assembly_exclusions": [
+            *physical_component_exclusions,
             "cell2_rigid_shell_candidate_review",
             *CELL2_REAR_REVIEW_EXPORT_NAMES,
         ],
@@ -210,11 +225,13 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "The default rigid_shell.step and development assembly retain released-model material. The exact Cell 2 "
-            "eye-rolled shell is independently built and STEP round-tripped during smoke as review-only candidate "
-            "geometry. Cell 2 rear-service STEP files are likewise review-only geometry and references excluded from "
-            "development assembly material until dry-side package reflow, attachment and battery extraction geometry "
-            "are reconciled. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "The default rigid_shell.step retains released-model shell material, while the exact Cell 2 eye-rolled "
+            "shell and rear-service geometry are independently built and STEP round-tripped as review-only candidate "
+            "geometry. The released waste-cartridge STEP remains an external package-envelope reference and is "
+            "deliberately excluded from physical development-assembly material until body, cavity, seal, retention "
+            "and service geometry are realized. Cell 2 rear-service geometry remains excluded until dry-side package "
+            "reflow, attachment and battery extraction are reconciled. The cartridge DFM gate and Cell 2 review "
+            "manifests are digital evidence only and do not establish physical validation."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
