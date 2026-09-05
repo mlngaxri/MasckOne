@@ -5,7 +5,11 @@ import json
 
 import pytest
 
-from masck_one.retention_load_path import ATTACHMENT_FEATURE_OPEN
+from masck_one.retention_load_path import (
+    ATTACHMENT_FEATURE_OPEN,
+    ATTACHMENT_INTEGRAL,
+    ATTACHMENT_PINNED,
+)
 from masck_one.retention_load_path_release import (
     DIGITAL_ONLY,
     SCHEMA,
@@ -27,7 +31,9 @@ def test_release_is_exactly_bound_to_prompt11_geometry_source():
     assert manifest["schema"] == SCHEMA
     assert manifest["source_retention_load_path_git_blob_sha"] == SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA
     assert manifest["source_retention_load_path_package_sha256"] == release.source.package_sha256
-    assert manifest["source_geometry_manifest"]["package_sha256"] == release.source.package_sha256
+    assert manifest["source_geometry_binding"]["package_sha256"] == release.source.package_sha256
+    assert manifest["source_geometry_binding"]["v1_geometry_bytes_modified_by_v2"] is False
+    assert manifest["source_geometry_binding"]["release_facing_semantics_owned_by_this_v2_contract"] is True
 
 
 def test_open_handoff_feature_is_not_mislabelled_as_existing_positive_attachment():
@@ -37,6 +43,7 @@ def test_open_handoff_feature_is_not_mislabelled_as_existing_positive_attachment
     for edge in open_edges:
         assert edge["positive_attachment_feature_realized"] is True
         assert edge["mating_counterpart_realized"] is False
+        assert edge["integral_material_continuity"] is False
         assert edge["positive_attachment"] is False
         assert edge["load_transfer_digitally_closed"] is False
 
@@ -49,15 +56,38 @@ def test_open_handoff_feature_is_not_mislabelled_as_existing_positive_attachment
     assert graph["whole_retention_load_path_closed"] is False
 
 
-def test_closed_local_edges_remain_actual_positive_attachment_or_integral_material():
+def test_retained_pin_edges_are_positive_attachments_and_integral_edges_are_not():
     graph = _release().manifest()["load_path_graph"]
-    closed = [edge for edge in graph["edges"] if edge["load_transfer_digitally_closed"]]
-    assert len(closed) == 8
-    for edge in closed:
+    edges = graph["edges"]
+
+    pinned = [edge for edge in edges if edge["attachment_class"] == ATTACHMENT_PINNED]
+    integral = [edge for edge in edges if edge["attachment_class"] == ATTACHMENT_INTEGRAL]
+    assert len(pinned) == 4
+    assert len(integral) == 4
+
+    for edge in pinned:
+        assert edge["load_transfer_digitally_closed"] is True
         assert edge["positive_attachment"] is True
         assert edge["positive_attachment_feature_realized"] is True
         assert edge["mating_counterpart_realized"] is True
+        assert edge["integral_material_continuity"] is False
         assert edge["clearance_only"] is False
+
+    for edge in integral:
+        assert edge["load_transfer_digitally_closed"] is True
+        assert edge["positive_attachment"] is False
+        assert edge["positive_attachment_feature_realized"] is False
+        assert edge["mating_counterpart_realized"] is None
+        assert edge["integral_material_continuity"] is True
+        assert edge["clearance_only"] is False
+
+    assert set(graph["positive_attachment_edge_ids"]) == {edge["edge_id"] for edge in pinned}
+    assert set(graph["integral_material_continuity_edge_ids"]) == {
+        edge["edge_id"] for edge in integral
+    }
+    assert len(graph["digitally_closed_edge_ids"]) == 8
+    assert graph["crown_lug_integral_to_local_carrier"] is True
+    assert graph["facial_handoff_lug_integral_to_local_carrier"] is True
 
 
 def test_service_maturity_does_not_promote_pin_bound_into_complete_carrier_removal():
@@ -136,11 +166,19 @@ def test_release_export_preserves_geometry_files_and_replaces_manifest_semantics
     assert payload["schema"] == SCHEMA
     assert payload["release_sha256"] == release.release_sha256
     assert payload["load_path_graph"]["whole_retention_load_path_closed"] is False
+
     open_edges = [
         edge
         for edge in payload["load_path_graph"]["edges"]
         if edge["attachment_class"] == ATTACHMENT_FEATURE_OPEN
     ]
-    assert open_edges
+    integral_edges = [
+        edge
+        for edge in payload["load_path_graph"]["edges"]
+        if edge["attachment_class"] == ATTACHMENT_INTEGRAL
+    ]
+    assert open_edges and integral_edges
     assert all(edge["positive_attachment"] is False for edge in open_edges)
     assert all(edge["positive_attachment_feature_realized"] is True for edge in open_edges)
+    assert all(edge["positive_attachment"] is False for edge in integral_edges)
+    assert all(edge["integral_material_continuity"] is True for edge in integral_edges)
