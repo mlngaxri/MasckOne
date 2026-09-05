@@ -3,15 +3,14 @@ import json
 import cadquery as cq
 import pytest
 
-from masck_one.authority import load_authority
-from masck_one.cleanser_service_interfaces import build_cleanser_service_geometry
-from masck_one.realized_cleanser_storage import build_realized_cleanser_storage
 
-
-def test_cleanser_material_and_service_reference_solids_round_trip_through_step(tmp_path):
-    authority = load_authority()
-    realized = build_realized_cleanser_storage(authority)
-    service = build_cleanser_service_geometry(authority)
+def test_cleanser_material_and_service_reference_solids_round_trip_through_step(
+    tmp_path,
+    cell4_cleanser_storage,
+    cell4_cleanser_service,
+):
+    realized = cell4_cleanser_storage
+    service = cell4_cleanser_service
     exports = {
         "body": service.ported_body_solid,
         "cradle": realized.cradle_solid,
@@ -42,10 +41,13 @@ def test_cleanser_material_and_service_reference_solids_round_trip_through_step(
         assert round_tripped.val().Volume() == pytest.approx(source.val().Volume(), rel=2e-6, abs=2e-5)
 
 
-def test_cleanser_manifests_round_trip_retaining_source_identity_and_evidence_firewall(tmp_path):
-    authority = load_authority()
-    realized = build_realized_cleanser_storage(authority)
-    service = build_cleanser_service_geometry(authority)
+def test_cleanser_manifests_round_trip_retaining_source_identity_and_evidence_firewall(
+    tmp_path,
+    cell4_cleanser_storage,
+    cell4_cleanser_service,
+):
+    realized = cell4_cleanser_storage
+    service = cell4_cleanser_service
     payload = {
         "realized_cleanser_storage": realized.manifest(),
         "cleanser_service_interfaces": service.manifest(),
