@@ -433,7 +433,7 @@ def build_cell4_waste_backbone(
         STAGE_ACQUISITION_TO_PUMP,
         ROUTE_DESTINATION,
         STATION_WASTE,
-        (Line3(Point3(-44.0, -34.0, 12.0), Point3(-48.0, -44.0, 16.0)),),
+        (Line3(Point3(-52.0, -34.0, 12.0), Point3(-48.0, -44.0, 16.0)),),
     )
     route_b = RealizedWasteRoute(
         ROUTE_PUMP_TO_BARRIER,
