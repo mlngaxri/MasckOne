@@ -33,6 +33,12 @@
       "candidate_pr": 71,
       "coverage": "PARTIAL_PORT",
       "status": "RIGHT_RELEASE_CRITICAL_SUBSET_PORTED_REMAINDER_STILL_PORTABLE"
+    },
+    {
+      "legacy_pr": 72,
+      "candidate_pr": 68,
+      "coverage": "FULL_PORT",
+      "status": "CLOSED_UNMERGED_VERIFICATION_WORK_FULLY_CONSUMED_IN_ACTIVE_PR_68"
     }
   ],
   "entries": [
