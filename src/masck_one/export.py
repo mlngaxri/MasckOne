@@ -5,6 +5,10 @@ from pathlib import Path
 
 import cadquery as cq
 
+from .actuator_mount_dfm import (
+    build_actuator_mount_dfm_audit,
+    export_actuator_mount_dfm_audit,
+)
 from .assertions import run_assertions
 from .boundary_release import (
     boundary_release_manifest,
@@ -65,6 +69,9 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     attachment = build_interface_attachment_architecture(model.authority, boundary_topology)
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
+    actuator_mount_dfm = build_actuator_mount_dfm_audit(model.authority)
+    actuator_mount_dfm_path = export_actuator_mount_dfm_audit(output, actuator_mount_dfm)
+
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -89,13 +96,19 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
+        "dfm_gates": {
+            "actuator_mount": actuator_mount_dfm.manifest(),
+        },
+        "dfm_artifacts": [actuator_mount_dfm_path.name],
         "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
-            "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
-            "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "released by Iteration 15. Actuator mounts, reaction joins, positive package retention, final mechanical "
+            "stops, service/tool trajectories and their tolerance stacks remain digitally unresolved and are fail-closed "
+            "by the Cell 5 actuator-mount DFM gate. The realized waste backbone is emitted as validated centerline/manifold "
+            "data, not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
+            "Digital topology, DFM manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
