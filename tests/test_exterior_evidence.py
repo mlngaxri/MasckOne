@@ -9,11 +9,15 @@ from masck_one.exterior_evidence import (
 
 def test_multi_view_renderer_emits_actual_brep_views_sections_and_manifest(tmp_path: Path):
     report = render_exterior_view_evidence(tmp_path)
-    assert report["schema"] == "MASCK_ONE_CELL2_EXTERIOR_VIEW_EVIDENCE_V2"
+    assert report["schema"] == "MASCK_ONE_CELL2_EXTERIOR_VIEW_EVIDENCE_V3"
     assert report["coordinate_frame"] == "MASCK_ONE_AUTHORITY_WORLD_MM"
     assert report["shell_valid"] is True
     assert report["shell_solid_count"] == 1
     assert report["shell_volume_mm3"] > 0.0
+    assert report["visible_assembly_valid"] is True
+    assert report["visible_assembly_solid_count"] == 2
+    assert report["visible_assembly_volume_mm3"] > report["shell_volume_mm3"]
+    assert report["rear_service_skin"]["current_cell3_package_interface"]["package_reflow_required"] is True
     assert len(report["view_files"]) == len(VIEW_DIRECTIONS) == 8
     assert len(report["section_files"]) == len(SECTION_SPECS) == 2
     assert (tmp_path / "cell2_exterior_view_manifest.json").exists()
