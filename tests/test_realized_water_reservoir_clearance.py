@@ -1,3 +1,4 @@
+from masck_one.authority import load_authority
 from masck_one.model import build_model
 from masck_one.realized_water_reservoir import build_realized_water_reservoir
 
@@ -28,7 +29,7 @@ def test_realized_reservoir_and_removal_sweep_clear_current_released_rigid_packa
 
 
 def test_reservoir_service_sweep_is_broad_phase_disjoint_from_current_cell3_latch_reservation():
-    realized = build_realized_water_reservoir(build_model().authority)
+    realized = build_realized_water_reservoir(load_authority())
     bb = realized.service_sweep_solid.val().BoundingBox()
     service_min = (float(bb.xmin), float(bb.ymin), float(bb.zmin))
     service_max = (float(bb.xmax), float(bb.ymax), float(bb.zmax))
