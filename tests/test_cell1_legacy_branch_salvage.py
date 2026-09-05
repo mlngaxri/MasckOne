@@ -61,6 +61,34 @@ def test_stale_geometry_binding_requires_digest_recomputation() -> None:
         validate_salvage_map(data)
 
 
+def test_exact_but_self_certified_source_cannot_be_promoted_to_mergeable() -> None:
+    data = deepcopy(load_salvage_map())
+    pr68 = _entry(data, 68)
+    pr68["classification"] = "MERGEABLE"
+    pr68["release_disposition"] = "ELIGIBLE_FOR_RELEASE"
+    pr68["blockers"] = []
+    pr68["independent_review"] = "APPROVED"
+    ci = pr68["exact_head_ci"]
+    assert isinstance(ci, dict)
+    ci["conclusion"] = "SUCCESS"
+
+    with pytest.raises(SalvageMapError, match="non-release-safe source bindings"):
+        validate_salvage_map(data)
+
+
+def test_mismatched_sha_cannot_be_marked_release_safe() -> None:
+    data = deepcopy(load_salvage_map())
+    pr62 = _entry(data, 62)
+    bindings = pr62["source_bindings"]
+    assert isinstance(bindings, list)
+    main_binding = bindings[0]
+    assert isinstance(main_binding, dict)
+    main_binding["release_safe"] = True
+
+    with pytest.raises(SalvageMapError, match="mismatched SHAs cannot be release-safe"):
+        validate_salvage_map(data)
+
+
 def test_digital_salvage_map_cannot_claim_physical_validation() -> None:
     data = deepcopy(load_salvage_map())
     _entry(data, 63)["physical_validation_status"] = "VALIDATED"
@@ -87,7 +115,17 @@ def test_released_repair_cannot_be_reclassified_as_legacy_work() -> None:
             "classification": "MERGEABLE",
             "release_disposition": "ELIGIBLE_FOR_RELEASE",
             "unique_work": ["INVALID"],
-            "source_bindings": [],
+            "source_bindings": [
+                {
+                    "producer": "INVALID",
+                    "geometry_dependency": False,
+                    "observed_sha": data["reconstructed_main_sha"],
+                    "required_sha": data["reconstructed_main_sha"],
+                    "status": "CURRENT_EXACT_BASE",
+                    "digest_status": "INVALID_TEST_BINDING",
+                    "release_safe": True,
+                }
+            ],
             "exact_head_ci": {"run_id": 1, "conclusion": "SUCCESS", "attribution": "INVALID"},
             "independent_review": "APPROVED",
             "physical_validation_status": "NOT_CLAIMED",
