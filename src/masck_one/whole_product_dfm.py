@@ -4,7 +4,8 @@ from __future__ import annotations
 
 This module owns no subsystem B-rep. It records manufacturing part boundaries,
 assembly dependencies, service ownership, hygiene intent and prototype/production
-process intent. Active specialist PRs are observations only and never release truth.
+process intent. Active specialist PRs may be supplied as observations for a review
+session, but they are never release truth and are not hard-coded into the contract.
 """
 
 from dataclasses import dataclass
@@ -33,38 +34,20 @@ SYSTEM_ACTUATION = "ACTUATION"
 SYSTEM_FRESH_FLUID = "FRESH_FLUID"
 SYSTEM_WASTE = "WASTE"
 SYSTEM_ELECTRICAL_HMI = "ELECTRICAL_HMI"
-SYSTEMS = (
-    SYSTEM_SHELL_INTERFACE,
-    SYSTEM_STRUCTURE_RETENTION,
-    SYSTEM_ACTUATION,
-    SYSTEM_FRESH_FLUID,
-    SYSTEM_WASTE,
-    SYSTEM_ELECTRICAL_HMI,
-)
+SYSTEMS = (SYSTEM_SHELL_INTERFACE, SYSTEM_STRUCTURE_RETENTION, SYSTEM_ACTUATION, SYSTEM_FRESH_FLUID, SYSTEM_WASTE, SYSTEM_ELECTRICAL_HMI)
 
 MATURITY_RELEASED_GEOMETRY = "RELEASED_GEOMETRY"
 MATURITY_RELEASED_ENVELOPE = "RELEASED_ENVELOPE"
 MATURITY_RELEASED_TOPOLOGY = "RELEASED_TOPOLOGY"
 MATURITY_DEVELOPMENT_REFERENCE = "DEVELOPMENT_REFERENCE"
 MATURITY_UNRESOLVED_REQUIRED = "UNRESOLVED_REQUIRED"
-MATURITIES = (
-    MATURITY_RELEASED_GEOMETRY,
-    MATURITY_RELEASED_ENVELOPE,
-    MATURITY_RELEASED_TOPOLOGY,
-    MATURITY_DEVELOPMENT_REFERENCE,
-    MATURITY_UNRESOLVED_REQUIRED,
-)
+MATURITIES = (MATURITY_RELEASED_GEOMETRY, MATURITY_RELEASED_ENVELOPE, MATURITY_RELEASED_TOPOLOGY, MATURITY_DEVELOPMENT_REFERENCE, MATURITY_UNRESOLVED_REQUIRED)
 
 SERVICE_NONUSER_FIXED = "NONUSER_FIXED"
 SERVICE_USER_REMOVABLE = "USER_REMOVABLE"
 SERVICE_CONSUMABLE_REPLACEABLE = "CONSUMABLE_REPLACEABLE"
 SERVICE_TECHNICIAN_REMOVABLE = "TECHNICIAN_REMOVABLE"
-SERVICE_CLASSES = (
-    SERVICE_NONUSER_FIXED,
-    SERVICE_USER_REMOVABLE,
-    SERVICE_CONSUMABLE_REPLACEABLE,
-    SERVICE_TECHNICIAN_REMOVABLE,
-)
+SERVICE_CLASSES = (SERVICE_NONUSER_FIXED, SERVICE_USER_REMOVABLE, SERVICE_CONSUMABLE_REPLACEABLE, SERVICE_TECHNICIAN_REMOVABLE)
 PATH_NOT_APPLICABLE = "NOT_APPLICABLE"
 PATH_REQUIRED = "DIGITAL_PATH_REQUIRED"
 PATH_CLOSED = "DIGITAL_PATH_CLOSED"
@@ -85,23 +68,7 @@ ROLE_SEAL = "SEAL"
 ROLE_CARTRIDGE = "CARTRIDGE"
 ROLE_HMI = "HMI"
 ROLE_ELECTRICAL = "ELECTRICAL"
-ROLES = (
-    ROLE_PRIMARY_STRUCTURE,
-    ROLE_HOUSING,
-    ROLE_COVER,
-    ROLE_SOFT_INTERFACE,
-    ROLE_RETENTION,
-    ROLE_LATCH,
-    ROLE_CARRIER,
-    ROLE_PURCHASED_PACKAGE,
-    ROLE_RESERVOIR,
-    ROLE_MANIFOLD,
-    ROLE_ROUTE,
-    ROLE_SEAL,
-    ROLE_CARTRIDGE,
-    ROLE_HMI,
-    ROLE_ELECTRICAL,
-)
+ROLES = (ROLE_PRIMARY_STRUCTURE, ROLE_HOUSING, ROLE_COVER, ROLE_SOFT_INTERFACE, ROLE_RETENTION, ROLE_LATCH, ROLE_CARRIER, ROLE_PURCHASED_PACKAGE, ROLE_RESERVOIR, ROLE_MANIFOLD, ROLE_ROUTE, ROLE_SEAL, ROLE_CARTRIDGE, ROLE_HMI, ROLE_ELECTRICAL)
 
 PROCESS_RIGID_POLYMER_TBD = "RIGID_POLYMER_PROCESS_TBD"
 PROCESS_SOFT_POLYMER_TBD = "SOFT_POLYMER_PROCESS_TBD"
@@ -110,27 +77,13 @@ PROCESS_PURCHASED_REFERENCE = "PURCHASED_COMPONENT_REFERENCE_ONLY"
 PROCESS_FLEXIBLE_ROUTE_TBD = "FLEXIBLE_ROUTE_OR_CHANNEL_PROCESS_TBD"
 PROCESS_SEAL_TBD = "SEAL_PROCESS_AND_MATERIAL_TBD"
 PROCESS_ELECTRONIC_ASSEMBLY_TBD = "ELECTRONIC_ASSEMBLY_PROCESS_TBD"
-PROCESS_INTENTS = (
-    PROCESS_RIGID_POLYMER_TBD,
-    PROCESS_SOFT_POLYMER_TBD,
-    PROCESS_STRUCTURAL_CARRIER_TBD,
-    PROCESS_PURCHASED_REFERENCE,
-    PROCESS_FLEXIBLE_ROUTE_TBD,
-    PROCESS_SEAL_TBD,
-    PROCESS_ELECTRONIC_ASSEMBLY_TBD,
-)
+PROCESS_INTENTS = (PROCESS_RIGID_POLYMER_TBD, PROCESS_SOFT_POLYMER_TBD, PROCESS_STRUCTURAL_CARRIER_TBD, PROCESS_PURCHASED_REFERENCE, PROCESS_FLEXIBLE_ROUTE_TBD, PROCESS_SEAL_TBD, PROCESS_ELECTRONIC_ASSEMBLY_TBD)
 PROTOTYPE_PRINT_MACHINE = "ADDITIVE_OR_MACHINED_PROTOTYPE_CANDIDATE"
 PROTOTYPE_SOFT_TOOL = "SOFT_TOOL_OR_CAST_PROTOTYPE_CANDIDATE"
 PROTOTYPE_PURCHASED = "PURCHASED_DEVELOPMENT_REFERENCE"
 PROTOTYPE_FLEXIBLE_ROUTE = "CUT_FORMED_FLEXIBLE_ROUTE_PROTOTYPE_CANDIDATE"
 PROTOTYPE_ELECTRONICS = "DEVELOPMENT_ELECTRONIC_ASSEMBLY_CANDIDATE"
-PROTOTYPE_METHODS = (
-    PROTOTYPE_PRINT_MACHINE,
-    PROTOTYPE_SOFT_TOOL,
-    PROTOTYPE_PURCHASED,
-    PROTOTYPE_FLEXIBLE_ROUTE,
-    PROTOTYPE_ELECTRONICS,
-)
+PROTOTYPE_METHODS = (PROTOTYPE_PRINT_MACHINE, PROTOTYPE_SOFT_TOOL, PROTOTYPE_PURCHASED, PROTOTYPE_FLEXIBLE_ROUTE, PROTOTYPE_ELECTRONICS)
 
 H_DRY = "DRY_ALWAYS"
 H_WET_DRAINABLE = "WET_DRAINABLE"
@@ -194,15 +147,7 @@ class ManufacturingRules:
         object.__setattr__(self, "flush_mismatch_max_mm", flush)
 
     def manifest(self) -> dict[str, object]:
-        return {
-            "mold_draft_nominal_deg": self.mold_draft_nominal_deg,
-            "rib_thickness_ratio_range": [self.rib_thickness_ratio_min, self.rib_thickness_ratio_max],
-            "visible_seam_gap_mm": self.visible_seam_gap_mm,
-            "visible_seam_tolerance_mm": self.visible_seam_tolerance_mm,
-            "flush_mismatch_max_mm": self.flush_mismatch_max_mm,
-            "hygiene_classes": list(self.hygiene_classes),
-            "evidence_status": self.evidence_status,
-        }
+        return {"mold_draft_nominal_deg": self.mold_draft_nominal_deg, "rib_thickness_ratio_range": [self.rib_thickness_ratio_min, self.rib_thickness_ratio_max], "visible_seam_gap_mm": self.visible_seam_gap_mm, "visible_seam_tolerance_mm": self.visible_seam_tolerance_mm, "flush_mismatch_max_mm": self.flush_mismatch_max_mm, "hygiene_classes": list(self.hygiene_classes), "evidence_status": self.evidence_status}
 
 
 @dataclass(frozen=True, slots=True)
@@ -229,25 +174,16 @@ class PartFamily:
     def __post_init__(self) -> None:
         if type(self.part_id) is not str or _PART_RE.fullmatch(self.part_id) is None:
             raise DfmArchitectureError("part ID must use the controlled MASCK_ONE-DFM namespace")
-        for label, value in (
-            ("part display name", self.display_name),
-            ("part source reference", self.source_ref),
-            ("hygiene provenance", self.hygiene_provenance),
-            ("closure semantics", self.closure_semantics),
-        ):
+        for label, value in (("part display name", self.display_name), ("part source reference", self.source_ref), ("hygiene provenance", self.hygiene_provenance), ("closure semantics", self.closure_semantics)):
             _text(value, label=label)
-        if self.system not in SYSTEMS:
-            raise DfmArchitectureError(f"uncontrolled system {self.system!r}")
-        if self.owner not in OWNERS:
-            raise DfmArchitectureError(f"uncontrolled owner {self.owner!r}")
+        if self.system not in SYSTEMS or self.owner not in OWNERS:
+            raise DfmArchitectureError("uncontrolled system or owner")
         if type(self.quantity) is not int or isinstance(self.quantity, bool) or self.quantity <= 0:
             raise DfmArchitectureError("part-family quantity must be an exact positive integer")
         if self.role not in ROLES or self.maturity not in MATURITIES:
             raise DfmArchitectureError("uncontrolled part role or maturity")
-        if self.hygiene_class not in HYGIENE_CLASSES:
-            raise DfmArchitectureError("uncontrolled hygiene class")
-        if self.service_class not in SERVICE_CLASSES:
-            raise DfmArchitectureError("uncontrolled service class")
+        if self.hygiene_class not in HYGIENE_CLASSES or self.service_class not in SERVICE_CLASSES:
+            raise DfmArchitectureError("uncontrolled hygiene or service class")
         if self.service_path_status not in PATH_STATUSES:
             raise DfmArchitectureError("uncontrolled service-path state")
         if self.prototype_method not in PROTOTYPE_METHODS or self.production_process_intent not in PROCESS_INTENTS:
@@ -271,26 +207,7 @@ class PartFamily:
             raise DfmArchitectureError("part record cannot promote production or physical validation")
 
     def manifest(self) -> dict[str, object]:
-        return {
-            "part_id": self.part_id,
-            "display_name": self.display_name,
-            "system": self.system,
-            "owner": self.owner,
-            "quantity": self.quantity,
-            "role": self.role,
-            "maturity": self.maturity,
-            "source_ref": self.source_ref,
-            "hygiene_class": self.hygiene_class,
-            "hygiene_provenance": self.hygiene_provenance,
-            "service_class": self.service_class,
-            "service_path_status": self.service_path_status,
-            "prototype_method": self.prototype_method,
-            "production_process_intent": self.production_process_intent,
-            "assembly_stage": self.assembly_stage,
-            "prerequisites": list(self.prerequisites),
-            "closure_semantics": self.closure_semantics,
-            "evidence_status": self.evidence_status,
-        }
+        return {"part_id": self.part_id, "display_name": self.display_name, "system": self.system, "owner": self.owner, "quantity": self.quantity, "role": self.role, "maturity": self.maturity, "source_ref": self.source_ref, "hygiene_class": self.hygiene_class, "hygiene_provenance": self.hygiene_provenance, "service_class": self.service_class, "service_path_status": self.service_path_status, "prototype_method": self.prototype_method, "production_process_intent": self.production_process_intent, "assembly_stage": self.assembly_stage, "prerequisites": list(self.prerequisites), "closure_semantics": self.closure_semantics, "evidence_status": self.evidence_status}
 
 
 @dataclass(frozen=True, slots=True)
@@ -308,21 +225,13 @@ class CandidateBinding:
             raise DfmArchitectureError("candidate head must be canonical lowercase 40-hex")
         if self.owner not in OWNERS:
             raise DfmArchitectureError("candidate owner is uncontrolled")
-        if type(self.affected_part_ids) is not tuple or not self.affected_part_ids:
-            raise DfmArchitectureError("candidate binding requires affected part IDs")
-        if len(self.affected_part_ids) != len(set(self.affected_part_ids)):
-            raise DfmArchitectureError("candidate affected part IDs cannot repeat")
+        if type(self.affected_part_ids) is not tuple or not self.affected_part_ids or len(self.affected_part_ids) != len(set(self.affected_part_ids)):
+            raise DfmArchitectureError("candidate affected part IDs must be a nonempty unique tuple")
         if self.authority_status != "OBSERVED_UNMERGED_CANDIDATE_NOT_RELEASE_AUTHORITY":
             raise DfmArchitectureError("unmerged candidate cannot become release authority")
 
     def manifest(self) -> dict[str, object]:
-        return {
-            "pr_number": self.pr_number,
-            "head_sha": self.head_sha,
-            "owner": self.owner,
-            "affected_part_ids": list(self.affected_part_ids),
-            "authority_status": self.authority_status,
-        }
+        return {"pr_number": self.pr_number, "head_sha": self.head_sha, "owner": self.owner, "affected_part_ids": list(self.affected_part_ids), "authority_status": self.authority_status}
 
 
 @dataclass(frozen=True, slots=True)
@@ -348,18 +257,13 @@ class WholeProductDfmArchitecture:
             raise DfmArchitectureError("DFM architecture authority identity is stale")
         if self.coordinate_frame_id != WORLD_FRAME_ID:
             raise DfmArchitectureError("DFM architecture must use the canonical authority frame")
-        if type(self.rules) is not ManufacturingRules or type(self.parts) is not tuple or not self.parts:
-            raise DfmArchitectureError("DFM architecture requires controlled rules and immutable parts")
-        if type(self.observed_candidates) is not tuple:
-            raise DfmArchitectureError("candidate bindings must be an immutable tuple")
+        if type(self.rules) is not ManufacturingRules or type(self.parts) is not tuple or not self.parts or type(self.observed_candidates) is not tuple:
+            raise DfmArchitectureError("DFM architecture requires immutable controlled inputs")
         if type(self.physical_validation_eligible) is not bool or self.physical_validation_eligible:
             raise DfmArchitectureError("digital DFM architecture cannot be physical evidence")
         if type(self.production_validation_eligible) is not bool or self.production_validation_eligible:
             raise DfmArchitectureError("digital DFM architecture cannot validate production tooling or capability")
-        if self.evidence_status != (
-            "DIGITAL_PART_SPLIT_ASSEMBLY_SERVICE_AND_PROCESS_INTENT_ONLY_NOT_TOOLING_SUPPLIER_"
-            "MOLDABILITY_SEALING_DURABILITY_HYGIENE_OR_PHYSICAL_EVIDENCE"
-        ):
+        if self.evidence_status != "DIGITAL_PART_SPLIT_ASSEMBLY_SERVICE_AND_PROCESS_INTENT_ONLY_NOT_TOOLING_SUPPLIER_MOLDABILITY_SEALING_DURABILITY_HYGIENE_OR_PHYSICAL_EVIDENCE":
             raise DfmArchitectureError("DFM evidence firewall must remain explicit")
         self._validate_graph_and_coverage()
 
@@ -377,38 +281,17 @@ class WholeProductDfmArchitecture:
                     raise DfmArchitectureError(f"unknown assembly prerequisite {dependency!r}")
                 if by_id[dependency].assembly_stage >= part.assembly_stage:
                     raise DfmArchitectureError("assembly prerequisites must occur at an earlier stage")
-        required_roles = {
-            ROLE_HOUSING,
-            ROLE_COVER,
-            ROLE_SOFT_INTERFACE,
-            ROLE_PRIMARY_STRUCTURE,
-            ROLE_RETENTION,
-            ROLE_LATCH,
-            ROLE_CARRIER,
-            ROLE_PURCHASED_PACKAGE,
-            ROLE_RESERVOIR,
-            ROLE_MANIFOLD,
-            ROLE_ROUTE,
-            ROLE_SEAL,
-            ROLE_CARTRIDGE,
-            ROLE_HMI,
-            ROLE_ELECTRICAL,
-        }
+        required_roles = {ROLE_HOUSING, ROLE_COVER, ROLE_SOFT_INTERFACE, ROLE_PRIMARY_STRUCTURE, ROLE_RETENTION, ROLE_LATCH, ROLE_CARRIER, ROLE_PURCHASED_PACKAGE, ROLE_RESERVOIR, ROLE_MANIFOLD, ROLE_ROUTE, ROLE_SEAL, ROLE_CARTRIDGE, ROLE_HMI, ROLE_ELECTRICAL}
         if not required_roles.issubset({part.role for part in self.parts}):
             raise DfmArchitectureError("DFM architecture is missing required manufacturing roles")
         candidate_prs: set[int] = set()
-        candidate_parts: set[str] = set()
         for candidate in self.observed_candidates:
             candidate.__post_init__()
             if candidate.pr_number in candidate_prs:
                 raise DfmArchitectureError("candidate PR bindings cannot repeat")
             candidate_prs.add(candidate.pr_number)
-            for part_id in candidate.affected_part_ids:
-                if part_id not in by_id:
-                    raise DfmArchitectureError("candidate binding references an unknown DFM part")
-                candidate_parts.add(part_id)
-        if not candidate_parts:
-            raise DfmArchitectureError("live DFM architecture must retain observed active-candidate bindings")
+            if any(part_id not in by_id for part_id in candidate.affected_part_ids):
+                raise DfmArchitectureError("candidate binding references an unknown DFM part")
 
     @property
     def unresolved_required_part_ids(self) -> tuple[str, ...]:
@@ -416,12 +299,7 @@ class WholeProductDfmArchitecture:
 
     @property
     def user_service_blocker_ids(self) -> tuple[str, ...]:
-        return tuple(
-            part.part_id
-            for part in self.parts
-            if part.service_class in (SERVICE_USER_REMOVABLE, SERVICE_CONSUMABLE_REPLACEABLE)
-            and part.service_path_status != PATH_CLOSED
-        )
+        return tuple(part.part_id for part in self.parts if part.service_class in (SERVICE_USER_REMOVABLE, SERVICE_CONSUMABLE_REPLACEABLE) and part.service_path_status != PATH_CLOSED)
 
     @property
     def digital_mvp_part_architecture_ready(self) -> bool:
@@ -437,17 +315,7 @@ class WholeProductDfmArchitecture:
             "manufacturing_rules": self.rules.manifest(),
             "parts": [part.manifest() for part in self.parts],
             "observed_candidates": [candidate.manifest() for candidate in self.observed_candidates],
-            "system_summary": {
-                system: {
-                    "part_family_count": sum(part.system == system for part in self.parts),
-                    "physical_part_quantity": sum(part.quantity for part in self.parts if part.system == system),
-                    "unresolved_part_family_count": sum(
-                        part.system == system and part.maturity == MATURITY_UNRESOLVED_REQUIRED
-                        for part in self.parts
-                    ),
-                }
-                for system in SYSTEMS
-            },
+            "system_summary": {system: {"part_family_count": sum(part.system == system for part in self.parts), "physical_part_quantity": sum(part.quantity for part in self.parts if part.system == system), "unresolved_part_family_count": sum(part.system == system and part.maturity == MATURITY_UNRESOLVED_REQUIRED for part in self.parts)} for system in SYSTEMS},
             "unresolved_required_part_ids": list(self.unresolved_required_part_ids),
             "user_service_blocker_ids": list(self.user_service_blocker_ids),
             "digital_mvp_part_architecture_ready": self.digital_mvp_part_architecture_ready,
@@ -456,35 +324,12 @@ class WholeProductDfmArchitecture:
             "evidence_status": self.evidence_status,
         }
         if include_sha:
-            raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
-            payload["dfm_architecture_sha256"] = sha256(raw).hexdigest()
+            payload["dfm_architecture_sha256"] = sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
         return payload
 
 
-def _p(
-    suffix: str,
-    name: str,
-    system: str,
-    owner: str,
-    quantity: int,
-    role: str,
-    maturity: str,
-    source: str,
-    hygiene: str,
-    service: str,
-    path: str,
-    prototype: str,
-    production: str,
-    stage: int,
-    prerequisites: tuple[str, ...] = (),
-    closure: str = "NO_SEPARATE_CLOSURE_REQUIRED",
-    hygiene_provenance: str = "CELL5_PROVISIONAL_CLASS_WITHIN_FROZEN_AUTHORITY_VOCABULARY",
-) -> PartFamily:
-    return PartFamily(
-        f"MASCK_ONE-DFM-{suffix}", name, system, owner, quantity, role, maturity, source,
-        hygiene, hygiene_provenance, service, path, prototype, production, stage,
-        prerequisites, closure,
-    )
+def _p(suffix: str, name: str, system: str, owner: str, quantity: int, role: str, maturity: str, source: str, hygiene: str, service: str, path: str, prototype: str, production: str, stage: int, prerequisites: tuple[str, ...] = (), closure: str = "NO_SEPARATE_CLOSURE_REQUIRED", hygiene_provenance: str = "CELL5_PROVISIONAL_CLASS_WITHIN_FROZEN_AUTHORITY_VOCABULARY") -> PartFamily:
+    return PartFamily(f"MASCK_ONE-DFM-{suffix}", name, system, owner, quantity, role, maturity, source, hygiene, hygiene_provenance, service, path, prototype, production, stage, prerequisites, closure)
 
 
 def _build_parts() -> tuple[PartFamily, ...]:
@@ -493,7 +338,6 @@ def _build_parts() -> tuple[PartFamily, ...]:
         _p("FACIAL-INTERFACE-CARRIER", "Compliant facial interface carrier", SYSTEM_SHELL_INTERFACE, OWNER_CELL_2, 1, ROLE_SOFT_INTERFACE, MATURITY_RELEASED_TOPOLOGY, "src/masck_one/interface_topology.py", H_WET_DRAINABLE, SERVICE_NONUSER_FIXED, PATH_NOT_APPLICABLE, PROTOTYPE_SOFT_TOOL, PROCESS_SOFT_POLYMER_TBD, 70, ("MASCK_ONE-DFM-SHELL-PRIMARY",)),
         _p("NASAL-LOBE-MEMBRANE", "Nasal lobe membrane insert", SYSTEM_SHELL_INTERFACE, OWNER_CELL_2, 1, ROLE_SOFT_INTERFACE, MATURITY_DEVELOPMENT_REFERENCE, "src/masck_one/model.py:nasal_lobe_membrane_reference", H_WET_DRAINABLE, SERVICE_NONUSER_FIXED, PATH_NOT_APPLICABLE, PROTOTYPE_SOFT_TOOL, PROCESS_SOFT_POLYMER_TBD, 72, ("MASCK_ONE-DFM-FACIAL-INTERFACE-CARRIER",)),
         _p("REAR-SERVICE-COVER", "Rear service cover", SYSTEM_SHELL_INTERFACE, OWNER_CELL_4, 1, ROLE_COVER, MATURITY_UNRESOLVED_REQUIRED, "src/masck_one/structural_frame.py:HMI_ELECTRONICS_RESERVATION", H_WET_DRAINABLE, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PRINT_MACHINE, PROCESS_RIGID_POLYMER_TBD, 95, ("MASCK_ONE-DFM-DRY-BAY-HOUSING", "MASCK_ONE-DFM-DRY-BAY-COVER-SEAL"), "POSITIVE_RETAINED_COVER_WITH_TOOL_OR_CONTROLLED_RELEASE_ACCESS"),
-
         _p("REACTION-FRAME", "Internal reaction frame", SYSTEM_STRUCTURE_RETENTION, OWNER_CELL_3, 1, ROLE_PRIMARY_STRUCTURE, MATURITY_RELEASED_TOPOLOGY, "src/masck_one/structural_frame.py", H_SEALED, SERVICE_NONUSER_FIXED, PATH_NOT_APPLICABLE, PROTOTYPE_PRINT_MACHINE, PROCESS_STRUCTURAL_CARRIER_TBD, 20, ("MASCK_ONE-DFM-SHELL-PRIMARY",)),
         _p("RETENTION-HALO-LEFT", "Left retention halo member", SYSTEM_STRUCTURE_RETENTION, OWNER_CELL_3, 1, ROLE_RETENTION, MATURITY_UNRESOLVED_REQUIRED, "src/masck_one/structural_frame.py:RETENTION_RESERVATION", H_DRY, SERVICE_NONUSER_FIXED, PATH_NOT_APPLICABLE, PROTOTYPE_PRINT_MACHINE, PROCESS_STRUCTURAL_CARRIER_TBD, 80, ("MASCK_ONE-DFM-REACTION-FRAME",)),
         _p("RETENTION-HALO-RIGHT-TONGUE", "Right retention halo and latch tongue", SYSTEM_STRUCTURE_RETENTION, OWNER_CELL_3, 1, ROLE_RETENTION, MATURITY_UNRESOLVED_REQUIRED, "src/masck_one/structural_frame.py:RETENTION_RESERVATION", H_DRY, SERVICE_NONUSER_FIXED, PATH_NOT_APPLICABLE, PROTOTYPE_PRINT_MACHINE, PROCESS_STRUCTURAL_CARRIER_TBD, 80, ("MASCK_ONE-DFM-REACTION-FRAME",)),
@@ -502,11 +346,9 @@ def _build_parts() -> tuple[PartFamily, ...]:
         _p("LATCH-SLIDER-GRIP", "Right quick-release slider and pull grip", SYSTEM_STRUCTURE_RETENTION, OWNER_CELL_3, 1, ROLE_LATCH, MATURITY_UNRESOLVED_REQUIRED, "active-candidate-PR71-not-released", H_DRY, SERVICE_NONUSER_FIXED, PATH_NOT_APPLICABLE, PROTOTYPE_PRINT_MACHINE, PROCESS_STRUCTURAL_CARRIER_TBD, 84, ("MASCK_ONE-DFM-LATCH-SOCKET-GUIDE",)),
         _p("LATCH-CAPTURE-PIN", "Right quick-release transverse capture pin", SYSTEM_STRUCTURE_RETENTION, OWNER_CELL_3, 1, ROLE_LATCH, MATURITY_UNRESOLVED_REQUIRED, "active-candidate-PR71-not-released", H_DRY, SERVICE_NONUSER_FIXED, PATH_NOT_APPLICABLE, PROTOTYPE_PRINT_MACHINE, PROCESS_STRUCTURAL_CARRIER_TBD, 84, ("MASCK_ONE-DFM-LATCH-SOCKET-GUIDE",)),
         _p("LATCH-GUIDE-CLOSURE", "Quick-release guide closure and flexure retainer", SYSTEM_STRUCTURE_RETENTION, OWNER_CELL_3, 1, ROLE_COVER, MATURITY_UNRESOLVED_REQUIRED, "dfm-required-split-for-nonteleporting-latch-assembly", H_DRY, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PRINT_MACHINE, PROCESS_STRUCTURAL_CARRIER_TBD, 86, ("MASCK_ONE-DFM-LATCH-SLIDER-GRIP", "MASCK_ONE-DFM-LATCH-CAPTURE-PIN"), "POSITIVE_RETAINED_GUIDE_CLOSURE_REQUIRED_AFTER_SLIDER_INSERTION"),
-
         _p("ACTUATOR-CARRIER", "Removable actuator carrier or collar", SYSTEM_ACTUATION, OWNER_CELL_3, 4, ROLE_CARRIER, MATURITY_UNRESOLVED_REQUIRED, "legacy-port-required-from-PR63", H_SEALED, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PRINT_MACHINE, PROCESS_STRUCTURAL_CARRIER_TBD, 40, ("MASCK_ONE-DFM-REACTION-FRAME",)),
         _p("ACTUATOR-PACKAGE", "Actuator package", SYSTEM_ACTUATION, OWNER_CELL_3, 4, ROLE_PURCHASED_PACKAGE, MATURITY_RELEASED_ENVELOPE, "src/masck_one/model.py:actuator_envelope_1..4", H_SEALED, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PURCHASED, PROCESS_PURCHASED_REFERENCE, 42, ("MASCK_ONE-DFM-ACTUATOR-CARRIER",)),
         _p("ACTUATOR-REACTION-SHOE", "Actuator reaction shoe and hard-stop interface", SYSTEM_ACTUATION, OWNER_CELL_3, 4, ROLE_CARRIER, MATURITY_UNRESOLVED_REQUIRED, "legacy-port-required-from-PR63", H_SEALED, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PRINT_MACHINE, PROCESS_STRUCTURAL_CARRIER_TBD, 44, ("MASCK_ONE-DFM-ACTUATOR-PACKAGE",)),
-
         _p("WATER-RESERVOIR-BODY", "Fresh-water reservoir body", SYSTEM_FRESH_FLUID, OWNER_CELL_4, 1, ROLE_RESERVOIR, MATURITY_UNRESOLVED_REQUIRED, "active-candidate-PR75-not-released", H_WET_REMOVABLE, SERVICE_USER_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PRINT_MACHINE, PROCESS_RIGID_POLYMER_TBD, 50, ("MASCK_ONE-DFM-REACTION-FRAME",), hygiene_provenance="CURRENT_WATER_ARCHITECTURE_EXPLICIT_WET_REMOVABLE"),
         _p("WATER-RESERVOIR-LID-SEAL", "Fresh-water reservoir lid seal", SYSTEM_FRESH_FLUID, OWNER_CELL_4, 1, ROLE_SEAL, MATURITY_UNRESOLVED_REQUIRED, "water-reservoir-seal-geometry-unresolved", H_WET_REMOVABLE, SERVICE_USER_REMOVABLE, PATH_REQUIRED, PROTOTYPE_SOFT_TOOL, PROCESS_SEAL_TBD, 52, ("MASCK_ONE-DFM-WATER-RESERVOIR-BODY",), "CONTROLLED_SEAL_LAND_AND_COMPRESSION_GEOMETRY_REQUIRED", "CURRENT_WATER_ARCHITECTURE_REQUIRES_SEAL_WET_REMOVABLE_CLASS_PROVISIONAL"),
         _p("WATER-RESERVOIR-LID", "Fresh-water reservoir lid", SYSTEM_FRESH_FLUID, OWNER_CELL_4, 1, ROLE_COVER, MATURITY_UNRESOLVED_REQUIRED, "active-candidate-PR75-not-released", H_WET_REMOVABLE, SERVICE_USER_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PRINT_MACHINE, PROCESS_RIGID_POLYMER_TBD, 54, ("MASCK_ONE-DFM-WATER-RESERVOIR-BODY", "MASCK_ONE-DFM-WATER-RESERVOIR-LID-SEAL"), "POSITIVE_USER_RETAINED_LID_REQUIRED"),
@@ -517,14 +359,12 @@ def _build_parts() -> tuple[PartFamily, ...]:
         _p("FRESH-MANIFOLD-COVER-SEAL", "Fresh manifold closure and seal set", SYSTEM_FRESH_FLUID, OWNER_CELL_4, 1, ROLE_SEAL, MATURITY_UNRESOLVED_REQUIRED, "distribution-manifold-closure-geometry-unresolved", H_WET_DRAINABLE, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_SOFT_TOOL, PROCESS_SEAL_TBD, 58, ("MASCK_ONE-DFM-FRESH-MANIFOLD-BODY",), "MANIFOLD_CLOSURE_MUST_RETAIN_SEAL_AND_ALLOW_ASSEMBLY_WITHOUT_TELEPORTATION"),
         _p("ROUTE-CARRIER-CLIP-SET", "Fluid-route carrier and clip set", SYSTEM_FRESH_FLUID, OWNER_CELL_4, 1, ROLE_CARRIER, MATURITY_UNRESOLVED_REQUIRED, "route-retention-geometry-unresolved", H_WET_DRAINABLE, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PRINT_MACHINE, PROCESS_RIGID_POLYMER_TBD, 58, ("MASCK_ONE-DFM-REACTION-FRAME",)),
         _p("FRESH-ROUTE-SET", "Fresh-water and cleanser route set", SYSTEM_FRESH_FLUID, OWNER_CELL_4, 2, ROLE_ROUTE, MATURITY_RELEASED_TOPOLOGY, "src/masck_one/distribution_geometry.py", H_WET_DRAINABLE, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_FLEXIBLE_ROUTE, PROCESS_FLEXIBLE_ROUTE_TBD, 60, ("MASCK_ONE-DFM-FRESH-MANIFOLD-BODY", "MASCK_ONE-DFM-ROUTE-CARRIER-CLIP-SET")),
-
         _p("WASTE-BACKBONE-ROUTE-SET", "Mixed-waste backbone route set", SYSTEM_WASTE, OWNER_CELL_4, 1, ROLE_ROUTE, MATURITY_RELEASED_TOPOLOGY, "src/masck_one/waste_pump_architecture.py", H_WET_DRAINABLE, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_FLEXIBLE_ROUTE, PROCESS_FLEXIBLE_ROUTE_TBD, 62, ("MASCK_ONE-DFM-ROUTE-CARRIER-CLIP-SET",)),
         _p("PASSIVE-BACKFLOW-BARRIER", "Passive waste backflow barrier package", SYSTEM_WASTE, OWNER_CELL_4, 1, ROLE_PURCHASED_PACKAGE, MATURITY_RELEASED_TOPOLOGY, "src/masck_one/waste_pump_architecture.py:passive-barrier", H_WET_DRAINABLE, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PURCHASED, PROCESS_PURCHASED_REFERENCE, 64, ("MASCK_ONE-DFM-WASTE-BACKBONE-ROUTE-SET",)),
         _p("WASTE-CARTRIDGE-CARRIER", "Waste cartridge receiver and carrier", SYSTEM_WASTE, OWNER_CELL_4, 1, ROLE_CARRIER, MATURITY_UNRESOLVED_REQUIRED, "src/masck_one/waste_cartridge.py:retention-region-only", H_WET_DRAINABLE, SERVICE_NONUSER_FIXED, PATH_NOT_APPLICABLE, PROTOTYPE_PRINT_MACHINE, PROCESS_RIGID_POLYMER_TBD, 66, ("MASCK_ONE-DFM-REACTION-FRAME",)),
         _p("WASTE-CARTRIDGE-BODY", "Removable waste cartridge body", SYSTEM_WASTE, OWNER_CELL_4, 1, ROLE_CARTRIDGE, MATURITY_RELEASED_ENVELOPE, "src/masck_one/model.py:waste_cartridge_envelope", H_WET_REMOVABLE, SERVICE_CONSUMABLE_REPLACEABLE, PATH_REQUIRED, PROTOTYPE_PRINT_MACHINE, PROCESS_RIGID_POLYMER_TBD, 68, ("MASCK_ONE-DFM-WASTE-CARTRIDGE-CARRIER",)),
         _p("WASTE-CARTRIDGE-SEAL-KEY", "Waste cartridge seal and key set", SYSTEM_WASTE, OWNER_CELL_4, 1, ROLE_SEAL, MATURITY_UNRESOLVED_REQUIRED, "src/masck_one/waste_cartridge.py:key-seal-trajectory-unresolved", H_WET_REMOVABLE, SERVICE_CONSUMABLE_REPLACEABLE, PATH_REQUIRED, PROTOTYPE_SOFT_TOOL, PROCESS_SEAL_TBD, 69, ("MASCK_ONE-DFM-WASTE-CARTRIDGE-BODY",), "KEY_GEOMETRY_SEAL_LAND_AND_COMPRESSION_REQUIRED_BEFORE_SERVICE_CLOSURE"),
         _p("WASTE-CARTRIDGE-CLOSURE", "Waste cartridge closure or service lid", SYSTEM_WASTE, OWNER_CELL_4, 1, ROLE_COVER, MATURITY_UNRESOLVED_REQUIRED, "src/masck_one/waste_cartridge.py:service-geometry-unresolved", H_WET_REMOVABLE, SERVICE_CONSUMABLE_REPLACEABLE, PATH_REQUIRED, PROTOTYPE_PRINT_MACHINE, PROCESS_RIGID_POLYMER_TBD, 70, ("MASCK_ONE-DFM-WASTE-CARTRIDGE-BODY", "MASCK_ONE-DFM-WASTE-CARTRIDGE-SEAL-KEY"), "POSITIVE_RETENTION_AND_NON_MISINSERTION_CLOSURE_REQUIRED"),
-
         _p("DRY-BAY-HOUSING", "Electronics dry-bay housing", SYSTEM_ELECTRICAL_HMI, OWNER_CELL_4, 1, ROLE_HOUSING, MATURITY_UNRESOLVED_REQUIRED, "src/masck_one/structural_frame.py:HMI_ELECTRONICS_RESERVATION", H_SEALED, SERVICE_NONUSER_FIXED, PATH_NOT_APPLICABLE, PROTOTYPE_PRINT_MACHINE, PROCESS_RIGID_POLYMER_TBD, 30, ("MASCK_ONE-DFM-REACTION-FRAME",)),
         _p("BATTERY-CARRIER", "Non-compressive battery carrier", SYSTEM_ELECTRICAL_HMI, OWNER_CELL_4, 1, ROLE_CARRIER, MATURITY_UNRESOLVED_REQUIRED, "portable-donor-PR64-must-be-rebound", H_SEALED, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PRINT_MACHINE, PROCESS_RIGID_POLYMER_TBD, 32, ("MASCK_ONE-DFM-REACTION-FRAME",)),
         _p("BATTERY-PACKAGE", "Battery package benchmark", SYSTEM_ELECTRICAL_HMI, OWNER_CELL_4, 1, ROLE_PURCHASED_PACKAGE, MATURITY_RELEASED_ENVELOPE, "config/masck_one_authority.yaml:battery_reference", H_SEALED, SERVICE_TECHNICIAN_REMOVABLE, PATH_REQUIRED, PROTOTYPE_PURCHASED, PROCESS_PURCHASED_REFERENCE, 34, ("MASCK_ONE-DFM-BATTERY-CARRIER",)),
@@ -540,7 +380,7 @@ def _build_parts() -> tuple[PartFamily, ...]:
     return tuple(sorted(p, key=lambda item: item.part_id))
 
 
-def build_whole_product_dfm_architecture(authority: Authority | None = None) -> WholeProductDfmArchitecture:
+def build_whole_product_dfm_architecture(authority: Authority | None = None, *, observed_candidates: tuple[CandidateBinding, ...] = ()) -> WholeProductDfmArchitecture:
     authority = authority or load_authority()
     if type(authority) is not Authority:
         raise DfmArchitectureError("DFM architecture requires the exact Authority type")
@@ -555,41 +395,5 @@ def build_whole_product_dfm_architecture(authority: Authority | None = None) -> 
     seam = geometry.get("visible_seam")
     if type(rib_range) is not list or len(rib_range) != 2 or type(hygiene) is not list or type(seam) is not dict:
         raise DfmArchitectureError("authority manufacturing geometry is malformed")
-    rules = ManufacturingRules(
-        manufacturing.get("mold_draft_nominal_deg"),
-        rib_range[0],
-        rib_range[1],
-        seam.get("gap_mm"),
-        seam.get("tolerance_mm"),
-        seam.get("flush_mismatch_max_mm"),
-        tuple(hygiene),
-    )
-    candidates = (
-        CandidateBinding(68, "f4d366ab4ee819cc6be79186c5cc77ef89519fa9", OWNER_CELL_4, ("MASCK_ONE-DFM-WASTE-BACKBONE-ROUTE-SET",)),
-        CandidateBinding(70, "4d9776305b8c7083c4f3d1f0bf9f9a2e6e9498ac", OWNER_CELL_2, ("MASCK_ONE-DFM-SHELL-PRIMARY",)),
-        CandidateBinding(71, "5ba496a0ac45ea30631aee869d25498eff6679a5", OWNER_CELL_3, (
-            "MASCK_ONE-DFM-LATCH-SOCKET-GUIDE",
-            "MASCK_ONE-DFM-LATCH-SLIDER-GRIP",
-            "MASCK_ONE-DFM-LATCH-CAPTURE-PIN",
-            "MASCK_ONE-DFM-LATCH-GUIDE-CLOSURE",
-        )),
-        CandidateBinding(75, "08b5769753858cb457f0117bf25498875072d812", OWNER_CELL_4, (
-            "MASCK_ONE-DFM-WATER-RESERVOIR-BODY",
-            "MASCK_ONE-DFM-WATER-RESERVOIR-LID",
-            "MASCK_ONE-DFM-WATER-RESERVOIR-LID-SEAL",
-        )),
-    )
-    return WholeProductDfmArchitecture(
-        DFM_SCHEMA,
-        SOURCE_MAIN_SHA,
-        AUTHORITY_REVISION,
-        AUTHORITY_BLOB_SHA,
-        WORLD_FRAME_ID,
-        rules,
-        _build_parts(),
-        candidates,
-        False,
-        False,
-        "DIGITAL_PART_SPLIT_ASSEMBLY_SERVICE_AND_PROCESS_INTENT_ONLY_NOT_TOOLING_SUPPLIER_"
-        "MOLDABILITY_SEALING_DURABILITY_HYGIENE_OR_PHYSICAL_EVIDENCE",
-    )
+    rules = ManufacturingRules(manufacturing.get("mold_draft_nominal_deg"), rib_range[0], rib_range[1], seam.get("gap_mm"), seam.get("tolerance_mm"), seam.get("flush_mismatch_max_mm"), tuple(hygiene))
+    return WholeProductDfmArchitecture(DFM_SCHEMA, SOURCE_MAIN_SHA, AUTHORITY_REVISION, AUTHORITY_BLOB_SHA, WORLD_FRAME_ID, rules, _build_parts(), observed_candidates, False, False, "DIGITAL_PART_SPLIT_ASSEMBLY_SERVICE_AND_PROCESS_INTENT_ONLY_NOT_TOOLING_SUPPLIER_MOLDABILITY_SEALING_DURABILITY_HYGIENE_OR_PHYSICAL_EVIDENCE")
