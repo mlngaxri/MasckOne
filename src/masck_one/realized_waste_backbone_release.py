@@ -175,6 +175,11 @@ class Cell4WasteBackboneRelease:
             )
 
     def validate_current_sources(self, sources: CurrentWasteRoutingSources) -> None:
+        """Validate against an explicit graph for hostile tests and integration checks.
+
+        Trusted release manifest/build paths never accept a caller-supplied graph. They
+        reconstruct repository-current sources directly before calling this method.
+        """
         self.validate_invariants()
         if type(sources) is not CurrentWasteRoutingSources:
             raise RealizedWasteBackboneError(
@@ -216,12 +221,8 @@ class Cell4WasteBackboneRelease:
                 "realized route bindings do not match the current upstream waste-pump architecture"
             )
 
-    def manifest(
-        self,
-        *,
-        sources: CurrentWasteRoutingSources | None = None,
-    ) -> dict[str, object]:
-        current = build_current_waste_routing_sources() if sources is None else sources
+    def manifest(self) -> dict[str, object]:
+        current = build_current_waste_routing_sources()
         self.validate_current_sources(current)
         return {
             "authored_against_git_sha": self.authored_against_git_sha,
@@ -231,23 +232,16 @@ class Cell4WasteBackboneRelease:
             "release_state": self.release_state,
         }
 
-    def manifest_sha256(
-        self,
-        *,
-        sources: CurrentWasteRoutingSources | None = None,
-    ) -> str:
-        payload = self.manifest(sources=sources)
+    @property
+    def manifest_sha256(self) -> str:
+        payload = self.manifest()
         return sha256(
             json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
 
 
-def build_current_cell4_waste_backbone_release(
-    *,
-    sources: CurrentWasteRoutingSources | None = None,
-) -> Cell4WasteBackboneRelease:
-    current = build_current_waste_routing_sources() if sources is None else sources
-    current.validate()
+def build_current_cell4_waste_backbone_release() -> Cell4WasteBackboneRelease:
+    current = build_current_waste_routing_sources()
     architecture = current.architecture
     realization = build_cell4_waste_backbone(
         source_git_sha=AUTHORED_AGAINST_MAIN_SHA,

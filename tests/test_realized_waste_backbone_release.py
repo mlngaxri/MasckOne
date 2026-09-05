@@ -18,8 +18,8 @@ def sources():
 
 
 @pytest.fixture(scope="module")
-def release(sources):
-    return build_current_cell4_waste_backbone_release(sources=sources)
+def release():
+    return build_current_cell4_waste_backbone_release()
 
 
 def test_current_release_binds_live_architecture_and_current_source_graph(sources, release):
@@ -40,10 +40,30 @@ def test_current_release_binds_live_architecture_and_current_source_graph(source
     release.validate_current_sources(sources)
 
 
-def test_release_manifest_is_deterministic(sources):
-    first = build_current_cell4_waste_backbone_release(sources=sources)
-    second = build_current_cell4_waste_backbone_release(sources=sources)
-    assert first.manifest_sha256(sources=sources) == second.manifest_sha256(sources=sources)
+def test_release_manifest_is_deterministic():
+    first = build_current_cell4_waste_backbone_release()
+    second = build_current_cell4_waste_backbone_release()
+    assert first.manifest_sha256 == second.manifest_sha256
+
+
+def test_trusted_manifest_reconstructs_repository_current_sources(monkeypatch, release):
+    calls = 0
+    from masck_one import realized_waste_backbone_release as module
+
+    original = module.build_current_waste_routing_sources
+
+    def counted():
+        nonlocal calls
+        calls += 1
+        return original()
+
+    monkeypatch.setattr(module, "build_current_waste_routing_sources", counted)
+    manifest = release.manifest()
+    assert calls == 1
+    assert (
+        manifest["source_waste_pump_architecture_sha256"]
+        == release.source_waste_pump_architecture_sha256
+    )
 
 
 def test_well_formed_but_stale_architecture_digest_fails_closed(sources, release):
