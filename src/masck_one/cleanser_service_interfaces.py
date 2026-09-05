@@ -54,8 +54,8 @@ SERVICE_CLOSURE_CENTER_Y_MM = 72.0
 SERVICE_CLOSURE_CENTER_Z_MM = -1.0
 REFILL_PLUG_DIAMETER_MM = 3.6
 PURGE_PLUG_DIAMETER_MM = 1.6
-PLUG_Z_START_MM = -0.3
-PLUG_Z_LENGTH_MM = 2.8
+PLUG_Z_START_MM = -0.4
+PLUG_Z_LENGTH_MM = 2.9
 
 FILL_SEAL_GROOVE_OUTER_DIAMETER_MM = 5.6
 FILL_SEAL_GROOVE_INNER_DIAMETER_MM = 4.3
@@ -64,15 +64,23 @@ PURGE_SEAL_GROOVE_INNER_DIAMETER_MM = 2.25
 SEAL_GROOVE_DEPTH_MM = 0.25
 SEAL_REFERENCE_AXIAL_MM = 0.35
 
+# The closure key sits below the bridge through one connected closure lug and two
+# body-integrated ears. This avoids cutting the thin bridge into separate pieces.
+SERVICE_CLOSURE_LUG_X_MM = 4.0
+SERVICE_CLOSURE_LUG_Y_MM = 3.0
+SERVICE_CLOSURE_LUG_Z_MM = 2.4
+SERVICE_CLOSURE_LUG_CENTER_X_MM = SERVICE_CLOSURE_CENTER_X_MM
+SERVICE_CLOSURE_LUG_CENTER_Y_MM = SERVICE_CLOSURE_CENTER_Y_MM
+SERVICE_CLOSURE_LUG_CENTER_Z_MM = -2.2
 SERVICE_EAR_X_MM = 2.0
 SERVICE_EAR_Y_MM = 3.0
-SERVICE_EAR_Z_MM = 3.0
+SERVICE_EAR_Z_MM = 5.0
 SERVICE_EAR_LEFT_X_MM = 20.0
 SERVICE_EAR_RIGHT_X_MM = 33.0
 SERVICE_EAR_CENTER_Y_MM = SERVICE_CLOSURE_CENTER_Y_MM
-SERVICE_EAR_CENTER_Z_MM = 0.0
+SERVICE_EAR_CENTER_Z_MM = -1.0
 SERVICE_KEY_Y_MM = SERVICE_CLOSURE_CENTER_Y_MM
-SERVICE_KEY_Z_MM = -1.0
+SERVICE_KEY_Z_MM = -2.6
 SERVICE_KEY_BORE_DIAMETER_MM = 1.5
 SERVICE_KEY_STEM_DIAMETER_MM = 1.2
 SERVICE_KEY_HEAD_DIAMETER_MM = 3.0
@@ -80,6 +88,8 @@ SERVICE_KEY_X_MIN_MM = 18.5
 SERVICE_KEY_X_MAX_MM = 35.0
 SERVICE_KEY_HEAD_X_MIN_MM = 34.4
 SERVICE_KEY_HEAD_X_MAX_MM = 36.4
+SERVICE_CLOSURE_KEY_BORE_X_MIN_MM = 24.0
+SERVICE_CLOSURE_KEY_BORE_X_MAX_MM = 29.0
 SERVICE_KEY_WITHDRAWAL_TRAVEL_MM = 12.0
 SERVICE_CLOSURE_WITHDRAWAL_TRAVEL_MM = 6.0
 
@@ -314,9 +324,10 @@ class CleanserServiceGeometry:
                 "part_id": "MASCK_ONE-CLEANSER-REFILL-PURGE-SERVICE-CLOSURE",
                 "center_world_mm": [SERVICE_CLOSURE_CENTER_X_MM, SERVICE_CLOSURE_CENTER_Y_MM, SERVICE_CLOSURE_CENTER_Z_MM],
                 "bridge_xyz_mm": [SERVICE_CLOSURE_X_MM, SERVICE_CLOSURE_Y_MM, SERVICE_CLOSURE_Z_MM],
+                "retention_lug_xyz_mm": [SERVICE_CLOSURE_LUG_X_MM, SERVICE_CLOSURE_LUG_Y_MM, SERVICE_CLOSURE_LUG_Z_MM],
                 "refill_plug_diameter_mm": REFILL_PLUG_DIAMETER_MM,
                 "purge_plug_diameter_mm": PURGE_PLUG_DIAMETER_MM,
-                "retention": "TRANSVERSE_REMOVABLE_KEY_POSITIVELY_BLOCKS_POSTERIOR_WITHDRAWAL",
+                "retention": "TRANSVERSE_REMOVABLE_KEY_THROUGH_LOWER_LUG_POSITIVELY_BLOCKS_POSTERIOR_WITHDRAWAL",
                 "seal_interface_status": "REALIZED_ANNULAR_GROOVES_SEAL_MATERIAL_AND_COMPRESSION_UNSELECTED",
                 "refill_access_status": "CLOSURE_REMOVAL_EXPOSES_EXISTING_REALIZED_REFILL_BORE",
                 "purge_access_status": "CLOSURE_REMOVAL_EXPOSES_EXISTING_REALIZED_PURGE_BORE",
@@ -382,6 +393,16 @@ def build_cleanser_service_geometry(authority: Authority) -> CleanserServiceGeom
     closure = closure.union(
         _z_cylinder(PURGE_X_MM, PURGE_Y_MM, PLUG_Z_START_MM, PURGE_PLUG_DIAMETER_MM, PLUG_Z_LENGTH_MM)
     )
+    closure = closure.union(
+        _box(
+            SERVICE_CLOSURE_LUG_X_MM,
+            SERVICE_CLOSURE_LUG_Y_MM,
+            SERVICE_CLOSURE_LUG_Z_MM,
+            SERVICE_CLOSURE_LUG_CENTER_X_MM,
+            SERVICE_CLOSURE_LUG_CENTER_Y_MM,
+            SERVICE_CLOSURE_LUG_CENTER_Z_MM,
+        )
+    )
 
     ear_left = _box(
         SERVICE_EAR_X_MM,
@@ -399,14 +420,21 @@ def build_cleanser_service_geometry(authority: Authority) -> CleanserServiceGeom
         SERVICE_EAR_CENTER_Y_MM,
         SERVICE_EAR_CENTER_Z_MM,
     )
-    service_key_bore = _x_cylinder(
+    body_key_bore = _x_cylinder(
         SERVICE_KEY_Y_MM,
         SERVICE_KEY_Z_MM,
         SERVICE_KEY_X_MIN_MM - 0.5,
         SERVICE_KEY_BORE_DIAMETER_MM,
         SERVICE_KEY_X_MAX_MM - SERVICE_KEY_X_MIN_MM + 1.0,
     )
-    closure = closure.cut(service_key_bore)
+    closure_key_bore = _x_cylinder(
+        SERVICE_KEY_Y_MM,
+        SERVICE_KEY_Z_MM,
+        SERVICE_CLOSURE_KEY_BORE_X_MIN_MM,
+        SERVICE_KEY_BORE_DIAMETER_MM,
+        SERVICE_CLOSURE_KEY_BORE_X_MAX_MM - SERVICE_CLOSURE_KEY_BORE_X_MIN_MM,
+    )
+    closure = closure.cut(closure_key_bore)
     _one_valid_solid(closure, label="cleanser service closure")
 
     fill_groove = _z_ring(
@@ -470,7 +498,7 @@ def build_cleanser_service_geometry(authority: Authority) -> CleanserServiceGeom
         .cut(purge_groove)
         .cut(vent_lumen)
         .cut(pickup_lumen)
-        .cut(service_key_bore)
+        .cut(body_key_bore)
     )
     _one_valid_solid(ported_body, label="cleanser service-ported body")
 
