@@ -112,17 +112,31 @@ def test_dynamic_user_protected_screen_retains_full_worn_pose_set(matrix: WholeP
         assert "Z_EXTENT_UNBOUNDED" in item.evidence_status
 
 
-def test_missing_mechanism_harness_cartridge_service_hmi_and_hand_keepout_fail_closed(matrix: WholeProductCollisionMatrix):
+def test_missing_mechanism_retention_harness_cartridge_hmi_and_hand_keepouts_fail_closed(matrix: WholeProductCollisionMatrix):
     blocked = tuple(item for item in matrix.checks if item.status == BLOCKED)
-    assert len(blocked) == 6
+    assert len(blocked) == 8
     text = "\n".join(item.check_id for item in blocked)
     for required in (
-        "RIGHT_RELEASE_OPERATIONAL_MOTION", "RIGHT_RELEASE_FACTORY_MOTION", "HARNESS",
-        "CARTRIDGE_SERVICE_MOTION", "USER_HAND_SERVICE_KEEP_OUT", "PHYSICAL_HMI",
+        "RIGHT_RELEASE_OPERATIONAL_MOTION",
+        "RIGHT_RELEASE_FACTORY_MOTION",
+        "RETENTION_OCCIPITAL_AND_FIT_MOTION",
+        "RETENTION_HAIR_PINCH_KEEP_OUTS",
+        "HARNESS",
+        "CARTRIDGE_SERVICE_MOTION",
+        "USER_HAND_SERVICE_KEEP_OUT",
+        "PHYSICAL_HMI",
     ):
         assert required in text
     unresolved = {item.interface_id: item for item in matrix.unresolved_interfaces}
-    for required in ("HARNESS", "CARTRIDGE_SERVICE_MOTION", "USER_HAND_SERVICE_KEEP_OUT", "PHYSICAL_HMI"):
+    for required in (
+        "RIGHT_RELEASE_OPERATIONAL_MOTION",
+        "RETENTION_OCCIPITAL_AND_FIT_MOTION",
+        "RETENTION_HAIR_PINCH_KEEP_OUTS",
+        "HARNESS",
+        "CARTRIDGE_SERVICE_MOTION",
+        "USER_HAND_SERVICE_KEEP_OUT",
+        "PHYSICAL_HMI",
+    ):
         assert required in unresolved
     assert all(item.blocker for item in unresolved.values())
 
@@ -131,17 +145,17 @@ def test_candidate_heads_are_navigation_only_not_consumed_geometry(matrix: Whole
     assert matrix.observed_candidates == OBSERVED_CANDIDATES
     manifest = matrix.manifest()
     assert all(item["geometry_consumed"] is False for item in manifest["observed_candidates"])
-    assert {item["pr"] for item in manifest["observed_candidates"]} == {70, 71, 80, 84, 85, 88}
+    assert {item["pr"] for item in manifest["observed_candidates"]} == {70, 71, 80, 83, 84, 85, 87, 88, 89}
 
 
 def test_current_source_bound_matrix_counts_are_deterministic(matrix: WholeProductCollisionMatrix):
-    # Exact for the source graph bound above. Future accepted source movement requires an
-    # explicit rebind and review rather than silently changing these integration truths.
+    # Exact for the released source graph bound above. Future accepted source movement
+    # requires an explicit rebind and review rather than silently changing these truths.
     assert matrix.exact_interference_count == 1
     assert matrix.protected_conflict_count == 15
     assert matrix.review_required_count == 3
-    assert matrix.blocked_count == 6
-    assert len(matrix.checks) == 113
+    assert matrix.blocked_count == 8
+    assert len(matrix.checks) == 115
 
 
 def test_matrix_manifest_is_deterministic_and_never_promotes_physical_validation(matrix: WholeProductCollisionMatrix):
@@ -153,7 +167,7 @@ def test_matrix_manifest_is_deterministic_and_never_promotes_physical_validation
     assert first["exact_interference_count"] == 1
     assert first["protected_conflict_count"] == 15
     assert first["review_required_count"] == 3
-    assert first["blocked_count"] == 6
+    assert first["blocked_count"] == 8
     assert first["matrix_status"] == "DIGITAL_CONFLICT_PRESENT_RELEASE_BLOCKED"
 
 
