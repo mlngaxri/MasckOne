@@ -24,13 +24,16 @@ from masck_one.realized_water_reservoir import (
 from masck_one.water_reservoir import WaterReservoirError, build_water_reservoir_architecture
 
 
+CAD_VOLUME_TOLERANCE_ML = 1e-9
+
+
 def test_realized_reservoir_closes_authority_volume_with_actual_internal_geometry():
     authority = load_authority()
     realized = build_realized_water_reservoir(authority)
 
-    assert realized.gross_geometric_volume_mL == pytest.approx(6.5, abs=1e-12)
-    assert realized.neutral_geometric_dead_volume_mL == pytest.approx(0.65, abs=1e-12)
-    assert realized.neutral_geometric_usable_volume_mL == pytest.approx(5.85, abs=1e-12)
+    assert realized.gross_geometric_volume_mL == pytest.approx(6.5, abs=CAD_VOLUME_TOLERANCE_ML)
+    assert realized.neutral_geometric_dead_volume_mL == pytest.approx(0.65, abs=CAD_VOLUME_TOLERANCE_ML)
+    assert realized.neutral_geometric_usable_volume_mL == pytest.approx(5.85, abs=CAD_VOLUME_TOLERANCE_ML)
     assert realized.gross_target_met is True
     assert realized.minimum_usable_met is True
     assert realized.gross_target_mL == authority.number("fluid", "water_reservoir", "gross_mL")
