@@ -1,0 +1,237 @@
+from __future__ import annotations
+
+"""Release-facing semantics for the Cell 3 retention load-path package.
+
+Prompt 11 V1 owns the actual carrier, clevis, pin, clip and handoff-lug B-reps. This
+module does not recreate or move that geometry. It binds the exact V1 source/package
+and exposes a stricter release contract that distinguishes a realized positive
+attachment *feature* from an attachment whose mating counterpart actually exists.
+
+It also prevents the pin-removal service bound from being misread as proof of a complete
+carrier-removal trajectory. Physical load, fatigue, fit, wet use and release performance
+remain validation gates.
+"""
+
+from dataclasses import dataclass
+from hashlib import sha1, sha256
+import json
+from pathlib import Path
+
+from .retention_load_path import (
+    ATTACHMENT_FEATURE_OPEN,
+    ATTACHMENT_INTEGRAL,
+    ATTACHMENT_PINNED,
+    CAPTURE_PIN_SERVICE_WITHDRAWAL_MM,
+    RetentionLoadPathPackage,
+    build_retention_load_path,
+    export_retention_load_path,
+)
+
+SCHEMA = "MASCK_ONE_CELL3_RETENTION_LOAD_PATH_RELEASE_V2"
+SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA = "6c851aafe1a7f5e2a33fc8214c0cadb79d12c6ff"
+DIGITAL_ONLY = "DIGITAL_LOAD_PATH_RELEASE_SEMANTICS_NOT_STRUCTURAL_OR_SERVICE_VALIDATION"
+
+
+class RetentionLoadPathReleaseError(ValueError):
+    pass
+
+
+def _git_blob_sha(path: Path) -> str:
+    raw = path.read_bytes()
+    header = f"blob {len(raw)}\0".encode("ascii")
+    return sha1(header + raw).hexdigest()
+
+
+def _assert_source_blob() -> None:
+    path = Path(__file__).with_name("retention_load_path.py")
+    observed = _git_blob_sha(path)
+    if observed != SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA:
+        raise RetentionLoadPathReleaseError(
+            "retention_load_path.py changed; release semantics require explicit rebind"
+        )
+
+
+def _edge_manifest(edge) -> dict[str, object]:
+    source = edge.manifest()
+    attachment_class = str(source["attachment_class"])
+    closed = bool(source["load_transfer_digitally_closed"])
+
+    if attachment_class == ATTACHMENT_FEATURE_OPEN:
+        if closed:
+            raise RetentionLoadPathReleaseError(
+                "open counterpart edge cannot be digitally load-transfer closed"
+            )
+        positive_attachment = False
+        positive_feature = True
+        counterpart_realized = False
+    elif attachment_class in {ATTACHMENT_PINNED, ATTACHMENT_INTEGRAL}:
+        if not closed:
+            raise RetentionLoadPathReleaseError(
+                "realized pinned/integral load edge unexpectedly remains open"
+            )
+        positive_attachment = True
+        positive_feature = True
+        counterpart_realized = True
+    else:
+        positive_attachment = False
+        positive_feature = False
+        counterpart_realized = False
+
+    return {
+        **source,
+        "positive_attachment": positive_attachment,
+        "positive_attachment_feature_realized": positive_feature,
+        "mating_counterpart_realized": counterpart_realized,
+    }
+
+
+@dataclass(frozen=True, slots=True)
+class RetentionLoadPathRelease:
+    source: RetentionLoadPathPackage
+
+    @property
+    def release_sha256(self) -> str:
+        raw = json.dumps(
+            self.manifest(include_sha=False),
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode("utf-8")
+        return sha256(raw).hexdigest()
+
+    def manifest(self, *, include_sha: bool = True) -> dict[str, object]:
+        source_manifest = self.source.manifest()
+        edges = tuple(_edge_manifest(edge) for edge in self.source.edges)
+        open_edges = tuple(
+            str(edge["edge_id"])
+            for edge in edges
+            if not bool(edge["load_transfer_digitally_closed"])
+        )
+        closed_edges = tuple(
+            str(edge["edge_id"])
+            for edge in edges
+            if bool(edge["load_transfer_digitally_closed"])
+        )
+
+        payload: dict[str, object] = {
+            "schema": SCHEMA,
+            "source_retention_load_path_git_blob_sha": SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA,
+            "source_retention_load_path_package_sha256": self.source.package_sha256,
+            "source_current_main_sha": source_manifest["source_current_main_sha"],
+            "source_prompt10_head_sha": source_manifest["source_prompt10_head_sha"],
+            "source_authority_blob_sha": source_manifest["source_authority_blob_sha"],
+            "source_authority_revision": source_manifest["source_authority_revision"],
+            "coordinate_frame_id": source_manifest["coordinate_frame_id"],
+            "source_frame_retention_reservation_id": source_manifest[
+                "source_frame_retention_reservation_id"
+            ],
+            "source_geometry_manifest": source_manifest,
+            "load_path_graph": {
+                "nodes": [node.manifest() for node in self.source.nodes],
+                "edges": list(edges),
+                "digitally_closed_edge_ids": list(closed_edges),
+                "open_or_nonload_edge_ids": list(open_edges),
+                "occipital_to_local_carrier_positive_path_closed": True,
+                "crown_positive_attachment_feature_realized": True,
+                "crown_to_head_positive_attachment_realized": False,
+                "crown_to_head_path_closed": False,
+                "facial_positive_attachment_feature_realized": True,
+                "facial_reaction_to_front_perimeter_positive_attachment_realized": False,
+                "facial_reaction_to_front_perimeter_path_closed": False,
+                "whole_retention_load_path_closed": False,
+            },
+            "service_maturity": {
+                "capture_pin_withdrawal_travel_mm": CAPTURE_PIN_SERVICE_WITHDRAWAL_MM,
+                "capture_pin_motion_proof": (
+                    "CONSERVATIVE_TWO_STATE_AXIS_ALIGNED_BOUND_OVER_COMPLETE_PURE_Y_TRANSLATION"
+                ),
+                "capture_pin_motion_is_exact_swept_brep": False,
+                "carrier_separation_trajectory_realized": False,
+                "carrier_separation_clearance_validated": False,
+                "wearer_service_allowed": False,
+                "powered_service_allowed": False,
+                "reset_requires_both_capture_pins_and_both_clips_reseated": True,
+            },
+            "service_sequence_release_semantics": [
+                {
+                    "step": 1,
+                    "action": "GAIN_CARRIER_SERVICE_ACCESS_IF_A_COVER_IS_LATER_REALIZED",
+                    "cover_geometry_currently_realized": False,
+                },
+                {
+                    "step": 2,
+                    "action": "REMOVE_BOTH_CAPTURE_C_CLIPS_MASK_REMOVED_UNPOWERED",
+                },
+                {
+                    "step": 3,
+                    "action": "WITHDRAW_BOTH_CAPTURE_PINS_POSITIVE_Y_WITHIN_CONTROLLED_BOUND",
+                    "travel_mm": CAPTURE_PIN_SERVICE_WITHDRAWAL_MM,
+                },
+                {
+                    "step": 4,
+                    "action": "CARRIER_SEPARATION_TRAJECTORY_UNRESOLVED",
+                    "service_clearance_validated": False,
+                },
+                {
+                    "step": 5,
+                    "action": "REASSEMBLY_REQUIRES_BOTH_PINS_AND_BOTH_CLIPS_RESEATED",
+                },
+            ],
+            "clearance_checks": [check.manifest() for check in self.source.clearance_checks],
+            "four_zone_actuation_preserved": source_manifest["four_zone_actuation_preserved"],
+            "assembly_in_development_compound": False,
+            "assembly_exclusion_reason": source_manifest["assembly_exclusion_reason"],
+            "unresolved_digital_requirements": sorted(
+                set(source_manifest["unresolved_digital_requirements"])
+                | {
+                    "CARRIER_NONTELEPORTING_SEPARATION_AND_REASSEMBLY_TRAJECTORY",
+                }
+            ),
+            "physical_validation_eligible": False,
+            "unresolved_physical_gates": source_manifest["unresolved_physical_gates"],
+            "evidence_status": DIGITAL_ONLY,
+        }
+        if include_sha:
+            payload["release_sha256"] = self.release_sha256
+        return payload
+
+
+def build_retention_load_path_release(
+    source: RetentionLoadPathPackage | None = None,
+) -> RetentionLoadPathRelease:
+    _assert_source_blob()
+    source = source or build_retention_load_path()
+    release = RetentionLoadPathRelease(source)
+
+    graph = release.manifest(include_sha=False)["load_path_graph"]
+    edges = graph["edges"]
+    for edge in edges:
+        if edge["attachment_class"] == ATTACHMENT_FEATURE_OPEN:
+            if edge["positive_attachment"] is not False:
+                raise RetentionLoadPathReleaseError(
+                    "unrealized counterpart cannot be labelled as a positive attachment"
+                )
+            if edge["positive_attachment_feature_realized"] is not True:
+                raise RetentionLoadPathReleaseError(
+                    "open handoff must retain its realized attachment-feature identity"
+                )
+    if graph["whole_retention_load_path_closed"] is not False:
+        raise RetentionLoadPathReleaseError("whole retention path cannot close before counterparts exist")
+    return release
+
+
+def export_retention_load_path_release(
+    output_dir: str | Path,
+    release: RetentionLoadPathRelease,
+) -> tuple[Path, ...]:
+    """Export unchanged V1 geometry and replace only its release-facing manifest semantics."""
+    outputs = export_retention_load_path(output_dir, release.source)
+    root = Path(output_dir)
+    manifest_path = root / "retention_load_path_manifest.json"
+    manifest_path.write_text(
+        json.dumps(release.manifest(), sort_keys=True, indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
+    if not manifest_path.is_file() or manifest_path.stat().st_size <= 0:
+        raise RetentionLoadPathReleaseError("failed to write retention load-path release manifest")
+    return outputs
