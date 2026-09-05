@@ -13,10 +13,11 @@ from dataclasses import dataclass, replace
 import cadquery as cq
 
 from .authority import Authority, load_authority
-from .exterior_inferior_turnover import (
-    build_inferior_turnover_exterior_shell,
-    inferior_turnover_manifest,
+from .exterior_eye_roll import (
+    build_eye_rolled_exterior_shell,
+    eye_inner_roll_manifest,
 )
+from .exterior_inferior_turnover import inferior_turnover_manifest
 from .exterior_surface import exterior_surface_manifest
 from .model import Component, MasckOneModel, build_model
 from .rear_service_skin import (
@@ -54,18 +55,18 @@ def build_mvp_product_candidate(authority: Authority | None = None) -> MasckOneM
     baseline = build_model(authority)
     refined_shell = Component(
         name="rigid_shell",
-        solid=build_inferior_turnover_exterior_shell(
+        solid=build_eye_rolled_exterior_shell(
             baseline.authority,
             baseline.facial_reference,
         ),
         status=MVP_EXTERIOR_STATUS,
         notes=(
             "Cell 2 five-station smooth exterior with tightened cheek/temple mass, "
-            "localized rear B-side wall reserve, broad anterior-only inferior turnover "
-            "and progressive lateral-crown feathering into the temple/upper-cheek field. "
-            "Protected apertures and wall requirements remain authority-derived. "
-            "Soft-interface geometry, fit, comfort, seal, cleanability, tooling and CMF "
-            "durability remain unresolved or unvalidated."
+            "localized rear B-side wall reserve, broad anterior-only inferior turnover, "
+            "progressive lateral-crown feathering and the authority 3.0 mm rigid eye "
+            "inner-edge roll realized with hidden wearer-side support. Protected visual "
+            "apertures remain authority-derived. Soft-interface geometry, fit, comfort, "
+            "seal, cleanability, tooling and CMF durability remain unresolved or unvalidated."
         ),
     )
     return replace(baseline, shell=refined_shell)
@@ -82,6 +83,7 @@ def integrated_exterior_manifest(authority: Authority | None = None) -> dict[str
     authority = authority or load_authority()
     manifest = dict(exterior_surface_manifest(authority))
     manifest["final_shell_construction"] = inferior_turnover_manifest(authority)
+    manifest["eye_inner_edge_roll"] = eye_inner_roll_manifest(authority)
     manifest["rear_service_skin"] = rear_service_skin_manifest(authority)
     manifest["integration_status"] = MVP_EXTERIOR_STATUS
     manifest["integration_policy"] = (
