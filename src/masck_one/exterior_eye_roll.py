@@ -2,11 +2,11 @@ from __future__ import annotations
 
 """Authority-bound rigid eye inner-edge roll for the Cell 2 exterior.
 
-The visible Prompt 08-11 exterior A-surface is preserved. The current 1.8 mm shell is
-locally backed only on the wearer side of each eye opening so the authority 3.0 mm
-inner-edge roll can be realized without adding an exterior bezel, insert, panel break,
-or raised aperture ring. This remains deterministic digital geometry, not comfort,
-fit, impact, tooling, material, or physical-safety evidence.
+The visible Prompt 08-11 exterior A-surface is preserved. Released protected-face
+geometry requires rigid material to clear the eye hard envelope, so the authority 3.0 mm
+rigid edge treatment is applied to that hard rigid opening rather than to the smaller
+controlled visual-aperture reference. The future non-rigid visible interface that may
+resolve the visual aperture remains intentionally unmodelled.
 """
 
 import cadquery as cq
@@ -18,21 +18,23 @@ from .exterior_inferior_turnover import (
     build_inferior_turnover_exterior_shell,
     inferior_turnover_constraints,
 )
+from .exterior_rigid_clearance import (
+    build_current_protected_volumes,
+    cut_rigid_hard_envelopes,
+)
 from .exterior_surface import (
     _add_profile,
     _ellipse_cutter,
     anterior_crown_boundary_z_mm,
 )
+from .protected_volumes import ProtectedVolumeSet
 
 
-SCHEMA = "MASCK_ONE_CELL2_EYE_INNER_EDGE_ROLL_V1"
+SCHEMA = "MASCK_ONE_CELL2_EYE_INNER_EDGE_ROLL_V2"
 
 # Cell 2 deterministic construction reserves. These are not new product requirements.
 # The support band remains hidden behind the existing A-surface and is only wide enough
-# to give the roll operator stable local material around the controlled visual aperture.
-# Total local supported depth only needs to exceed the controlled fillet radius; the
-# previous wall + radius arithmetic double-counted the existing nominal wall and created
-# avoidable hidden bulk.
+# to give the roll operator stable local material around the released rigid hard opening.
 EYE_ROLL_SUPPORT_BAND_MM = 5.5
 EYE_ROLL_SUPPORT_DEPTH_RESERVE_MM = 0.20
 EYE_ROLL_MAX_ADDED_VOLUME_MM3 = 2500.0
@@ -166,9 +168,6 @@ def _wearer_side_eye_edge(
             f"found {len(candidates)}"
         )
 
-    # The exact controlled visual edge remains on the anterior A-surface. The edge with
-    # the lowest mean Z is therefore the wearer-side edge to roll. This avoids brittle
-    # face/edge numbering while preserving canonical +Z anterior semantics.
     ranked = sorted(
         candidates,
         key=lambda edge: 0.5
@@ -182,105 +181,99 @@ def _wearer_side_eye_edge(
         float(ranked[-1].BoundingBox().zmin) + float(ranked[-1].BoundingBox().zmax)
     )
     if wearer_mean_z >= anterior_mean_z:
-        raise EyeInnerRollError("wearer-side eye edge is not posterior to visual edge")
+        raise EyeInnerRollError("wearer-side eye edge is not posterior to rigid opening edge")
     return wearer
 
 
 def build_eye_rolled_exterior_shell(
     authority: Authority,
     facial_reference: FacialReferenceLayer,
+    protected_volumes: ProtectedVolumeSet | None = None,
 ) -> cq.Workplane:
-    """Return the current Cell 2 shell with the authority eye inner-edge roll realized."""
-    base = build_inferior_turnover_exterior_shell(authority, facial_reference).val()
+    """Return the current Cell 2 shell with hard-envelope clearance and rigid eye roll."""
+    protected = protected_volumes or build_current_protected_volumes(
+        authority,
+        facial_reference,
+    )
+    base = build_inferior_turnover_exterior_shell(
+        authority,
+        facial_reference,
+        protected,
+    ).val()
     _single_valid(base, "pre-roll exterior")
 
     wall = authority.number("geometry", "shell_nominal_wall_mm")
     roll_radius = authority.number("geometry", "eye", "inner_edge_roll_radius_mm")
-    eye_width, eye_height = authority.pair(
-        "geometry", "eye", "visual_aperture_wh_mm"
-    )
-    cant = authority.number("geometry", "eye", "lateral_cant_deg")
-    left = facial_reference.eye_pair.left.point_xy
-    right = facial_reference.eye_pair.right.point_xy
+    left_zone = protected.eye_left.zone
+    right_zone = protected.eye_right.zone
     face = _final_crown_face(authority, facial_reference)
 
     supported = base
-    for x_mm, y_mm, angle_deg in (
-        (left.x, left.y, -cant),
-        (right.x, right.y, cant),
-    ):
+    for zone in (left_zone, right_zone):
         patch = _posterior_eye_support_patch(
             face,
             wall_mm=wall,
             roll_radius_mm=roll_radius,
-            eye_width_mm=eye_width,
-            eye_height_mm=eye_height,
-            eye_x_mm=x_mm,
-            eye_y_mm=y_mm,
-            eye_cant_deg=angle_deg,
+            eye_width_mm=zone.envelope_width_mm,
+            eye_height_mm=zone.envelope_height_mm,
+            eye_x_mm=zone.center.x,
+            eye_y_mm=zone.center.y,
+            eye_cant_deg=zone.angle_deg,
         )
         supported = supported.fuse(patch)
         _single_valid(supported, "exterior with hidden eye support")
 
-    # Re-cut the exact authority visual apertures after adding hidden backing material.
-    shell = cq.Workplane(obj=supported)
-    shell = shell.cut(
-        _ellipse_cutter(
-            eye_width,
-            eye_height,
-            left.x,
-            left.y,
-            angle_deg=-cant,
-        )
-    )
-    shell = shell.cut(
-        _ellipse_cutter(
-            eye_width,
-            eye_height,
-            right.x,
-            right.y,
-            angle_deg=cant,
-        )
-    )
-    pre_roll = _single_valid(shell.val(), "supported eye-aperture exterior")
+    # Hidden backing can intrude into the protected footprint. Re-apply all five exact
+    # released hard-envelope cuts before selecting the wearer-side rigid eye edges.
+    shell = cut_rigid_hard_envelopes(cq.Workplane(obj=supported), protected)
+    pre_roll = _single_valid(shell.val(), "supported protected-clearance exterior")
 
     roll_edges = [
         _wearer_side_eye_edge(
             pre_roll,
-            eye_width_mm=eye_width,
-            eye_height_mm=eye_height,
-            eye_x_mm=left.x,
-            eye_y_mm=left.y,
-        ),
-        _wearer_side_eye_edge(
-            pre_roll,
-            eye_width_mm=eye_width,
-            eye_height_mm=eye_height,
-            eye_x_mm=right.x,
-            eye_y_mm=right.y,
-        ),
+            eye_width_mm=zone.envelope_width_mm,
+            eye_height_mm=zone.envelope_height_mm,
+            eye_x_mm=zone.center.x,
+            eye_y_mm=zone.center.y,
+        )
+        for zone in (left_zone, right_zone)
     ]
     rolled = pre_roll.fillet(roll_radius, roll_edges)
     _single_valid(rolled, "eye-rolled exterior")
 
-    added_volume = float(rolled.Volume()) - float(base.Volume())
+    # Filleting the wearer-side edge removes material, so it cannot invade the original
+    # hard footprint. This final cut is intentionally redundant and fail-closed against
+    # CAD-kernel edge behavior changes.
+    final_shell = cut_rigid_hard_envelopes(cq.Workplane(obj=rolled), protected).val()
+    _single_valid(final_shell, "final protected-clearance eye-rolled exterior")
+
+    added_volume = float(final_shell.Volume()) - float(base.Volume())
     if added_volume <= 0.0 or added_volume > EYE_ROLL_MAX_ADDED_VOLUME_MM3:
         raise EyeInnerRollError(
             "eye-roll hidden support added volume is outside the bounded Cell 2 reserve"
         )
-    return cq.Workplane(obj=rolled)
+    return cq.Workplane(obj=final_shell)
 
 
 def eye_inner_roll_manifest(authority: Authority) -> dict[str, object]:
     wall = authority.number("geometry", "shell_nominal_wall_mm")
     radius = authority.number("geometry", "eye", "inner_edge_roll_radius_mm")
+    visual_width, visual_height = authority.pair(
+        "geometry", "eye", "visual_aperture_wh_mm"
+    )
+    rigid_clearance = authority.number(
+        "geometry", "eye", "rigid_dynamic_keepout_clearance_mm"
+    )
     supported_depth = _supported_eye_depth_mm(wall, radius)
     return {
         "schema": SCHEMA,
         "radius_mm": radius,
-        "visual_aperture_wh_mm": list(
-            authority.pair("geometry", "eye", "visual_aperture_wh_mm")
-        ),
+        "visual_aperture_wh_mm": [visual_width, visual_height],
+        "rigid_hard_envelope_wh_mm": [
+            visual_width + 2.0 * rigid_clearance,
+            visual_height + 2.0 * rigid_clearance,
+        ],
+        "rigid_dynamic_keepout_clearance_mm": rigid_clearance,
         "lateral_cant_deg": authority.number(
             "geometry", "eye", "lateral_cant_deg"
         ),
@@ -290,10 +283,14 @@ def eye_inner_roll_manifest(authority: Authority) -> dict[str, object]:
         "hidden_added_depth_mm": supported_depth - wall,
         "max_added_volume_mm3": EYE_ROLL_MAX_ADDED_VOLUME_MM3,
         "support_location": "WEARER_SIDE_ONLY_BEHIND_EXISTING_A_SURFACE",
-        "visual_aperture_policy": "AUTHORITY_VISUAL_OPENING_RE_CUT_EXACTLY_AFTER_SUPPORT",
+        "rigid_edge_policy": "AUTHORITY_ROLL_APPLIED_TO_RELEASED_RIGID_HARD_ENVELOPE_EDGE",
+        "visual_aperture_policy": (
+            "CONTROLLED_REFERENCE_REQUIRES_FUTURE_NONRIGID_VISIBLE_INTERFACE;"
+            "NOT_REALIZED_AS_RIGID_MATERIAL"
+        ),
         "visible_bezel_added": False,
         "external_a_surface_modified_by_support": False,
-        "construction": "LOCAL_POSTERIOR_SUPPORT_PLUS_EXACT_WEARER_SIDE_EDGE_FILLET",
+        "construction": "LOCAL_POSTERIOR_SUPPORT_PLUS_EXACT_WEARER_SIDE_RIGID_EDGE_FILLET",
         "evidence_status": (
             "DIGITAL_AUTHORITY_GEOMETRY_NOT_FIT_COMFORT_IMPACT_TOOLING_MATERIAL_OR_PHYSICAL_SAFETY_EVIDENCE"
         ),
