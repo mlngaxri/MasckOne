@@ -2,25 +2,26 @@ from dataclasses import replace
 
 import pytest
 
-from masck_one.authority import load_authority
 from masck_one.cleanser_storage import PORT_IDS
 from masck_one.cleanser_service_interfaces import (
     PICKUP_LUMEN_DIAMETER_MM,
     SERVICE_SEQUENCE_IDS,
     VENT_FEATURE_ID,
     CleanserServiceGeometryError,
-    build_cleanser_service_geometry,
 )
-from masck_one.realized_cleanser_storage import OUTLET_BORE_DIAMETER_MM, build_realized_cleanser_storage
+from masck_one.realized_cleanser_storage import OUTLET_BORE_DIAMETER_MM
 
 
-def test_cleanser_service_geometry_binds_exact_realized_storage_and_preserves_fluid_identity():
-    authority = load_authority()
-    storage = build_realized_cleanser_storage(authority)
-    geometry = build_cleanser_service_geometry(authority)
+def test_cleanser_service_geometry_binds_exact_realized_storage_and_preserves_fluid_identity(
+    cell4_authority,
+    cell4_cleanser_storage,
+    cell4_cleanser_service,
+):
+    storage = cell4_cleanser_storage
+    geometry = cell4_cleanser_service
 
     assert geometry.source_storage_manifest_sha256 == storage.manifest_sha256
-    assert geometry.validate_current_sources(authority).manifest_sha256 == storage.manifest_sha256
+    assert geometry.validate_current_sources(cell4_authority).manifest_sha256 == storage.manifest_sha256
     assert geometry.fluid_identity == "CLEANSER"
     assert geometry.physical_validation_eligible is False
     assert geometry.manifest()["controlled_port_ids"] == list(PORT_IDS)
@@ -28,8 +29,8 @@ def test_cleanser_service_geometry_binds_exact_realized_storage_and_preserves_fl
     assert "PASSIVE_BACKFLOW_PROTECTION" in geometry.manifest()["mixed_waste_architecture_unchanged"]
 
 
-def test_fill_purge_closure_vent_and_pickup_are_actual_deterministic_breps():
-    geometry = build_cleanser_service_geometry(load_authority())
+def test_fill_purge_closure_vent_and_pickup_are_actual_deterministic_breps(cell4_cleanser_service):
+    geometry = cell4_cleanser_service
 
     for shape in (
         geometry.ported_body_solid,
@@ -55,8 +56,10 @@ def test_fill_purge_closure_vent_and_pickup_are_actual_deterministic_breps():
     assert geometry.service_closure_solid.val().intersect(geometry.service_retention_key_solid.val()).Volume() <= 1e-7
 
 
-def test_vent_is_not_promoted_to_a_fourth_controlled_liquid_port_and_pickup_preserves_outlet_bore():
-    geometry = build_cleanser_service_geometry(load_authority())
+def test_vent_is_not_promoted_to_a_fourth_controlled_liquid_port_and_pickup_preserves_outlet_bore(
+    cell4_cleanser_service,
+):
+    geometry = cell4_cleanser_service
     manifest = geometry.manifest()
 
     assert manifest["vent"]["feature_id"] == VENT_FEATURE_ID
@@ -67,8 +70,10 @@ def test_vent_is_not_promoted_to_a_fourth_controlled_liquid_port_and_pickup_pres
     assert manifest["pickup"]["outlet_port_id"] == "CLEANSER-PORT-OUTLET"
 
 
-def test_refill_and_purge_service_requires_key_then_closure_withdrawal_and_defines_no_viscosity_limit():
-    geometry = build_cleanser_service_geometry(load_authority())
+def test_refill_and_purge_service_requires_key_then_closure_withdrawal_and_defines_no_viscosity_limit(
+    cell4_cleanser_service,
+):
+    geometry = cell4_cleanser_service
     manifest = geometry.manifest()
 
     assert tuple(step.step_id for step in geometry.service_sequence) == SERVICE_SEQUENCE_IDS
@@ -80,12 +85,14 @@ def test_refill_and_purge_service_requires_key_then_closure_withdrawal_and_defin
     assert "NOT_DEFINED" in manifest["viscosity_status"]
 
 
-def test_stale_storage_wrong_fluid_and_evidence_promotion_fail_closed():
-    authority = load_authority()
-    geometry = build_cleanser_service_geometry(authority)
+def test_stale_storage_wrong_fluid_and_evidence_promotion_fail_closed(
+    cell4_authority,
+    cell4_cleanser_service,
+):
+    geometry = cell4_cleanser_service
 
     with pytest.raises(CleanserServiceGeometryError, match="stale for realized storage"):
-        replace(geometry, source_storage_manifest_sha256="0" * 64).validate_current_sources(authority)
+        replace(geometry, source_storage_manifest_sha256="0" * 64).validate_current_sources(cell4_authority)
     with pytest.raises(CleanserServiceGeometryError, match="exact CLEANSER"):
         replace(geometry, fluid_identity="FRESH_WATER")
     with pytest.raises(CleanserServiceGeometryError, match="cannot become physical validation"):
