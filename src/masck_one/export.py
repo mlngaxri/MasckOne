@@ -10,6 +10,7 @@ from .boundary_release import (
     boundary_release_manifest,
     build_verified_interface_boundary_topology,
 )
+from .cleanser_service_envelope import build_complete_cleanser_module_service_envelope
 from .cleanser_service_interfaces import build_cleanser_service_geometry
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
@@ -41,6 +42,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     output = _ensure_output_dir(output_dir)
     cleanser = build_realized_cleanser_storage(model.authority)
     cleanser_service = build_cleanser_service_geometry(model.authority)
+    cleanser_service_envelope = build_complete_cleanser_module_service_envelope(model.authority)
 
     export_map = {
         "rigid_shell": model.shell.solid,
@@ -67,6 +69,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "cleanser_storage_key_service_sweep_reference": cleanser.key_service_sweep_solid,
         "cleanser_storage_service_closure_sweep_reference": cleanser_service.service_closure_sweep_solid,
         "cleanser_storage_service_key_sweep_reference": cleanser_service.service_key_sweep_solid,
+        "cleanser_storage_complete_module_removal_sweep_reference": cleanser_service_envelope.module_removal_sweep_solid,
     }
     for index, actuator in enumerate(model.actuator_envelopes, start=1):
         export_map[f"actuator_envelope_{index}"] = actuator.solid
@@ -74,9 +77,8 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
-    # Reference/reservation solids are exported for review but are not assembly material.
-    # The successor ported cleanser body already contains the pickup-tube material, so the
-    # pickup detail reference is not duplicated into the development compound.
+    # Reference/reservation/service-envelope solids are exported for review but are not
+    # assembly material. The successor body already contains pickup-tube material.
     shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
     shapes.extend(
         (
@@ -126,6 +128,8 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "realized_cleanser_storage_manifest_sha256": cleanser.manifest_sha256,
             "cleanser_service_interfaces": cleanser_service.manifest(),
             "cleanser_service_interfaces_manifest_sha256": cleanser_service.manifest_sha256,
+            "cleanser_complete_module_service_envelope": cleanser_service_envelope.manifest(),
+            "cleanser_complete_module_service_envelope_manifest_sha256": cleanser_service_envelope.manifest_sha256,
         },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
@@ -138,10 +142,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
             "The realized cleanser cassette now carries provisional digital refill/purge closure geometry, seal lands, "
             "headspace vent geometry and an internal pickup tube while retaining exact CLEANSER identity and the three "
-            "controlled liquid-port IDs. Vent-barrier and seal materials remain unselected. No viscosity limit, flow, "
-            "priming, sealing, leakage, compatibility, usable capacity, purge, hygiene, drying, wet-hand service or "
-            "durability performance is established. Digital topology/manifests and analysis frameworks are not "
-            "physical validation evidence."
+            "controlled liquid-port IDs. The complete attached cleanser module also carries a conservative source-bound "
+            "removal envelope through the existing cassette withdrawal travel. Vent-barrier and seal materials remain "
+            "unselected. No viscosity limit, flow, priming, sealing, leakage, compatibility, usable capacity, purge, "
+            "hygiene, drying, wet-hand service or durability performance is established. Digital topology/manifests and "
+            "analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
