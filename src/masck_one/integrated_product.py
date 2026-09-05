@@ -32,8 +32,9 @@ def build_mvp_product_candidate(authority: Authority | None = None) -> MasckOneM
         status=MVP_EXTERIOR_STATUS,
         notes=(
             "Cell 2 five-station smooth exterior with tightened cheek/temple mass, "
-            "localized rear B-side wall reserve and a broad anterior-only inferior "
-            "turnover. Protected apertures and wall requirements remain authority-derived. "
+            "localized rear B-side wall reserve, broad anterior-only inferior turnover "
+            "and progressive lateral-crown feathering into the temple/upper-cheek field. "
+            "Protected apertures and wall requirements remain authority-derived. "
             "Soft-interface geometry, fit, comfort, seal, cleanability, tooling and CMF "
             "durability remain unresolved or unvalidated."
         ),
