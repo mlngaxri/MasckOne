@@ -3,11 +3,14 @@ from dataclasses import replace
 
 import pytest
 
-from masck_one.realized_waste_backbone import RealizedWasteBackboneError
+from masck_one.realized_waste_backbone import (
+    RealizedWasteBackboneError,
+    build_cell4_waste_backbone,
+)
 from masck_one.realized_waste_backbone_release import (
     AUTHORED_AGAINST_MAIN_SHA,
     RELEASE_STATE,
-    build_current_cell4_waste_backbone_release,
+    Cell4WasteBackboneRelease,
     build_current_waste_routing_sources,
 )
 
@@ -18,8 +21,18 @@ def sources():
 
 
 @pytest.fixture(scope="module")
-def release():
-    return build_current_cell4_waste_backbone_release()
+def release(sources):
+    architecture = sources.architecture
+    realization = build_cell4_waste_backbone(
+        source_git_sha=AUTHORED_AGAINST_MAIN_SHA,
+        source_waste_pump_architecture_sha256=architecture.architecture_sha256,
+        authority_revision=architecture.source_authority_revision,
+    )
+    return Cell4WasteBackboneRelease(
+        authored_against_git_sha=AUTHORED_AGAINST_MAIN_SHA,
+        source_waste_pump_architecture_sha256=architecture.architecture_sha256,
+        realization=realization,
+    )
 
 
 def test_current_release_binds_live_architecture_and_current_source_graph(sources, release):
@@ -43,7 +56,7 @@ def test_current_release_binds_live_architecture_and_current_source_graph(source
 def test_release_manifest_is_deterministic(monkeypatch, sources, release):
     from masck_one import realized_waste_backbone_release as module
 
-    # Source reconstruction itself is exercised by the module fixtures and the
+    # Source reconstruction itself is exercised by the module fixture and the
     # trusted-manifest test. Reuse the already reconstructed current graph here so
     # determinism coverage does not rebuild the complete product twice more.
     monkeypatch.setattr(module, "build_current_waste_routing_sources", lambda: sources)
