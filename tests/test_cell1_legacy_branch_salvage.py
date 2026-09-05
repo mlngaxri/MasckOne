@@ -45,8 +45,11 @@ def test_live_salvage_map_is_internally_release_safe() -> None:
     assert _entry(data, 68)["classification"] == "PORTABLE"
     assert _entry(data, 70)["classification"] == "PORTABLE"
     assert _entry(data, 71)["classification"] == "PORTABLE"
+    assert _entry(data, 72)["classification"] == "SUPERSEDED"
+    assert _entry(data, 72)["superseded_by_pr"] == 68
     assert _relation(data, 62, 70)["coverage"] == "FULL_PORT"
     assert _relation(data, 63, 71)["coverage"] == "PARTIAL_PORT"
+    assert _relation(data, 72, 68)["coverage"] == "FULL_PORT"
 
 
 def test_stale_mechanical_source_cannot_be_promoted_to_mergeable() -> None:
@@ -151,6 +154,17 @@ def test_successor_candidate_cannot_be_rejected_or_superseded() -> None:
     candidate["release_disposition"] = "DO_NOT_MERGE_INVALID_TEST"
 
     with pytest.raises(SalvageMapError, match="successor PR #71 must remain an active release candidate"):
+        validate_salvage_map(data)
+
+
+def test_consumed_verification_branch_cannot_be_reactivated_as_parallel_truth() -> None:
+    data = deepcopy(load_salvage_map())
+    consumed = _entry(data, 72)
+    consumed["classification"] = "PORTABLE"
+    consumed["release_disposition"] = "HOLD_INVALID_PARALLEL_TRUTH"
+    consumed["blockers"] = ["INVALID_PARALLEL_TRUTH"]
+
+    with pytest.raises(SalvageMapError, match="FULL_PORT successor requires legacy PR #72"):
         validate_salvage_map(data)
 
 
