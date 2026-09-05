@@ -52,11 +52,16 @@ ANTERIOR_CROWN_RADIAL_Y_NORM = 0.520
 ANTERIOR_CROWN_RADIAL_LIMIT_SQ = 0.82
 ANTERIOR_CROWN_FALLOFF_POWER = 1.15
 ANTERIOR_CROWN_SAMPLE_X_NORM = (-0.31, -0.155, 0.0, 0.155, 0.31)
-ANTERIOR_CROWN_SAMPLE_Y_NORM = (-0.36, -0.24, -0.12, 0.0, 0.12, 0.24, 0.36)
+ANTERIOR_CROWN_SAMPLE_Y_NORM = (-0.36, -0.24, -0.12, 0.0, 0.12, 0.24, 0.36, 0.44)
 ANTERIOR_CROWN_RELIEF_MIN_MM = 5.2
 ANTERIOR_CROWN_RELIEF_MAX_MM = 6.4
 
-ANTERIOR_BROW_CHEEK_LIFT_MM = 0.55
+# The superior field deliberately avoids a separate brow ridge. A small 2D brow
+# transition plus a broad forehead continuation carry curvature upward as one surface;
+# the nasal valley is allowed to decay slowly into that field instead of recovering
+# abruptly into a visor-like ledge.
+ANTERIOR_BROW_CHEEK_LIFT_MM = 0.10
+ANTERIOR_SUPERIOR_CONTINUITY_LIFT_MM = 0.50
 ANTERIOR_NASAL_VALLEY_MM = 1.05
 
 # The lower face stays deliberately low-expression. Residual positive relief is biased
@@ -73,11 +78,14 @@ ANTERIOR_CHIN_CENTER_Y_OFFSET_NORM = -0.155
 ANTERIOR_CHIN_SPREAD_X_NORM = 0.220
 ANTERIOR_CHIN_SPREAD_Y_NORM = 0.110
 
-ANTERIOR_BROW_CENTER_Y_OFFSET_NORM = -0.025
-ANTERIOR_BROW_SPREAD_X_NORM = 0.300
-ANTERIOR_BROW_SPREAD_Y_NORM = 0.165
+ANTERIOR_BROW_CENTER_Y_OFFSET_NORM = 0.060
+ANTERIOR_BROW_SPREAD_X_NORM = 0.340
+ANTERIOR_BROW_SPREAD_Y_NORM = 0.250
+ANTERIOR_SUPERIOR_CENTER_Y_OFFSET_NORM = 0.075
+ANTERIOR_SUPERIOR_SPREAD_X_NORM = 0.380
+ANTERIOR_SUPERIOR_SPREAD_Y_NORM = 0.300
 ANTERIOR_NASAL_SPREAD_X_NORM = 0.174
-ANTERIOR_NASAL_SPREAD_Y_NORM = 0.121
+ANTERIOR_NASAL_SPREAD_Y_NORM = 0.240
 ANTERIOR_LOWER_SPREAD_X_NORM = 0.298
 ANTERIOR_LOWER_SPREAD_Y_NORM = 0.164
 
@@ -176,6 +184,9 @@ def _anterior_crown_constraints(
 
     brow_spread_x = width * ANTERIOR_BROW_SPREAD_X_NORM
     brow_spread_y = height * ANTERIOR_BROW_SPREAD_Y_NORM
+    superior_spread_x = width * ANTERIOR_SUPERIOR_SPREAD_X_NORM
+    superior_spread_y = height * ANTERIOR_SUPERIOR_SPREAD_Y_NORM
+    superior_y = eye_y + ANTERIOR_SUPERIOR_CENTER_Y_OFFSET_NORM * height
     nasal_spread_x = width * ANTERIOR_NASAL_SPREAD_X_NORM
     nasal_spread_y = height * ANTERIOR_NASAL_SPREAD_Y_NORM
     lower_spread_x = width * ANTERIOR_LOWER_SPREAD_X_NORM
@@ -194,9 +205,14 @@ def _anterior_crown_constraints(
             radial_sq = (x / radial_x) ** 2 + (y / radial_y) ** 2
             if radial_sq < ANTERIOR_CROWN_RADIAL_LIMIT_SQ:
                 base = ANTERIOR_CROWN_HEIGHT_MM * (1.0 - radial_sq) ** ANTERIOR_CROWN_FALLOFF_POWER
-                brow_cheek = ANTERIOR_BROW_CHEEK_LIFT_MM * math.exp(
-                    -((y - brow_y) / brow_spread_y) ** 2
-                ) * (0.78 + 0.22 * min(1.0, (x / brow_spread_x) ** 2))
+                brow_transition = ANTERIOR_BROW_CHEEK_LIFT_MM * math.exp(
+                    -(x / brow_spread_x) ** 2
+                    - ((y - brow_y) / brow_spread_y) ** 2
+                )
+                superior_continuity = ANTERIOR_SUPERIOR_CONTINUITY_LIFT_MM * math.exp(
+                    -(x / superior_spread_x) ** 2
+                    - ((y - superior_y) / superior_spread_y) ** 2
+                )
                 nasal_valley = -ANTERIOR_NASAL_VALLEY_MM * math.exp(
                     -(x / nasal_spread_x) ** 2 - ((y - nostril_y) / nasal_spread_y) ** 2
                 )
@@ -225,7 +241,8 @@ def _anterior_crown_constraints(
                         y,
                         boundary_z
                         + base
-                        + brow_cheek
+                        + brow_transition
+                        + superior_continuity
                         + nasal_valley
                         + lower_face
                         + mouth_neutral
@@ -353,9 +370,21 @@ def exterior_surface_manifest(authority: Authority) -> dict[str, object]:
             ],
             "construction": "INTERPOLATED_PLATE_THICKENED_TO_NOMINAL_SHELL_WALL",
             "compound_shaping": (
-                "BROW_CHEEK_LIFT_RECESSIVE_NASAL_VALLEY_"
+                "BROAD_SUPERIOR_TRANSITION_RECESSIVE_NASAL_VALLEY_"
                 "LATERAL_LOWER_CHEEK_LIFT_NEUTRAL_MOUTH_AND_CHIN"
             ),
+            "superior_transition": {
+                "brow_transition_mm": ANTERIOR_BROW_CHEEK_LIFT_MM,
+                "forehead_continuity_mm": ANTERIOR_SUPERIOR_CONTINUITY_LIFT_MM,
+                "brow_center_y_offset_norm": ANTERIOR_BROW_CENTER_Y_OFFSET_NORM,
+                "brow_spread_x_norm": ANTERIOR_BROW_SPREAD_X_NORM,
+                "brow_spread_y_norm": ANTERIOR_BROW_SPREAD_Y_NORM,
+                "forehead_center_y_offset_norm": ANTERIOR_SUPERIOR_CENTER_Y_OFFSET_NORM,
+                "forehead_spread_x_norm": ANTERIOR_SUPERIOR_SPREAD_X_NORM,
+                "forehead_spread_y_norm": ANTERIOR_SUPERIOR_SPREAD_Y_NORM,
+                "superior_sample_y_norm": max(ANTERIOR_CROWN_SAMPLE_Y_NORM),
+                "status": "DIGITAL_FORM_PARAMETER_NOT_PHYSICAL_FIT_EVIDENCE",
+            },
             "lower_face_policy": {
                 "lift_mm": ANTERIOR_LOWER_FACE_LIFT_MM,
                 "lateral_bias": ANTERIOR_LOWER_FACE_LATERAL_BIAS,
@@ -369,6 +398,7 @@ def exterior_surface_manifest(authority: Authority) -> dict[str, object]:
         "visible_face_policy": "CURVED_ANTERIOR_FACIAL_FIELD_WITH_AUTHORITY_BACKED_APERTURES",
         "design_intent": {
             "facial_field": "broad_continuous_low_gradient_compound_crown",
+            "superior_field": "continuous_forehead_to_brow_transition_without_separate_visor_ridge",
             "perimeter": "broad_temples_tapered_jaw_soft_chin",
             "side_mass": "midbody_fullness_with_anterior_perimeter_taper_not_podded",
             "rear_mass": "close_and_recessive",
