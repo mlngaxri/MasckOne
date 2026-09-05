@@ -58,7 +58,21 @@ ANTERIOR_CROWN_RELIEF_MAX_MM = 6.4
 
 ANTERIOR_BROW_CHEEK_LIFT_MM = 0.55
 ANTERIOR_NASAL_VALLEY_MM = 1.05
-ANTERIOR_LOWER_FACE_LIFT_MM = 0.42
+
+# The lower face stays deliberately low-expression. Residual positive relief is biased
+# laterally into the lower cheeks instead of forming a centered mouth muzzle. Broad,
+# shallow recess terms then keep the mouth/philtrum and chin visually neutral without
+# adding a bezel, groove, service opening or any change to the authority mouth aperture.
+ANTERIOR_LOWER_FACE_LIFT_MM = 0.20
+ANTERIOR_LOWER_FACE_LATERAL_BIAS = 0.65
+ANTERIOR_MOUTH_NEUTRAL_RECESS_MM = 0.45
+ANTERIOR_MOUTH_NEUTRAL_SPREAD_X_NORM = 0.230
+ANTERIOR_MOUTH_NEUTRAL_SPREAD_Y_NORM = 0.150
+ANTERIOR_CHIN_SOFTEN_MM = 0.15
+ANTERIOR_CHIN_CENTER_Y_OFFSET_NORM = -0.155
+ANTERIOR_CHIN_SPREAD_X_NORM = 0.220
+ANTERIOR_CHIN_SPREAD_Y_NORM = 0.110
+
 ANTERIOR_BROW_CENTER_Y_OFFSET_NORM = -0.025
 ANTERIOR_BROW_SPREAD_X_NORM = 0.300
 ANTERIOR_BROW_SPREAD_Y_NORM = 0.165
@@ -166,6 +180,11 @@ def _anterior_crown_constraints(
     nasal_spread_y = height * ANTERIOR_NASAL_SPREAD_Y_NORM
     lower_spread_x = width * ANTERIOR_LOWER_SPREAD_X_NORM
     lower_spread_y = height * ANTERIOR_LOWER_SPREAD_Y_NORM
+    mouth_neutral_spread_x = width * ANTERIOR_MOUTH_NEUTRAL_SPREAD_X_NORM
+    mouth_neutral_spread_y = height * ANTERIOR_MOUTH_NEUTRAL_SPREAD_Y_NORM
+    chin_spread_x = width * ANTERIOR_CHIN_SPREAD_X_NORM
+    chin_spread_y = height * ANTERIOR_CHIN_SPREAD_Y_NORM
+    chin_y = mouth_y + ANTERIOR_CHIN_CENTER_Y_OFFSET_NORM * height
 
     points: list[tuple[float, float, float]] = []
     for y_norm in ANTERIOR_CROWN_SAMPLE_Y_NORM:
@@ -181,10 +200,38 @@ def _anterior_crown_constraints(
                 nasal_valley = -ANTERIOR_NASAL_VALLEY_MM * math.exp(
                     -(x / nasal_spread_x) ** 2 - ((y - nostril_y) / nasal_spread_y) ** 2
                 )
-                lower_face = ANTERIOR_LOWER_FACE_LIFT_MM * math.exp(
-                    -(x / lower_spread_x) ** 2 - ((y - mouth_y) / lower_spread_y) ** 2
+                lower_lateral_factor = (
+                    (1.0 - ANTERIOR_LOWER_FACE_LATERAL_BIAS)
+                    + ANTERIOR_LOWER_FACE_LATERAL_BIAS
+                    * min(1.0, (x / lower_spread_x) ** 2)
                 )
-                points.append((x, y, boundary_z + base + brow_cheek + nasal_valley + lower_face))
+                lower_face = (
+                    ANTERIOR_LOWER_FACE_LIFT_MM
+                    * lower_lateral_factor
+                    * math.exp(
+                        -(x / lower_spread_x) ** 2 - ((y - mouth_y) / lower_spread_y) ** 2
+                    )
+                )
+                mouth_neutral = -ANTERIOR_MOUTH_NEUTRAL_RECESS_MM * math.exp(
+                    -(x / mouth_neutral_spread_x) ** 2
+                    - ((y - mouth_y) / mouth_neutral_spread_y) ** 2
+                )
+                chin_soften = -ANTERIOR_CHIN_SOFTEN_MM * math.exp(
+                    -(x / chin_spread_x) ** 2 - ((y - chin_y) / chin_spread_y) ** 2
+                )
+                points.append(
+                    (
+                        x,
+                        y,
+                        boundary_z
+                        + base
+                        + brow_cheek
+                        + nasal_valley
+                        + lower_face
+                        + mouth_neutral
+                        + chin_soften,
+                    )
+                )
 
     if len(points) < 12:
         raise ValueError("Anterior crown requires a stable interior constraint field")
@@ -305,7 +352,17 @@ def exterior_surface_manifest(authority: Authority) -> dict[str, object]:
                 ANTERIOR_CROWN_RELIEF_MAX_MM,
             ],
             "construction": "INTERPOLATED_PLATE_THICKENED_TO_NOMINAL_SHELL_WALL",
-            "compound_shaping": "BROW_CHEEK_LIFT_RECESSIVE_NASAL_VALLEY_CONTINUOUS_LOWER_FACE",
+            "compound_shaping": (
+                "BROW_CHEEK_LIFT_RECESSIVE_NASAL_VALLEY_"
+                "LATERAL_LOWER_CHEEK_LIFT_NEUTRAL_MOUTH_AND_CHIN"
+            ),
+            "lower_face_policy": {
+                "lift_mm": ANTERIOR_LOWER_FACE_LIFT_MM,
+                "lateral_bias": ANTERIOR_LOWER_FACE_LATERAL_BIAS,
+                "mouth_neutral_recess_mm": ANTERIOR_MOUTH_NEUTRAL_RECESS_MM,
+                "chin_soften_mm": ANTERIOR_CHIN_SOFTEN_MM,
+                "status": "DIGITAL_FORM_PARAMETER_NOT_PHYSICAL_FIT_EVIDENCE",
+            },
             "join_overlap_mm": ANTERIOR_CROWN_JOIN_OVERLAP_MM,
             "join_overlap_status": "NUMERICAL_BOOLEAN_CONSTRUCTION_ONLY",
         },
@@ -316,6 +373,7 @@ def exterior_surface_manifest(authority: Authority) -> dict[str, object]:
             "side_mass": "midbody_fullness_with_anterior_perimeter_taper_not_podded",
             "rear_mass": "close_and_recessive",
             "nasal_read": "recessive_not_respirator",
+            "lower_face_read": "neutral_non_muzzle_non_robotic_chin",
             "visible_feature_count": "minimal",
         },
         "evidence_status": "DIGITAL_CAD_MVP_EXTERIOR_NOT_CLASS_A_OR_PHYSICAL_EVIDENCE",
