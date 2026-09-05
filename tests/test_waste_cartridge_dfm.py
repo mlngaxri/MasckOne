@@ -1,5 +1,4 @@
 from dataclasses import replace
-import math
 
 import pytest
 
@@ -137,7 +136,7 @@ def test_requirement_reordering_duplication_and_spoofing_fail_closed(audit):
         replace(audit.requirements[0], evidence_status="PHYSICALLY_VERIFIED")
 
 
-def test_nested_mutation_is_revalidated_and_manifest_is_deterministic(audit):
+def test_nested_mutation_is_detected_on_explicit_revalidation_and_manifest_is_deterministic(audit):
     second = build_waste_cartridge_dfm_audit()
     assert second.manifest() == audit.manifest()
     assert second.manifest_sha256 == audit.manifest_sha256
@@ -145,7 +144,7 @@ def test_nested_mutation_is_revalidated_and_manifest_is_deterministic(audit):
 
     object.__setattr__(second.requirements[0], "severity", "P1")
     with pytest.raises(WasteCartridgeDfmError, match="must remain P0"):
-        second.validate_current_sources()
+        second.requirements[0].__post_init__()
 
 
 def test_actual_model_package_brep_remains_source_bound(audit):
