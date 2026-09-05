@@ -57,6 +57,20 @@ ANTERIOR_CROWN_FALLOFF_POWER = 1.35
 ANTERIOR_CROWN_SAMPLE_X_NORM = (-0.31, -0.155, 0.0, 0.155, 0.31)
 ANTERIOR_CROWN_SAMPLE_Y_NORM = (-0.36, -0.24, -0.12, 0.0, 0.12, 0.24, 0.36)
 
+# Small compound-shape amplitudes remove a single nose-like dome peak while preserving
+# one broad facial field. Positions are derived from live facial landmarks and widths
+# scale from the current outer profile. These are Cell 2 digital form parameters only.
+ANTERIOR_BROW_CHEEK_LIFT_MM = 0.55
+ANTERIOR_NASAL_VALLEY_MM = 0.95
+ANTERIOR_LOWER_FACE_LIFT_MM = 0.35
+ANTERIOR_BROW_CENTER_Y_OFFSET_NORM = -0.025
+ANTERIOR_BROW_SPREAD_X_NORM = 0.300
+ANTERIOR_BROW_SPREAD_Y_NORM = 0.165
+ANTERIOR_NASAL_SPREAD_X_NORM = 0.174
+ANTERIOR_NASAL_SPREAD_Y_NORM = 0.121
+ANTERIOR_LOWER_SPREAD_X_NORM = 0.298
+ANTERIOR_LOWER_SPREAD_Y_NORM = 0.164
+
 
 def _profile_points(width: float, height: float) -> tuple[tuple[float, float], ...]:
     if width <= 0.0 or height <= 0.0:
@@ -136,11 +150,28 @@ def _anterior_crown_constraints(
     width: float,
     height: float,
     boundary_z: float,
+    facial_reference: FacialReferenceLayer,
 ) -> tuple[tuple[float, float, float], ...]:
     radial_x = width * ANTERIOR_CROWN_RADIAL_X_NORM
     radial_y = height * ANTERIOR_CROWN_RADIAL_Y_NORM
     if radial_x <= 0.0 or radial_y <= 0.0:
         raise ValueError("Anterior crown radial scales must be positive")
+
+    eye_y = 0.5 * (
+        facial_reference.eye_pair.left.point_xy.y + facial_reference.eye_pair.right.point_xy.y
+    )
+    nostril_y = 0.5 * (
+        facial_reference.nostril_pair.left.point_xy.y + facial_reference.nostril_pair.right.point_xy.y
+    )
+    mouth_y = facial_reference.mouth_center.point_xy.y
+    brow_y = eye_y + ANTERIOR_BROW_CENTER_Y_OFFSET_NORM * height
+
+    brow_spread_x = width * ANTERIOR_BROW_SPREAD_X_NORM
+    brow_spread_y = height * ANTERIOR_BROW_SPREAD_Y_NORM
+    nasal_spread_x = width * ANTERIOR_NASAL_SPREAD_X_NORM
+    nasal_spread_y = height * ANTERIOR_NASAL_SPREAD_Y_NORM
+    lower_spread_x = width * ANTERIOR_LOWER_SPREAD_X_NORM
+    lower_spread_y = height * ANTERIOR_LOWER_SPREAD_Y_NORM
 
     points: list[tuple[float, float, float]] = []
     for y_norm in ANTERIOR_CROWN_SAMPLE_Y_NORM:
@@ -149,7 +180,17 @@ def _anterior_crown_constraints(
             x = x_norm * width
             radial_sq = (x / radial_x) ** 2 + (y / radial_y) ** 2
             if radial_sq < ANTERIOR_CROWN_RADIAL_LIMIT_SQ:
-                z = boundary_z + ANTERIOR_CROWN_HEIGHT_MM * (1.0 - radial_sq) ** ANTERIOR_CROWN_FALLOFF_POWER
+                base = ANTERIOR_CROWN_HEIGHT_MM * (1.0 - radial_sq) ** ANTERIOR_CROWN_FALLOFF_POWER
+                brow_cheek = ANTERIOR_BROW_CHEEK_LIFT_MM * math.exp(
+                    -((y - brow_y) / brow_spread_y) ** 2
+                ) * (0.78 + 0.22 * min(1.0, (x / brow_spread_x) ** 2))
+                nasal_valley = -ANTERIOR_NASAL_VALLEY_MM * math.exp(
+                    -(x / nasal_spread_x) ** 2 - ((y - nostril_y) / nasal_spread_y) ** 2
+                )
+                lower_face = ANTERIOR_LOWER_FACE_LIFT_MM * math.exp(
+                    -(x / lower_spread_x) ** 2 - ((y - mouth_y) / lower_spread_y) ** 2
+                )
+                z = boundary_z + base + brow_cheek + nasal_valley + lower_face
                 points.append((x, y, z))
     if len(points) < 12:
         raise ValueError("Anterior crown requires a stable interior constraint field")
@@ -161,9 +202,10 @@ def _build_anterior_crown(
     height: float,
     wall: float,
     boundary_z: float,
+    facial_reference: FacialReferenceLayer,
 ) -> cq.Shape:
     boundary = _add_profile(cq.Workplane("XY").workplane(offset=boundary_z), width, height)
-    constraints = _anterior_crown_constraints(width, height, boundary_z)
+    constraints = _anterior_crown_constraints(width, height, boundary_z, facial_reference)
     face = (
         cq.Workplane("XY")
         .interpPlate(
@@ -214,6 +256,7 @@ def build_refined_exterior_shell(
         final_height,
         wall,
         anterior_crown_boundary_z_mm(authority),
+        facial_reference,
     )
     fused = side_body.solids().val().fuse(crown)
     if not fused.isValid() or len(fused.Solids()) != 1:
@@ -263,12 +306,13 @@ def exterior_surface_manifest(authority: Authority) -> dict[str, object]:
             "boundary_z_mm": anterior_crown_boundary_z_mm(authority),
             "inner_min_z_mm": anterior_crown_inner_min_z_mm(authority),
             "construction": "INTERPOLATED_PLATE_THICKENED_TO_NOMINAL_SHELL_WALL",
+            "compound_shaping": "BROW_CHEEK_LIFT_RECESSIVE_NASAL_VALLEY_CONTINUOUS_LOWER_FACE",
             "join_overlap_mm": ANTERIOR_CROWN_JOIN_OVERLAP_MM,
             "join_overlap_status": "NUMERICAL_BOOLEAN_CONSTRUCTION_ONLY",
         },
         "visible_face_policy": "CURVED_ANTERIOR_FACIAL_FIELD_WITH_AUTHORITY_BACKED_APERTURES",
         "design_intent": {
-            "facial_field": "broad_continuous_shallow_crown",
+            "facial_field": "broad_continuous_shallow_compound_crown",
             "perimeter": "broad_temples_tapered_jaw_soft_chin",
             "side_mass": "laterally_blended_not_podded",
             "rear_mass": "close_and_recessive",
