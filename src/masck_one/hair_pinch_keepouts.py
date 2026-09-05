@@ -133,14 +133,15 @@ def _capsule_axis(
     if length <= 0.0:
         raise HairPinchKeepoutError("capsule endpoints must differ")
     direction = delta.normalized()
-    cylinder = cq.Solid.makeCylinder(
-        _positive(radius_mm, "capsule radius"),
-        length,
-        start,
-        direction,
+    radius = _positive(radius_mm, "capsule radius")
+    cylinder = cq.Solid.makeCylinder(radius, length, start, direction)
+    full_sphere_axis = cq.Vector(0.0, 0.0, 1.0)
+    start_sphere = cq.Solid.makeSphere(
+        radius, start, full_sphere_axis, -90.0, 90.0, 360.0
     )
-    start_sphere = cq.Solid.makeSphere(radius_mm, start)
-    end_sphere = cq.Solid.makeSphere(radius_mm, end)
+    end_sphere = cq.Solid.makeSphere(
+        radius, end, full_sphere_axis, -90.0, 90.0, 360.0
+    )
     fused = cylinder.fuse(start_sphere).fuse(end_sphere)
     return _single(cq.Workplane("XY").newObject([fused]), "hair approach capsule")
 
@@ -609,9 +610,8 @@ def build_hair_pinch_keepouts(
             zone_id, protected = _protected_solid(model, index)
             add(f"CLEAR_{region.region_id}_{zone_id}", zone_id, region.solid, protected)
 
-    occipital = build_retention_fit_adjustment(authority, model)
-    # Central rear package and crown reservations come from the source adjustment's
-    # source occipital package, so rebuild once through the controlled source path.
+    # Central rear package and crown reservations come from the controlled Prompt 08
+    # source path so they remain independent of the hazard-reference solids.
     from .occipital_stabilizer import build_occipital_stabilizer
 
     source_occipital = build_occipital_stabilizer(authority, model)
