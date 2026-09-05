@@ -2,54 +2,60 @@
 
 ## Live source reconstruction
 
-- Accepted base at branch creation and at this increment: `main` `5fce2a43a34d8be49256677a35af60c906dc1653`, merge of PR #67 passive-waste-routing baseline repair.
+- Accepted base remains `main` `5fce2a43a34d8be49256677a35af60c906dc1653`, merge of PR #67 passive-waste-routing baseline repair.
 - Legacy exterior PR #62 remains source material only and is not release authority.
-- Current released `src/masck_one/model.py` still uses the three-station ruled elliptical shell; this branch replaces only the integrated `rigid_shell` candidate.
-- Current Cell 4 realized mixed-waste routing remains wearer-left/inferior, approximately X -62 to -24, Y -82 to -32, Z 12 to 16 mm. The new exterior crown begins conservatively at approximately Z 20.1 mm on the inner side, so this anterior-only form increment does not wrap around that route reservation.
-- Current Cell 3 right quick-release latch remains rearward on the wearer-right side, with its release-critical solids around negative Z. This Cell 2 increment does not alter rear or retention geometry.
-- No Cell 3, Cell 4, authority, protected-region, fluid, electrical or HMI source is edited here.
+- Released `src/masck_one/model.py` still carries the three-station ruled elliptical shell; PR #70 replaces only the integrated `rigid_shell` candidate.
+- Current Cell 4 PR #68 has advanced to `f4d366ab4ee819cc6be79186c5cc77ef89519fa9`. Its commits after the previously screened `c9844b53630494066313424806809d56e185c53c` change verification only, not realized mixed-waste route geometry. Route A remains wearer-left/inferior and its full provisional envelope remains below the approximately Z 20.1 mm crown inner-material guard.
+- Current Cell 3 PR #71 has advanced to `5ba496a0ac45ea30631aee869d25498eff6679a5`. Its changes after the previously screened release geometry add reset/export verification without enlarging the right-side withdrawal reservation. The reservation remains X [73.5, 100.0], Y [-5.0, 5.0], Z [-22.5, -15.5] mm and remains posterior-disjoint from Cell 2 shell material beginning at Z 0.
+- No Cell 3, Cell 4, authority, protected-region, fluid, electrical or HMI source is edited by this Cell 2 pass.
 
-## Implemented geometry delta
+## Implemented global proportion delta
 
-The rigid exterior remains a five-station smooth non-ruled spline loft with the accepted broad upper field, continuously tapered jaw and soft chin. The anterior closure is now a broader low-gradient compound crown rather than a shallow faceplate-like field.
+The rigid exterior remains a deterministic five-station smooth non-ruled shell with a low-gradient compound anterior crown, but the side-body progression is no longer near-parallel.
 
-The bounded crown change increases authored base height from 4.8 mm to 5.8 mm, broadens its normalized radial field to 0.525 X and 0.520 Y, and reduces falloff power to 1.15. The existing landmark-driven brow/upper-cheek lift, recessive nasal valley and lower-face continuity remain. Nasal recession and lower-face lift are adjusted only within that same anterior field. No outer XY station, protected aperture, wearer-side cavity, rear mass or service boundary is enlarged.
+Peak side mass now occurs at the interior Z 16 mm station and the visible anterior perimeter tapers again by Z 22 mm. Authored station scales are X `[1.000, 1.030, 1.045, 1.050, 1.015]` and Y `[0.991, 1.005, 1.019, 1.029, 1.004]` against the live functional-frame baseline. This carries depth into the temple, cheek and jaw volume rather than placing a shallow crown on a constant-depth plate.
 
-Authority remains unchanged: outer XY envelope, nominal shell wall, eye aperture dimensions/cant, mouth aperture dimensions and nostril minimum opening derivation are consumed from `config/masck_one_authority.yaml`.
+The lower profile is broadened only through the cartridge band and includes an additional near-chin control point. That change keeps the jaw tapered while moving shell material outside the accepted cartridge envelope and avoiding the hard lower termination produced by the first package-clear candidate.
 
-## Before / after digital B-rep inspection
+The existing 5.8 mm compound crown remains, including brow/upper-cheek lift, a recessive nasal valley and continuous lower-face curvature. Authority remains unchanged: the 172 x 210 mm outer XY envelope, shell wall baselines, eye aperture dimensions/cant, mouth aperture and nostril opening derivation are consumed from `config/masck_one_authority.yaml`.
 
-Local CadQuery 2.8.0 reconstruction of the exact branch algorithms was generated and visually inspected in front, both three-quarter, both side, rear/wearer-side, top, bottom, center YZ and center XZ views.
+## Actual B-rep inspection
 
-| Digital metric | Released ruled shell | Previous Cell 2 compound crown | Current broader crown |
-| --- | ---: | ---: | ---: |
-| B-rep valid | yes | yes | yes |
-| X span, mm | 172.0000002 | 160.9588512 | 160.9588512 |
-| Y span, mm | 210.0000002 | 206.8670772 | 206.8670772 |
-| Z span, mm | 22.0000002 | 26.552549 | 27.570690 |
+CadQuery 2.8.0 reconstruction of the exact current algorithms was inspected in front, both three-quarter, both side, rear/wearer-side, top, bottom and center-section views.
 
-These are kernel inspection values, not manufacturing tolerances or physical evidence.
+| Digital metric | Reviewed head `ff809963...` | Current global-proportion candidate |
+| --- | ---: | ---: |
+| B-rep valid | yes | yes |
+| Solid count | 1 | 1 |
+| X span, mm | 160.958851 | 163.603323 |
+| Y span, mm | 206.867077 | 208.060777 |
+| Z span, mm | 27.570690 | 27.570579 |
+| Visible anterior relief above Z 22, mm | 5.570690 | 5.570579 |
+| Shell / accepted waste-cartridge intersection, mm3 | approximately 604.234 | 0.0 |
 
-The released generic oval/late-flare cue remains removed. Compared with the previous compound-crown head, the current change adds roughly 1.02 mm of visible Z relief without increasing the XY silhouette. Side and top projections show a broader, lower-gradient facial volume instead of a near-slab profile. Front and three-quarter views retain one continuous facial field, with no pod, raised aperture ring, vent, panel or mechanism-display language added.
+These are digital-kernel inspection values, not manufacturing tolerances or physical evidence.
 
-The remaining form is intentionally shallow and recessive around the nasal openings. The digital result does not establish facial fit, seal, comfort or cleansing performance.
+The material side/top change is also visible in actual B-rep sections rather than only in authored scale values. At Z 16 mm the shell section spans approximately 163.450 x 208.056 mm. At Z 21.5 mm it spans approximately 158.861 x 203.893 mm, giving about 4.589 mm width taper and 4.163 mm height taper before the compound crown. The side and top projections therefore carry midbody fullness into a tapered anterior perimeter rather than retaining the prior near-parallel slab silhouette.
 
-`masck_one.exterior_evidence.render_exterior_view_evidence()` renders eight SVG projections and two center sections directly from the candidate B-rep and writes a manifest with validity, volume, bounding box, projection directions, section specifications and exact file hashes. CI regressions execute this renderer rather than relying on hand-drawn evidence.
+Front and three-quarter views preserve the broad upper field, tapered lower face and one continuous facial surface without pods, raised aperture rings, vents, decorative panels or exposed mechanisms. The final lower transition was visually rechecked after adding the near-chin control point so package clearance did not create a robotic chin cue.
 
-## Geometry and release guards
+`masck_one.exterior_evidence.render_exterior_view_evidence()` renders eight SVG projections and two center sections directly from the candidate B-rep and writes validity, volume, bounding box, projection directions, section specifications and exact file hashes. CI executes that renderer rather than relying on hand-drawn evidence.
 
-Targeted regressions protect:
+## Package and geometry checks
 
-- monotonic smooth station progression;
-- authority-envelope containment with unchanged X/Y silhouette controls;
-- valid positive-volume single-solid B-rep generation;
-- a bounded 5.2 to 6.4 mm visible anterior-relief corridor so the face cannot regress toward a slab or grow into an excessive dome;
-- retained openings through both eyes, both nostrils and the mouth;
-- conservative anterior separation from the current accepted actuator, water, waste-cartridge and battery package envelopes;
+Targeted regressions and exact-geometry inspection protect:
+
+- peak side mass before the anterior station and a material anterior perimeter taper;
+- containment inside the authority XY envelope;
+- one valid positive-volume B-rep solid;
+- bounded 5.2 to 6.4 mm visible crown relief;
+- open centerlines through both eyes, both nostrils and the mouth across the checked Z range;
+- absolute zero nontrivial shell intersection with the released 74 x 36 x 20 mm waste-cartridge envelope centered at `(0, -80, 8)` mm;
+- crown separation from the current package Z envelopes;
 - preservation of the accepted component set with only the rigid shell substituted;
-- material geometric difference from the released ruled shell;
-- candidate STEP export through the normal release exporter;
-- deterministic generation of eight B-rep SVG projections plus center YZ/XZ sections.
+- deterministic STEP export and deterministic multi-view/section generation.
+
+The current control-net wall guard remains a development regression, not a production thickness certificate. Final-shell minimum-thickness proof remains a separate digital freeze gate and no production-process claim is made here.
 
 ## Evidence boundary
 
@@ -57,4 +63,4 @@ This is digital CAD exterior convergence only. It does not establish fit, comfor
 
 ## DIGITAL_HANDOFF_DELTA
 
-If this branch is released, future product depiction should use the broad-upper-field, tapered-jaw, soft-chin silhouette with the shallow compound anterior facial crown rather than the released generic oval/flat-face candidate. No performance or CMF claim boundary changes.
+If released, future product depiction should use the broad-upper-field, tapered-jaw shell with midbody depth and a tapered compound anterior perimeter rather than the released generic oval/flat-face candidate. No performance or CMF claim boundary changes.
