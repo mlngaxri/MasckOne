@@ -1,18 +1,18 @@
-from masck_one.authority import load_authority
-from masck_one.cleanser_service_interfaces import build_cleanser_service_geometry
-from masck_one.model import build_model
-from masck_one.realized_cleanser_storage import PACKAGE_CLEARANCE_RESERVATION_MM, build_realized_cleanser_storage
+from masck_one.realized_cleanser_storage import PACKAGE_CLEARANCE_RESERVATION_MM
 
 
 def _distance(a, b) -> float:
     return float(a.val().distance(b.val()))
 
 
-def test_cleanser_service_material_and_motion_clear_released_package_geometry():
-    authority = load_authority()
-    model = build_model(authority)
-    storage = build_realized_cleanser_storage(authority)
-    geometry = build_cleanser_service_geometry(authority)
+def test_cleanser_service_material_and_motion_clear_released_package_geometry(
+    cell4_model,
+    cell4_cleanser_storage,
+    cell4_cleanser_service,
+):
+    model = cell4_model
+    storage = cell4_cleanser_storage
+    geometry = cell4_cleanser_service
 
     released_packages = (
         model.shell.solid,
@@ -43,11 +43,12 @@ def test_cleanser_service_material_and_motion_clear_released_package_geometry():
     assert geometry.service_retention_key_solid.val().intersect(storage.cradle_solid.val()).Volume() <= 1e-7
 
 
-def test_nonmaterial_vent_and_seal_service_references_do_not_intrude_into_fresh_water_package():
-    authority = load_authority()
-    model = build_model(authority)
-    geometry = build_cleanser_service_geometry(authority)
-    fresh_water = model.water_reservoir_envelope.solid
+def test_nonmaterial_vent_and_seal_service_references_do_not_intrude_into_fresh_water_package(
+    cell4_model,
+    cell4_cleanser_service,
+):
+    geometry = cell4_cleanser_service
+    fresh_water = cell4_model.water_reservoir_envelope.solid
 
     for reference in (
         geometry.fill_seal_reference_solid,
