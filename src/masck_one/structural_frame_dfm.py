@@ -8,8 +8,9 @@ closure required before a whole-product CAD freeze can call the frame digitally 
 """
 
 from dataclasses import dataclass
-from hashlib import sha256
+from hashlib import sha1, sha256
 import json
+from pathlib import Path
 import re
 
 from .authority import Authority, load_authority
@@ -32,6 +33,24 @@ WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 EVIDENCE_STATUS = (
     "DIGITAL_DFM_MATURITY_AND_CLOSURE_CONTRACT_ONLY_NOT_STRENGTH_STIFFNESS_FATIGUE_"
     "MOLDABILITY_TOOLING_SUPPLIER_FIT_COMFORT_OR_PHYSICAL_VALIDATION"
+)
+
+# Git blob identities from released main. These bind the topology-construction source
+# graph without pretending a self-reported SOURCE_MAIN_SHA proves the checkout content.
+# Any movement requires deliberate reconstruction/review of this audit.
+SOURCE_GIT_BLOB_IDENTITIES: tuple[tuple[str, str], ...] = (
+    ("config/masck_one_authority.yaml", "2608dda483b995539de422290371c219668a1527"),
+    ("src/masck_one/anatomy.py", "872d1e5be1b9ce9baa5b63cb53462eb7b36f40ab"),
+    ("src/masck_one/authority.py", "6866e3a428dab8b32b5a1d9e58da78b8f5aa1aa2"),
+    ("src/masck_one/boundary_preflight.py", "0253b61d2bb1dbf4c5377124114a1cc6bd90dfa9"),
+    ("src/masck_one/boundary_release.py", "34a49eed2c521d55e48ac187c2dd33dc9e22a3e3"),
+    ("src/masck_one/coverage.py", "4a8cec4d94db97e63f634a94dd8c90094f3afcb0"),
+    ("src/masck_one/facial_surface.py", "764f6f65b83ac7709d959bb0f37f861c90ea2794"),
+    ("src/masck_one/interface_attachment.py", "c161f99ddd3473f3b9dde30ec73397a72915191a"),
+    ("src/masck_one/interface_boundaries.py", "496c9b50867ca0bb319175d1d2e47caf4bc4fb64"),
+    ("src/masck_one/interface_topology.py", "38b7c932f71a8675d45d098ac65154f98ff8bbb5"),
+    ("src/masck_one/model.py", "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"),
+    ("src/masck_one/structural_frame.py", "bda5ba87d232c0e6a22e200975a80414a10c9a83"),
 )
 
 REQ_FRAME_MEMBER = "FRAME_MEMBER_3D_REALIZATION"
@@ -67,6 +86,24 @@ def _exact_bool(value: object, label: str) -> bool:
     if type(value) is not bool:
         raise StructuralFrameDfmError(f"{label} must be an exact bool")
     return value
+
+
+def _git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    return sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
+
+
+def _require_released_source_blobs() -> None:
+    repository_root = Path(__file__).resolve().parents[2]
+    for relative_path, expected_blob_sha in SOURCE_GIT_BLOB_IDENTITIES:
+        path = repository_root / relative_path
+        if not path.is_file():
+            raise StructuralFrameDfmError(f"structural DFM source file is missing: {relative_path}")
+        actual_blob_sha = _git_blob_sha(path)
+        if actual_blob_sha != expected_blob_sha:
+            raise StructuralFrameDfmError(
+                f"structural DFM source moved at {relative_path}; expected {expected_blob_sha}, got {actual_blob_sha}"
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -166,6 +203,10 @@ class StructuralFrameDfmAudit:
             "source_main_sha": self.source_main_sha,
             "authority_revision": self.authority_revision,
             "authority_blob_sha": self.authority_blob_sha,
+            "source_git_blob_identities": [
+                {"path": path, "git_blob_sha": blob_sha}
+                for path, blob_sha in SOURCE_GIT_BLOB_IDENTITIES
+            ],
             "coordinate_frame_id": self.coordinate_frame_id,
             "structural_topology_sha256": self.structural_topology_sha256,
             "current_maturity": self.current_maturity,
@@ -211,14 +252,16 @@ def _require_topology_only(frame: StructuralFrameTopology) -> None:
             "released frame realization status changed; structural DFM audit requires typed invalidation"
         )
     reservation_by_id = {item.reservation_id: item for item in frame.reservations}
-    for reservation_id in (RESERVATION_ACTUATION, RESERVATION_RETENTION):
-        if reservation_by_id[reservation_id].envelope_status != "UNRESOLVED" and reservation_id == RESERVATION_RETENTION:
-            raise StructuralFrameDfmError("retention-frame envelope moved; DFM audit requires reconstruction")
+    if reservation_by_id[RESERVATION_RETENTION].envelope_status != "UNRESOLVED":
+        raise StructuralFrameDfmError("retention-frame envelope moved; DFM audit requires reconstruction")
     if reservation_by_id[RESERVATION_RETENTION].placement_status != "RETENTION_GEOMETRY_DEFERRED_TO_ITERATION29":
         raise StructuralFrameDfmError("retention-frame placement moved; DFM audit requires reconstruction")
+    if reservation_by_id[RESERVATION_ACTUATION].interface_count != 4:
+        raise StructuralFrameDfmError("actuation-frame reservation moved; DFM audit requires reconstruction")
 
 
 def build_structural_frame_dfm_audit(authority: Authority | None = None) -> StructuralFrameDfmAudit:
+    _require_released_source_blobs()
     authority = authority or load_authority()
     if type(authority) is not Authority:
         raise StructuralFrameDfmError("structural-frame DFM audit requires exact Authority type")
