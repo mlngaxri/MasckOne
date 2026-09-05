@@ -13,6 +13,7 @@ from .boundary_release import (
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
+from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 
 
@@ -20,6 +21,17 @@ def _ensure_output_dir(path: str | Path) -> Path:
     output = Path(path).resolve()
     output.mkdir(parents=True, exist_ok=True)
     return output
+
+
+def _realized_waste_backbone_manifest() -> dict[str, object]:
+    """Return the current validated route realization for deterministic release output."""
+    release = build_current_cell4_waste_backbone_release()
+    release_manifest = release.manifest()
+    return {
+        "release": release_manifest,
+        "routes": [route.manifest() for route in release.realization.routes],
+        "total_geometric_dead_volume_mL": release.realization.total_geometric_dead_volume_mL,
+    }
 
 
 def export_release(output_dir: str | Path = "generated", model: MasckOneModel | None = None) -> dict:
@@ -72,6 +84,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             ),
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
+            "realized_waste_backbone": _realized_waste_backbone_manifest(),
         },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
@@ -80,7 +93,9 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
-            "released by Iteration 15. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
+            "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
+            "Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
