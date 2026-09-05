@@ -13,7 +13,10 @@ from .boundary_release import (
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
+from .realized_water_reservoir import build_realized_water_reservoir
 from .structural_frame import build_structural_frame_topology
+from .water_reservoir_closure import build_water_reservoir_closure_geometry
+from .water_reservoir_interfaces import build_water_reservoir_interface_geometry
 
 
 def _ensure_output_dir(path: str | Path) -> Path:
@@ -25,11 +28,33 @@ def _ensure_output_dir(path: str | Path) -> Path:
 def export_release(output_dir: str | Path = "generated", model: MasckOneModel | None = None) -> dict:
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
+    realized_water = build_realized_water_reservoir(model.authority)
+    water_interfaces = build_water_reservoir_interface_geometry(model.authority, realized_water)
+    water_closure = build_water_reservoir_closure_geometry(
+        model.authority,
+        realized_water,
+        water_interfaces,
+    )
 
     export_map = {
         "rigid_shell": model.shell.solid,
         "nasal_lobe_membrane_reference": model.nasal_interface.solid,
-        "water_reservoir_envelope": model.water_reservoir_envelope.solid,
+        "water_reservoir_body": water_closure.closure_body_solid,
+        "water_reservoir_lid": water_closure.closure_lid_solid,
+        "water_reservoir_retention_key": water_closure.retention_key_solid,
+        "water_reservoir_internal_cavity_reference": model.water_reservoir_envelope.solid,
+        "water_reservoir_service_sweep_reference": realized_water.service_sweep_solid,
+        "water_reservoir_fill_closure_reservation_reference": water_interfaces.fill_closure_reservation_solid,
+        "water_reservoir_vent_path_reference": water_interfaces.vent_path_solid,
+        "water_reservoir_vent_barrier_reservation_reference": water_interfaces.vent_external_barrier_reservation_solid,
+        "water_reservoir_pickup_passage_reference": water_interfaces.pickup_passage_solid,
+        "water_reservoir_pickup_connector_reservation_reference": water_interfaces.pickup_connector_reservation_solid,
+        "water_reservoir_seal_groove_reference": water_closure.seal_groove_reservation_solid,
+        "water_reservoir_seal_land_reference": water_closure.seal_land_reference_solid,
+        "water_reservoir_capture_rails_reference": water_closure.bilateral_capture_rails_solid,
+        "water_reservoir_closure_module_service_sweep_reference": water_closure.module_service_sweep_solid,
+        "water_reservoir_closure_lid_service_sweep_reference": water_closure.lid_service_sweep_solid,
+        "water_reservoir_closure_key_service_sweep_reference": water_closure.key_service_sweep_solid,
         "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
         "battery_reference_envelope": model.battery_reference_envelope.solid,
     }
@@ -39,7 +64,19 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
-    shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
+    # Reference/void/service solids above are not assembly material. Replace only the
+    # reservoir body/lid and append the positive retention key as physical CAD material.
+    shapes = []
+    for component in model.components:
+        if component.status == "REFERENCE_ONLY":
+            continue
+        if component.name == "water_reservoir_body":
+            shapes.append(water_closure.closure_body_solid.val())
+        elif component.name == "water_reservoir_lid":
+            shapes.append(water_closure.closure_lid_solid.val())
+        else:
+            shapes.append(component.solid.val())
+    shapes.append(water_closure.retention_key_solid.val())
     compound = cq.Compound.makeCompound(shapes)
     cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
 
@@ -73,6 +110,14 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
         },
+        "digital_geometry": {
+            "water_reservoir": realized_water.manifest(),
+            "water_reservoir_manifest_sha256": realized_water.manifest_sha256,
+            "water_reservoir_interfaces": water_interfaces.manifest(),
+            "water_reservoir_interfaces_manifest_sha256": water_interfaces.manifest_sha256,
+            "water_reservoir_closure": water_closure.manifest(),
+            "water_reservoir_closure_manifest_sha256": water_closure.manifest_sha256,
+        },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
@@ -80,7 +125,13 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
-            "released by Iteration 15. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "released by Iteration 15. The water module now uses ported captured body/lid geometry and a positive "
+            "retention-key solid. Cavity, fluid-interface, seal-interface and service-sweep STEP outputs remain digital "
+            "review references or keepouts where labelled. Rail/key dimensions, seal groove, detent compliance and "
+            "service travel are provisional CAD baselines only. They do not establish sealing, leakage, ingress, "
+            "priming, spill behavior, orientation performance, seal compression, key force/strain, hygiene, drying, "
+            "wet-hand serviceability, durability or physical safety. Digital topology/manifests and analysis frameworks "
+            "are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
