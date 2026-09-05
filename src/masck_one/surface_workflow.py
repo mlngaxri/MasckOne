@@ -10,8 +10,9 @@ from .authority import Authority
 from .spatial import Point3
 
 
-_SAMPLE_MANIFEST_SCHEMA = "MASCK_ONE_SURFACE_SAMPLE_MANIFEST_V1"
+_SAMPLE_MANIFEST_SCHEMA = "MASCK_ONE_SURFACE_SAMPLE_MANIFEST_V2"
 _RELEASE_RECORD_SCHEMA = "MASCK_ONE_RELEASED_CLASS_A_REFERENCE_V1"
+_CANONICAL_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 
 
 class SurfaceWorkflowError(ValueError):
@@ -52,6 +53,7 @@ def _sample_manifest_sha256(indexed: Mapping[str, SurfaceSample]) -> str:
 
     payload = {
         "schema": _SAMPLE_MANIFEST_SCHEMA,
+        "coordinate_frame": _CANONICAL_FRAME_ID,
         "coordinate_unit": "mm",
         "samples": [
             {
@@ -66,7 +68,7 @@ def _sample_manifest_sha256(indexed: Mapping[str, SurfaceSample]) -> str:
 
 
 def surface_sample_manifest_sha256(samples: Iterable[SurfaceSample]) -> str:
-    """Return the deterministic identity of an exact comparison sample set."""
+    """Return the deterministic identity of an exact authority-world comparison sample set."""
     return _sample_manifest_sha256(_index_samples(samples, "Reference"))
 
 
