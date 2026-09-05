@@ -72,8 +72,7 @@ def test_every_released_rigid_pair_is_exactly_screened(matrix: WholeProductColli
         if item.status == INTERFERENCE:
             assert item.intersection_volume_mm3 > 0.0
         if item.status == CLEAR:
-            assert item.intersection_volume_mm3 == 0.0
-            assert item.minimum_distance_mm > 0.0
+            assert item.intersection_volume_mm3 == 0.0 and item.minimum_distance_mm > 0.0
 
 
 def test_route_service_aabb_overlap_is_review_not_exact_product_interference(matrix: WholeProductCollisionMatrix):
@@ -84,8 +83,7 @@ def test_route_service_aabb_overlap_is_review_not_exact_product_interference(mat
     assert all(item.status in {CLEAR, REVIEW} for item in rows)
     assert all("NARROW_PHASE_ROUTE_GEOMETRY_NOT_PRODUCT_INTERFERENCE_CLAIM" in item.evidence_status for item in rows)
     for item in rows:
-        assert item.intersection_volume_mm3 is not None
-        assert item.minimum_distance_mm is not None
+        assert item.intersection_volume_mm3 is not None and item.minimum_distance_mm is not None
         if item.intersection_volume_mm3 > 0.0 or item.minimum_distance_mm == 0.0:
             assert item.status == REVIEW
         else:
@@ -96,15 +94,18 @@ def test_every_released_participant_is_checked_against_all_protected_regions(mat
     rows = tuple(item for item in matrix.checks if item.method == METHOD_PROTECTED)
     assert len(rows) == len(matrix.participants) * 5
     assert all(item.right_id.startswith("PROTECTED:MASCK_ONE-PROTECTED-") for item in rows)
-    assert all(item.status in {CLEAR, INTERFERENCE, TOUCHING} for item in rows)
+    assert all(item.status in {CLEAR, INTERFERENCE, TOUCHING, REVIEW} for item in rows)
     assert all("NOT_REGISTERED_DYNAMIC_3D_ANATOMY" in item.evidence_status for item in rows)
+    route_ids = {item.participant_id for item in matrix.participants if item.category == CATEGORY_ROUTE}
+    for item in rows:
+        if item.left_id in route_ids and (item.intersection_volume_mm3 or item.minimum_distance_mm == 0.0):
+            assert item.status == REVIEW
 
 
 def test_dynamic_user_protected_screen_retains_full_worn_pose_set(matrix: WholeProductCollisionMatrix):
     assert len(matrix.dynamic_protected_screens) == 5
     pose_counts = {item.pose_count for item in matrix.dynamic_protected_screens}
-    assert len(pose_counts) == 1
-    assert next(iter(pose_counts)) > 100
+    assert len(pose_counts) == 1 and next(iter(pose_counts)) > 100
     for item in matrix.dynamic_protected_screens:
         xmin, xmax, ymin, ymax, zmin, zmax = item.bounds_mm
         assert xmin < xmax and ymin < ymax and zmin <= zmax
@@ -117,12 +118,8 @@ def test_missing_mechanism_harness_cartridge_service_hmi_and_hand_keepout_fail_c
     assert len(blocked) == 6
     text = "\n".join(item.check_id for item in blocked)
     for required in (
-        "RIGHT_RELEASE_OPERATIONAL_MOTION",
-        "RIGHT_RELEASE_FACTORY_MOTION",
-        "HARNESS",
-        "CARTRIDGE_SERVICE_MOTION",
-        "USER_HAND_SERVICE_KEEP_OUT",
-        "PHYSICAL_HMI",
+        "RIGHT_RELEASE_OPERATIONAL_MOTION", "RIGHT_RELEASE_FACTORY_MOTION", "HARNESS",
+        "CARTRIDGE_SERVICE_MOTION", "USER_HAND_SERVICE_KEEP_OUT", "PHYSICAL_HMI",
     ):
         assert required in text
     unresolved = {item.interface_id: item for item in matrix.unresolved_interfaces}
@@ -138,19 +135,25 @@ def test_candidate_heads_are_navigation_only_not_consumed_geometry(matrix: Whole
     assert {item["pr"] for item in manifest["observed_candidates"]} == {70, 71, 80, 84, 85, 88}
 
 
+def test_current_source_bound_matrix_counts_are_deterministic(matrix: WholeProductCollisionMatrix):
+    # These are exact for the frozen source graph above. A future source rebind may
+    # intentionally change them, but current-main conflicts must not disappear silently.
+    assert matrix.exact_interference_count == 16
+    assert matrix.review_required_count == 3
+    assert matrix.blocked_count == 6
+    assert len(matrix.checks) == 113
+
+
 def test_matrix_manifest_is_deterministic_and_never_promotes_physical_validation(matrix: WholeProductCollisionMatrix):
-    first = matrix.manifest()
-    second = matrix.manifest()
+    first, second = matrix.manifest(), matrix.manifest()
     assert first == second
-    assert len(first["matrix_sha256"]) == 64
-    assert first["matrix_sha256"] == matrix.matrix_sha256
+    assert len(first["matrix_sha256"]) == 64 and first["matrix_sha256"] == matrix.matrix_sha256
     assert first["physical_validation_eligible"] is False
     assert "NOT_FIT_COMFORT_ANATOMICAL_SERVICE" in first["evidence_status"]
-    assert first["exact_interference_count"] == sum(item.status == INTERFERENCE for item in matrix.checks)
-    assert first["review_required_count"] == sum(item.status in {TOUCHING, REVIEW} for item in matrix.checks)
+    assert first["exact_interference_count"] == 16
+    assert first["review_required_count"] == 3
     assert first["blocked_count"] == 6
-    if first["exact_interference_count"]:
-        assert first["matrix_status"] == "DIGITAL_INTERFERENCE_PRESENT_RELEASE_BLOCKED"
+    assert first["matrix_status"] == "DIGITAL_INTERFERENCE_PRESENT_RELEASE_BLOCKED"
 
 
 def test_review_exports_round_trip_as_valid_reference_geometry(tmp_path: Path, matrix: WholeProductCollisionMatrix):
