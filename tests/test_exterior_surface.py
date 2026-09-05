@@ -28,13 +28,24 @@ def _build_shell():
     return authority, facial_reference, build_refined_exterior_shell(authority, facial_reference)
 
 
-def test_surface_stations_are_monotonic_and_gradual():
+def test_surface_stations_are_controlled_and_taper_before_crown():
     assert len(EXTERIOR_Z_STATIONS_MM) >= 4
     assert all(b > a for a, b in zip(EXTERIOR_Z_STATIONS_MM, EXTERIOR_Z_STATIONS_MM[1:]))
-    assert all(b >= a for a, b in zip(EXTERIOR_SCALE_X, EXTERIOR_SCALE_X[1:]))
-    assert all(b >= a for a, b in zip(EXTERIOR_SCALE_Y, EXTERIOR_SCALE_Y[1:]))
-    assert max(b - a for a, b in zip(EXTERIOR_SCALE_X, EXTERIOR_SCALE_X[1:])) <= 0.015
-    assert max(b - a for a, b in zip(EXTERIOR_SCALE_Y, EXTERIOR_SCALE_Y[1:])) <= 0.010
+    assert all(scale > 0.0 for scale in EXTERIOR_SCALE_X)
+    assert all(scale > 0.0 for scale in EXTERIOR_SCALE_Y)
+
+    # Peak side mass must occur before the anterior perimeter. This is the material
+    # silhouette guard that prevents the side body from reverting to a parallel slab.
+    peak_x = max(range(len(EXTERIOR_SCALE_X)), key=EXTERIOR_SCALE_X.__getitem__)
+    peak_y = max(range(len(EXTERIOR_SCALE_Y)), key=EXTERIOR_SCALE_Y.__getitem__)
+    assert 0 < peak_x < len(EXTERIOR_SCALE_X) - 1
+    assert 0 < peak_y < len(EXTERIOR_SCALE_Y) - 1
+    assert EXTERIOR_SCALE_X[-1] < EXTERIOR_SCALE_X[peak_x]
+    assert EXTERIOR_SCALE_Y[-1] < EXTERIOR_SCALE_Y[peak_y]
+
+    # Keep station-to-station change broad and loft-friendly rather than faceted.
+    assert max(abs(b - a) for a, b in zip(EXTERIOR_SCALE_X, EXTERIOR_SCALE_X[1:])) <= 0.040
+    assert max(abs(b - a) for a, b in zip(EXTERIOR_SCALE_Y, EXTERIOR_SCALE_Y[1:])) <= 0.030
 
 
 def test_authored_sections_stay_inside_authority_envelope():
@@ -43,6 +54,15 @@ def test_authored_sections_stay_inside_authority_envelope():
     sections = exterior_sections(authority)
     assert max(section[1] for section in sections) <= outer_w
     assert max(section[2] for section in sections) <= outer_h
+
+
+def test_anterior_perimeter_tapers_materially_from_peak_side_mass():
+    authority = load_authority()
+    sections = exterior_sections(authority)
+    _, peak_width, peak_height = sections[-2]
+    _, anterior_width, anterior_height = sections[-1]
+    assert peak_width - anterior_width >= 4.0
+    assert peak_height - anterior_height >= 4.0
 
 
 def test_control_profile_wall_reserve_exceeds_absolute_development_minimum():
@@ -68,7 +88,7 @@ def test_manifest_records_curved_consumer_form_policy_without_physical_claims():
     ]
     assert manifest["anterior_crown"]["join_overlap_status"] == "NUMERICAL_BOOLEAN_CONSTRUCTION_ONLY"
     assert manifest["visible_face_policy"] == "CURVED_ANTERIOR_FACIAL_FIELD_WITH_AUTHORITY_BACKED_APERTURES"
-    assert manifest["design_intent"]["side_mass"] == "laterally_blended_not_podded"
+    assert manifest["design_intent"]["side_mass"] == "midbody_fullness_with_anterior_perimeter_taper_not_podded"
     assert manifest["evidence_status"] == "DIGITAL_CAD_MVP_EXTERIOR_NOT_CLASS_A_OR_PHYSICAL_EVIDENCE"
 
 
@@ -115,6 +135,14 @@ def test_protected_aperture_centerlines_remain_open_through_crown():
     for point in points:
         for z in (0.0, 10.0, 20.0, 23.0, 25.0):
             assert not solid.isInside(cq.Vector(point.x, point.y, z), 1e-6)
+
+
+def test_shell_has_no_material_intersection_with_released_waste_cartridge_envelope():
+    model = build_mvp_product_candidate()
+    intersection = model.shell.solid.val().intersect(model.waste_cartridge_envelope.solid.val())
+    # OpenCascade can report signed numerical noise around zero volume; reject any
+    # material overlap larger than the kernel-level construction scale.
+    assert abs(float(intersection.Volume())) <= 1e-5
 
 
 def test_crown_starts_anterior_of_current_package_envelopes():
