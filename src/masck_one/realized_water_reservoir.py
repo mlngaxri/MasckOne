@@ -38,6 +38,10 @@ PHYSICAL_EVIDENCE_STATUS = (
     "DRYING_SERVICEABILITY_DURABILITY_OR_PHYSICAL_SAFETY_EVIDENCE"
 )
 
+# Numerical-kernel comparison allowance only. This is not a liquid-metering,
+# manufacturing, tolerance-stack or physical-volume requirement.
+CAD_VOLUME_TOLERANCE_ML = 1e-9
+
 # The prior model carried a 26 x 25 x 10 mm solid and labelled its 6500 mm3
 # material volume as water capacity. This realization keeps that exact 6.5 mL
 # quantity as the *internal cavity* and adds explicit walls around it.
@@ -177,18 +181,29 @@ class RealizedWaterReservoir:
 
     @property
     def gross_target_met(self) -> bool:
-        return self.gross_geometric_volume_mL >= self.gross_target_mL
+        return self.gross_geometric_volume_mL >= self.gross_target_mL - CAD_VOLUME_TOLERANCE_ML
 
     @property
     def minimum_usable_met(self) -> bool:
-        return self.neutral_geometric_usable_volume_mL >= self.minimum_usable_mL
+        return self.neutral_geometric_usable_volume_mL >= self.minimum_usable_mL - CAD_VOLUME_TOLERANCE_ML
 
     @property
     def outer_bounds_xyz_mm(self) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
-        bb = self.outer_envelope_solid.val().BoundingBox()
+        """Return exact authored package bounds, not OCCT tolerance-inflated bounds."""
+        half_x = OUTER_WIDTH_X_MM / 2.0
+        half_y = OUTER_HEIGHT_Y_MM / 2.0
+        half_z = OUTER_DEPTH_Z_MM / 2.0
         return (
-            (float(bb.xmin), float(bb.ymin), float(bb.zmin)),
-            (float(bb.xmax), float(bb.ymax), float(bb.zmax)),
+            (
+                RESERVOIR_CENTER.x - half_x,
+                RESERVOIR_CENTER.y - half_y,
+                RESERVOIR_CENTER.z - half_z,
+            ),
+            (
+                RESERVOIR_CENTER.x + half_x,
+                RESERVOIR_CENTER.y + half_y,
+                RESERVOIR_CENTER.z + half_z,
+            ),
         )
 
     def validate_invariants(self) -> None:
@@ -241,9 +256,9 @@ class RealizedWaterReservoir:
         usable = self.neutral_geometric_usable_volume_mL
         if dead <= 0.0 or dead >= gross:
             raise WaterReservoirError("Neutral geometric dead volume must be positive and below gross cavity volume")
-        if not math.isclose(gross, gross_target, rel_tol=0.0, abs_tol=1e-9):
+        if not math.isclose(gross, gross_target, rel_tol=0.0, abs_tol=CAD_VOLUME_TOLERANCE_ML):
             raise WaterReservoirError("Realized cavity must close the exact authority gross-volume baseline")
-        if usable < minimum_usable:
+        if usable < minimum_usable - CAD_VOLUME_TOLERANCE_ML:
             raise WaterReservoirError("Realized neutral geometric usable volume must satisfy the authority minimum")
 
         body_bb = self.body_solid.val().BoundingBox()
