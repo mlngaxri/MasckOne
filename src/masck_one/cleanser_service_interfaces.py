@@ -15,7 +15,7 @@ import re
 import cadquery as cq
 
 from .authority import Authority
-from .cleanser_storage import PORT_IDS, PORT_OUTLET, PORT_PURGE, PORT_REFILL
+from .cleanser_storage import PORT_IDS, PORT_OUTLET
 from .realized_cleanser_storage import (
     AUTHORED_AGAINST_MAIN_SHA,
     BODY_X_MM,
@@ -37,7 +37,6 @@ from .realized_cleanser_storage import (
     build_realized_cleanser_storage,
 )
 
-
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 SOURCE_STORAGE_SCHEMA = "MASCK_ONE_CELL4_REALIZED_CLEANSER_STORAGE_V1"
 SOURCE_STORAGE_BLOB_SHA = "7c7eca7a12b14526946f759740161c33c13e5cb4"
@@ -45,19 +44,18 @@ SCHEMA = "MASCK_ONE_CELL4_CLEANSER_SERVICE_INTERFACES_V1"
 GEOMETRY_STATUS = "CELL4_PROVISIONAL_REALIZED_CAD_NOT_SUPPLIER_SELECTED"
 EVIDENCE_STATUS = "DIGITAL_GEOMETRY_ONLY_NOT_VISCOSITY_SEAL_VENT_PICKUP_PURGE_OR_HYGIENE_PHYSICAL_EVIDENCE"
 
-# Hidden posterior refill/purge closure. It is positively blocked in its installed
-# translation direction by a separate transverse key. All dimensions are provisional
-# CAD seeds, not supplier or production dimensions.
+# Hidden posterior refill/purge closure. A separate transverse key blocks posterior
+# withdrawal. Every dimension below is a provisional CAD seed, not supplier data.
 SERVICE_CLOSURE_X_MM = 11.0
 SERVICE_CLOSURE_Y_MM = 12.0
 SERVICE_CLOSURE_Z_MM = 1.4
 SERVICE_CLOSURE_CENTER_X_MM = 26.5
 SERVICE_CLOSURE_CENTER_Y_MM = 72.0
-SERVICE_CLOSURE_CENTER_Z_MM = -0.9
+SERVICE_CLOSURE_CENTER_Z_MM = -1.0
 REFILL_PLUG_DIAMETER_MM = 3.6
 PURGE_PLUG_DIAMETER_MM = 1.6
-PLUG_Z_START_MM = -0.35
-PLUG_Z_LENGTH_MM = 2.85
+PLUG_Z_START_MM = -0.3
+PLUG_Z_LENGTH_MM = 2.8
 
 FILL_SEAL_GROOVE_OUTER_DIAMETER_MM = 5.6
 FILL_SEAL_GROOVE_INNER_DIAMETER_MM = 4.3
@@ -68,13 +66,13 @@ SEAL_REFERENCE_AXIAL_MM = 0.35
 
 SERVICE_EAR_X_MM = 2.0
 SERVICE_EAR_Y_MM = 3.0
-SERVICE_EAR_Z_MM = 2.4
+SERVICE_EAR_Z_MM = 3.0
 SERVICE_EAR_LEFT_X_MM = 20.0
 SERVICE_EAR_RIGHT_X_MM = 33.0
 SERVICE_EAR_CENTER_Y_MM = SERVICE_CLOSURE_CENTER_Y_MM
 SERVICE_EAR_CENTER_Z_MM = 0.0
 SERVICE_KEY_Y_MM = SERVICE_CLOSURE_CENTER_Y_MM
-SERVICE_KEY_Z_MM = -0.7
+SERVICE_KEY_Z_MM = -1.0
 SERVICE_KEY_BORE_DIAMETER_MM = 1.5
 SERVICE_KEY_STEM_DIAMETER_MM = 1.2
 SERVICE_KEY_HEAD_DIAMETER_MM = 3.0
@@ -85,8 +83,8 @@ SERVICE_KEY_HEAD_X_MAX_MM = 36.4
 SERVICE_KEY_WITHDRAWAL_TRAVEL_MM = 12.0
 SERVICE_CLOSURE_WITHDRAWAL_TRAVEL_MM = 6.0
 
-# Vent is a cavity feature, not a fourth controlled liquid port. Its barrier is only a
-# package reservation until hardware/material is selected.
+# Vent is a headspace feature, not a fourth controlled liquid port. The external
+# barrier remains an unresolved package reservation.
 VENT_FEATURE_ID = "MASCK_ONE-CLEANSER-HEADSPACE-VENT-PRIMARY"
 VENT_X_MM = 34.0
 VENT_Y_MM = 79.5
@@ -96,17 +94,19 @@ VENT_SEAT_PROJECTION_MM = 1.0
 VENT_BARRIER_RESERVATION_DIAMETER_MM = 4.0
 VENT_BARRIER_RESERVATION_DEPTH_MM = 1.5
 
-# Internal pickup tube preserves the existing 2.0 mm outlet bore size. The geometry is
-# deliberately not converted into a viscosity, pressure-drop, priming or drawability
-# statement.
+# Robust single-axis pickup tube. It reaches from the cavity toward the existing
+# dedicated lateral outlet. Its lumen equals the already-realized outlet bore. This is
+# geometry only and creates no viscosity, priming, drawdown, pressure-drop or flow claim.
 PICKUP_FEATURE_ID = "MASCK_ONE-CLEANSER-PICKUP-TUBE-PRIMARY"
 PICKUP_TUBE_OUTER_DIAMETER_MM = 2.8
 PICKUP_LUMEN_DIAMETER_MM = OUTLET_BORE_DIAMETER_MM
 PICKUP_TIP_X_MM = 20.5
 PICKUP_TIP_Y_MM = OUTLET_Y_MM
-PICKUP_TIP_Z_MM = 3.0
-PICKUP_ELBOW_X_MM = 33.0
-PICKUP_OUTLET_OVERLAP_X_MM = CENTER_X_MM + BODY_X_MM / 2.0 - 0.4
+PICKUP_TIP_Z_MM = OUTLET_Z_MM
+PICKUP_HANDOFF_X_MM = CENTER_X_MM + BODY_X_MM / 2.0
+PICKUP_OUTER_X_END_MM = PICKUP_HANDOFF_X_MM + 0.8
+PICKUP_LUMEN_X_START_MM = PICKUP_TIP_X_MM - 0.2
+PICKUP_LUMEN_X_END_MM = PICKUP_HANDOFF_X_MM + 3.0
 
 SERVICE_SEQUENCE_IDS = (
     "CLEANSER-INTERFACE-SERVICE-01-RETRACT-CLOSURE-KEY",
@@ -149,53 +149,23 @@ def _intersection_volume(a: cq.Workplane, b: cq.Workplane) -> float:
 
 
 def _pickup_outer() -> cq.Workplane:
-    first = _x_cylinder(
+    return _x_cylinder(
         PICKUP_TIP_Y_MM,
         PICKUP_TIP_Z_MM,
         PICKUP_TIP_X_MM,
         PICKUP_TUBE_OUTER_DIAMETER_MM,
-        PICKUP_ELBOW_X_MM - PICKUP_TIP_X_MM + 0.3,
+        PICKUP_OUTER_X_END_MM - PICKUP_TIP_X_MM,
     )
-    riser = _z_cylinder(
-        PICKUP_ELBOW_X_MM,
-        PICKUP_TIP_Y_MM,
-        PICKUP_TIP_Z_MM - 0.15,
-        PICKUP_TUBE_OUTER_DIAMETER_MM,
-        OUTLET_Z_MM - PICKUP_TIP_Z_MM + 0.3,
-    )
-    outlet = _x_cylinder(
-        PICKUP_TIP_Y_MM,
-        OUTLET_Z_MM,
-        PICKUP_ELBOW_X_MM - 0.15,
-        PICKUP_TUBE_OUTER_DIAMETER_MM,
-        PICKUP_OUTLET_OVERLAP_X_MM - PICKUP_ELBOW_X_MM + 0.3,
-    )
-    return first.union(riser).union(outlet)
 
 
 def _pickup_lumen() -> cq.Workplane:
-    first = _x_cylinder(
+    return _x_cylinder(
         PICKUP_TIP_Y_MM,
         PICKUP_TIP_Z_MM,
-        PICKUP_TIP_X_MM - 0.2,
+        PICKUP_LUMEN_X_START_MM,
         PICKUP_LUMEN_DIAMETER_MM,
-        PICKUP_ELBOW_X_MM - PICKUP_TIP_X_MM + 0.6,
+        PICKUP_LUMEN_X_END_MM - PICKUP_LUMEN_X_START_MM,
     )
-    riser = _z_cylinder(
-        PICKUP_ELBOW_X_MM,
-        PICKUP_TIP_Y_MM,
-        PICKUP_TIP_Z_MM - 0.3,
-        PICKUP_LUMEN_DIAMETER_MM,
-        OUTLET_Z_MM - PICKUP_TIP_Z_MM + 0.6,
-    )
-    outlet = _x_cylinder(
-        PICKUP_TIP_Y_MM,
-        OUTLET_Z_MM,
-        PICKUP_ELBOW_X_MM - 0.3,
-        PICKUP_LUMEN_DIAMETER_MM,
-        CENTER_X_MM + BODY_X_MM / 2.0 + 3.0 - PICKUP_ELBOW_X_MM,
-    )
-    return first.union(riser).union(outlet)
 
 
 @dataclass(frozen=True, slots=True)
@@ -255,9 +225,13 @@ class CleanserServiceGeometry:
         self.validate_invariants()
 
     @property
-    def pickup_internal_material_displacement_mL(self) -> float:
-        storage = build_realized_cleanser_storage_from_geometry(self)
-        return _intersection_volume(self.pickup_tube_solid, storage.internal_cavity_solid) / 1000.0
+    def pickup_centerline_length_mm(self) -> float:
+        return PICKUP_HANDOFF_X_MM - PICKUP_TIP_X_MM
+
+    @property
+    def pickup_lumen_geometric_volume_mL(self) -> float:
+        area_mm2 = math.pi * (PICKUP_LUMEN_DIAMETER_MM / 2.0) ** 2
+        return area_mm2 * self.pickup_centerline_length_mm / 1000.0
 
     @property
     def manifest_sha256(self) -> str:
@@ -358,13 +332,18 @@ class CleanserServiceGeometry:
             },
             "pickup": {
                 "feature_id": PICKUP_FEATURE_ID,
-                "tip_world_mm": [PICKUP_TIP_X_MM, PICKUP_TIP_Y_MM, PICKUP_TIP_Z_MM],
-                "elbow_world_mm": [PICKUP_ELBOW_X_MM, PICKUP_TIP_Y_MM, PICKUP_TIP_Z_MM],
-                "outlet_handoff_world_mm": [CENTER_X_MM + BODY_X_MM / 2.0, OUTLET_Y_MM, OUTLET_Z_MM],
+                "centerline_world_mm": [
+                    [PICKUP_TIP_X_MM, PICKUP_TIP_Y_MM, PICKUP_TIP_Z_MM],
+                    [PICKUP_HANDOFF_X_MM, PICKUP_TIP_Y_MM, PICKUP_TIP_Z_MM],
+                ],
+                "centerline_length_mm": self.pickup_centerline_length_mm,
                 "tube_outer_diameter_mm": PICKUP_TUBE_OUTER_DIAMETER_MM,
                 "lumen_diameter_mm": PICKUP_LUMEN_DIAMETER_MM,
+                "lumen_internal_area_mm2": math.pi * (PICKUP_LUMEN_DIAMETER_MM / 2.0) ** 2,
+                "geometric_lumen_volume_mL": self.pickup_lumen_geometric_volume_mL,
                 "outlet_port_id": PORT_OUTLET,
-                "geometry_role": "INTERNAL_PICKUP_TUBE_TO_EXISTING_DEDICATED_CLEANSER_OUTLET",
+                "geometry_role": "STRAIGHT_INTERNAL_PICKUP_TUBE_TO_EXISTING_DEDICATED_CLEANSER_OUTLET",
+                "performance_status": "NO_VISCOSITY_PRIMING_FLOW_DRAWDOWN_OR_ORIENTATION_CLAIM",
             },
             "service_sequence": [step.manifest() for step in self.service_sequence],
             "service_closure_withdrawal_travel_mm": SERVICE_CLOSURE_WITHDRAWAL_TRAVEL_MM,
@@ -382,28 +361,13 @@ class CleanserServiceGeometry:
         return payload
 
 
-def build_realized_cleanser_storage_from_geometry(geometry: CleanserServiceGeometry) -> RealizedCleanserStorage:
-    # Helper used only for geometric accounting after source validation. It intentionally
-    # rebuilds the immutable source rather than storing a mutable alias in the dataclass.
-    from .authority import load_authority
-
-    authority = load_authority()
-    storage = build_realized_cleanser_storage(authority)
-    if geometry.source_storage_manifest_sha256 != storage.manifest_sha256:
-        raise CleanserServiceGeometryError("cannot account against stale cleanser storage geometry")
-    return storage
-
-
 def build_cleanser_service_geometry(authority: Authority) -> CleanserServiceGeometry:
     if type(authority) is not Authority:
         raise CleanserServiceGeometryError("authority must be an exact Authority contract")
     storage = build_realized_cleanser_storage(authority)
     storage.validate_current_sources(authority)
-
     rear_z = CENTER_Z_MM - BODY_Z_MM / 2.0
 
-    # Refill/purge closure: bridge plus two clearance-fit stems. A separate key provides
-    # positive digital retention; seal material remains an unselected reference.
     closure = _box(
         SERVICE_CLOSURE_X_MM,
         SERVICE_CLOSURE_Y_MM,
@@ -412,11 +376,29 @@ def build_cleanser_service_geometry(authority: Authority) -> CleanserServiceGeom
         SERVICE_CLOSURE_CENTER_Y_MM,
         SERVICE_CLOSURE_CENTER_Z_MM,
     )
-    closure = closure.union(_z_cylinder(REFILL_X_MM, REFILL_Y_MM, PLUG_Z_START_MM, REFILL_PLUG_DIAMETER_MM, PLUG_Z_LENGTH_MM))
-    closure = closure.union(_z_cylinder(PURGE_X_MM, PURGE_Y_MM, PLUG_Z_START_MM, PURGE_PLUG_DIAMETER_MM, PLUG_Z_LENGTH_MM))
+    closure = closure.union(
+        _z_cylinder(REFILL_X_MM, REFILL_Y_MM, PLUG_Z_START_MM, REFILL_PLUG_DIAMETER_MM, PLUG_Z_LENGTH_MM)
+    )
+    closure = closure.union(
+        _z_cylinder(PURGE_X_MM, PURGE_Y_MM, PLUG_Z_START_MM, PURGE_PLUG_DIAMETER_MM, PLUG_Z_LENGTH_MM)
+    )
 
-    ear_left = _box(SERVICE_EAR_X_MM, SERVICE_EAR_Y_MM, SERVICE_EAR_Z_MM, SERVICE_EAR_LEFT_X_MM, SERVICE_EAR_CENTER_Y_MM, SERVICE_EAR_CENTER_Z_MM)
-    ear_right = _box(SERVICE_EAR_X_MM, SERVICE_EAR_Y_MM, SERVICE_EAR_Z_MM, SERVICE_EAR_RIGHT_X_MM, SERVICE_EAR_CENTER_Y_MM, SERVICE_EAR_CENTER_Z_MM)
+    ear_left = _box(
+        SERVICE_EAR_X_MM,
+        SERVICE_EAR_Y_MM,
+        SERVICE_EAR_Z_MM,
+        SERVICE_EAR_LEFT_X_MM,
+        SERVICE_EAR_CENTER_Y_MM,
+        SERVICE_EAR_CENTER_Z_MM,
+    )
+    ear_right = _box(
+        SERVICE_EAR_X_MM,
+        SERVICE_EAR_Y_MM,
+        SERVICE_EAR_Z_MM,
+        SERVICE_EAR_RIGHT_X_MM,
+        SERVICE_EAR_CENTER_Y_MM,
+        SERVICE_EAR_CENTER_Z_MM,
+    )
     service_key_bore = _x_cylinder(
         SERVICE_KEY_Y_MM,
         SERVICE_KEY_Z_MM,
@@ -427,8 +409,6 @@ def build_cleanser_service_geometry(authority: Authority) -> CleanserServiceGeom
     closure = closure.cut(service_key_bore)
     _one_valid_solid(closure, label="cleanser service closure")
 
-    # Seal interface geometry is cut into the existing posterior bosses. Rings below are
-    # reference volumes only and carry no selected elastomer or compression claim.
     fill_groove = _z_ring(
         REFILL_X_MM,
         REFILL_Y_MM,
@@ -462,8 +442,6 @@ def build_cleanser_service_geometry(authority: Authority) -> CleanserServiceGeom
         SEAL_REFERENCE_AXIAL_MM,
     )
 
-    # Vent seat and through-wall lumen. The feature remains distinct from the three
-    # controlled liquid ports and receives only an external hardware reservation.
     vent_lumen = _z_cylinder(VENT_X_MM, VENT_Y_MM, rear_z - 0.3, VENT_BORE_DIAMETER_MM, 2.8)
     vent_seat = _z_ring(
         VENT_X_MM,
@@ -487,7 +465,13 @@ def build_cleanser_service_geometry(authority: Authority) -> CleanserServiceGeom
     _one_valid_solid(pickup_tube, label="cleanser pickup tube")
 
     ported_body = storage.body_solid.union(ear_left).union(ear_right).union(vent_seat).union(pickup_outer)
-    ported_body = ported_body.cut(fill_groove).cut(purge_groove).cut(vent_lumen).cut(pickup_lumen).cut(service_key_bore)
+    ported_body = (
+        ported_body.cut(fill_groove)
+        .cut(purge_groove)
+        .cut(vent_lumen)
+        .cut(pickup_lumen)
+        .cut(service_key_bore)
+    )
     _one_valid_solid(ported_body, label="cleanser service-ported body")
 
     service_key = _x_cylinder(
