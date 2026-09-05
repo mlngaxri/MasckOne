@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from hashlib import sha1, sha256
+from functools import lru_cache
+from io import BytesIO
 import json
 from pathlib import Path
 import re
@@ -17,6 +19,23 @@ SOURCE_MODEL_GIT_BLOB_SHA = "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"
 SOURCE_AUTHORITY_GIT_BLOB_SHA = "2608dda483b995539de422290371c219668a1527"
 AUTHORITY_REVISION = "2026-08-30-R1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
+
+# Direct released geometry producers used by build_model(). These source bindings are
+# deliberately narrower than the whole repository but broader than model.py alone.
+# Per-component B-rep digests below independently guard the realized output geometry.
+SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES: tuple[tuple[str, str], ...] = (
+    ("config/masck_one_authority.yaml", SOURCE_AUTHORITY_GIT_BLOB_SHA),
+    ("src/masck_one/anatomy.py", "872d1e5be1b9ce9baa5b63cb53462eb7b36f40ab"),
+    ("src/masck_one/authority.py", "6866e3a428dab8b32b5a1d9e58da78b8f5aa1aa2"),
+    ("src/masck_one/coverage.py", "4a8cec4d94db97e63f634a94dd8c90094f3afcb0"),
+    ("src/masck_one/facial_surface.py", "764f6f65b83ac7709d959bb0f37f861c90ea2794"),
+    ("src/masck_one/interface_topology.py", "38b7c932f71a8675d45d098ac65154f98ff8bbb5"),
+    ("src/masck_one/model.py", SOURCE_MODEL_GIT_BLOB_SHA),
+    ("src/masck_one/nasal_subsystem.py", "f1f22b828d0465636579fc31eff0bfb6a6bf2507"),
+    ("src/masck_one/protected_volumes.py", "ff2b9b288559f9b268e5d08a1d6c78335f745cf1"),
+    ("src/masck_one/spatial.py", "8c1106b523fef5111009cc56236a53e3bc5ee10e"),
+    ("src/masck_one/worn_pose.py", "9d4ed65246fbc92ac577ce38bceb95cd2253607b"),
+)
 
 ROLE_PHYSICAL_MATERIAL = "PHYSICAL_MATERIAL"
 ROLE_DEVELOPMENT_REFERENCE = "DEVELOPMENT_REFERENCE"
@@ -66,6 +85,7 @@ PROTECTED_KEEPOUT_NAMES = (
 )
 
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 EVIDENCE_STATUS = (
     "DIGITAL_ASSEMBLY_MATERIAL_REFERENCE_SEPARATION_ONLY_NOT_FIT_CLEARANCE_SERVICE_LOAD_"
@@ -82,12 +102,44 @@ def _git_blob_sha(path: Path) -> str:
     return sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
+def _brep_sha256(solid: cq.Workplane) -> str:
+    if type(solid) is not cq.Workplane:
+        raise AssemblyBoundaryError("assembly B-rep digest requires exact CadQuery Workplane geometry")
+    shape = solid.val()
+    if not shape.isValid() or not shape.Solids():
+        raise AssemblyBoundaryError("assembly B-rep digest requires valid solid geometry")
+    buffer = BytesIO()
+    shape.exportBrep(buffer)
+    payload = buffer.getvalue()
+    if not payload:
+        raise AssemblyBoundaryError("assembly B-rep export produced no bytes")
+    return sha256(payload).hexdigest()
+
+
+def _expected_source_sha(relative_path: str, configured_sha: str) -> str:
+    # Retain the original named model/authority constants as public fail-closed
+    # bindings while also publishing the complete direct producer set.
+    if relative_path == "src/masck_one/model.py":
+        return SOURCE_MODEL_GIT_BLOB_SHA
+    if relative_path == "config/masck_one_authority.yaml":
+        return SOURCE_AUTHORITY_GIT_BLOB_SHA
+    return configured_sha
+
+
 def _require_source_files_current() -> None:
-    expected = (
-        ("src/masck_one/model.py", SOURCE_MODEL_GIT_BLOB_SHA),
-        ("config/masck_one_authority.yaml", SOURCE_AUTHORITY_GIT_BLOB_SHA),
-    )
-    for relative_path, expected_sha in expected:
+    seen: set[str] = set()
+    for relative_path, configured_sha in SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES:
+        if (
+            type(relative_path) is not str
+            or not relative_path
+            or relative_path in seen
+            or _GIT_SHA_RE.fullmatch(configured_sha) is None
+        ):
+            raise AssemblyBoundaryError("assembly source-graph identity set is malformed")
+        seen.add(relative_path)
+        expected_sha = _expected_source_sha(relative_path, configured_sha)
+        if _GIT_SHA_RE.fullmatch(expected_sha) is None:
+            raise AssemblyBoundaryError(f"assembly source binding is malformed for {relative_path}")
         path = _REPO_ROOT / relative_path
         if not path.is_file():
             raise AssemblyBoundaryError(f"assembly source file is missing: {relative_path}")
@@ -110,6 +162,23 @@ def _expected_role(name: str) -> str:
     raise AssemblyBoundaryError(f"unclassified released component {name!r}")
 
 
+def _component_map(model: MasckOneModel) -> dict[str, Component]:
+    components = {component.name: component for component in model.components}
+    if len(components) != len(model.components) or tuple(sorted(components)) != EXPECTED_SOURCE_NAMES:
+        raise AssemblyBoundaryError("released model component set changed and requires explicit assembly rebind")
+    return components
+
+
+def _canonical_brep_digests(model: MasckOneModel) -> dict[str, str]:
+    return {name: _brep_sha256(component.solid) for name, component in _component_map(model).items()}
+
+
+@lru_cache(maxsize=1)
+def _released_canonical_brep_digests() -> tuple[tuple[str, str], ...]:
+    canonical = build_model()
+    return tuple(sorted(_canonical_brep_digests(canonical).items()))
+
+
 @dataclass(frozen=True, slots=True)
 class AssemblyInstance:
     instance_id: str
@@ -119,6 +188,7 @@ class AssemblyInstance:
     include_in_physical_material: bool
     source_module: str
     source_git_blob_sha: str
+    source_component_brep_sha256: str
     coordinate_frame_id: str
     transform_semantics: str
     evidence_status: str
@@ -150,6 +220,12 @@ class AssemblyInstance:
             raise AssemblyBoundaryError("current assembly instances must consume released model.py geometry")
         if self.source_git_blob_sha != SOURCE_MODEL_GIT_BLOB_SHA or _GIT_SHA_RE.fullmatch(self.source_git_blob_sha) is None:
             raise AssemblyBoundaryError("assembly model source binding is stale")
+        if _SHA256_RE.fullmatch(self.source_component_brep_sha256) is None:
+            raise AssemblyBoundaryError("assembly source-component B-rep digest is malformed")
+        if _brep_sha256(self.source_component.solid) != self.source_component_brep_sha256:
+            raise AssemblyBoundaryError(
+                f"assembly source-component B-rep moved for {self.source_component_name}"
+            )
         if self.coordinate_frame_id != WORLD_FRAME_ID:
             raise AssemblyBoundaryError("assembly instance is not in the canonical authority world frame")
         if self.transform_semantics != "IDENTITY_SOURCE_ALREADY_IN_AUTHORITY_WORLD_MM":
@@ -177,6 +253,7 @@ class AssemblyInstance:
             "include_in_physical_material": self.include_in_physical_material,
             "source_module": self.source_module,
             "source_git_blob_sha": self.source_git_blob_sha,
+            "source_component_brep_sha256": self.source_component_brep_sha256,
             "coordinate_frame_id": self.coordinate_frame_id,
             "transform_semantics": self.transform_semantics,
             "evidence_status": self.evidence_status,
@@ -189,6 +266,7 @@ class CurrentMainAssemblyBoundary:
     source_main_sha: str
     source_model_git_blob_sha: str
     source_authority_git_blob_sha: str
+    source_geometry_git_blob_identities: tuple[tuple[str, str], ...]
     authority_revision: str
     coordinate_frame_id: str
     instances: tuple[AssemblyInstance, ...]
@@ -204,6 +282,15 @@ class CurrentMainAssemblyBoundary:
             raise AssemblyBoundaryError("assembly model source blob is stale")
         if self.source_authority_git_blob_sha != SOURCE_AUTHORITY_GIT_BLOB_SHA:
             raise AssemblyBoundaryError("assembly authority source blob is stale")
+        if self.source_geometry_git_blob_identities != SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES:
+            raise AssemblyBoundaryError("assembly direct geometry source graph changed")
+        if len(self.source_geometry_git_blob_identities) != len(
+            {path for path, _ in self.source_geometry_git_blob_identities}
+        ):
+            raise AssemblyBoundaryError("assembly direct geometry source graph contains duplicate paths")
+        for path, digest in self.source_geometry_git_blob_identities:
+            if type(path) is not str or not path or _GIT_SHA_RE.fullmatch(digest) is None:
+                raise AssemblyBoundaryError("assembly direct geometry source graph is malformed")
         if self.authority_revision != AUTHORITY_REVISION:
             raise AssemblyBoundaryError("assembly authority revision moved")
         if self.coordinate_frame_id != WORLD_FRAME_ID:
@@ -256,6 +343,7 @@ class CurrentMainAssemblyBoundary:
             "source_main_sha": self.source_main_sha,
             "source_model_git_blob_sha": self.source_model_git_blob_sha,
             "source_authority_git_blob_sha": self.source_authority_git_blob_sha,
+            "source_geometry_git_blob_identities": [list(item) for item in self.source_geometry_git_blob_identities],
             "authority_revision": self.authority_revision,
             "coordinate_frame_id": self.coordinate_frame_id,
             "instances": [item.manifest() for item in self.instances],
@@ -273,15 +361,26 @@ class CurrentMainAssemblyBoundary:
 
 def build_current_main_assembly_boundary(model: MasckOneModel | None = None) -> CurrentMainAssemblyBoundary:
     _require_source_files_current()
-    model = model or build_model()
+    if model is None:
+        model = build_model()
+        canonical_digests = _canonical_brep_digests(model)
+    else:
+        if type(model) is not MasckOneModel:
+            raise AssemblyBoundaryError("assembly boundary requires the exact MasckOneModel type")
+        canonical_digests = dict(_released_canonical_brep_digests())
     if type(model) is not MasckOneModel:
         raise AssemblyBoundaryError("assembly boundary requires the exact MasckOneModel type")
     revision = str(model.authority.get("project", "authority_revision"))
     if revision != AUTHORITY_REVISION:
         raise AssemblyBoundaryError("model authority revision differs from the released binding")
-    components = {component.name: component for component in model.components}
-    if tuple(sorted(components)) != EXPECTED_SOURCE_NAMES:
-        raise AssemblyBoundaryError("released model component set changed and requires explicit assembly rebind")
+
+    components = _component_map(model)
+    actual_digests = _canonical_brep_digests(model)
+    if actual_digests != canonical_digests:
+        moved = sorted(name for name in EXPECTED_SOURCE_NAMES if actual_digests[name] != canonical_digests[name])
+        raise AssemblyBoundaryError(
+            "supplied model B-rep differs from released canonical build for: " + ", ".join(moved)
+        )
 
     instances = tuple(
         sorted(
@@ -294,6 +393,7 @@ def build_current_main_assembly_boundary(model: MasckOneModel | None = None) -> 
                     include_in_physical_material=_expected_role(name) == ROLE_PHYSICAL_MATERIAL,
                     source_module="src/masck_one/model.py",
                     source_git_blob_sha=SOURCE_MODEL_GIT_BLOB_SHA,
+                    source_component_brep_sha256=canonical_digests[name],
                     coordinate_frame_id=WORLD_FRAME_ID,
                     transform_semantics="IDENTITY_SOURCE_ALREADY_IN_AUTHORITY_WORLD_MM",
                     evidence_status="SOURCE_GEOMETRY_CONSUMED_UNCHANGED_DIGITAL_ONLY",
@@ -309,6 +409,7 @@ def build_current_main_assembly_boundary(model: MasckOneModel | None = None) -> 
         source_main_sha=SOURCE_MAIN_SHA,
         source_model_git_blob_sha=SOURCE_MODEL_GIT_BLOB_SHA,
         source_authority_git_blob_sha=SOURCE_AUTHORITY_GIT_BLOB_SHA,
+        source_geometry_git_blob_identities=SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES,
         authority_revision=AUTHORITY_REVISION,
         coordinate_frame_id=WORLD_FRAME_ID,
         instances=instances,
