@@ -33,6 +33,8 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "nasal_lobe_membrane_reference": model.nasal_interface.solid,
         "water_reservoir_body": model.water_reservoir_body.solid,
         "water_reservoir_lid": model.water_reservoir_lid.solid,
+        "water_reservoir_internal_cavity_reference": model.water_reservoir_envelope.solid,
+        "water_reservoir_service_sweep_reference": realized_water.service_sweep_solid,
         "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
         "battery_reference_envelope": model.battery_reference_envelope.solid,
     }
@@ -88,8 +90,9 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized water reservoir records digital cavity volume, provisional walls, "
-            "datums and a removal reservation only; it is not leakage, orientation, hygiene, drying, serviceability, "
-            "durability or physical-safety evidence. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "datums and a removal reservation only; its cavity and service-sweep STEP outputs are review references, "
+            "not physical assembly material or leakage, orientation, hygiene, drying, serviceability, durability or "
+            "physical-safety evidence. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
