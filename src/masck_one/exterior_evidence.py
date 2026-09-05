@@ -8,8 +8,12 @@ from pathlib import Path
 
 import cadquery as cq
 
-from .integrated_product import build_mvp_product_candidate, integrated_exterior_manifest
+from .integrated_product import (
+    build_cell2_exterior_assembly,
+    integrated_exterior_manifest,
+)
 from .model import MasckOneModel
+from .rear_service_skin import build_rear_service_skin
 
 
 VIEW_DIRECTIONS: dict[str, tuple[float, float, float]] = {
@@ -45,22 +49,38 @@ def _render_svg(shape: cq.Shape, projection_dir: tuple[float, float, float]) -> 
 
 def _center_section(shape: cq.Shape, plane: str) -> cq.Shape:
     section = cq.Workplane(plane).newObject([shape]).section()
-    if section.size() == 0:
+    values = section.vals()
+    if not values:
         raise ValueError(f"Exterior {plane} center section is empty")
-    return section.val()
+    if len(values) == 1:
+        return values[0]
+    return cq.Compound.makeCompound(values)
 
 
 def render_exterior_view_evidence(
     output_dir: str | Path,
     model: MasckOneModel | None = None,
 ) -> dict[str, object]:
-    """Render actual candidate B-rep projections and return their geometry manifest."""
-    candidate = model or build_mvp_product_candidate()
+    """Render actual Cell 2 visible B-rep projections and return their geometry manifest."""
+    if model is None:
+        assembly = build_cell2_exterior_assembly()
+        candidate = assembly.model
+        rear_service_skin = assembly.rear_service_skin
+        shape = assembly.visible_compound
+    else:
+        candidate = model
+        rear_service_skin = build_rear_service_skin(candidate.authority)
+        shape = cq.Compound.makeCompound(
+            [candidate.shell.solid.val(), rear_service_skin.cover.val()]
+        )
+
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
-    shape = candidate.shell.solid.val()
-    if not shape.isValid() or candidate.shell.solid.solids().size() != 1:
-        raise ValueError("Exterior evidence source must be one valid B-rep solid")
+    shell_shape = candidate.shell.solid.val()
+    if not shell_shape.isValid() or candidate.shell.solid.solids().size() != 1:
+        raise ValueError("Exterior evidence shell source must be one valid B-rep solid")
+    if not shape.isValid() or len(shape.Solids()) != 2:
+        raise ValueError("Exterior evidence must contain shell plus rear-service skin")
 
     view_files: list[str] = []
     section_files: list[str] = []
@@ -80,19 +100,29 @@ def render_exterior_view_evidence(
         section_files.append(filename)
         file_sha256[filename] = sha256(svg.encode("utf-8")).hexdigest()
 
-    bb = shape.BoundingBox()
+    shell_bb = shell_shape.BoundingBox()
+    assembly_bb = shape.BoundingBox()
     report: dict[str, object] = {
-        "schema": "MASCK_ONE_CELL2_EXTERIOR_VIEW_EVIDENCE_V2",
+        "schema": "MASCK_ONE_CELL2_EXTERIOR_VIEW_EVIDENCE_V3",
         "coordinate_frame": "MASCK_ONE_AUTHORITY_WORLD_MM",
         "surface": integrated_exterior_manifest(candidate.authority),
-        "shell_valid": bool(shape.isValid()),
+        "shell_valid": bool(shell_shape.isValid()),
         "shell_solid_count": int(candidate.shell.solid.solids().size()),
-        "shell_volume_mm3": float(shape.Volume()),
+        "shell_volume_mm3": float(shell_shape.Volume()),
         "bounding_box_mm": {
-            "x": float(bb.xlen),
-            "y": float(bb.ylen),
-            "z": float(bb.zlen),
+            "x": float(shell_bb.xlen),
+            "y": float(shell_bb.ylen),
+            "z": float(shell_bb.zlen),
         },
+        "visible_assembly_valid": bool(shape.isValid()),
+        "visible_assembly_solid_count": int(len(shape.Solids())),
+        "visible_assembly_volume_mm3": float(shape.Volume()),
+        "visible_assembly_bounding_box_mm": {
+            "x": float(assembly_bb.xlen),
+            "y": float(assembly_bb.ylen),
+            "z": float(assembly_bb.zlen),
+        },
+        "rear_service_skin": rear_service_skin.manifest(),
         "view_files": view_files,
         "section_files": section_files,
         "file_sha256": file_sha256,
@@ -104,8 +134,9 @@ def render_exterior_view_evidence(
             for name, (plane, direction) in SECTION_SPECS.items()
         },
         "claim_boundary": (
-            "Rendered B-rep geometry evidence only; not fit, comfort, seal, cleaning, "
-            "material, manufacturing or physical-performance validation."
+            "Rendered B-rep geometry evidence only; rear dry-side package reflow and "
+            "attachment remain unresolved. Not fit, comfort, seal, cleaning, material, "
+            "manufacturing, service-performance or physical-performance validation."
         ),
     }
     (output / "cell2_exterior_view_manifest.json").write_text(
