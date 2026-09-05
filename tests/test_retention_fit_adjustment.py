@@ -27,6 +27,12 @@ from masck_one.retention_fit_adjustment import (
 )
 
 
+@pytest.fixture(scope="module")
+def adjustment():
+    """Build the immutable deterministic Prompt 09 package once for read-only regressions."""
+    return build_retention_fit_adjustment()
+
+
 def _roundtrip(path):
     imported = cq.importers.importStep(str(path))
     shape = imported.val()
@@ -36,8 +42,7 @@ def _roundtrip(path):
     return imported
 
 
-def test_three_indexed_states_are_bounded_geometry_not_universal_fit_claim():
-    adjustment = build_retention_fit_adjustment()
+def test_three_indexed_states_are_bounded_geometry_not_universal_fit_claim(adjustment):
     manifest = adjustment.manifest()
 
     assert manifest["adjustment_architecture"]["index_offsets_mm"] == [-2.0, 0.0, 2.0]
@@ -53,9 +58,7 @@ def test_three_indexed_states_are_bounded_geometry_not_universal_fit_claim():
     assert tuple(state.offset_mm for state in adjustment.right.states) == INDEX_OFFSETS_MM
 
 
-def test_indexed_states_clear_guides_and_pins_while_nonindexed_state_rejects_lock():
-    adjustment = build_retention_fit_adjustment()
-
+def test_indexed_states_clear_guides_and_pins_while_nonindexed_state_rejects_lock(adjustment):
     for side in (adjustment.left, adjustment.right):
         assert side.housing.val().isValid()
         assert len(side.housing.val().Solids()) == 1
@@ -72,9 +75,7 @@ def test_indexed_states_clear_guides_and_pins_while_nonindexed_state_rejects_loc
         assert _intersection_mm3(non_index, side.stop_pin) == 0.0
 
 
-def test_permanent_stop_pin_blocks_both_overtravel_directions():
-    adjustment = build_retention_fit_adjustment()
-
+def test_permanent_stop_pin_blocks_both_overtravel_directions(adjustment):
     for side in (adjustment.left, adjustment.right):
         for signed_offset in (
             -HARD_STOP_TRAVEL_MM - OVERTRAVEL_PROBE_MM,
@@ -85,9 +86,7 @@ def test_permanent_stop_pin_blocks_both_overtravel_directions():
             assert _intersection_mm3(probe, side.housing) == 0.0
 
 
-def test_stop_pin_has_positive_axial_retention_geometry_and_pin_clearances_are_explicit():
-    adjustment = build_retention_fit_adjustment()
-
+def test_stop_pin_has_positive_axial_retention_geometry_and_pin_clearances_are_explicit(adjustment):
     assert STOP_PIN_GROOVE_RADIUS_MM < STOP_CLIP_INNER_RADIUS_MM < STOP_PIN_RADIUS_MM
     assert STOP_CLIP_OUTER_RADIUS_MM > STOP_PIN_BORE_RADIUS_MM
     assert INDEX_PIN_RADIUS_MM < INDEX_PIN_BORE_RADIUS_MM
@@ -97,8 +96,7 @@ def test_stop_pin_has_positive_axial_retention_geometry_and_pin_clearances_are_e
         assert _intersection_mm3(side.stop_pin_clip, side.housing) == 0.0
 
 
-def test_complete_translation_envelopes_preserve_prompt08_package_margin_and_visual_restraint():
-    adjustment = build_retention_fit_adjustment()
+def test_complete_translation_envelopes_preserve_prompt08_package_margin_and_visual_restraint(adjustment):
     left_bounds = _bbox(adjustment.left.complete_translation_envelope)
     right_bounds = _bbox(adjustment.right.complete_translation_envelope)
     left_housing = _bbox(adjustment.left.housing)
@@ -117,8 +115,7 @@ def test_complete_translation_envelopes_preserve_prompt08_package_margin_and_vis
     assert right_bounds == (42.0, 88.0, -20.0, 15.0, -52.5, -28.0)
 
 
-def test_service_logic_is_unworn_unpowered_and_requires_index_reseat():
-    adjustment = build_retention_fit_adjustment()
+def test_service_logic_is_unworn_unpowered_and_requires_index_reseat(adjustment):
     sequence = adjustment.service_sequence(2.0, worn=False, powered=False)
 
     assert [step["step"] for step in sequence] == [1, 2, 3, 4, 5]
@@ -134,9 +131,7 @@ def test_service_logic_is_unworn_unpowered_and_requires_index_reseat():
         adjustment.service_sequence(1.0, worn=False, powered=False)
 
 
-def test_index_pin_retracted_state_clears_moving_yoke_but_remains_in_guide_region():
-    adjustment = build_retention_fit_adjustment()
-
+def test_index_pin_retracted_state_clears_moving_yoke_but_remains_in_guide_region(adjustment):
     for side in (adjustment.left, adjustment.right):
         nominal = side.state_for_offset(0.0)
         assert _intersection_mm3(side.index_pin_retracted, nominal.successor_yoke) == 0.0
@@ -147,8 +142,7 @@ def test_index_pin_retracted_state_clears_moving_yoke_but_remains_in_guide_regio
         assert pin_bounds[3] > housing_bounds[2]
 
 
-def test_all_external_collision_checks_pass_and_released_cell4_waste_is_included():
-    adjustment = build_retention_fit_adjustment()
+def test_all_external_collision_checks_pass_and_released_cell4_waste_is_included(adjustment):
     assert adjustment.collision_checks
     assert all(check.passes for check in adjustment.collision_checks)
     assert any("SERVICE_AABB" in check.obstacle_id for check in adjustment.collision_checks)
@@ -156,8 +150,8 @@ def test_all_external_collision_checks_pass_and_released_cell4_waste_is_included
     assert any("ACTUATOR" in check.obstacle_id for check in adjustment.collision_checks)
 
 
-def test_manifest_and_package_digest_are_deterministic():
-    first = build_retention_fit_adjustment()
+def test_manifest_and_package_digest_are_deterministic(adjustment):
+    first = adjustment
     second = build_retention_fit_adjustment()
 
     assert first.package_sha256 == second.package_sha256
@@ -175,8 +169,7 @@ def test_source_occipital_blob_tamper_fails_closed(monkeypatch):
         module.build_retention_fit_adjustment()
 
 
-def test_exported_key_solids_roundtrip_and_manifest_preserves_evidence_firewall(tmp_path):
-    adjustment = build_retention_fit_adjustment()
+def test_exported_key_solids_roundtrip_and_manifest_preserves_evidence_firewall(tmp_path, adjustment):
     paths = export_retention_fit_adjustment(tmp_path, adjustment)
     names = {path.name for path in paths}
 
