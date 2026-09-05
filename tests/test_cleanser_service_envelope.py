@@ -3,13 +3,7 @@ from dataclasses import replace
 import cadquery as cq
 import pytest
 
-from masck_one.authority import load_authority
-from masck_one.cleanser_service_envelope import (
-    CleanserServiceEnvelopeError,
-    build_complete_cleanser_module_service_envelope,
-)
-from masck_one.cleanser_service_interfaces import build_cleanser_service_geometry
-from masck_one.model import build_model
+from masck_one.cleanser_service_envelope import CleanserServiceEnvelopeError
 from masck_one.realized_cleanser_storage import (
     CASSETTE_WITHDRAWAL_TRAVEL_MM,
     PACKAGE_CLEARANCE_RESERVATION_MM,
@@ -24,13 +18,16 @@ def _distance(a, b) -> float:
     return float(a.val().distance(b.val()))
 
 
-def test_complete_module_service_envelope_binds_exact_successor_geometry_and_full_travel():
-    authority = load_authority()
-    service = build_cleanser_service_geometry(authority)
-    envelope = build_complete_cleanser_module_service_envelope(authority)
+def test_complete_module_service_envelope_binds_exact_successor_geometry_and_full_travel(
+    cell4_authority,
+    cell4_cleanser_service,
+    cell4_cleanser_service_envelope,
+):
+    service = cell4_cleanser_service
+    envelope = cell4_cleanser_service_envelope
 
     assert envelope.source_service_manifest_sha256 == service.manifest_sha256
-    assert envelope.validate_current_sources(authority).manifest_sha256 == service.manifest_sha256
+    assert envelope.validate_current_sources(cell4_authority).manifest_sha256 == service.manifest_sha256
     assert envelope.withdrawal_travel_mm == CASSETTE_WITHDRAWAL_TRAVEL_MM
     assert envelope.physical_validation_eligible is False
     assert envelope.module_removal_sweep_solid.solids().size() == 1
@@ -46,25 +43,27 @@ def test_complete_module_service_envelope_binds_exact_successor_geometry_and_ful
         assert _outside_volume(translated, envelope.module_removal_sweep_solid) <= 1e-7
 
 
-def test_complete_module_removal_envelope_clears_released_package_geometry():
-    authority = load_authority()
-    model = build_model(authority)
-    envelope = build_complete_cleanser_module_service_envelope(authority)
-    sweep = envelope.module_removal_sweep_solid
+def test_complete_module_removal_envelope_clears_released_package_geometry(
+    cell4_model,
+    cell4_cleanser_service_envelope,
+):
+    sweep = cell4_cleanser_service_envelope.module_removal_sweep_solid
 
     for package in (
-        model.shell.solid,
-        *(actuator.solid for actuator in model.actuator_envelopes),
-        model.water_reservoir_envelope.solid,
-        model.waste_cartridge_envelope.solid,
-        model.battery_reference_envelope.solid,
+        cell4_model.shell.solid,
+        *(actuator.solid for actuator in cell4_model.actuator_envelopes),
+        cell4_model.water_reservoir_envelope.solid,
+        cell4_model.waste_cartridge_envelope.solid,
+        cell4_model.battery_reference_envelope.solid,
     ):
         assert _distance(sweep, package) >= PACKAGE_CLEARANCE_RESERVATION_MM
 
 
-def test_complete_module_service_envelope_round_trips_through_step(tmp_path):
-    envelope = build_complete_cleanser_module_service_envelope(load_authority())
-    source = envelope.module_removal_sweep_solid
+def test_complete_module_service_envelope_round_trips_through_step(
+    tmp_path,
+    cell4_cleanser_service_envelope,
+):
+    source = cell4_cleanser_service_envelope.module_removal_sweep_solid
     path = tmp_path / "cleanser_complete_module_removal_sweep.step"
     cq.exporters.export(source, str(path))
 
@@ -83,8 +82,10 @@ def test_complete_module_service_envelope_round_trips_through_step(tmp_path):
     assert loaded_bb.zmax == pytest.approx(source_bb.zmax, abs=2e-6)
 
 
-def test_complete_module_service_manifest_is_explicitly_conservative_and_not_physical_evidence():
-    envelope = build_complete_cleanser_module_service_envelope(load_authority())
+def test_complete_module_service_manifest_is_explicitly_conservative_and_not_physical_evidence(
+    cell4_cleanser_service_envelope,
+):
+    envelope = cell4_cleanser_service_envelope
     manifest = envelope.manifest()
 
     assert manifest["moving_package"] == "CLEANSER_SUCCESSOR_BODY_PLUS_REFILL_PURGE_CLOSURE_PLUS_CLOSURE_KEY"
@@ -95,11 +96,13 @@ def test_complete_module_service_manifest_is_explicitly_conservative_and_not_phy
     assert manifest["manifest_sha256"] == envelope.manifest_sha256
 
 
-def test_complete_module_service_envelope_rejects_stale_source_and_evidence_promotion():
-    authority = load_authority()
-    envelope = build_complete_cleanser_module_service_envelope(authority)
+def test_complete_module_service_envelope_rejects_stale_source_and_evidence_promotion(
+    cell4_authority,
+    cell4_cleanser_service_envelope,
+):
+    envelope = cell4_cleanser_service_envelope
 
     with pytest.raises(CleanserServiceEnvelopeError, match="stale for service geometry"):
-        replace(envelope, source_service_manifest_sha256="0" * 64).validate_current_sources(authority)
+        replace(envelope, source_service_manifest_sha256="0" * 64).validate_current_sources(cell4_authority)
     with pytest.raises(CleanserServiceEnvelopeError, match="cannot become physical validation"):
         replace(envelope, physical_validation_eligible=True)
