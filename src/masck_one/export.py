@@ -5,6 +5,7 @@ from pathlib import Path
 
 import cadquery as cq
 
+from .assembly_boundary import build_current_main_assembly_boundary
 from .assertions import run_assertions
 from .boundary_release import (
     boundary_release_manifest,
@@ -52,17 +53,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
-    # The current waste-cartridge solid is an authority package envelope, not cartridge
-    # material. Keep its standalone STEP for package/collision review but do not insert
-    # the proxy box into the physical development compound.
-    development_assembly_exclusions = ("waste_cartridge_envelope",)
-    shapes = [
-        component.solid.val()
-        for component in model.components
-        if component.status != "REFERENCE_ONLY" and component.name not in development_assembly_exclusions
-    ]
-    compound = cq.Compound.makeCompound(shapes)
-    cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
+    assembly_boundary = build_current_main_assembly_boundary(model=model)
+    physical_compound = assembly_boundary.physical_material_compound()
+    reference_compound = assembly_boundary.reference_review_compound()
+    cq.exporters.export(physical_compound, str(output / "masck_one_development_assembly.step"))
+    cq.exporters.export(reference_compound, str(output / "masck_one_reference_review_compound.step"))
+    development_assembly_exclusions = assembly_boundary.development_assembly_exclusions
 
     checks = run_assertions(model)
     boundary_topology = build_verified_interface_boundary_topology(
@@ -82,6 +78,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "iteration": 15,
         "result": "PASS" if not any(c.status == "FAIL" for c in checks) else "FAIL",
         "checks": [c.to_dict() for c in checks],
+        "assembly_boundary": assembly_boundary.manifest(),
         "digital_topology": {
             "coverage": model.coverage_mesh.manifest(),
             "compliant_interface": model.compliant_interface_topology.manifest(model.coverage_mesh),
@@ -103,17 +100,21 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "exported_step_files": [f"{name}.step" for name in export_map]
+        + ["masck_one_development_assembly.step", "masck_one_reference_review_compound.step"],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
-            "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
-            "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
-            "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "The assembly boundary now fail-closes physical material against development/package/protected reference "
+            "geometry: the current rigid shell is the only released model.py object classified as physical material, "
+            "while actuator, water, cartridge and battery envelopes plus nasal-development and protected keepout solids "
+            "remain separate review geometry. The waste-cartridge STEP remains an external package-envelope reference "
+            "until body, cavity, seal, retention and service geometry are realized. The cartridge DFM gate records "
+            "digital closure requirements only and does not establish usable capacity, retained-liquid behavior, "
+            "sealing, leakage, hygiene, durability, disposal performance or wet-hand serviceability. Digital topology, "
+            "manifests, reference compounds and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
