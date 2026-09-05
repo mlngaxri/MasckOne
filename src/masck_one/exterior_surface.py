@@ -3,9 +3,9 @@ from __future__ import annotations
 """Cell 2 controlled exterior-shell geometry for Masck One.
 
 This module owns only the visible rigid exterior form. It uses stable profile points,
-controlled Z stations and smooth non-ruled lofting instead of face/edge indexing.
-The surface is a digital MVP exterior candidate, not production Class-A, tooling,
-fit, comfort, seal, cleanability or CMF durability evidence.
+controlled Z stations, a smooth non-ruled side loft and an interpolated anterior crown
+instead of face/edge indexing. The surface is a digital MVP exterior candidate, not
+production Class-A, tooling, fit, comfort, seal, cleanability or CMF durability evidence.
 """
 
 import math
@@ -39,10 +39,23 @@ PROFILE_RIGHT = (
     (0.00, -1.000),
 )
 
-# The wearer-side cavity may extend slightly behind the development plane. At the
-# anterior station it terminates one nominal shell wall behind the visible surface so
-# the protected aperture cutters produce real openings through a retained facial field.
+# The wearer-side cavity extends slightly behind the development plane so the rigid
+# shell stays open and recessive on the wearer side.
 INNER_WEARER_SIDE_OFFSET_MM = -0.6
+
+# The five-station side body terminates at Z=22 mm. A shallow interpolated crown closes
+# that open anterior perimeter and removes the prototype-like planar facial plate.
+# The 0.10 mm join overlap is a numerical Boolean construction allowance only. It is
+# not a product seam, tolerance, manufacturing allowance or physical validation value.
+ANTERIOR_CROWN_HEIGHT_MM = 4.8
+ANTERIOR_CROWN_JOIN_OVERLAP_MM = 0.10
+ANTERIOR_CAVITY_CUT_THROUGH_MM = 1.0
+ANTERIOR_CROWN_RADIAL_X_NORM = 0.487
+ANTERIOR_CROWN_RADIAL_Y_NORM = 0.484
+ANTERIOR_CROWN_RADIAL_LIMIT_SQ = 0.72
+ANTERIOR_CROWN_FALLOFF_POWER = 1.35
+ANTERIOR_CROWN_SAMPLE_X_NORM = (-0.31, -0.155, 0.0, 0.155, 0.31)
+ANTERIOR_CROWN_SAMPLE_Y_NORM = (-0.36, -0.24, -0.12, 0.0, 0.12, 0.24, 0.36)
 
 
 def _profile_points(width: float, height: float) -> tuple[tuple[float, float], ...]:
@@ -100,12 +113,74 @@ def _nostril_diameter(authority: Authority) -> float:
 
 
 def exterior_sections(authority: Authority) -> tuple[tuple[float, float, float], ...]:
-    """Return the authority-bounded outer station set used by the visible shell."""
+    """Return the authority-bounded outer station set used by the side body."""
     outer_w, outer_h = authority.pair("geometry", "outer_xy_envelope_mm")
     frame_w, frame_h = authority.pair("geometry", "functional_frame_xy_mm")
     widths = tuple(min(outer_w, frame_w * scale) for scale in EXTERIOR_SCALE_X)
     heights = tuple(min(outer_h, frame_h * scale) for scale in EXTERIOR_SCALE_Y)
     return tuple(zip(EXTERIOR_Z_STATIONS_MM, widths, heights))
+
+
+def anterior_crown_boundary_z_mm(authority: Authority) -> float:
+    del authority
+    return EXTERIOR_Z_STATIONS_MM[-1] - ANTERIOR_CROWN_JOIN_OVERLAP_MM
+
+
+def anterior_crown_inner_min_z_mm(authority: Authority) -> float:
+    """Conservative Z start of new crown material for package-clearance regressions."""
+    wall = authority.number("geometry", "shell_nominal_wall_mm")
+    return anterior_crown_boundary_z_mm(authority) - wall
+
+
+def _anterior_crown_constraints(
+    width: float,
+    height: float,
+    boundary_z: float,
+) -> tuple[tuple[float, float, float], ...]:
+    radial_x = width * ANTERIOR_CROWN_RADIAL_X_NORM
+    radial_y = height * ANTERIOR_CROWN_RADIAL_Y_NORM
+    if radial_x <= 0.0 or radial_y <= 0.0:
+        raise ValueError("Anterior crown radial scales must be positive")
+
+    points: list[tuple[float, float, float]] = []
+    for y_norm in ANTERIOR_CROWN_SAMPLE_Y_NORM:
+        y = y_norm * height
+        for x_norm in ANTERIOR_CROWN_SAMPLE_X_NORM:
+            x = x_norm * width
+            radial_sq = (x / radial_x) ** 2 + (y / radial_y) ** 2
+            if radial_sq < ANTERIOR_CROWN_RADIAL_LIMIT_SQ:
+                z = boundary_z + ANTERIOR_CROWN_HEIGHT_MM * (1.0 - radial_sq) ** ANTERIOR_CROWN_FALLOFF_POWER
+                points.append((x, y, z))
+    if len(points) < 12:
+        raise ValueError("Anterior crown requires a stable interior constraint field")
+    return tuple(points)
+
+
+def _build_anterior_crown(
+    width: float,
+    height: float,
+    wall: float,
+    boundary_z: float,
+) -> cq.Shape:
+    boundary = _add_profile(cq.Workplane("XY").workplane(offset=boundary_z), width, height)
+    constraints = _anterior_crown_constraints(width, height, boundary_z)
+    face = (
+        cq.Workplane("XY")
+        .interpPlate(
+            boundary,
+            constraints,
+            thickness=0.0,
+            combine=False,
+            degree=3,
+            nbPtsOnCur=20,
+            nbIter=3,
+        )
+        .val()
+    )
+    crown = face.thicken(wall)
+    if not crown.isValid() or len(crown.Solids()) != 1:
+        raise ValueError("Anterior crown must resolve as one valid thickened B-rep solid")
+    return crown
 
 
 def build_refined_exterior_shell(
@@ -116,18 +191,34 @@ def build_refined_exterior_shell(
     wall = authority.number("geometry", "shell_nominal_wall_mm")
     outer_sections = exterior_sections(authority)
 
+    # Cut the side-body cavity through the anterior station. This removes the previous
+    # planar facial cap instead of thickening or wrapping the shell around package space.
     inner_sections: list[tuple[float, float, float]] = []
     final_index = len(outer_sections) - 1
     for index, (z, width, height) in enumerate(outer_sections):
-        if index == 0:
-            inner_z = z + INNER_WEARER_SIDE_OFFSET_MM
-        elif index == final_index:
-            inner_z = z - wall
-        else:
-            inner_z = z
+        inner_z = z + INNER_WEARER_SIDE_OFFSET_MM if index == 0 else z
         inner_sections.append((inner_z, width - 2.0 * wall, height - 2.0 * wall))
+        if index == final_index:
+            inner_sections.append(
+                (
+                    z + ANTERIOR_CAVITY_CUT_THROUGH_MM,
+                    width - 2.0 * wall,
+                    height - 2.0 * wall,
+                )
+            )
 
-    shell = _profile_loft(outer_sections).cut(_profile_loft(tuple(inner_sections)))
+    side_body = _profile_loft(outer_sections).cut(_profile_loft(tuple(inner_sections)))
+    _, final_width, final_height = outer_sections[-1]
+    crown = _build_anterior_crown(
+        final_width,
+        final_height,
+        wall,
+        anterior_crown_boundary_z_mm(authority),
+    )
+    fused = side_body.solids().val().fuse(crown)
+    if not fused.isValid() or len(fused.Solids()) != 1:
+        raise ValueError("Exterior side body and anterior crown must fuse into one valid solid")
+    shell = cq.Workplane(obj=fused)
 
     eye_w, eye_h = authority.pair("geometry", "eye", "visual_aperture_wh_mm")
     cant = authority.number("geometry", "eye", "lateral_cant_deg")
@@ -152,6 +243,8 @@ def build_refined_exterior_shell(
         )
         shell = shell.cut(cutter)
 
+    if shell.solids().size() != 1 or not shell.val().isValid():
+        raise ValueError("Refined exterior must remain one valid B-rep solid after protected-aperture cuts")
     return shell
 
 
@@ -159,15 +252,23 @@ def exterior_surface_manifest(authority: Authority) -> dict[str, object]:
     """Deterministic handoff values without promoting physical validation claims."""
     sections = exterior_sections(authority)
     return {
-        "schema": "MASCK_ONE_CELL2_EXTERIOR_SURFACE_V1",
+        "schema": "MASCK_ONE_CELL2_EXTERIOR_SURFACE_V2",
         "z_stations_mm": [section[0] for section in sections],
         "nominal_width_mm": [section[1] for section in sections],
         "nominal_height_mm": [section[2] for section in sections],
         "profile_right_normalized": [list(point) for point in PROFILE_RIGHT],
-        "loft_mode": "smooth_non_ruled_profile_spline",
-        "visible_face_policy": "ANTERIOR_FACIAL_FIELD_RETAINED_AT_NOMINAL_WALL_THICKNESS",
+        "loft_mode": "smooth_non_ruled_profile_spline_with_interpolated_anterior_crown",
+        "anterior_crown": {
+            "height_mm": ANTERIOR_CROWN_HEIGHT_MM,
+            "boundary_z_mm": anterior_crown_boundary_z_mm(authority),
+            "inner_min_z_mm": anterior_crown_inner_min_z_mm(authority),
+            "construction": "INTERPOLATED_PLATE_THICKENED_TO_NOMINAL_SHELL_WALL",
+            "join_overlap_mm": ANTERIOR_CROWN_JOIN_OVERLAP_MM,
+            "join_overlap_status": "NUMERICAL_BOOLEAN_CONSTRUCTION_ONLY",
+        },
+        "visible_face_policy": "CURVED_ANTERIOR_FACIAL_FIELD_WITH_AUTHORITY_BACKED_APERTURES",
         "design_intent": {
-            "facial_field": "broad_continuous",
+            "facial_field": "broad_continuous_shallow_crown",
             "perimeter": "broad_temples_tapered_jaw_soft_chin",
             "side_mass": "laterally_blended_not_podded",
             "rear_mass": "close_and_recessive",
