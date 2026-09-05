@@ -1,4 +1,5 @@
 from pathlib import Path
+import math
 
 from masck_one.export import export_release
 from masck_one.integrated_product import (
@@ -9,8 +10,17 @@ from masck_one.integrated_product import (
 from masck_one.model import build_model
 
 
+GEOMETRY_COMPARE_TOLERANCE_MM = 1e-9
+COLLISION_VOLUME_TOLERANCE_MM3 = 1e-6
+
+
 def _component_signature(model):
     return tuple(component.name for component in model.components)
+
+
+def _intersection_volume_mm3(a, b) -> float:
+    intersection = a.intersect(b)
+    return float(intersection.Volume()) if not intersection.isNull() else 0.0
 
 
 def test_candidate_preserves_current_component_set_and_replaces_only_shell_status():
@@ -24,9 +34,11 @@ def test_candidate_preserves_current_component_set_and_replaces_only_shell_statu
     for candidate_component, baseline_component in zip(candidate.components[1:], baseline.components[1:]):
         assert candidate_component.name == baseline_component.name
         assert candidate_component.status == baseline_component.status
-        assert candidate_component.solid.val().BoundingBox().xlen == baseline_component.solid.val().BoundingBox().xlen
-        assert candidate_component.solid.val().BoundingBox().ylen == baseline_component.solid.val().BoundingBox().ylen
-        assert candidate_component.solid.val().BoundingBox().zlen == baseline_component.solid.val().BoundingBox().zlen
+        candidate_bb = candidate_component.solid.val().BoundingBox()
+        baseline_bb = baseline_component.solid.val().BoundingBox()
+        assert math.isclose(candidate_bb.xlen, baseline_bb.xlen, abs_tol=GEOMETRY_COMPARE_TOLERANCE_MM)
+        assert math.isclose(candidate_bb.ylen, baseline_bb.ylen, abs_tol=GEOMETRY_COMPARE_TOLERANCE_MM)
+        assert math.isclose(candidate_bb.zlen, baseline_bb.zlen, abs_tol=GEOMETRY_COMPARE_TOLERANCE_MM)
 
 
 def test_candidate_shell_materially_differs_from_released_ruled_shell():
@@ -38,6 +50,23 @@ def test_candidate_shell_materially_differs_from_released_ruled_shell():
     assert candidate_bb.xlen < baseline_bb.xlen
     assert candidate_bb.ylen < baseline_bb.ylen
     assert candidate_bb.zlen <= baseline_bb.zlen + 1e-6
+
+
+def test_candidate_does_not_introduce_new_shell_intersection_with_released_components():
+    baseline = build_model()
+    candidate = build_mvp_product_candidate()
+    baseline_shell = baseline.shell.solid.val()
+    candidate_shell = candidate.shell.solid.val()
+
+    for baseline_component, candidate_component in zip(baseline.components[1:], candidate.components[1:]):
+        if baseline_component.status == "REFERENCE_ONLY":
+            continue
+        baseline_collision = _intersection_volume_mm3(baseline_shell, baseline_component.solid.val())
+        candidate_collision = _intersection_volume_mm3(candidate_shell, candidate_component.solid.val())
+        assert candidate_collision <= baseline_collision + COLLISION_VOLUME_TOLERANCE_MM3, (
+            f"Cell 2 shell introduces additional intersection with {candidate_component.name}: "
+            f"baseline={baseline_collision:.9f} mm3 candidate={candidate_collision:.9f} mm3"
+        )
 
 
 def test_integration_manifest_is_fail_closed_on_claim_scope():
