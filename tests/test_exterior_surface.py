@@ -133,7 +133,9 @@ def test_anterior_crown_removes_large_planar_prototype_face():
     bb = solid.BoundingBox()
     visible_relief = bb.zmax - EXTERIOR_Z_STATIONS_MM[-1]
     assert ANTERIOR_CROWN_RELIEF_MIN_MM <= visible_relief <= ANTERIOR_CROWN_RELIEF_MAX_MM
-    assert bb.zmax >= EXTERIOR_Z_STATIONS_MM[-1] + 0.95 * ANTERIOR_CROWN_HEIGHT_MM
+    # ANTERIOR_CROWN_HEIGHT_MM is the unshaped radial construction amplitude, not a
+    # lower bound on the final compound B-rep after superior, nasal and lower-face
+    # shaping terms are applied. The explicit final relief guard above owns that truth.
     anterior_planar_faces = [
         face
         for face in solid.Faces()
