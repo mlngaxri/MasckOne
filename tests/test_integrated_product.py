@@ -1,6 +1,11 @@
 from pathlib import Path
 import math
 
+from masck_one.exterior_surface import (
+    ANTERIOR_CROWN_RELIEF_MAX_MM,
+    ANTERIOR_CROWN_RELIEF_MIN_MM,
+    EXTERIOR_Z_STATIONS_MM,
+)
 from masck_one.export import export_release
 from masck_one.integrated_product import (
     MVP_EXTERIOR_STATUS,
@@ -46,10 +51,12 @@ def test_candidate_shell_materially_differs_from_released_ruled_shell():
     candidate = build_mvp_product_candidate().shell.solid.val()
     baseline_bb = baseline.BoundingBox()
     candidate_bb = candidate.BoundingBox()
+    visible_relief = candidate_bb.zmax - EXTERIOR_Z_STATIONS_MM[-1]
     assert abs(candidate.Volume() - baseline.Volume()) > 1000.0
     assert candidate_bb.xlen < baseline_bb.xlen
     assert candidate_bb.ylen < baseline_bb.ylen
-    assert candidate_bb.zlen <= baseline_bb.zlen + 1e-6
+    assert candidate_bb.zlen > baseline_bb.zlen
+    assert ANTERIOR_CROWN_RELIEF_MIN_MM <= visible_relief <= ANTERIOR_CROWN_RELIEF_MAX_MM
 
 
 def test_candidate_does_not_introduce_new_shell_intersection_with_released_components():
