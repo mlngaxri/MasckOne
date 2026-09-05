@@ -30,10 +30,16 @@ CELL3_CARRIER_INNER_X_ABS_MM = 56.0
 CELL3_CROWN_CORRIDOR_Y_MIN_MM = 56.0
 CELL3_OCCIPITAL_POSTERIOR_Z_MM = -52.5
 
-REAR_SKIN_FRONT_XY_MM = (58.0, 86.0)
-REAR_SKIN_REAR_XY_MM = (50.0, 74.0)
-REAR_SKIN_FRONT_CORNER_RADIUS_MM = 28.9
-REAR_SKIN_REAR_CORNER_RADIUS_MM = 24.9
+# Prompt 11 visible-interface baseline. This is deliberately smaller than the current
+# conservative package reservation. The first 74 x 108 mm wrap and a later 58 x 86 mm
+# candidate were rejected during the visual loop because rear elevation remained too
+# dominant. The current 50 x 68 mm face is the smallest robust bounded target that still
+# contains the authority battery benchmark projection and the labelled stale PCB donor
+# projection independently without claiming simultaneous internal nesting.
+REAR_SKIN_FRONT_XY_MM = (50.0, 68.0)
+REAR_SKIN_REAR_XY_MM = (44.0, 60.0)
+REAR_SKIN_FRONT_CORNER_RADIUS_MM = 18.0
+REAR_SKIN_REAR_CORNER_RADIUS_MM = 16.0
 REAR_COVER_REMOVAL_TRAVEL_MM = 8.0
 STALE_MANUAL_B_PCB_PROJECTION_XY_MM = (48.0, 26.0)
 
@@ -159,7 +165,7 @@ class RearServiceSkin:
                     float(cover_bb.zmax),
                 ],
                 "volume_mm3": float(self.cover.val().Volume()),
-                "visual_policy": "SMALL_VERTICAL_SOFT_CAPSULE_TAPERED_POSTERIOR_NO_REAR_BRICK_NO_ACCENT",
+                "visual_policy": "COMPACT_VERTICAL_SOFT_RECTANGLE_TAPERED_POSTERIOR_NO_REAR_BRICK_NO_ACCENT",
             },
             "current_cell3_package_interface": {
                 "keepout_xyz_mm": list(CELL3_CENTRAL_REAR_KEEP_OUT_XYZ_MM),
