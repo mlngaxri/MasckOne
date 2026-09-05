@@ -2,10 +2,10 @@ from __future__ import annotations
 
 """Authority-bound rigid eye inner-edge roll for the Cell 2 exterior.
 
-The visible Prompt 08-11 exterior A-surface is preserved.  The current 1.8 mm shell is
+The visible Prompt 08-11 exterior A-surface is preserved. The current 1.8 mm shell is
 locally backed only on the wearer side of each eye opening so the authority 3.0 mm
 inner-edge roll can be realized without adding an exterior bezel, insert, panel break,
-or raised aperture ring.  This remains deterministic digital geometry, not comfort,
+or raised aperture ring. This remains deterministic digital geometry, not comfort,
 fit, impact, tooling, material, or physical-safety evidence.
 """
 
@@ -30,8 +30,12 @@ SCHEMA = "MASCK_ONE_CELL2_EYE_INNER_EDGE_ROLL_V1"
 # Cell 2 deterministic construction reserves. These are not new product requirements.
 # The support band remains hidden behind the existing A-surface and is only wide enough
 # to give the roll operator stable local material around the controlled visual aperture.
+# Total local supported depth only needs to exceed the controlled fillet radius; the
+# previous wall + radius arithmetic double-counted the existing nominal wall and created
+# avoidable hidden bulk.
 EYE_ROLL_SUPPORT_BAND_MM = 5.5
-EYE_ROLL_SUPPORT_DEPTH_RESERVE_MM = 0.40
+EYE_ROLL_SUPPORT_DEPTH_RESERVE_MM = 0.20
+EYE_ROLL_MAX_ADDED_VOLUME_MM3 = 2500.0
 EYE_EDGE_CENTER_TOLERANCE_MM = 2.0
 EYE_EDGE_MIN_X_SPAN_FACTOR = 0.85
 EYE_EDGE_MAX_X_SPAN_FACTOR = 1.20
@@ -86,6 +90,12 @@ def _final_crown_face(
     return face
 
 
+def _supported_eye_depth_mm(wall_mm: float, roll_radius_mm: float) -> float:
+    if wall_mm <= 0.0 or roll_radius_mm <= 0.0:
+        raise EyeInnerRollError("eye-roll wall and radius must be positive")
+    return max(wall_mm, roll_radius_mm + EYE_ROLL_SUPPORT_DEPTH_RESERVE_MM)
+
+
 def _posterior_eye_support_patch(
     face: cq.Face,
     *,
@@ -97,14 +107,14 @@ def _posterior_eye_support_patch(
     eye_y_mm: float,
     eye_cant_deg: float,
 ) -> cq.Shape:
-    total_depth = wall_mm + roll_radius_mm + EYE_ROLL_SUPPORT_DEPTH_RESERVE_MM
+    total_depth = _supported_eye_depth_mm(wall_mm, roll_radius_mm)
     nominal_crown = face.thicken(wall_mm)
     deeper_crown = face.thicken(total_depth)
     if not nominal_crown.isValid() or not deeper_crown.isValid():
         raise EyeInnerRollError("eye-roll support thickening failed")
 
     # Remove the already-present nominal wall so this patch adds only hidden wearer-side
-    # backing material.  This keeps the exterior A-surface and its highlight field intact.
+    # backing material. This keeps the exterior A-surface and its highlight field intact.
     posterior_delta = deeper_crown.cut(nominal_crown)
     outer_support = _ellipse_cutter(
         eye_width_mm + 2.0 * EYE_ROLL_SUPPORT_BAND_MM,
@@ -156,8 +166,8 @@ def _wearer_side_eye_edge(
             f"found {len(candidates)}"
         )
 
-    # The exact controlled visual edge remains on the anterior A-surface.  The edge with
-    # the lowest mean Z is therefore the wearer-side edge to roll.  This avoids brittle
+    # The exact controlled visual edge remains on the anterior A-surface. The edge with
+    # the lowest mean Z is therefore the wearer-side edge to roll. This avoids brittle
     # face/edge numbering while preserving canonical +Z anterior semantics.
     ranked = sorted(
         candidates,
@@ -252,15 +262,22 @@ def build_eye_rolled_exterior_shell(
     ]
     rolled = pre_roll.fillet(roll_radius, roll_edges)
     _single_valid(rolled, "eye-rolled exterior")
+
+    added_volume = float(rolled.Volume()) - float(base.Volume())
+    if added_volume <= 0.0 or added_volume > EYE_ROLL_MAX_ADDED_VOLUME_MM3:
+        raise EyeInnerRollError(
+            "eye-roll hidden support added volume is outside the bounded Cell 2 reserve"
+        )
     return cq.Workplane(obj=rolled)
 
 
 def eye_inner_roll_manifest(authority: Authority) -> dict[str, object]:
+    wall = authority.number("geometry", "shell_nominal_wall_mm")
+    radius = authority.number("geometry", "eye", "inner_edge_roll_radius_mm")
+    supported_depth = _supported_eye_depth_mm(wall, radius)
     return {
         "schema": SCHEMA,
-        "radius_mm": authority.number(
-            "geometry", "eye", "inner_edge_roll_radius_mm"
-        ),
+        "radius_mm": radius,
         "visual_aperture_wh_mm": list(
             authority.pair("geometry", "eye", "visual_aperture_wh_mm")
         ),
@@ -269,6 +286,9 @@ def eye_inner_roll_manifest(authority: Authority) -> dict[str, object]:
         ),
         "support_band_mm": EYE_ROLL_SUPPORT_BAND_MM,
         "support_depth_reserve_mm": EYE_ROLL_SUPPORT_DEPTH_RESERVE_MM,
+        "supported_local_depth_mm": supported_depth,
+        "hidden_added_depth_mm": supported_depth - wall,
+        "max_added_volume_mm3": EYE_ROLL_MAX_ADDED_VOLUME_MM3,
         "support_location": "WEARER_SIDE_ONLY_BEHIND_EXISTING_A_SURFACE",
         "visual_aperture_policy": "AUTHORITY_VISUAL_OPENING_RE_CUT_EXACTLY_AFTER_SUPPORT",
         "visible_bezel_added": False,
