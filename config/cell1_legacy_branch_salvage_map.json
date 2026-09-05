@@ -202,11 +202,11 @@
       "pr": 68,
       "title": "Cell 4: realize mixed-waste backbone centerlines",
       "head_ref": "cell4/realized-waste-backbone-20260905",
-      "head_sha": "46b2d6ea2752da7054382afc67655eed06e47343",
+      "head_sha": "0a9dac5d883a2b30dab81729fc8bedb45638a435",
       "base_ref": "main",
-      "base_sha": "b2c2d2d94972e4615e281e86e2feddaaa3c4e0c8",
+      "base_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
       "classification": "PORTABLE",
-      "release_disposition": "HOLD_PENDING_REBASE_EXACT_HEAD_GATE_AND_INDEPENDENT_REVIEW",
+      "release_disposition": "HOLD_FOR_CELL5_SOURCE_INTEGRITY_REWORK_AND_REREVIEW",
       "unique_work": [
         "WORLD_FRAME_MIXED_WASTE_BACKBONE_CENTERLINES",
         "EXPLICIT_PUMP_TO_PASSIVE_BARRIER_AND_BARRIER_TO_CARTRIDGE_STAGES",
@@ -215,32 +215,35 @@
       ],
       "source_bindings": [
         {
-          "producer": "PR_67_PASSIVE_WASTE_BASELINE_REPAIR",
+          "producer": "MAIN_RELEASE_LINEAGE",
+          "geometry_dependency": false,
+          "observed_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+          "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+          "status": "CURRENT_EXACT_BASE",
+          "digest_status": "CURRENT_RELEASE_LINEAGE_EXACT"
+        },
+        {
+          "producer": "PR_67_ROUTING_TOPOLOGY_ORIGIN",
           "geometry_dependency": false,
           "observed_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
           "required_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
-          "status": "CURRENT_RELEASED_ANCESTOR",
-          "digest_status": "NOT_A_GEOMETRY_DIGEST_DEPENDENCY"
-        },
-        {
-          "producer": "MAIN_RELEASE_LINEAGE",
-          "geometry_dependency": false,
-          "observed_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
-          "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
-          "status": "STALE",
-          "digest_status": "REBASE_REQUIRED_NO_GEOMETRY_DIGEST_CLAIM"
+          "status": "EXACT_SHA_SELF_CERTIFIED_NOT_CURRENT_OBJECT_BOUND",
+          "digest_status": "CURRENT_ROUTING_OBJECT_OR_DETERMINISTIC_DIGEST_BINDING_REQUIRED"
         }
       ],
       "exact_head_ci": {
-        "run_id": 33948139680,
-        "conclusion": "SUCCESS",
-        "attribution": "EXACT_HEAD_ENGINEERING_GATE_GREEN_THROUGH_DETERMINISTIC_CAD_SMOKE_BUT_RELEASE_LINEAGE_AND_REVIEW_REMAIN_OPEN"
+        "run_id": 33948799312,
+        "conclusion": "IN_PROGRESS",
+        "attribution": "REBASED_EXACT_HEAD_GATE_RUNNING_CELL5_SOURCE_INTEGRITY_REWORK_STILL_CONTROLLING"
       },
-      "independent_review": "MISSING",
+      "independent_review": "CELL5_REWORK_SOURCE_INTEGRITY_AT_0A9DAC5D883A2B30DAB81729FC8BEDB45638A435",
       "physical_validation_status": "NOT_CLAIMED",
       "blockers": [
-        "REBASE_OR_REBUILD_ON_RECONSTRUCTED_MAIN_BEFORE_RELEASE",
-        "CELL5_INDEPENDENT_REVIEW_REQUIRED",
+        "BIND_RELEASE_VALIDATION_TO_CURRENT_AUTHORITY_OBJECT_OR_DETERMINISTIC_DIGEST",
+        "BIND_RELEASE_VALIDATION_TO_CURRENT_ROUTING_ARCHITECTURE_OR_DETERMINISTIC_DIGEST",
+        "ADD_HOSTILE_STALE_BUT_WELL_FORMED_SHA_OR_CHANGED_CURRENT_DIGEST_REGRESSION",
+        "RERUN_COMPLETE_EXACT_HEAD_ENGINEERING_GATE_AFTER_SOURCE_BINDING_REWORK",
+        "CELL5_REREVIEW_REQUIRED",
         "INTEGRATE_COLLISION_AND_SERVICE_TRAJECTORY_CHECKS_AGAINST_RELEASED_EXTERIOR_AND_MECHANISM_BEFORE_PROMOTION",
         "SELECTED_TUBE_OR_CHANNEL_BEND_REQUIREMENT_AND_PHYSICAL_HYDRAULIC_EVIDENCE_REMAIN_BLOCKED"
       ]
