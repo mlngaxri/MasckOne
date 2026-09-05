@@ -4,8 +4,9 @@ from __future__ import annotations
 
 Prompt 11 V1 owns the actual carrier, clevis, pin, clip and handoff-lug B-reps. This
 module does not recreate or move that geometry. It binds the exact V1 source/package
-and exposes a stricter release contract that distinguishes a realized positive
-attachment *feature* from an attachment whose mating counterpart actually exists.
+and exposes a stricter release contract that distinguishes three cases explicitly:
+retained positive attachment, integral material continuity and an attachment feature
+whose mating counterpart is still unrealized.
 
 It also prevents the pin-removal service bound from being misread as proof of a complete
 carrier-removal trajectory. Physical load, fatigue, fit, wet use and release performance
@@ -63,25 +64,38 @@ def _edge_manifest(edge) -> dict[str, object]:
             )
         positive_attachment = False
         positive_feature = True
-        counterpart_realized = False
-    elif attachment_class in {ATTACHMENT_PINNED, ATTACHMENT_INTEGRAL}:
+        counterpart_realized: bool | None = False
+        integral_continuity = False
+    elif attachment_class == ATTACHMENT_PINNED:
         if not closed:
             raise RetentionLoadPathReleaseError(
-                "realized pinned/integral load edge unexpectedly remains open"
+                "realized pinned load edge unexpectedly remains open"
             )
         positive_attachment = True
         positive_feature = True
         counterpart_realized = True
+        integral_continuity = False
+    elif attachment_class == ATTACHMENT_INTEGRAL:
+        if not closed:
+            raise RetentionLoadPathReleaseError(
+                "integral material load edge unexpectedly remains open"
+            )
+        positive_attachment = False
+        positive_feature = False
+        counterpart_realized = None
+        integral_continuity = True
     else:
         positive_attachment = False
         positive_feature = False
-        counterpart_realized = False
+        counterpart_realized = None
+        integral_continuity = False
 
     return {
         **source,
         "positive_attachment": positive_attachment,
         "positive_attachment_feature_realized": positive_feature,
         "mating_counterpart_realized": counterpart_realized,
+        "integral_material_continuity": integral_continuity,
     }
 
 
@@ -112,6 +126,14 @@ class RetentionLoadPathRelease:
             for edge in edges
             if bool(edge["load_transfer_digitally_closed"])
         )
+        positive_attachment_edges = tuple(
+            str(edge["edge_id"]) for edge in edges if bool(edge["positive_attachment"])
+        )
+        integral_edges = tuple(
+            str(edge["edge_id"])
+            for edge in edges
+            if bool(edge["integral_material_continuity"])
+        )
 
         payload: dict[str, object] = {
             "schema": SCHEMA,
@@ -125,16 +147,24 @@ class RetentionLoadPathRelease:
             "source_frame_retention_reservation_id": source_manifest[
                 "source_frame_retention_reservation_id"
             ],
-            "source_geometry_manifest": source_manifest,
+            "source_geometry_binding": {
+                "package_sha256": self.source.package_sha256,
+                "release_facing_semantics_owned_by_this_v2_contract": True,
+                "v1_geometry_bytes_modified_by_v2": False,
+            },
             "load_path_graph": {
                 "nodes": [node.manifest() for node in self.source.nodes],
                 "edges": list(edges),
                 "digitally_closed_edge_ids": list(closed_edges),
                 "open_or_nonload_edge_ids": list(open_edges),
+                "positive_attachment_edge_ids": list(positive_attachment_edges),
+                "integral_material_continuity_edge_ids": list(integral_edges),
                 "occipital_to_local_carrier_positive_path_closed": True,
+                "crown_lug_integral_to_local_carrier": True,
                 "crown_positive_attachment_feature_realized": True,
                 "crown_to_head_positive_attachment_realized": False,
                 "crown_to_head_path_closed": False,
+                "facial_handoff_lug_integral_to_local_carrier": True,
                 "facial_positive_attachment_feature_realized": True,
                 "facial_reaction_to_front_perimeter_positive_attachment_realized": False,
                 "facial_reaction_to_front_perimeter_path_closed": False,
@@ -206,7 +236,8 @@ def build_retention_load_path_release(
     graph = release.manifest(include_sha=False)["load_path_graph"]
     edges = graph["edges"]
     for edge in edges:
-        if edge["attachment_class"] == ATTACHMENT_FEATURE_OPEN:
+        attachment_class = edge["attachment_class"]
+        if attachment_class == ATTACHMENT_FEATURE_OPEN:
             if edge["positive_attachment"] is not False:
                 raise RetentionLoadPathReleaseError(
                     "unrealized counterpart cannot be labelled as a positive attachment"
@@ -214,6 +245,16 @@ def build_retention_load_path_release(
             if edge["positive_attachment_feature_realized"] is not True:
                 raise RetentionLoadPathReleaseError(
                     "open handoff must retain its realized attachment-feature identity"
+                )
+        elif attachment_class == ATTACHMENT_PINNED:
+            if edge["positive_attachment"] is not True:
+                raise RetentionLoadPathReleaseError(
+                    "realized retained-pin edge must remain a positive attachment"
+                )
+        elif attachment_class == ATTACHMENT_INTEGRAL:
+            if edge["positive_attachment"] is not False or edge["integral_material_continuity"] is not True:
+                raise RetentionLoadPathReleaseError(
+                    "integral material edge must not masquerade as a discrete attachment"
                 )
     if graph["whole_retention_load_path_closed"] is not False:
         raise RetentionLoadPathReleaseError("whole retention path cannot close before counterparts exist")
