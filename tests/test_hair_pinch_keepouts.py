@@ -8,6 +8,8 @@ import pytest
 
 import masck_one.hair_pinch_keepouts as hp
 from masck_one.hair_pinch_keepouts import (
+    RIGHT_LATCH_CANDIDATE_CONTRACT_SHA256,
+    RIGHT_LATCH_GRIP_COMPLETE_TRANSLATION_BOUNDS_MM,
     SOURCE_RETENTION_FIT_GIT_BLOB_SHA,
     SOURCE_RIGHT_LATCH_HEAD_SHA,
     HairPinchKeepoutError,
@@ -35,6 +37,15 @@ def package(model, adjustment):
 
 def _intersection_mm3(first: cq.Workplane, second: cq.Workplane) -> float:
     return float(first.val().intersect(second.val()).Volume())
+
+
+def _box_from_bounds(bounds: tuple[float, float, float, float, float, float]) -> cq.Workplane:
+    xmin, xmax, ymin, ymax, zmin, zmax = bounds
+    return (
+        cq.Workplane("XY")
+        .box(xmax - xmin, ymax - ymin, zmax - zmin, centered=(True, True, True))
+        .translate(((xmin + xmax) / 2.0, (ymin + ymax) / 2.0, (zmin + zmax) / 2.0))
+    )
 
 
 def _region(package, region_id: str):
@@ -93,17 +104,35 @@ def test_right_latch_overlay_is_candidate_only_and_keeps_emergency_pull_access(p
     overlay = manifest["right_latch_candidate_overlay"]
     assert overlay["source_pr"] == 71
     assert overlay["source_head_sha"] == SOURCE_RIGHT_LATCH_HEAD_SHA
+    assert overlay["candidate_contract_sha256"] == RIGHT_LATCH_CANDIDATE_CONTRACT_SHA256
     assert overlay["authority_status"] == "NON_AUTHORITATIVE_UNMERGED_CANDIDATE_OVERLAY"
     assert overlay["runtime_source_imported"] is False
     assert overlay["promotion_requires_live_head_revalidation"] is True
     assert overlay["physical_release_performance_promoted"] is False
+    assert overlay["emergency_pull_access_contains_complete_grip_translation"] is True
 
     latch_hazard = _region(package, "RIGHT_LATCH_CANDIDATE_HAIR_PINCH_REGION")
     pull_access = _region(package, "RIGHT_LATCH_EMERGENCY_PULL_ACCESS")
+    grip_sweep = _box_from_bounds(RIGHT_LATCH_GRIP_COMPLETE_TRANSLATION_BOUNDS_MM)
+    outside_access_mm3 = float(grip_sweep.val().cut(pull_access.solid.val()).Volume())
+    assert outside_access_mm3 == pytest.approx(0.0, abs=1e-8)
+    assert overlay["grip_complete_translation_bounds_mm"] == list(RIGHT_LATCH_GRIP_COMPLETE_TRANSLATION_BOUNDS_MM)
+
     assert latch_hazard.solid.val().isValid()
     assert pull_access.solid.val().isValid()
     assert any(check.check_id.startswith("CLEAR_RIGHT_LATCH_HAZARD_RIGHT_ADJUSTMENT") for check in package.clearance_checks)
     assert any(check.check_id.startswith("CLEAR_RIGHT_LATCH_PULL_ACCESS_RIGHT_ADJUSTMENT") for check in package.clearance_checks)
+
+
+def test_right_latch_candidate_contract_fails_closed_on_unrevalidated_bound_change(monkeypatch, model, adjustment):
+    original = hp.RIGHT_LATCH_ACCESS_BOUNDS_MM
+    monkeypatch.setattr(
+        hp,
+        "RIGHT_LATCH_ACCESS_BOUNDS_MM",
+        (original[0], original[1] - 1.0, original[2], original[3], original[4], original[5]),
+    )
+    with pytest.raises(HairPinchKeepoutError, match="explicit hazard-access revalidation"):
+        build_hair_pinch_keepouts(model.authority, model, adjustment)
 
 
 def test_root_capture_is_reserved_without_inventing_pivot_or_frame_counterpart(package):
@@ -127,6 +156,17 @@ def test_adjustment_service_safety_semantics_remain_unworn_unpowered(package, ad
         adjustment.service_sequence(0.0, worn=True, powered=False)
     with pytest.raises(Exception):
         adjustment.service_sequence(0.0, worn=False, powered=True)
+
+
+def test_guard_geometry_is_digital_closure_not_mislabeled_as_physical_validation(package):
+    manifest = package.manifest()
+    digital = manifest["unresolved_digital_requirements"]
+    physical = manifest["unresolved_physical_gates"]
+    guard_requirement = "PROTECTIVE_GUARD_SHROUD_OR_EDGE_TREATMENT_PRODUCT_GEOMETRY"
+    assert guard_requirement in digital
+    assert guard_requirement not in physical
+    assert "FRAME_SIDE_RETENTION_ROOT_CAPTURE_COUNTERPART_GEOMETRY" in digital
+    assert "FRAME_SIDE_RETENTION_ROOT_CAPTURE_LOAD_CAPACITY" in physical
 
 
 def test_no_hair_or_pinch_physics_are_fabricated(package):
