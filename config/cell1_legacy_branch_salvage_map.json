@@ -233,7 +233,7 @@
       "base_ref": "main",
       "base_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
       "classification": "PORTABLE",
-      "release_disposition": "HOLD_FOR_EXACT_HEAD_CI_AND_CELL5_REREVIEW_AFTER_SOURCE_INTEGRITY_REWORK",
+      "release_disposition": "REWORK_CURRENT_MAIN_ACTUATOR_CLEARANCE_THEN_PORT_PR_72_SMOKE_BINDING",
       "unique_work": [
         "WORLD_FRAME_MIXED_WASTE_BACKBONE_CENTERLINES",
         "EXPLICIT_PUMP_TO_PASSIVE_BARRIER_AND_BARRIER_TO_CARTRIDGE_STAGES",
@@ -266,12 +266,14 @@
         "conclusion": "IN_PROGRESS",
         "attribution": "EXACT_HEAD_9AD20D41_FULL_ENGINEERING_GATE_RUNNING_AFTER_SOURCE_INTEGRITY_REWORK"
       },
-      "independent_review": "CELL5_REWORK_AT_0A9DAC5D_FIXED_AT_9AD20D41_EXACT_HEAD_REREVIEW_REQUIRED",
+      "independent_review": "CELL5_REWORK_AT_9AD20D41_CURRENT_MAIN_ACTUATOR_3_SERVICE_ENVELOPE_OVERLAP",
       "physical_validation_status": "NOT_CLAIMED",
       "blockers": [
-        "COMPLETE_EXACT_HEAD_ENGINEERING_CI_AND_DETERMINISTIC_CAD_SMOKE",
+        "MOVE_OR_RESHAPE_ACQUISITION_TO_PUMP_CENTERLINE_SO_FULL_3P2MM_PROVISIONAL_SERVICE_ENVELOPE_CLEARS_CURRENT_MAIN_ACTUATOR_3",
+        "ADD_REGRESSION_AGAINST_ACTUAL_CURRENT_MAIN_ACTUATOR_GEOMETRY",
+        "PORT_PR_72_VERIFICATION_COMMITS_AFTER_CORE_ROUTE_GEOMETRY_REWORK",
+        "RERUN_COMPLETE_EXACT_HEAD_ENGINEERING_GATE_AND_DETERMINISTIC_CAD_SMOKE",
         "CELL5_EXACT_HEAD_REREVIEW_REQUIRED",
-        "INTEGRATE_WHOLE_PRODUCT_BREP_COLLISION_AND_SERVICE_TRAJECTORY_CHECKS_AGAINST_ACCEPTED_EXTERIOR_AND_MECHANISM",
         "SELECTED_PUMP_BARRIER_CONNECTOR_TUBE_OR_CHANNEL_AND_SUPPLIER_BEND_REQUIREMENTS_REMAIN_BLOCKED",
         "PHYSICAL_HYDRAULIC_LEAKAGE_RECOVERY_HYGIENE_AND_SERVICE_EVIDENCE_REMAIN_BLOCKED"
       ]
@@ -280,7 +282,7 @@
       "pr": 70,
       "title": "Cell 2: recover smooth MVP exterior on green baseline",
       "head_ref": "cell2/exterior-green-baseline-20260905",
-      "head_sha": "3c2e19fa7c2fd559eefa97462ad29b16d419a2e8",
+      "head_sha": "33eb7b63cebfd62050453bb5e9059ebce06eeccb",
       "base_ref": "main",
       "base_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
       "classification": "PORTABLE",
@@ -305,11 +307,11 @@
         }
       ],
       "exact_head_ci": {
-        "run_id": 33949835247,
+        "run_id": 33950467147,
         "conclusion": "IN_PROGRESS",
-        "attribution": "EXACT_HEAD_3C2E19FA_FULL_ENGINEERING_GATE_RUNNING_AFTER_ANTERIOR_CROWN_REWORK"
+        "attribution": "EXACT_HEAD_33EB7B63_FULL_ENGINEERING_GATE_RUNNING_AFTER_CURRENT_EXTERIOR_REWORK"
       },
-      "independent_review": "AESTHETIC_REWORK_AT_D67E512F_CURRENT_HEAD_3C2E19FA_REQUIRES_EXACT_HEAD_REREVIEW",
+      "independent_review": "AESTHETIC_REWORK_AT_D67E512F_CURRENT_HEAD_33EB7B63_REQUIRES_EXACT_HEAD_REREVIEW",
       "physical_validation_status": "NOT_CLAIMED",
       "blockers": [
         "COMPLETE_EXACT_HEAD_ENGINEERING_CI_AND_DETERMINISTIC_CAD_SMOKE",
@@ -321,7 +323,7 @@
       "pr": 71,
       "title": "Cell 3: explicit captive right quick-release latch",
       "head_ref": "cell3/right-quick-release-latch-20260905",
-      "head_sha": "4f6a996f589b5edb15d09b3891a885672f3aba4d",
+      "head_sha": "b2b697801fac912f866b42a1e7a62b966c86c84d",
       "base_ref": "main",
       "base_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
       "classification": "PORTABLE",
@@ -345,17 +347,66 @@
         }
       ],
       "exact_head_ci": {
-        "run_id": 33950168499,
+        "run_id": 33950194031,
         "conclusion": "IN_PROGRESS",
-        "attribution": "EXACT_HEAD_4F6A996F_FULL_ENGINEERING_GATE_RUNNING_AFTER_TOLERANCE_REWORK"
+        "attribution": "EXACT_HEAD_B2B69780_FULL_ENGINEERING_GATE_RUNNING_AFTER_TOLERANCE_REWORK_CLOSURE"
       },
-      "independent_review": "MECHANICAL_REWORK_AT_A79D22FA_CURRENT_HEAD_4F6A996F_REQUIRES_EXACT_HEAD_REREVIEW",
+      "independent_review": "MECHANICAL_REWORK_AT_A79D22FA_IMPLEMENTATION_CLOSED_IN_B2B69780_SOURCE_EXACT_HEAD_REREVIEW_REQUIRED",
       "physical_validation_status": "NOT_CLAIMED",
       "blockers": [
         "COMPLETE_EXACT_HEAD_ENGINEERING_CI_AND_DETERMINISTIC_CAD_SMOKE",
         "CELL5_EXACT_HEAD_MECHANICAL_REREVIEW_REQUIRED",
         "FULL_POST_RELEASE_HEAD_REMOVAL_REMAINS_OPEN",
         "RELEASE_FORCE_TIME_WET_ONE_HAND_USABILITY_FATIGUE_FIT_AND_COMFORT_REMAIN_PHYSICAL_GATES"
+      ]
+    },
+    {
+      "pr": 72,
+      "title": "Cell 5: bind realized waste routing into deterministic release smoke",
+      "head_ref": "cell5/pr68-routing-artifact-smoke-20260905",
+      "head_sha": "84becdf88eac6340cc1f19e129c0cd13d9fdf78a",
+      "base_ref": "main",
+      "base_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+      "classification": "PORTABLE",
+      "release_disposition": "DO_NOT_MERGE_STACK_AS_IS_PORT_VERIFICATION_COMMITS_AFTER_PR_68_GEOMETRY_REWORK",
+      "unique_work": [
+        "DETERMINISTIC_RELEASE_SMOKE_CONSUMES_VALIDATED_REALIZED_WASTE_RELEASE",
+        "BUILD_REPORT_EMITS_ALL_THREE_REALIZED_WASTE_ROUTE_MANIFESTS",
+        "FOCUSED_DETERMINISM_AND_EXACT_ROUTE_BINDING_REGRESSION"
+      ],
+      "source_bindings": [
+        {
+          "producer": "MAIN",
+          "geometry_dependency": false,
+          "observed_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+          "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
+          "status": "CURRENT_EXACT_BASE",
+          "digest_status": "CURRENT_MAIN_EXACT",
+          "release_safe": true
+        },
+        {
+          "producer": "PR_68_REALIZED_WASTE_GEOMETRY",
+          "geometry_dependency": true,
+          "observed_sha": "9ad20d41c5c9aab49eb3391fd35c5d0c8e3ef91c",
+          "required_sha": "9ad20d41c5c9aab49eb3391fd35c5d0c8e3ef91c",
+          "status": "CURRENT_EXACT_PRODUCER_UNDER_MATERIAL_REWORK",
+          "digest_status": "PORT_VERIFICATION_COMMITS_ONLY_AFTER_CORRECTED_PR_68_GEOMETRY_HEAD_IS_ACCEPTED",
+          "release_safe": false
+        }
+      ],
+      "exact_head_ci": {
+        "run_id": 33950189579,
+        "conclusion": "IN_PROGRESS",
+        "attribution": "STACKED_EXACT_HEAD_84BECDF8_ENGINEERING_GATE_RUNNING_BUT_CORE_PR_68_GEOMETRY_IS_REWORK"
+      },
+      "independent_review": "CELL5_OWNED_VERIFICATION_WORK_DRAFT_NOT_INDEPENDENT_PRODUCT_APPROVAL",
+      "physical_validation_status": "NOT_CLAIMED",
+      "blockers": [
+        "DO_NOT_MERGE_STACKED_BRANCH_AS_PRODUCT_CANDIDATE",
+        "WAIT_FOR_PR_68_CURRENT_MAIN_ACTUATOR_CLEARANCE_REWORK",
+        "PORT_ONLY_VERIFICATION_COMMITS_ONTO_CORRECTED_ACCEPTED_CELL4_HEAD",
+        "RERUN_FULL_ENGINEERING_GATE_AND_DETERMINISTIC_CAD_SMOKE_ON_COMBINED_CORRECTED_HEAD",
+        "RETURN_COMBINED_EXACT_HEAD_TO_CELL5_AND_CELL1"
       ]
     }
   ],
