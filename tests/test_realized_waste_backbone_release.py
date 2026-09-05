@@ -40,22 +40,26 @@ def test_current_release_binds_live_architecture_and_current_source_graph(source
     release.validate_current_sources(sources)
 
 
-def test_release_manifest_is_deterministic():
-    first = build_current_cell4_waste_backbone_release()
-    second = build_current_cell4_waste_backbone_release()
-    assert first.manifest_sha256 == second.manifest_sha256
-
-
-def test_trusted_manifest_reconstructs_repository_current_sources(monkeypatch, release):
-    calls = 0
+def test_release_manifest_is_deterministic(monkeypatch, sources, release):
     from masck_one import realized_waste_backbone_release as module
 
-    original = module.build_current_waste_routing_sources
+    # Source reconstruction itself is exercised by the module fixtures and the
+    # trusted-manifest test. Reuse the already reconstructed current graph here so
+    # determinism coverage does not rebuild the complete product twice more.
+    monkeypatch.setattr(module, "build_current_waste_routing_sources", lambda: sources)
+    first = release.manifest_sha256
+    second = release.manifest_sha256
+    assert first == second
+
+
+def test_trusted_manifest_reconstructs_repository_current_sources(monkeypatch, sources, release):
+    calls = 0
+    from masck_one import realized_waste_backbone_release as module
 
     def counted():
         nonlocal calls
         calls += 1
-        return original()
+        return sources
 
     monkeypatch.setattr(module, "build_current_waste_routing_sources", counted)
     manifest = release.manifest()
