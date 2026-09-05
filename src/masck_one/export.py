@@ -10,11 +10,18 @@ from .boundary_release import (
     boundary_release_manifest,
     build_verified_interface_boundary_topology,
 )
+from .cleanser_storage import build_cleanser_storage_architecture
 from .contact_simulation import build_contact_simulation_framework
+from .fresh_pump_packaging import build_fresh_pump_packaging_architecture
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
+from .realized_fresh_water_pump import (
+    CurrentFreshPumpSources,
+    build_realized_fresh_water_pump,
+)
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
+from .water_reservoir import build_water_reservoir_architecture
 
 
 def _ensure_output_dir(path: str | Path) -> Path:
@@ -38,24 +45,6 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
 
-    export_map = {
-        "rigid_shell": model.shell.solid,
-        "nasal_lobe_membrane_reference": model.nasal_interface.solid,
-        "water_reservoir_envelope": model.water_reservoir_envelope.solid,
-        "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
-        "battery_reference_envelope": model.battery_reference_envelope.solid,
-    }
-    for index, actuator in enumerate(model.actuator_envelopes, start=1):
-        export_map[f"actuator_envelope_{index}"] = actuator.solid
-
-    for name, solid in export_map.items():
-        cq.exporters.export(solid, str(output / f"{name}.step"))
-
-    shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
-    compound = cq.Compound.makeCompound(shapes)
-    cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
-
-    checks = run_assertions(model)
     boundary_topology = build_verified_interface_boundary_topology(
         model.authority,
         model.facial_surface,
@@ -63,8 +52,59 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         model.compliant_interface_topology,
     )
     attachment = build_interface_attachment_architecture(model.authority, boundary_topology)
-    contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
+    water = build_water_reservoir_architecture(model.authority)
+    cleanser = build_cleanser_storage_architecture(model.authority)
+    pump_architecture = build_fresh_pump_packaging_architecture(
+        model.authority,
+        water,
+        cleanser,
+        structural_frame,
+    )
+    pump_sources = CurrentFreshPumpSources(
+        model=model,
+        authority=model.authority,
+        water=water,
+        cleanser=cleanser,
+        frame=structural_frame,
+        architecture=pump_architecture,
+    )
+    pump_sources.validate()
+    fresh_water_pump = build_realized_fresh_water_pump(pump_sources)
+
+    export_map = {
+        "rigid_shell": model.shell.solid,
+        "nasal_lobe_membrane_reference": model.nasal_interface.solid,
+        "water_reservoir_envelope": model.water_reservoir_envelope.solid,
+        "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
+        "battery_reference_envelope": model.battery_reference_envelope.solid,
+        "fresh_water_pump_reference_envelope": fresh_water_pump.package_reference_solid,
+        "fresh_water_pump_support_cradle": fresh_water_pump.support_cradle_solid,
+        "fresh_water_pump_inlet_port_reservation_reference": fresh_water_pump.inlet_port_reservation_solid,
+        "fresh_water_pump_outlet_port_reservation_reference": fresh_water_pump.outlet_port_reservation_solid,
+        "fresh_water_pump_service_clearance_reference": fresh_water_pump.service_clearance_solid,
+    }
+    for index, actuator in enumerate(model.actuator_envelopes, start=1):
+        export_map[f"actuator_envelope_{index}"] = actuator.solid
+
+    for name, solid in export_map.items():
+        cq.exporters.export(solid, str(output / f"{name}.step"))
+
+    # The pump reference envelope and local cradle are included in the development
+    # assembly solely for package review. Port and service-clearance solids are
+    # reservations/references and are not assembly material.
+    shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
+    shapes.extend(
+        (
+            fresh_water_pump.package_reference_solid.val(),
+            fresh_water_pump.support_cradle_solid.val(),
+        )
+    )
+    compound = cq.Compound.makeCompound(shapes)
+    cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
+
+    checks = run_assertions(model)
+    contact_framework = build_contact_simulation_framework(model.authority, attachment)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -86,6 +126,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
         },
+        "digital_geometry": {
+            "realized_fresh_water_pump": fresh_water_pump.manifest(),
+            "realized_fresh_water_pump_manifest_sha256": fresh_water_pump.manifest_sha256,
+        },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
@@ -95,6 +139,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
+            "The fresh-water pump is a provisional Cell 4 fit/collision reference envelope with local drainable cradle, "
+            "port datums and service-clearance reservation only. The upstream architecture still has no selected pump "
+            "candidate, package evidence, tubing ID, bend radius or connector standard. No flow, pressure, metering, "
+            "priming, orientation, leakage, acoustic, durability, runtime or physical service performance is established. "
             "Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
