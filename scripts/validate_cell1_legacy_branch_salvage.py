@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Validate Cell 1 legacy-branch salvage dispositions.
 
-This is a release-control validator, not product or physical evidence. It prevents a stale
-branch or stale producer binding from being promoted to MERGEABLE merely because GitHub
-can mechanically merge it.
+This is a release-control validator, not product or physical evidence. It prevents a stale,
+self-certified, or otherwise non-release-safe source binding from being promoted to
+MERGEABLE merely because GitHub can mechanically merge it or two recorded SHAs match.
 """
 from __future__ import annotations
 
@@ -94,6 +94,7 @@ def validate_salvage_map(data: dict[str, Any]) -> None:
         bindings = entry.get("source_bindings")
         _require(type(bindings) is list, f"PR #{pr} source_bindings must be a list")
         stale_geometry_bindings = 0
+        unsafe_bindings = 0
         for index, binding in enumerate(bindings):
             _require(type(binding) is dict, f"PR #{pr} source binding {index} must be an object")
             producer = _nonblank(binding.get("producer"), f"PR #{pr} source binding {index} producer")
@@ -103,11 +104,16 @@ def validate_salvage_map(data: dict[str, Any]) -> None:
             geometry_dependency = binding.get("geometry_dependency")
             _require(type(geometry_dependency) is bool, f"PR #{pr} {producer} geometry_dependency must be boolean")
             digest_status = _nonblank(binding.get("digest_status"), f"PR #{pr} {producer} digest_status")
+            release_safe = binding.get("release_safe")
+            _require(type(release_safe) is bool, f"PR #{pr} {producer} release_safe must be boolean")
+            if not release_safe:
+                unsafe_bindings += 1
 
             if observed == required:
                 _require(status != "STALE", f"PR #{pr} {producer} cannot be stale when exact SHAs match")
             else:
                 _require(status == "STALE", f"PR #{pr} {producer} mismatched SHAs must be marked STALE")
+                _require(not release_safe, f"PR #{pr} {producer} mismatched SHAs cannot be release-safe")
                 if geometry_dependency:
                     stale_geometry_bindings += 1
                     _require("RECOMPUTE" in digest_status, f"PR #{pr} stale geometry source {producer} must explicitly require digest recomputation")
@@ -129,7 +135,9 @@ def validate_salvage_map(data: dict[str, Any]) -> None:
 
         if classification == "MERGEABLE":
             _require(base_sha == reconstructed_main, f"PR #{pr} cannot be MERGEABLE from a stale main base")
+            _require(bindings, f"PR #{pr} cannot be MERGEABLE without explicit source bindings")
             _require(stale_geometry_bindings == 0, f"PR #{pr} cannot be MERGEABLE with stale geometry bindings")
+            _require(unsafe_bindings == 0, f"PR #{pr} cannot be MERGEABLE with non-release-safe source bindings")
             _require(conclusion == "SUCCESS", f"PR #{pr} cannot be MERGEABLE without successful exact-head CI")
             _require(independent_review == "APPROVED", f"PR #{pr} cannot be MERGEABLE without independent approval")
             _require(not blockers, f"PR #{pr} cannot be MERGEABLE with open blockers")
