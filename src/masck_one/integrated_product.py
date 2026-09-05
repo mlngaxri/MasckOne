@@ -9,7 +9,11 @@ protected volumes and digital topology remain owned by their existing lanes.
 from dataclasses import replace
 
 from .authority import Authority, load_authority
-from .exterior_surface import build_refined_exterior_shell, exterior_surface_manifest
+from .exterior_construction import (
+    build_constructed_exterior_shell,
+    exterior_construction_manifest,
+)
+from .exterior_surface import exterior_surface_manifest
 from .model import Component, MasckOneModel, build_model
 
 
@@ -21,12 +25,16 @@ def build_mvp_product_candidate(authority: Authority | None = None) -> MasckOneM
     baseline = build_model(authority)
     refined_shell = Component(
         name="rigid_shell",
-        solid=build_refined_exterior_shell(baseline.authority, baseline.facial_reference),
+        solid=build_constructed_exterior_shell(
+            baseline.authority,
+            baseline.facial_reference,
+        ),
         status=MVP_EXTERIOR_STATUS,
         notes=(
-            "Cell 2 five-station smooth non-ruled exterior. Protected apertures and nominal "
-            "wall remain authority-derived. Fit, comfort, seal, cleanability, Class-A, tooling "
-            "and CMF durability remain unvalidated."
+            "Cell 2 five-station smooth exterior with tightened cheek/temple mass and "
+            "localized rear B-side wall reserve. Protected apertures and wall requirements "
+            "remain authority-derived. Fit, comfort, seal, cleanability, tooling and CMF "
+            "durability remain unvalidated."
         ),
     )
     return replace(baseline, shell=refined_shell)
@@ -35,7 +43,10 @@ def build_mvp_product_candidate(authority: Authority | None = None) -> MasckOneM
 def integrated_exterior_manifest(authority: Authority | None = None) -> dict[str, object]:
     authority = authority or load_authority()
     manifest = dict(exterior_surface_manifest(authority))
+    manifest["final_shell_construction"] = exterior_construction_manifest(authority)
     manifest["integration_status"] = MVP_EXTERIOR_STATUS
-    manifest["integration_policy"] = "CURRENT_MAIN_COMPONENT_SET_PRESERVED_EXCEPT_RIGID_SHELL"
+    manifest["integration_policy"] = (
+        "CURRENT_MAIN_COMPONENT_SET_PRESERVED_EXCEPT_RIGID_SHELL"
+    )
     manifest["foreign_lane_geometry_modified"] = False
     return manifest
