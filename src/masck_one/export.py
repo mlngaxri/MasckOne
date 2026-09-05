@@ -13,7 +13,9 @@ from .boundary_release import (
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
+from .occipital_stabilizer import build_occipital_stabilizer, export_occipital_stabilizer
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
+from .retention_fit_adjustment import build_retention_fit_adjustment, export_retention_fit_adjustment
 from .structural_frame import build_structural_frame_topology
 
 
@@ -38,6 +40,18 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
 
+    occipital = build_occipital_stabilizer(model.authority, model)
+    occipital_artifact_paths = export_occipital_stabilizer(output, occipital)
+    occipital_step_files = sorted(
+        path.name for path in occipital_artifact_paths if path.suffix.lower() in {".step", ".stp"}
+    )
+
+    fit_adjustment = build_retention_fit_adjustment(model.authority, model, occipital)
+    fit_artifact_paths = export_retention_fit_adjustment(output, fit_adjustment)
+    fit_step_files = sorted(
+        path.name for path in fit_artifact_paths if path.suffix.lower() in {".step", ".stp"}
+    )
+
     export_map = {
         "rigid_shell": model.shell.solid,
         "nasal_lobe_membrane_reference": model.nasal_interface.solid,
@@ -51,6 +65,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
+    # The occipital yokes and fit-adjustment successor remain standalone mechanism
+    # review geometry. The frame-side positive-capture / adjustment-housing load path is
+    # still unresolved, so inserting either into the assembly compound would imply an
+    # attachment that does not yet exist.
     shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
     compound = cq.Compound.makeCompound(shapes)
     cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
@@ -85,17 +103,33 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
+            "occipital_stabilizer": occipital.manifest(),
+            "retention_fit_adjustment": fit_adjustment.manifest(),
         },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "exported_step_files": (
+            [f"{name}.step" for name in export_map]
+            + occipital_step_files
+            + fit_step_files
+            + ["masck_one_development_assembly.step"]
+        ),
+        "mechanism_artifacts": [path.name for path in occipital_artifact_paths]
+        + [path.name for path in fit_artifact_paths],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "The paired occipital yokes are retained as exact source/provenance artifacts. Their fit-adjustment successor "
+            "adds only a package-constrained indexed +/-2 mm root mechanism with permanent stop-pin travel bounds and an "
+            "unworn/unpowered index-pin service sequence. Neither source nor successor is inserted into the development "
+            "assembly until a frame-side positive-capture / housing load path is realized. The adjustment range is not an "
+            "anthropometric or universal-fit claim and does not establish fit, comfort, preload, contact pressure, hair "
+            "interaction, structural capacity, fatigue, wear, jam resistance or physical retention performance. Crown "
+            "support remains a separate reserved interface corridor. Digital topology/manifests and analysis frameworks "
+            "are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
