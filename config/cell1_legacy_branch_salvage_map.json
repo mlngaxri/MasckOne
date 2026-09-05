@@ -38,7 +38,8 @@
           "observed_sha": "2348fd74e63870f707bb8ce7a9f96a0c4d83d916",
           "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
           "status": "STALE",
-          "digest_status": "RECOMPUTE_ALL_RELEASE_FACING_GEOMETRY_DIGESTS_AFTER_REBIND"
+          "digest_status": "RECOMPUTE_ALL_RELEASE_FACING_GEOMETRY_DIGESTS_AFTER_REBIND",
+          "release_safe": false
         }
       ],
       "exact_head_ci": {
@@ -78,7 +79,8 @@
           "observed_sha": "b2c2d2d94972e4615e281e86e2feddaaa3c4e0c8",
           "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
           "status": "STALE",
-          "digest_status": "RECOMPUTE_MECHANICAL_REALIZATION_AND_RELEASE_MANIFEST_DIGESTS_AFTER_REBIND"
+          "digest_status": "RECOMPUTE_MECHANICAL_REALIZATION_AND_RELEASE_MANIFEST_DIGESTS_AFTER_REBIND",
+          "release_safe": false
         }
       ],
       "exact_head_ci": {
@@ -120,7 +122,8 @@
           "observed_sha": "b2c2d2d94972e4615e281e86e2feddaaa3c4e0c8",
           "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
           "status": "STALE",
-          "digest_status": "RECOMPUTE_RELEASE_FACING_INTEGRATION_DIGEST_AFTER_MAIN_REBIND"
+          "digest_status": "RECOMPUTE_RELEASE_FACING_INTEGRATION_DIGEST_AFTER_MAIN_REBIND",
+          "release_safe": false
         },
         {
           "producer": "MANUAL_A_PR_63_V1_AUTHORED_SOURCE",
@@ -128,7 +131,8 @@
           "observed_sha": "d49966019e03132edd95d0ad8a390d285a0740c7",
           "required_sha": "23b942bbb7f335eac74b42fa1b1613900e5a9347",
           "status": "STALE",
-          "digest_status": "STALE_DIGEST_INVALID_FOR_CURRENT_PRODUCER_RECOMPUTE_AFTER_REBIND"
+          "digest_status": "STALE_DIGEST_INVALID_FOR_CURRENT_PRODUCER_RECOMPUTE_AFTER_REBIND",
+          "release_safe": false
         },
         {
           "producer": "MANUAL_A_PR_63_V2_INTEGRATION_SOURCE",
@@ -136,7 +140,8 @@
           "observed_sha": "4ac8e04cd73e7cc496a381edffd29ca18cf8daf5",
           "required_sha": "23b942bbb7f335eac74b42fa1b1613900e5a9347",
           "status": "STALE",
-          "digest_status": "RUNTIME_MANUAL_A_REALIZATION_SHA256_FROM_STALE_SOURCE_MUST_BE_RECOMPUTED_ON_REQUIRED_HEAD"
+          "digest_status": "RUNTIME_MANUAL_A_REALIZATION_SHA256_FROM_STALE_SOURCE_MUST_BE_RECOMPUTED_ON_REQUIRED_HEAD",
+          "release_safe": false
         }
       ],
       "exact_head_ci": {
@@ -220,7 +225,8 @@
           "observed_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
           "required_sha": "5fce2a43a34d8be49256677a35af60c906dc1653",
           "status": "CURRENT_EXACT_BASE",
-          "digest_status": "CURRENT_RELEASE_LINEAGE_EXACT"
+          "digest_status": "CURRENT_RELEASE_LINEAGE_EXACT",
+          "release_safe": true
         },
         {
           "producer": "PR_67_ROUTING_TOPOLOGY_ORIGIN",
@@ -228,7 +234,8 @@
           "observed_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
           "required_sha": "8a5f7b60edaea36f9cfcd33770375127d1e70e65",
           "status": "EXACT_SHA_SELF_CERTIFIED_NOT_CURRENT_OBJECT_BOUND",
-          "digest_status": "CURRENT_ROUTING_OBJECT_OR_DETERMINISTIC_DIGEST_BINDING_REQUIRED"
+          "digest_status": "CURRENT_ROUTING_OBJECT_OR_DETERMINISTIC_DIGEST_BINDING_REQUIRED",
+          "release_safe": false
         }
       ],
       "exact_head_ci": {
