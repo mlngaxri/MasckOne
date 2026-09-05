@@ -2,10 +2,9 @@ from __future__ import annotations
 
 """Cell 2 controlled exterior-shell geometry for Masck One.
 
-This module owns only the visible rigid exterior form. It uses stable profile points,
-controlled Z stations, a smooth non-ruled side loft and an interpolated anterior crown
-instead of face/edge indexing. The surface is a digital MVP exterior candidate, not
-production Class-A, tooling, fit, comfort, seal, cleanability or CMF durability evidence.
+The module owns only visible rigid exterior form. Geometry is deterministic digital
+MVP evidence, not production Class-A, tooling, fit, comfort, seal, cleanability or
+CMF-durability evidence.
 """
 
 import math
@@ -18,17 +17,14 @@ from .authority import Authority
 
 EXTERIOR_Z_STATIONS_MM = (0.0, 4.5, 10.0, 16.0, 22.0)
 
-# Depth is carried by the side body rather than by a crown on a constant-depth slab.
-# The widest/tallest station is intentionally interior to the loft; the anterior
-# perimeter then tapers back before the compound crown. This creates a calm lens-like
-# side/top silhouette without growing the frozen authority XY envelope.
+# Peak side mass occurs before the anterior perimeter, so depth participates in the
+# product body instead of reading as a shallow crown placed on a parallel-sided slab.
 EXTERIOR_SCALE_X = (1.000, 1.030, 1.045, 1.050, 1.015)
 EXTERIOR_SCALE_Y = (0.991, 1.005, 1.019, 1.029, 1.004)
 
 # Normalized wearer-right half profile, superior to inferior. The profile is mirrored
-# about X=0. The upper field stays broad, while jaw/chin mass reduces continuously.
-# The lower transition is deliberately broad enough to keep the authority-sized waste
-# cartridge inside the shell cavity rather than intersecting perimeter material.
+# about X=0. Lower-face points retain a tapered jaw but broaden the cartridge band,
+# then use one extra near-chin control to avoid a hard robotic lower termination.
 PROFILE_RIGHT = (
     (0.00, 1.000),
     (0.52, 0.985),
@@ -41,18 +37,13 @@ PROFILE_RIGHT = (
     (0.85, -0.480),
     (0.74, -0.700),
     (0.64, -0.880),
-    (0.51, -0.985),
+    (0.52, -0.985),
+    (0.28, -0.996),
     (0.00, -1.000),
 )
 
-# The wearer-side cavity extends slightly behind the development plane so the rigid
-# shell stays open and recessive on the wearer side.
 INNER_WEARER_SIDE_OFFSET_MM = -0.6
 
-# The five-station side body terminates at Z=22 mm. A broad shallow interpolated crown
-# closes that open anterior perimeter and removes the prototype-like planar facial plate.
-# The 0.10 mm join overlap is a numerical Boolean construction allowance only. It is
-# not a product seam, tolerance, manufacturing allowance or physical validation value.
 ANTERIOR_CROWN_HEIGHT_MM = 5.8
 ANTERIOR_CROWN_JOIN_OVERLAP_MM = 0.10
 ANTERIOR_CAVITY_CUT_THROUGH_MM = 1.0
@@ -65,9 +56,6 @@ ANTERIOR_CROWN_SAMPLE_Y_NORM = (-0.36, -0.24, -0.12, 0.0, 0.12, 0.24, 0.36)
 ANTERIOR_CROWN_RELIEF_MIN_MM = 5.2
 ANTERIOR_CROWN_RELIEF_MAX_MM = 6.4
 
-# Small compound-shape amplitudes remove a single nose-like dome peak while preserving
-# one broad facial field. Positions are derived from live facial landmarks and widths
-# scale from the current outer profile. These are Cell 2 digital form parameters only.
 ANTERIOR_BROW_CHEEK_LIFT_MM = 0.55
 ANTERIOR_NASAL_VALLEY_MM = 1.05
 ANTERIOR_LOWER_FACE_LIFT_MM = 0.42
@@ -94,7 +82,6 @@ def _add_profile(wp: cq.Workplane, width: float, height: float) -> cq.Workplane:
 
 
 def _profile_loft(sections: tuple[tuple[float, float, float], ...]) -> cq.Workplane:
-    """Build one smooth non-ruled loft through controlled facial-profile stations."""
     if len(sections) < 4:
         raise ValueError("Exterior surface requires at least four authored stations")
     z0, w0, h0 = sections[0]
@@ -135,7 +122,7 @@ def _nostril_diameter(authority: Authority) -> float:
 
 
 def exterior_sections(authority: Authority) -> tuple[tuple[float, float, float], ...]:
-    """Return the authority-bounded outer station set used by the side body."""
+    """Return the authority-bounded side-body station set."""
     outer_w, outer_h = authority.pair("geometry", "outer_xy_envelope_mm")
     frame_w, frame_h = authority.pair("geometry", "functional_frame_xy_mm")
     widths = tuple(min(outer_w, frame_w * scale) for scale in EXTERIOR_SCALE_X)
@@ -149,7 +136,6 @@ def anterior_crown_boundary_z_mm(authority: Authority) -> float:
 
 
 def anterior_crown_inner_min_z_mm(authority: Authority) -> float:
-    """Conservative Z start of new crown material for package-clearance regressions."""
     wall = authority.number("geometry", "shell_nominal_wall_mm")
     return anterior_crown_boundary_z_mm(authority) - wall
 
@@ -198,8 +184,8 @@ def _anterior_crown_constraints(
                 lower_face = ANTERIOR_LOWER_FACE_LIFT_MM * math.exp(
                     -(x / lower_spread_x) ** 2 - ((y - mouth_y) / lower_spread_y) ** 2
                 )
-                z = boundary_z + base + brow_cheek + nasal_valley + lower_face
-                points.append((x, y, z))
+                points.append((x, y, boundary_z + base + brow_cheek + nasal_valley + lower_face))
+
     if len(points) < 12:
         raise ValueError("Anterior crown requires a stable interior constraint field")
     return tuple(points)
@@ -241,8 +227,6 @@ def build_refined_exterior_shell(
     wall = authority.number("geometry", "shell_nominal_wall_mm")
     outer_sections = exterior_sections(authority)
 
-    # Cut the side-body cavity through the anterior station. This removes the previous
-    # planar facial cap instead of thickening or wrapping the shell around package space.
     inner_sections: list[tuple[float, float, float]] = []
     final_index = len(outer_sections) - 1
     for index, (z, width, height) in enumerate(outer_sections):
@@ -300,7 +284,7 @@ def build_refined_exterior_shell(
 
 
 def exterior_surface_manifest(authority: Authority) -> dict[str, object]:
-    """Deterministic handoff values without promoting physical validation claims."""
+    """Deterministic handoff values without promoting physical-validation claims."""
     sections = exterior_sections(authority)
     return {
         "schema": "MASCK_ONE_CELL2_EXTERIOR_SURFACE_V2",
