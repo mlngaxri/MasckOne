@@ -2,9 +2,11 @@ from dataclasses import replace
 
 import pytest
 
+import masck_one.structural_frame_dfm as frame_dfm
 from masck_one.structural_frame_dfm import (
     AUTHORITY_BLOB_SHA,
     REQUIREMENT_IDS,
+    SOURCE_GIT_BLOB_IDENTITIES,
     SOURCE_MAIN_SHA,
     StructuralFrameDfmError,
     build_structural_frame_dfm_audit,
@@ -20,6 +22,26 @@ def test_current_main_frame_is_fail_closed_at_topology_only_maturity():
     assert audit.physical_validation_eligible is False
     assert tuple(item.requirement_id for item in audit.requirements) == REQUIREMENT_IDS
     assert set(audit.manifest()["blocking_requirement_ids"]) == set(REQUIREMENT_IDS)
+
+
+def test_frame_dfm_binds_exact_released_source_blob_graph():
+    audit = build_structural_frame_dfm_audit()
+    manifest_pairs = tuple(
+        (item["path"], item["git_blob_sha"])
+        for item in audit.manifest()["source_git_blob_identities"]
+    )
+    assert manifest_pairs == SOURCE_GIT_BLOB_IDENTITIES
+    assert len(SOURCE_GIT_BLOB_IDENTITIES) >= 10
+    assert len({path for path, _ in SOURCE_GIT_BLOB_IDENTITIES}) == len(SOURCE_GIT_BLOB_IDENTITIES)
+    assert all(len(blob_sha) == 40 for _, blob_sha in SOURCE_GIT_BLOB_IDENTITIES)
+
+
+def test_source_blob_mismatch_fails_closed(monkeypatch):
+    path, _ = SOURCE_GIT_BLOB_IDENTITIES[0]
+    moved = ((path, "0" * 40),) + SOURCE_GIT_BLOB_IDENTITIES[1:]
+    monkeypatch.setattr(frame_dfm, "SOURCE_GIT_BLOB_IDENTITIES", moved)
+    with pytest.raises(StructuralFrameDfmError, match="structural DFM source moved"):
+        build_structural_frame_dfm_audit()
 
 
 def test_frame_dfm_carries_only_authority_manufacturing_rules():
