@@ -4,6 +4,7 @@ import pytest
 from masck_one.anatomy import build_facial_reference
 from masck_one.authority import load_authority
 from masck_one.exterior_eye_roll import (
+    EYE_ROLL_MAX_ADDED_VOLUME_MM3,
     EYE_ROLL_SUPPORT_BAND_MM,
     EYE_ROLL_SUPPORT_DEPTH_RESERVE_MM,
     SCHEMA,
@@ -82,15 +83,22 @@ def _bbox_values(edge: cq.Edge) -> tuple[float, float, float, float, float, floa
 def test_eye_roll_manifest_consumes_authority_radius_without_visible_bezel():
     authority = load_authority()
     manifest = eye_inner_roll_manifest(authority)
+    radius = authority.number("geometry", "eye", "inner_edge_roll_radius_mm")
+    wall = authority.number("geometry", "shell_nominal_wall_mm")
     assert manifest["schema"] == SCHEMA
-    assert manifest["radius_mm"] == authority.number(
-        "geometry", "eye", "inner_edge_roll_radius_mm"
-    )
+    assert manifest["radius_mm"] == radius
     assert manifest["visual_aperture_wh_mm"] == list(
         authority.pair("geometry", "eye", "visual_aperture_wh_mm")
     )
     assert manifest["support_band_mm"] == EYE_ROLL_SUPPORT_BAND_MM
     assert manifest["support_depth_reserve_mm"] == EYE_ROLL_SUPPORT_DEPTH_RESERVE_MM
+    assert manifest["supported_local_depth_mm"] == pytest.approx(
+        max(wall, radius + EYE_ROLL_SUPPORT_DEPTH_RESERVE_MM)
+    )
+    assert manifest["hidden_added_depth_mm"] == pytest.approx(
+        manifest["supported_local_depth_mm"] - wall
+    )
+    assert manifest["max_added_volume_mm3"] == EYE_ROLL_MAX_ADDED_VOLUME_MM3
     assert manifest["support_location"] == "WEARER_SIDE_ONLY_BEHIND_EXISTING_A_SURFACE"
     assert manifest["visible_bezel_added"] is False
     assert manifest["external_a_surface_modified_by_support"] is False
@@ -100,7 +108,9 @@ def test_final_brep_eye_roll_preserves_outer_bounds_and_exact_visual_edge(rolled
     authority, facial_reference, baseline, rolled = rolled_geometry
     assert rolled.isValid()
     assert len(rolled.Solids()) == 1
-    assert float(rolled.Volume()) > float(baseline.Volume())
+    added_volume = float(rolled.Volume()) - float(baseline.Volume())
+    assert added_volume > 0.0
+    assert added_volume <= EYE_ROLL_MAX_ADDED_VOLUME_MM3
 
     baseline_bb = baseline.BoundingBox()
     rolled_bb = rolled.BoundingBox()
@@ -147,7 +157,7 @@ def test_final_brep_eye_roll_preserves_outer_bounds_and_exact_visual_edge(rolled
             assert current == pytest.approx(previous, abs=VISUAL_EDGE_TOLERANCE_MM)
 
         # The rolled geometry gains a posterior transition edge while keeping the visual
-        # opening fixed.  This protects against accidentally moving the controlled A-side
+        # opening fixed. This protects against accidentally moving the controlled A-side
         # aperture or substituting a raised exterior bezel.
         rolled_wearer = min(rolled_edges, key=_mean_z)
         assert _mean_z(rolled_wearer) < _mean_z(rolled_visual)
