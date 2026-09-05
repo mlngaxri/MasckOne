@@ -126,7 +126,7 @@ class VisualInspectionReport:
     def manifest(self, *, include_sha: bool = True) -> dict[str, object]:
         payload: dict[str, object] = {
             "schema": _SCHEMA,
-            "coordinate_frame": "MASCK_ONE_CANONICAL_WORLD_X_WEARER_RIGHT_Y_SUPERIOR_Z_ANTERIOR",
+            "coordinate_frame": "MASCK_ONE_AUTHORITY_WORLD_MM",
             "source_sample_manifest_sha256": self.source_sample_manifest_sha256,
             "views": [view.manifest() for view in self.views],
             "evidence_status": self.evidence_status,

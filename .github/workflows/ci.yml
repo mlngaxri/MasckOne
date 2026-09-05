@@ -35,6 +35,9 @@ jobs:
       - name: Validate engineering authority contract
         run: python -m masck_one.authority
 
+      - name: Cross-system datum and frame audit
+        run: python -m masck_one.frame_audit
+
       - name: Repository preflight
         run: python -m masck_one.preflight
 
