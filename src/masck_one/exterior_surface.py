@@ -17,12 +17,18 @@ from .authority import Authority
 
 
 EXTERIOR_Z_STATIONS_MM = (0.0, 4.5, 10.0, 16.0, 22.0)
-EXTERIOR_SCALE_X = (1.000, 1.010, 1.022, 1.030, 1.034)
-EXTERIOR_SCALE_Y = (1.000, 1.006, 1.014, 1.020, 1.024)
+
+# Depth is carried by the side body rather than by a crown on a constant-depth slab.
+# The widest/tallest station is intentionally interior to the loft; the anterior
+# perimeter then tapers back before the compound crown. This creates a calm lens-like
+# side/top silhouette without growing the frozen authority XY envelope.
+EXTERIOR_SCALE_X = (1.000, 1.030, 1.045, 1.050, 1.015)
+EXTERIOR_SCALE_Y = (0.991, 1.005, 1.019, 1.029, 1.004)
 
 # Normalized wearer-right half profile, superior to inferior. The profile is mirrored
 # about X=0. The upper field stays broad, while jaw/chin mass reduces continuously.
-# This deliberately rejects the released generic ellipse / late-flare visual language.
+# The lower transition is deliberately broad enough to keep the authority-sized waste
+# cartridge inside the shell cavity rather than intersecting perimeter material.
 PROFILE_RIGHT = (
     (0.00, 1.000),
     (0.52, 0.985),
@@ -34,8 +40,8 @@ PROFILE_RIGHT = (
     (0.91, -0.240),
     (0.85, -0.480),
     (0.74, -0.700),
-    (0.56, -0.880),
-    (0.30, -0.985),
+    (0.64, -0.880),
+    (0.51, -0.985),
     (0.00, -1.000),
 )
 
@@ -323,7 +329,7 @@ def exterior_surface_manifest(authority: Authority) -> dict[str, object]:
         "design_intent": {
             "facial_field": "broad_continuous_low_gradient_compound_crown",
             "perimeter": "broad_temples_tapered_jaw_soft_chin",
-            "side_mass": "laterally_blended_not_podded",
+            "side_mass": "midbody_fullness_with_anterior_perimeter_taper_not_podded",
             "rear_mass": "close_and_recessive",
             "nasal_read": "recessive_not_respirator",
             "visible_feature_count": "minimal",
