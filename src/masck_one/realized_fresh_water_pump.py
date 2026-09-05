@@ -1,10 +1,11 @@
-"""Source-bound provisional fresh-water pump package realization.
+"""Source-bound fresh-water pump packaging realization.
 
-This layer realizes a deterministic Cell 4 reference envelope, local support cradle,
-port datums and service-clearance reservation for the controlled fresh-water pump
-station. It does not select a supplier pump, tubing, connector, material, flow curve,
-pressure capability, metering performance, priming behavior, acoustic behavior,
-orientation capability, durability or physical service performance.
+The controlled Iteration-22 architecture intentionally does not select a production
+pump. This layer therefore realizes a conservative digital screening envelope that
+bounds three current official supplier-body references, plus provisional local port,
+support and service geometry. Supplier references remain screening evidence only and
+cannot promote a package selection, hydraulic performance, electrical performance or
+physical service validation.
 """
 from __future__ import annotations
 
@@ -41,44 +42,110 @@ from .water_reservoir import (
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 AUTHORED_AGAINST_MAIN_SHA = "628ec5f5766937433b1bdf8f30edc372924cf41e"
 SOURCE_FRESH_PUMP_ARCHITECTURE_BLOB_SHA = "40cb6fb4c3efbfcf25ed0b7d7a75a4269d90a1b4"
-SCHEMA = "MASCK_ONE_CELL4_REALIZED_FRESH_WATER_PUMP_V1"
+SCHEMA = "MASCK_ONE_CELL4_REALIZED_FRESH_WATER_PUMP_V2"
 
-REFERENCE_PACKAGE_ID = "PUMP-STATION-WATER-CELL4-PROVISIONAL-REFERENCE"
+# Official supplier pages observed 2026-09-05. These records capture only published
+# body dimensions needed for package screening. They are not a supplier down-select,
+# purchase specification, performance acceptance, connector definition or qualification.
+SUPPLIER_SCREENING_REFERENCES: tuple[dict[str, object], ...] = (
+    {
+        "reference_id": "BARTELS_BP7_BODY_SCREEN_2026-09-05",
+        "manufacturer": "Bartels Mikrotechnik",
+        "model_family": "The Bartels Pump | BP7",
+        "body_envelope_xyz_mm": [30.0, 15.0, 3.8],
+        "source_type": "OFFICIAL_PRODUCT_PAGE",
+        "source_url": "https://bartels-mikrotechnik.de/product/the-bartels-pump-bp7-piezo-pump/",
+        "observed_date": "2026-09-05",
+        "selection_status": "SCREENING_REFERENCE_ONLY_NOT_SELECTED",
+    },
+    {
+        "reference_id": "TAKASAGO_SDMP302_306_BODY_SCREEN_2026-09-05",
+        "manufacturer": "Takasago Fluidic Systems",
+        "model_family": "SDMP302 / SDMP306 standard series",
+        "body_envelope_xyz_mm": [25.0, 25.0, 4.8],
+        "source_type": "OFFICIAL_PRODUCT_PAGE",
+        "source_url": "https://www.takasago-fluidics.com/products/sdmp-s",
+        "observed_date": "2026-09-05",
+        "selection_status": "SCREENING_REFERENCE_ONLY_NOT_SELECTED",
+    },
+    {
+        "reference_id": "TAKASAGO_SDMP302D_306D_BODY_SCREEN_2026-09-05",
+        "manufacturer": "Takasago Fluidic Systems",
+        "model_family": "SDMP302D / SDMP306D built-in driver series",
+        "body_envelope_xyz_mm": [25.0, 25.0, 8.2],
+        "source_type": "OFFICIAL_PRODUCT_PAGE",
+        "source_url": "https://www.takasago-fluidics.com/products/sdmp-d",
+        "observed_date": "2026-09-05",
+        "selection_status": "SCREENING_REFERENCE_ONLY_NOT_SELECTED",
+    },
+)
+
+
+def _supplier_screening_record_sha256() -> str:
+    raw = json.dumps(
+        SUPPLIER_SCREENING_REFERENCES,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return sha256(raw).hexdigest()
+
+
+SUPPLIER_SCREENING_RECORD_SHA256 = _supplier_screening_record_sha256()
+SUPPLIER_SCREENING_RECORD_HASH_ROLE = (
+    "HASH_OF_NORMALIZED_CELL4_DIMENSIONAL_SCREENING_RECORD_NOT_VENDOR_DOCUMENT_HASH"
+)
+SUPPLIER_SCREENING_EVIDENCE_STATUS = (
+    "VERIFIED_OFFICIAL_BODY_DIMENSIONS_FOR_DIGITAL_SCREENING_ONLY_NOT_SUPPLIER_SELECTION"
+)
+
+REFERENCE_PACKAGE_ID = "PUMP-STATION-WATER-CELL4-SUPPLIER-FAMILY-SCREENING-ENVELOPE"
 INLET_DATUM_ID = "PUMP-STATION-WATER-INLET-DATUM-CELL4"
 OUTLET_DATUM_ID = INTERFACE_WATER_PUMP_OUTLET
 PORT_DATUM_IDS = (INLET_DATUM_ID, OUTLET_DATUM_ID)
 
-PACKAGE_CENTER_WORLD_MM = (-25.5, 76.0, 7.0)
-PACKAGE_ENVELOPE_XYZ_MM = (12.0, 16.0, 6.0)
-PACKAGE_LONG_AXIS_WORLD = "+Y"
+# Componentwise bounding envelope for the three verified body references above.
+# This is deliberately larger than any single listed body in one or more axes and is
+# not presented as the dimensions of an actual pump.
+PACKAGE_CENTER_WORLD_MM = (-46.0, -10.0, 7.0)
+PACKAGE_ENVELOPE_XYZ_MM = (30.0, 25.0, 8.2)
+PACKAGE_LONG_AXIS_WORLD = "+X"
 PACKAGE_CLEARANCE_RESERVATION_MM = 2.0
 
+# Port coordinates remain provisional Cell 4 interface datums. The supplier pages do
+# not establish one common connector geometry across all screening references.
 PORT_LUMEN_DIAMETER_SEED_MM = 2.0
 PORT_RESERVATION_DIAMETER_MM = 4.0
 PORT_RESERVATION_PROJECTION_MM = 2.0
-INLET_CENTER_WORLD_MM = (-19.5, 79.0, 7.0)
-OUTLET_CENTER_WORLD_MM = (-19.5, 73.0, 7.0)
+INLET_CENTER_WORLD_MM = (-31.0, -7.0, 7.0)
+OUTLET_CENTER_WORLD_MM = (-31.0, -13.0, 7.0)
 PORT_AXIS_WORLD = (1.0, 0.0, 0.0)
 
-SUPPORT_BASE_XYZ_MM = (14.8, 18.0, 1.5)
-SUPPORT_BASE_CENTER_WORLD_MM = (-25.5, 76.0, 2.75)
-SUPPORT_RAIL_XYZ_MM = (1.0, 18.0, 7.0)
-SUPPORT_RAIL_CENTER_X_MM = (-32.4, -18.6)
-SUPPORT_RAIL_CENTER_Y_MM = 76.0
-SUPPORT_RAIL_CENTER_Z_MM = 6.0
+# Open-ended local cradle around the screening envelope. The base remains below the
+# package by a provisional 0.5 mm gap, and the side rails preserve 0.4 mm lateral gap.
+SUPPORT_BASE_XYZ_MM = (32.8, 27.0, 1.5)
+SUPPORT_BASE_CENTER_WORLD_MM = (-46.0, -10.0, 1.65)
+SUPPORT_RAIL_XYZ_MM = (1.0, 27.0, 8.2)
+SUPPORT_RAIL_CENTER_X_MM = (-61.9, -30.1)
+SUPPORT_RAIL_CENTER_Y_MM = -10.0
+SUPPORT_RAIL_CENTER_Z_MM = 6.5
 SUPPORT_PACKAGE_SIDE_GAP_SEED_MM = 0.4
 SUPPORT_PACKAGE_BASE_GAP_SEED_MM = 0.5
 SUPPORT_CAVITY_CLASSIFICATION = "WET_DRAINABLE"
 
-SERVICE_CLEARANCE_CENTER_WORLD_MM = (-24.5, 76.0, 7.0)
-SERVICE_CLEARANCE_XYZ_MM = (18.0, 20.0, 10.0)
+# Two-millimetre local package reservation around the complete supplier-family body
+# bounding envelope. This is a stationary assembly/service keepout, not a demonstrated
+# extraction trajectory.
+SERVICE_CLEARANCE_CENTER_WORLD_MM = PACKAGE_CENTER_WORLD_MM
+SERVICE_CLEARANCE_XYZ_MM = (34.0, 29.0, 12.2)
 SERVICE_CLEARANCE_BOUNDS_WORLD_MM = {
-    "x": (-33.5, -15.5),
-    "y": (66.0, 86.0),
-    "z": (2.0, 12.0),
+    "x": (-63.0, -29.0),
+    "y": (-24.5, 4.5),
+    "z": (0.9, 13.1),
 }
 
-REFERENCE_PACKAGE_STATUS = "CELL4_PROVISIONAL_DIGITAL_REFERENCE_ENVELOPE_NOT_SUPPLIER_SELECTED"
+REFERENCE_PACKAGE_STATUS = (
+    "VERIFIED_SUPPLIER_FAMILY_BODY_BOUNDING_ENVELOPE_NOT_SELECTED_PRODUCTION_PACKAGE"
+)
 PORT_STATUS = "PROVISIONAL_DATUM_AND_INTERFACE_RESERVATION_NOT_CONNECTOR_OR_TUBING_SELECTION"
 SUPPORT_STATUS = "PROVISIONAL_DRAINABLE_LOCAL_CRADLE_FRAME_JOIN_AND_RETENTION_UNRESOLVED"
 SERVICE_STATUS = "LOCAL_DIGITAL_CLEARANCE_RESERVED_REPLACEMENT_TRAJECTORY_UNRESOLVED"
@@ -225,9 +292,9 @@ class RealizedPumpPortDatum:
             raise RealizedFreshWaterPumpError("water-pump port center must be an exact 3-vector tuple")
         if type(self.axis_world) is not tuple or len(self.axis_world) != 3:
             raise RealizedFreshWaterPumpError("water-pump port axis must be an exact 3-vector tuple")
-        if not all(type(value) in (int, float) and math.isfinite(float(value)) for value in self.center_world_mm):
+        if not all(type(v) in (int, float) and math.isfinite(float(v)) for v in self.center_world_mm):
             raise RealizedFreshWaterPumpError("water-pump port center must contain finite numeric scalars")
-        if tuple(float(value) for value in self.axis_world) != PORT_AXIS_WORLD:
+        if tuple(float(v) for v in self.axis_world) != PORT_AXIS_WORLD:
             raise RealizedFreshWaterPumpError("water-pump provisional port axes must retain +X world direction")
         if not math.isclose(self.lumen_diameter_seed_mm, PORT_LUMEN_DIAMETER_SEED_MM, abs_tol=1e-12):
             raise RealizedFreshWaterPumpError("water-pump port lumen seed changed")
@@ -278,6 +345,7 @@ class RealizedFreshWaterPump:
     fluid_identity: str = FLUID_FRESH_WATER
     supplier_package_candidate_id: str | None = None
     supplier_package_evidence_sha256: str | None = None
+    supplier_screening_record_sha256: str = SUPPLIER_SCREENING_RECORD_SHA256
     support_cavity_classification: str = SUPPORT_CAVITY_CLASSIFICATION
     reference_package_status: str = REFERENCE_PACKAGE_STATUS
     support_status: str = SUPPORT_STATUS
@@ -295,7 +363,11 @@ class RealizedFreshWaterPump:
 
     @property
     def manifest_sha256(self) -> str:
-        raw = json.dumps(self.manifest(include_sha=False), sort_keys=True, separators=(",", ":")).encode("utf-8")
+        raw = json.dumps(
+            self.manifest(include_sha=False),
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
         return sha256(raw).hexdigest()
 
     def validate_invariants(self) -> None:
@@ -304,6 +376,7 @@ class RealizedFreshWaterPump:
         for value, label in (
             (self.source_fresh_pump_architecture_sha256, "fresh-pump architecture source"),
             (self.source_water_architecture_sha256, "water architecture source"),
+            (self.supplier_screening_record_sha256, "supplier screening record"),
         ):
             if type(value) is not str or _SHA256_RE.fullmatch(value) is None:
                 raise RealizedFreshWaterPumpError(f"{label} must be canonical lowercase SHA-256")
@@ -313,12 +386,14 @@ class RealizedFreshWaterPump:
         ):
             if type(value) is not str or _GIT_SHA_RE.fullmatch(value) is None:
                 raise RealizedFreshWaterPumpError(f"{label} must be exact lowercase 40-hex")
+        if self.supplier_screening_record_sha256 != SUPPLIER_SCREENING_RECORD_SHA256:
+            raise RealizedFreshWaterPumpError("supplier screening dimensional record changed")
         if self.station_id != STATION_WATER or self.fluid_identity != FLUID_FRESH_WATER:
             raise RealizedFreshWaterPumpError("realized package must remain the controlled FRESH_WATER pump station")
         if self.reference_package_id != REFERENCE_PACKAGE_ID:
             raise RealizedFreshWaterPumpError("realized water-pump reference package ID changed")
         if self.supplier_package_candidate_id is not None or self.supplier_package_evidence_sha256 is not None:
-            raise RealizedFreshWaterPumpError("provisional reference cannot imply a selected supplier package")
+            raise RealizedFreshWaterPumpError("screening reference cannot imply a selected supplier package")
         if self.support_cavity_classification != SUPPORT_CAVITY_CLASSIFICATION:
             raise RealizedFreshWaterPumpError("water-pump support cavity must remain WET_DRAINABLE")
         if self.reference_package_status != REFERENCE_PACKAGE_STATUS:
@@ -343,8 +418,9 @@ class RealizedFreshWaterPump:
             ("service clearance", self.service_clearance_solid),
         ):
             _one_valid_solid(shape, f"water pump {label}")
-        if not math.isclose(self.reference_envelope_volume_mm3, 1152.0, abs_tol=1e-8):
-            raise RealizedFreshWaterPumpError("provisional water-pump reference envelope changed")
+        expected_volume = math.prod(PACKAGE_ENVELOPE_XYZ_MM)
+        if not math.isclose(self.reference_envelope_volume_mm3, expected_volume, abs_tol=1e-8):
+            raise RealizedFreshWaterPumpError("supplier-family water-pump screening envelope changed")
         if _intersection_volume(self.package_reference_solid, self.support_cradle_solid) > 1e-7:
             raise RealizedFreshWaterPumpError("water-pump reference envelope overlaps support material")
         for shape in (
@@ -367,8 +443,8 @@ class RealizedFreshWaterPump:
             raise RealizedFreshWaterPumpError("realized water-pump package is stale for current fresh-pump architecture")
         if self.source_water_architecture_sha256 != sources.water.architecture_sha256:
             raise RealizedFreshWaterPumpError("realized water-pump package is stale for current water architecture")
-        station = architecture.stations[0]
-        if station.station_id != STATION_WATER or station.fluid_identity != FLUID_FRESH_WATER:
+        station = next((item for item in architecture.stations if item.station_id == STATION_WATER), None)
+        if station is None or station.fluid_identity != FLUID_FRESH_WATER:
             raise RealizedFreshWaterPumpError("current water-pump station identity changed")
         unresolved = (
             station.package_candidate_id,
@@ -382,7 +458,7 @@ class RealizedFreshWaterPump:
         )
         if any(value is not None for value in unresolved):
             raise RealizedFreshWaterPumpError(
-                "current source now carries supplier/package/routing selection; retire provisional Cell 4 reference"
+                "current source now carries supplier/package/routing selection; retire Cell 4 screening envelope"
             )
         return architecture
 
@@ -401,6 +477,13 @@ class RealizedFreshWaterPump:
             "reference_package_id": self.reference_package_id,
             "supplier_package_candidate_id": self.supplier_package_candidate_id,
             "supplier_package_evidence_sha256": self.supplier_package_evidence_sha256,
+            "supplier_screening": {
+                "record_sha256": self.supplier_screening_record_sha256,
+                "record_hash_role": SUPPLIER_SCREENING_RECORD_HASH_ROLE,
+                "evidence_status": SUPPLIER_SCREENING_EVIDENCE_STATUS,
+                "references": [dict(item) for item in SUPPLIER_SCREENING_REFERENCES],
+                "selection_status": "NO_SUPPLIER_PACKAGE_SELECTED",
+            },
             "reference_package": {
                 "center_world_mm": list(PACKAGE_CENTER_WORLD_MM),
                 "envelope_xyz_mm": list(PACKAGE_ENVELOPE_XYZ_MM),
@@ -408,6 +491,9 @@ class RealizedFreshWaterPump:
                 "geometric_envelope_volume_mm3": self.reference_envelope_volume_mm3,
                 "status": self.reference_package_status,
                 "evidence_role": "FIT_AND_COLLISION_REFERENCE_ONLY_NOT_SELECTED_PUMP_DIMENSIONS_OR_MASS",
+                "construction_role": (
+                    "COMPONENTWISE_BOUND_OF_VERIFIED_REFERENCE_BODIES_NOT_DIMENSIONS_OF_ONE_ACTUAL_PUMP"
+                ),
             },
             "ports": [item.manifest() for item in self.port_datums],
             "support": {
@@ -507,7 +593,7 @@ def build_realized_fresh_water_pump(sources: CurrentFreshPumpSources) -> Realize
             datum_id=INLET_DATUM_ID,
             route_id=ROUTE_WATER_SOURCE,
             fluid_identity=FLUID_FRESH_WATER,
-            role="SOURCE_TO_PUMP_REFERENCE_DATUM",
+            role="SOURCE_TO_PUMP_PROVISIONAL_INTERFACE_DATUM",
             source_interface_id=PORT_PICKUP,
             target_interface_id=STATION_WATER,
             center_world_mm=INLET_CENTER_WORLD_MM,
@@ -520,7 +606,7 @@ def build_realized_fresh_water_pump(sources: CurrentFreshPumpSources) -> Realize
             datum_id=OUTLET_DATUM_ID,
             route_id=ROUTE_WATER_MANIFOLD,
             fluid_identity=FLUID_FRESH_WATER,
-            role="PUMP_TO_MANIFOLD_REFERENCE_DATUM",
+            role="PUMP_TO_MANIFOLD_PROVISIONAL_INTERFACE_DATUM",
             source_interface_id=INTERFACE_WATER_PUMP_OUTLET,
             target_interface_id="MANIFOLD-INLET-WATER-I23",
             center_world_mm=OUTLET_CENTER_WORLD_MM,
@@ -549,5 +635,5 @@ def build_realized_fresh_water_pump(sources: CurrentFreshPumpSources) -> Realize
 
 
 def build_current_realized_fresh_water_pump() -> RealizedFreshWaterPump:
-    """Trusted release path that always reconstructs the current source graph."""
+    """Trusted path that always reconstructs the current repository source graph."""
     return build_realized_fresh_water_pump(build_current_fresh_pump_sources())
