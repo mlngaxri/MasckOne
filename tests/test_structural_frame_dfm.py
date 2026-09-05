@@ -78,6 +78,15 @@ def test_bool_coercion_cannot_promote_dfm_or_physical_readiness():
         replace(audit, physical_validation_eligible=0)
 
 
+def test_nonfinite_manufacturing_values_fail_closed():
+    audit = build_structural_frame_dfm_audit()
+    for bad_value in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(StructuralFrameDfmError, match="positive finite numeric"):
+            replace(audit, mold_draft_nominal_deg=bad_value)
+        with pytest.raises(StructuralFrameDfmError, match="finite increasing tuple"):
+            replace(audit, rib_thickness_ratio_range=(0.40, bad_value))
+
+
 def test_requirement_reordering_or_duplication_fails_closed():
     audit = build_structural_frame_dfm_audit()
     reordered = tuple(reversed(audit.requirements))
