@@ -70,6 +70,17 @@ def capacity_feasibility_metrics(*, model: MasckOneModel | None = None) -> dict[
     wall seed cannot meet the geometric requirement without an architecture change.
     """
     model = model or build_model()
+    wall = float(BODY_WALL_SEED_MM)
+    retained = float(RETAINED_CAPACITY_REQUIREMENT_ML)
+    if not math.isfinite(wall) or wall < 0.0:
+        raise WasteCartridgeDfmError("capacity feasibility wall seed must be finite and nonnegative")
+    if not math.isfinite(retained) or retained <= 0.0:
+        raise WasteCartridgeDfmError("capacity feasibility retained requirement must be finite and positive")
+    if any(not math.isfinite(float(value)) or float(value) <= 0.0 for value in PACKAGE_ENVELOPE_XYZ_MM):
+        raise WasteCartridgeDfmError("capacity feasibility package dimensions must be finite and positive")
+    if 2.0 * wall >= min(PACKAGE_ENVELOPE_XYZ_MM[0], PACKAGE_ENVELOPE_XYZ_MM[1]):
+        raise WasteCartridgeDfmError("capacity feasibility wall seed collapses the in-plane cavity")
+
     package = _box(PACKAGE_ENVELOPE_XYZ_MM, PACKAGE_CENTER_WORLD_MM)
     mouth_zone = model.protected_volumes.mouth.zone
     mouth_exact = _protected_prism(mouth_zone)
@@ -78,7 +89,6 @@ def capacity_feasibility_metrics(*, model: MasckOneModel | None = None) -> dict[
     protected_excluded_mL = float(package.val().intersect(mouth_exact.val()).Volume()) / 1000.0
     protected_compliant_upper_mL = package_volume_mL - protected_excluded_mL
 
-    wall = float(BODY_WALL_SEED_MM)
     zero_floor_lid_inner = _box(
         (
             PACKAGE_ENVELOPE_XYZ_MM[0] - 2.0 * wall,
@@ -91,7 +101,6 @@ def capacity_feasibility_metrics(*, model: MasckOneModel | None = None) -> dict[
     wall_seed_zero_floor_lid_upper_mL = (
         float(zero_floor_lid_inner.val().cut(mouth_wall.val()).Volume()) / 1000.0
     )
-    retained = float(RETAINED_CAPACITY_REQUIREMENT_ML)
     protected_margin_mL = protected_compliant_upper_mL - retained
     wall_seed_margin_mL = wall_seed_zero_floor_lid_upper_mL - retained
 
