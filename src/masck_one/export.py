@@ -14,6 +14,7 @@ from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .quantitative_ledger import build_current_quantitative_ledger
+from .quantitative_ledger_guard import validate_quantitative_ledger_arithmetic
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
@@ -77,6 +78,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
     quantitative_ledger = build_current_quantitative_ledger(authority=model.authority)
+    validate_quantitative_ledger_arithmetic(quantitative_ledger)
     quantitative_manifest = quantitative_ledger.manifest()
     with (output / "quantitative_ledger_v1.json").open("w", encoding="utf-8") as handle:
         json.dump(quantitative_manifest, handle, indent=2)
