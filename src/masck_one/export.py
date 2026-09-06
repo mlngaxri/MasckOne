@@ -16,10 +16,8 @@ from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
-from .whole_product_collision_matrix import (
-    build_whole_product_collision_matrix,
-    export_whole_product_collision_review,
-)
+from .whole_product_collision_matrix import export_whole_product_collision_review
+from .whole_product_collision_release import build_current_main_collision_release
 
 
 def _ensure_output_dir(path: str | Path) -> Path:
@@ -80,12 +78,19 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
 
-    collision_matrix = build_whole_product_collision_matrix(model)
+    collision_release = build_current_main_collision_release(model)
+    collision_matrix = collision_release.matrix
     collision_outputs = export_whole_product_collision_review(
         output,
         collision_matrix,
         model,
     )
+    collision_release_path = output / "whole_product_collision_release.json"
+    collision_release_path.write_text(
+        json.dumps(collision_release.manifest(), indent=2) + "\n",
+        encoding="utf-8",
+    )
+    collision_outputs = collision_outputs + (collision_release_path,)
     collision_step_names = [path.name for path in collision_outputs if path.suffix.lower() == ".step"]
 
     report = {
@@ -116,7 +121,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "integration_ledgers": {
-            "whole_product_collision_matrix_v2": collision_matrix.manifest(),
+            "whole_product_collision_release": collision_release.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
         "exported_step_files": [f"{name}.step" for name in export_map]
@@ -132,12 +137,13 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
             "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
             "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. The whole-product collision matrix separates exact finite B-rep checks, authority-derived "
+            "serviceability. The whole-product collision release separates exact finite B-rep checks, authority-derived "
             "protected hard-envelope checks, conservative route-service reservations and explicit blocked geometry. "
             "Finite package/reference overlap remains visible but is not mislabeled as realized-material interference. "
-            "Actuator sweep/carrier geometry and unresolved fresh route/manifold/distribution geometry fail closed in the "
-            "successor matrix rather than disappearing from whole-product collision truth. Digital topology/manifests "
-            "and analysis frameworks are not physical validation evidence."
+            "Actuator sweep/carrier, structural-frame material/join, storage/pump/barrier/cartridge realization, battery/"
+            "PCB/charging, WARM hardware and unresolved fresh route/manifold/distribution geometry fail closed rather "
+            "than disappearing from whole-product collision truth. The producer graph is exact-Git-blob bound to the "
+            "current released main. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
