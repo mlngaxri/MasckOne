@@ -50,7 +50,7 @@ PACKAGE_REFLOW_REQUIRED = "CELL4_DRY_SIDE_PACKAGE_REFLOW_REQUIRED_BEFORE_REAR_SK
 
 class RearServiceSkinError(ValueError):
     pass
-n
+
 
 def _box(size: tuple[float, float, float], center: tuple[float, float, float]) -> cq.Workplane:
     return cq.Workplane("XY").box(*size, centered=(True, True, True)).translate(center)
