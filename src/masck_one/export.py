@@ -13,6 +13,7 @@ from .boundary_release import (
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
+from .occipital_stabilizer import build_occipital_stabilizer, export_occipital_stabilizer
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
@@ -75,6 +76,14 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+
+    # Cell 8 occipital material is emitted as standalone candidate B-rep only. It is not
+    # inserted into the development assembly until Cell 6 realizes the frame-side positive
+    # root counterpart and the nonteleporting integration/service path is closed.
+    occipital = build_occipital_stabilizer(model.authority, model)
+    occipital_paths = export_occipital_stabilizer(output, occipital)
+    occipital_files = [path.name for path in occipital_paths]
+
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -95,6 +104,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
+            "occipital_stabilization": occipital.manifest(),
         },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
@@ -103,17 +113,31 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "standalone_candidate_material_exclusions": [
+            "OCCIPITAL_STABILIZER_LEFT_YOKE",
+            "OCCIPITAL_STABILIZER_RIGHT_YOKE",
+        ],
+        "reference_only_occipital_geometry": [
+            "occipital_central_rear_package_keepout_reference.step",
+            "occipital_crown_support_corridor_reference.step",
+        ],
+        "exported_step_files": [f"{name}.step" for name in export_map]
+        + ["masck_one_development_assembly.step"]
+        + [name for name in occipital_files if name.endswith(".step")],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
-            "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
-            "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
-            "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
-            "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
-            "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "released by Iteration 15. The current-main-bound occipital yokes and contact backers are emitted as "
+            "standalone candidate material and remain outside the development assembly because the frame-side positive "
+            "retention-root counterpart, integrated crown path, carrier separation/reassembly and post-release whole-head "
+            "removal path are unresolved. Occipital package keepout and crown corridor exports are reference-only and "
+            "must never be treated as material. Fit, comfort, pressure, hair interaction, yoke material/strength/fatigue, "
+            "one-hand wet unpowered use, 5-12 N release force and <=2 s release remain physical evidence gates. The "
+            "realized waste backbone is emitted as validated centerline/manifold data, not selected tubing, pump, barrier, "
+            "connector, hydraulic, service, or physical-performance evidence. The waste-cartridge STEP remains an "
+            "external package-envelope reference only and is deliberately excluded from physical development-assembly "
+            "material until body, cavity, seal, retention and service geometry are realized. Digital topology/manifests "
+            "and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
