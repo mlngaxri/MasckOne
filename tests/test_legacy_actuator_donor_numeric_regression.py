@@ -1,9 +1,16 @@
 from __future__ import annotations
 
+from functools import lru_cache
+
 import pytest
 
 from masck_one.legacy_actuator_donor_audit import build_legacy_actuator_donor_audit
 from masck_one.model import build_model
+
+
+@lru_cache(maxsize=1)
+def _audit():
+    return build_legacy_actuator_donor_audit(model=build_model())
 
 
 def _row(audit, zone_id: str, angle_deg: float, target_suffix: str):
@@ -17,7 +24,7 @@ def _row(audit, zone_id: str, angle_deg: float, target_suffix: str):
 
 
 def test_legacy_pr63_actuator_donor_overlap_volumes_remain_deterministic():
-    audit = build_legacy_actuator_donor_audit(model=build_model())
+    audit = _audit()
     zone = "ACTUATOR_ZONE_SUPERIOR_LEFT"
 
     assert _row(audit, zone, 61.0, "_MOUNT_COLLAR").intersection_volume_mm3 == 0.0
@@ -52,7 +59,7 @@ def test_legacy_pr63_actuator_donor_overlap_volumes_remain_deterministic():
 
 
 def test_legacy_shoe_and_frame_penetration_grows_across_superior_left_doe():
-    audit = build_legacy_actuator_donor_audit(model=build_model())
+    audit = _audit()
     zone = "ACTUATOR_ZONE_SUPERIOR_LEFT"
 
     shoe = [
