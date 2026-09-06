@@ -44,6 +44,16 @@ def test_capacity_feasibility_distinguishes_package_from_current_wall_topology()
     assert "NOT_USABLE_RETAINED_LIQUID" in metrics["evidence_status"]
 
 
+def test_capacity_feasibility_rejects_nonfinite_or_collapsed_wall_seed(monkeypatch):
+    monkeypatch.setattr(dfm, "BODY_WALL_SEED_MM", float("nan"))
+    with pytest.raises(dfm.WasteCartridgeDfmError, match="wall seed must be finite"):
+        dfm.capacity_feasibility_metrics()
+
+    monkeypatch.setattr(dfm, "BODY_WALL_SEED_MM", 18.0)
+    with pytest.raises(dfm.WasteCartridgeDfmError, match="collapses the in-plane cavity"):
+        dfm.capacity_feasibility_metrics()
+
+
 def test_candidate_rebind_updates_observation_without_promoting_release_maturity():
     audit = dfm.build_waste_cartridge_dfm_audit()
     manifest = audit.manifest()
