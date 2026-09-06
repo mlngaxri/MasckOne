@@ -9,6 +9,8 @@ controlled visual-aperture reference. The future non-rigid visible interface tha
 resolve the visual aperture remains intentionally unmodelled.
 """
 
+import math
+
 import cadquery as cq
 
 from .anatomy import FacialReferenceLayer
@@ -39,10 +41,10 @@ EYE_ROLL_SUPPORT_BAND_MM = 5.5
 EYE_ROLL_SUPPORT_DEPTH_RESERVE_MM = 0.20
 EYE_ROLL_MAX_ADDED_VOLUME_MM3 = 2500.0
 EYE_EDGE_CENTER_TOLERANCE_MM = 2.0
-EYE_EDGE_MIN_X_SPAN_FACTOR = 0.85
-EYE_EDGE_MAX_X_SPAN_FACTOR = 1.20
-EYE_EDGE_MIN_Y_SPAN_FACTOR = 0.85
-EYE_EDGE_MAX_Y_SPAN_FACTOR = 1.25
+# OpenCascade bounding boxes have numerical noise, but the protected eye edge and the
+# hidden support perimeter differ by about 11 mm in both spans. Match the released
+# cant-aware hard-envelope bbox directly instead of using a broad proportional window.
+EYE_EDGE_SPAN_TOLERANCE_MM = 0.50
 
 
 class EyeInnerRollError(ValueError):
@@ -145,6 +147,20 @@ def _posterior_eye_support_patch(
     return _single_valid(patch, "posterior eye-roll support patch")
 
 
+def _rotated_ellipse_bbox_spans_mm(
+    width_mm: float,
+    height_mm: float,
+    angle_deg: float,
+) -> tuple[float, float]:
+    """Return the exact axis-aligned bbox spans of a rotated ellipse."""
+    theta = math.radians(angle_deg)
+    cosine = math.cos(theta)
+    sine = math.sin(theta)
+    x_span = math.sqrt((width_mm * cosine) ** 2 + (height_mm * sine) ** 2)
+    y_span = math.sqrt((width_mm * sine) ** 2 + (height_mm * cosine) ** 2)
+    return x_span, y_span
+
+
 def _wearer_side_eye_edge(
     shape: cq.Shape,
     *,
@@ -152,7 +168,13 @@ def _wearer_side_eye_edge(
     eye_height_mm: float,
     eye_x_mm: float,
     eye_y_mm: float,
+    eye_cant_deg: float,
 ) -> cq.Edge:
+    expected_x_span, expected_y_span = _rotated_ellipse_bbox_spans_mm(
+        eye_width_mm,
+        eye_height_mm,
+        eye_cant_deg,
+    )
     candidates: list[cq.Edge] = []
     for edge in shape.Edges():
         if edge.geomType() not in {"ELLIPSE", "BSPLINE"}:
@@ -164,24 +186,16 @@ def _wearer_side_eye_edge(
             continue
         if abs(center_y - eye_y_mm) > EYE_EDGE_CENTER_TOLERANCE_MM:
             continue
-        if not (
-            eye_width_mm * EYE_EDGE_MIN_X_SPAN_FACTOR
-            <= float(bb.xlen)
-            <= eye_width_mm * EYE_EDGE_MAX_X_SPAN_FACTOR
-        ):
+        if abs(float(bb.xlen) - expected_x_span) > EYE_EDGE_SPAN_TOLERANCE_MM:
             continue
-        if not (
-            eye_height_mm * EYE_EDGE_MIN_Y_SPAN_FACTOR
-            <= float(bb.ylen)
-            <= eye_height_mm * EYE_EDGE_MAX_Y_SPAN_FACTOR
-        ):
+        if abs(float(bb.ylen) - expected_y_span) > EYE_EDGE_SPAN_TOLERANCE_MM:
             continue
         candidates.append(edge)
 
     if len(candidates) < 2:
         raise EyeInnerRollError(
-            f"expected at least two eye-aperture edges near ({eye_x_mm}, {eye_y_mm}); "
-            f"found {len(candidates)}"
+            f"expected at least two exact rigid eye-opening edges near "
+            f"({eye_x_mm}, {eye_y_mm}); found {len(candidates)}"
         )
 
     ranked = sorted(
@@ -223,6 +237,7 @@ def _fillet_protected_eye_edges_independently(
             eye_height_mm=zone.envelope_height_mm,
             eye_x_mm=zone.center.x,
             eye_y_mm=zone.center.y,
+            eye_cant_deg=zone.angle_deg,
         )
         try:
             feature = rolled.fillet(roll_radius_mm, [edge]).clean()
@@ -330,6 +345,10 @@ def eye_inner_roll_manifest(authority: Authority) -> dict[str, object]:
         "supported_local_depth_mm": supported_depth,
         "hidden_added_depth_mm": supported_depth - wall,
         "max_added_volume_mm3": EYE_ROLL_MAX_ADDED_VOLUME_MM3,
+        "edge_selection_span_tolerance_mm": EYE_EDGE_SPAN_TOLERANCE_MM,
+        "edge_selection_policy": (
+            "CANT_AWARE_RELEASED_RIGID_HARD_ENVELOPE_BBOX_THEN_POSTERIOR_Z"
+        ),
         "support_location": "WEARER_SIDE_ONLY_BEHIND_EXISTING_A_SURFACE",
         "rigid_edge_policy": "AUTHORITY_ROLL_APPLIED_TO_RELEASED_RIGID_HARD_ENVELOPE_EDGE",
         "visual_aperture_policy": (
@@ -340,7 +359,7 @@ def eye_inner_roll_manifest(authority: Authority) -> dict[str, object]:
         "external_a_surface_modified_by_support": False,
         "construction": (
             "LOCAL_POSTERIOR_SUPPORT_PLUS_SAME_DOMAIN_CLEANUP_PLUS_SOLID_NORMALIZATION_PLUS_"
-            "TWO_INDEPENDENT_EXACT_WEARER_SIDE_RIGID_EDGE_FILLETS"
+            "TWO_INDEPENDENT_CANT_AWARE_EXACT_WEARER_SIDE_RIGID_EDGE_FILLETS"
         ),
         "evidence_status": (
             "DIGITAL_AUTHORITY_GEOMETRY_NOT_FIT_COMFORT_IMPACT_TOOLING_MATERIAL_OR_PHYSICAL_SAFETY_EVIDENCE"
