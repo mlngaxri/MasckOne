@@ -6,11 +6,13 @@ import json
 import math
 import re
 
-SCHEMA = "MASCK_ONE_MECHANICAL_INTERFACE_GRAPH_V1"
-SOURCE_MAIN_SHA = "afe29ff78419b6625dca5594974b6351f6f80e1b"
+SCHEMA = "MASCK_ONE_MECHANICAL_INTERFACE_GRAPH_V2"
+SOURCE_MAIN_SHA = "5a3a07fe4425d55520ed4468c6c71f5bc0a2f45e"
+SOURCE_MAIN_TREE_SHA = "9402021a9335bb64c360548649d2cc6a7a1b0fad"
 AUTHORITY_REVISION = "2026-08-30-R1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 UNITS = "mm"
+SUPERSEDED_RETENTION_PRS = (83, 87, 89)
 
 CANONICAL_COMPONENT_IDS = frozenset(
     {"frame_structure", "actuator_zone", "retention_halo", "quick_release"}
@@ -254,9 +256,7 @@ class ServiceMotion:
         if self.status not in MOTION_STATUSES:
             raise MechanicalInterfaceGraphError(f"unknown motion status {self.status}")
         if type(self.continuous) is not bool or type(self.whole_product_motion) is not bool:
-            raise MechanicalInterfaceGraphError(
-                "motion bool fields must be exact bools"
-            )
+            raise MechanicalInterfaceGraphError("motion bool fields must be exact bools")
         if self.interference_mm3 is not None:
             _finite_nonnegative(self.interference_mm3, "motion interference")
         if any(type(item) is not str or not item for item in self.blocking_source_ids):
@@ -287,11 +287,7 @@ class ServiceMotion:
                     "candidate continuous reference motion cannot claim unresolved blockers"
                 )
         else:
-            if (
-                self.source_id is not None
-                or self.travel_mm is not None
-                or self.sample_count is not None
-            ):
+            if self.source_id is not None or self.travel_mm is not None or self.sample_count is not None:
                 raise MechanicalInterfaceGraphError(
                     "unresolved motion cannot fabricate source, travel, or sampled evidence"
                 )
@@ -325,13 +321,11 @@ class MechanicalInterfaceGraph:
     whole_mechanical_package_closed: bool = False
 
     def __post_init__(self) -> None:
-        if (
-            type(self.whole_mechanical_package_closed) is not bool
-            or self.whole_mechanical_package_closed
-        ):
+        if type(self.whole_mechanical_package_closed) is not bool or self.whole_mechanical_package_closed:
             raise MechanicalInterfaceGraphError(
                 "whole mechanical package must remain open while cross-boundary joins/service are unresolved"
             )
+
         source_ids = tuple(item.source_id for item in self.sources)
         node_ids = tuple(item.node_id for item in self.nodes)
         interface_ids = tuple(item.interface_id for item in self.interfaces)
@@ -347,28 +341,31 @@ class MechanicalInterfaceGraph:
 
         source_set = set(source_ids)
         node_set = set(node_ids)
+        required_sources = {
+            "FRAME_V1",
+            "CARRIER_V1",
+            "ACTUATOR_DONOR_AUDIT_V1",
+            "RETENTION_V2",
+            "OCCIPITAL_YOKES_V1",
+            "QUICK_RELEASE_V1",
+            "RETENTION_GUARDS_V1",
+        }
+        if not required_sources.issubset(source_set):
+            raise MechanicalInterfaceGraphError("current Cells 6-8 and quick-release source set is incomplete")
         if any(node.source_id not in source_set for node in self.nodes):
             raise MechanicalInterfaceGraphError("node references an unknown source")
         for interface in self.interfaces:
             if interface.source_id not in source_set:
-                raise MechanicalInterfaceGraphError(
-                    "interface references an unknown source"
-                )
+                raise MechanicalInterfaceGraphError("interface references an unknown source")
             if interface.from_node not in node_set or interface.to_node not in node_set:
-                raise MechanicalInterfaceGraphError(
-                    "interface endpoint is not a graph node"
-                )
+                raise MechanicalInterfaceGraphError("interface endpoint is not a graph node")
         for motion in self.service_motions:
             if motion.moving_node not in node_set:
-                raise MechanicalInterfaceGraphError(
-                    "motion moving node is not a graph node"
-                )
+                raise MechanicalInterfaceGraphError("motion moving node is not a graph node")
             if motion.source_id is not None and motion.source_id not in source_set:
                 raise MechanicalInterfaceGraphError("motion references an unknown source")
             if any(item not in source_set for item in motion.blocking_source_ids):
-                raise MechanicalInterfaceGraphError(
-                    "motion blocker references an unknown source"
-                )
+                raise MechanicalInterfaceGraphError("motion blocker references an unknown source")
 
         actuator_indices = sorted(
             node.instance_index
@@ -380,30 +377,27 @@ class MechanicalInterfaceGraph:
             raise MechanicalInterfaceGraphError(
                 "graph must preserve exactly four actuator carrier zones"
             )
+
+        cross_boundary_prefixes = (
+            "FRAME_TO_CARRIER_",
+            "FRAME_TO_RETENTION_",
+            "RETENTION_TO_QUICK_RELEASE",
+        )
         if any(
             edge.positive_attachment
             for edge in self.interfaces
-            if edge.interface_id.startswith(
-                (
-                    "FRAME_TO_CARRIER_",
-                    "FRAME_TO_RETENTION_",
-                    "RETENTION_TO_QUICK_RELEASE",
-                )
-            )
+            if edge.interface_id.startswith(cross_boundary_prefixes)
         ):
             raise MechanicalInterfaceGraphError(
                 "unresolved cross-boundary joins cannot become positive attachments"
             )
 
         whole_removal = [
-            item
-            for item in self.service_motions
-            if item.motion_id == "WHOLE_HEAD_REMOVAL"
+            item for item in self.service_motions if item.motion_id == "WHOLE_HEAD_REMOVAL"
         ]
         if len(whole_removal) != 1 or whole_removal[0].status != "UNRESOLVED":
-            raise MechanicalInterfaceGraphError(
-                "whole-head removal must remain unresolved"
-            )
+            raise MechanicalInterfaceGraphError("whole-head removal must remain unresolved")
+
         for side in ("LEFT", "RIGHT"):
             factory = [
                 item
@@ -440,9 +434,11 @@ class MechanicalInterfaceGraph:
         result: dict[str, object] = {
             "schema": SCHEMA,
             "source_main_sha": SOURCE_MAIN_SHA,
+            "source_main_tree_sha": SOURCE_MAIN_TREE_SHA,
             "authority_revision": AUTHORITY_REVISION,
             "frame_id": WORLD_FRAME_ID,
             "units": UNITS,
+            "superseded_retention_prs": list(SUPERSEDED_RETENTION_PRS),
             "canonical_registry_status": "CANDIDATE_PR_BINDING_NOT_RELEASE_AUTHORITY",
             "sources": [item.manifest() for item in self.sources],
             "nodes": [item.manifest() for item in self.nodes],
@@ -450,8 +446,8 @@ class MechanicalInterfaceGraph:
             "service_motions": [item.manifest() for item in self.service_motions],
             "whole_mechanical_package_closed": self.whole_mechanical_package_closed,
             "evidence_status": (
-                "DIGITAL_SOURCE_BOUND_INTERFACE_AND_MOTION_CLASSIFICATION_ONLY_NOT_PHYSICAL_"
-                "FIT_FORCE_SAFETY_STRENGTH_DURABILITY_OR_SERVICE_VALIDATION"
+                "DIGITAL_SOURCE_BOUND_INTERFACE_KINEMATIC_AND_SWEPT_VOLUME_CLASSIFICATION_ONLY_"
+                "NOT_PHYSICAL_FIT_FORCE_SAFETY_STRENGTH_DURABILITY_OR_SERVICE_VALIDATION"
             ),
         }
         if include_sha:
@@ -469,7 +465,7 @@ def _sources() -> tuple[SourceBinding, ...]:
             "d68a109c93532bfa424a574fdbd899230ae20d0b",
             "90d20231710a24bbf02ba0c9ae52ef8b37f0ce73",
             120,
-            "Canonical component IDs are consumed from Cell 1 candidate registry and are not release authority until merged.",
+            "Cell 1 canonical registry remains pre-PR121 candidate evidence and is not release authority.",
         ),
         SourceBinding(
             "FRAME_V1",
@@ -479,7 +475,7 @@ def _sources() -> tuple[SourceBinding, ...]:
             "0ea2ada736825fe1a0e06491d16690ae98cfccde",
             "34273de3bd86294080e51873c212e988b4a966f4",
             117,
-            "Standalone reaction-loop B-rep; frame-shell, actuator, retention and service interfaces remain unresolved.",
+            "Cell 6 reaction-loop B-rep is current specialist geometry; frame-shell, actuator and retention positive counterparts remain open.",
         ),
         SourceBinding(
             "CARRIER_V1",
@@ -489,7 +485,17 @@ def _sources() -> tuple[SourceBinding, ...]:
             "9c613f40ed1b8cb43c3a40bb945d53084a71d121",
             "37e03df4b6abbd222422c8bfd4e70b03a4e5ae07",
             118,
-            "Local split carrier capture is realized; world mount is blocked by protected conflicts and frame attachment is unrealized.",
+            "Cell 7 local split carrier capture is positive locally, but world_mount_eligible is false and reaction/coupling/final stops are absent.",
+        ),
+        SourceBinding(
+            "ACTUATOR_DONOR_AUDIT_V1",
+            "CANDIDATE_PR",
+            "src/masck_one/legacy_actuator_donor_audit.py",
+            "build_legacy_actuator_donor_audit",
+            "d23b574ed0048aba76f64e63471a3327fde2fd5b",
+            "dfdd8468731ae7e58e0aa3f7910662fbbef1ba60",
+            127,
+            "Post-PR121 Cell 7 audit rejects legacy collar/shoe/frame overlap as attachment and rejects donor world placements; it contributes semantics only, not current mount geometry.",
         ),
         SourceBinding(
             "RETENTION_V2",
@@ -497,19 +503,19 @@ def _sources() -> tuple[SourceBinding, ...]:
             "src/masck_one/retention_load_path.py",
             "RetentionLoadPathPackage",
             "9647405b36642105c929a3fdd0617d03bfe68c98",
-            "ce1a175a79f87da65d88a40eca146f3dc5419528",
+            "1137401b7f25320c4955a8d35cc0f128b6558ab3",
             92,
-            "Retention local pin/clevis features exist but crown/front-frame counterparts and whole load-path closure remain open.",
+            "Cell 3 retention lineage has been reconstructed with current post-PR121 main ancestry; retained load-path B-rep blob is unchanged and crown/front-frame counterparts remain open.",
         ),
         SourceBinding(
             "OCCIPITAL_YOKES_V1",
             "CANDIDATE_PR",
             "src/masck_one/occipital_stabilizer.py",
             "OccipitalStabilizer",
-            "4c58b0dc81fd2e95a6f1405ea5eeb1641ba8a3c8",
-            "ca128295794ff51ed96e7a840428de55ea36de6b",
+            "6d35c96bc65bb1e0e877deadc65481bf44954b4e",
+            "25686766238b66ecf900009042d721c08e042592",
             123,
-            "Current-main-bound Cell 8 reconstruction of unchanged bilateral yokes; frame-side counterparts remain unrealized.",
+            "Cell 8 current yoke candidate preserves the positive yoke geometry and supplies the measured bilateral guard-sweep interference; frame-side counterpart remains unrealized.",
         ),
         SourceBinding(
             "QUICK_RELEASE_V1",
@@ -519,7 +525,7 @@ def _sources() -> tuple[SourceBinding, ...]:
             "11d90a75eb108c53f5a1621abdace7271bf5cac5",
             "0b5a619c6cea344038b0e8b8cc10a50e3d193390",
             71,
-            "Strong donor lineage for captive right latch and exact 7.3 mm continuous pull; stale promotion evidence, candidate only.",
+            "Strong stale-base donor lineage for the exact 7.3 mm continuous pull and split guide only; no stale promotion claim is inherited.",
         ),
         SourceBinding(
             "RETENTION_GUARDS_V1",
@@ -529,7 +535,7 @@ def _sources() -> tuple[SourceBinding, ...]:
             "b497e9154067cef9ee24da4d421ea6c7861c348e",
             "fb586cc1ea1cde92526417593f9e5aa990d2ae4f",
             109,
-            "Guard final B-reps remain candidate-only; current-yoke reconstruction proves the bilateral pure-X installation sweeps collide and cannot be integrated as the factory sequence.",
+            "Final guard B-reps clear the yokes, but each published bilateral pure-X factory sweep intersects its current yoke by about 39.840676 mm3.",
         ),
         SourceBinding(
             "SERVICE_INVENTORY_V1",
@@ -539,7 +545,7 @@ def _sources() -> tuple[SourceBinding, ...]:
             "e44c8ca12d7b163a5a3fb54fbce7ca2c16d0fc5c",
             "630cc19497661ae834032eb8ea06e28dfd6100b7",
             114,
-            "Released main has no accepted nonteleporting whole-product service motion producer; candidate motions cannot satisfy release closure.",
+            "Service inventory is stale candidate evidence only; no released nonteleporting whole-head removal producer exists.",
         ),
     )
 
@@ -631,9 +637,10 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
                 "CANDIDATE_OPEN",
                 "CARRIER_V1",
                 False,
-                "World mount is in protected-envelope conflict and structural_frame_attachment_realized is false.",
+                "World mount is protected-envelope conflicted and structural_frame_attachment_realized is false; Cell 7 donor audit forbids filling this gap with legacy overlap geometry.",
             )
         )
+
     interfaces.extend(
         (
             MechanicalInterface(
@@ -644,7 +651,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
                 "CANDIDATE_OPEN",
                 "RETENTION_V2",
                 False,
-                "Crown handoff lug exists but frame mating counterpart is absent.",
+                "Crown handoff lug exists but the Cell 6 frame mating counterpart is absent.",
             ),
             MechanicalInterface(
                 "FRAME_TO_RETENTION_FACIAL_REACTION",
@@ -654,7 +661,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
                 "CANDIDATE_OPEN",
                 "RETENTION_V2",
                 False,
-                "Facial reaction handoff exists but front-frame mating counterpart is absent.",
+                "Facial-reaction handoff exists but the front-frame mating counterpart is absent.",
             ),
             MechanicalInterface(
                 "RETENTION_TO_QUICK_RELEASE",
@@ -664,7 +671,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
                 "CANDIDATE_OPEN",
                 "QUICK_RELEASE_V1",
                 False,
-                "Quick-release lineage is preserved as candidate evidence; integrated positive counterpart is not released.",
+                "Exact quick-release donor motion is preserved, but an integrated positive retention counterpart is not current-source realized.",
             ),
             MechanicalInterface(
                 "QUICK_RELEASE_TO_GUARD",
@@ -684,7 +691,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
                 "CANDIDATE_OPEN",
                 "OCCIPITAL_YOKES_V1",
                 False,
-                "Current-main yoke reconstruction gives about 2.46221445 mm final-position guard clearance; attachment remains open.",
+                "Final-position yoke-to-guard clearance is about 2.46221445 mm; attachment and factory trajectory remain open.",
             ),
             MechanicalInterface(
                 "RETENTION_TO_RIGHT_GUARD",
@@ -694,7 +701,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
                 "CANDIDATE_OPEN",
                 "OCCIPITAL_YOKES_V1",
                 False,
-                "Current-main yoke reconstruction gives about 2.46221445 mm final-position guard clearance; attachment remains open.",
+                "Final-position yoke-to-guard clearance is about 2.46221445 mm; attachment and factory trajectory remain open.",
             ),
         )
     )
@@ -709,7 +716,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
             7.3,
             39,
             False,
-            "Exact candidate latch withdrawal motion only; does not establish whole-head removal or physical release force/time.",
+            "Exact candidate latch withdrawal motion only; it does not establish whole-head removal or physical release force/time.",
         ),
         ServiceMotion(
             "RIGHT_QUICK_RELEASE_GUARD_FACTORY_INSTALL",
@@ -720,7 +727,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
             35.0,
             2,
             False,
-            "Exact pure-X candidate factory sweep remains about 3.0 mm clear of the current yoke reconstruction; still reference motion only.",
+            "Published right quick-release-guard pure-X reference sweep remains about 3.0 mm clear of the current yoke reconstruction.",
             interference_mm3=0.0,
         ),
         ServiceMotion(
@@ -732,7 +739,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
             22.0,
             2,
             False,
-            "Published exact pure-X sweep geometry only; current-main yoke reconstruction proves it is not a collision-free integrated factory path.",
+            "Published exact pure-X sweep geometry only; it is not a collision-free integrated factory path.",
             interference_mm3=39.840676,
         ),
         ServiceMotion(
@@ -744,7 +751,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
             22.0,
             2,
             False,
-            "Published exact pure-X sweep geometry only; current-main yoke reconstruction proves it is not a collision-free integrated factory path.",
+            "Published exact pure-X sweep geometry only; it is not a collision-free integrated factory path.",
             interference_mm3=39.840676,
         ),
         ServiceMotion(
@@ -756,7 +763,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
             None,
             None,
             False,
-            "Factory order or alternate nonteleporting trajectory is unresolved because the published pure-X sweep intersects the current left yoke.",
+            "Factory order or an alternate nonteleporting trajectory is unresolved because the published pure-X sweep intersects the current left yoke.",
             blocking_source_ids=("RETENTION_GUARDS_V1", "OCCIPITAL_YOKES_V1"),
             interference_mm3=39.840676,
         ),
@@ -769,7 +776,7 @@ def build_mechanical_interface_graph() -> MechanicalInterfaceGraph:
             None,
             None,
             False,
-            "Factory order or alternate nonteleporting trajectory is unresolved because the published pure-X sweep intersects the current right yoke.",
+            "Factory order or an alternate nonteleporting trajectory is unresolved because the published pure-X sweep intersects the current right yoke.",
             blocking_source_ids=("RETENTION_GUARDS_V1", "OCCIPITAL_YOKES_V1"),
             interference_mm3=39.840676,
         ),
@@ -818,9 +825,7 @@ def unresolved_interface_ids(
 ) -> tuple[str, ...]:
     graph = build_mechanical_interface_graph() if graph is None else graph
     return tuple(
-        item.interface_id
-        for item in graph.interfaces
-        if item.status != "CANDIDATE_REALIZED"
+        item.interface_id for item in graph.interfaces if item.status != "CANDIDATE_REALIZED"
     )
 
 
