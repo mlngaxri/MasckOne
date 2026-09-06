@@ -1538,7 +1538,8 @@ button{-webkit-tap-highlight-color:transparent}
   width:min(64%,430px);
   height:auto;
   transform:translate(-50%,-50%);
-  filter:drop-shadow(0 19px 29px rgba(24,33,28,.10)) drop-shadow(0 48px 64px rgba(24,33,28,.07));
+  /* Product inspection rendered QA v17b */
+  filter:grayscale(.76) sepia(.10) saturate(.48) contrast(.96) brightness(1.035) drop-shadow(0 19px 29px rgba(24,33,28,.10)) drop-shadow(0 48px 64px rgba(24,33,28,.07));
   transition:transform .8s var(--ease),filter .6s var(--ease),opacity .45s var(--ease);
 }
 .inspection-stage[data-state="0"] .inspection-product{transform:translate(-50%,-50%) rotate(-1deg) scale(1.02)}
