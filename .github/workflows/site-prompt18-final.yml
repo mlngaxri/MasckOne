@@ -60,6 +60,7 @@ jobs:
         run: |
           python .site-build/finalize_use_journey_v18.py
           python .site-build/repair_use_journey_v18_asset_urls.py
+          python .site-build/repair_use_journey_v18_mobile_annotations.py
           python - <<'PY'
           from pathlib import Path
           import json,re
@@ -85,6 +86,10 @@ jobs:
           assert '—' not in chapter and '–' not in chapter
           assert 'src="images/masck-inspection-' not in chapter
           assert chapter.count('https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-')==10
+          assert '.j18m-action.prepare{left:18%;right:18%' in s
+          assert '.j18m-action.clean{left:18%;right:18%' in s
+          assert '.j18m-action.choose span{position:absolute;left:auto;right:28px' in s
+          assert '.j18m-action.remove span{position:absolute;left:auto;right:20px' in s
           lower=chapter.lower()
           for banned in ('charging dock','magnetic dock','usb-c','usb c','charge duration','charge time','refill cap','refill bottle','press to start','tap to start'):
               assert banned not in lower,banned
