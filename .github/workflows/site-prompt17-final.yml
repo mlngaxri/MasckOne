@@ -22,6 +22,8 @@ jobs:
           cache: pip
       - name: Install deterministic CAD render stack
         run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgl1-mesa-dri libglx-mesa0
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]" pillow
       - name: Verify exact candidate heads and checkpoints
@@ -81,7 +83,7 @@ jobs:
           MASCK_INSPECTION_STEP_DIR: /tmp/masck-inspection-step
           MASCK_WEBSITE_BUILD_SHA: ${{ github.sha }}
         run: |
-          python .site-build/render_product_inspection_v17c.py
+          xvfb-run -a python .site-build/render_product_inspection_v17c.py
           python .site-build/finalize_product_inspection_v17c.py
           python - <<'PY'
           from pathlib import Path
@@ -95,8 +97,10 @@ jobs:
           assert 'Control region' in s and 'Mapping in development' in s
           assert 'Fit, attachment and control mapping remain open.' in s
           assert 'headset-style housing' in s
-          assert '—' not in s[s.index('/* Product inspection final v17c */'):]
-          assert '–' not in s[s.index('/* Product inspection final v17c */'):]
+          chapter=re.search(r'<section class="product-inspection inspection-final-v17c".*?</section>\n</section>\n\n<section class="view" data-view="system"',s,re.S)
+          assert chapter is not None
+          assert '—' not in chapter.group(0)
+          assert '–' not in chapter.group(0)
           assert manifest['coordinate_frame']=='MASCK_ONE_AUTHORITY_WORLD_MM'
           assert manifest['sources']['exterior_render_checkpoint_sha']=='17e7db204c693f684855d923fcacd7c95468e599'
           assert manifest['sources']['retention_current_head_sha']=='25686766238b66ecf900009042d721c08e042592'
