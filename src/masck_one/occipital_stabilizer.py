@@ -19,7 +19,10 @@ import cadquery as cq
 
 from .authority import Authority, load_authority
 from .model import Component, MasckOneModel, build_model
-from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
+from .realized_waste_backbone_release import (
+    Cell4WasteBackboneRelease,
+    build_current_cell4_waste_backbone_release,
+)
 from .structural_frame import RESERVATION_RETENTION
 
 SCHEMA = "MASCK_ONE_CELL8_OCCIPITAL_STABILIZER_CURRENT_SOURCE_V1"
@@ -132,6 +135,29 @@ def _source_graph_sha256() -> str:
         allow_nan=False,
     ).encode("utf-8")
     return sha256(raw).hexdigest()
+
+
+def _validated_waste_release_manifest_sha256(release: Cell4WasteBackboneRelease) -> str:
+    """Hash an already-current Cell 4 release without reconstructing its source graph.
+
+    build_current_cell4_waste_backbone_release() validates the complete repository-current
+    waste source graph before returning. Recomputing release.manifest_sha256 would rebuild
+    that graph a second time. This reproduces the exact release manifest payload from the
+    already-validated object while preserving invariant validation and digest semantics.
+    """
+    if type(release) is not Cell4WasteBackboneRelease:
+        raise OccipitalStabilizerError("waste release must use the exact Cell4WasteBackboneRelease type")
+    release.validate_invariants()
+    payload = {
+        "authored_against_git_sha": release.authored_against_git_sha,
+        "source_waste_pump_architecture_sha256": release.source_waste_pump_architecture_sha256,
+        "authority_revision": release.realization.authority_revision,
+        "realization_manifest_sha256": release.realization.manifest_sha256,
+        "release_state": release.release_state,
+    }
+    return sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    ).hexdigest()
 
 
 def _single(solid: cq.Workplane, label: str) -> cq.Workplane:
@@ -535,7 +561,7 @@ def build_occipital_stabilizer(
 
     result = OccipitalStabilizer(
         source_model_sha256=model_sha,
-        source_waste_release_sha256=waste_release.manifest_sha256,
+        source_waste_release_sha256=_validated_waste_release_manifest_sha256(waste_release),
         left=left,
         right=right,
         central_rear_package_keepout=central_keepout,
