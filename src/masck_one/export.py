@@ -16,6 +16,10 @@ from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
+from .whole_product_collision_matrix import (
+    build_whole_product_collision_matrix,
+    export_whole_product_collision_review,
+)
 
 
 def _ensure_output_dir(path: str | Path) -> Path:
@@ -75,6 +79,15 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+
+    collision_matrix = build_whole_product_collision_matrix(model)
+    collision_outputs = export_whole_product_collision_review(
+        output,
+        collision_matrix,
+        model,
+    )
+    collision_step_names = [path.name for path in collision_outputs if path.suffix.lower() == ".step"]
+
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -102,8 +115,14 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
+        "integration_ledgers": {
+            "whole_product_collision_matrix_v2": collision_matrix.manifest(),
+        },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "exported_step_files": [f"{name}.step" for name in export_map]
+        + ["masck_one_development_assembly.step"]
+        + collision_step_names,
+        "exported_collision_review_files": [path.name for path in collision_outputs],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
@@ -113,7 +132,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
             "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
             "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "serviceability. The whole-product collision matrix separates exact finite B-rep checks, authority-derived "
+            "protected hard-envelope checks, conservative route-service reservations and explicit blocked geometry. "
+            "Finite package/reference overlap remains visible but is not mislabeled as realized-material interference. "
+            "Actuator sweep/carrier geometry and unresolved fresh route/manifold/distribution geometry fail closed in the "
+            "successor matrix rather than disappearing from whole-product collision truth. Digital topology/manifests "
+            "and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
