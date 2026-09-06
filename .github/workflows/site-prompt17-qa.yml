@@ -1,0 +1,93 @@
+name: Prompt 17 production visual QA
+
+on:
+  push:
+    paths:
+      - '.site-build/run17c-qa.flag'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser QA tooling
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0
+          npx playwright install chromium --with-deps
+          python -m pip install --disable-pip-version-check pillow
+      - name: Capture prepared product views on production
+        run: |
+          mkdir -p screenshots
+          cat > capture17c.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage']});
+          const url='https://masck-one-final.vercel.app/?prompt17qa='+Date.now();
+          async function ready(page){
+            await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
+            await page.waitForSelector('[data-product-orbit17]');
+            await page.waitForFunction(()=>document.fonts?document.fonts.status==='loaded':true);
+            await page.waitForFunction(()=>[...document.querySelectorAll('[data-orbit17-view]')].every(i=>i.complete&&i.naturalWidth>0));
+            await page.waitForTimeout(900);
+          }
+          async function inspectionMetrics(page){return await page.evaluate(()=>{const e=document.querySelector('[data-product-orbit17]');return{top:e.getBoundingClientRect().top+scrollY,travel:Math.max(1,e.offsetHeight-innerHeight)}})}
+          async function setFraction(page,f){const m=await inspectionMetrics(page);await page.evaluate(y=>scrollTo(0,y),Math.round(m.top+m.travel*f));await page.waitForTimeout(800)}
+          async function audit(page,label){
+            const a=await page.evaluate(()=>({
+              overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+              steps:document.querySelectorAll('[data-orbit17-step]').length,
+              active:document.querySelector('[data-orbit17-view].active')?.dataset.orbit17View,
+              copy:document.querySelector('[data-orbit17-copy]')?.textContent||'',
+              visibleHotspots:[...document.querySelectorAll('[data-orbit17-hotspot].visible')].map(x=>x.textContent.trim()),
+              stage:document.querySelector('[data-orbit17-stage]')?.getBoundingClientRect().width||0
+            }));
+            if(a.overflow>2)throw new Error(label+' horizontal overflow '+a.overflow);
+            if(a.steps!==3)throw new Error(label+' expected 3 view controls');
+            if(a.stage<280)throw new Error(label+' product stage too small '+a.stage);
+            return a;
+          }
+          const desktop=await browser.newContext({viewport:{width:1440,height:1000},deviceScaleFactor:1});
+          const p=await desktop.newPage();await ready(p);
+          for(const [f,name,index] of [[.08,'01-front',0],[.50,'02-profile',1],[.92,'03-rear',2]]){
+            await setFraction(p,f);const a=await audit(p,name);if(String(a.active)!==String(index))throw new Error(name+' wrong active view '+a.active);await p.screenshot({path:'screenshots/'+name+'.png'});
+          }
+          await desktop.close();
+          const mobile=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});
+          const m=await mobile.newPage();await ready(m);await setFraction(m,.08);await m.screenshot({path:'screenshots/04-mobile-front.png'});
+          await m.locator('[data-orbit17-step="1"]').tap();await m.waitForTimeout(900);let a=await audit(m,'mobile-profile');if(a.active!=='1')throw new Error('mobile profile tap did not select prepared view');await m.screenshot({path:'screenshots/05-mobile-profile.png'});
+          await m.locator('[data-orbit17-step="2"]').tap();await m.waitForTimeout(900);a=await audit(m,'mobile-rear');if(a.active!=='2')throw new Error('mobile rear tap did not select prepared view');await m.screenshot({path:'screenshots/06-mobile-rear.png'});
+          await mobile.close();
+          const reduced=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,reducedMotion:'reduce'});
+          const r=await reduced.newPage();await ready(r);await r.locator('[data-orbit17-step="2"]').tap();await r.waitForTimeout(250);a=await audit(r,'reduced-motion');if(a.active!=='2')throw new Error('reduced-motion view selection lost information');await reduced.close();
+          await browser.close();
+          JS
+          node capture17c.mjs
+          python - <<'PY'
+          from PIL import Image,ImageDraw
+          from pathlib import Path
+          files=sorted(Path('screenshots').glob('*.png'))
+          cards=[]
+          for p in files:
+              im=Image.open(p).convert('RGB')
+              im.thumbnail((600,420))
+              c=Image.new('RGB',(640,470),'white')
+              c.paste(im,((640-im.width)//2,16))
+              ImageDraw.Draw(c).text((18,445),p.stem,fill='black')
+              cards.append(c)
+          sheet=Image.new('RGB',(1280,470*((len(cards)+1)//2)),(238,238,234))
+          for i,c in enumerate(cards):sheet.paste(c,((i%2)*640,(i//2)*470))
+          sheet.save('screenshots/00-contact-sheet.jpg',quality=92)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: masck-one-prompt17-final-qa
+          path: screenshots/
+          if-no-files-found: error
+          retention-days: 7
