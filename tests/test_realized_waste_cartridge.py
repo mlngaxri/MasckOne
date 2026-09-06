@@ -4,6 +4,7 @@ import cadquery as cq
 import pytest
 
 import masck_one.realized_waste_cartridge as cartridge_module
+from masck_one.export import export_release
 from masck_one.realized_waste_cartridge import (
     AUTHORED_AGAINST_MAIN_SHA,
     BODY_INLET_WALL_WORLD_MM,
@@ -166,3 +167,30 @@ def test_step_round_trip_preserves_body_closure_and_cavity(tmp_path, cartridge):
         imported_bounds = _bounds(imported)
         for axis in ("x", "y", "z"):
             assert imported_bounds[axis] == pytest.approx(original_bounds[axis], abs=1e-4)
+
+
+def test_release_smoke_exports_candidate_and_reference_geometry_without_assembly_promotion(tmp_path, cartridge):
+    report = export_release(tmp_path)
+    manifest = report["digital_geometry"]["realized_waste_cartridge_v1"]
+    assert manifest["manifest_sha256"] == cartridge.manifest_sha256
+    assert manifest["development_assembly_material_eligible"] is False
+    assert manifest["physical_validation_eligible"] is False
+    assert "waste_cartridge_envelope" in report["development_assembly_exclusions"]
+
+    expected = {
+        "cell11_waste_cartridge_body_candidate.step",
+        "cell11_waste_cartridge_closure_candidate.step",
+        "cell11_waste_cartridge_installed_free_cavity_reference.step",
+        "cell11_waste_cartridge_inlet_connector_clearance_reference.step",
+        "cell11_waste_cartridge_seal_land_reference.step",
+        "cell11_waste_cartridge_vent_clearance_reference.step",
+        "cell11_waste_cartridge_service_reservation_reference.step",
+    }
+    assert expected.issubset(set(report["exported_step_files"]))
+    for filename in expected:
+        path = tmp_path / filename
+        assert path.is_file()
+        imported = cq.importers.importStep(str(path))
+        assert imported.solids().size() == 1
+        assert imported.val().isValid()
+    assert (tmp_path / "masck_one_development_assembly.step").is_file()
