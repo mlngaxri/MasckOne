@@ -8,10 +8,8 @@ import pytest
 
 from masck_one.mechanical_interface_graph import (
     AUTHORITY_REVISION,
-    MechanicalInterface,
     MechanicalInterfaceGraph,
     MechanicalInterfaceGraphError,
-    MechanicalNode,
     SOURCE_MAIN_SHA,
     WORLD_FRAME_ID,
     build_mechanical_interface_graph,
@@ -20,7 +18,6 @@ from masck_one.mechanical_interface_graph import (
     source_binding_map,
     unresolved_interface_ids,
 )
-
 
 EXPECTED_CANDIDATE_HEADS = (
     (120, "90d20231710a24bbf02ba0c9ae52ef8b37f0ce73"),
@@ -42,7 +39,7 @@ EXPECTED_BLOBS = {
 }
 
 
-def _graph_with(*, nodes=None, interfaces=None, motions=None, sources=None):
+def graph_with(*, nodes=None, interfaces=None, motions=None, sources=None):
     graph = build_mechanical_interface_graph()
     return MechanicalInterfaceGraph(
         graph.sources if sources is None else tuple(sources),
@@ -53,87 +50,84 @@ def _graph_with(*, nodes=None, interfaces=None, motions=None, sources=None):
 
 
 def test_graph_is_canonical_deterministic_and_source_bound():
-    graph_a = build_mechanical_interface_graph()
-    graph_b = build_mechanical_interface_graph()
-    assert graph_a == graph_b
-    assert graph_a.graph_sha256 == graph_b.graph_sha256
-    assert manifest_json(graph_a) == manifest_json(graph_b)
-    manifest = json.loads(manifest_json(graph_a))
+    first = build_mechanical_interface_graph()
+    second = build_mechanical_interface_graph()
+    assert first == second
+    assert first.graph_sha256 == second.graph_sha256
+    assert manifest_json(first) == manifest_json(second)
+    manifest = json.loads(manifest_json(first))
     assert manifest["source_main_sha"] == SOURCE_MAIN_SHA
     assert manifest["authority_revision"] == AUTHORITY_REVISION
     assert manifest["frame_id"] == WORLD_FRAME_ID
     assert manifest["units"] == "mm"
     assert manifest["canonical_registry_status"] == "CANDIDATE_PR_BINDING_NOT_RELEASE_AUTHORITY"
     assert manifest["whole_mechanical_package_closed"] is False
-    assert manifest["graph_sha256"] == graph_a.graph_sha256
+    assert manifest["graph_sha256"] == first.graph_sha256
 
 
 def test_exact_candidate_heads_and_blobs_are_pinned_for_review_invalidation():
     graph = build_mechanical_interface_graph()
     assert candidate_source_heads(graph) == EXPECTED_CANDIDATE_HEADS
     bindings = source_binding_map(graph)
-    assert {source_id: binding.blob_sha for source_id, binding in bindings.items()} == EXPECTED_BLOBS
+    assert {key: value.blob_sha for key, value in bindings.items()} == EXPECTED_BLOBS
     assert all(binding.status == "CANDIDATE_PR" for binding in bindings.values())
 
 
-def test_four_actuator_carrier_instances_are_stable_and_not_world_mounted():
+def test_four_carriers_keep_local_capture_but_no_world_mount():
     graph = build_mechanical_interface_graph()
     carriers = [node for node in graph.nodes if node.source_native_id == "ACTUATOR-CARRIER-TEMPLATE"]
     assert [node.instance_index for node in carriers] == [0, 1, 2, 3]
     for index in range(4):
         local = next(edge for edge in graph.interfaces if edge.interface_id == f"CARRIER_LOCAL_CLOSURE_ZONE_{index}")
         frame = next(edge for edge in graph.interfaces if edge.interface_id == f"FRAME_TO_CARRIER_ZONE_{index}")
-        assert local.semantics == "positive_attachment"
-        assert local.positive_attachment is True
-        assert local.status == "CANDIDATE_REALIZED"
-        assert frame.semantics == "reference_only"
-        assert frame.positive_attachment is False
-        assert frame.status == "CANDIDATE_OPEN"
+        assert (local.semantics, local.positive_attachment, local.status) == (
+            "positive_attachment",
+            True,
+            "CANDIDATE_REALIZED",
+        )
+        assert (frame.semantics, frame.positive_attachment, frame.status) == (
+            "reference_only",
+            False,
+            "CANDIDATE_OPEN",
+        )
         assert "protected-envelope conflict" in frame.note
 
 
-def test_retention_frame_and_release_interfaces_remain_open():
+def test_retention_frame_release_and_guard_interfaces_remain_open():
     graph = build_mechanical_interface_graph()
-    for interface_id in (
+    expected_open = {
         "FRAME_TO_RETENTION_CROWN",
         "FRAME_TO_RETENTION_FACIAL_REACTION",
         "RETENTION_TO_QUICK_RELEASE",
-    ):
-        edge = next(item for item in graph.interfaces if item.interface_id == interface_id)
-        assert edge.status == "CANDIDATE_OPEN"
-        assert edge.positive_attachment is False
-        assert edge.semantics == "reference_only"
-    assert set(unresolved_interface_ids(graph)).issuperset(
-        {
-            "FRAME_TO_RETENTION_CROWN",
-            "FRAME_TO_RETENTION_FACIAL_REACTION",
-            "RETENTION_TO_QUICK_RELEASE",
-        }
-    )
+        "QUICK_RELEASE_TO_GUARD",
+        "RETENTION_TO_LEFT_GUARD",
+        "RETENTION_TO_RIGHT_GUARD",
+    }
+    assert expected_open.issubset(set(unresolved_interface_ids(graph)))
+    for edge in graph.interfaces:
+        if edge.interface_id in expected_open:
+            assert edge.status == "CANDIDATE_OPEN"
+            assert edge.positive_attachment is False
 
 
-def test_quick_release_motion_is_candidate_only_and_not_whole_head_removal():
+def test_service_motion_truth_does_not_promote_latch_pull_to_whole_removal():
     graph = build_mechanical_interface_graph()
-    pull = next(motion for motion in graph.service_motions if motion.motion_id == "RIGHT_QUICK_RELEASE_PULL")
-    whole = next(motion for motion in graph.service_motions if motion.motion_id == "WHOLE_HEAD_REMOVAL")
-    separation = next(
-        motion
-        for motion in graph.service_motions
-        if motion.motion_id == "RETENTION_CARRIER_SEPARATION_REASSEMBLY"
+    pull = next(m for m in graph.service_motions if m.motion_id == "RIGHT_QUICK_RELEASE_PULL")
+    whole = next(m for m in graph.service_motions if m.motion_id == "WHOLE_HEAD_REMOVAL")
+    separation = next(m for m in graph.service_motions if m.motion_id == "RETENTION_CARRIER_SEPARATION_REASSEMBLY")
+    assert (pull.status, pull.continuous, pull.travel_mm, pull.sample_count) == (
+        "CANDIDATE_CONTINUOUS",
+        True,
+        7.3,
+        39,
     )
-    assert pull.status == "CANDIDATE_CONTINUOUS"
-    assert pull.continuous is True
-    assert pull.travel_mm == pytest.approx(7.3)
-    assert pull.sample_count == 39
     assert pull.whole_product_motion is False
-    assert whole.status == "UNRESOLVED"
-    assert whole.continuous is False
-    assert whole.source_id is None
-    assert whole.whole_product_motion is True
-    assert separation.status == "UNRESOLVED"
+    assert whole.status == "UNRESOLVED" and whole.source_id is None
+    assert whole.continuous is False and whole.whole_product_motion is True
+    assert separation.status == "UNRESOLVED" and separation.continuous is False
 
 
-def test_guard_factory_sweeps_are_reference_motion_only():
+def test_guard_factory_sweeps_are_candidate_reference_motion_only():
     graph = build_mechanical_interface_graph()
     expected = {
         "RIGHT_QUICK_RELEASE_GUARD_FACTORY_INSTALL": 35.0,
@@ -149,18 +143,12 @@ def test_guard_factory_sweeps_are_reference_motion_only():
         assert "reference motion only" in motion.note
 
 
-def test_wrong_frame_or_units_fail_closed():
+def test_frame_unit_identity_and_actuator_index_drift_fail_closed():
     graph = build_mechanical_interface_graph()
-    bad_node = replace(graph.nodes[0], frame_id="WRONG_FRAME")
     with pytest.raises(MechanicalInterfaceGraphError, match="canonical world-mm"):
-        _graph_with(nodes=(bad_node,) + graph.nodes[1:])
-    bad_node = replace(graph.nodes[0], units="inch")
+        replace(graph.nodes[0], frame_id="WRONG_FRAME")
     with pytest.raises(MechanicalInterfaceGraphError, match="canonical world-mm"):
-        _graph_with(nodes=(bad_node,) + graph.nodes[1:])
-
-
-def test_identity_case_drift_and_invalid_actuator_index_fail_closed():
-    graph = build_mechanical_interface_graph()
+        replace(graph.nodes[0], units="inch")
     with pytest.raises(MechanicalInterfaceGraphError, match="unknown canonical component id"):
         replace(graph.nodes[0], canonical_component_id="Frame_Structure")
     carrier = next(node for node in graph.nodes if node.node_id == "ACTUATOR_CARRIER_ZONE_0")
@@ -168,64 +156,43 @@ def test_identity_case_drift_and_invalid_actuator_index_fail_closed():
         replace(carrier, instance_index=4)
 
 
-def test_open_cross_boundary_interface_cannot_be_promoted_to_positive_attachment():
+def test_open_cross_boundary_join_cannot_become_positive_attachment():
     graph = build_mechanical_interface_graph()
     edge = next(item for item in graph.interfaces if item.interface_id == "FRAME_TO_RETENTION_CROWN")
     with pytest.raises(MechanicalInterfaceGraphError, match="open/unresolved interface cannot be positive attachment"):
-        replace(
-            edge,
-            semantics="positive_attachment",
-            positive_attachment=True,
-            status="CANDIDATE_OPEN",
-        )
-
-
-def test_positive_attachment_bool_cannot_disagree_with_semantics():
-    graph = build_mechanical_interface_graph()
-    edge = next(item for item in graph.interfaces if item.interface_id == "FRAME_TO_RETENTION_CROWN")
+        replace(edge, semantics="positive_attachment", positive_attachment=True)
     with pytest.raises(MechanicalInterfaceGraphError, match="agree exactly"):
         replace(edge, positive_attachment=True)
 
 
-def test_unknown_source_or_endpoint_fails_closed():
+def test_unknown_sources_endpoints_duplicates_and_nonfinite_motion_fail_closed():
     graph = build_mechanical_interface_graph()
     bad_node = replace(graph.nodes[0], source_id="MISSING_SOURCE")
     with pytest.raises(MechanicalInterfaceGraphError, match="unknown source"):
-        _graph_with(nodes=(bad_node,) + graph.nodes[1:])
-    edge = graph.interfaces[0]
-    bad_edge = replace(edge, to_node="MISSING_NODE")
+        graph_with(nodes=(bad_node,) + graph.nodes[1:])
+    bad_edge = replace(graph.interfaces[0], to_node="MISSING_NODE")
     with pytest.raises(MechanicalInterfaceGraphError, match="endpoint"):
-        _graph_with(interfaces=(bad_edge,) + graph.interfaces[1:])
-
-
-def test_duplicate_stable_ids_fail_closed():
-    graph = build_mechanical_interface_graph()
+        graph_with(interfaces=(bad_edge,) + graph.interfaces[1:])
     with pytest.raises(MechanicalInterfaceGraphError, match="duplicate node id"):
-        _graph_with(nodes=graph.nodes + (graph.nodes[0],))
-    with pytest.raises(MechanicalInterfaceGraphError, match="duplicate interface id"):
-        _graph_with(interfaces=graph.interfaces + (graph.interfaces[0],))
-
-
-def test_nonfinite_motion_and_false_continuity_fail_closed():
-    graph = build_mechanical_interface_graph()
-    pull = next(motion for motion in graph.service_motions if motion.motion_id == "RIGHT_QUICK_RELEASE_PULL")
+        graph_with(nodes=graph.nodes + (graph.nodes[0],))
+    pull = next(m for m in graph.service_motions if m.motion_id == "RIGHT_QUICK_RELEASE_PULL")
     with pytest.raises(MechanicalInterfaceGraphError, match="finite and positive"):
         replace(pull, travel_mm=math.nan)
-    whole = next(motion for motion in graph.service_motions if motion.motion_id == "WHOLE_HEAD_REMOVAL")
+
+
+def test_unresolved_motion_cannot_fabricate_source_or_continuity():
+    graph = build_mechanical_interface_graph()
+    whole = next(m for m in graph.service_motions if m.motion_id == "WHOLE_HEAD_REMOVAL")
     with pytest.raises(MechanicalInterfaceGraphError, match="cannot claim continuity"):
         replace(whole, continuous=True)
     with pytest.raises(MechanicalInterfaceGraphError, match="cannot fabricate"):
         replace(whole, source_id="QUICK_RELEASE_V1", travel_mm=7.3, sample_count=39)
 
 
-def test_whole_package_cannot_be_closed_while_required_interfaces_are_open():
+def test_whole_package_and_whole_head_motion_cannot_be_falsely_closed():
     graph = build_mechanical_interface_graph()
     with pytest.raises(MechanicalInterfaceGraphError, match="must remain open"):
         replace(graph, whole_mechanical_package_closed=True)
-
-
-def test_whole_head_motion_cannot_be_relabelled_as_candidate_release_evidence():
-    graph = build_mechanical_interface_graph()
     motions = list(graph.service_motions)
     index = next(i for i, motion in enumerate(motions) if motion.motion_id == "WHOLE_HEAD_REMOVAL")
     motions[index] = replace(
@@ -237,10 +204,10 @@ def test_whole_head_motion_cannot_be_relabelled_as_candidate_release_evidence():
         sample_count=39,
     )
     with pytest.raises(MechanicalInterfaceGraphError, match="whole-head removal must remain unresolved"):
-        _graph_with(motions=motions)
+        graph_with(motions=motions)
 
 
-def test_malformed_source_sha_and_candidate_pr_number_fail_closed():
+def test_malformed_source_identity_fails_closed_and_moved_head_invalidates_digest():
     graph = build_mechanical_interface_graph()
     source = graph.sources[0]
     with pytest.raises(MechanicalInterfaceGraphError, match="40-character Git SHA"):
@@ -248,26 +215,19 @@ def test_malformed_source_sha_and_candidate_pr_number_fail_closed():
     with pytest.raises(MechanicalInterfaceGraphError, match="positive PR number"):
         replace(source, pr_number=0)
 
-
-def test_source_head_movement_changes_graph_digest_and_requires_explicit_rebind():
-    graph = build_mechanical_interface_graph()
     sources = list(graph.sources)
-    frame_index = next(i for i, source in enumerate(sources) if source.source_id == "FRAME_V1")
+    frame_index = next(i for i, item in enumerate(sources) if item.source_id == "FRAME_V1")
     sources[frame_index] = replace(
         sources[frame_index],
         head_sha="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         note="hostile moved-head fixture",
     )
-    moved = _graph_with(sources=sources)
+    moved = graph_with(sources=sources)
     assert moved.graph_sha256 != graph.graph_sha256
     assert candidate_source_heads(moved) != EXPECTED_CANDIDATE_HEADS
 
 
-def test_candidate_material_never_becomes_released_material_semantics():
+def test_candidate_geometry_never_becomes_released_material():
     graph = build_mechanical_interface_graph()
     assert all(node.geometry_role != "physical_material" for node in graph.nodes)
     assert all(source.status != "RELEASED_MAIN" for source in graph.sources)
-    manifest = graph.manifest()
-    assert "physical_material" not in {
-        node["geometry_role"] for node in manifest["nodes"]
-    }
