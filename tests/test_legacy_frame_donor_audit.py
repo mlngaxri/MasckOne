@@ -75,6 +75,18 @@ def test_legacy_overlap_join_defects_are_quantified_not_promoted(donor_audit):
     assert all(record.intersection_volume_mm3 > 0.0 for record in frame_overlap_records)
     assert all("NOT_ATTACHMENT" in record.interpretation for record in frame_overlap_records)
 
+    expected = {
+        "LEGACY_PR63_FRAME_SHELL_BRIDGE_WEARER_LEFT": 24.87162293,
+        "LEGACY_PR63_FRAME_SHELL_BRIDGE_WEARER_RIGHT": 24.87162293,
+        "LEGACY_PR63_FRAME_SHELL_BRIDGE_SUPERIOR": 24.04501919,
+        "LEGACY_PR63_RETENTION_LEFT_FRAME_CLEVIS": 144.04693105,
+        "LEGACY_PR63_RETENTION_RIGHT_FRAME_SOCKET": 70.90540976,
+    }
+    observed = {record.source_id: record.intersection_volume_mm3 for record in frame_overlap_records}
+    assert set(observed) == set(expected)
+    for part_id, expected_volume in expected.items():
+        assert observed[part_id] == pytest.approx(expected_volume, abs=2e-6)
+
     assert audit.positive_join_status == (
         "UNRESOLVED_LEGACY_POSITIVE_INTERSECTION_IS_NOT_TYPED_ATTACHMENT"
     )
@@ -84,6 +96,29 @@ def test_legacy_overlap_join_defects_are_quantified_not_promoted(donor_audit):
     assert audit.continuous_assembly_status == (
         "UNPROVEN_SAMPLED_WAYPOINTS_ARE_NOT_CONTINUOUS_SWEEPS"
     )
+
+
+def test_legacy_reaction_shoes_use_large_raw_frame_overlap_not_typed_joins(donor_audit):
+    frame = next(
+        part
+        for part in donor_audit.reference_parts
+        if part.part_id == "LEGACY_PR63_FRAME_PERIMETER_REACTION_MEMBER"
+    )
+    shoes = {
+        part.part_id: donor_module._intersection_volume(part.solid, frame.solid)
+        for part in donor_audit.reference_parts
+        if "REACTION_SHOE" in part.part_id
+    }
+    expected = {
+        "LEGACY_PR63_ACTUATOR_ZONE_SUPERIOR_LEFT_REACTION_SHOE": 127.34208317,
+        "LEGACY_PR63_ACTUATOR_ZONE_SUPERIOR_RIGHT_REACTION_SHOE": 127.34208319,
+        "LEGACY_PR63_ACTUATOR_ZONE_INFERIOR_LEFT_REACTION_SHOE": 193.45192844,
+        "LEGACY_PR63_ACTUATOR_ZONE_INFERIOR_RIGHT_REACTION_SHOE": 193.45192732,
+    }
+    assert set(shoes) == set(expected)
+    for part_id, expected_volume in expected.items():
+        assert shoes[part_id] == pytest.approx(expected_volume, abs=2e-6)
+        assert shoes[part_id] > 0.0
 
 
 def test_legacy_actuator_collisions_reproduce_exact_source_defect_scale(donor_audit):
