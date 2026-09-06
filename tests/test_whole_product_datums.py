@@ -166,6 +166,7 @@ def test_manifest_is_deterministic_source_bound_and_keeps_physical_firewall(hier
     source_paths = [item["path"] for item in first["source_git_blobs"]]
     assert len(source_paths) == len(set(source_paths))
     assert "config/masck_one_authority.yaml" in source_paths
+    assert "schemas/masck_one_authority.schema.json" in source_paths
     assert "src/masck_one/model.py" in source_paths
     assert "src/masck_one/water_reservoir.py" in source_paths
     assert "src/masck_one/cleanser_storage.py" in source_paths
