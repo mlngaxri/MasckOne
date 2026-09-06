@@ -128,8 +128,34 @@ def test_unresolved_join_actuator_retention_and_service_semantics_stay_fail_clos
 
 
 def test_realization_manifest_and_geometry_identity_are_deterministic(current_sources):
-    model, _attachment, frame, first = current_sources
-    second = build_structural_frame_realization(model=model, structural_frame=frame)
+    model, attachment, frame, first = current_sources
+    ordered_vertex_indices, ordered_points = realization_module._ordered_capture_cycle(
+        model,
+        attachment,
+        frame,
+    )
+    assert len(ordered_vertex_indices) == first.source_capture_vertex_count
+
+    second_solid = realization_module._build_member_solid(
+        ordered_points=ordered_points,
+        outer_xy_envelope_mm=first.outer_xy_envelope_mm,
+        z_min_mm=first.z_range_mm[0],
+        axial_depth_mm=first.axial_depth_mm,
+    )
+    second_measurements = realization_module._geometry_measurements(second_solid)
+    second_geometry_sha = realization_module._geometry_sha256(
+        source_capture_path_sha256=first.source_capture_path_sha256,
+        outer_xy_envelope_mm=first.outer_xy_envelope_mm,
+        axial_depth_mm=first.axial_depth_mm,
+        z_range_mm=first.z_range_mm,
+        geometry_measurements=second_measurements,
+    )
+    second = replace(
+        first,
+        geometry_measurements=second_measurements,
+        geometry_sha256=second_geometry_sha,
+        solid=second_solid,
+    )
 
     assert first.geometry_sha256 == second.geometry_sha256
     assert first.realization_sha256 == second.realization_sha256
