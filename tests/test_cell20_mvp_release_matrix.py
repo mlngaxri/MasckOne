@@ -12,6 +12,7 @@ from masck_one.mvp_completeness import MvpCompletenessError, RequirementStatus
 EXPECTED_CANDIDATES = {
     70, 71, 77, 80, 82, 85, 90, 91, 92, 93, 94, 96, 98, 99, 100, 101,
     103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
+    117, 118,
 }
 
 
@@ -48,12 +49,30 @@ def test_live_candidate_snapshot_is_complete_unique_and_non_authoritative() -> N
     assert all(item.requires_live_head_revalidation is True for item in matrix.candidate_observations)
 
 
+def test_rebound_candidate_heads_match_latest_api_snapshot() -> None:
+    matrix = rm.build_live_release_matrix()
+    heads = {item.pr_number: item.observed_head_sha for item in matrix.candidate_observations}
+    assert heads[92] == "abb806a8e15a1557c8b5a4c754af1bfeea8b6d70"
+    assert heads[104] == "1b4411fd2759bf92af2eccef4b1325b0897b7f72"
+    assert heads[107] == "22d2e5baccbcfa56aa4a70e4e4dd59693e15affd"
+    assert heads[108] == "0bf6c73028284ba9a5715ef5235bb2be1c298403"
+    assert heads[109] == "fb586cc1ea1cde92526417593f9e5aa990d2ae4f"
+    assert heads[111] == "6899b61db8cd549c44a82b12e78fe4028a2e7048"
+    assert heads[112] == "abbfa427660a3752cce7d18b86faa44654884936"
+    assert heads[114] == "630cc19497661ae834032eb8ea06e28dfd6100b7"
+    assert heads[115] == "b61d71433f81e3f3e03307a350334a76e9dbf361"
+    assert heads[117] == "6e3e1385f350735731ac08ff107a3c1d0f76189e"
+    assert heads[118] == "37e03df4b6abbd222422c8bfd4e70b03a4e5ae07"
+
+
 def test_current_specialist_candidates_map_to_their_requirements() -> None:
     matrix = rm.build_live_release_matrix()
     rows = {row.requirement_id: row for row in matrix.requirements}
     expected = {
         "ARCH-009": {107},
         "ARCH-012": {115},
+        "MVP-003": {117},
+        "MVP-004": {118},
         "MVP-010": {111},
         "MVP-011": {113},
         "MVP-012": {110},
