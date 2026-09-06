@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-"""Cell 13 released electrical endpoint inventory and Manual-B donor delta.
+"""Canonical Cell 13 electrical interconnect endpoint registry.
 
-This module intentionally does not realize harness centerlines, connector hardware,
-strain relief, service loops, or wet/dry bulkhead material. Released main does not yet
-expose trustworthy electrical mating datums for those features. The inventory instead
-binds stable endpoint identity, current maturity, exact source provenance, and the
-closed Manual-B 13-route donor delta so stale route coordinates cannot become product
-truth by implication.
+The registry assigns stable endpoint identity, electrical role, owning cell, wet/dry
+architectural class and service class without inventing connector hardware, pinouts,
+ratings, harness centerlines, strain relief, service-loop dimensions or wet/dry bulkhead
+material. Current released product geometry does not expose trustworthy electrical mating
+datums for any endpoint, so route readiness remains fail-closed.
 """
 
 from dataclasses import dataclass
@@ -53,12 +52,7 @@ CONTROLLED_ENVELOPE = "CONTROLLED_ENVELOPE"
 TOPOLOGY_ONLY = "TOPOLOGY_ONLY"
 UNRESOLVED = "UNRESOLVED"
 OPTIONAL_UNRESOLVED = "OPTIONAL_UNRESOLVED"
-MATURITY_VOCABULARY = (
-    CONTROLLED_ENVELOPE,
-    TOPOLOGY_ONLY,
-    UNRESOLVED,
-    OPTIONAL_UNRESOLVED,
-)
+MATURITY_VOCABULARY = (CONTROLLED_ENVELOPE, TOPOLOGY_ONLY, UNRESOLVED, OPTIONAL_UNRESOLVED)
 
 BOUNDARY_DRY_INTENT_UNRELEASED = "DRY_SIDE_INTENT_BUT_DRY_BAY_GEOMETRY_UNRELEASED"
 BOUNDARY_WET_DRY_CROSSING_UNRELEASED = "WET_DRY_CROSSING_REQUIRED_BULKHEAD_GEOMETRY_UNRELEASED"
@@ -67,6 +61,42 @@ BOUNDARY_STATUS_VOCABULARY = (
     BOUNDARY_DRY_INTENT_UNRELEASED,
     BOUNDARY_WET_DRY_CROSSING_UNRELEASED,
     BOUNDARY_PACKAGE_CLASS_UNRESOLVED,
+)
+
+SIDE_DRY_INTENT = "DRY_SIDE_INTENT"
+SIDE_WET_DRY_CROSSING_REQUIRED = "WET_DRY_CROSSING_REQUIRED"
+SIDE_UNRESOLVED = "SIDE_CLASS_UNRESOLVED_PENDING_OWNER_GEOMETRY"
+SIDE_CLASS_VOCABULARY = (SIDE_DRY_INTENT, SIDE_WET_DRY_CROSSING_REQUIRED, SIDE_UNRESOLVED)
+
+SERVICE_DISCONNECT_REQUIRED = "SERVICE_DISCONNECT_REQUIRED_BEFORE_COMPONENT_REMOVAL"
+SERVICE_INTERNAL_FIXED = "INTERNAL_FIXED_INTERCONNECT_INTENT"
+SERVICE_USER_INTERFACE = "USER_ACCESS_INTERFACE_INTENT"
+SERVICE_OPTIONAL_UNRESOLVED = "OPTIONAL_NON_MVP_SERVICE_CLASS_UNRESOLVED"
+SERVICE_CLASS_VOCABULARY = (
+    SERVICE_DISCONNECT_REQUIRED,
+    SERVICE_INTERNAL_FIXED,
+    SERVICE_USER_INTERFACE,
+    SERVICE_OPTIONAL_UNRESOLVED,
+)
+SERVICE_GEOMETRY_UNRESOLVED = "UNRESOLVED_NO_CURRENT_SERVICE_LOOP_DISCONNECT_OR_EXTRACTION_GEOMETRY"
+
+ROLE_POWER_SOURCE = "POWER_SOURCE"
+ROLE_POWER_CONTROL_BACKBONE = "POWER_CONTROL_BACKBONE"
+ROLE_ACTUATION_LOAD = "ACTUATION_LOAD"
+ROLE_FLUID_PUMP_LOAD = "FLUID_PUMP_LOAD"
+ROLE_HMI = "HUMAN_MACHINE_INTERFACE"
+ROLE_THERMAL_LOAD = "THERMAL_LOAD"
+ROLE_OPTIONAL_THERMAL_LOAD = "OPTIONAL_THERMAL_LOAD"
+ROLE_CHARGING_INTERFACE = "CHARGING_INTERFACE"
+ELECTRICAL_ROLE_VOCABULARY = (
+    ROLE_POWER_SOURCE,
+    ROLE_POWER_CONTROL_BACKBONE,
+    ROLE_ACTUATION_LOAD,
+    ROLE_FLUID_PUMP_LOAD,
+    ROLE_HMI,
+    ROLE_THERMAL_LOAD,
+    ROLE_OPTIONAL_THERMAL_LOAD,
+    ROLE_CHARGING_INTERFACE,
 )
 
 OWNER_CELL_7 = "CELL_7_ACTUATION"
@@ -114,12 +144,24 @@ ENDPOINT_IDS = (
     EP_COOL_OPTIONAL,
     EP_CHARGING,
 )
-ACTUATOR_ENDPOINT_IDS = (
-    EP_ACTUATOR_01,
-    EP_ACTUATOR_02,
-    EP_ACTUATOR_03,
-    EP_ACTUATOR_04,
-)
+ACTUATOR_ENDPOINT_IDS = (EP_ACTUATOR_01, EP_ACTUATOR_02, EP_ACTUATOR_03, EP_ACTUATOR_04)
+
+EXPECTED_ENDPOINT_CLASSIFICATION: dict[str, tuple[str, str, str]] = {
+    EP_BATTERY: (ROLE_POWER_SOURCE, SIDE_DRY_INTENT, SERVICE_DISCONNECT_REQUIRED),
+    EP_PCB: (ROLE_POWER_CONTROL_BACKBONE, SIDE_DRY_INTENT, SERVICE_INTERNAL_FIXED),
+    EP_ACTUATOR_01: (ROLE_ACTUATION_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+    EP_ACTUATOR_02: (ROLE_ACTUATION_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+    EP_ACTUATOR_03: (ROLE_ACTUATION_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+    EP_ACTUATOR_04: (ROLE_ACTUATION_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+    EP_PUMP_WATER: (ROLE_FLUID_PUMP_LOAD, SIDE_WET_DRY_CROSSING_REQUIRED, SERVICE_DISCONNECT_REQUIRED),
+    EP_PUMP_CLEANSER: (ROLE_FLUID_PUMP_LOAD, SIDE_WET_DRY_CROSSING_REQUIRED, SERVICE_DISCONNECT_REQUIRED),
+    EP_PUMP_WASTE: (ROLE_FLUID_PUMP_LOAD, SIDE_WET_DRY_CROSSING_REQUIRED, SERVICE_DISCONNECT_REQUIRED),
+    EP_HMI: (ROLE_HMI, SIDE_UNRESOLVED, SERVICE_USER_INTERFACE),
+    EP_WARM_LEFT: (ROLE_THERMAL_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+    EP_WARM_RIGHT: (ROLE_THERMAL_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+    EP_COOL_OPTIONAL: (ROLE_OPTIONAL_THERMAL_LOAD, SIDE_UNRESOLVED, SERVICE_OPTIONAL_UNRESOLVED),
+    EP_CHARGING: (ROLE_CHARGING_INTERFACE, SIDE_DRY_INTENT, SERVICE_USER_INTERFACE),
+}
 
 ROUTE_BATTERY_PCB = "HARNESS-BATTERY-PCB"
 ROUTE_ACTUATOR_A = "HARNESS-PCB-ACTUATOR-A"
@@ -152,10 +194,11 @@ LEGACY_ROUTE_IDS = (
 
 _SHA40_RE = re.compile(r"^[0-9a-f]{40}$")
 _REPO_ROOT = Path(__file__).resolve().parents[2]
+_COORDINATE_DECIMALS = 12
 
 EVIDENCE_STATUS = (
-    "DIGITAL_ENDPOINT_IDENTITY_AND_DONOR_DELTA_ONLY_NOT_HARNESS_CONNECTOR_BULKHEAD_"
-    "INGRESS_ELECTRICAL_THERMAL_SERVICE_OR_PHYSICAL_VALIDATION_EVIDENCE"
+    "DIGITAL_ENDPOINT_IDENTITY_ROLE_SIDE_SERVICE_CLASS_AND_DONOR_DELTA_ONLY_NOT_HARNESS_"
+    "CONNECTOR_PINOUT_RATING_BULKHEAD_INGRESS_ELECTRICAL_THERMAL_SERVICE_OR_PHYSICAL_VALIDATION_EVIDENCE"
 )
 
 
@@ -175,20 +218,24 @@ def _exact_bool(value: object, *, label: str) -> bool:
     return value
 
 
+def _canonical_mm_scalar(value: object, *, label: str) -> float:
+    if type(value) not in (int, float):
+        raise HarnessEndpointInventoryError(f"{label} must be an exact numeric scalar")
+    numeric = float(value)
+    if not math.isfinite(numeric):
+        raise HarnessEndpointInventoryError(f"{label} must be finite")
+    rounded = round(numeric, _COORDINATE_DECIMALS)
+    return 0.0 if rounded == 0.0 else rounded
+
+
 def _point_or_none(value: object, *, label: str) -> tuple[float, float, float] | None:
     if value is None:
         return None
     if type(value) is not tuple or len(value) != 3:
         raise HarnessEndpointInventoryError(f"{label} must be an exact XYZ tuple or None")
-    result: list[float] = []
-    for item in value:
-        if type(item) not in (int, float):
-            raise HarnessEndpointInventoryError(f"{label} values must be exact numeric scalars")
-        numeric = float(item)
-        if not math.isfinite(numeric):
-            raise HarnessEndpointInventoryError(f"{label} values must be finite")
-        result.append(0.0 if numeric == 0.0 else numeric)
-    return tuple(result)  # type: ignore[return-value]
+    return tuple(
+        _canonical_mm_scalar(item, label=f"{label}[{index}]") for index, item in enumerate(value)
+    )  # type: ignore[return-value]
 
 
 def _git_blob_sha(path: Path) -> str:
@@ -221,13 +268,26 @@ def _require_canonical_authority(authority: Authority) -> None:
         raise HarnessEndpointInventoryError("supplied authority differs from released machine authority")
     if str(authority.get("project", "authority_revision")) != AUTHORITY_REVISION:
         raise HarnessEndpointInventoryError("Cell 13 authority revision moved")
+    if str(authority.get("project", "units", "length")) != "mm":
+        raise HarnessEndpointInventoryError("Cell 13 registry requires authority length unit mm")
+    coordinate = authority.data["coordinate_system"]
+    if (
+        coordinate["x_positive"] != "wearer_right"
+        or coordinate["y_positive"] != "superior"
+        or coordinate["z_positive"] != "anterior"
+    ):
+        raise HarnessEndpointInventoryError("Cell 13 registry requires canonical authority axis signs")
 
 
 @dataclass(frozen=True, slots=True)
 class EndpointRecord:
     endpoint_id: str
     function_role: str
+    electrical_role: str
     blocker_owner: str
+    side_class: str
+    service_class: str
+    service_geometry_status: str
     source_module: str
     source_object_id: str
     source_git_blob_sha: str
@@ -237,6 +297,12 @@ class EndpointRecord:
     electrical_interface_datum_xyz_mm: None
     electrical_interface_status: str
     boundary_status: str
+    connector_family: None
+    pinout: None
+    conductor_count: None
+    voltage_rating_V: None
+    current_rating_A: None
+    ingress_rating: None
     mvp_required: bool
     route_ready: bool
 
@@ -249,10 +315,22 @@ class EndpointRecord:
             ("source_object_id", self.source_object_id),
             ("package_anchor_status", self.package_anchor_status),
             ("electrical_interface_status", self.electrical_interface_status),
+            ("service_geometry_status", self.service_geometry_status),
         ):
             _text(value, label=label)
         if self.blocker_owner not in OWNER_VOCABULARY:
             raise HarnessEndpointInventoryError(f"uncontrolled blocker owner {self.blocker_owner!r}")
+        if self.electrical_role not in ELECTRICAL_ROLE_VOCABULARY:
+            raise HarnessEndpointInventoryError(f"uncontrolled electrical role {self.electrical_role!r}")
+        if self.side_class not in SIDE_CLASS_VOCABULARY:
+            raise HarnessEndpointInventoryError(f"uncontrolled wet/dry side class {self.side_class!r}")
+        if self.service_class not in SERVICE_CLASS_VOCABULARY:
+            raise HarnessEndpointInventoryError(f"uncontrolled service class {self.service_class!r}")
+        expected_classification = EXPECTED_ENDPOINT_CLASSIFICATION[self.endpoint_id]
+        if (self.electrical_role, self.side_class, self.service_class) != expected_classification:
+            raise HarnessEndpointInventoryError("endpoint electrical role/side/service classification drifted")
+        if self.service_geometry_status != SERVICE_GEOMETRY_UNRESOLVED:
+            raise HarnessEndpointInventoryError("service class cannot imply released service geometry")
         if self.source_module not in SOURCE_BLOB_BY_MODULE:
             raise HarnessEndpointInventoryError(f"endpoint source module is not provenance-bound: {self.source_module}")
         if self.source_git_blob_sha != SOURCE_BLOB_BY_MODULE[self.source_module]:
@@ -263,13 +341,23 @@ class EndpointRecord:
             raise HarnessEndpointInventoryError(f"uncontrolled endpoint maturity {self.current_maturity!r}")
         canonical_anchor = _point_or_none(self.package_anchor_xyz_mm, label="package anchor")
         if canonical_anchor != self.package_anchor_xyz_mm:
-            raise HarnessEndpointInventoryError("package anchor must already be canonical finite floats")
+            raise HarnessEndpointInventoryError("package anchor must already use canonical mm precision")
         if self.electrical_interface_datum_xyz_mm is not None:
             raise HarnessEndpointInventoryError(
-                "V1 current-main inventory cannot contain an electrical mating datum before its owner releases one"
+                "current-main registry cannot contain an electrical mating datum before its owner releases one"
             )
         if self.boundary_status not in BOUNDARY_STATUS_VOCABULARY:
             raise HarnessEndpointInventoryError("endpoint wet/dry boundary status is uncontrolled")
+        unresolved_electrical = (
+            self.connector_family,
+            self.pinout,
+            self.conductor_count,
+            self.voltage_rating_V,
+            self.current_rating_A,
+            self.ingress_rating,
+        )
+        if any(value is not None for value in unresolved_electrical):
+            raise HarnessEndpointInventoryError("connector family, pinout, conductor count and ratings must remain unresolved")
         _exact_bool(self.mvp_required, label="mvp_required")
         _exact_bool(self.route_ready, label="route_ready")
         if self.route_ready:
@@ -278,7 +366,7 @@ class EndpointRecord:
             )
         if self.endpoint_id == EP_COOL_OPTIONAL:
             if self.mvp_required or self.current_maturity != OPTIONAL_UNRESOLVED:
-                raise HarnessEndpointInventoryError("COOL must remain optional and unresolved in the current MVP inventory")
+                raise HarnessEndpointInventoryError("COOL must remain optional and unresolved in the current MVP registry")
         if self.endpoint_id in ACTUATOR_ENDPOINT_IDS:
             expected_zone = ACTUATOR_ZONE_IDS[ACTUATOR_ENDPOINT_IDS.index(self.endpoint_id)]
             if self.source_module != "src/masck_one/actuator_frames.py" or self.source_object_id != expected_zone:
@@ -293,7 +381,11 @@ class EndpointRecord:
         return {
             "endpoint_id": self.endpoint_id,
             "function_role": self.function_role,
+            "electrical_role": self.electrical_role,
             "blocker_owner": self.blocker_owner,
+            "side_class": self.side_class,
+            "service_class": self.service_class,
+            "service_geometry_status": self.service_geometry_status,
             "source_module": self.source_module,
             "source_object_id": self.source_object_id,
             "source_git_blob_sha": self.source_git_blob_sha,
@@ -303,6 +395,12 @@ class EndpointRecord:
             "electrical_interface_datum_xyz_mm": None,
             "electrical_interface_status": self.electrical_interface_status,
             "boundary_status": self.boundary_status,
+            "connector_family": None,
+            "pinout": None,
+            "conductor_count": None,
+            "voltage_rating_V": None,
+            "current_rating_A": None,
+            "ingress_rating": None,
             "mvp_required": self.mvp_required,
             "route_ready": self.route_ready,
         }
@@ -367,15 +465,15 @@ class HarnessEndpointInventory:
 
     def __post_init__(self) -> None:
         if self.schema != SCHEMA:
-            raise HarnessEndpointInventoryError("unexpected Cell 13 inventory schema")
+            raise HarnessEndpointInventoryError("unexpected Cell 13 registry schema")
         if self.authored_against_main_sha != SOURCE_MAIN_SHA or _SHA40_RE.fullmatch(self.authored_against_main_sha) is None:
-            raise HarnessEndpointInventoryError("Cell 13 inventory main identity is stale")
+            raise HarnessEndpointInventoryError("Cell 13 registry main identity is stale")
         if self.authority_revision != AUTHORITY_REVISION:
-            raise HarnessEndpointInventoryError("Cell 13 inventory authority revision is stale")
+            raise HarnessEndpointInventoryError("Cell 13 registry authority revision is stale")
         if self.authority_blob_sha != AUTHORITY_BLOB_SHA or _SHA40_RE.fullmatch(self.authority_blob_sha) is None:
-            raise HarnessEndpointInventoryError("Cell 13 inventory authority blob is stale")
+            raise HarnessEndpointInventoryError("Cell 13 registry authority blob is stale")
         if self.coordinate_frame_id != WORLD_FRAME_ID:
-            raise HarnessEndpointInventoryError("Cell 13 inventory must use the canonical authority world frame")
+            raise HarnessEndpointInventoryError("Cell 13 registry must use the canonical authority world frame")
         if self.source_git_blob_identities != SOURCE_GIT_BLOB_IDENTITIES:
             raise HarnessEndpointInventoryError("Cell 13 source graph identity changed")
         if tuple(item.endpoint_id for item in self.endpoints) != ENDPOINT_IDS:
@@ -386,6 +484,10 @@ class HarnessEndpointInventory:
             raise HarnessEndpointInventoryError("Cell 13 endpoint IDs cannot repeat")
         if len(set(item.route_id for item in self.legacy_routes)) != len(self.legacy_routes):
             raise HarnessEndpointInventoryError("Manual-B donor route IDs cannot repeat")
+        for endpoint in self.endpoints:
+            endpoint.__post_init__()
+        for route in self.legacy_routes:
+            route.__post_init__()
         _exact_bool(self.current_harness_centerlines_released, label="current_harness_centerlines_released")
         _exact_bool(self.wet_dry_bulkhead_geometry_released, label="wet_dry_bulkhead_geometry_released")
         _exact_bool(self.development_assembly_material_eligible, label="development_assembly_material_eligible")
@@ -400,9 +502,9 @@ class HarnessEndpointInventory:
         if type(self.legacy_routes_reusable_without_rebind) is not int or self.legacy_routes_reusable_without_rebind != 0:
             raise HarnessEndpointInventoryError("no Manual-B route may be reused without rebind")
         if self.development_assembly_material_eligible:
-            raise HarnessEndpointInventoryError("endpoint inventory is not physical assembly material")
+            raise HarnessEndpointInventoryError("endpoint registry is not physical assembly material")
         if self.physical_validation_eligible:
-            raise HarnessEndpointInventoryError("digital endpoint inventory cannot be physical validation evidence")
+            raise HarnessEndpointInventoryError("digital endpoint registry cannot be physical validation evidence")
         if self.evidence_status != EVIDENCE_STATUS:
             raise HarnessEndpointInventoryError("Cell 13 evidence status changed")
         if _SHA40_RE.fullmatch(LEGACY_DONOR_HEAD_SHA) is None or _SHA40_RE.fullmatch(LEGACY_DONOR_FILE_BLOB_SHA) is None:
@@ -411,10 +513,7 @@ class HarnessEndpointInventory:
     @property
     def inventory_sha256(self) -> str:
         raw = json.dumps(
-            self.manifest(include_sha=False),
-            sort_keys=True,
-            separators=(",", ":"),
-            allow_nan=False,
+            self.manifest(include_sha=False), sort_keys=True, separators=(",", ":"), allow_nan=False
         ).encode("utf-8")
         return sha256(raw).hexdigest()
 
@@ -464,10 +563,15 @@ def _endpoint(
     *,
     mvp_required: bool = True,
 ) -> EndpointRecord:
+    electrical_role, side_class, service_class = EXPECTED_ENDPOINT_CLASSIFICATION[endpoint_id]
     return EndpointRecord(
         endpoint_id=endpoint_id,
         function_role=function_role,
+        electrical_role=electrical_role,
         blocker_owner=blocker_owner,
+        side_class=side_class,
+        service_class=service_class,
+        service_geometry_status=SERVICE_GEOMETRY_UNRESOLVED,
         source_module=source_module,
         source_object_id=source_object_id,
         source_git_blob_sha=SOURCE_BLOB_BY_MODULE[source_module],
@@ -477,6 +581,12 @@ def _endpoint(
         electrical_interface_datum_xyz_mm=None,
         electrical_interface_status="UNRESOLVED_NO_RELEASED_ELECTRICAL_MATING_DATUM",
         boundary_status=boundary_status,
+        connector_family=None,
+        pinout=None,
+        conductor_count=None,
+        voltage_rating_V=None,
+        current_rating_A=None,
+        ingress_rating=None,
         mvp_required=mvp_required,
         route_ready=False,
     )
@@ -502,21 +612,22 @@ def _legacy_route(
 
 
 def _build_legacy_route_bindings() -> tuple[LegacyRouteBinding, ...]:
-    return (
-        _legacy_route(ROUTE_BATTERY_PCB, "BATTERY-CONNECTOR-ACCESS", "PCB-POWER-EDGE", EP_BATTERY, EP_PCB, "LEGACY_SHORT_DISCONNECT_SLACK_DONOR_ONLY"),
-        _legacy_route(ROUTE_ACTUATOR_A, "PCB-ACT-A", "ACTUATOR-A-ELECTRICAL", EP_PCB, EP_ACTUATOR_01),
-        _legacy_route(ROUTE_ACTUATOR_B, "PCB-ACT-B", "ACTUATOR-B-ELECTRICAL", EP_PCB, EP_ACTUATOR_02),
-        _legacy_route(ROUTE_ACTUATOR_C, "PCB-ACT-C", "ACTUATOR-C-ELECTRICAL", EP_PCB, EP_ACTUATOR_03),
-        _legacy_route(ROUTE_ACTUATOR_D, "PCB-ACT-D", "ACTUATOR-D-ELECTRICAL", EP_PCB, EP_ACTUATOR_04),
-        _legacy_route(ROUTE_WATER_PUMP, "PCB-PUMP-WATER", "WATER-PUMP-DRY-BULKHEAD", EP_PCB, EP_PUMP_WATER),
-        _legacy_route(ROUTE_CLEANSER_PUMP, "PCB-PUMP-CLEANSER", "CLEANSER-PUMP-DRY-BULKHEAD", EP_PCB, EP_PUMP_CLEANSER),
-        _legacy_route(ROUTE_WASTE_PUMP, "PCB-PUMP-WASTE", "WASTE-PUMP-DRY-BULKHEAD", EP_PCB, EP_PUMP_WASTE),
-        _legacy_route(ROUTE_HMI, "PCB-HMI-EDGE", "HMI-SIDE-PANEL", EP_PCB, EP_HMI, "LEGACY_LOCAL_FLEX_LOOP_DONOR_ONLY"),
-        _legacy_route(ROUTE_WARM_LEFT, "PCB-WARM-L", "WARM-LEFT-SEALED-FEED", EP_PCB, EP_WARM_LEFT),
-        _legacy_route(ROUTE_WARM_RIGHT, "PCB-WARM-R", "WARM-RIGHT-SEALED-FEED", EP_PCB, EP_WARM_RIGHT),
-        _legacy_route(ROUTE_COOL, "PCB-THERMAL-EXP", "COOL-RESERVATION", EP_PCB, EP_COOL_OPTIONAL),
-        _legacy_route(ROUTE_CHARGING, "PCB-CHARGE-EDGE", "CHARGING-DRY-SIDE", EP_PCB, EP_CHARGING, "LEGACY_CONNECTOR_SERVICE_SLACK_DONOR_ONLY"),
+    rows = (
+        (ROUTE_BATTERY_PCB, "BATTERY-CONNECTOR-ACCESS", "PCB-POWER-EDGE", EP_BATTERY, EP_PCB, "LEGACY_SHORT_DISCONNECT_SLACK_DONOR_ONLY"),
+        (ROUTE_ACTUATOR_A, "PCB-ACT-A", "ACTUATOR-A-ELECTRICAL", EP_PCB, EP_ACTUATOR_01, "NO_CURRENT_SERVICE_SLACK_CLAIM"),
+        (ROUTE_ACTUATOR_B, "PCB-ACT-B", "ACTUATOR-B-ELECTRICAL", EP_PCB, EP_ACTUATOR_02, "NO_CURRENT_SERVICE_SLACK_CLAIM"),
+        (ROUTE_ACTUATOR_C, "PCB-ACT-C", "ACTUATOR-C-ELECTRICAL", EP_PCB, EP_ACTUATOR_03, "NO_CURRENT_SERVICE_SLACK_CLAIM"),
+        (ROUTE_ACTUATOR_D, "PCB-ACT-D", "ACTUATOR-D-ELECTRICAL", EP_PCB, EP_ACTUATOR_04, "NO_CURRENT_SERVICE_SLACK_CLAIM"),
+        (ROUTE_WATER_PUMP, "PCB-PUMP-WATER", "WATER-PUMP-DRY-BULKHEAD", EP_PCB, EP_PUMP_WATER, "NO_CURRENT_SERVICE_SLACK_CLAIM"),
+        (ROUTE_CLEANSER_PUMP, "PCB-PUMP-CLEANSER", "CLEANSER-PUMP-DRY-BULKHEAD", EP_PCB, EP_PUMP_CLEANSER, "NO_CURRENT_SERVICE_SLACK_CLAIM"),
+        (ROUTE_WASTE_PUMP, "PCB-PUMP-WASTE", "WASTE-PUMP-DRY-BULKHEAD", EP_PCB, EP_PUMP_WASTE, "NO_CURRENT_SERVICE_SLACK_CLAIM"),
+        (ROUTE_HMI, "PCB-HMI-EDGE", "HMI-SIDE-PANEL", EP_PCB, EP_HMI, "LEGACY_LOCAL_FLEX_LOOP_DONOR_ONLY"),
+        (ROUTE_WARM_LEFT, "PCB-WARM-L", "WARM-LEFT-SEALED-FEED", EP_PCB, EP_WARM_LEFT, "NO_CURRENT_SERVICE_SLACK_CLAIM"),
+        (ROUTE_WARM_RIGHT, "PCB-WARM-R", "WARM-RIGHT-SEALED-FEED", EP_PCB, EP_WARM_RIGHT, "NO_CURRENT_SERVICE_SLACK_CLAIM"),
+        (ROUTE_COOL, "PCB-THERMAL-EXP", "COOL-RESERVATION", EP_PCB, EP_COOL_OPTIONAL, "NO_CURRENT_SERVICE_SLACK_CLAIM"),
+        (ROUTE_CHARGING, "PCB-CHARGE-EDGE", "CHARGING-DRY-SIDE", EP_PCB, EP_CHARGING, "LEGACY_CONNECTOR_SERVICE_SLACK_DONOR_ONLY"),
     )
+    return tuple(_legacy_route(*row) for row in rows)
 
 
 def build_harness_endpoint_inventory(model: MasckOneModel | None = None) -> HarnessEndpointInventory:
@@ -528,7 +639,8 @@ def build_harness_endpoint_inventory(model: MasckOneModel | None = None) -> Harn
 
     if len(model.actuator_envelopes) != 4:
         raise HarnessEndpointInventoryError("released model must retain exactly four actuator package references")
-    if tuple(item.name for item in model.actuator_envelopes) != tuple(f"actuator_envelope_{index}" for index in range(1, 5)):
+    expected_component_names = tuple(f"actuator_envelope_{index}" for index in range(1, 5))
+    if tuple(item.name for item in model.actuator_envelopes) != expected_component_names:
         raise HarnessEndpointInventoryError("released model actuator package-reference identity changed")
     if any(item.status != "ALPHA_PHYSICS_REFERENCE" for item in model.actuator_envelopes):
         raise HarnessEndpointInventoryError("released model actuator package-reference maturity changed")
@@ -541,13 +653,17 @@ def build_harness_endpoint_inventory(model: MasckOneModel | None = None) -> Harn
         raise HarnessEndpointInventoryError("released actuator zone identity changed")
     if model.battery_reference_envelope.status != "PACKAGING_BENCHMARK_NOT_PRODUCTION_FREEZE":
         raise HarnessEndpointInventoryError("battery benchmark maturity changed; Cell 13 must rebind")
+
     battery_center = model.battery_reference_envelope.solid.val().Center()
-    battery_anchor = (float(battery_center.x), float(battery_center.y), float(battery_center.z))
+    raw_battery_anchor = (float(battery_center.x), float(battery_center.y), float(battery_center.z))
     if any(
         not math.isclose(actual, expected, rel_tol=0.0, abs_tol=1e-9)
-        for actual, expected in zip(battery_anchor, (0.0, 0.0, -15.0), strict=True)
+        for actual, expected in zip(raw_battery_anchor, (0.0, 0.0, -15.0), strict=True)
     ):
         raise HarnessEndpointInventoryError("released battery benchmark placement changed; Cell 13 must rebind")
+    battery_anchor = _point_or_none(raw_battery_anchor, label="derived battery benchmark center")
+    if battery_anchor != (0.0, 0.0, -15.0):
+        raise HarnessEndpointInventoryError("battery benchmark center did not canonicalize to released mm datum")
 
     actuator_records = tuple(
         _endpoint(
@@ -561,7 +677,9 @@ def build_harness_endpoint_inventory(model: MasckOneModel | None = None) -> Harn
             "RELEASED_ACTUATOR_FRAME_ORIGIN_UNRESOLVED_MODEL_PACKAGE_REFERENCE_TRANSFORM_NOT_ENDPOINT_DATUM",
             BOUNDARY_PACKAGE_CLASS_UNRESOLVED,
         )
-        for index, (endpoint_id, zone_id) in enumerate(zip(ACTUATOR_ENDPOINT_IDS, ACTUATOR_ZONE_IDS, strict=True), start=1)
+        for index, (endpoint_id, zone_id) in enumerate(
+            zip(ACTUATOR_ENDPOINT_IDS, ACTUATOR_ZONE_IDS, strict=True), start=1
+        )
     )
 
     endpoints = (
