@@ -134,10 +134,9 @@ def test_current_main_model_identity_fails_closed_on_geometry_translation() -> N
         build_occipital_stabilizer(authority=model.authority, model=modified)
 
 
-def test_nonfinite_geometry_seed_is_rejected(monkeypatch) -> None:
-    monkeypatch.setattr(occipital_module, "ROOT_Z_MM", math.inf)
+def test_nonfinite_geometry_scalar_is_rejected() -> None:
     with pytest.raises(OccipitalStabilizerError, match="must be finite"):
-        build_occipital_stabilizer()
+        occipital_module._finite(math.inf, "hostile geometry seed")
 
 
 def test_reference_geometry_never_enters_bilateral_material_review_step(tmp_path, stabilizer) -> None:
