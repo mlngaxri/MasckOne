@@ -15,16 +15,19 @@ EXPECTED_SEQUENCE_PRS = {
 EXPECTED_GREEN_PRS = {107, 108, 109, 110, 112, 114, 116, 117, 118, 120, 121}
 
 
-def test_plan_is_deterministic_and_has_exactly_one_current_release_action() -> None:
+def test_plan_is_deterministic_and_draft_root_is_fail_closed() -> None:
     first = mp.merge_dependency_manifest()
     second = mp.merge_dependency_manifest()
     assert first == second
     assert first["schema"] == mp.SCHEMA
     assert first["source_main_sha"] == mp.SOURCE_MAIN_SHA
     assert first["world_frame_id"] == "MASCK_ONE_AUTHORITY_WORLD_MM"
-    assert first["next_release_pr"] == 121
+    assert first["next_release_root_pr"] == 121
     assert first["next_release_expected_head_sha"] == mp.ROOT_HEAD_SHA
-    assert first["release_eligible_now_prs"] == [121]
+    assert first["next_release_root_evidence_complete"] is True
+    assert first["next_release_pr_is_draft"] is True
+    assert first["merge_permitted_now_prs"] == []
+    assert first["required_owner_transition"] == "MARK_PR_121_READY_FOR_REVIEW_WITHOUT_MOVING_ITS_HEAD"
     assert first["downstream_merge_hold"] is True
     assert len(first["manifest_sha256"]) == 64
 
@@ -48,13 +51,15 @@ def test_sequence_contains_current_dependency_candidates_once() -> None:
     assert {row.pr_number for row in rows if row.exact_head_green} == EXPECTED_GREEN_PRS
 
 
-def test_every_dependency_is_in_an_earlier_phase() -> None:
+def test_every_dependency_is_in_an_earlier_phase_and_no_merge_is_permitted() -> None:
     rows = mp.validate_plan()
     by_pr = {row.pr_number: row for row in rows}
-    assert by_pr[121].phase == 0
-    assert by_pr[121].release_eligible_now is True
+    root = by_pr[121]
+    assert root.phase == 0
+    assert root.release_evidence_complete is True
+    assert root.merge_permitted_now is False
     assert by_pr[120].depends_on == (121,)
-    assert all(not row.release_eligible_now for row in rows if row.pr_number != 121)
+    assert all(not row.merge_permitted_now for row in rows)
     for row in rows:
         for dependency in row.depends_on:
             assert by_pr[dependency].phase < row.phase
@@ -71,7 +76,7 @@ def test_exterior_failure_is_not_promotable() -> None:
     assert row.ci_state == mp.CI_FAILURE
     assert row.exact_head_green is False
     assert row.action == mp.ACTION_REPAIR_REBASE_RETEST
-    assert row.release_eligible_now is False
+    assert row.merge_permitted_now is False
     assert any("invalid solid" in blocker for blocker in row.blockers)
 
 
@@ -89,7 +94,7 @@ def test_cartridge_capacity_and_shell_collision_force_redesign_hold() -> None:
     assert "331.73801062482534" in joined
     assert "27.401629" in joined
     assert "34.887932" in joined
-    assert row.release_eligible_now is False
+    assert row.merge_permitted_now is False
 
 
 def test_mechanical_graph_red_head_is_late_repair_not_green() -> None:
@@ -127,13 +132,19 @@ def test_duplicate_candidate_is_rejected() -> None:
         mp.validate_plan((*mp.CANDIDATES, mp.CANDIDATES[0]))
 
 
-def test_nonroot_merge_now_promotion_is_rejected() -> None:
+def test_nonroot_release_evidence_promotion_is_rejected() -> None:
     candidate = next(row for row in mp.CANDIDATES if row.pr_number == 120)
     with pytest.raises(mp.MergePlanError):
-        replace(candidate, release_eligible_now=True)
+        replace(candidate, release_evidence_complete=True)
 
 
-def test_root_loses_eligibility_if_exact_head_or_green_state_changes() -> None:
+def test_draft_root_merge_permission_is_rejected() -> None:
+    root = next(row for row in mp.CANDIDATES if row.pr_number == 121)
+    with pytest.raises(mp.MergePlanError):
+        replace(root, merge_permitted_now=True)
+
+
+def test_root_loses_evidence_eligibility_if_exact_head_or_green_state_changes() -> None:
     root = next(row for row in mp.CANDIDATES if row.pr_number == 121)
     with pytest.raises(mp.MergePlanError):
         replace(root, head_sha="0" * 40)
