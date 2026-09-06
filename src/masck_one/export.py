@@ -36,6 +36,11 @@ def _realized_waste_backbone_manifest() -> dict[str, object]:
     }
 
 
+def _dfm_part_family_producer_manifest(authority) -> dict[str, object]:
+    """Build the exact Cell 16 release manifest without reconstructing the full CAD export."""
+    return build_dfm_part_family_producer_audit(authority).manifest()
+
+
 def export_release(output_dir: str | Path = "generated", model: MasckOneModel | None = None) -> dict:
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
@@ -76,7 +81,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
-    part_family_producers = build_dfm_part_family_producer_audit(model.authority)
+    part_family_producers = _dfm_part_family_producer_manifest(model.authority)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -100,7 +105,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
-            "part_family_producer_bindings": part_family_producers.manifest(),
+            "part_family_producer_bindings": part_family_producers,
         },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
