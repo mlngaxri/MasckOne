@@ -61,6 +61,9 @@ jobs:
       - name: Iteration 16 Class-A surface workflow preflight
         run: python -m masck_one.surface_workflow_preflight
 
+      - name: Cell 20 MVP completeness release-control preflight
+        run: python -m masck_one.mvp_completeness --output /tmp/masck-one-mvp-completeness.json
+
       - name: Unit and integration tests
         run: python -m pytest --durations=20
 
