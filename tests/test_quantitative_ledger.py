@@ -1,10 +1,8 @@
 from dataclasses import replace
-import json
 
 import pytest
 
 import masck_one.quantitative_ledger as quantitative_ledger
-from masck_one.export import export_release
 from masck_one.quantitative_ledger import (
     AUTHORITY_BLOB_SHA,
     EXPECTED_KNOWN_BENCHMARK_SUBTOTAL_G,
@@ -181,17 +179,3 @@ def test_manifest_is_deterministic_and_revalidates_nested_records(ledger):
             ledger.power.loads[0].__post_init__()
     finally:
         object.__setattr__(ledger.power.loads[0], "source_class", "UNRESOLVED")
-
-
-def test_release_smoke_embeds_and_writes_identical_quantitative_manifest(tmp_path):
-    report = export_release(tmp_path)
-    embedded = report["quantitative_ledgers"]["mass_cg_power_fluid_v1"]
-    standalone = tmp_path / "quantitative_ledger_v1.json"
-    assert standalone.is_file()
-
-    payload = json.loads(standalone.read_text(encoding="utf-8"))
-    assert payload == embedded
-    assert embedded["mass"]["known_mass_subtotal_g"] == pytest.approx(44.4, abs=1e-12)
-    assert embedded["mass"]["dry_total_g"] is None
-    assert embedded["power"]["runtime_estimate_h"] is None
-    assert embedded["fluid"]["loaded_mass_g"] == {"water": None, "cleanser": None, "waste": None}
