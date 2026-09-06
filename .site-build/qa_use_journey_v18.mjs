@@ -16,11 +16,23 @@ async function waitForDeployment(page){
   throw new Error('Prompt 18 production deployment did not appear');
 }
 
+async function ensureImageLoaded(locator,label){
+  await locator.evaluate((img,label)=>new Promise((resolve,reject)=>{
+    const done=()=>img.naturalWidth>0&&img.naturalHeight>0;
+    if(img.complete){
+      if(done()) resolve(true); else reject(new Error(`${label} image completed without pixels: ${img.currentSrc||img.src}`));
+      return;
+    }
+    const timer=setTimeout(()=>reject(new Error(`${label} image load timeout: ${img.currentSrc||img.src}`)),12000);
+    img.addEventListener('load',()=>{clearTimeout(timer);done()?resolve(true):reject(new Error(`${label} image loaded without pixels`));},{once:true});
+    img.addEventListener('error',()=>{clearTimeout(timer);reject(new Error(`${label} image failed: ${img.currentSrc||img.src}`));},{once:true});
+  }),label);
+}
+
 async function desktopQA(browser){
   const context=await browser.newContext({viewport:{width:1440,height:1000}});
   const page=await context.newPage();
   await waitForDeployment(page);
-  await page.waitForLoadState('networkidle').catch(()=>{});
   const chapter=page.locator('[data-use-journey18]');
   const dims=await chapter.evaluate(el=>({top:scrollY+el.getBoundingClientRect().top,travel:el.offsetHeight-innerHeight,height:el.offsetHeight,viewport:innerHeight}));
   if(dims.travel<=dims.viewport) throw new Error('desktop journey has insufficient scroll travel');
@@ -39,7 +51,8 @@ async function desktopQA(browser){
     const opacity=parseFloat(await gesture.evaluate(el=>getComputedStyle(el).opacity));
     if(opacity<0.9) throw new Error(`desktop gesture hidden ${keys[i]} opacity=${opacity}`);
     const product=page.locator('.journey18-desktop .j18-product.active');
-    const image=await product.evaluate(img=>({naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,width:img.getBoundingClientRect().width,opacity:getComputedStyle(img).opacity}));
+    await ensureImageLoaded(product,`desktop ${keys[i]}`);
+    const image=await product.evaluate(img=>({naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,width:img.getBoundingClientRect().width,opacity:getComputedStyle(img).opacity,src:img.currentSrc||img.src}));
     if(image.naturalWidth<1000||image.naturalHeight<1000||image.width<500||parseFloat(image.opacity)<0.9) throw new Error(`desktop product weak at ${keys[i]} ${JSON.stringify(image)}`);
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
     if(overflow>2) throw new Error(`desktop horizontal overflow ${overflow}`);
@@ -58,7 +71,6 @@ async function mobileQA(browser){
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   const page=await context.newPage();
   await waitForDeployment(page);
-  await page.waitForLoadState('networkidle').catch(()=>{});
   if(await page.locator('.journey18-mobile-state').count()!==7) throw new Error('mobile stage count mismatch');
   const displays=await page.evaluate(()=>({desktop:getComputedStyle(document.querySelector('.journey18-desktop')).display,mobile:getComputedStyle(document.querySelector('.journey18-mobile')).display}));
   if(displays.desktop!=='none'||displays.mobile==='none') throw new Error(`mobile layout mode wrong ${JSON.stringify(displays)}`);
@@ -74,7 +86,8 @@ async function mobileQA(browser){
     await article.scrollIntoViewIfNeeded();
     await page.waitForTimeout(220);
     const img=article.locator('img');
-    const image=await img.evaluate(el=>({naturalWidth:el.naturalWidth,width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}));
+    await ensureImageLoaded(img,`mobile ${keys[i]}`);
+    const image=await img.evaluate(el=>({naturalWidth:el.naturalWidth,width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height,src:el.currentSrc||el.src}));
     if(image.naturalWidth<1000||image.width<360) throw new Error(`mobile product too small at ${keys[i]} ${JSON.stringify(image)}`);
     const label=(await article.locator('h3').textContent()||'').trim();
     if(label!==labels[i]) throw new Error(`mobile label mismatch ${keys[i]}: ${label}`);
@@ -94,6 +107,8 @@ async function reducedMotionQA(browser){
   await page.evaluate(y=>scrollTo(0,y),dims.top+dims.travel*.5);
   await page.waitForTimeout(150);
   if(await chapter.getAttribute('data-active-index')!=='3') throw new Error('reduced-motion CLEAN selection failed');
+  const product=page.locator('.journey18-desktop .j18-product.active');
+  await ensureImageLoaded(product,'reduced motion clean');
   const anim=await page.locator('.j18-cycle-ring').evaluate(el=>getComputedStyle(el,'::before').animationName);
   if(anim!=='none') throw new Error(`reduced-motion cycle animation still active: ${anim}`);
   await page.screenshot({path:`${OUT}/reduced-motion-clean.png`,fullPage:false});
