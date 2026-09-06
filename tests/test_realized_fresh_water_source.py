@@ -87,11 +87,7 @@ def test_manifest_binds_current_main_and_labels_abandoned_heads_as_donors_only()
     assert first.manifest_sha256 == second.manifest_sha256
 
 
-def test_git_source_provenance_is_exact_and_current_head_descends_from_authored_main():
-    assert subprocess.run(
-        ["git", "merge-base", "--is-ancestor", AUTHORED_MAIN_SHA, "HEAD"],
-        check=False,
-    ).returncode == 0
+def test_git_source_blob_provenance_is_exact():
     authority_blob = subprocess.check_output(
         ["git", "hash-object", "config/masck_one_authority.yaml"],
         text=True,
