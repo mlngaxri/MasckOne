@@ -17,6 +17,13 @@ from .actuator_frames import ZONE_IDS
 from .authority import Authority, load_authority
 from .model import MasckOneModel, build_model
 from .spatial import Matrix3, RigidTransform, Vector3, CanonicalDatums
+from .structural_frame import (
+    DATUM_CENTER,
+    DATUM_INFERIOR,
+    DATUM_LEFT,
+    DATUM_RIGHT,
+    DATUM_SUPERIOR,
+)
 
 SCHEMA = "MASCK_ONE_CELL17_WHOLE_PRODUCT_DATUM_HIERARCHY_V1"
 SOURCE_MAIN_SHA = "afe29ff78419b6625dca5594974b6351f6f80e1b"
@@ -26,6 +33,13 @@ LEGACY_GLOBAL_FRAME_ID = "MASCK_ONE_GLOBAL"
 
 SHELL_PRIMARY_FRAME_ID = "MASCK_ONE_LOCAL_SHELL_PRIMARY"
 STRUCTURAL_FRAME_REFERENCE_ID = "MASCK_ONE_LOCAL_STRUCTURAL_FRAME_REFERENCE"
+STRUCTURAL_FRAME_DATUM_IDS = (
+    DATUM_CENTER,
+    DATUM_SUPERIOR,
+    DATUM_INFERIOR,
+    DATUM_LEFT,
+    DATUM_RIGHT,
+)
 WATER_RESERVOIR_PACKAGE_FRAME_ID = "MASCK_ONE_LOCAL_WATER_RESERVOIR_PACKAGE"
 WATER_RESERVOIR_ROOT_FRAME_ID = "MASCK_ONE_LOCAL_WATER_RESERVOIR_ROOT"
 WASTE_CARTRIDGE_PACKAGE_FRAME_ID = "MASCK_ONE_LOCAL_WASTE_CARTRIDGE_PACKAGE"
@@ -81,7 +95,7 @@ GEOMETRY_ROLE_VALUES = (
 )
 
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
-_ID = re.compile(r"^[A-Z][A-Z0-9_]{2,127}$")
+_ID = re.compile(r"^[A-Z][A-Z0-9_-]{2,127}$")
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -116,6 +130,22 @@ def _finite(value: object, *, label: str) -> float:
     if not math.isfinite(result):
         raise DatumHierarchyError(f"{label} must be finite")
     return 0.0 if result == 0.0 else result
+
+
+def _partial_translation(
+    value: object,
+    *,
+    label: str,
+) -> tuple[float | None, float | None, float | None]:
+    if type(value) is not tuple or len(value) != 3:
+        raise DatumHierarchyError(f"{label} must be an exact XYZ tuple")
+    result = tuple(
+        None if item is None else _finite(item, label=f"{label} coordinate")
+        for item in value
+    )
+    if all(item is None for item in result) or all(item is not None for item in result):
+        raise DatumHierarchyError(f"{label} requires both known and unresolved coordinates")
+    return result[0], result[1], result[2]
 
 
 def _git_blob_sha(path: Path) -> str:
@@ -163,6 +193,7 @@ class DatumNode:
     manufacturing_status: str
     geometry_role: str
     blocker: str | None = None
+    partial_translation_mm: tuple[float | None, float | None, float | None] | None = None
 
     def __post_init__(self) -> None:
         _datum_id(self.datum_id, label="datum ID")
@@ -188,10 +219,18 @@ class DatumNode:
             raise DatumHierarchyError("unsupported manufacturing status")
         if self.geometry_role not in GEOMETRY_ROLE_VALUES:
             raise DatumHierarchyError("unsupported geometry role")
+        partial = None
+        if self.partial_translation_mm is not None:
+            partial = _partial_translation(self.partial_translation_mm, label="partial datum translation")
+            object.__setattr__(self, "partial_translation_mm", partial)
+            if self.transform_status != "UNRESOLVED":
+                raise DatumHierarchyError("partial datum translation is only valid for unresolved transforms")
 
         if self.transform_status == "ROOT":
             if self.parent_id is not None or self.local_to_parent is not None:
                 raise DatumHierarchyError("root datum cannot have parent transform")
+            if partial is not None:
+                raise DatumHierarchyError("root datum cannot carry a partial translation")
         elif self.transform_status == "UNRESOLVED":
             if self.parent_id is None or self.local_to_parent is not None:
                 raise DatumHierarchyError("unresolved datum requires parent and no numeric transform")
@@ -203,6 +242,8 @@ class DatumNode:
                 raise DatumHierarchyError("resolved datum requires parent and exact rigid transform")
             if self.blocker is not None:
                 raise DatumHierarchyError("resolved datum cannot carry unresolved blocker")
+            if partial is not None:
+                raise DatumHierarchyError("resolved datum cannot carry a partial translation")
             if self.transform_status == "RESOLVED_IDENTITY" and not _transform_is_identity(self.local_to_parent):
                 raise DatumHierarchyError("identity binding must carry exact identity transform")
             if self.transform_status == "RESOLVED_RIGID" and _transform_is_identity(self.local_to_parent):
@@ -230,6 +271,7 @@ class DatumNode:
             "source_locator": self.source_locator,
             "transform_status": self.transform_status,
             "local_to_parent": None if self.local_to_parent is None else _transform_manifest(self.local_to_parent),
+            "partial_translation_mm": None if self.partial_translation_mm is None else list(self.partial_translation_mm),
             "manufacturing_status": self.manufacturing_status,
             "geometry_role": self.geometry_role,
             "blocker": self.blocker,
@@ -305,6 +347,17 @@ class WholeProductDatumHierarchy:
             or structural.manufacturing_status != "UNRESOLVED_NOT_QUALIFIED_MANUFACTURING_DATUM"
         ):
             raise DatumHierarchyError("structural reference frame cannot imply resolved 3D manufacturing datum")
+        structural_children = tuple(node_by_id.get(datum_id) for datum_id in STRUCTURAL_FRAME_DATUM_IDS)
+        if any(node is None for node in structural_children):
+            raise DatumHierarchyError("released structural XY datum set is incomplete")
+        if any(
+            node.parent_id != STRUCTURAL_FRAME_REFERENCE_ID
+            or node.transform_status != "UNRESOLVED"
+            or node.partial_translation_mm is None
+            for node in structural_children
+            if node is not None
+        ):
+            raise DatumHierarchyError("released structural XY datums must remain partial children of structural reference")
 
     @property
     def node_by_id(self) -> dict[str, DatumNode]:
@@ -400,19 +453,23 @@ def _unresolved_node(
     source_locator: str,
     blocker: str,
     producer_path: str | None = None,
+    partial_translation_mm: tuple[float | None, float | None, float | None] | None = None,
+    datum_class: str = "SUBSYSTEM_LOCAL",
+    geometry_role: str = "NO_RELEASED_PLACEMENT_GEOMETRY",
 ) -> DatumNode:
     return DatumNode(
         datum_id=datum_id,
         parent_id=parent_id,
-        datum_class="SUBSYSTEM_LOCAL",
+        datum_class=datum_class,
         producer_path=producer_path,
         producer_blob_sha=None if producer_path is None else _SOURCE_BLOB_BY_PATH[producer_path],
         source_locator=source_locator,
         transform_status="UNRESOLVED",
         local_to_parent=None,
         manufacturing_status="UNRESOLVED_NOT_QUALIFIED_MANUFACTURING_DATUM",
-        geometry_role="NO_RELEASED_PLACEMENT_GEOMETRY",
+        geometry_role=geometry_role,
         blocker=blocker,
+        partial_translation_mm=partial_translation_mm,
     )
 
 
@@ -493,6 +550,32 @@ def build_whole_product_datum_hierarchy(
             geometry_role="STRUCTURAL_REFERENCE_WITH_UNRESOLVED_3D_DATUM_QUALIFICATION",
         ),
     ]
+
+    frame_width_mm, frame_height_mm = authority.pair("geometry", "functional_frame_xy_mm")
+    structural_xy = (
+        (DATUM_CENTER, 0.0, 0.0, "canonical sagittal/transverse datum intersection"),
+        (DATUM_SUPERIOR, 0.0, frame_height_mm / 2.0, "functional-frame authority height / 2"),
+        (DATUM_INFERIOR, 0.0, -frame_height_mm / 2.0, "-functional-frame authority height / 2"),
+        (DATUM_LEFT, -frame_width_mm / 2.0, 0.0, "-functional-frame authority width / 2"),
+        (DATUM_RIGHT, frame_width_mm / 2.0, 0.0, "functional-frame authority width / 2"),
+    )
+    structural_z_blocker = (
+        "released structural FrameDatum z_status=UNRESOLVED_UNTIL_STRUCTURAL_3D_SURFACE_AND_PACKAGING_CLOSURE; "
+        "known authority-derived XY cannot be promoted to a complete 3D transform"
+    )
+    for datum_id, x_mm, y_mm, derivation in structural_xy:
+        nodes.append(
+            _unresolved_node(
+                datum_id,
+                STRUCTURAL_FRAME_REFERENCE_ID,
+                source_locator=f"structural_frame.FrameDatum derivation={derivation}",
+                blocker=structural_z_blocker,
+                producer_path="src/masck_one/structural_frame.py",
+                partial_translation_mm=(x_mm, y_mm, None),
+                datum_class="STRUCTURAL_REFERENCE",
+                geometry_role="STRUCTURAL_REFERENCE_WITH_UNRESOLVED_3D_DATUM_QUALIFICATION",
+            )
+        )
 
     package_specs = (
         (
