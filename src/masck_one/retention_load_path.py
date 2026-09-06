@@ -336,6 +336,10 @@ class LoadPathEdge:
             raise RetentionLoadPathError("positive attachment cannot also be clearance-only")
         if self.clearance_only and self.load_transfer_digitally_closed:
             raise RetentionLoadPathError("clearance-only relation cannot close a load path")
+        if self.attachment_class == ATTACHMENT_FEATURE_OPEN and self.positive_attachment:
+            raise RetentionLoadPathError(
+                "unrealized counterpart cannot be labelled as a positive attachment"
+            )
         if self.attachment_class == ATTACHMENT_FEATURE_OPEN and self.load_transfer_digitally_closed:
             raise RetentionLoadPathError("unrealized counterpart cannot close a load path")
 
@@ -929,7 +933,7 @@ def _graph(left: RetentionLoadPathSide, right: RetentionLoadPathSide) -> tuple[
                     crown,
                     "CROWN_SUPPORT_MEMBER",
                     ATTACHMENT_FEATURE_OPEN,
-                    True,
+                    False,
                     False,
                     False,
                     "real bore/clearance exists but crown member and mating eyelet are not realized",
@@ -949,7 +953,7 @@ def _graph(left: RetentionLoadPathSide, right: RetentionLoadPathSide) -> tuple[
                     facial,
                     "FRONT_PERIMETER_REACTION_LOOP",
                     ATTACHMENT_FEATURE_OPEN,
-                    True,
+                    False,
                     False,
                     False,
                     "real bore/clearance exists but front perimeter 3D mating counterpart remains topology-only",
