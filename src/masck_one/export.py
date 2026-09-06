@@ -23,6 +23,7 @@ from .retention_load_path_release import (
     export_retention_load_path_release,
 )
 from .structural_frame import build_structural_frame_topology
+from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
 
 
 def _ensure_output_dir(path: str | Path) -> Path:
@@ -96,13 +97,16 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
-    # Prompt 11 closes the local occipital-to-carrier attachment digitally, but the
-    # front perimeter 3D frame counterpart and crown member are still unrealized. The
-    # Prompt 08-11 retention solids therefore remain standalone review geometry instead
-    # of being inserted into the product compound and implying a whole load path that
-    # does not exist. Prompt 10 hazard/access and Prompt 11 counterpart-clearance solids
-    # are reference geometry only and are never product material.
-    shapes = [component.solid.val() for component in model.components if component.status != "REFERENCE_ONLY"]
+    # The waste-cartridge solid is an authority package envelope, not cartridge material.
+    # Keep its standalone STEP for package/collision review but do not insert that proxy
+    # into physical development material. Prompt 08-11 retention solids also stay
+    # standalone because the crown member and front-perimeter counterparts are unresolved.
+    development_assembly_exclusions = ("waste_cartridge_envelope",)
+    shapes = [
+        component.solid.val()
+        for component in model.components
+        if component.status != "REFERENCE_ONLY" and component.name not in development_assembly_exclusions
+    ]
     compound = cq.Compound.makeCompound(shapes)
     cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
 
@@ -116,6 +120,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     attachment = build_interface_attachment_architecture(model.authority, boundary_topology)
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
+    waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -141,9 +146,13 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "hair_pinch_keepouts": hair_pinch.manifest(),
             "retention_load_path": retention_load_path_release.manifest(),
         },
+        "dfm_gates": {
+            "waste_cartridge": waste_cartridge_dfm.manifest(),
+        },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
+        "development_assembly_exclusions": list(development_assembly_exclusions),
         "exported_step_files": (
             [f"{name}.step" for name in export_map]
             + occipital_step_files
@@ -161,10 +170,14 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "a topology/datum contract without invented cross-section or material; no complete front-frame STEP member "
             "geometry is released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold "
             "data, not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "Prompt 08 realizes paired lateral occipital yokes. Prompt 09 adds only a package-constrained indexed +/-2 mm "
-            "root mechanism with permanent stop-pin travel bounds and an unworn/unpowered index-pin service sequence. "
-            "Prompt 10 adds standalone non-material hazard/access geometry for guide nip regions, pin/clip paths, future "
-            "root-capture interfaces, scalp-side hair approach and a candidate-only right-latch hazard/access overlay. "
+            "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
+            "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
+            "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
+            "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
+            "serviceability. Prompt 08 realizes paired lateral occipital yokes. Prompt 09 adds only a package-constrained "
+            "indexed +/-2 mm root mechanism with permanent stop-pin travel bounds and an unworn/unpowered index-pin service "
+            "sequence. Prompt 10 adds standalone non-material hazard/access geometry for guide nip regions, pin/clip paths, "
+            "future root-capture interfaces, scalp-side hair approach and a candidate-only right-latch hazard/access overlay. "
             "Prompt 11 adds bilateral successor fixed-housing bosses, retained dual-pin clevis capture and connected local "
             "reaction carriers with actual crown and facial-reaction handoff lugs. The yoke-to-housing and housing-to-local-"
             "carrier edges are digitally positive attachments. Crown and facial handoff bores are positive attachment "
