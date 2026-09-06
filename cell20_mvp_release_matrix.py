@@ -31,27 +31,33 @@ from masck_one.mvp_completeness import (
 
 SCHEMA = "MASCK_ONE_CELL20_MVP_COMPLETENESS_V2"
 SUPERSEDES_SCHEMA = "MASCK_ONE_CELL20_MVP_COMPLETENESS_V1"
-CANDIDATE_SNAPSHOT_OBSERVED_AT_UTC = "2026-09-06T01:03:25Z"
+CANDIDATE_SNAPSHOT_OBSERVED_AT_UTC = "2026-09-06T01:10:52Z"
 EVIDENCE_BOUNDARY = (
     "RELEASED_MAIN_MATURITY_PLUS_NON_AUTHORITATIVE_CANDIDATE_NAVIGATION_ONLY_"
     "NOT_PHYSICAL_VALIDATION_OR_PROMOTION_REVIEW_EVIDENCE"
 )
 
+HEAD_REBINDS: dict[int, str] = {
+    92: "abb806a8e15a1557c8b5a4c754af1bfeea8b6d70",
+}
+
 NEW_CANDIDATE_OBSERVATIONS: tuple[CandidateObservation, ...] = (
     CandidateObservation(103, "76835d6239b53b2e5900678d2912eb1b7c8c2747", "independent current release-material truth audit"),
-    CandidateObservation(104, "493b2d7a91a89865238574ad50be229c9bb1d23b", "current wet and electrical released-source graph receipt"),
+    CandidateObservation(104, "1b4411fd2759bf92af2eccef4b1325b0897b7f72", "current wet and electrical released-source graph receipt"),
     CandidateObservation(105, "8d5762f35c0b64b736648ef3541377b43a168952", "current cleanser released-source graph receipt without route realization"),
     CandidateObservation(106, "87d7521994ff2fafa2df61c570ec677f6142d379", "current DFM part-family to released-producer reconciliation"),
-    CandidateObservation(107, "6454d98c658143d44ef29a00cf40d009d4191164", "current-main fresh-water reservoir body and lid source-geometry candidate"),
-    CandidateObservation(108, "a74e0964706170a7e233846fd2f897744159aff7", "honest mass CG pitch power and fluid ledger candidate with unresolved totals"),
-    CandidateObservation(109, "a27757eb4eda54a18b3d89db70f9534e492e588f", "retention hazard-guard B-reps and exact factory-installation sweeps candidate"),
+    CandidateObservation(107, "22d2e5baccbcfa56aa4a70e4e4dd59693e15affd", "current-main fresh-water reservoir body and lid source-geometry candidate"),
+    CandidateObservation(108, "0bf6c73028284ba9a5715ef5235bb2be1c298403", "honest mass CG pitch power and fluid ledger candidate with unresolved totals"),
+    CandidateObservation(109, "fb586cc1ea1cde92526417593f9e5aa990d2ae4f", "retention hazard-guard B-reps and exact factory-installation sweeps candidate"),
     CandidateObservation(110, "7b32c674860cab87cbdd1f7e3303a4ce53515e95", "physical-HMI and WARM decision-state reservations with no final hardware selection"),
-    CandidateObservation(111, "35e61d5fa8f9c62d810aca92f259122bc1173930", "compact dry-side carrier door and battery-service sweep candidate"),
-    CandidateObservation(112, "8dd69738a675c291d71bf5a7157c92b0102983ea", "current-main whole-product collision and protected-region matrix successor"),
+    CandidateObservation(111, "6899b61db8cd549c44a82b12e78fe4028a2e7048", "compact dry-side carrier door and battery-service sweep candidate"),
+    CandidateObservation(112, "abbfa427660a3752cce7d18b86faa44654884936", "current-main whole-product collision and protected-region matrix successor"),
     CandidateObservation(113, "1e17bb50c00e94439fab09a477483950f8cd163f", "current harness endpoint inventory with zero route-ready electrical mating datums"),
-    CandidateObservation(114, "2ffa6c661022e3a81da3fdda53adf88df81c8b09", "current part assembly and service-motion inventory with no released objective-domain motions"),
-    CandidateObservation(115, "bd4f58c5da798d0d4a5968468fc17da19518b1b6", "source-bound waste-cartridge body closure and free-cavity geometry candidate"),
+    CandidateObservation(114, "630cc19497661ae834032eb8ea06e28dfd6100b7", "current part assembly and service-motion inventory with no released objective-domain motions"),
+    CandidateObservation(115, "b61d71433f81e3f3e03307a350334a76e9dbf361", "source-bound waste-cartridge body closure and protected-compliant free-cavity geometry candidate with capacity deficit"),
     CandidateObservation(116, "1f769016efb6034c1708a275465fbac6910a75da", "current datum and CTQ inventory with geometry-dependent stacks unresolved"),
+    CandidateObservation(117, "6e3e1385f350735731ac08ff107a3c1d0f76189e", "first current-main structural reaction-loop B-rep candidate with joins and counterparts open"),
+    CandidateObservation(118, "37e03df4b6abbd222422c8bfd4e70b03a4e5ae07", "local actuator carrier split capture and positive-stop B-rep candidate with world mounting blocked"),
 )
 
 CANDIDATE_ADDITIONS_BY_REQUIREMENT: dict[str, tuple[int, ...]] = {
@@ -68,8 +74,8 @@ CANDIDATE_ADDITIONS_BY_REQUIREMENT: dict[str, tuple[int, ...]] = {
     "ARCH-017": (104, 107, 110, 111, 115),
     "MVP-001": (111,),
     "MVP-002": (103, 112),
-    "MVP-003": (109, 111),
-    "MVP-004": (116,),
+    "MVP-003": (109, 111, 117),
+    "MVP-004": (116, 118),
     "MVP-005": (109,),
     "MVP-006": (107,),
     "MVP-007": (105,),
@@ -94,12 +100,13 @@ CLOSURE_OVERRIDES: dict[str, str] = {
     "ARCH-013": "release complete crown and front reaction counterparts, positive guard attachment, carrier reassembly and whole-head removal geometry",
     "MVP-001": "close exterior tooling, part split and draft and reconcile the compact rear skin with released dry-side nesting and service",
     "MVP-002": "release the corrected physical-material versus reference composer before collision or export promotion",
-    "MVP-003": "realize frame members, sections, joins, mating counterparts and material before retention guards or dry-side carrier can enter accepted product material",
+    "MVP-003": "consume the structural reaction-loop candidate only after release, then close shell-frame joins, retention and actuator counterparts, tool access and material definition",
+    "MVP-004": "consume the local carrier template only after release, then resolve protected-conflict-free world placement, frame reaction attachment, coupling, final stops and service access",
     "MVP-006": "consume the source-reservoir candidate only after release, then realize selected pump, manifold, route cross-sections and positive route supports",
     "MVP-007": "release cleanser storage and service geometry and selected pump interfaces, then realize source-to-pump and pump-to-manifold routes",
     "MVP-008": "retain the released mixed-waste centerline backbone while closing acquisition geometry, selected pump and passive-barrier packages, cartridge interface and service",
-    "MVP-009": "consume released cartridge body and closure geometry, then close device-side keying, positive retention, seal stack and continuous insertion and removal motion",
-    "MVP-010": "consume the compact dry-side candidate only after release, then close frame attachment, door retention and seal, selected PCB and charging hardware, and exterior reconciliation",
+    "MVP-009": "consume released cartridge body and closure geometry, then close capacity deficit, device-side keying, positive retention, seal stack and continuous insertion and removal motion",
+    "MVP-010": "consume the compact dry-side candidate only after release, then close frame attachment, single-owner exterior closure seal and retention, selected PCB and charging hardware, and exterior reconciliation",
     "MVP-011": "use the endpoint inventory only as blocker identity, then realize electrical mating datums, endpoint-to-endpoint harness, connector retention, wet-dry bulkhead sealing and service",
     "MVP-012": "use HMI and WARM reservations only as capacity evidence, then realize final control hardware, status optics, thermal interfaces, guards, service and dry-wet relationships",
     "MVP-014": "consume exact candidate sweeps only after release and replace remaining reservations or sampled proxies with continuous collision-checked service motions",
@@ -126,6 +133,10 @@ def build_live_release_matrix() -> MvpCompletenessMatrix:
     baseline = build_mvp_completeness_matrix()
     requirements = tuple(updated for row in baseline.requirements if (updated := _updated_requirement(row)) is not None)
     candidates_by_pr = {item.pr_number: item for item in baseline.candidate_observations}
+    for pr_number, head_sha in HEAD_REBINDS.items():
+        if pr_number not in candidates_by_pr:
+            raise ValueError(f"candidate PR {pr_number} is missing from released baseline observations")
+        candidates_by_pr[pr_number] = replace(candidates_by_pr[pr_number], observed_head_sha=head_sha)
     for item in NEW_CANDIDATE_OBSERVATIONS:
         item.__post_init__()
         if item.pr_number in candidates_by_pr:
