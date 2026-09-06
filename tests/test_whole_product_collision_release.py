@@ -28,7 +28,7 @@ def release():
 
 
 def test_release_binds_full_current_main_collision_producer_graph(release):
-    assert len(PRODUCER_BLOBS) == 26
+    assert len(PRODUCER_BLOBS) == 27
     assert release.producer_blobs == PRODUCER_BLOBS
     assert release.source_main_sha == "afe29ff78419b6625dca5594974b6351f6f80e1b"
     assert release.world_frame_id == "MASCK_ONE_AUTHORITY_WORLD_MM"
@@ -97,7 +97,7 @@ def test_release_manifest_is_deterministic_and_keeps_physical_firewall(release):
     assert first["blocked_count"] == 25
     assert first["physical_validation_eligible"] is False
     assert first["release_sha256"] == release.release_sha256
-    assert len(first["producer_blobs"]) == 26
+    assert len(first["producer_blobs"]) == 27
     json.dumps(first, sort_keys=True, allow_nan=False)
 
 
