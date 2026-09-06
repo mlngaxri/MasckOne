@@ -19,7 +19,7 @@ from .authority import Authority, load_authority
 
 SCHEMA = "MASCK_ONE_CELL2_REAR_SERVICE_SKIN_V1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
-SOURCE_CELL3_RETENTION_HEAD_SHA = "ce1a175a79f87da65d88a40eca146f3dc5419528"
+SOURCE_CELL3_RETENTION_HEAD_SHA = "2a0a0a6dafdf51f5c866f3e714636bd752e3dcce"
 SOURCE_CELL3_OCCIPITAL_BLOB_SHA = "1139b675c4758d8580cf5a18fa7a0b87b2d6ef99"
 SOURCE_CELL3_RETENTION_LOAD_PATH_BLOB_SHA = "9647405b36642105c929a3fdd0617d03bfe68c98"
 SOURCE_INTERFACE_STATUS = "UNMERGED_SPECIALIST_CANDIDATE_INTERFACE_RESCREEN_BEFORE_PROMOTION"
@@ -50,7 +50,7 @@ PACKAGE_REFLOW_REQUIRED = "CELL4_DRY_SIDE_PACKAGE_REFLOW_REQUIRED_BEFORE_REAR_SK
 
 class RearServiceSkinError(ValueError):
     pass
-
+n
 
 def _box(size: tuple[float, float, float], center: tuple[float, float, float]) -> cq.Workplane:
     return cq.Workplane("XY").box(*size, centered=(True, True, True)).translate(center)
