@@ -59,7 +59,11 @@ def test_known_mass_benchmark_subtotal_is_exact_and_non_double_counting(ledger):
     assert contributor["FOUR_ACTUATOR_SIBLING_MODEL_MASS_BENCHMARKS"] == pytest.approx(22.4, abs=1e-12)
     assert contributor["BATTERY_REFERENCE_BENCHMARK"] == pytest.approx(22.0, abs=1e-12)
     assert all(entry.centroid_xyz_mm is not None for entry in counted)
-    assert mass.known_subset_pitch_moment_Nm >= 0.0
+    assert mass.known_subset_cg_xyz_mm == pytest.approx(
+        (0.0, 3.5315315315315314, -4.136519665216378),
+        abs=1e-9,
+    )
+    assert mass.known_subset_pitch_moment_Nm == pytest.approx(0.001801103785525302, abs=1e-12)
     validate_mass_arithmetic(mass)
 
 
