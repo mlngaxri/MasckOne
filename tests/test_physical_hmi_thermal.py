@@ -1,9 +1,11 @@
 from dataclasses import replace
 import json
+import math
 
 import cadquery as cq
 import pytest
 
+from masck_one.model import build_model
 from masck_one.physical_hmi_thermal import (
     AUTHORITY_BLOB_SHA,
     COOL_ID,
@@ -91,6 +93,39 @@ def test_hmi_and_warm_geometry_are_reference_only_and_valid(state):
         assert float(shape.Volume()) > 0.0
         with pytest.raises(PhysicalHmiThermalError, match="cannot silently become physical material"):
             replace(item, development_assembly_material_eligible=True)
+
+
+def _protected_zone_conservative_aabb(zone):
+    semi_x = zone.envelope_width_mm / 2.0
+    semi_y = zone.envelope_height_mm / 2.0
+    angle = math.radians(zone.angle_deg)
+    half_x = math.sqrt((semi_x * math.cos(angle)) ** 2 + (semi_y * math.sin(angle)) ** 2)
+    half_y = math.sqrt((semi_x * math.sin(angle)) ** 2 + (semi_y * math.cos(angle)) ** 2)
+    return (
+        zone.center.x - half_x,
+        zone.center.x + half_x,
+        zone.center.y - half_y,
+        zone.center.y + half_y,
+    )
+
+
+def test_world_reservations_clear_all_released_protected_xy_envelopes(state):
+    model = build_model()
+    minimum_conservative_margin_mm = math.inf
+    for reservation in state.world_review_reservations:
+        bb = reservation.solid.val().BoundingBox()
+        for protected in model.protected_volumes.all:
+            xmin, xmax, ymin, ymax = _protected_zone_conservative_aabb(protected.zone)
+            x_separation = max(xmin - float(bb.xmax), float(bb.xmin) - xmax)
+            y_separation = max(ymin - float(bb.ymax), float(bb.ymin) - ymax)
+            conservative_margin = max(x_separation, y_separation)
+            assert conservative_margin > 0.0, (
+                f"{reservation.reservation_id} intersects conservative XY AABB for "
+                f"{protected.zone.zone_id}"
+            )
+            minimum_conservative_margin_mm = min(minimum_conservative_margin_mm, conservative_margin)
+    assert math.isfinite(minimum_conservative_margin_mm)
+    assert minimum_conservative_margin_mm > 0.0
 
 
 def test_warm_package_preserves_unknown_hardware_and_physical_gates(state):
