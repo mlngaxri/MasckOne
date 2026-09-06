@@ -36,6 +36,23 @@ def test_benchmark_consumes_exact_live_authority_values(current_context) -> None
     assert binding.status == authority.get("battery_reference", "status") == bb.PACKAGING_ONLY_STATUS
 
 
+def test_binding_pins_authority_schema_validator_and_model_sources(current_context) -> None:
+    _authority, _model, binding, _package = current_context
+    sources = binding.manifest()["sources"]
+    assert sources == {
+        "main_sha": bb.SOURCE_MAIN_SHA,
+        "authority_path": bb.AUTHORITY_PATH,
+        "authority_git_blob_sha": bb.AUTHORITY_BLOB_SHA,
+        "authority_field_path": "battery_reference",
+        "authority_schema_path": bb.AUTHORITY_SCHEMA_PATH,
+        "authority_schema_git_blob_sha": bb.AUTHORITY_SCHEMA_BLOB_SHA,
+        "authority_validator_path": bb.AUTHORITY_VALIDATOR_PATH,
+        "authority_validator_git_blob_sha": bb.AUTHORITY_VALIDATOR_BLOB_SHA,
+        "model_path": bb.MODEL_PATH,
+        "model_git_blob_sha": bb.MODEL_BLOB_SHA,
+    }
+
+
 def test_released_model_brep_is_exactly_bound_to_authority_envelope(current_context) -> None:
     authority, model, binding, _package = current_context
     expected = tuple(float(value) for value in authority.get("battery_reference", "envelope_mm"))
@@ -98,11 +115,18 @@ def test_dry_side_package_consumes_same_benchmark_without_reference_material_pro
 def test_binding_is_deterministic_and_source_movement_fails_closed(monkeypatch, current_context) -> None:
     _authority, _model, binding, _package = current_context
     assert binding.binding_sha256 == bb.build_battery_benchmark_binding().binding_sha256
-    original = bb.AUTHORITY_BLOB_SHA
+
+    authority_blob = bb.AUTHORITY_BLOB_SHA
     monkeypatch.setattr(bb, "AUTHORITY_BLOB_SHA", "0" * 40)
     with pytest.raises(bb.BatteryBenchmarkError, match="source moved"):
         bb._require_sources()
-    monkeypatch.setattr(bb, "AUTHORITY_BLOB_SHA", original)
+    monkeypatch.setattr(bb, "AUTHORITY_BLOB_SHA", authority_blob)
+
+    schema_blob = bb.AUTHORITY_SCHEMA_BLOB_SHA
+    monkeypatch.setattr(bb, "AUTHORITY_SCHEMA_BLOB_SHA", "0" * 40)
+    with pytest.raises(bb.BatteryBenchmarkError, match="source moved"):
+        bb._require_sources()
+    monkeypatch.setattr(bb, "AUTHORITY_SCHEMA_BLOB_SHA", schema_blob)
 
 
 def test_malformed_or_nonfinite_benchmark_values_fail_closed(current_context) -> None:
