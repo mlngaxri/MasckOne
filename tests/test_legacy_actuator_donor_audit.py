@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from functools import lru_cache
 import json
 import math
 
@@ -11,6 +12,7 @@ import masck_one.legacy_actuator_donor_audit as donor
 from masck_one.model import build_model
 
 
+@lru_cache(maxsize=1)
 def _build():
     model = build_model()
     return model, donor.build_legacy_actuator_donor_audit(model=model)
