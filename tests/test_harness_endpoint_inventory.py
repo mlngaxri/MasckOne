@@ -5,16 +5,43 @@ import pytest
 from masck_one.harness_endpoint_inventory import (
     AUTHORITY_BLOB_SHA,
     ENDPOINT_IDS,
+    EP_ACTUATOR_01,
+    EP_ACTUATOR_02,
+    EP_ACTUATOR_03,
+    EP_ACTUATOR_04,
     EP_BATTERY,
+    EP_CHARGING,
     EP_COOL_OPTIONAL,
+    EP_HMI,
     EP_PCB,
+    EP_PUMP_CLEANSER,
+    EP_PUMP_WASTE,
+    EP_PUMP_WATER,
+    EP_WARM_LEFT,
+    EP_WARM_RIGHT,
     EVIDENCE_STATUS,
     LEGACY_DONOR_FILE_BLOB_SHA,
     LEGACY_DONOR_HEAD_SHA,
     LEGACY_ROUTE_DISPOSITION,
     LEGACY_ROUTE_IDS,
     OPTIONAL_UNRESOLVED,
+    ROLE_ACTUATION_LOAD,
+    ROLE_CHARGING_INTERFACE,
+    ROLE_FLUID_PUMP_LOAD,
+    ROLE_HMI,
+    ROLE_OPTIONAL_THERMAL_LOAD,
+    ROLE_POWER_CONTROL_BACKBONE,
+    ROLE_POWER_SOURCE,
+    ROLE_THERMAL_LOAD,
     SCHEMA,
+    SERVICE_DISCONNECT_REQUIRED,
+    SERVICE_GEOMETRY_UNRESOLVED,
+    SERVICE_INTERNAL_FIXED,
+    SERVICE_OPTIONAL_UNRESOLVED,
+    SERVICE_USER_INTERFACE,
+    SIDE_DRY_INTENT,
+    SIDE_UNRESOLVED,
+    SIDE_WET_DRY_CROSSING_REQUIRED,
     SOURCE_GIT_BLOB_IDENTITIES,
     SOURCE_MAIN_SHA,
     WORLD_FRAME_ID,
@@ -28,7 +55,7 @@ def inventory():
     return build_harness_endpoint_inventory()
 
 
-def test_inventory_binds_current_main_authority_and_source_graph(inventory):
+def test_registry_binds_current_main_authority_and_source_graph(inventory):
     assert inventory.schema == SCHEMA
     assert inventory.authored_against_main_sha == SOURCE_MAIN_SHA
     assert inventory.authority_blob_sha == AUTHORITY_BLOB_SHA
@@ -40,7 +67,7 @@ def test_inventory_binds_current_main_authority_and_source_graph(inventory):
     assert len(inventory.legacy_routes) == 13
 
 
-def test_released_package_anchors_are_not_spoofed_as_electrical_datums(inventory):
+def test_released_package_anchors_are_not_spoofed_as_electrical_or_actuator_datums(inventory):
     by_id = {endpoint.endpoint_id: endpoint for endpoint in inventory.endpoints}
     battery = by_id[EP_BATTERY]
     assert battery.package_anchor_xyz_mm == (0.0, 0.0, -15.0)
@@ -48,30 +75,72 @@ def test_released_package_anchors_are_not_spoofed_as_electrical_datums(inventory
     assert battery.route_ready is False
     assert by_id[EP_PCB].package_anchor_xyz_mm is None
     assert by_id[EP_PCB].electrical_interface_datum_xyz_mm is None
-    actuator_anchors = tuple(
-        endpoint.package_anchor_xyz_mm
-        for endpoint in inventory.endpoints
-        if "ACTUATOR" in endpoint.endpoint_id
-    )
-    assert actuator_anchors == (
-        (-48.0, 52.0, 2.0),
-        (48.0, 52.0, 2.0),
-        (-50.0, -38.0, 2.0),
-        (50.0, -38.0, 2.0),
-    )
+
+    for endpoint_id in (EP_ACTUATOR_01, EP_ACTUATOR_02, EP_ACTUATOR_03, EP_ACTUATOR_04):
+        endpoint = by_id[endpoint_id]
+        assert endpoint.package_anchor_xyz_mm is None
+        assert "MODEL_PACKAGE_REFERENCE_TRANSFORM_NOT_ENDPOINT_DATUM" in endpoint.package_anchor_status
+        assert endpoint.electrical_interface_datum_xyz_mm is None
+        assert endpoint.route_ready is False
+
     assert all(endpoint.electrical_interface_datum_xyz_mm is None for endpoint in inventory.endpoints)
+
+
+def test_every_endpoint_has_stable_electrical_role_owner_side_and_service_class(inventory):
+    by_id = {endpoint.endpoint_id: endpoint for endpoint in inventory.endpoints}
+    expected = {
+        EP_BATTERY: (ROLE_POWER_SOURCE, SIDE_DRY_INTENT, SERVICE_DISCONNECT_REQUIRED),
+        EP_PCB: (ROLE_POWER_CONTROL_BACKBONE, SIDE_DRY_INTENT, SERVICE_INTERNAL_FIXED),
+        EP_ACTUATOR_01: (ROLE_ACTUATION_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+        EP_ACTUATOR_02: (ROLE_ACTUATION_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+        EP_ACTUATOR_03: (ROLE_ACTUATION_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+        EP_ACTUATOR_04: (ROLE_ACTUATION_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+        EP_PUMP_WATER: (ROLE_FLUID_PUMP_LOAD, SIDE_WET_DRY_CROSSING_REQUIRED, SERVICE_DISCONNECT_REQUIRED),
+        EP_PUMP_CLEANSER: (ROLE_FLUID_PUMP_LOAD, SIDE_WET_DRY_CROSSING_REQUIRED, SERVICE_DISCONNECT_REQUIRED),
+        EP_PUMP_WASTE: (ROLE_FLUID_PUMP_LOAD, SIDE_WET_DRY_CROSSING_REQUIRED, SERVICE_DISCONNECT_REQUIRED),
+        EP_HMI: (ROLE_HMI, SIDE_UNRESOLVED, SERVICE_USER_INTERFACE),
+        EP_WARM_LEFT: (ROLE_THERMAL_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+        EP_WARM_RIGHT: (ROLE_THERMAL_LOAD, SIDE_UNRESOLVED, SERVICE_INTERNAL_FIXED),
+        EP_COOL_OPTIONAL: (ROLE_OPTIONAL_THERMAL_LOAD, SIDE_UNRESOLVED, SERVICE_OPTIONAL_UNRESOLVED),
+        EP_CHARGING: (ROLE_CHARGING_INTERFACE, SIDE_DRY_INTENT, SERVICE_USER_INTERFACE),
+    }
+    assert set(expected) == set(ENDPOINT_IDS)
+    for endpoint_id, classification in expected.items():
+        endpoint = by_id[endpoint_id]
+        assert (endpoint.electrical_role, endpoint.side_class, endpoint.service_class) == classification
+        assert endpoint.service_geometry_status == SERVICE_GEOMETRY_UNRESOLVED
+
+
+def test_registry_does_not_invent_connector_pinout_conductor_count_or_ratings(inventory):
+    for endpoint in inventory.endpoints:
+        assert endpoint.connector_family is None
+        assert endpoint.pinout is None
+        assert endpoint.conductor_count is None
+        assert endpoint.voltage_rating_V is None
+        assert endpoint.current_rating_A is None
+        assert endpoint.ingress_rating is None
+        manifest = endpoint.manifest()
+        for key in (
+            "connector_family",
+            "pinout",
+            "conductor_count",
+            "voltage_rating_V",
+            "current_rating_A",
+            "ingress_rating",
+        ):
+            assert manifest[key] is None
 
 
 def test_current_pump_hmi_warm_cool_and_charging_endpoints_remain_honestly_unready(inventory):
     by_id = {endpoint.endpoint_id: endpoint for endpoint in inventory.endpoints}
     for endpoint_id in (
-        "MASCK_ONE-ELEC-EP-PUMP-WATER",
-        "MASCK_ONE-ELEC-EP-PUMP-CLEANSER",
-        "MASCK_ONE-ELEC-EP-PUMP-WASTE",
-        "MASCK_ONE-ELEC-EP-HMI",
-        "MASCK_ONE-ELEC-EP-WARM-LEFT",
-        "MASCK_ONE-ELEC-EP-WARM-RIGHT",
-        "MASCK_ONE-ELEC-EP-CHARGING",
+        EP_PUMP_WATER,
+        EP_PUMP_CLEANSER,
+        EP_PUMP_WASTE,
+        EP_HMI,
+        EP_WARM_LEFT,
+        EP_WARM_RIGHT,
+        EP_CHARGING,
     ):
         endpoint = by_id[endpoint_id]
         assert endpoint.package_anchor_xyz_mm is None
@@ -131,20 +200,46 @@ def test_illegal_datum_route_ready_material_and_evidence_promotions_fail_closed(
         replace(inventory, evidence_status="PHYSICAL_VALIDATION")
 
 
-def test_nonfinite_identity_duplication_and_bool_coercion_fail_closed(inventory):
-    endpoint = inventory.endpoints[2]
+def test_role_side_service_and_unreleased_electrical_details_fail_closed(inventory):
+    battery = inventory.endpoints[0]
+    with pytest.raises(HarnessEndpointInventoryError, match="role/side/service"):
+        replace(battery, electrical_role=ROLE_CHARGING_INTERFACE)
+    with pytest.raises(HarnessEndpointInventoryError, match="role/side/service"):
+        replace(battery, side_class=SIDE_UNRESOLVED)
+    with pytest.raises(HarnessEndpointInventoryError, match="role/side/service"):
+        replace(battery, service_class=SERVICE_INTERNAL_FIXED)
+    with pytest.raises(HarnessEndpointInventoryError, match="service class cannot imply"):
+        replace(battery, service_geometry_status="SERVICE_PATH_RELEASED")
+    for field, value in (
+        ("connector_family", "UNSOURCED_CONNECTOR"),
+        ("pinout", "1=VBAT,2=GND"),
+        ("conductor_count", 2),
+        ("voltage_rating_V", 5.0),
+        ("current_rating_A", 1.0),
+        ("ingress_rating", "IPX7"),
+    ):
+        with pytest.raises(HarnessEndpointInventoryError, match="must remain unresolved"):
+            replace(battery, **{field: value})
+
+
+def test_nonfinite_noncanonical_identity_frame_and_bool_coercion_fail_closed(inventory):
+    battery = inventory.endpoints[0]
     for value in (float("nan"), float("inf"), float("-inf")):
         with pytest.raises(HarnessEndpointInventoryError, match="finite"):
-            replace(endpoint, package_anchor_xyz_mm=(value, 0.0, 0.0))
+            replace(battery, package_anchor_xyz_mm=(value, 0.0, -15.0))
+    with pytest.raises(HarnessEndpointInventoryError, match="canonical mm precision"):
+        replace(battery, package_anchor_xyz_mm=(1e-13, 0.0, -15.0))
     for field in ("mvp_required", "route_ready"):
         with pytest.raises(HarnessEndpointInventoryError, match="exact bool"):
-            replace(endpoint, **{field: 0})
+            replace(battery, **{field: 0})
     duplicated_endpoints = (inventory.endpoints[0], inventory.endpoints[0], *inventory.endpoints[2:])
     with pytest.raises(HarnessEndpointInventoryError):
         replace(inventory, endpoints=duplicated_endpoints)
     duplicated_routes = (inventory.legacy_routes[0], inventory.legacy_routes[0], *inventory.legacy_routes[2:])
     with pytest.raises(HarnessEndpointInventoryError):
         replace(inventory, legacy_routes=duplicated_routes)
+    with pytest.raises(HarnessEndpointInventoryError, match="canonical authority world frame"):
+        replace(inventory, coordinate_frame_id="MASCK_ONE_NONCANONICAL_FRAME")
 
 
 def test_source_and_donor_identity_spoofing_fail_closed(inventory):
