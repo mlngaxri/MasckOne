@@ -32,6 +32,7 @@ jobs:
           python .site-build/stage4_final_v15.py
           python .site-build/stage4_dom_fix_v15b.py
           python .site-build/stage4_visual_qa_v16.py
+          python .site-build/stage5_orbit_wearability_v17.py
           python - <<'PY'
           from pathlib import Path
           from PIL import Image
@@ -44,7 +45,7 @@ jobs:
           alpha_src = 'https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-hero-mask-v2.webp'
           assert 'masck-hero-caucasian-mask-v1.webp' not in s
           assert 'https://masck-one.vercel.app/images/masck-one-product-angle.webp' not in s
-          assert s.count(alpha_src) == 2
+          assert s.count(alpha_src) == 3
           assert 'updateHeaderVisibility();' not in s
           assert '/* Mobile stability repair */' in s
           assert '/* Responsive performance polish v3 */' in s
@@ -59,6 +60,7 @@ jobs:
           assert '/* Stage 4 final composition + interaction v15 */' in s
           assert '/* Stage 4 interaction v15 */' in s
           assert '/* Stage 4 rendered visual QA v16 */' in s
+          assert '/* Product inspection and wearability v17 */' in s
           assert 'Instrument+Serif' in s
           assert '--display:"Instrument Serif"' in s
           assert 'background-image:none;' in s
@@ -66,7 +68,6 @@ jobs:
           assert 'const bandTracks=[' in s
           assert 'env(safe-area-inset-top)' in s
           assert 'aria-current="page">Architecture' in s
-          assert 'loading="lazy" decoding="async"' in s
 
           assert 'A hands-free facial-cleansing wearable.' in s
           assert 'Fresh in.<br>Used out.' in s
@@ -78,7 +79,7 @@ jobs:
           assert 'class="systems-step' not in s
           assert 'class="proof-note"' not in s
           assert 'Built toward evidence.' not in s
-          assert s.count('data-asset-slot=') >= 7
+          assert s.count('data-asset-slot=') >= 8
           assert '.systems-word{display:none!important}' in s
           assert '.page[data-page-no]::before{display:none!important}' in s
 
@@ -112,7 +113,7 @@ jobs:
           assert '<svg class="hero-mask-art"' not in s
           assert 'masck-aperture-mask' not in s
           assert 'data-aperture=' not in s
-          assert "journey.style.opacity='1'" in s
+          assert "journey.style.opacity=String(1-smooth(clamp((sy-(handoffEnd-innerHeight*.08))/(innerHeight*.26),0,1)))" in s
           assert 'journey.style.opacity=String(show)' not in s
           assert '.mask-journey.hero-mask-single::before' in s
           assert '.mask-journey.hero-mask-single::after' in s
@@ -128,6 +129,17 @@ jobs:
           assert 'systems-copy-flow' in s and 'systems-copy-motion' in s
           assert 'systems-flow-visual' in s and 'systems-motion-visual' in s
 
+          assert s.count('class="product-inspection"') == 1
+          assert s.count('data-inspection-step=') == 4
+          assert s.count('data-inspection-overlay=') == 4
+          assert 'Final profile depth remains under engineering convergence.' in s
+          assert 'Retention continues behind the head. Final rear geometry remains in development.' in s
+          assert 'Control mapping remains under convergence.' in s
+          assert 'Fit and comfort require physical validation.' in s
+          assert 'data-source-main-sha="5c41702f23ffe5a602b8af363e8588867d9af2e0"' in s
+          assert 'data-source-asset-sha="ca2b69b1d37e73f6e907e9cf46d93e44966142c3"' in s
+          assert 'PRODUCT INSPECTION' not in s
+
           with Image.open('website/images/masck-hero-mask-v2.webp') as src:
               im = src.convert('RGBA')
           w, h = im.size
@@ -142,6 +154,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add website/index.html
           if ! git diff --cached --quiet; then
-            git commit -m 'refine: stage 4 final composition and motion'
+            git commit -m 'refine: product inspection and wearability'
             git push origin HEAD:main
           fi
