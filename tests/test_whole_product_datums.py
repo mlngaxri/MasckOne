@@ -22,7 +22,9 @@ from masck_one.whole_product_datums import (
     STRUCTURAL_FRAME_REFERENCE_ID,
     THERMAL_ROOT_FRAME_ID,
     WATER_RESERVOIR_PACKAGE_FRAME_ID,
+    WATER_RESERVOIR_ROOT_FRAME_ID,
     WASTE_CARTRIDGE_PACKAGE_FRAME_ID,
+    WASTE_CARTRIDGE_ROOT_FRAME_ID,
     WORLD_FRAME_ID,
     DatumHierarchyError,
     WholeProductDatumHierarchy,
@@ -96,27 +98,33 @@ def test_actuator_local_datums_do_not_inherit_proxy_envelope_placements(hierarch
         assert node.parent_id == STRUCTURAL_FRAME_REFERENCE_ID
         assert node.transform_status == "UNRESOLVED"
         assert node.local_to_parent is None
-        assert node.geometry_role == "NO_RELEASED_GEOMETRY"
+        assert node.geometry_role == "NO_RELEASED_PLACEMENT_GEOMETRY"
         assert hierarchy.local_to_world_transform(datum_id) is None
         assert "model.py actuator cylinders are package/development proxies only" in node.blocker
 
 
-def test_unreleased_neighboring_subsystem_roots_fail_closed(hierarchy):
+def test_released_fluid_and_unreleased_neighboring_subsystem_roots_fail_closed(hierarchy):
     nodes = hierarchy.node_by_id
 
     for datum_id in (
+        WATER_RESERVOIR_ROOT_FRAME_ID,
+        WASTE_CARTRIDGE_ROOT_FRAME_ID,
+        CLEANSER_ROOT_FRAME_ID,
         RETENTION_ROOT_FRAME_ID,
         DRY_SIDE_ROOT_FRAME_ID,
         HMI_ROOT_FRAME_ID,
         THERMAL_ROOT_FRAME_ID,
-        CLEANSER_ROOT_FRAME_ID,
     ):
         node = nodes[datum_id]
         assert node.transform_status == "UNRESOLVED"
         assert node.local_to_parent is None
         assert node.manufacturing_status == "UNRESOLVED_NOT_QUALIFIED_MANUFACTURING_DATUM"
+        assert node.geometry_role == "NO_RELEASED_PLACEMENT_GEOMETRY"
         assert hierarchy.local_to_world_transform(datum_id) is None
 
+    assert nodes[WATER_RESERVOIR_ROOT_FRAME_ID].producer_path == "src/masck_one/water_reservoir.py"
+    assert nodes[WASTE_CARTRIDGE_ROOT_FRAME_ID].producer_path == "src/masck_one/waste_cartridge.py"
+    assert nodes[CLEANSER_ROOT_FRAME_ID].producer_path == "src/masck_one/cleanser_storage.py"
     assert nodes[HMI_ROOT_FRAME_ID].parent_id == DRY_SIDE_ROOT_FRAME_ID
     assert nodes[THERMAL_ROOT_FRAME_ID].parent_id == DRY_SIDE_ROOT_FRAME_ID
 
@@ -137,6 +145,9 @@ def test_manifest_is_deterministic_source_bound_and_keeps_physical_firewall(hier
     assert len(source_paths) == len(set(source_paths))
     assert "config/masck_one_authority.yaml" in source_paths
     assert "src/masck_one/model.py" in source_paths
+    assert "src/masck_one/water_reservoir.py" in source_paths
+    assert "src/masck_one/cleanser_storage.py" in source_paths
+    assert "src/masck_one/waste_cartridge.py" in source_paths
 
 
 def test_duplicate_ids_and_cycles_are_rejected(hierarchy):
