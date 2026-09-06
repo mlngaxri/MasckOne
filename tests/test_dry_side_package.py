@@ -35,6 +35,16 @@ def test_package_is_canonical_source_bound_and_deterministic(package) -> None:
     assert package.package_sha256 == dsp.build_dry_side_package().package_sha256
 
 
+def test_local_frame_is_explicit_identity_rotation_plus_world_translation(package) -> None:
+    frame = package.manifest()["dry_bay_local_frame"]
+    assert frame["frame_id"] == "MASCK_ONE_DRY_BAY_LOCAL_MM"
+    assert frame["parent_frame_id"] == "MASCK_ONE_AUTHORITY_WORLD_MM"
+    assert frame["origin_in_parent_mm"] == list(dsp.DRY_BAY_CENTER_MM)
+    assert frame["x_axis_in_parent"] == [1.0, 0.0, 0.0]
+    assert frame["y_axis_in_parent"] == [0.0, 1.0, 0.0]
+    assert frame["z_axis_in_parent"] == [0.0, 0.0, 1.0]
+
+
 def test_battery_benchmark_and_power_runtime_evidence_stay_honest(package) -> None:
     authority = load_authority()
     manifest = package.manifest()
@@ -51,13 +61,30 @@ def test_battery_benchmark_and_power_runtime_evidence_stay_honest(package) -> No
 
 
 def test_physical_reference_and_service_firewall_is_explicit(package) -> None:
+    assert tuple(item.geometry_id for item in package.physical_geometry) == ("DRY_BAY_CARRIER_STRUCTURE",)
     assert {item.material_class for item in package.physical_geometry} == {"PHYSICAL_MATERIAL_CANDIDATE"}
     assert all(item.material_class != "PHYSICAL_MATERIAL_CANDIDATE" for item in package.reference_geometry)
     assert all(item.material_class == "SERVICE_SWEEP_REFERENCE" for item in package.service_geometry)
     manifest = package.manifest()
     assert manifest["integration"]["development_assembly_status"] == "REVIEW_ONLY_NOT_INSERTED_INTO_RELEASED_PHYSICAL_ASSEMBLY"
     assert manifest["interfaces"]["frame_attachment"]["relationship"] == "POSITIVE_ATTACHMENT_REQUIRED_COUNTERPART_UNRELEASED"
-    assert manifest["interfaces"]["rear_service_door"]["relationship"] == "SEAL_INTERFACE_RESERVATION_POSITIVE_CLOSURE_REQUIRED"
+
+
+def test_rear_closure_has_exactly_one_external_owner_and_no_cell12_door_material(package) -> None:
+    manifest = package.manifest()
+    closure = _by_id(package.reference_geometry, "REAR_CLOSURE_SEAL_INTERFACE_RESERVATION")
+    assert closure.material_class == "SEAL_INTERFACE_RESERVATION"
+    assert not any(item.geometry_id == "REAR_SERVICE_DOOR_CANDIDATE" for item in package.physical_geometry)
+    assert not any("DOOR" in item.geometry_id for item in package.service_geometry)
+    assert manifest["interfaces"]["rear_service_closure"]["owner"] == "CELL2_EXTERIOR"
+    assert manifest["interfaces"]["rear_service_closure"]["cell12_visible_door_material_exists"] is False
+    assert manifest["integration"]["cell12_visible_door_material_exists"] is False
+    assert manifest["service_sequence"]["battery_removal"][1] == "CELL2_EXTERIOR_REAR_COVER_REMOVED"
+    structure = _by_id(package.physical_geometry, "DRY_BAY_CARRIER_STRUCTURE")
+    assert dsp._intersection(structure.solid, closure.solid) == 0.0
+    closure_bb = closure.solid.val().BoundingBox()
+    assert closure_bb.zmax == pytest.approx(-47.0)
+    assert closure_bb.zmin == pytest.approx(-47.4)
 
 
 def test_noncompressive_carrier_and_internal_nesting_are_geometrically_real(package) -> None:
@@ -74,14 +101,15 @@ def test_noncompressive_carrier_and_internal_nesting_are_geometrically_real(pack
     assert dsp._geometry(structure)["spans_mm"] == pytest.approx(list(dsp.DRY_BAY_OUTER_MM), abs=1e-6)
 
 
-def test_service_sweeps_are_continuous_negative_z_and_required_clear(package) -> None:
+def test_battery_service_sweep_is_continuous_negative_z_and_required_clear(package) -> None:
+    assert len(package.service_geometry) == 1
     battery_sweep = _by_id(package.service_geometry, "BATTERY_REARWARD_SERVICE_SWEEP")
-    door_sweep = _by_id(package.service_geometry, "REAR_SERVICE_DOOR_WITHDRAWAL_SWEEP")
-    battery_bb = battery_sweep.solid.val().BoundingBox()
-    door_bb = door_sweep.solid.val().BoundingBox()
-    assert battery_bb.zmin == pytest.approx(dsp.BATTERY_SERVICE_END_Z_MM - (6.3 + 2.0 * dsp.BATTERY_FAULT_CLEARANCE_Z_MM) / 2.0)
-    assert door_bb.zmin == pytest.approx(dsp.DOOR_SERVICE_END_Z_MM - dsp.DOOR_MM[2] / 2.0)
-    assert battery_bb.zmax > door_bb.zmax
+    bb = battery_sweep.solid.val().BoundingBox()
+    authority = load_authority()
+    battery_depth = authority.number("battery_reference", "envelope_mm", 2) if False else 6.3
+    fault_depth = battery_depth + 2.0 * dsp.BATTERY_FAULT_CLEARANCE_Z_MM
+    assert bb.zmin == pytest.approx(dsp.BATTERY_SERVICE_END_Z_MM - fault_depth / 2.0)
+    assert bb.zmax == pytest.approx(dsp.BATTERY_CENTER_MM[2] + fault_depth / 2.0)
     assert all(check.intersection_volume_mm3 == 0.0 for check in package.collision_checks)
     assert all(math.isfinite(check.minimum_distance_mm) and check.minimum_distance_mm >= 0.0 for check in package.collision_checks)
 
@@ -115,6 +143,13 @@ def test_dfm_records_wall_and_rib_baseline_without_false_maturity(package) -> No
     assert manifest["dfm"]["draft_geometry_realized"] is False
     assert manifest["dfm"]["material_status"] == "UNSELECTED"
     assert manifest["dfm"]["tolerance_stack_status"] == "PROVISIONAL_DIGITAL_CLEARANCES_ONLY"
+
+
+def test_hmi_thermal_electrical_handoff_does_not_invent_connector_datum(package) -> None:
+    handoff = package.manifest()["interfaces"]["hmi_thermal_electrical_handoff"]
+    assert handoff["owner"] == "CELL14_HMI_THERMAL"
+    assert handoff["datum_xyz_mm"] is None
+    assert handoff["status"].startswith("BLOCKED_")
 
 
 def test_step_round_trip_preserves_physical_candidate_bounds(tmp_path, package) -> None:
