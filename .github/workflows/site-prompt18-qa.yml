@@ -26,6 +26,7 @@ jobs:
       - name: Test and capture complete use journey on production
         run: |
           node .site-build/qa_use_journey_v18.mjs
+          node .site-build/qa_use_journey_v18_mobile_bounds.mjs
           python3 - <<'PY'
           from pathlib import Path
           from PIL import Image, ImageDraw
