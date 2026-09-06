@@ -19,6 +19,7 @@ from masck_one.quantitative_ledger import (
     QuantitativeLedgerError,
     build_current_quantitative_ledger,
 )
+from masck_one.quantitative_ledger_guard import validate_mass_arithmetic
 
 
 @pytest.fixture(scope="module")
@@ -59,6 +60,27 @@ def test_known_mass_benchmark_subtotal_is_exact_and_non_double_counting(ledger):
     assert contributor["BATTERY_REFERENCE_BENCHMARK"] == pytest.approx(22.0, abs=1e-12)
     assert all(entry.centroid_xyz_mm is not None for entry in counted)
     assert mass.known_subset_pitch_moment_Nm >= 0.0
+    validate_mass_arithmetic(mass)
+
+
+def test_mass_arithmetic_guard_rejects_cg_pitch_and_contributor_drift(ledger):
+    mass = ledger.mass
+    shifted_cg = (
+        mass.known_subset_cg_xyz_mm[0],
+        mass.known_subset_cg_xyz_mm[1],
+        mass.known_subset_cg_xyz_mm[2] + 0.01,
+    )
+    with pytest.raises(QuantitativeLedgerError, match="CG mismatch"):
+        validate_mass_arithmetic(replace(mass, known_subset_cg_xyz_mm=shifted_cg))
+
+    with pytest.raises(QuantitativeLedgerError, match="pitch mismatch"):
+        validate_mass_arithmetic(replace(mass, known_subset_pitch_moment_Nm=mass.known_subset_pitch_moment_Nm + 1e-6))
+
+    first = mass.dominant_known_contributors[0]
+    drifted_first = replace(first, known_mass_g=first.known_mass_g + 0.01)
+    drifted_contributors = (drifted_first, *mass.dominant_known_contributors[1:])
+    with pytest.raises(QuantitativeLedgerError, match="dominant-contributor mismatch"):
+        validate_mass_arithmetic(replace(mass, dominant_known_contributors=drifted_contributors))
 
 
 def test_whole_product_mass_cg_pitch_and_loaded_terms_remain_unknown(ledger):
