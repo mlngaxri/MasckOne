@@ -63,7 +63,8 @@ def _candidate_aware_requirements(audit, candidate):
     states = {
         REQ_BODY_CAVITY_WALLS: (
             "Cell 11 now realizes a source-bound body, separate closure and installed free-cavity B-rep inside the authority package. "
-            f"{CANDIDATE_PROTECTED_FACE_STATUS}. Wall seeds remain provisional and the candidate is not development-assembly material.{shell_state}"
+            f"All five protected-face hard envelopes are clear: {CANDIDATE_PROTECTED_FACE_STATUS}. "
+            f"Wall seeds remain provisional and the candidate is not development-assembly material.{shell_state}"
         ),
         REQ_GEOMETRIC_CAPACITY: (
             f"Cell 11 protected-face-compliant geometric installed free cavity is {candidate.installed_geometric_free_capacity_mL:.6f} mL against the 35 mL retained-capacity requirement. "
