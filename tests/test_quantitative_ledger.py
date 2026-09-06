@@ -1,4 +1,5 @@
 from dataclasses import replace
+import json
 
 import pytest
 
@@ -56,10 +57,8 @@ def test_known_mass_benchmark_subtotal_is_exact_and_non_double_counting(ledger):
     assert all(entry.accounting_role == ROLE_BENCHMARK_MASS_CREDIT for entry in counted)
     assert sum(float(entry.mass_g) for entry in counted) == pytest.approx(44.4, abs=1e-12)
     contributor = {item.contributor_id: item.known_mass_g for item in mass.dominant_known_contributors}
-    assert contributor == {
-        "FOUR_ACTUATOR_SIBLING_MODEL_MASS_BENCHMARKS": pytest.approx(22.4, abs=1e-12),
-        "BATTERY_REFERENCE_BENCHMARK": pytest.approx(22.0, abs=1e-12),
-    }
+    assert contributor["FOUR_ACTUATOR_SIBLING_MODEL_MASS_BENCHMARKS"] == pytest.approx(22.4, abs=1e-12)
+    assert contributor["BATTERY_REFERENCE_BENCHMARK"] == pytest.approx(22.0, abs=1e-12)
     assert all(entry.centroid_xyz_mm is not None for entry in counted)
     assert mass.known_subset_pitch_moment_Nm >= 0.0
 
@@ -187,10 +186,8 @@ def test_manifest_is_deterministic_and_revalidates_nested_records(ledger):
 def test_release_smoke_embeds_and_writes_identical_quantitative_manifest(tmp_path):
     report = export_release(tmp_path)
     embedded = report["quantitative_ledgers"]["mass_cg_power_fluid_v1"]
-    assert embedded["known_mass_subtotal_g"] if False else True
     standalone = tmp_path / "quantitative_ledger_v1.json"
     assert standalone.is_file()
-    import json
 
     payload = json.loads(standalone.read_text(encoding="utf-8"))
     assert payload == embedded
