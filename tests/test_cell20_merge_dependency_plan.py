@@ -8,25 +8,35 @@ import pytest
 
 import cell20_merge_dependency_plan as mp
 
-
 EXPECTED_SEQUENCE_PRS = {
     70, 92, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
     117, 118, 120, 121, 123, 124, 125,
 }
-EXPECTED_GREEN_PRS = {107, 108, 109, 110, 112, 114, 116, 117, 118, 120}
+EXPECTED_GREEN_PRS = {107, 108, 109, 110, 112, 114, 116, 117, 118, 120, 121}
 
 
-def test_plan_is_deterministic_and_fail_closed_before_root_release() -> None:
+def test_plan_is_deterministic_and_has_exactly_one_current_release_action() -> None:
     first = mp.merge_dependency_manifest()
     second = mp.merge_dependency_manifest()
     assert first == second
     assert first["schema"] == mp.SCHEMA
     assert first["source_main_sha"] == mp.SOURCE_MAIN_SHA
     assert first["world_frame_id"] == "MASCK_ONE_AUTHORITY_WORLD_MM"
-    assert first["release_control_root_pr"] == 121
-    assert first["no_merge_now"] is True
+    assert first["next_release_pr"] == 121
+    assert first["next_release_expected_head_sha"] == mp.ROOT_HEAD_SHA
+    assert first["release_eligible_now_prs"] == [121]
+    assert first["downstream_merge_hold"] is True
     assert len(first["manifest_sha256"]) == 64
-    assert all(row["release_eligible_now"] is False for row in first["candidate_sequence"])
+
+
+def test_verified_root_evidence_is_exact_and_retained() -> None:
+    evidence = mp.merge_dependency_manifest()["verified_root_evidence"]
+    assert evidence["workflow_run_id"] == 34010264572
+    assert evidence["artifact_id"] == 9982589534
+    assert evidence["artifact_sha256"] == "1dac6d1933e0b09b746e5fa1917792eb1acbb65625bab00551932eac5e13cf94"
+    assert evidence["tested_tree_sha"] == "862eb97560228e619d82202fc4728715ee5fa13a"
+    assert evidence["source_base_is_ancestor_of_source_head"] is True
+    assert evidence["source_head_tree_equals_tested_tree"] is True
 
 
 def test_sequence_contains_current_dependency_candidates_once() -> None:
@@ -42,7 +52,9 @@ def test_every_dependency_is_in_an_earlier_phase() -> None:
     rows = mp.validate_plan()
     by_pr = {row.pr_number: row for row in rows}
     assert by_pr[121].phase == 0
+    assert by_pr[121].release_eligible_now is True
     assert by_pr[120].depends_on == (121,)
+    assert all(not row.release_eligible_now for row in rows if row.pr_number != 121)
     for row in rows:
         for dependency in row.depends_on:
             assert by_pr[dependency].phase < row.phase
@@ -80,6 +92,17 @@ def test_cartridge_capacity_and_shell_collision_force_redesign_hold() -> None:
     assert row.release_eligible_now is False
 
 
+def test_mechanical_graph_red_head_is_late_repair_not_green() -> None:
+    row = {item.pr_number: item for item in mp.CANDIDATES}[124]
+    assert row.ci_state == mp.CI_FAILURE
+    assert row.exact_head_green is False
+    assert row.action == mp.ACTION_REPAIR_REBASE_RETEST
+    joined = " ".join(row.blockers)
+    assert "34010753193" in joined
+    assert "stale #123" in joined
+    assert "3 tests" in joined
+
+
 def test_legacy_chain_collapse_is_explicit_and_quick_release_is_preserved() -> None:
     groups = {(group.source_prs, group.successor_pr): group.action for group in mp.COLLAPSE_GROUPS}
     assert groups[((83, 87, 89), 92)] == "CLOSE_AS_EXACT_ANCESTORS"
@@ -104,10 +127,18 @@ def test_duplicate_candidate_is_rejected() -> None:
         mp.validate_plan((*mp.CANDIDATES, mp.CANDIDATES[0]))
 
 
-def test_merge_now_promotion_is_rejected_before_root_release() -> None:
+def test_nonroot_merge_now_promotion_is_rejected() -> None:
+    candidate = next(row for row in mp.CANDIDATES if row.pr_number == 120)
+    with pytest.raises(mp.MergePlanError):
+        replace(candidate, release_eligible_now=True)
+
+
+def test_root_loses_eligibility_if_exact_head_or_green_state_changes() -> None:
     root = next(row for row in mp.CANDIDATES if row.pr_number == 121)
     with pytest.raises(mp.MergePlanError):
-        replace(root, release_eligible_now=True)
+        replace(root, head_sha="0" * 40)
+    with pytest.raises(mp.MergePlanError):
+        replace(root, ci_state=mp.CI_FAILURE)
 
 
 def test_manifest_round_trip(tmp_path: Path) -> None:
