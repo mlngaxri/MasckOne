@@ -35,7 +35,7 @@ jobs:
           python -m pip install -e ".[dev]"
 
       - name: Compile Python
-        run: python -m compileall -q src tests
+        run: python -m compileall -q src tests cell20_mvp_release_matrix.py
 
       - name: Validate engineering authority contract
         run: python -m masck_one.authority
@@ -62,7 +62,9 @@ jobs:
         run: python -m masck_one.surface_workflow_preflight
 
       - name: Cell 20 MVP completeness release-control preflight
-        run: python -m masck_one.mvp_completeness --output /tmp/masck-one-mvp-completeness.json
+        run: |
+          python -m masck_one.mvp_completeness --output /tmp/masck-one-mvp-completeness-baseline.json
+          python cell20_mvp_release_matrix.py --output /tmp/masck-one-mvp-completeness-live.json
 
       - name: Unit and integration tests
         run: python -m pytest --durations=20
