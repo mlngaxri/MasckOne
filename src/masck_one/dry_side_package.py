@@ -2,9 +2,10 @@ from __future__ import annotations
 
 """Source-bound Cell 12 battery, dry-bay, PCB and charging package.
 
-Digital CAD packaging evidence only. This module does not select a production cell,
-PCB, connector, charger, protection circuit, seal, fastener or material, and it does
-not claim runtime, ingress, electrical safety or physical service performance.
+Digital CAD packaging evidence only. Cell 12 owns the internal dry-side package and
+its closure/seal interface. The visible exterior rear cover is owned by Cell 2 and is
+not duplicated here as material. No supplier, ingress, electrical-safety, runtime,
+thermal, service-life or physical-performance claim is created by this module.
 """
 
 from dataclasses import dataclass
@@ -18,10 +19,11 @@ import cadquery as cq
 from .authority import Authority, load_authority
 from .model import MasckOneModel, build_model
 
-SCHEMA = "MASCK_ONE_CELL12_COMPACT_DRY_SIDE_PACKAGE_V1"
+SCHEMA = "MASCK_ONE_CELL12_COMPACT_DRY_SIDE_PACKAGE_V2"
 SOURCE_MAIN_SHA = "afe29ff78419b6625dca5594974b6351f6f80e1b"
 AUTHORITY_REVISION = "2026-08-30-R1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
+LOCAL_FRAME_ID = "MASCK_ONE_DRY_BAY_LOCAL_MM"
 LEGACY_DONOR_PR = 64
 LEGACY_DONOR_HEAD_SHA = "49a32d0c61bd1057ee707ee2ef20b8ff4e6ede01"
 LEGACY_DONOR_BLOB_SHA = "59e69a781e4ffcbb581a9f2835c9cb581b3939f2"
@@ -38,8 +40,7 @@ SOURCE_GIT_BLOB_IDENTITIES = (
 BATTERY_FAULT_CLEARANCE_XY_MM = 1.5
 BATTERY_FAULT_CLEARANCE_Z_MM = 2.0
 
-# Compact reflow replacing the stale PR #64 62 x 96 x 16 mm bay. These are Cell 12
-# digital package baselines, not a released exterior or production drawing.
+# Compact reflow replacing the stale PR #64 62 x 96 x 16 mm bay.
 DRY_BAY_OUTER_MM = (48.0, 66.0, 22.0)
 DRY_BAY_CENTER_MM = (0.0, 0.0, -36.0)
 DRY_BAY_WALL_MM = 1.8
@@ -52,13 +53,12 @@ PCB_SUPPORT_MM = (40.0, 24.0, 1.2)
 PCB_SUPPORT_CENTER_MM = (0.0, 19.0, -30.9)
 POWER_ZONE_MM = (12.0, 8.0, 1.0)
 POWER_ZONE_CENTER_MM = (-10.0, 19.0, -28.4)
-DOOR_MM = (46.0, 64.0, 1.8)
-DOOR_CENTER_MM = (0.0, 0.0, -47.9)
-DOOR_CORNER_RADIUS_MM = 8.0
 CHARGE_RESERVATION_MM = (10.0, 8.0, 4.0)
 CHARGE_CENTER_MM = (-23.0, -26.0, -28.5)
+CLOSURE_INTERFACE_MM = (46.0, 64.0, 0.4)
+CLOSURE_INTERFACE_CENTER_MM = (0.0, 0.0, -47.2)
+CLOSURE_INTERFACE_CORNER_RADIUS_MM = 8.0
 BATTERY_SERVICE_END_Z_MM = -70.0
-DOOR_SERVICE_END_Z_MM = -60.0
 
 LOAD_IDS = (
     "ACTUATORS_X4",
@@ -102,6 +102,11 @@ def _box(size: tuple[float, float, float], center: tuple[float, float, float]) -
     sx, sy, sz = tuple(_finite(item, "box dimension", positive=True) for item in size)
     cx, cy, cz = _point(center, "box center")
     return cq.Workplane("XY").box(sx, sy, sz, centered=(True, True, True)).translate((cx, cy, cz))
+
+
+def _rounded_box_xy(size: tuple[float, float, float], center: tuple[float, float, float], radius_mm: float) -> cq.Workplane:
+    radius = _finite(radius_mm, "corner radius", positive=True)
+    return _box(size, center).edges("|Z").fillet(radius)
 
 
 def _geometry(solid: cq.Workplane) -> dict[str, object]:
@@ -177,12 +182,19 @@ class PackageGeometry:
 
     def __post_init__(self) -> None:
         for label, value in (
-            ("geometry_id", self.geometry_id), ("role", self.role),
-            ("material_class", self.material_class), ("hygiene_class", self.hygiene_class),
+            ("geometry_id", self.geometry_id),
+            ("role", self.role),
+            ("material_class", self.material_class),
+            ("hygiene_class", self.hygiene_class),
             ("geometry_status", self.geometry_status),
         ):
             _text(value, label)
-        allowed = {"PHYSICAL_MATERIAL_CANDIDATE", "REFERENCE_ONLY", "SERVICE_SWEEP_REFERENCE", "SEAL_INTERFACE_RESERVATION"}
+        allowed = {
+            "PHYSICAL_MATERIAL_CANDIDATE",
+            "REFERENCE_ONLY",
+            "SERVICE_SWEEP_REFERENCE",
+            "SEAL_INTERFACE_RESERVATION",
+        }
         if self.material_class not in allowed:
             raise DrySidePackageError("uncontrolled dry-side material class")
         _geometry(self.solid)
@@ -207,7 +219,11 @@ class CollisionCheck:
     minimum_distance_mm: float
 
     def __post_init__(self) -> None:
-        for label, value in (("check_id", self.check_id), ("first_id", self.first_id), ("second_id", self.second_id)):
+        for label, value in (
+            ("check_id", self.check_id),
+            ("first_id", self.first_id),
+            ("second_id", self.second_id),
+        ):
             _text(value, label)
         _finite(self.intersection_volume_mm3, "intersection volume")
         _finite(self.minimum_distance_mm, "minimum distance")
@@ -244,6 +260,8 @@ class DrySidePackage:
         ids = [item.geometry_id for item in (*self.physical_geometry, *self.reference_geometry, *self.service_geometry)]
         if len(ids) != len(set(ids)):
             raise DrySidePackageError("dry-side geometry IDs cannot repeat")
+        if len(self.physical_geometry) != 1 or self.physical_geometry[0].geometry_id != "DRY_BAY_CARRIER_STRUCTURE":
+            raise DrySidePackageError("Cell 12 physical material must be only the internal carrier structure")
         if any(item.material_class != "PHYSICAL_MATERIAL_CANDIDATE" for item in self.physical_geometry):
             raise DrySidePackageError("physical set contains non-material geometry")
         if any(item.material_class == "PHYSICAL_MATERIAL_CANDIDATE" for item in (*self.reference_geometry, *self.service_geometry)):
@@ -271,6 +289,15 @@ class DrySidePackage:
             "schema": SCHEMA,
             "authority_revision": self.authority_revision,
             "world_frame_id": WORLD_FRAME_ID,
+            "dry_bay_local_frame": {
+                "frame_id": LOCAL_FRAME_ID,
+                "parent_frame_id": WORLD_FRAME_ID,
+                "origin_in_parent_mm": list(DRY_BAY_CENTER_MM),
+                "x_axis_in_parent": [1.0, 0.0, 0.0],
+                "y_axis_in_parent": [0.0, 1.0, 0.0],
+                "z_axis_in_parent": [0.0, 0.0, 1.0],
+                "transform_semantics": "IDENTITY_ROTATION_PLUS_EXPLICIT_WORLD_TRANSLATION_MM",
+            },
             "sources": {
                 "main_sha": SOURCE_MAIN_SHA,
                 "source_git_blobs": {path: digest for path, digest in SOURCE_GIT_BLOB_IDENTITIES},
@@ -287,8 +314,10 @@ class DrySidePackage:
                 "battery_nominal_voltage_V": self.battery_nominal_voltage_V,
                 "battery_capacity_mAh": self.battery_capacity_mAh,
                 "battery_mass_g": self.battery_mass_g,
-                "loads": [{"load_id": load_id, "quantity": quantity, "nominal_power_W": None, "status": unresolved}
-                          for load_id, quantity in zip(LOAD_IDS, (4, 1, 1, 1, 1, 1), strict=True)],
+                "loads": [
+                    {"load_id": load_id, "quantity": quantity, "nominal_power_W": None, "status": unresolved}
+                    for load_id, quantity in zip(LOAD_IDS, (4, 1, 1, 1, 1, 1), strict=True)
+                ],
                 "total_dry_side_mass_g": None,
                 "total_power_W": None,
                 "runtime_estimate_h": None,
@@ -301,10 +330,12 @@ class DrySidePackage:
                     "relationship": "POSITIVE_ATTACHMENT_REQUIRED_COUNTERPART_UNRELEASED",
                     "status": "BLOCKED_RELEASED_FRAME_HAS_TOPOLOGY_ONLY_NO_3D_DRY_BAY_COUNTERPART",
                 },
-                "rear_service_door": {
-                    "datum_xyz_mm": [0.0, 0.0, -47.0],
-                    "relationship": "SEAL_INTERFACE_RESERVATION_POSITIVE_CLOSURE_REQUIRED",
-                    "status": "BLOCKED_LATCH_FASTENER_SEAL_STACK_AND_EXTERIOR_MATCH_UNSELECTED",
+                "rear_service_closure": {
+                    "owner": "CELL2_EXTERIOR",
+                    "interface_datum_xyz_mm": [0.0, 0.0, -47.0],
+                    "relationship": "SEAL_INTERFACE_RESERVATION_AND_POSITIVE_CLOSURE_COUNTERPART_REQUIRED",
+                    "cell12_visible_door_material_exists": False,
+                    "status": "BLOCKED_EXTERIOR_COVER_ATTACHMENT_SEAL_STACK_AND_INGRESS_UNSELECTED",
                 },
                 "charging": {
                     "datum_xyz_mm": list(CHARGE_CENTER_MM),
@@ -312,6 +343,21 @@ class DrySidePackage:
                     "relationship": "SEAL_INTERFACE_RESERVATION",
                     "status": "CONNECTOR_TYPE_RETENTION_INGRESS_CERTIFICATION_AND_ACTIVE_WET_CHARGING_UNSELECTED",
                 },
+                "hmi_thermal_electrical_handoff": {
+                    "owner": "CELL14_HMI_THERMAL",
+                    "datum_xyz_mm": None,
+                    "relationship": "ELECTRICAL_INTERFACE_REQUIRED",
+                    "status": "BLOCKED_PCB_EDGE_CONNECTOR_HARNESS_ROUTING_AND_COMPONENT_PLACEMENT_UNSELECTED",
+                },
+            },
+            "service_sequence": {
+                "battery_removal": [
+                    "DEVICE_REMOVED_FROM_WEARER_AND_UNPOWERED",
+                    "CELL2_EXTERIOR_REAR_COVER_REMOVED",
+                    "BATTERY_DISCONNECTED_BY_UNSELECTED_SAFE_CONNECTOR_SEQUENCE",
+                    "BATTERY_WITHDRAWN_ALONG_CELL12_REARWARD_SERVICE_SWEEP",
+                ],
+                "physical_service_validated": False,
             },
             "dfm": {
                 "dry_bay_wall_mm": DRY_BAY_WALL_MM,
@@ -325,7 +371,8 @@ class DrySidePackage:
             },
             "integration": {
                 "frame_positive_attachment_realized": False,
-                "door_positive_attachment_realized": False,
+                "cell12_visible_door_material_exists": False,
+                "exterior_closure_positive_attachment_realized": False,
                 "charging_connector_selected": False,
                 "ingress_validated": False,
                 "electrical_safety_validated": False,
@@ -347,12 +394,16 @@ def _z_sweep(size: tuple[float, float, float], start: tuple[float, float, float]
 
 def _build_geometry(authority: Authority) -> tuple[tuple[PackageGeometry, ...], tuple[PackageGeometry, ...], tuple[PackageGeometry, ...]]:
     bw, bh, bd = tuple(float(item) for item in authority.get("battery_reference", "envelope_mm"))
-    fault_size = (bw + 3.0, bh + 3.0, bd + 4.0)
+    fault_size = (bw + 2.0 * BATTERY_FAULT_CLEARANCE_XY_MM, bh + 2.0 * BATTERY_FAULT_CLEARANCE_XY_MM, bd + 2.0 * BATTERY_FAULT_CLEARANCE_Z_MM)
     guide_size = tuple(fault_size[index] + 2.0 * BATTERY_GUIDE_WALL_MM for index in range(3))
 
     bay_outer = _box(DRY_BAY_OUTER_MM, DRY_BAY_CENTER_MM)
-    cavity_size = (DRY_BAY_OUTER_MM[0] - 3.6, DRY_BAY_OUTER_MM[1] - 3.6, DRY_BAY_OUTER_MM[2] - 1.8)
-    bay_cavity = _box(cavity_size, (0.0, 0.0, DRY_BAY_CENTER_MM[2] - 0.9))
+    cavity_size = (
+        DRY_BAY_OUTER_MM[0] - 2.0 * DRY_BAY_WALL_MM,
+        DRY_BAY_OUTER_MM[1] - 2.0 * DRY_BAY_WALL_MM,
+        DRY_BAY_OUTER_MM[2] - DRY_BAY_WALL_MM,
+    )
+    bay_cavity = _box(cavity_size, (0.0, 0.0, DRY_BAY_CENTER_MM[2] - DRY_BAY_WALL_MM / 2.0))
     bay_shell = bay_outer.cut(bay_cavity)
 
     fault = _box(fault_size, BATTERY_CENTER_MM)
@@ -362,21 +413,35 @@ def _build_geometry(authority: Authority) -> tuple[tuple[PackageGeometry, ...], 
     guide_top_z = float(guide.val().BoundingBox().zmax)
     pylon_end_z = -26.5
     pylon_depth = pylon_end_z - guide_top_z
+    if pylon_depth <= 0.0:
+        raise DrySidePackageError("battery guide pylon depth must be positive")
     structure = bay_shell.union(guide)
     for x in (-19.5, 19.5):
         for y in (-30.25, 26.25):
-            structure = structure.union(_box((1.0, 1.0, pylon_depth), (x, y, (guide_top_z + pylon_end_z) / 2.0)))
+            structure = structure.union(
+                _box((SUPPORT_RIB_THICKNESS_MM, SUPPORT_RIB_THICKNESS_MM, pylon_depth), (x, y, (guide_top_z + pylon_end_z) / 2.0))
+            )
     structure = structure.union(_box(PCB_SUPPORT_MM, PCB_SUPPORT_CENTER_MM))
 
-    door = _box(DOOR_MM, DOOR_CENTER_MM).edges("|Z").fillet(DOOR_CORNER_RADIUS_MM)
     battery = _box((bw, bh, bd), BATTERY_CENTER_MM)
     pcb = _box(PCB_REFERENCE_MM, PCB_CENTER_MM)
     power_zone = _box(POWER_ZONE_MM, POWER_ZONE_CENTER_MM)
     charge = _box(CHARGE_RESERVATION_MM, CHARGE_CENTER_MM)
+    closure_interface = _rounded_box_xy(
+        CLOSURE_INTERFACE_MM,
+        CLOSURE_INTERFACE_CENTER_MM,
+        CLOSURE_INTERFACE_CORNER_RADIUS_MM,
+    )
 
     physical = (
-        PackageGeometry("DRY_BAY_CARRIER_STRUCTURE", "integral compact bay, noncompressive battery edge guide and PCB support shelf", structure, "PHYSICAL_MATERIAL_CANDIDATE", "DRY_ALWAYS", "CELL12_CAD_BASELINE_FRAME_ATTACHMENT_UNRELEASED"),
-        PackageGeometry("REAR_SERVICE_DOOR_CANDIDATE", "rounded low-highlight rear service closure candidate", door, "PHYSICAL_MATERIAL_CANDIDATE", "DRY_ALWAYS", "CELL12_CAD_CANDIDATE_LATCH_SEAL_AND_EXTERIOR_MATCH_UNRESOLVED"),
+        PackageGeometry(
+            "DRY_BAY_CARRIER_STRUCTURE",
+            "integral compact bay, noncompressive battery edge guide and PCB support shelf",
+            structure,
+            "PHYSICAL_MATERIAL_CANDIDATE",
+            "DRY_ALWAYS",
+            "CELL12_CAD_BASELINE_FRAME_ATTACHMENT_UNRELEASED",
+        ),
     )
     reference = (
         PackageGeometry("BATTERY_PACKAGING_BENCHMARK", "authority EEMB benchmark at Cell 12 rear-package placement", battery, "REFERENCE_ONLY", "DRY_ALWAYS", str(authority.get("battery_reference", "status"))),
@@ -384,10 +449,17 @@ def _build_geometry(authority: Authority) -> tuple[tuple[PackageGeometry, ...], 
         PackageGeometry("PCB_BARE_BOARD_REFERENCE", "unselected PCB fit reference", pcb, "REFERENCE_ONLY", "DRY_ALWAYS", "REFLOWED_FIT_ZONE_NOT_ROUTED_OR_SELECTED_PCB"),
         PackageGeometry("PCB_POWER_PROTECTION_CHARGING_ZONE", "fuse/protection/charging board-zone reservation", power_zone, "REFERENCE_ONLY", "DRY_ALWAYS", "PR64_ZONE_CONCEPT_COMPONENTS_CREEPAGE_CLEARANCE_UNRESOLVED"),
         PackageGeometry("CHARGING_INTERFACE_RESERVATION", "left-lower wall-crossing charging and seal-interface reservation", charge, "SEAL_INTERFACE_RESERVATION", "SEALED_NONUSER", "CONNECTOR_RETENTION_SEAL_IP_CERTIFICATION_UNSELECTED"),
+        PackageGeometry("REAR_CLOSURE_SEAL_INTERFACE_RESERVATION", "non-material rear closure/seal interface owned by Cell 12, visible cover owned by Cell 2", closure_interface, "SEAL_INTERFACE_RESERVATION", "DRY_ALWAYS", "CELL2_VISIBLE_CLOSURE_COUNTERPART_ATTACHMENT_AND_SEAL_STACK_UNRESOLVED"),
     )
     service = (
-        PackageGeometry("BATTERY_REARWARD_SERVICE_SWEEP", "continuous -Z swept fault-envelope clearance after door removal", _z_sweep(fault_size, BATTERY_CENTER_MM, BATTERY_SERVICE_END_Z_MM), "SERVICE_SWEEP_REFERENCE", "DRY_ALWAYS", "MASK_REMOVED_UNPOWERED_DIGITAL_MOTION_PHYSICAL_SERVICE_OPEN"),
-        PackageGeometry("REAR_SERVICE_DOOR_WITHDRAWAL_SWEEP", "continuous -Z door withdrawal clearance", _z_sweep(DOOR_MM, DOOR_CENTER_MM, DOOR_SERVICE_END_Z_MM), "SERVICE_SWEEP_REFERENCE", "DRY_ALWAYS", "MASK_REMOVED_UNPOWERED_DIGITAL_MOTION_LATCH_SEQUENCE_OPEN"),
+        PackageGeometry(
+            "BATTERY_REARWARD_SERVICE_SWEEP",
+            "continuous -Z swept fault-envelope clearance after Cell 2 exterior cover removal",
+            _z_sweep(fault_size, BATTERY_CENTER_MM, BATTERY_SERVICE_END_Z_MM),
+            "SERVICE_SWEEP_REFERENCE",
+            "DRY_ALWAYS",
+            "DEVICE_REMOVED_UNPOWERED_EXTERIOR_COVER_REMOVED_DIGITAL_MOTION_PHYSICAL_SERVICE_OPEN",
+        ),
     )
     return physical, reference, service
 
@@ -409,8 +481,8 @@ def build_dry_side_package(authority: Authority | None = None, model: MasckOneMo
     if any(item.hygiene_class not in allowed_hygiene for item in (*physical, *reference, *service)):
         raise DrySidePackageError("dry-side hygiene class outside frozen authority vocabulary")
 
-    structure, door = (item.solid for item in physical)
-    battery, fault, pcb, power_zone, _charge = (item.solid for item in reference)
+    structure = physical[0].solid
+    battery, fault, pcb, power_zone, _charge, _closure_interface = (item.solid for item in reference)
     if _intersection(battery, fault) <= 0.0:
         raise DrySidePackageError("battery must be contained by its fault reservation")
     if _intersection(structure, battery) or _intersection(structure, fault):
@@ -423,7 +495,6 @@ def build_dry_side_package(authority: Authority | None = None, model: MasckOneMo
     checks = [
         _clear("CLEAR-BATTERY-SWEEP-STRUCTURE", service[0].geometry_id, service[0].solid, physical[0].geometry_id, structure),
         _clear("CLEAR-BATTERY-SWEEP-PCB", service[0].geometry_id, service[0].solid, reference[2].geometry_id, pcb),
-        _clear("CLEAR-DOOR-SWEEP-STRUCTURE", service[1].geometry_id, service[1].solid, physical[0].geometry_id, structure),
     ]
     obstacles = (
         (model.shell.name, model.shell.solid),
@@ -435,7 +506,15 @@ def build_dry_side_package(authority: Authority | None = None, model: MasckOneMo
     )
     for moving_or_material in (*physical, *service):
         for obstacle_id, obstacle in obstacles:
-            checks.append(_clear(f"CLEAR-{moving_or_material.geometry_id}-{obstacle_id}", moving_or_material.geometry_id, moving_or_material.solid, obstacle_id, obstacle))
+            checks.append(
+                _clear(
+                    f"CLEAR-{moving_or_material.geometry_id}-{obstacle_id}",
+                    moving_or_material.geometry_id,
+                    moving_or_material.solid,
+                    obstacle_id,
+                    obstacle,
+                )
+            )
 
     rib_ratio = SUPPORT_RIB_THICKNESS_MM / DRY_BAY_WALL_MM
     low, high = tuple(float(item) for item in authority.get("manufacturing", "rib_thickness_ratio_range"))
