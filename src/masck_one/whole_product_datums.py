@@ -60,6 +60,7 @@ EVIDENCE_STATUS = (
 
 SOURCE_GIT_BLOB_IDENTITIES: tuple[tuple[str, str], ...] = (
     ("config/masck_one_authority.yaml", "2608dda483b995539de422290371c219668a1527"),
+    ("schemas/masck_one_authority.schema.json", "58accbe48619058cb99ab51a0387cf01874c3717"),
     ("src/masck_one/authority.py", "6866e3a428dab8b32b5a1d9e58da78b8f5aa1aa2"),
     ("src/masck_one/spatial.py", "8c1106b523fef5111009cc56236a53e3bc5ee10e"),
     ("src/masck_one/structural_frame.py", "bda5ba87d232c0e6a22e200975a80414a10c9a83"),
