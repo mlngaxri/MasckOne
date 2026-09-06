@@ -27,7 +27,9 @@ LEGACY_GLOBAL_FRAME_ID = "MASCK_ONE_GLOBAL"
 SHELL_PRIMARY_FRAME_ID = "MASCK_ONE_LOCAL_SHELL_PRIMARY"
 STRUCTURAL_FRAME_REFERENCE_ID = "MASCK_ONE_LOCAL_STRUCTURAL_FRAME_REFERENCE"
 WATER_RESERVOIR_PACKAGE_FRAME_ID = "MASCK_ONE_LOCAL_WATER_RESERVOIR_PACKAGE"
+WATER_RESERVOIR_ROOT_FRAME_ID = "MASCK_ONE_LOCAL_WATER_RESERVOIR_ROOT"
 WASTE_CARTRIDGE_PACKAGE_FRAME_ID = "MASCK_ONE_LOCAL_WASTE_CARTRIDGE_PACKAGE"
+WASTE_CARTRIDGE_ROOT_FRAME_ID = "MASCK_ONE_LOCAL_WASTE_CARTRIDGE_ROOT"
 BATTERY_PACKAGE_FRAME_ID = "MASCK_ONE_LOCAL_BATTERY_REFERENCE_PACKAGE"
 RETENTION_ROOT_FRAME_ID = "MASCK_ONE_LOCAL_RETENTION_ROOT"
 DRY_SIDE_ROOT_FRAME_ID = "MASCK_ONE_LOCAL_DRY_SIDE_ROOT"
@@ -49,6 +51,9 @@ SOURCE_GIT_BLOB_IDENTITIES: tuple[tuple[str, str], ...] = (
     ("src/masck_one/structural_frame.py", "bda5ba87d232c0e6a22e200975a80414a10c9a83"),
     ("src/masck_one/actuator_frames.py", "4c2013f994bdc9e084fe227eb5e166f973500ebb"),
     ("src/masck_one/model.py", "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"),
+    ("src/masck_one/water_reservoir.py", "6c14a37d07855550f0bd502e8308ed46682bc19c"),
+    ("src/masck_one/cleanser_storage.py", "5e087ca8b05da8352ad4800b2ef8280ea8ddcf29"),
+    ("src/masck_one/waste_cartridge.py", "9dc0fe8a0ed92083c68406da3993e57e767e2483"),
 )
 _SOURCE_BLOB_BY_PATH = dict(SOURCE_GIT_BLOB_IDENTITIES)
 
@@ -72,7 +77,7 @@ GEOMETRY_ROLE_VALUES = (
     "PHYSICAL_MATERIAL_COORDINATE_REFERENCE",
     "STRUCTURAL_REFERENCE_WITH_UNRESOLVED_3D_DATUM_QUALIFICATION",
     "PACKAGE_REFERENCE_ONLY",
-    "NO_RELEASED_GEOMETRY",
+    "NO_RELEASED_PLACEMENT_GEOMETRY",
 )
 
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
@@ -208,7 +213,7 @@ class DatumNode:
                 raise DatumHierarchyError("package reference cannot be promoted to a manufacturing datum")
             if self.geometry_role != "PACKAGE_REFERENCE_ONLY":
                 raise DatumHierarchyError("package reference cannot be physical material")
-        if self.geometry_role == "NO_RELEASED_GEOMETRY" and self.transform_status != "UNRESOLVED":
+        if self.geometry_role == "NO_RELEASED_PLACEMENT_GEOMETRY" and self.transform_status != "UNRESOLVED":
             raise DatumHierarchyError("datum without released geometry must remain unresolved")
         if self.geometry_role == "PHYSICAL_MATERIAL_COORDINATE_REFERENCE":
             if self.manufacturing_status != "DIGITAL_PRIMARY_REFERENCE_NOT_QUALIFIED_MANUFACTURING_DATUM":
@@ -388,18 +393,25 @@ def _released_node(
     )
 
 
-def _unresolved_node(datum_id: str, parent_id: str, *, source_locator: str, blocker: str) -> DatumNode:
+def _unresolved_node(
+    datum_id: str,
+    parent_id: str,
+    *,
+    source_locator: str,
+    blocker: str,
+    producer_path: str | None = None,
+) -> DatumNode:
     return DatumNode(
         datum_id=datum_id,
         parent_id=parent_id,
         datum_class="SUBSYSTEM_LOCAL",
-        producer_path=None,
-        producer_blob_sha=None,
+        producer_path=producer_path,
+        producer_blob_sha=None if producer_path is None else _SOURCE_BLOB_BY_PATH[producer_path],
         source_locator=source_locator,
         transform_status="UNRESOLVED",
         local_to_parent=None,
         manufacturing_status="UNRESOLVED_NOT_QUALIFIED_MANUFACTURING_DATUM",
-        geometry_role="NO_RELEASED_GEOMETRY",
+        geometry_role="NO_RELEASED_PLACEMENT_GEOMETRY",
         blocker=blocker,
     )
 
@@ -527,7 +539,7 @@ def build_whole_product_datum_hierarchy(
                 transform_status="UNRESOLVED",
                 local_to_parent=None,
                 manufacturing_status="UNRESOLVED_NOT_QUALIFIED_MANUFACTURING_DATUM",
-                geometry_role="NO_RELEASED_GEOMETRY",
+                geometry_role="NO_RELEASED_PLACEMENT_GEOMETRY",
                 blocker=(
                     "released actuator frame has no origin_xyz_mm, axis_azimuth_deg, structural_mount_datum_id "
                     "or production envelope; model.py actuator cylinders are package/development proxies only"
@@ -537,38 +549,74 @@ def build_whole_product_datum_hierarchy(
 
     unresolved_roots = (
         (
+            WATER_RESERVOIR_ROOT_FRAME_ID,
+            WORLD_FRAME_ID,
+            "released primary water-reservoir subsystem root",
+            (
+                "water_reservoir.py explicitly leaves pickup/port locations and structural mount geometry unresolved; "
+                "the model.py water box remains a separate package reference only"
+            ),
+            "src/masck_one/water_reservoir.py",
+        ),
+        (
+            WASTE_CARTRIDGE_ROOT_FRAME_ID,
+            WORLD_FRAME_ID,
+            "released waste-cartridge subsystem root",
+            (
+                "waste_cartridge.py leaves insertion axis, key/seal geometry and service trajectory unresolved; "
+                "the model.py cartridge box remains a separate package reference only"
+            ),
+            "src/masck_one/waste_cartridge.py",
+        ),
+        (
+            CLEANSER_ROOT_FRAME_ID,
+            WORLD_FRAME_ID,
+            "released cleanser-storage subsystem root",
+            (
+                "cleanser_storage.py explicitly leaves refill/outlet/purge port locations and controlled storage "
+                "geometry unresolved"
+            ),
+            "src/masck_one/cleanser_storage.py",
+        ),
+        (
             RETENTION_ROOT_FRAME_ID,
             WORLD_FRAME_ID,
             "retention subsystem root",
             "no retention/halo/quick-release producer is released on source main",
+            None,
         ),
         (
             DRY_SIDE_ROOT_FRAME_ID,
             WORLD_FRAME_ID,
             "dry-side electronics/battery/PCB root",
             "no integrated dry-bay/PCB/charging/harness producer is released on source main",
+            None,
         ),
         (
             HMI_ROOT_FRAME_ID,
             DRY_SIDE_ROOT_FRAME_ID,
             "physical HMI root",
             "no physical HMI control geometry is released on source main",
+            None,
         ),
         (
             THERMAL_ROOT_FRAME_ID,
             DRY_SIDE_ROOT_FRAME_ID,
             "thermal/WARM root",
             "no current thermal/WARM package geometry is released on source main",
-        ),
-        (
-            CLEANSER_ROOT_FRAME_ID,
-            WORLD_FRAME_ID,
-            "cleanser storage/pump root",
-            "released current-main cleanser work does not define a qualified local datum transform",
+            None,
         ),
     )
-    for datum_id, parent_id, locator, blocker in unresolved_roots:
-        nodes.append(_unresolved_node(datum_id, parent_id, source_locator=locator, blocker=blocker))
+    for datum_id, parent_id, locator, blocker, producer_path in unresolved_roots:
+        nodes.append(
+            _unresolved_node(
+                datum_id,
+                parent_id,
+                source_locator=locator,
+                blocker=blocker,
+                producer_path=producer_path,
+            )
+        )
 
     hierarchy = WholeProductDatumHierarchy(
         source_main_sha=SOURCE_MAIN_SHA,
