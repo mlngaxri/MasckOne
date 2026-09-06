@@ -613,11 +613,9 @@ def _salvage_decisions() -> tuple[DonorSalvageDecision, ...]:
     )
 
 
-def build_legacy_frame_donor_audit(*, model: MasckOneModel | None = None) -> LegacyFrameDonorAudit:
+def build_legacy_frame_donor_audit() -> LegacyFrameDonorAudit:
     _require_current_sources()
-    model = build_model() if model is None else model
-    if type(model) is not MasckOneModel:
-        raise LegacyFrameDonorAuditError("donor audit requires exact MasckOneModel type")
+    model = build_model()
     if str(model.authority.get("project", "authority_revision")) != AUTHORITY_REVISION:
         raise LegacyFrameDonorAuditError("current authority revision moved and donor audit requires rebind")
     current_frame_xy = tuple(float(value) for value in model.authority.pair("geometry", "functional_frame_xy_mm"))
@@ -637,16 +635,15 @@ def build_legacy_frame_donor_audit(*, model: MasckOneModel | None = None) -> Leg
 
     overlap_records: list[DonorOverlapRecord] = []
     for part in parts[1:]:
-        if "REACTION_SHOE" not in part.part_id and "FRAME_" in part.part_id:
-            volume = _intersection_volume(part.solid, frame.solid)
-            overlap_records.append(
-                DonorOverlapRecord(
-                    part.part_id,
-                    frame.part_id,
-                    volume,
-                    "LEGACY_POSITIVE_MATERIAL_OVERLAP_NOT_ATTACHMENT" if volume > 0.0 else "CLEAR_NO_ATTACHMENT_PROVEN",
-                )
+        volume = _intersection_volume(part.solid, frame.solid)
+        overlap_records.append(
+            DonorOverlapRecord(
+                part.part_id,
+                frame.part_id,
+                volume,
+                "LEGACY_POSITIVE_MATERIAL_OVERLAP_NOT_ATTACHMENT" if volume > 0.0 else "CLEAR_NO_ATTACHMENT_PROVEN",
             )
+        )
 
     shell_targets = (frame, *parts[1:4])
     for part in shell_targets:
@@ -716,15 +713,8 @@ def build_legacy_frame_donor_audit(*, model: MasckOneModel | None = None) -> Leg
     return result
 
 
-def export_legacy_frame_donor_review(
-    output_dir: str | Path,
-    *,
-    audit: LegacyFrameDonorAudit | None = None,
-) -> dict[str, object]:
-    audit = build_legacy_frame_donor_audit() if audit is None else audit
-    if type(audit) is not LegacyFrameDonorAudit:
-        raise LegacyFrameDonorAuditError("review export requires exact LegacyFrameDonorAudit type")
-    audit.__post_init__()
+def export_legacy_frame_donor_review(output_dir: str | Path) -> dict[str, object]:
+    audit = build_legacy_frame_donor_audit()
     output = Path(output_dir).resolve()
     output.mkdir(parents=True, exist_ok=True)
     step_name = "legacy_pr63_frame_donor_reference_only.step"
