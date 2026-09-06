@@ -5,6 +5,7 @@ import cadquery as cq
 import pytest
 
 from masck_one.authority import load_authority
+from masck_one.model import build_model
 from masck_one.realized_fresh_water_source import (
     AUTHORED_MAIN_SHA,
     AUTHORITY_BLOB_SHA,
@@ -14,6 +15,7 @@ from masck_one.realized_fresh_water_source import (
     DONOR_STATUS,
     FILL_BORE_DIAMETER_MM,
     FLUID_IDENTITY,
+    PACKAGE_CLEARANCE_RESERVATION_MM,
     PICKUP_CONNECTOR_RESERVATION_DIAMETER_MM,
     PICKUP_CONNECTOR_RESERVATION_LENGTH_MM,
     PICKUP_PASSAGE_DIAMETER_MM,
@@ -26,6 +28,26 @@ from masck_one.water_reservoir import PORT_FILL, PORT_PICKUP, PORT_VENT, WaterRe
 
 def _datum(source, datum_id):
     return next(item for item in source.datums if item.datum_id == datum_id)
+
+
+def _protected_prism(zone, z_min, z_max):
+    work = (
+        cq.Workplane("XY")
+        .workplane(offset=z_min)
+        .center(zone.center.x, zone.center.y)
+    )
+    if zone.shape == "CIRCLE":
+        work = work.circle(zone.envelope_width_mm / 2.0)
+    else:
+        work = work.ellipse(zone.envelope_width_mm / 2.0, zone.envelope_height_mm / 2.0)
+    solid = work.extrude(z_max - z_min)
+    if zone.angle_deg:
+        solid = solid.rotate(
+            (zone.center.x, zone.center.y, z_min),
+            (zone.center.x, zone.center.y, z_max),
+            zone.angle_deg,
+        )
+    return solid
 
 
 def test_current_main_source_geometry_preserves_fresh_water_identity_and_datums():
@@ -51,6 +73,25 @@ def test_geometric_volume_and_reference_material_partition_are_explicit():
     assert source.body_solid.val().intersect(source.lid_solid.val()).Volume() == pytest.approx(0.0, abs=1e-7)
     assert source.fill_bore_reference_solid.val().intersect(source.lid_solid.val()).Volume() == pytest.approx(0.0, abs=1e-7)
     assert source.pickup_passage_reference_solid.val().intersect(source.body_solid.val()).Volume() == pytest.approx(0.0, abs=1e-7)
+
+
+def test_current_main_rigid_packages_and_protected_hard_envelopes_are_clear():
+    model = build_model()
+    source = build_realized_fresh_water_source(model.authority)
+    sweep = source.service_sweep_reservation_solid.val()
+
+    assert sweep.distance(model.shell.solid.val()) >= PACKAGE_CLEARANCE_RESERVATION_MM
+    for actuator in model.actuator_envelopes:
+        assert sweep.distance(actuator.solid.val()) >= PACKAGE_CLEARANCE_RESERVATION_MM
+    assert sweep.distance(model.waste_cartridge_envelope.solid.val()) >= PACKAGE_CLEARANCE_RESERVATION_MM
+    assert sweep.distance(model.battery_reference_envelope.solid.val()) >= PACKAGE_CLEARANCE_RESERVATION_MM
+
+    bb = sweep.BoundingBox()
+    z_min = float(bb.zmin) - 1.0
+    z_max = float(bb.zmax) + 1.0
+    for protected in model.protected_volumes.all:
+        prism = _protected_prism(protected.zone, z_min, z_max)
+        assert sweep.intersect(prism.val()).Volume() == pytest.approx(0.0, abs=1e-7)
 
 
 def test_port_reservations_retain_provisional_dimensions_without_supplier_claims():
