@@ -55,7 +55,7 @@ def test_exact_candidate_heads_and_blobs_are_pinned():
         (117, "34273de3bd86294080e51873c212e988b4a966f4"),
         (118, "37e03df4b6abbd222422c8bfd4e70b03a4e5ae07"),
         (127, "dfdd8468731ae7e58e0aa3f7910662fbbef1ba60"),
-        (92, "2a0a0a6dafdf51f5c866f3e714636bd752e3dcce"),
+        (92, "bec4c294f400c86f15acca863341f09b34d96b28"),
         (123, "25686766238b66ecf900009042d721c08e042592"),
         (71, "0b5a619c6cea344038b0e8b8cc10a50e3d193390"),
         (109, "fb586cc1ea1cde92526417593f9e5aa990d2ae4f"),
