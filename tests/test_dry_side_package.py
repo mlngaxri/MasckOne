@@ -106,7 +106,7 @@ def test_battery_service_sweep_is_continuous_negative_z_and_required_clear(packa
     battery_sweep = _by_id(package.service_geometry, "BATTERY_REARWARD_SERVICE_SWEEP")
     bb = battery_sweep.solid.val().BoundingBox()
     authority = load_authority()
-    battery_depth = authority.number("battery_reference", "envelope_mm", 2) if False else 6.3
+    battery_depth = float(authority.get("battery_reference", "envelope_mm")[2])
     fault_depth = battery_depth + 2.0 * dsp.BATTERY_FAULT_CLEARANCE_Z_MM
     assert bb.zmin == pytest.approx(dsp.BATTERY_SERVICE_END_Z_MM - fault_depth / 2.0)
     assert bb.zmax == pytest.approx(dsp.BATTERY_CENTER_MM[2] + fault_depth / 2.0)
