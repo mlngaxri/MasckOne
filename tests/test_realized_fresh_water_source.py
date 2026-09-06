@@ -1,4 +1,5 @@
 from dataclasses import replace
+import subprocess
 
 import cadquery as cq
 import pytest
@@ -84,6 +85,23 @@ def test_manifest_binds_current_main_and_labels_abandoned_heads_as_donors_only()
         "realized_water_blob": DONOR_REALIZED_WATER_BLOB,
     }
     assert first.manifest_sha256 == second.manifest_sha256
+
+
+def test_git_source_provenance_is_exact_and_current_head_descends_from_authored_main():
+    assert subprocess.run(
+        ["git", "merge-base", "--is-ancestor", AUTHORED_MAIN_SHA, "HEAD"],
+        check=False,
+    ).returncode == 0
+    authority_blob = subprocess.check_output(
+        ["git", "hash-object", "config/masck_one_authority.yaml"],
+        text=True,
+    ).strip()
+    water_blob = subprocess.check_output(
+        ["git", "hash-object", "src/masck_one/water_reservoir.py"],
+        text=True,
+    ).strip()
+    assert authority_blob == AUTHORITY_BLOB_SHA
+    assert water_blob == WATER_ARCHITECTURE_BLOB_SHA
 
 
 def test_stale_sources_identity_drift_and_evidence_promotion_fail_closed():
