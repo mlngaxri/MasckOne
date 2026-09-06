@@ -23,7 +23,7 @@ def test_landscape_records_complete_current_specialist_metadata_without_consumin
     manifest = build_candidate_landscape_manifest()
     assert manifest["schema"] == SCHEMA
     assert manifest["source_main_sha"] == SOURCE_MAIN_SHA
-    assert SOURCE_MAIN_SHA == "9df9f226a3982b06958222335528c372149aef1d"
+    assert SOURCE_MAIN_SHA == "b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc"
     assert manifest["evidence_status"] == EVIDENCE_STATUS
     assert manifest["candidate_geometry_consumed"] is False
     specialists = {
