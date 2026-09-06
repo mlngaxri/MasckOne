@@ -21,7 +21,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          # Exact base-lineage verification must not be defeated by a shallow boundary.
+          # Full history lets the provenance gate distinguish a reconstructed/rebased
+          # source head from a merely compatible synthetic merge result.
+          fetch-depth: 0
 
       - name: Bind tested source provenance
         id: source-provenance
@@ -58,13 +61,16 @@ jobs:
               echo "::error::Tested merge head parent $tested_head_parent_sha does not match event head $source_head_sha"
               exit 1
             fi
-            git fetch --no-tags --depth=1 origin "$source_head_sha"
+            if ! git merge-base --is-ancestor "$source_base_sha" "$source_head_sha"; then
+              echo "::error::Event base $source_base_sha is not an ancestor of source head $source_head_sha. Rebase/reconstruct on current main before treating CI as exact-source evidence."
+              exit 1
+            fi
             source_head_tree_sha="$(git rev-parse "${source_head_sha}^{tree}")"
             if [[ "$source_head_tree_sha" != "$checked_out_tree_sha" ]]; then
               echo "::error::PR head tree $source_head_tree_sha differs from tested merge tree $checked_out_tree_sha. Rebase/reconstruct on current main before treating CI as exact-source evidence."
               exit 1
             fi
-            source_kind="PULL_REQUEST_HEAD_TREE_EQ_TESTED_MERGE_TREE"
+            source_kind="PULL_REQUEST_BASE_ANCESTOR_HEAD_TREE_EQ_TESTED_MERGE_TREE"
             cat > /tmp/masck-one-ci-source-provenance.json <<EOF
           {
             "schema": "MASCK_ONE_CI_SOURCE_PROVENANCE_V1",
@@ -77,6 +83,7 @@ jobs:
             "tested_tree_sha": "$checked_out_tree_sha",
             "tested_base_parent_sha": "$tested_base_parent_sha",
             "tested_head_parent_sha": "$tested_head_parent_sha",
+            "source_base_is_ancestor_of_source_head": true,
             "source_head_tree_equals_tested_tree": true
           }
           EOF
@@ -96,6 +103,7 @@ jobs:
             "tested_tree_sha": "$checked_out_tree_sha",
             "tested_base_parent_sha": null,
             "tested_head_parent_sha": null,
+            "source_base_is_ancestor_of_source_head": null,
             "source_head_tree_equals_tested_tree": true
           }
           EOF
