@@ -17,7 +17,7 @@ from typing import Iterable
 
 SCHEMA = "MASCK_ONE_CELL20_MERGE_DEPENDENCY_PLAN_V1"
 SOURCE_MAIN_SHA = "afe29ff78419b6625dca5594974b6351f6f80e1b"
-OBSERVED_AT_UTC = "2026-09-06T04:33:00Z"
+OBSERVED_AT_UTC = "2026-09-06T04:38:00Z"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 ROOT_PR = 121
 ROOT_HEAD_SHA = "762e682e0d0d3ec9ff77edf2fc4dba2ee706bd01"
@@ -25,6 +25,7 @@ ROOT_RUN_ID = 34010264572
 ROOT_ARTIFACT_ID = 9982589534
 ROOT_ARTIFACT_SHA256 = "1dac6d1933e0b09b746e5fa1917792eb1acbb65625bab00551932eac5e13cf94"
 ROOT_TESTED_TREE_SHA = "862eb97560228e619d82202fc4728715ee5fa13a"
+ROOT_PR_IS_DRAFT = True
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 CI_SUCCESS = "SUCCESS"
@@ -32,7 +33,7 @@ CI_IN_PROGRESS = "IN_PROGRESS"
 CI_FAILURE = "FAILURE"
 CI_CANCELLED = "CANCELLED"
 
-ACTION_ROOT_FIRST = "MERGE_WITH_EXPECTED_HEAD_AFTER_LIVE_MAIN_RECHECK"
+ACTION_ROOT_FIRST = "OWNER_MARK_READY_THEN_EXPECTED_HEAD_MERGE_AFTER_LIVE_MAIN_RECHECK"
 ACTION_REBASE_RETEST = "REBASE_RECONSTRUCT_RETEST_AFTER_DEPENDENCIES"
 ACTION_REPAIR_REBASE_RETEST = "REPAIR_THEN_REBASE_RECONSTRUCT_RETEST"
 ACTION_HOLD_REDESIGN = "HOLD_FOR_OWNING_GEOMETRY_REDESIGN"
@@ -53,7 +54,8 @@ class MergeCandidate:
     action: str
     depends_on: tuple[int, ...] = ()
     blockers: tuple[str, ...] = ()
-    release_eligible_now: bool = False
+    release_evidence_complete: bool = False
+    merge_permitted_now: bool = False
 
     @property
     def exact_head_green(self) -> bool:
@@ -66,13 +68,17 @@ class MergeCandidate:
             raise MergePlanError(f"PR #{self.pr_number} has invalid phase/dependency data")
         if len(set(self.depends_on)) != len(self.depends_on):
             raise MergePlanError(f"PR #{self.pr_number} has duplicate dependencies")
-        if self.release_eligible_now and not (
+        if self.release_evidence_complete and not (
             self.pr_number == ROOT_PR
             and self.head_sha == ROOT_HEAD_SHA
             and self.phase == 0
             and self.ci_state == CI_SUCCESS
         ):
-            raise MergePlanError("only the verified exact-head release-control root may be release-eligible now")
+            raise MergePlanError("only the verified exact-head release-control root may carry complete release evidence")
+        if self.merge_permitted_now and not self.release_evidence_complete:
+            raise MergePlanError("merge permission requires complete exact-head release evidence")
+        if self.merge_permitted_now and ROOT_PR_IS_DRAFT:
+            raise MergePlanError("a draft release root cannot be merge-permitted")
 
 
 @dataclass(frozen=True)
@@ -94,7 +100,10 @@ class CollapseGroup:
 CANDIDATES: tuple[MergeCandidate, ...] = (
     MergeCandidate(
         121, ROOT_HEAD_SHA, 0, "exact source-tree CI provenance repair", CI_SUCCESS,
-        ACTION_ROOT_FIRST, release_eligible_now=True,
+        ACTION_ROOT_FIRST,
+        blockers=("PR is still draft; Cell 20 will not change another cell's PR state",),
+        release_evidence_complete=True,
+        merge_permitted_now=False,
     ),
     MergeCandidate(
         120, "90d20231710a24bbf02ba0c9ae52ef8b37f0ce73", 1,
@@ -260,11 +269,12 @@ def validate_plan(candidates: Iterable[MergeCandidate] = CANDIDATES) -> tuple[Me
             raise MergePlanError(f"duplicate PR #{row.pr_number}")
         by_pr[row.pr_number] = row
     root = by_pr.get(ROOT_PR)
-    if root is None or root.phase != 0 or root.action != ACTION_ROOT_FIRST or not root.release_eligible_now:
-        raise MergePlanError("verified #121 must remain the sole phase-0 release action")
-    eligible = tuple(row.pr_number for row in rows if row.release_eligible_now)
-    if eligible != (ROOT_PR,):
-        raise MergePlanError("exactly PR #121 must be release-eligible now")
+    if root is None or root.phase != 0 or root.action != ACTION_ROOT_FIRST or not root.release_evidence_complete:
+        raise MergePlanError("verified #121 must remain the sole phase-0 release root")
+    if any(row.release_evidence_complete for row in rows if row.pr_number != ROOT_PR):
+        raise MergePlanError("no downstream candidate may inherit root release evidence")
+    if any(row.merge_permitted_now for row in rows):
+        raise MergePlanError("no merge is permitted while the verified root remains draft")
     for row in rows:
         for dependency in row.depends_on:
             if dependency not in by_pr:
@@ -288,8 +298,13 @@ def merge_dependency_manifest() -> dict[str, object]:
         "source_main_sha": SOURCE_MAIN_SHA,
         "observed_at_utc": OBSERVED_AT_UTC,
         "world_frame_id": WORLD_FRAME_ID,
-        "next_release_pr": ROOT_PR,
+        "next_release_root_pr": ROOT_PR,
         "next_release_expected_head_sha": ROOT_HEAD_SHA,
+        "next_release_root_evidence_complete": True,
+        "next_release_pr_is_draft": ROOT_PR_IS_DRAFT,
+        "merge_permitted_now_prs": [],
+        "required_owner_transition": "MARK_PR_121_READY_FOR_REVIEW_WITHOUT_MOVING_ITS_HEAD",
+        "required_post_transition_check": "RECHECK_LIVE_MAIN_AND_EXACT_HEAD_BEFORE_EXPECTED_HEAD_MERGE",
         "downstream_merge_hold": True,
         "verified_root_evidence": {
             "workflow_run_id": ROOT_RUN_ID,
@@ -300,7 +315,6 @@ def merge_dependency_manifest() -> dict[str, object]:
             "source_head_tree_equals_tested_tree": True,
         },
         "candidate_sequence": [asdict(row) | {"exact_head_green": row.exact_head_green} for row in rows],
-        "release_eligible_now_prs": [row.pr_number for row in rows if row.release_eligible_now],
         "exact_head_green_prs": [row.pr_number for row in rows if row.exact_head_green],
         "collapse_groups": [asdict(group) for group in COLLAPSE_GROUPS],
         "preserve_separately": list(PRESERVE_SEPARATELY),
@@ -329,8 +343,9 @@ def main(argv: list[str] | None = None) -> int:
     print(json.dumps({
         "output": str(output),
         "source_main_sha": payload["source_main_sha"],
-        "next_release_pr": payload["next_release_pr"],
-        "release_eligible_now_prs": payload["release_eligible_now_prs"],
+        "next_release_root_pr": payload["next_release_root_pr"],
+        "next_release_pr_is_draft": payload["next_release_pr_is_draft"],
+        "merge_permitted_now_prs": payload["merge_permitted_now_prs"],
         "manifest_sha256": payload["manifest_sha256"],
     }, sort_keys=True))
     return 0
