@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'website/use-journey-v18-truth.json'
+      - '.site-build/run18-qa.flag'
   workflow_dispatch:
 
 permissions:
@@ -27,7 +28,7 @@ jobs:
           node .site-build/qa_use_journey_v18.mjs
           python3 - <<'PY'
           from pathlib import Path
-          from PIL import Image, ImageOps, ImageDraw
+          from PIL import Image, ImageDraw
           root=Path('/tmp/masck-p18-qa')
           stages=['prepare','wear','choose','clean','remove','service','recharge']
           def sheet(kind, width, height, out):
