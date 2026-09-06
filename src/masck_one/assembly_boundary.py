@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from hashlib import sha1, sha256
 from functools import lru_cache
-from io import BytesIO
+from hashlib import sha1, sha256
 import json
+import math
 from pathlib import Path
 import re
 
@@ -13,7 +13,8 @@ import cadquery as cq
 from .model import Component, MasckOneModel, build_model
 
 
-SCHEMA = "MASCK_ONE_CURRENT_MAIN_ASSEMBLY_BOUNDARY_V1"
+SCHEMA = "MASCK_ONE_CURRENT_MAIN_ASSEMBLY_BOUNDARY_V2"
+GEOMETRY_FINGERPRINT_SCHEMA = "MASCK_ONE_OCC_GEOMETRY_FINGERPRINT_V1"
 SOURCE_MAIN_SHA = "afe29ff78419b6625dca5594974b6351f6f80e1b"
 SOURCE_MODEL_GIT_BLOB_SHA = "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"
 SOURCE_AUTHORITY_GIT_BLOB_SHA = "2608dda483b995539de422290371c219668a1527"
@@ -22,7 +23,10 @@ WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 
 # Direct released geometry producers used by build_model(). These source bindings are
 # deliberately narrower than the whole repository but broader than model.py alone.
-# Per-component B-rep digests below independently guard the realized output geometry.
+# Realized component geometry is independently guarded by a canonical, traversal-order-
+# independent geometry fingerprint. Raw OpenCascade B-rep serialization bytes are not
+# used as cross-reconstruction identity because equivalent regenerated package solids can
+# serialize differently.
 SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES: tuple[tuple[str, str], ...] = (
     ("config/masck_one_authority.yaml", SOURCE_AUTHORITY_GIT_BLOB_SHA),
     ("src/masck_one/anatomy.py", "872d1e5be1b9ce9baa5b63cb53462eb7b36f40ab"),
@@ -87,6 +91,7 @@ PROTECTED_KEEPOUT_NAMES = (
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _REPO_ROOT = Path(__file__).resolve().parents[2]
+_GEOMETRY_DECIMALS = 8
 EVIDENCE_STATUS = (
     "DIGITAL_ASSEMBLY_MATERIAL_REFERENCE_SEPARATION_ONLY_NOT_FIT_CLEARANCE_SERVICE_LOAD_"
     "RETENTION_HYDRAULIC_ELECTRICAL_THERMAL_HYGIENE_OR_PHYSICAL_VALIDATION"
@@ -102,23 +107,105 @@ def _git_blob_sha(path: Path) -> str:
     return sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
-def _brep_sha256(solid: cq.Workplane) -> str:
+def _quantized(value: float) -> float:
+    number = float(value)
+    if not math.isfinite(number):
+        raise AssemblyBoundaryError("assembly geometry fingerprint encountered a nonfinite value")
+    result = round(number, _GEOMETRY_DECIMALS)
+    return 0.0 if result == 0.0 else result
+
+
+def _point_payload(point: object) -> list[float]:
+    try:
+        return [_quantized(point.x), _quantized(point.y), _quantized(point.z)]
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise AssemblyBoundaryError("assembly geometry fingerprint requires finite 3D point coordinates") from exc
+
+
+def _bbox_payload(shape: object) -> list[float]:
+    try:
+        box = shape.BoundingBox()
+        values = (box.xmin, box.ymin, box.zmin, box.xmax, box.ymax, box.zmax)
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise AssemblyBoundaryError("assembly geometry fingerprint requires a valid bounding box") from exc
+    return [_quantized(value) for value in values]
+
+
+def _canonical_record_key(record: dict[str, object]) -> str:
+    return json.dumps(record, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+def _geometry_fingerprint_payload(solid: cq.Workplane) -> dict[str, object]:
     if type(solid) is not cq.Workplane:
-        raise AssemblyBoundaryError("assembly B-rep digest requires exact CadQuery Workplane geometry")
+        raise AssemblyBoundaryError("assembly geometry fingerprint requires exact CadQuery Workplane geometry")
     shape = solid.val()
-    if not shape.isValid() or not shape.Solids():
-        raise AssemblyBoundaryError("assembly B-rep digest requires valid solid geometry")
-    buffer = BytesIO()
-    shape.exportBrep(buffer)
-    payload = buffer.getvalue()
-    if not payload:
-        raise AssemblyBoundaryError("assembly B-rep export produced no bytes")
-    return sha256(payload).hexdigest()
+    solids = shape.Solids()
+    if not shape.isValid() or not solids:
+        raise AssemblyBoundaryError("assembly geometry fingerprint requires valid solid geometry")
+
+    solid_records: list[dict[str, object]] = []
+    for body in solids:
+        face_records: list[dict[str, object]] = []
+        for face in body.Faces():
+            face_records.append(
+                {
+                    "geom_type": str(face.geomType()),
+                    "area_mm2": _quantized(face.Area()),
+                    "center_mm": _point_payload(face.Center()),
+                    "bbox_mm": _bbox_payload(face),
+                    "edge_count": len(face.Edges()),
+                    "vertex_count": len(face.Vertices()),
+                }
+            )
+        face_records.sort(key=_canonical_record_key)
+
+        edge_records: list[dict[str, object]] = []
+        for edge in body.Edges():
+            edge_records.append(
+                {
+                    "geom_type": str(edge.geomType()),
+                    "length_mm": _quantized(edge.Length()),
+                    "center_mm": _point_payload(edge.Center()),
+                    "bbox_mm": _bbox_payload(edge),
+                    "vertex_count": len(edge.Vertices()),
+                }
+            )
+        edge_records.sort(key=_canonical_record_key)
+
+        vertex_records = sorted(
+            (_point_payload(vertex.Center()) for vertex in body.Vertices()),
+            key=lambda point: tuple(point),
+        )
+        solid_records.append(
+            {
+                "volume_mm3": _quantized(body.Volume()),
+                "center_mm": _point_payload(body.Center()),
+                "bbox_mm": _bbox_payload(body),
+                "shell_count": len(body.Shells()),
+                "face_count": len(body.Faces()),
+                "edge_count": len(body.Edges()),
+                "vertex_count": len(body.Vertices()),
+                "faces": face_records,
+                "edges": edge_records,
+                "vertices_mm": vertex_records,
+            }
+        )
+    solid_records.sort(key=_canonical_record_key)
+    return {
+        "schema": GEOMETRY_FINGERPRINT_SCHEMA,
+        "quantization_decimals": _GEOMETRY_DECIMALS,
+        "solid_count": len(solid_records),
+        "solids": solid_records,
+    }
+
+
+def _geometry_sha256(solid: cq.Workplane) -> str:
+    payload = _geometry_fingerprint_payload(solid)
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    return sha256(raw).hexdigest()
 
 
 def _expected_source_sha(relative_path: str, configured_sha: str) -> str:
-    # Retain the original named model/authority constants as public fail-closed
-    # bindings while also publishing the complete direct producer set.
     if relative_path == "src/masck_one/model.py":
         return SOURCE_MODEL_GIT_BLOB_SHA
     if relative_path == "config/masck_one_authority.yaml":
@@ -169,14 +256,14 @@ def _component_map(model: MasckOneModel) -> dict[str, Component]:
     return components
 
 
-def _canonical_brep_digests(model: MasckOneModel) -> dict[str, str]:
-    return {name: _brep_sha256(component.solid) for name, component in _component_map(model).items()}
+def _canonical_geometry_digests(model: MasckOneModel) -> dict[str, str]:
+    return {name: _geometry_sha256(component.solid) for name, component in _component_map(model).items()}
 
 
 @lru_cache(maxsize=1)
-def _released_canonical_brep_digests() -> tuple[tuple[str, str], ...]:
+def _released_canonical_geometry_digests() -> tuple[tuple[str, str], ...]:
     canonical = build_model()
-    return tuple(sorted(_canonical_brep_digests(canonical).items()))
+    return tuple(sorted(_canonical_geometry_digests(canonical).items()))
 
 
 @dataclass(frozen=True, slots=True)
@@ -188,7 +275,7 @@ class AssemblyInstance:
     include_in_physical_material: bool
     source_module: str
     source_git_blob_sha: str
-    source_component_brep_sha256: str
+    source_component_geometry_sha256: str
     coordinate_frame_id: str
     transform_semantics: str
     evidence_status: str
@@ -218,13 +305,16 @@ class AssemblyInstance:
             raise AssemblyBoundaryError("assembly source-component status moved")
         if self.source_module != "src/masck_one/model.py":
             raise AssemblyBoundaryError("current assembly instances must consume released model.py geometry")
-        if self.source_git_blob_sha != SOURCE_MODEL_GIT_BLOB_SHA or _GIT_SHA_RE.fullmatch(self.source_git_blob_sha) is None:
+        if (
+            self.source_git_blob_sha != SOURCE_MODEL_GIT_BLOB_SHA
+            or _GIT_SHA_RE.fullmatch(self.source_git_blob_sha) is None
+        ):
             raise AssemblyBoundaryError("assembly model source binding is stale")
-        if _SHA256_RE.fullmatch(self.source_component_brep_sha256) is None:
-            raise AssemblyBoundaryError("assembly source-component B-rep digest is malformed")
-        if _brep_sha256(self.source_component.solid) != self.source_component_brep_sha256:
+        if _SHA256_RE.fullmatch(self.source_component_geometry_sha256) is None:
+            raise AssemblyBoundaryError("assembly source-component geometry digest is malformed")
+        if _geometry_sha256(self.source_component.solid) != self.source_component_geometry_sha256:
             raise AssemblyBoundaryError(
-                f"assembly source-component B-rep moved for {self.source_component_name}"
+                f"assembly source-component geometry moved for {self.source_component_name}"
             )
         if self.coordinate_frame_id != WORLD_FRAME_ID:
             raise AssemblyBoundaryError("assembly instance is not in the canonical authority world frame")
@@ -253,7 +343,8 @@ class AssemblyInstance:
             "include_in_physical_material": self.include_in_physical_material,
             "source_module": self.source_module,
             "source_git_blob_sha": self.source_git_blob_sha,
-            "source_component_brep_sha256": self.source_component_brep_sha256,
+            "source_component_geometry_sha256": self.source_component_geometry_sha256,
+            "geometry_fingerprint_schema": GEOMETRY_FINGERPRINT_SCHEMA,
             "coordinate_frame_id": self.coordinate_frame_id,
             "transform_semantics": self.transform_semantics,
             "evidence_status": self.evidence_status,
@@ -346,6 +437,7 @@ class CurrentMainAssemblyBoundary:
             "source_geometry_git_blob_identities": [list(item) for item in self.source_geometry_git_blob_identities],
             "authority_revision": self.authority_revision,
             "coordinate_frame_id": self.coordinate_frame_id,
+            "geometry_fingerprint_schema": GEOMETRY_FINGERPRINT_SCHEMA,
             "instances": [item.manifest() for item in self.instances],
             "physical_material_names": [item.source_component_name for item in self.physical_material_instances],
             "reference_review_names": [item.source_component_name for item in self.reference_instances],
@@ -363,23 +455,24 @@ def build_current_main_assembly_boundary(model: MasckOneModel | None = None) -> 
     _require_source_files_current()
     if model is None:
         model = build_model()
-        canonical_digests = _canonical_brep_digests(model)
+        canonical_digests = _canonical_geometry_digests(model)
     else:
         if type(model) is not MasckOneModel:
             raise AssemblyBoundaryError("assembly boundary requires the exact MasckOneModel type")
-        canonical_digests = dict(_released_canonical_brep_digests())
+        canonical_digests = dict(_released_canonical_geometry_digests())
     if type(model) is not MasckOneModel:
         raise AssemblyBoundaryError("assembly boundary requires the exact MasckOneModel type")
+
     revision = str(model.authority.get("project", "authority_revision"))
     if revision != AUTHORITY_REVISION:
         raise AssemblyBoundaryError("model authority revision differs from the released binding")
 
     components = _component_map(model)
-    actual_digests = _canonical_brep_digests(model)
+    actual_digests = _canonical_geometry_digests(model)
     if actual_digests != canonical_digests:
         moved = sorted(name for name in EXPECTED_SOURCE_NAMES if actual_digests[name] != canonical_digests[name])
         raise AssemblyBoundaryError(
-            "supplied model B-rep differs from released canonical build for: " + ", ".join(moved)
+            "supplied model geometry differs from released canonical build for: " + ", ".join(moved)
         )
 
     instances = tuple(
@@ -393,7 +486,7 @@ def build_current_main_assembly_boundary(model: MasckOneModel | None = None) -> 
                     include_in_physical_material=_expected_role(name) == ROLE_PHYSICAL_MATERIAL,
                     source_module="src/masck_one/model.py",
                     source_git_blob_sha=SOURCE_MODEL_GIT_BLOB_SHA,
-                    source_component_brep_sha256=canonical_digests[name],
+                    source_component_geometry_sha256=canonical_digests[name],
                     coordinate_frame_id=WORLD_FRAME_ID,
                     transform_semantics="IDENTITY_SOURCE_ALREADY_IN_AUTHORITY_WORLD_MM",
                     evidence_status="SOURCE_GEOMETRY_CONSUMED_UNCHANGED_DIGITAL_ONLY",
