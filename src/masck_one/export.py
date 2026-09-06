@@ -11,6 +11,7 @@ from .boundary_release import (
     build_verified_interface_boundary_topology,
 )
 from .contact_simulation import build_contact_simulation_framework
+from .datum_ctq_inventory import build_datum_ctq_inventory, write_datum_ctq_inventory
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
@@ -75,6 +76,8 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+    datum_ctq_inventory = build_datum_ctq_inventory(authority=model.authority)
+    datum_ctq_manifest = write_datum_ctq_inventory(output, inventory=datum_ctq_inventory)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -99,11 +102,15 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
         },
+        "dimensional_engineering": {
+            "datum_ctq_inventory": datum_ctq_manifest,
+        },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
         "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "generated_review_artifacts": ["datum_ctq_inventory.json"],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
@@ -113,7 +120,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
             "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
             "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "serviceability. The Cell 17 datum/CTQ inventory classifies current coordinate references, duplicate or "
+            "implicit datum identities and digital tolerance closure only; it does not establish process capability, "
+            "inspection capability, fit, assembly performance or physical validation. Digital topology/manifests and "
+            "analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
