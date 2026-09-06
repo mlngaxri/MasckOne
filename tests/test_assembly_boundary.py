@@ -6,6 +6,7 @@ import pytest
 import masck_one.assembly_boundary as assembly_boundary_module
 from masck_one.assembly_boundary import (
     AssemblyBoundaryError,
+    GEOMETRY_FINGERPRINT_SCHEMA,
     ROLE_PACKAGE_REFERENCE,
     ROLE_PHYSICAL_MATERIAL,
     SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES,
@@ -100,7 +101,7 @@ def test_same_name_status_geometry_substitution_fails_closed(boundary):
         status=shell.source_component.status,
         notes=shell.source_component.notes,
     )
-    with pytest.raises(AssemblyBoundaryError, match="source-component B-rep moved"):
+    with pytest.raises(AssemblyBoundaryError, match="source-component geometry moved"):
         replace(shell, source_component=spoof)
 
 
@@ -110,29 +111,57 @@ def test_supplied_model_geometry_must_match_released_canonical_build(model):
         solid=cq.Workplane("XY").box(1.0, 1.0, 1.0),
     )
     spoof_model = replace(model, shell=spoof_shell)
-    with pytest.raises(AssemblyBoundaryError, match="supplied model B-rep differs"):
+    with pytest.raises(AssemblyBoundaryError, match="supplied model geometry differs"):
         build_current_main_assembly_boundary(model=spoof_model)
 
 
-def test_manifest_is_deterministic_and_preserves_source_graph_and_brep_identity(model, boundary):
+def test_geometry_identity_is_stable_across_equivalent_model_rebuilds(boundary):
+    rebuilt = build_current_main_assembly_boundary(model=build_model())
+    first = {
+        item.source_component_name: item.source_component_geometry_sha256
+        for item in boundary.instances
+    }
+    second = {
+        item.source_component_name: item.source_component_geometry_sha256
+        for item in rebuilt.instances
+    }
+    assert second == first
+
+
+def test_manifest_is_deterministic_and_preserves_source_graph_and_geometry_identity(model, boundary):
     second = build_current_main_assembly_boundary(model=model)
     manifest = boundary.manifest()
     assert second.manifest() == manifest
     assert len(manifest["manifest_sha256"]) == 64
     assert manifest["physical_validation_eligible"] is False
     assert manifest["physical_material_names"] == ["rigid_shell"]
+    assert manifest["geometry_fingerprint_schema"] == GEOMETRY_FINGERPRINT_SCHEMA
     assert manifest["source_geometry_git_blob_identities"] == [
         list(item) for item in SOURCE_GEOMETRY_GIT_BLOB_IDENTITIES
     ]
     assert len(manifest["source_geometry_git_blob_identities"]) == 11
-    assert all(len(item["source_component_brep_sha256"]) == 64 for item in manifest["instances"])
+    assert all(len(item["source_component_geometry_sha256"]) == 64 for item in manifest["instances"])
+    assert all(
+        item["geometry_fingerprint_schema"] == GEOMETRY_FINGERPRINT_SCHEMA
+        for item in manifest["instances"]
+    )
 
 
 def test_material_and_reference_compounds_are_separate(boundary):
     material = boundary.physical_material_compound()
     references = boundary.reference_review_compound()
-    assert len(material.Solids()) == 1
-    assert len(references.Solids()) == 13
+    expected_material_solids = sum(
+        len(item.source_component.solid.val().Solids())
+        for item in boundary.physical_material_instances
+    )
+    expected_reference_solids = sum(
+        len(item.source_component.solid.val().Solids())
+        for item in boundary.reference_instances
+    )
+    assert len(material.Solids()) == expected_material_solids == 1
+    assert len(references.Solids()) == expected_reference_solids
+    assert len(boundary.reference_instances) == 13
+    assert expected_reference_solids >= len(boundary.reference_instances)
 
 
 def test_release_export_uses_boundary_and_retains_reference_review_geometry(tmp_path):
@@ -142,7 +171,7 @@ def test_release_export_uses_boundary_and_retains_reference_review_geometry(tmp_
     assert "waste_cartridge_envelope" in manifest["reference_review_names"]
     assert "waste_cartridge_envelope" in report["development_assembly_exclusions"]
     assert len(manifest["source_geometry_git_blob_identities"]) == 11
-    assert all(len(item["source_component_brep_sha256"]) == 64 for item in manifest["instances"])
+    assert all(len(item["source_component_geometry_sha256"]) == 64 for item in manifest["instances"])
     assert "masck_one_reference_review_compound.step" in report["exported_step_files"]
     assert (tmp_path / "masck_one_development_assembly.step").is_file()
     assert (tmp_path / "masck_one_reference_review_compound.step").is_file()
