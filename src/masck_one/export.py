@@ -15,6 +15,7 @@ from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
+from .structural_frame_realization import build_structural_frame_realization
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
 
 
@@ -74,6 +75,20 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     attachment = build_interface_attachment_architecture(model.authority, boundary_topology)
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
+    structural_frame_realization = build_structural_frame_realization(
+        model=model,
+        structural_frame=structural_frame,
+    )
+    structural_frame_step_name = "structural_frame_reaction_loop_v1.step"
+    structural_frame_manifest_name = "structural_frame_realization_manifest.json"
+    cq.exporters.export(
+        structural_frame_realization.solid,
+        str(output / structural_frame_step_name),
+    )
+    structural_frame_realization_manifest = structural_frame_realization.manifest()
+    with (output / structural_frame_manifest_name).open("w", encoding="utf-8") as handle:
+        json.dump(structural_frame_realization_manifest, handle, indent=2, allow_nan=False)
+        handle.write("\n")
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
     report = {
         "project": "Masck One",
@@ -94,6 +109,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             ),
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
+            "structural_frame_realization": structural_frame_realization_manifest,
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
         },
         "dfm_gates": {
@@ -103,11 +119,19 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "standalone_physical_geometry_pending_join": [
+            structural_frame_realization.member_id,
+        ],
+        "exported_step_files": [f"{name}.step" for name in export_map]
+        + [structural_frame_step_name, "masck_one_development_assembly.step"],
+        "exported_manifest_files": [structural_frame_manifest_name],
         "note": (
-            "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
-            "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
-            "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
+            "BLOCKED checks are unresolved evidence gates, not software failures. The Iteration-15 structural topology "
+            "remains unchanged and material-unselected. A source-bound standalone structural reaction-loop B-rep is now "
+            "exported, but its shell join, actuator reaction interfaces, retention counterparts, tooling/service access, "
+            "material and physical structural performance remain unresolved; it is deliberately not inserted into the "
+            "development assembly until positive join semantics and the physical/reference assembly boundary are rebound. "
+            "The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
             "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
