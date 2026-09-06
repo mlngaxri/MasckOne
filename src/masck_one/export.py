@@ -5,6 +5,7 @@ from pathlib import Path
 
 import cadquery as cq
 
+from .actuator_carriers import build_actuator_carrier_package, export_actuator_carrier_package
 from .assertions import run_assertions
 from .boundary_release import (
     boundary_release_manifest,
@@ -75,6 +76,8 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+    actuator_carrier = build_actuator_carrier_package(model=model)
+    actuator_carrier_export = export_actuator_carrier_package(output, package=actuator_carrier)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -95,6 +98,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
+            "actuator_carrier": actuator_carrier.manifest(),
         },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
@@ -103,7 +107,17 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "external_review_geometry": {
+            "actuator_carrier": {
+                "step_files": actuator_carrier_export["step_files"],
+                "manifest_file": actuator_carrier_export["manifest_file"],
+                "world_review_is_product_material": actuator_carrier_export["world_review_is_product_material"],
+                "local_template_is_world_mount": actuator_carrier_export["local_template_is_world_mount"],
+            },
+        },
+        "exported_step_files": [f"{name}.step" for name in export_map]
+        + ["masck_one_development_assembly.step"]
+        + list(actuator_carrier_export["step_files"]),
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
@@ -113,7 +127,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
             "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
             "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "serviceability. The Cell 7 actuator carrier is real split local B-rep geometry with positive package capture, "
+            "end stops and retained closure pins, but it is not inserted into development-assembly material. Current "
+            "model package reference transforms already intersect authority 2.5D protected hard envelopes, and the "
+            "released structural frame has no 3D mount datum, so world carrier instances remain collision-review reference "
+            "geometry only. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
