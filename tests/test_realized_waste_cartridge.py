@@ -10,11 +10,14 @@ from masck_one.realized_waste_cartridge import (
     BODY_INLET_WALL_WORLD_MM,
     CAPACITY_STATUS,
     EVIDENCE_STATUS,
+    EXPECTED_INSTALLED_GEOMETRIC_FREE_CAPACITY_ML,
     HYGIENE_CLASSIFICATION,
     INLET_HANDOFF_GAP_MM,
     KEY_STATUS,
     PACKAGE_BOUNDS_WORLD_MM,
     PACKAGE_ENVELOPE_XYZ_MM,
+    PROTECTED_FACE_STATUS,
+    RETAINED_CAPACITY_REQUIREMENT_ML,
     ROUTE_HANDOFF_WORLD_MM,
     SERVICE_STATUS,
     VENT_STATUS,
@@ -79,12 +82,38 @@ def test_body_closure_and_cavity_are_valid_nonoverlapping_breps_inside_package(c
             assert bounds[axis][1] <= PACKAGE_BOUNDS_WORLD_MM[axis][1] + 1e-7
 
 
-def test_geometric_capacity_is_explicit_but_never_promoted_to_retained_or_usable(cartridge):
+def test_exact_authority_protected_face_envelopes_are_clear(cartridge):
     manifest = cartridge.manifest()
-    assert cartridge.installed_geometric_free_capacity_mL == pytest.approx(37.477888, abs=1e-6)
-    assert cartridge.geometric_margin_over_retained_requirement_mL == pytest.approx(2.477888, abs=1e-6)
-    assert manifest["retained_capacity_requirement_mL"] == 35.0
+    protected = manifest["protected_zone_intersections_mm3"]
+    assert manifest["protected_face_status"] == PROTECTED_FACE_STATUS
+    assert len(protected) == 5
+    assert set(protected) == {
+        "MASCK_ONE-PROTECTED-EYE-LEFT",
+        "MASCK_ONE-PROTECTED-EYE-RIGHT",
+        "MASCK_ONE-PROTECTED-MOUTH",
+        "MASCK_ONE-PROTECTED-NOSTRIL-LEFT",
+        "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT",
+    }
+    assert all(volume == pytest.approx(0.0, abs=1e-7) for volume in protected.values())
+    assert "2P5D" in manifest["protected_face_policy"]
+
+
+def test_geometric_capacity_deficit_is_explicit_and_never_promoted_to_retained_or_usable(cartridge):
+    manifest = cartridge.manifest()
+    assert cartridge.installed_geometric_free_capacity_mL == pytest.approx(
+        EXPECTED_INSTALLED_GEOMETRIC_FREE_CAPACITY_ML,
+        abs=1e-6,
+    )
+    assert cartridge.geometric_capacity_delta_to_retained_requirement_mL == pytest.approx(
+        EXPECTED_INSTALLED_GEOMETRIC_FREE_CAPACITY_ML - RETAINED_CAPACITY_REQUIREMENT_ML,
+        abs=1e-6,
+    )
+    assert cartridge.geometric_margin_over_retained_requirement_mL < 0.0
+    assert manifest["retained_capacity_requirement_mL"] == RETAINED_CAPACITY_REQUIREMENT_ML
+    assert manifest["geometric_capacity_requirement_met"] is False
+    assert manifest["digital_capacity_ready"] is False
     assert manifest["capacity_status"] == CAPACITY_STATUS
+    assert "BELOW_RETAINED_REQUIREMENT" in manifest["capacity_status"]
     assert "NOT_USABLE_OR_RETAINED" in manifest["capacity_status"]
     assert manifest["physical_validation_eligible"] is False
     assert manifest["development_assembly_material_eligible"] is False
@@ -98,6 +127,7 @@ def test_inlet_key_vent_hygiene_and_service_boundaries_remain_honest(cartridge):
     assert manifest["positive_retention_realized"] is False
     assert manifest["vent_status"] == VENT_STATUS
     assert manifest["service_status"] == SERVICE_STATUS
+    assert manifest["service_condition"] == "MASK_REMOVED_UNPOWERED"
     assert manifest["continuous_service_motion_realized"] is False
     assert manifest["evidence_status"] == EVIDENCE_STATUS
     assert manifest["inlet_bore_diameter_mm"] == 2.4
@@ -137,7 +167,7 @@ def test_manifest_is_deterministic_and_source_bound(cartridge):
     assert len(cartridge.source_backbone_manifest_sha256) == 64
 
 
-def test_stale_source_binding_and_nonfinite_collision_evidence_fail_closed(cartridge, monkeypatch):
+def test_stale_source_binding_nonfinite_collision_and_protected_conflict_fail_closed(cartridge, monkeypatch):
     monkeypatch.setattr(
         cartridge_module,
         "SOURCE_GIT_BLOB_IDENTITIES",
@@ -147,8 +177,15 @@ def test_stale_source_binding_and_nonfinite_collision_evidence_fail_closed(cartr
         build_realized_waste_cartridge()
     monkeypatch.undo()
 
+    bad_shell = replace(cartridge, current_released_shell_interference_mm3=float("nan"))
     with pytest.raises(RealizedWasteCartridgeError, match="shell interference must be finite"):
-        replace(cartridge, current_released_shell_interference_mm3=float("nan"))
+        bad_shell.validate()
+
+    zones = list(cartridge.protected_zone_intersections_mm3)
+    zones[2] = (zones[2][0], 0.01)
+    bad_protected = replace(cartridge, protected_zone_intersections_mm3=tuple(zones))
+    with pytest.raises(RealizedWasteCartridgeError, match="violates protected zone"):
+        bad_protected.validate()
 
 
 def test_step_round_trip_preserves_body_closure_and_cavity(tmp_path, cartridge):
@@ -175,6 +212,8 @@ def test_release_smoke_exports_candidate_and_reference_geometry_without_assembly
     assert manifest["manifest_sha256"] == cartridge.manifest_sha256
     assert manifest["development_assembly_material_eligible"] is False
     assert manifest["physical_validation_eligible"] is False
+    assert manifest["geometric_capacity_requirement_met"] is False
+    assert all(value == pytest.approx(0.0, abs=1e-7) for value in manifest["protected_zone_intersections_mm3"].values())
     assert "waste_cartridge_envelope" in report["development_assembly_exclusions"]
 
     expected = {
