@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-"""Cell 13 current-main electrical endpoint inventory and Manual-B donor delta.
+"""Cell 13 released electrical endpoint inventory and Manual-B donor delta.
 
-This module deliberately does not realize harness centerlines, connectors, strain relief,
-or wet/dry bulkhead material. Current released sources do not expose trustworthy
-electrical mating datums for those features. It instead machine-binds the endpoint
-identity/maturity needed to prevent the closed Manual-B 13-route candidate from being
-silently promoted as current product geometry.
+This module intentionally does not realize harness centerlines, connector hardware,
+strain relief, service loops, or wet/dry bulkhead material. Released main does not yet
+expose trustworthy electrical mating datums for those features. The inventory instead
+binds stable endpoint identity, current maturity, exact source provenance, and the
+closed Manual-B 13-route donor delta so stale route coordinates cannot become product
+truth by implication.
 """
 
 from dataclasses import dataclass
@@ -16,6 +17,7 @@ import math
 from pathlib import Path
 import re
 
+from .actuator_frames import ZONE_IDS as ACTUATOR_ZONE_IDS
 from .authority import Authority, load_authority
 from .fresh_pump_packaging import STATION_CLEANSER, STATION_WATER
 from .model import MasckOneModel, build_model
@@ -39,6 +41,7 @@ LEGACY_ROUTE_DISPOSITION = "DONOR_ONLY_REBIND_REQUIRED_NO_CURRENT_ELECTRICAL_DAT
 SOURCE_GIT_BLOB_IDENTITIES: tuple[tuple[str, str], ...] = (
     ("config/masck_one_authority.yaml", AUTHORITY_BLOB_SHA),
     ("src/masck_one/model.py", "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"),
+    ("src/masck_one/actuator_frames.py", "4c2013f994bdc9e084fe227eb5e166f973500ebb"),
     ("src/masck_one/structural_frame.py", "bda5ba87d232c0e6a22e200975a80414a10c9a83"),
     ("src/masck_one/fresh_pump_packaging.py", "40cb6fb4c3efbfcf25ed0b7d7a75a4269d90a1b4"),
     ("src/masck_one/waste_pump_architecture.py", "ace02ee529070465b11832f475771125636312cb"),
@@ -110,6 +113,12 @@ ENDPOINT_IDS = (
     EP_WARM_RIGHT,
     EP_COOL_OPTIONAL,
     EP_CHARGING,
+)
+ACTUATOR_ENDPOINT_IDS = (
+    EP_ACTUATOR_01,
+    EP_ACTUATOR_02,
+    EP_ACTUATOR_03,
+    EP_ACTUATOR_04,
 )
 
 ROUTE_BATTERY_PCB = "HARNESS-BATTERY-PCB"
@@ -270,6 +279,14 @@ class EndpointRecord:
         if self.endpoint_id == EP_COOL_OPTIONAL:
             if self.mvp_required or self.current_maturity != OPTIONAL_UNRESOLVED:
                 raise HarnessEndpointInventoryError("COOL must remain optional and unresolved in the current MVP inventory")
+        if self.endpoint_id in ACTUATOR_ENDPOINT_IDS:
+            expected_zone = ACTUATOR_ZONE_IDS[ACTUATOR_ENDPOINT_IDS.index(self.endpoint_id)]
+            if self.source_module != "src/masck_one/actuator_frames.py" or self.source_object_id != expected_zone:
+                raise HarnessEndpointInventoryError("actuator endpoint must bind released Cell 7 zone identity")
+            if self.current_maturity != TOPOLOGY_ONLY or self.package_anchor_xyz_mm is not None:
+                raise HarnessEndpointInventoryError(
+                    "released actuator-frame origins remain unresolved; model package-reference transforms are not endpoint anchors"
+                )
 
     def manifest(self) -> dict[str, object]:
         self.__post_init__()
@@ -510,39 +527,54 @@ def build_harness_endpoint_inventory(model: MasckOneModel | None = None) -> Harn
     _require_canonical_authority(model.authority)
 
     if len(model.actuator_envelopes) != 4:
-        raise HarnessEndpointInventoryError("current released model must retain exactly four actuator envelopes")
-    expected_actuator_names = tuple(f"actuator_envelope_{index}" for index in range(1, 5))
-    if tuple(item.name for item in model.actuator_envelopes) != expected_actuator_names:
-        raise HarnessEndpointInventoryError("current actuator envelope identity changed")
+        raise HarnessEndpointInventoryError("released model must retain exactly four actuator package references")
+    if tuple(item.name for item in model.actuator_envelopes) != tuple(f"actuator_envelope_{index}" for index in range(1, 5)):
+        raise HarnessEndpointInventoryError("released model actuator package-reference identity changed")
     if any(item.status != "ALPHA_PHYSICS_REFERENCE" for item in model.actuator_envelopes):
-        raise HarnessEndpointInventoryError("current actuator maturity changed; Cell 13 must rebind")
+        raise HarnessEndpointInventoryError("released model actuator package-reference maturity changed")
+    if tuple(ACTUATOR_ZONE_IDS) != (
+        "ACTUATOR_ZONE_SUPERIOR_LEFT",
+        "ACTUATOR_ZONE_SUPERIOR_RIGHT",
+        "ACTUATOR_ZONE_INFERIOR_LEFT",
+        "ACTUATOR_ZONE_INFERIOR_RIGHT",
+    ):
+        raise HarnessEndpointInventoryError("released actuator zone identity changed")
     if model.battery_reference_envelope.status != "PACKAGING_BENCHMARK_NOT_PRODUCTION_FREEZE":
         raise HarnessEndpointInventoryError("battery benchmark maturity changed; Cell 13 must rebind")
     battery_center = model.battery_reference_envelope.solid.val().Center()
     battery_anchor = (float(battery_center.x), float(battery_center.y), float(battery_center.z))
-    if any(not math.isclose(actual, expected, rel_tol=0.0, abs_tol=1e-9) for actual, expected in zip(battery_anchor, (0.0, 0.0, -15.0), strict=True)):
+    if any(
+        not math.isclose(actual, expected, rel_tol=0.0, abs_tol=1e-9)
+        for actual, expected in zip(battery_anchor, (0.0, 0.0, -15.0), strict=True)
+    ):
         raise HarnessEndpointInventoryError("released battery benchmark placement changed; Cell 13 must rebind")
 
-    actuator_anchors = (
-        (-48.0, 52.0, 2.0),
-        (48.0, 52.0, 2.0),
-        (-50.0, -38.0, 2.0),
-        (50.0, -38.0, 2.0),
+    actuator_records = tuple(
+        _endpoint(
+            endpoint_id,
+            f"actuator zone {index} electrical load",
+            OWNER_CELL_7,
+            "src/masck_one/actuator_frames.py",
+            zone_id,
+            TOPOLOGY_ONLY,
+            None,
+            "RELEASED_ACTUATOR_FRAME_ORIGIN_UNRESOLVED_MODEL_PACKAGE_REFERENCE_TRANSFORM_NOT_ENDPOINT_DATUM",
+            BOUNDARY_PACKAGE_CLASS_UNRESOLVED,
+        )
+        for index, (endpoint_id, zone_id) in enumerate(zip(ACTUATOR_ENDPOINT_IDS, ACTUATOR_ZONE_IDS, strict=True), start=1)
     )
+
     endpoints = (
         _endpoint(EP_BATTERY, "battery power source packaging benchmark", OWNER_CELL_12, "config/masck_one_authority.yaml", "battery_reference", CONTROLLED_ENVELOPE, battery_anchor, "RELEASED_PACKAGE_BENCHMARK_CENTER_NOT_CONNECTOR_DATUM", BOUNDARY_DRY_INTENT_UNRELEASED),
         _endpoint(EP_PCB, "control and power PCB", OWNER_CELL_12, "src/masck_one/structural_frame.py", RESERVATION_HMI_ELECTRONICS, UNRESOLVED, None, "NO_RELEASED_PCB_PACKAGE_PLACEMENT", BOUNDARY_DRY_INTENT_UNRELEASED),
-        _endpoint(EP_ACTUATOR_01, "actuator zone 1 electrical load", OWNER_CELL_7, "src/masck_one/model.py", "actuator_envelope_1", CONTROLLED_ENVELOPE, actuator_anchors[0], "RELEASED_SOURCE_PLACEMENT_ANCHOR_NOT_CONNECTOR_DATUM", BOUNDARY_PACKAGE_CLASS_UNRESOLVED),
-        _endpoint(EP_ACTUATOR_02, "actuator zone 2 electrical load", OWNER_CELL_7, "src/masck_one/model.py", "actuator_envelope_2", CONTROLLED_ENVELOPE, actuator_anchors[1], "RELEASED_SOURCE_PLACEMENT_ANCHOR_NOT_CONNECTOR_DATUM", BOUNDARY_PACKAGE_CLASS_UNRESOLVED),
-        _endpoint(EP_ACTUATOR_03, "actuator zone 3 electrical load", OWNER_CELL_7, "src/masck_one/model.py", "actuator_envelope_3", CONTROLLED_ENVELOPE, actuator_anchors[2], "RELEASED_SOURCE_PLACEMENT_ANCHOR_NOT_CONNECTOR_DATUM", BOUNDARY_PACKAGE_CLASS_UNRESOLVED),
-        _endpoint(EP_ACTUATOR_04, "actuator zone 4 electrical load", OWNER_CELL_7, "src/masck_one/model.py", "actuator_envelope_4", CONTROLLED_ENVELOPE, actuator_anchors[3], "RELEASED_SOURCE_PLACEMENT_ANCHOR_NOT_CONNECTOR_DATUM", BOUNDARY_PACKAGE_CLASS_UNRESOLVED),
+        *actuator_records,
         _endpoint(EP_PUMP_WATER, "fresh-water pump electrical load", OWNER_CELL_9, "src/masck_one/fresh_pump_packaging.py", STATION_WATER, TOPOLOGY_ONLY, None, "RELEASED_STATION_ID_ONLY_PACKAGE_PLACEMENT_UNRESOLVED", BOUNDARY_WET_DRY_CROSSING_UNRELEASED),
         _endpoint(EP_PUMP_CLEANSER, "cleanser pump electrical load", OWNER_CELL_10, "src/masck_one/fresh_pump_packaging.py", STATION_CLEANSER, TOPOLOGY_ONLY, None, "RELEASED_STATION_ID_ONLY_PACKAGE_PLACEMENT_UNRESOLVED", BOUNDARY_WET_DRY_CROSSING_UNRELEASED),
         _endpoint(EP_PUMP_WASTE, "mixed-waste pump electrical load", OWNER_CELL_11, "src/masck_one/waste_pump_architecture.py", STATION_WASTE, TOPOLOGY_ONLY, None, "RELEASED_STATION_ID_ONLY_PACKAGE_PLACEMENT_UNRESOLVED", BOUNDARY_WET_DRY_CROSSING_UNRELEASED),
         _endpoint(EP_HMI, "physical HMI aggregate electrical endpoint", OWNER_CELL_14, "src/masck_one/structural_frame.py", RESERVATION_HMI_ELECTRONICS, UNRESOLVED, None, "NO_RELEASED_HMI_PACKAGE_PLACEMENT", BOUNDARY_PACKAGE_CLASS_UNRESOLVED),
         _endpoint(EP_WARM_LEFT, "left WARM thermal electrical endpoint", OWNER_CELL_14, "src/masck_one/structural_frame.py", RESERVATION_THERMAL, UNRESOLVED, None, "NO_RELEASED_WARM_LEFT_PACKAGE_PLACEMENT", BOUNDARY_PACKAGE_CLASS_UNRESOLVED),
         _endpoint(EP_WARM_RIGHT, "right WARM thermal electrical endpoint", OWNER_CELL_14, "src/masck_one/structural_frame.py", RESERVATION_THERMAL, UNRESOLVED, None, "NO_RELEASED_WARM_RIGHT_PACKAGE_PLACEMENT", BOUNDARY_PACKAGE_CLASS_UNRESOLVED),
-        _endpoint(EP_COOL_OPTIONAL, "optional COOL experimental electrical endpoint", OWNER_CELL_14, "src/masck_one/structural_frame.py", RESERVATION_THERMAL, OPTIONAL_UNRESOLVED, None, "NO_CURRENT_BOUNDED_COOL_PACKAGE", BOUNDARY_PACKAGE_CLASS_UNRESOLVED, mvp_required=False),
+        _endpoint(EP_COOL_OPTIONAL, "optional COOL experimental electrical endpoint", OWNER_CELL_14, "src/masck_one/structural_frame.py", RESERVATION_THERMAL, OPTIONAL_UNRESOLVED, None, "NO_RELEASED_BOUNDED_COOL_WORLD_PACKAGE", BOUNDARY_PACKAGE_CLASS_UNRESOLVED, mvp_required=False),
         _endpoint(EP_CHARGING, "charging interface electrical endpoint", OWNER_CELL_12, "src/masck_one/structural_frame.py", RESERVATION_HMI_ELECTRONICS, UNRESOLVED, None, "NO_RELEASED_CHARGING_CONNECTOR_PLACEMENT", BOUNDARY_DRY_INTENT_UNRELEASED),
     )
 
