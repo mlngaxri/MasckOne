@@ -2,13 +2,13 @@ from __future__ import annotations
 
 """Cell 11 rebind of the released Cell 5 waste-cartridge DFM audit.
 
-PR #95 intentionally failed closed if any cartridge realization source appeared.  Cell 11
+PR #95 intentionally failed closed if any cartridge realization source appeared. Cell 11
 now supplies such a source, so this adapter preserves the exact released audit implementation
 in ``waste_cartridge_dfm_legacy.py`` and changes only the provenance boundary needed to
-inspect the candidate.  The released package proxy remains excluded from development
-assembly material and the candidate remains digitally unready while device-side retention,
-wet coupling/seal, continuous service motion, removed-state handling and DFM/tolerance
-closure are unresolved.
+inspect the candidate. The released package proxy remains excluded from development
+assembly material and the candidate remains digitally unready while geometric capacity,
+device-side retention, wet coupling/seal, continuous service motion, removed-state handling
+and DFM/tolerance closure are unresolved.
 """
 
 from dataclasses import replace
@@ -23,13 +23,14 @@ from .realized_waste_cartridge import (
     HYGIENE_CLASSIFICATION as CANDIDATE_HYGIENE_CLASSIFICATION,
     INLET_STATUS as CANDIDATE_INLET_STATUS,
     KEY_STATUS as CANDIDATE_KEY_STATUS,
+    PROTECTED_FACE_STATUS as CANDIDATE_PROTECTED_FACE_STATUS,
     SERVICE_STATUS as CANDIDATE_SERVICE_STATUS,
     build_realized_waste_cartridge,
 )
 
 
 SOURCE_MAIN_SHA = "afe29ff78419b6625dca5594974b6351f6f80e1b"
-REALIZED_WASTE_CARTRIDGE_BLOB_SHA = "6f41ec7d1f740d9fb2317e89bf4c21e727f7491f"
+REALIZED_WASTE_CARTRIDGE_BLOB_SHA = "1e28ea17bf5dd3492c95722780252f8ec74831a8"
 LEGACY_AUDIT_BLOB_SHA = "f9788cce30c14600c8a624509153596e46c1e478"
 
 SOURCE_GIT_BLOB_IDENTITIES = (
@@ -43,8 +44,8 @@ EXPECTED_ABSENT_REALIZATION_PATHS = tuple(
     if path != "src/masck_one/realized_waste_cartridge.py"
 )
 
-# The preserved implementation resolves these globals at validation/build time.  Rebinding
-# them here retains all original hostile checks while making the new source an explicit
+# The preserved implementation resolves these globals at validation/build time. Rebinding
+# them retains all original hostile checks while making the new source an explicit
 # provenance participant rather than an unexpected-file bypass.
 _legacy.SOURCE_MAIN_SHA = SOURCE_MAIN_SHA
 _legacy.SOURCE_GIT_BLOB_IDENTITIES = SOURCE_GIT_BLOB_IDENTITIES
@@ -61,12 +62,12 @@ def _candidate_aware_requirements(audit, candidate):
     )
     states = {
         REQ_BODY_CAVITY_WALLS: (
-            f"Cell 11 now realizes a source-bound body, separate closure and installed free-cavity B-rep inside the authority package. "
-            f"Wall seed remains provisional and the candidate is not development-assembly material.{shell_state}"
+            "Cell 11 now realizes a source-bound body, separate closure and installed free-cavity B-rep inside the authority package. "
+            f"{CANDIDATE_PROTECTED_FACE_STATUS}. Wall seeds remain provisional and the candidate is not development-assembly material.{shell_state}"
         ),
         REQ_GEOMETRIC_CAPACITY: (
-            f"Cell 11 geometric installed free cavity is {candidate.installed_geometric_free_capacity_mL:.6f} mL against the 35 mL retained-capacity requirement. "
-            f"{CANDIDATE_CAPACITY_STATUS}; usable/retained liquid behavior remains unverified."
+            f"Cell 11 protected-face-compliant geometric installed free cavity is {candidate.installed_geometric_free_capacity_mL:.6f} mL against the 35 mL retained-capacity requirement. "
+            f"{CANDIDATE_CAPACITY_STATUS}; the digital geometry is short of the requirement and usable/retained liquid behavior remains unverified."
         ),
         REQ_INLET_SEAL_CLOSURE: (
             f"The released route handoff, body inlet bore, separate closure and seal-land reference are realized. {CANDIDATE_INLET_STATUS}; "
@@ -76,7 +77,7 @@ def _candidate_aware_requirements(audit, candidate):
             f"A cartridge-side asymmetric key rib is realized. {CANDIDATE_KEY_STATUS}; the device-side counterpart, positive latch/stop and physical retention evidence remain absent."
         ),
         REQ_SERVICE_PATH: (
-            f"An inferior service reservation and translation direction are explicit. {CANDIDATE_SERVICE_STATUS}; no exact continuous insertion/removal sweep or wet-interface disconnect sequence is released."
+            f"A mask-removed inferior service reservation and translation direction are explicit. {CANDIDATE_SERVICE_STATUS}; no exact continuous insertion/removal sweep or wet-interface disconnect sequence is released."
         ),
         REQ_REMOVED_STATE: (
             f"Candidate cavity classification is {CANDIDATE_HYGIENE_CLASSIFICATION}, which is an allowed authority hygiene class. Removed-state inlet closure, vent/media containment and handling geometry remain unresolved; CAD does not establish hygiene or leak-tight disposal."
@@ -103,6 +104,11 @@ def _validate_candidate_against_audit(model: MasckOneModel):
         raise WasteCartridgeDfmError("Cell 11 cartridge candidate lost exact mixed-waste identity")
     if manifest["hygiene_classification"] != CANDIDATE_HYGIENE_CLASSIFICATION:
         raise WasteCartridgeDfmError("Cell 11 cartridge candidate hygiene classification drifted")
+    if manifest["geometric_capacity_requirement_met"] is not False:
+        raise WasteCartridgeDfmError("Cell 11 cartridge candidate cannot hide the current geometric capacity deficit")
+    protected = manifest["protected_zone_intersections_mm3"]
+    if type(protected) is not dict or len(protected) != 5 or any(float(value) > 1e-7 for value in protected.values()):
+        raise WasteCartridgeDfmError("Cell 11 cartridge candidate must clear all five protected-face hard envelopes")
     return candidate
 
 
