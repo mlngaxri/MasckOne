@@ -22,40 +22,60 @@ CELL2_REAR_SERVICE_REBIND_DISPOSITION = (
     "HEAD_MOVED_BY_EXTERIOR_EYE_ROLL_SOLID_NORMALIZATION_ONLY_REAR_SERVICE_MOTION_EVIDENCE_UNCHANGED"
 )
 
+CELL3_RETENTION_PR = 92
+CELL3_RETENTION_HEAD = "abb806a8e15a1557c8b5a4c754af1bfeea8b6d70"
+CELL3_RETENTION_PREVIOUS_HEAD = "e332426526ec4ceb885ad9d35250a89d78b6066c"
+CELL3_RETENTION_REBIND_DISPOSITION = (
+    "HEAD_MOVED_FOR_ATTACHMENT_SEMANTIC_CORRECTION_WITH_RETENTION_SERVICE_BREP_CONSTRUCTION_UNCHANGED"
+)
+
 CELL8_RETENTION_GUARD_PR = 109
-CELL8_RETENTION_GUARD_HEAD = "a27757eb4eda54a18b3d89db70f9534e492e588f"
-CELL8_RETENTION_GUARD_BLOB = "48cb505baf2e8da063ea15a14acee9059c0ea832"
+CELL8_RETENTION_GUARD_HEAD = "fb586cc1ea1cde92526417593f9e5aa990d2ae4f"
+CELL8_RETENTION_GUARD_PREVIOUS_HEAD = "a27757eb4eda54a18b3d89db70f9534e492e588f"
+CELL8_RETENTION_GUARD_BLOB = "b497e9154067cef9ee24da4d421ea6c7861c348e"
 CELL8_RETENTION_GUARD_INTERFACE_SHA256 = (
-    "eaacca36073a1d81a5e96fd4bcdf09d1859404c538a02a02e2347542a5796bce"
+    "ce2618f872e01733a2031085ccb402bc40b61ae1e9b427456c0da049bcd72061"
 )
 CELL8_BOUND_RETENTION_PR = 92
-CELL8_BOUND_RETENTION_HEAD = "e332426526ec4ceb885ad9d35250a89d78b6066c"
+CELL8_BOUND_RETENTION_HEAD = CELL3_RETENTION_HEAD
 CELL8_BOUND_RIGHT_RELEASE_PR = 71
 CELL8_BOUND_RIGHT_RELEASE_HEAD = "0b5a619c6cea344038b0e8b8cc10a50e3d193390"
 CELL8_CANDIDATE_STATUS = "CURRENT_HEAD_UNMERGED_CANDIDATE_NOT_RELEASE_AUTHORITY"
 CELL8_ATTACHMENT_STATUS = "POSITIVE_ATTACHMENT_COUNTERPART_NOT_REALIZED"
+CELL8_REBIND_DISPOSITION = (
+    "HEAD_MOVED_ONLY_TO_REBIND_CELL3_RETENTION_SEMANTIC_REPAIR_GUARD_BREP_AND_FACTORY_SWEEPS_UNCHANGED"
+)
 
 
 def _rebind_service_domains() -> tuple[_base.ServiceDomain, ...]:
     rebound: list[_base.ServiceDomain] = []
-    found = False
+    found_rear = False
+    found_retention = 0
     for domain in _base._service_domains():
-        if domain.domain_id != "MASCK_ONE-SERVICE-REAR-COVER-ACCESS":
-            rebound.append(domain)
-            continue
-        if domain.candidate is None or domain.candidate.pr_number != CELL2_REAR_SERVICE_PR:
-            raise _base.AssemblyServiceInventoryError(
-                "rear-cover service domain lost its expected Cell 2 candidate binding"
-            )
-        found = True
-        rebound.append(
-            replace(
+        candidate = domain.candidate
+        if domain.domain_id == "MASCK_ONE-SERVICE-REAR-COVER-ACCESS":
+            if candidate is None or candidate.pr_number != CELL2_REAR_SERVICE_PR:
+                raise _base.AssemblyServiceInventoryError(
+                    "rear-cover service domain lost its expected Cell 2 candidate binding"
+                )
+            found_rear = True
+            domain = replace(
                 domain,
-                candidate=replace(domain.candidate, head_sha=CELL2_REAR_SERVICE_HEAD),
+                candidate=replace(candidate, head_sha=CELL2_REAR_SERVICE_HEAD),
             )
-        )
-    if not found:
+        elif candidate is not None and candidate.pr_number == CELL3_RETENTION_PR:
+            found_retention += 1
+            domain = replace(
+                domain,
+                candidate=replace(candidate, head_sha=CELL3_RETENTION_HEAD),
+            )
+        rebound.append(domain)
+    if not found_rear:
         raise _base.AssemblyServiceInventoryError("rear-cover service domain is missing")
+    if found_retention != 2:
+        raise _base.AssemblyServiceInventoryError(
+            "expected exactly two Cell 3 retention service-domain bindings"
+        )
     return tuple(rebound)
 
 
@@ -63,6 +83,8 @@ def _cell8_candidate_parts() -> tuple[dict[str, object], ...]:
     common: dict[str, object] = {
         "producer_pr": CELL8_RETENTION_GUARD_PR,
         "producer_head_sha": CELL8_RETENTION_GUARD_HEAD,
+        "producer_previous_head_sha": CELL8_RETENTION_GUARD_PREVIOUS_HEAD,
+        "producer_rebind_disposition": CELL8_REBIND_DISPOSITION,
         "producer_source_path": "src/masck_one/retention_hazard_guards.py",
         "producer_source_blob_sha": CELL8_RETENTION_GUARD_BLOB,
         "candidate_interface_sha256": CELL8_RETENTION_GUARD_INTERFACE_SHA256,
@@ -153,6 +175,8 @@ class CurrentAssemblyServiceInventory:
         payload["source_contracts"]["cell8_retention_hazard_guards"] = {
             "pr_number": CELL8_RETENTION_GUARD_PR,
             "head_sha": CELL8_RETENTION_GUARD_HEAD,
+            "previous_head_sha": CELL8_RETENTION_GUARD_PREVIOUS_HEAD,
+            "rebind_disposition": CELL8_REBIND_DISPOSITION,
             "source_path": "src/masck_one/retention_hazard_guards.py",
             "source_blob_sha": CELL8_RETENTION_GUARD_BLOB,
             "candidate_interface_sha256": CELL8_RETENTION_GUARD_INTERFACE_SHA256,
@@ -188,6 +212,11 @@ class CurrentAssemblyServiceInventory:
             "previous_head_sha": CELL2_REAR_SERVICE_PREVIOUS_HEAD,
             "current_head_sha": CELL2_REAR_SERVICE_HEAD,
             "disposition": CELL2_REAR_SERVICE_REBIND_DISPOSITION,
+        }
+        payload["reconciliation_findings"]["cell3_retention_service_head_rebind"] = {
+            "previous_head_sha": CELL3_RETENTION_PREVIOUS_HEAD,
+            "current_head_sha": CELL3_RETENTION_HEAD,
+            "disposition": CELL3_RETENTION_REBIND_DISPOSITION,
         }
         payload["physical_validation_eligible"] = False
         if include_sha:
