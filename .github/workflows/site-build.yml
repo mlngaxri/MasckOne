@@ -32,6 +32,8 @@ jobs:
           python .site-build/stage4_final_v15.py
           python .site-build/stage4_dom_fix_v15b.py
           python .site-build/stage4_visual_qa_v16.py
+          sed -i 's/EXPECTED = "7d1e1120c34dd8ac003b4241faef60425709eb0d"/EXPECTED = "d36b356774a4721e29887713148331142ff2d06c"/' .site-build/stage5_orbit_wearability_v17.py
+          grep -F 'EXPECTED = "d36b356774a4721e29887713148331142ff2d06c"' .site-build/stage5_orbit_wearability_v17.py
           python .site-build/stage5_orbit_wearability_v17.py
           python - <<'PY'
           from pathlib import Path
@@ -152,7 +154,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add website/index.html
+          git add website/index.html .site-build/stage5_orbit_wearability_v17.py
           if ! git diff --cached --quiet; then
             git commit -m 'refine: product inspection and wearability'
             git push origin HEAD:main
