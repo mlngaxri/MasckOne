@@ -6,6 +6,7 @@ from pathlib import Path
 import cadquery as cq
 
 from .assertions import run_assertions
+from .battery_benchmark import build_battery_benchmark_binding
 from .boundary_release import (
     boundary_release_manifest,
     build_verified_interface_boundary_topology,
@@ -61,6 +62,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
     dry_side = build_dry_side_package(model.authority, model)
+    battery_benchmark = build_battery_benchmark_binding(model.authority, model)
     dry_side_export_map = {
         "cell12_dry_bay_carrier_structure_candidate": _dry_side_geometry_by_id(
             dry_side.physical_geometry, "DRY_BAY_CARRIER_STRUCTURE"
@@ -91,6 +93,9 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         cq.exporters.export(solid, str(output / f"{name}.step"))
     with (output / "cell12_dry_side_manifest.json").open("w", encoding="utf-8") as handle:
         json.dump(dry_side.manifest(), handle, indent=2)
+        handle.write("\n")
+    with (output / "cell12_battery_benchmark_manifest.json").open("w", encoding="utf-8") as handle:
+        json.dump(battery_benchmark.manifest(), handle, indent=2)
         handle.write("\n")
 
     # The current waste-cartridge solid is an authority package envelope, not cartridge
@@ -139,6 +144,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
             "dry_side_package_review": dry_side.manifest(),
+            "battery_benchmark_binding": battery_benchmark.manifest(),
         },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
@@ -153,7 +159,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             + [f"{name}.step" for name in dry_side_export_map]
             + ["masck_one_development_assembly.step"]
         ),
-        "exported_manifest_files": ["cell12_dry_side_manifest.json"],
+        "exported_manifest_files": [
+            "cell12_dry_side_manifest.json",
+            "cell12_battery_benchmark_manifest.json",
+        ],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
@@ -165,8 +174,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "inserted into the released physical development assembly until a released 3D frame attachment counterpart "
             "exists. Cell 12 exports a rear closure/seal interface reference but no visible rear door material; the visible "
             "rear service cover remains Cell 2 exterior ownership, avoiding duplicate stacked closure material. The Cell 12 "
-            "battery remains a packaging benchmark and its PCB, charging and power geometry remains unselected digital "
-            "reservation evidence. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "battery remains the exact authority packaging benchmark. Its EEMB candidate identity is authority provenance "
+            "only, with no bound supplier document, production selection, swelling/abuse validation, runtime validation, "
+            "or electrical-safety qualification. PCB, charging and power geometry remains unselected digital reservation "
+            "evidence. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
