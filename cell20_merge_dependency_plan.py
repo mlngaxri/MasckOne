@@ -2,19 +2,18 @@ from __future__ import annotations
 
 """Machine-checkable Cell 20 merge/dependency plan.
 
-This module is a deterministic snapshot of live GitHub navigation evidence. It does
-not promote candidate branches into release authority. Every candidate must be
-reconstructed against live main and rerun after any upstream merge before promotion.
+This is deterministic navigation evidence, not release authority. Every candidate
+must be reconstructed on live main, rebound to exact source blobs, and rerun after
+any dependency merge before promotion.
 """
 
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass
 from hashlib import sha256
 import argparse
 import json
 from pathlib import Path
 import re
 from typing import Iterable
-
 
 SCHEMA = "MASCK_ONE_CELL20_MERGE_DEPENDENCY_PLAN_V1"
 SOURCE_MAIN_SHA = "afe29ff78419b6625dca5594974b6351f6f80e1b"
@@ -36,7 +35,7 @@ ACTION_LATE_REBIND = "LATE_REBIND_AFTER_GEOMETRY_STABILIZES"
 
 
 class MergePlanError(ValueError):
-    """Raised when merge ordering could permit stale or dependency-invalid release."""
+    pass
 
 
 @dataclass(frozen=True)
@@ -59,10 +58,8 @@ class MergeCandidate:
             raise MergePlanError(f"PR #{self.pr_number} head must be an exact 40-character SHA")
         if self.phase < 0:
             raise MergePlanError(f"PR #{self.pr_number} phase must be non-negative")
-        if self.pr_number in self.depends_on:
-            raise MergePlanError(f"PR #{self.pr_number} cannot depend on itself")
-        if len(set(self.depends_on)) != len(self.depends_on):
-            raise MergePlanError(f"PR #{self.pr_number} has duplicate dependencies")
+        if self.pr_number in self.depends_on or len(set(self.depends_on)) != len(self.depends_on):
+            raise MergePlanError(f"PR #{self.pr_number} dependency list is invalid")
         if self.exact_head_green != (self.ci_state == CI_SUCCESS):
             raise MergePlanError(f"PR #{self.pr_number} green state must match CI state")
         if self.release_eligible_now:
@@ -87,9 +84,6 @@ class CollapseGroup:
             raise MergePlanError("collapse successor cannot also be a collapsed source")
 
 
-# CI state is exact-head navigation evidence only. A green head is not merge-now
-# evidence because #121 intentionally changes the provenance gate and therefore
-# invalidates downstream promotion evidence once released.
 CANDIDATES: tuple[MergeCandidate, ...] = (
     MergeCandidate(
         121, "762e682e0d0d3ec9ff77edf2fc4dba2ee706bd01", 0,
@@ -103,16 +97,25 @@ CANDIDATES: tuple[MergeCandidate, ...] = (
         blockers=("current green run predates the #121 exact-source provenance gate",),
     ),
     MergeCandidate(
+        107, "22d2e5baccbcfa56aa4a70e4e4dd59693e15affd", 2,
+        "fresh-water source body/lid and source datums", CI_SUCCESS, True, ACTION_REBASE_RETEST,
+        depends_on=(120,),
+        blockers=("selected pump/manifold route realization remains unresolved",),
+    ),
+    MergeCandidate(
         117, "34273de3bd86294080e51873c212e988b4a966f4", 2,
         "structural reaction-loop B-rep producer", CI_SUCCESS, True, ACTION_REBASE_RETEST,
         depends_on=(120,),
         blockers=("frame-shell joins and actuator/retention counterparts remain unresolved",),
     ),
     MergeCandidate(
-        107, "22d2e5baccbcfa56aa4a70e4e4dd59693e15affd", 2,
-        "fresh-water source body/lid and source datums", CI_SUCCESS, True, ACTION_REBASE_RETEST,
+        70, "7361ad3ae3aa91373cd9e723179e19b0554ec1b4", 3,
+        "five-station exterior and rear service skin", CI_FAILURE, False, ACTION_REPAIR_REBASE_RETEST,
         depends_on=(120,),
-        blockers=("selected pump/manifold route realization remains unresolved",),
+        blockers=(
+            "exact-head CI fails because the eye-rolled exterior becomes an invalid solid during bilateral eye processing",
+            "tooling/part split/draft and real dry-side nesting/service remain unresolved",
+        ),
     ),
     MergeCandidate(
         118, "37e03df4b6abbd222422c8bfd4e70b03a4e5ae07", 3,
@@ -131,15 +134,6 @@ CANDIDATES: tuple[MergeCandidate, ...] = (
         "cleanser cassette/body with bayonet retention", CI_QUEUED, False, ACTION_REBASE_RETEST,
         depends_on=(120,),
         blockers=("cradle-to-frame positive attachment remains unresolved",),
-    ),
-    MergeCandidate(
-        70, "7361ad3ae3aa91373cd9e723179e19b0554ec1b4", 3,
-        "five-station exterior and rear service skin", CI_FAILURE, False, ACTION_REPAIR_REBASE_RETEST,
-        depends_on=(120,),
-        blockers=(
-            "exact-head CI fails: eye-rolled exterior becomes invalid after protected eye 1/second-eye operation",
-            "tooling/part split/draft and real dry-side nesting/service remain unresolved",
-        ),
     ),
     MergeCandidate(
         109, "fb586cc1ea1cde92526417593f9e5aa990d2ae4f", 4,
@@ -197,12 +191,6 @@ CANDIDATES: tuple[MergeCandidate, ...] = (
         blockers=("its specialist-head receipt is already stale to moved #111/#113/#115 heads",),
     ),
     MergeCandidate(
-        105, "8d5762f35c0b64b736648ef3541377b43a168952", 7,
-        "cleanser source-graph receipt", CI_SUCCESS, True, ACTION_LATE_REBIND,
-        depends_on=(125,),
-        blockers=("consolidate source-receipt semantics into the current Cell 4 integration graph rather than create a second route truth",),
-    ),
-    MergeCandidate(
         124, "330a37dc18d751852deec497ab806dda98d356ee", 8,
         "mechanical component/interface graph", CI_QUEUED, False, ACTION_LATE_REBIND,
         depends_on=(92, 117, 118, 123, 111),
@@ -215,16 +203,16 @@ CANDIDATES: tuple[MergeCandidate, ...] = (
         blockers=("source-bound manufacturing maturity should be rebuilt after product geometry stabilizes",),
     ),
     MergeCandidate(
-        116, "1f769016efb6034c1708a275465fbac6910a75da", 9,
-        "datum/CTQ inventory", CI_SUCCESS, True, ACTION_LATE_REBIND,
-        depends_on=(70, 92, 104, 107, 111, 115, 117, 118, 125),
-        blockers=("geometry-dependent datum stacks remain unresolved and should bind final producers",),
-    ),
-    MergeCandidate(
         108, "0bf6c73028284ba9a5715ef5235bb2be1c298403", 9,
         "mass/CG/pitch/power/fluid ledger", CI_SUCCESS, True, ACTION_LATE_REBIND,
         depends_on=(70, 92, 104, 107, 111, 115, 117, 118, 125),
         blockers=("whole-product totals remain null until final material/component sources are released",),
+    ),
+    MergeCandidate(
+        116, "1f769016efb6034c1708a275465fbac6910a75da", 9,
+        "datum/CTQ inventory", CI_SUCCESS, True, ACTION_LATE_REBIND,
+        depends_on=(70, 92, 104, 107, 111, 115, 117, 118, 125),
+        blockers=("geometry-dependent datum stacks remain unresolved and should bind final producers",),
     ),
     MergeCandidate(
         114, "630cc19497661ae834032eb8ea06e28dfd6100b7", 10,
@@ -233,13 +221,12 @@ CANDIDATES: tuple[MergeCandidate, ...] = (
         blockers=("current inventory binds stale retention candidate evidence and lacks released objective-domain motions",),
     ),
     MergeCandidate(
-        112, "831619d5dd0386b709f415fb6de2161b282e5d1f", 10,
+        112, "831619d5dd0386b709f415fb6de2161b282e5d1f", 11,
         "whole-product collision/protected-region matrix successor", CI_SUCCESS, True, ACTION_LATE_REBIND,
         depends_on=(70, 92, 104, 107, 111, 114, 115, 117, 118, 123, 125),
         blockers=("matrix still reports absent geometry and must run after accepted material/service bodies stabilize",),
     ),
 )
-
 
 COLLAPSE_GROUPS: tuple[CollapseGroup, ...] = (
     CollapseGroup((83, 87, 89), 92, "CLOSE_AS_EXACT_ANCESTORS", "PR #92 proves these closed branches are exact ancestors; never merge them independently."),
@@ -247,6 +234,7 @@ COLLAPSE_GROUPS: tuple[CollapseGroup, ...] = (
     CollapseGroup((103,), 120, "CLOSE_AFTER_VERIFYING_SUCCESSOR_FIX", "PR #103 is an audit of the material-boundary defect owned by #120, not a competing release truth."),
     CollapseGroup((75, 78), 107, "CLOSE_AFTER_CURRENT_MAIN_PORT", "PR #107 reconstructs the fresh-water body/lid/source geometry on current main."),
     CollapseGroup((80,), 125, "CLOSE_AFTER_CURRENT_MAIN_PORT", "PR #125 replaces the cleanser cassette friction-pin concept with bounded rotate-to-release bayonet retention."),
+    CollapseGroup((105,), 104, "CONSOLIDATE_SOURCE_RECEIPT_THEN_CLOSE", "PR #105 is a cleanser source receipt; consolidate its surviving source identity into the canonical Cell 4 graph instead of merging a second route truth."),
     CollapseGroup((77,), 106, "CLOSE_AFTER_TAXONOMY_CONSUMPTION", "PR #106 reconciles useful DFM taxonomy to current released producers."),
     CollapseGroup((90, 98), 112, "CLOSE_AFTER_SUCCESSOR_VERIFICATION", "PR #112 is the current-main collision/protected-region successor."),
     CollapseGroup((122,), 117, "CLOSE_DONOR_AUDIT_NOT_RELEASE_GEOMETRY", "The legacy frame-donor audit should not become a second structural producer once #117 is accepted."),
@@ -274,7 +262,8 @@ def validate_plan(candidates: Iterable[MergeCandidate] = CANDIDATES) -> tuple[Me
         if row.pr_number in by_pr:
             raise MergePlanError(f"duplicate PR #{row.pr_number}")
         by_pr[row.pr_number] = row
-    if 121 not in by_pr or by_pr[121].phase != 0 or by_pr[121].action != ACTION_ROOT_FIRST:
+    root = by_pr.get(121)
+    if root is None or root.phase != 0 or root.action != ACTION_ROOT_FIRST:
         raise MergePlanError("PR #121 must remain the phase-0 release-control root")
     for row in rows:
         for dependency in row.depends_on:
