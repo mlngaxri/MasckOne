@@ -22,6 +22,10 @@ AUTHORITY_REVISION = "2026-08-30-R1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 AUTHORITY_PATH = "config/masck_one_authority.yaml"
 AUTHORITY_BLOB_SHA = "2608dda483b995539de422290371c219668a1527"
+AUTHORITY_SCHEMA_PATH = "schemas/masck_one_authority.schema.json"
+AUTHORITY_SCHEMA_BLOB_SHA = "58accbe48619058cb99ab51a0387cf01874c3717"
+AUTHORITY_VALIDATOR_PATH = "src/masck_one/authority.py"
+AUTHORITY_VALIDATOR_BLOB_SHA = "6866e3a428dab8b32b5a1d9e58da78b8f5aa1aa2"
 MODEL_PATH = "src/masck_one/model.py"
 MODEL_BLOB_SHA = "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"
 PACKAGING_ONLY_STATUS = "PACKAGING_BENCHMARK_NOT_PRODUCTION_FREEZE"
@@ -56,7 +60,13 @@ def _git_blob_sha(path: Path) -> str:
 
 
 def _require_sources() -> None:
-    for relative_path, expected in ((AUTHORITY_PATH, AUTHORITY_BLOB_SHA), (MODEL_PATH, MODEL_BLOB_SHA)):
+    source_identities = (
+        (AUTHORITY_PATH, AUTHORITY_BLOB_SHA),
+        (AUTHORITY_SCHEMA_PATH, AUTHORITY_SCHEMA_BLOB_SHA),
+        (AUTHORITY_VALIDATOR_PATH, AUTHORITY_VALIDATOR_BLOB_SHA),
+        (MODEL_PATH, MODEL_BLOB_SHA),
+    )
+    for relative_path, expected in source_identities:
         path = _REPO_ROOT / relative_path
         if not path.is_file():
             raise BatteryBenchmarkError(f"battery benchmark source missing: {relative_path}")
@@ -117,6 +127,10 @@ class BatteryBenchmarkBinding:
                 "authority_path": AUTHORITY_PATH,
                 "authority_git_blob_sha": AUTHORITY_BLOB_SHA,
                 "authority_field_path": "battery_reference",
+                "authority_schema_path": AUTHORITY_SCHEMA_PATH,
+                "authority_schema_git_blob_sha": AUTHORITY_SCHEMA_BLOB_SHA,
+                "authority_validator_path": AUTHORITY_VALIDATOR_PATH,
+                "authority_validator_git_blob_sha": AUTHORITY_VALIDATOR_BLOB_SHA,
                 "model_path": MODEL_PATH,
                 "model_git_blob_sha": MODEL_BLOB_SHA,
             },
