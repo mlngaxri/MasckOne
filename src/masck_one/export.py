@@ -11,6 +11,7 @@ from .boundary_release import (
     build_verified_interface_boundary_topology,
 )
 from .contact_simulation import build_contact_simulation_framework
+from .dry_side_package import build_dry_side_package
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
@@ -52,9 +53,30 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
+    dry_side = build_dry_side_package(model.authority, model)
+    dry_side_export_map = {
+        "cell12_dry_bay_carrier_structure_candidate": dry_side.physical_geometry[0].solid,
+        "cell12_rear_service_door_candidate": dry_side.physical_geometry[1].solid,
+        "cell12_battery_packaging_benchmark_reference": dry_side.reference_geometry[0].solid,
+        "cell12_battery_fault_clearance_reference": dry_side.reference_geometry[1].solid,
+        "cell12_pcb_bare_board_reference": dry_side.reference_geometry[2].solid,
+        "cell12_pcb_power_protection_zone_reference": dry_side.reference_geometry[3].solid,
+        "cell12_charging_interface_reservation_reference": dry_side.reference_geometry[4].solid,
+        "cell12_battery_service_sweep_reference": dry_side.service_geometry[0].solid,
+        "cell12_door_service_sweep_reference": dry_side.service_geometry[1].solid,
+    }
+    for name, solid in dry_side_export_map.items():
+        cq.exporters.export(solid, str(output / f"{name}.step"))
+    with (output / "cell12_dry_side_manifest.json").open("w", encoding="utf-8") as handle:
+        json.dump(dry_side.manifest(), handle, indent=2)
+        handle.write("\n")
+
     # The current waste-cartridge solid is an authority package envelope, not cartridge
     # material. Keep its standalone STEP for package/collision review but do not insert
-    # the proxy box into the physical development compound.
+    # the proxy box into the physical development compound. The new Cell 12 dry-side
+    # package is also deliberately review-only until released 3D frame attachment and
+    # exterior closure counterparts exist, so none of its candidate/reference geometry
+    # is silently inserted into physical assembly material here.
     development_assembly_exclusions = ("waste_cartridge_envelope",)
     shapes = [
         component.solid.val()
@@ -95,6 +117,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
+            "dry_side_package_review": dry_side.manifest(),
         },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
@@ -103,7 +126,13 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "review_only_packages": ["cell12_dry_side_package"],
+        "exported_step_files": (
+            [f"{name}.step" for name in export_map]
+            + [f"{name}.step" for name in dry_side_export_map]
+            + ["masck_one_development_assembly.step"]
+        ),
+        "exported_manifest_files": ["cell12_dry_side_manifest.json"],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
@@ -111,9 +140,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
             "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
-            "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
-            "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "realized. The Cell 12 compact dry-side package is exported as deterministic review geometry only and is not "
+            "inserted into the released physical development assembly until a released 3D frame attachment counterpart, "
+            "rear exterior closure match, positive door retention and seal stack exist. Its battery remains a packaging "
+            "benchmark and its PCB/charging/power geometry remains unselected digital reservation evidence. Digital "
+            "topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
