@@ -41,6 +41,12 @@ def _dfm_part_family_producer_manifest(authority) -> dict[str, object]:
     return build_dfm_part_family_producer_audit(authority).manifest()
 
 
+def _write_json_artifact(path: Path, payload: dict[str, object]) -> None:
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True, allow_nan=False)
+        handle.write("\n")
+
+
 def export_release(output_dir: str | Path = "generated", model: MasckOneModel | None = None) -> dict:
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
@@ -82,6 +88,9 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
     part_family_producers = _dfm_part_family_producer_manifest(model.authority)
+    producer_artifact_name = "dfm_part_family_producer_bindings_v1.json"
+    _write_json_artifact(output / producer_artifact_name, part_family_producers)
+
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -112,6 +121,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
         "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "exported_review_files": [producer_artifact_name],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
@@ -127,7 +137,5 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "manifests and analysis frameworks are not physical validation evidence."
         ),
     }
-    with (output / "build_report.json").open("w", encoding="utf-8") as handle:
-        json.dump(report, handle, indent=2)
-        handle.write("\n")
+    _write_json_artifact(output / "build_report.json", report)
     return report
