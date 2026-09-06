@@ -1,0 +1,106 @@
+name: Finalize Prompt 18 product use journey
+
+on:
+  push:
+    paths:
+      - '.site-build/run18.flag'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify exact operation truth heads
+        shell: bash
+        run: |
+          set -euo pipefail
+          check_head() {
+            local branch="$1"
+            local expected="$2"
+            local actual
+            actual="$(git ls-remote origin "refs/heads/$branch" | cut -f1)"
+            test "$actual" = "$expected" || { echo "$branch moved: expected $expected got $actual"; exit 1; }
+          }
+          check_head 'cell9/fresh-water-source-geometry-20260906' '22d2e5baccbcfa56aa4a70e4e4dd59693e15affd'
+          check_head 'cell10/cleanser-source-graph-20260906' '8d5762f35c0b64b736648ef3541377b43a168952'
+          check_head 'cell14/hmi-thermal-decision-state-20260906' '7b32c674860cab87cbdd1f7e3303a4ce53515e95'
+          check_head 'cell8/retention-release-guard-20260906' 'fb586cc1ea1cde92526417593f9e5aa990d2ae4f'
+          check_head 'cell8/occipital-yokes-current-source-20260906' '25686766238b66ecf900009042d721c08e042592'
+          check_head 'cell11/realized-waste-cartridge-v1-20260906' '4da053e57534c98617b9e8abfae7a35436a3718c'
+          check_head 'cell12/compact-dry-side-package-20260906' 'fa017c8379dabaefeecf53bf770858bebfde3067'
+      - name: Verify registered Prompt 17 product views
+        run: |
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          import json
+          root=Path('website')
+          m=json.loads((root/'images/masck-inspection-v17c-manifest.json').read_text())
+          assert m['asset_version']=='v17c'
+          assert m['coordinate_frame']=='MASCK_ONE_AUTHORITY_WORLD_MM'
+          assert m['camera_id']=='CAM_WEARABILITY_V17C_80MM_EQUIV'
+          assert m['sources']['retention_current_head_sha']=='25686766238b66ecf900009042d721c08e042592'
+          assert m['sources']['hmi_decision_head_sha']=='7b32c674860cab87cbdd1f7e3303a4ce53515e95'
+          assert m['sources']['dry_side_package_head_sha']=='fa017c8379dabaefeecf53bf770858bebfde3067'
+          assert m['sources']['exterior_render_checkpoint_sha']=='17e7db204c693f684855d923fcacd7c95468e599'
+          for view in m['views'].values():
+              p=root/'images'/view['asset']
+              assert p.is_file() and p.stat().st_size>50000
+              assert sha256(p.read_bytes()).hexdigest()==view['asset_sha256']
+          PY
+      - name: Build cohesive customer use journey
+        env:
+          MASCK_WEBSITE_BUILD_SHA: ${{ github.sha }}
+        run: |
+          python .site-build/finalize_use_journey_v18.py
+          python - <<'PY'
+          from pathlib import Path
+          import json,re
+          s=Path('website/index.html').read_text()
+          truth=json.loads(Path('website/use-journey-v18-truth.json').read_text())
+          marker='<!-- Product use journey v18 -->'
+          start=s.index(marker)
+          end=s.index('</section>',start)+len('</section>')
+          chapter=s[start:end]
+          expected=['PREPARE','WEAR','CHOOSE','CLEAN','REMOVE','SERVICE','RECHARGE']
+          assert truth['sequence']==expected
+          assert chapter.count('data-j18-step=')==7
+          assert chapter.count('data-j18-mobile-stage=')==7
+          for label in expected:
+              assert f'>{label}<' in chapter
+          assert 'data-use-journey18' in chapter
+          assert 'One routine.' in chapter
+          assert 'Physical control area' in chapter
+          assert 'Mapping in development' in chapter
+          assert 'Right release' in chapter
+          assert 'Rear service cover' in chapter
+          assert 'charge reservation' in chapter.lower()
+          assert '—' not in chapter and '–' not in chapter
+          lower=chapter.lower()
+          for banned in ('charging dock','magnetic dock','usb-c','usb c','charge duration','charge time','refill cap','refill bottle','press to start','tap to start'):
+              assert banned not in lower,banned
+          assert '<button' not in chapter[chapter.index('class="j18-visual"'):chapter.index('</div>\n      <nav class="j18-rail"')]
+          assert truth['global_claim_boundary'].startswith('Current digital product architecture only.')
+          assert truth['mobile_contract']=='VERTICAL_SEQUENCED_STATES_NO_HORIZONTAL_CARD_CAROUSEL'
+          scripts=re.findall(r'<script>(.*?)</script>',s,re.S)
+          Path('/tmp/masck-site.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/masck-site.js
+      - name: Commit generated use journey
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add website/index.html website/use-journey-v18-truth.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'refine: build complete product use journey'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
