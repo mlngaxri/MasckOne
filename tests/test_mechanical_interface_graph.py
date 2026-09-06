@@ -29,7 +29,7 @@ def _interfaces():
     return {item.interface_id: item for item in build_mechanical_interface_graph().interfaces}
 
 
-def test_graph_is_bound_to_post_pr121_anchor_and_canonical_world():
+def test_graph_is_bound_to_post_pr121_current_main_and_canonical_world():
     graph = build_mechanical_interface_graph()
     assert SOURCE_MAIN_SHA == "b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc"
     assert SOURCE_MAIN_TREE_SHA == "b857c48059a4b29c412969e19ed90721d2758e3d"
@@ -55,7 +55,7 @@ def test_exact_candidate_heads_and_blobs_are_pinned():
         (117, "34273de3bd86294080e51873c212e988b4a966f4"),
         (118, "37e03df4b6abbd222422c8bfd4e70b03a4e5ae07"),
         (127, "dfdd8468731ae7e58e0aa3f7910662fbbef1ba60"),
-        (92, "bec4c294f400c86f15acca863341f09b34d96b28"),
+        (92, "88a88bed01fd3b3acfb38ff5f6f3ae3d5bbf54fe"),
         (123, "25686766238b66ecf900009042d721c08e042592"),
         (71, "0b5a619c6cea344038b0e8b8cc10a50e3d193390"),
         (109, "fb586cc1ea1cde92526417593f9e5aa990d2ae4f"),
