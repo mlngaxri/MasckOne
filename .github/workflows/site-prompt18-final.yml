@@ -59,6 +59,7 @@ jobs:
           MASCK_WEBSITE_BUILD_SHA: ${{ github.sha }}
         run: |
           python .site-build/finalize_use_journey_v18.py
+          python .site-build/repair_use_journey_v18_asset_urls.py
           python - <<'PY'
           from pathlib import Path
           import json,re
@@ -82,6 +83,8 @@ jobs:
           assert 'Rear service cover' in chapter
           assert 'charge reservation' in chapter.lower()
           assert '—' not in chapter and '–' not in chapter
+          assert 'src="images/masck-inspection-' not in chapter
+          assert chapter.count('https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-')==10
           lower=chapter.lower()
           for banned in ('charging dock','magnetic dock','usb-c','usb c','charge duration','charge time','refill cap','refill bottle','press to start','tap to start'):
               assert banned not in lower,banned
