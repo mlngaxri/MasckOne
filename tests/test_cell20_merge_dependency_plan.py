@@ -1,0 +1,117 @@
+from __future__ import annotations
+
+from dataclasses import replace
+import json
+from pathlib import Path
+
+import pytest
+
+import cell20_merge_dependency_plan as mp
+
+
+EXPECTED_SEQUENCE_PRS = {
+    70, 92, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
+    117, 118, 120, 121, 123, 124, 125,
+}
+EXPECTED_GREEN_PRS = {107, 108, 109, 110, 112, 114, 116, 117, 118, 120}
+
+
+def test_plan_is_deterministic_and_fail_closed_before_root_release() -> None:
+    first = mp.merge_dependency_manifest()
+    second = mp.merge_dependency_manifest()
+    assert first == second
+    assert first["schema"] == mp.SCHEMA
+    assert first["source_main_sha"] == mp.SOURCE_MAIN_SHA
+    assert first["world_frame_id"] == "MASCK_ONE_AUTHORITY_WORLD_MM"
+    assert first["release_control_root_pr"] == 121
+    assert first["no_merge_now"] is True
+    assert len(first["manifest_sha256"]) == 64
+    assert all(row["release_eligible_now"] is False for row in first["candidate_sequence"])
+
+
+def test_sequence_contains_current_dependency_candidates_once() -> None:
+    rows = mp.validate_plan()
+    numbers = [row.pr_number for row in rows]
+    assert set(numbers) == EXPECTED_SEQUENCE_PRS
+    assert len(numbers) == len(set(numbers))
+    assert 105 not in numbers
+    assert {row.pr_number for row in rows if row.exact_head_green} == EXPECTED_GREEN_PRS
+
+
+def test_every_dependency_is_in_an_earlier_phase() -> None:
+    rows = mp.validate_plan()
+    by_pr = {row.pr_number: row for row in rows}
+    assert by_pr[121].phase == 0
+    assert by_pr[120].depends_on == (121,)
+    for row in rows:
+        for dependency in row.depends_on:
+            assert by_pr[dependency].phase < row.phase
+
+
+def test_collision_audit_runs_after_service_inventory() -> None:
+    rows = {row.pr_number: row for row in mp.validate_plan()}
+    assert 114 in rows[112].depends_on
+    assert rows[114].phase < rows[112].phase
+
+
+def test_exterior_failure_is_not_promotable() -> None:
+    row = {item.pr_number: item for item in mp.CANDIDATES}[70]
+    assert row.ci_state == mp.CI_FAILURE
+    assert row.exact_head_green is False
+    assert row.action == mp.ACTION_REPAIR_REBASE_RETEST
+    assert row.release_eligible_now is False
+    assert any("invalid solid" in blocker for blocker in row.blockers)
+
+
+def test_guard_yoke_interference_forces_repair_after_yoke() -> None:
+    row = {item.pr_number: item for item in mp.CANDIDATES}[109]
+    assert 123 in row.depends_on
+    assert row.action == mp.ACTION_REPAIR_REBASE_RETEST
+    assert any("39.840676" in blocker for blocker in row.blockers)
+
+
+def test_cartridge_capacity_and_shell_collision_force_redesign_hold() -> None:
+    row = {item.pr_number: item for item in mp.CANDIDATES}[115]
+    assert row.action == mp.ACTION_HOLD_REDESIGN
+    joined = " ".join(row.blockers)
+    assert "331.73801062482534" in joined
+    assert "27.401629" in joined
+    assert "34.887932" in joined
+    assert row.release_eligible_now is False
+
+
+def test_legacy_chain_collapse_is_explicit_and_quick_release_is_preserved() -> None:
+    groups = {(group.source_prs, group.successor_pr): group.action for group in mp.COLLAPSE_GROUPS}
+    assert groups[((83, 87, 89), 92)] == "CLOSE_AS_EXACT_ANCESTORS"
+    assert groups[((75, 78), 107)] == "CLOSE_AFTER_CURRENT_MAIN_PORT"
+    assert groups[((80,), 125)] == "CLOSE_AFTER_CURRENT_MAIN_PORT"
+    assert groups[((105,), 104)] == "CONSOLIDATE_SOURCE_RECEIPT_THEN_CLOSE"
+    assert groups[((85, 94, 96, 100), None)] == "PORT_USEFUL_PACKAGE_GEOMETRY_THEN_CLOSE"
+    assert groups[((63, 64), None)] == "DONOR_ONLY_NEVER_MERGE"
+    assert mp.PRESERVE_SEPARATELY == (71,)
+
+
+def test_same_phase_dependency_is_rejected() -> None:
+    rows = list(mp.CANDIDATES)
+    idx = next(i for i, row in enumerate(rows) if row.pr_number == 120)
+    rows[idx] = replace(rows[idx], phase=0)
+    with pytest.raises(mp.MergePlanError):
+        mp.validate_plan(rows)
+
+
+def test_duplicate_candidate_is_rejected() -> None:
+    with pytest.raises(mp.MergePlanError):
+        mp.validate_plan((*mp.CANDIDATES, mp.CANDIDATES[0]))
+
+
+def test_merge_now_promotion_is_rejected_before_root_release() -> None:
+    root = next(row for row in mp.CANDIDATES if row.pr_number == 121)
+    with pytest.raises(mp.MergePlanError):
+        replace(root, release_eligible_now=True)
+
+
+def test_manifest_round_trip(tmp_path: Path) -> None:
+    output = tmp_path / "cell20_merge_dependency_plan.json"
+    written = mp.write_manifest(output)
+    assert written == output.resolve()
+    assert json.loads(output.read_text(encoding="utf-8")) == mp.merge_dependency_manifest()
