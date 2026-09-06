@@ -30,6 +30,9 @@ from masck_one.waste_pump_architecture import (
 )
 
 
+FLOAT_COMPARISON_SLACK_MM = 1e-12
+
+
 @pytest.fixture(scope="module")
 def cartridge():
     return build_realized_waste_cartridge()
@@ -77,8 +80,11 @@ def test_body_closure_and_cavity_are_valid_nonoverlapping_breps_inside_package(c
     for shape in (cartridge.body_solid, cartridge.closure_solid, cartridge.installed_free_cavity_reference):
         bounds = _bounds(shape)
         for axis in ("x", "y", "z"):
-            assert bounds[axis][0] >= PACKAGE_BOUNDS_WORLD_MM[axis][0] - 1e-7
-            assert bounds[axis][1] <= PACKAGE_BOUNDS_WORLD_MM[axis][1] + 1e-7
+            # Preserve the existing 1e-7 mm B-rep containment criterion. The extra
+            # 1e-12 mm only absorbs binary floating-point comparison noise at the
+            # exact threshold and is not engineering clearance.
+            assert bounds[axis][0] >= PACKAGE_BOUNDS_WORLD_MM[axis][0] - 1e-7 - FLOAT_COMPARISON_SLACK_MM
+            assert bounds[axis][1] <= PACKAGE_BOUNDS_WORLD_MM[axis][1] + 1e-7 + FLOAT_COMPARISON_SLACK_MM
 
 
 def test_exact_authority_protected_face_envelopes_are_clear(cartridge):
