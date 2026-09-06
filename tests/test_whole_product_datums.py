@@ -20,6 +20,7 @@ from masck_one.whole_product_datums import (
     SHELL_PRIMARY_FRAME_ID,
     SOURCE_MAIN_SHA,
     STRUCTURAL_FRAME_REFERENCE_ID,
+    STRUCTURAL_FRAME_DATUM_IDS,
     THERMAL_ROOT_FRAME_ID,
     WATER_RESERVOIR_PACKAGE_FRAME_ID,
     WATER_RESERVOIR_ROOT_FRAME_ID,
@@ -69,6 +70,27 @@ def test_world_shell_and_structural_references_are_explicit_and_canonical(hierar
         nodes[STRUCTURAL_FRAME_REFERENCE_ID].manufacturing_status
         == "UNRESOLVED_NOT_QUALIFIED_MANUFACTURING_DATUM"
     )
+
+
+def test_released_structural_xy_datums_preserve_known_xy_and_unresolved_z(hierarchy):
+    nodes = hierarchy.node_by_id
+    expected = {
+        "MASCK_ONE-FRAME-DATUM-CENTER": (0.0, 0.0, None),
+        "MASCK_ONE-FRAME-DATUM-SUPERIOR": (0.0, 101.0, None),
+        "MASCK_ONE-FRAME-DATUM-INFERIOR": (0.0, -101.0, None),
+        "MASCK_ONE-FRAME-DATUM-WEARER_LEFT": (-77.5, 0.0, None),
+        "MASCK_ONE-FRAME-DATUM-WEARER_RIGHT": (77.5, 0.0, None),
+    }
+    assert set(STRUCTURAL_FRAME_DATUM_IDS) == set(expected)
+    for datum_id, partial in expected.items():
+        node = nodes[datum_id]
+        assert node.parent_id == STRUCTURAL_FRAME_REFERENCE_ID
+        assert node.transform_status == "UNRESOLVED"
+        assert node.local_to_parent is None
+        assert node.partial_translation_mm == partial
+        assert node.geometry_role == "STRUCTURAL_REFERENCE_WITH_UNRESOLVED_3D_DATUM_QUALIFICATION"
+        assert "z_status=UNRESOLVED_UNTIL_STRUCTURAL_3D_SURFACE_AND_PACKAGING_CLOSURE" in node.blocker
+        assert hierarchy.local_to_world_transform(datum_id) is None
 
 
 def test_released_package_reference_frames_bind_actual_brep_centres_without_material_promotion(hierarchy):
@@ -186,6 +208,16 @@ def test_hostile_reference_promotion_and_numeric_unresolved_transform_are_reject
     actuator = hierarchy.node_by_id[ACTUATOR_FRAME_IDS[0]]
     with pytest.raises(DatumHierarchyError, match="unresolved datum"):
         replace(actuator, local_to_parent=RigidTransform.identity())
+
+    shell = hierarchy.node_by_id[SHELL_PRIMARY_FRAME_ID]
+    with pytest.raises(DatumHierarchyError, match="only valid for unresolved"):
+        replace(shell, partial_translation_mm=(0.0, 0.0, None))
+
+    frame_datum = hierarchy.node_by_id[STRUCTURAL_FRAME_DATUM_IDS[0]]
+    with pytest.raises(DatumHierarchyError, match="both known and unresolved"):
+        replace(frame_datum, partial_translation_mm=(0.0, 0.0, 0.0))
+    with pytest.raises(DatumHierarchyError, match="finite"):
+        replace(frame_datum, partial_translation_mm=(0.0, math.inf, None))
 
 
 def test_wrong_world_sign_origin_and_nonfinite_values_are_rejected(hierarchy):
