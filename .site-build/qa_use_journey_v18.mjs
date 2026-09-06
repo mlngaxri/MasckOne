@@ -29,6 +29,15 @@ async function ensureImageLoaded(locator,label){
   }),label);
 }
 
+async function waitForDesktopState(page,key){
+  await page.waitForFunction((key)=>{
+    const gesture=document.querySelector(`.journey18-desktop [data-j18-gesture="${key}"]`);
+    const product=document.querySelector('.journey18-desktop .j18-product.active');
+    if(!gesture||!product) return false;
+    return parseFloat(getComputedStyle(gesture).opacity)>=0.98 && parseFloat(getComputedStyle(product).opacity)>=0.98;
+  },key,{timeout:2500});
+}
+
 async function desktopQA(browser){
   const context=await browser.newContext({viewport:{width:1440,height:1000}});
   const page=await context.newPage();
@@ -42,26 +51,28 @@ async function desktopQA(browser){
   for(let i=0;i<labels.length;i++){
     const y=dims.top+dims.travel*(i/(labels.length-1));
     await page.evaluate(y=>scrollTo(0,y),y);
-    await page.waitForTimeout(420);
+    await page.waitForTimeout(80);
     const active=await chapter.getAttribute('data-active-index');
     if(active!==String(i)) throw new Error(`desktop active stage mismatch ${i}: ${active}`);
     const label=(await page.locator('[data-j18-label]').textContent()||'').trim();
     if(label!==labels[i]) throw new Error(`desktop label mismatch ${i}: ${label}`);
+    await waitForDesktopState(page,keys[i]);
     const gesture=page.locator(`.journey18-desktop [data-j18-gesture="${keys[i]}"]`);
     const opacity=parseFloat(await gesture.evaluate(el=>getComputedStyle(el).opacity));
-    if(opacity<0.9) throw new Error(`desktop gesture hidden ${keys[i]} opacity=${opacity}`);
+    if(opacity<0.98) throw new Error(`desktop gesture did not settle ${keys[i]} opacity=${opacity}`);
     const product=page.locator('.journey18-desktop .j18-product.active');
     await ensureImageLoaded(product,`desktop ${keys[i]}`);
     const image=await product.evaluate(img=>({naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,width:img.getBoundingClientRect().width,opacity:getComputedStyle(img).opacity,src:img.currentSrc||img.src}));
-    if(image.naturalWidth<1000||image.naturalHeight<1000||image.width<500||parseFloat(image.opacity)<0.9) throw new Error(`desktop product weak at ${keys[i]} ${JSON.stringify(image)}`);
+    if(image.naturalWidth<1000||image.naturalHeight<1000||image.width<500||parseFloat(image.opacity)<0.98) throw new Error(`desktop product weak at ${keys[i]} ${JSON.stringify(image)}`);
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
     if(overflow>2) throw new Error(`desktop horizontal overflow ${overflow}`);
     await page.screenshot({path:`${OUT}/desktop-${String(i+1).padStart(2,'0')}-${keys[i]}.png`,fullPage:false});
-    summary.push({stage:keys[i],label,image});
+    summary.push({stage:keys[i],label,image,gestureOpacity:opacity});
   }
   const serviceButton=page.locator('[data-j18-step="5"]');
   await serviceButton.click();
-  await page.waitForTimeout(1050);
+  await page.waitForFunction(()=>document.querySelector('[data-use-journey18]')?.dataset.activeIndex==='5',null,{timeout:2500});
+  await waitForDesktopState(page,'service');
   if(await chapter.getAttribute('data-active-index')!=='5') throw new Error('desktop timeline click did not select SERVICE');
   fs.writeFileSync(`${OUT}/desktop-summary.json`,JSON.stringify(summary,null,2));
   await context.close();
@@ -84,7 +95,7 @@ async function mobileQA(browser){
     if(docTop<=lastTop) throw new Error(`mobile vertical order failed at ${keys[i]}`);
     lastTop=docTop;
     await article.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(220);
+    await page.waitForTimeout(120);
     const img=article.locator('img');
     await ensureImageLoaded(img,`mobile ${keys[i]}`);
     const image=await img.evaluate(el=>({naturalWidth:el.naturalWidth,width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height,src:el.currentSrc||el.src}));
@@ -105,7 +116,7 @@ async function reducedMotionQA(browser){
   const chapter=page.locator('[data-use-journey18]');
   const dims=await chapter.evaluate(el=>({top:scrollY+el.getBoundingClientRect().top,travel:el.offsetHeight-innerHeight}));
   await page.evaluate(y=>scrollTo(0,y),dims.top+dims.travel*.5);
-  await page.waitForTimeout(150);
+  await page.waitForTimeout(100);
   if(await chapter.getAttribute('data-active-index')!=='3') throw new Error('reduced-motion CLEAN selection failed');
   const product=page.locator('.journey18-desktop .j18-product.active');
   await ensureImageLoaded(product,'reduced motion clean');
