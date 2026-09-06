@@ -11,6 +11,7 @@ from .boundary_release import (
     build_verified_interface_boundary_topology,
 )
 from .contact_simulation import build_contact_simulation_framework
+from .harness_endpoint_inventory import build_harness_endpoint_inventory
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
@@ -75,6 +76,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+    harness_endpoint_inventory = build_harness_endpoint_inventory(model=model)
+    harness_endpoint_manifest = harness_endpoint_inventory.manifest()
+    with (output / "harness_endpoint_inventory_v1.json").open("w", encoding="utf-8") as handle:
+        json.dump(harness_endpoint_manifest, handle, indent=2)
+        handle.write("\n")
+
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -96,6 +103,9 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
         },
+        "electrical_interconnect": {
+            "harness_endpoint_inventory_v1": harness_endpoint_manifest,
+        },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
         },
@@ -104,11 +114,14 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
         "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "exported_manifest_files": ["harness_endpoint_inventory_v1.json"],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
+            "The Cell 13 endpoint inventory binds current electrical endpoint identity and the closed Manual-B route "
+            "delta only; it does not release harness centerlines, connectors, strain relief or wet/dry bulkhead geometry. "
             "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
             "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
