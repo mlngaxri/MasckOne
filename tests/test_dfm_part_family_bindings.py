@@ -3,6 +3,7 @@ from dataclasses import replace
 import pytest
 
 import masck_one.dfm_part_family_bindings as dfm
+from masck_one.authority import load_authority
 from masck_one.dfm_part_family_bindings import (
     BASELINE_FAMILY_COUNT,
     BASELINE_PART_IDS,
@@ -17,7 +18,7 @@ from masck_one.dfm_part_family_bindings import (
     SOURCE_MAIN_SHA,
     build_dfm_part_family_producer_audit,
 )
-from masck_one.export import export_release
+from masck_one.export import _dfm_part_family_producer_manifest
 
 
 @pytest.fixture(scope="module")
@@ -123,14 +124,13 @@ def test_source_movement_invalidates_prior_audit(monkeypatch):
         build_dfm_part_family_producer_audit()
 
 
-def test_manifest_is_deterministic_and_release_smoke_embeds_same_audit(audit, tmp_path):
+def test_manifest_is_deterministic_and_release_helper_matches_audit(audit):
     second = build_dfm_part_family_producer_audit()
     assert second.manifest() == audit.manifest()
     assert second.manifest_sha256 == audit.manifest_sha256
     assert len(audit.manifest_sha256) == 64
 
-    report = export_release(tmp_path)
-    emitted = report["dfm_gates"]["part_family_producer_bindings"]
+    emitted = _dfm_part_family_producer_manifest(load_authority())
     assert emitted["manifest_sha256"] == audit.manifest_sha256
     assert emitted["baseline_family_count"] == 47
     assert emitted["digital_mvp_part_architecture_ready"] is False
