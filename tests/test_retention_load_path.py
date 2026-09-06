@@ -128,7 +128,7 @@ def test_load_path_graph_distinguishes_closed_positive_edges_from_open_counterpa
 
         for edge in (crown_open, facial_open):
             assert edge["attachment_class"] == ATTACHMENT_FEATURE_OPEN
-            assert edge["positive_attachment"] is True
+            assert edge["positive_attachment"] is False
             assert edge["clearance_only"] is False
             assert edge["load_transfer_digitally_closed"] is False
 
@@ -150,13 +150,24 @@ def test_clearance_semantics_cannot_masquerade_as_load_transfer():
             True,
             "invalid",
         )
-    with pytest.raises(RetentionLoadPathError):
+    with pytest.raises(RetentionLoadPathError, match="positive attachment"):
         LoadPathEdge(
-            "BAD_OPEN_COUNTERPART_EDGE",
+            "BAD_OPEN_COUNTERPART_ATTACHMENT_EDGE",
             "A",
             "B",
             ATTACHMENT_FEATURE_OPEN,
             True,
+            False,
+            False,
+            "invalid",
+        )
+    with pytest.raises(RetentionLoadPathError, match="cannot close"):
+        LoadPathEdge(
+            "BAD_OPEN_COUNTERPART_CLOSED_EDGE",
+            "A",
+            "B",
+            ATTACHMENT_FEATURE_OPEN,
+            False,
             False,
             True,
             "invalid",
