@@ -3,7 +3,7 @@ import hashlib
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "website/index.html"
-EXPECTED = "7d1e1120c34dd8ac003b4241faef60425709eb0d"
+EXPECTED = "d36b356774a4721e29887713148331142ff2d06c"
 MARKER = "/* Product inspection and wearability v17 */"
 
 
