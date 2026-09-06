@@ -11,6 +11,7 @@ from .boundary_release import (
     build_verified_interface_boundary_topology,
 )
 from .contact_simulation import build_contact_simulation_framework
+from .dfm_part_family_bindings import build_dfm_part_family_producer_audit
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
@@ -75,6 +76,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+    part_family_producers = build_dfm_part_family_producer_audit(model.authority)
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -98,6 +100,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
+            "part_family_producer_bindings": part_family_producers.manifest(),
         },
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
@@ -113,7 +116,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
             "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
             "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "serviceability. The Cell 16 part-family producer audit maps the unmerged Cell 5 47-family donor taxonomy "
+            "onto exact released-main producer roles, retires stale topology/envelope semantics, and records missing "
+            "successor pump-family requirements without promoting unmerged candidate geometry. Digital topology, DFM "
+            "manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
