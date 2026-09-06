@@ -20,7 +20,9 @@ def test_candidate_rebind_updates_observation_without_promoting_release_maturity
     states = {item["requirement_id"]: item["current_state"] for item in manifest["requirements"]}
 
     assert "source-bound body" in states[dfm.REQ_BODY_CAVITY_WALLS]
-    assert "37.477888 mL" in states[dfm.REQ_GEOMETRIC_CAPACITY]
+    assert "protected" in states[dfm.REQ_BODY_CAVITY_WALLS].lower()
+    assert "27.401629 mL" in states[dfm.REQ_GEOMETRIC_CAPACITY]
+    assert "short of the requirement" in states[dfm.REQ_GEOMETRIC_CAPACITY]
     assert "body inlet bore" in states[dfm.REQ_INLET_SEAL_CLOSURE]
     assert "asymmetric key rib" in states[dfm.REQ_KEYING_RETENTION]
     assert "service reservation" in states[dfm.REQ_SERVICE_PATH]
