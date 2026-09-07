@@ -6,6 +6,10 @@ The project is intentionally strict about the difference between a value that ca
 
 ## Current development state
 
+Production release is **blocked**. The generated model remains development CAD,
+with reference envelopes and unresolved manufacturing and physical evidence.
+See [the current production closure record](docs/PRODUCTION_CLOSURE_2026-09-07.md).
+
 **Phase 2: compliant facial interface and nose/T-zone architecture — Iteration 11 release candidate.**
 
 Phase 1 is complete. The current code-CAD baseline generates the rigid shell development geometry, a localized nasal-lobe membrane development reference, nominal protected apertures, four actuator packaging references, water-reservoir envelope, waste-cartridge envelope, battery packaging reference, STEP exports, and structured assertion reports. These are development artifacts, not claims that fit, cleansing efficacy, airflow, pressure, materials, or production readiness have been physically validated.
@@ -101,6 +105,24 @@ python -m pytest
 ```bash
 python -m masck_one.cli --output generated
 ```
+
+The build validates geometry, engineering assertions, DFM and source bindings before
+publishing STEP files. Water, battery, actuator and waste-cartridge package envelopes
+remain separate review files. The development assembly contains only the shell and
+local nasal membrane development geometry.
+
+`package_manifest.json` records the size and SHA-256 of every generated file.
+Verify a completed package with:
+
+```bash
+python -m masck_one.release_package generated
+```
+
+`PASS` describes the software build and file integrity. Production eligibility is
+reported separately as `BLOCKED`; `--production` exits unsuccessfully and writes no
+CAD. A failed staged export preserves the previous completed package. An unlisted
+STEP in the output directory requires a clean destination so stale CAD cannot be
+mistaken for this build.
 
 The build emits STEP files and `build_report.json`. Iteration 11 replaces the ambiguous `nasal_interface.step` placeholder with `nasal_lobe_membrane_reference.step`. The build report now also records deterministic coverage, compliant-interface and nasal-subsystem topology manifests. Software-verifiable failures fail the command; evidence-gated items remain explicitly `BLOCKED` instead of being reported as fabricated passes.
 

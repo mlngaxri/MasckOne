@@ -12,10 +12,9 @@ permissions:
 jobs:
   engineering-integrity:
     runs-on: ubuntu-latest
-    # Current released main passes the full engineering suite before entering the
-    # required deterministic CAD smoke build. Thirty minutes preserves every existing
-    # gate while providing measured runtime margin for the full suite plus export.
-    timeout-minutes: 30
+    # Baseline run 34074898394 consumed approximately 29 minutes, including 25:17
+    # in pytest. Keep every gate and allow margin for STEP round-trip verification.
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -157,6 +156,9 @@ jobs:
 
       - name: Deterministic CAD smoke build
         run: python -m masck_one.cli --output /tmp/masck-one-generated
+
+      - name: Verify generated package integrity
+        run: python -m masck_one.release_package /tmp/masck-one-generated
 
       - name: Preserve source-bound CAD review artifacts
         uses: actions/upload-artifact@v4

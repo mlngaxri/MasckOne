@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import math
+from hashlib import sha256
 from pathlib import Path
 
 import cadquery as cq
@@ -13,15 +15,51 @@ from .boundary_release import (
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
+from .release_package import (
+    ExportValidationError,
+    development_readiness,
+    publish_package,
+    validate_checks,
+)
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
 
 
-def _ensure_output_dir(path: str | Path) -> Path:
-    output = Path(path).resolve()
-    output.mkdir(parents=True, exist_ok=True)
-    return output
+def _component_record(component, *, included: bool) -> dict:
+    shapes = component.solid.vals()
+    if not shapes or any(not isinstance(shape, cq.Shape) for shape in shapes):
+        raise ExportValidationError(f"No B-rep shape for {component.name}")
+    solids = [solid for shape in shapes for solid in shape.Solids()]
+    if (not solids or any(not shape.isValid() for shape in shapes)
+            or any(not solid.isValid() or not math.isfinite(solid.Volume())
+                   or solid.Volume() <= 0 for solid in solids)):
+        raise ExportValidationError(f"Invalid or non-volumetric B-rep for {component.name}")
+    compound = cq.Compound.makeCompound(shapes)
+    bounds = compound.BoundingBox()
+    spans = [float(bounds.xlen), float(bounds.ylen), float(bounds.zlen)]
+    if any(not math.isfinite(span) or span <= 0 for span in spans):
+        raise ExportValidationError(f"Invalid B-rep bounds for {component.name}")
+    return {
+        "name": component.name,
+        "status": component.status,
+        "notes": component.notes,
+        "geometry_role": "DEVELOPMENT_GEOMETRY" if included else "PACKAGE_REFERENCE_ONLY",
+        "included_in_development_assembly": included,
+        "solid_count": len(solids),
+        "volume_mm3": sum(float(solid.Volume()) for solid in solids),
+        "bounding_span_mm": spans,
+        "volume_semantics": "GEOMETRIC_ONLY_NOT_MASS_OR_USABLE_FLUID_CAPACITY",
+        "step_file": f"{component.name}.step",
+    }
+
+
+def _source_content_identity() -> dict[str, str]:
+    root = Path(__file__).resolve().parents[2]
+    paths = [root / "pyproject.toml", root / "config/masck_one_authority.yaml",
+             root / "schemas/masck_one_authority.schema.json"]
+    paths.extend(sorted((root / "src/masck_one").rglob("*.py")))
+    return {p.relative_to(root).as_posix(): sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
 def _realized_waste_backbone_manifest() -> dict[str, object]:
@@ -35,36 +73,40 @@ def _realized_waste_backbone_manifest() -> dict[str, object]:
     }
 
 
-def export_release(output_dir: str | Path = "generated", model: MasckOneModel | None = None) -> dict:
+def export_release(
+    output_dir: str | Path = "generated",
+    model: MasckOneModel | None = None,
+    *,
+    production: bool = False,
+) -> dict:
+    if type(production) is not bool:
+        raise ExportValidationError("production must be a bool")
+    if production:
+        raise ExportValidationError(
+            "Production export is blocked: the current model contains development geometry "
+            "and package references, with unresolved manufacturing and physical evidence."
+        )
     model = model or build_model()
-    output = _ensure_output_dir(output_dir)
-
-    export_map = {
-        "rigid_shell": model.shell.solid,
-        "nasal_lobe_membrane_reference": model.nasal_interface.solid,
-        "water_reservoir_envelope": model.water_reservoir_envelope.solid,
-        "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
-        "battery_reference_envelope": model.battery_reference_envelope.solid,
-    }
-    for index, actuator in enumerate(model.actuator_envelopes, start=1):
-        export_map[f"actuator_envelope_{index}"] = actuator.solid
-
-    for name, solid in export_map.items():
-        cq.exporters.export(solid, str(output / f"{name}.step"))
-
-    # The current waste-cartridge solid is an authority package envelope, not cartridge
-    # material. Keep its standalone STEP for package/collision review but do not insert
-    # the proxy box into the physical development compound.
-    development_assembly_exclusions = ("waste_cartridge_envelope",)
-    shapes = [
-        component.solid.val()
-        for component in model.components
-        if component.status != "REFERENCE_ONLY" and component.name not in development_assembly_exclusions
-    ]
-    compound = cq.Compound.makeCompound(shapes)
-    cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
-
+    components = (
+        model.shell, model.nasal_interface, model.water_reservoir_envelope,
+        model.waste_cartridge_envelope, model.battery_reference_envelope,
+        *model.actuator_envelopes,
+    )
+    expected_names = (
+        "rigid_shell", "nasal_lobe_membrane_reference", "water_reservoir_envelope",
+        "waste_cartridge_envelope", "battery_reference_envelope",
+        "actuator_envelope_1", "actuator_envelope_2", "actuator_envelope_3", "actuator_envelope_4",
+    )
+    if tuple(c.name for c in components) != expected_names:
+        raise ExportValidationError("Export component identities changed; reconcile the export contract")
+    # All seven package envelopes remain individually available for packaging review.
+    # Only the authored shell and local membrane development geometry enter this compound.
+    included_names = ("rigid_shell", "nasal_lobe_membrane_reference")
+    development_assembly_exclusions = tuple(c.name for c in components if c.name not in included_names)
+    records = [_component_record(c, included=c.name in included_names) for c in components]
     checks = run_assertions(model)
+    check_records = [c.to_dict() for c in checks]
+    validate_checks(check_records)
     boundary_topology = build_verified_interface_boundary_topology(
         model.authority,
         model.facial_surface,
@@ -80,8 +122,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "authority_revision": model.authority.get("project", "authority_revision"),
         "development_phase": 3,
         "iteration": 15,
-        "result": "PASS" if not any(c.status == "FAIL" for c in checks) else "FAIL",
-        "checks": [c.to_dict() for c in checks],
+        "result": "PASS",
+        "build_scope": "DEVELOPMENT_ONLY",
+        "checks": check_records,
+        "production_readiness": development_readiness(check_records, records),
+        "components": records,
+        "source_content_sha256": _source_content_identity(),
         "digital_topology": {
             "coverage": model.coverage_mesh.manifest(),
             "compliant_interface": model.compliant_interface_topology.manifest(model.coverage_mesh),
@@ -103,20 +149,32 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "development_assembly_components": list(included_names),
+        "exported_step_files": [f"{c.name}.step" for c in components] + ["masck_one_development_assembly.step"],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
+            "Water, battery, actuator and waste-cartridge envelopes are package references and are excluded from "
+            "the development material compound. The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
             "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
             "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
             "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
-    with (output / "build_report.json").open("w", encoding="utf-8") as handle:
-        json.dump(report, handle, indent=2)
-        handle.write("\n")
+    # Complete all engineering/DFM/source checks and JSON serialization before any
+    # STEP output is published. A failed kernel export cannot overwrite a good package.
+    report_json = json.dumps(report, indent=2, allow_nan=False) + "\n"
+    shapes = [shape for c in components if c.name in included_names for shape in c.solid.vals()]
+    compound = cq.Compound.makeCompound(shapes)
+
+    def write_exports(stage: Path) -> None:
+        for component in components:
+            cq.exporters.export(component.solid, str(stage / f"{component.name}.step"))
+        cq.exporters.export(compound, str(stage / "masck_one_development_assembly.step"))
+        (stage / "build_report.json").write_text(report_json, encoding="utf-8")
+
+    publish_package(output_dir, write_exports)
     return report
