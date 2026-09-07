@@ -13,9 +13,9 @@ jobs:
   engineering-integrity:
     runs-on: ubuntu-latest
     # Current released main passes the full engineering suite before entering the
-    # required deterministic CAD smoke build. Thirty minutes preserves every existing
-    # gate while providing measured runtime margin for the full suite plus export.
-    timeout-minutes: 30
+    # required deterministic CAD smoke build. The additional bounded guard/yoke tests
+    # retain every existing gate and need runtime margin for the full suite plus export.
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -167,3 +167,29 @@ jobs:
             /tmp/masck-one-ci-source-provenance.json
           if-no-files-found: error
           retention-days: 3
+
+  guard-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install controlled project
+        run: python -m pip install -e ".[dev]"
+      - name: Generate exact continuous guard review
+        env:
+          SOURCE_BASE: ${{ github.event.pull_request.base.sha || github.sha }}
+        run: |
+          git merge-base --is-ancestor "$SOURCE_BASE" HEAD
+          python scripts/review_guard_installation.py /tmp/guard-review
+      - uses: actions/upload-artifact@v4
+        with:
+          name: guard-review-${{ github.event.pull_request.head.sha || github.sha }}
+          path: /tmp/guard-review
+          if-no-files-found: error
+          retention-days: 7
