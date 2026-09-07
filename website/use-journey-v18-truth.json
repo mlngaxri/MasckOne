@@ -1,0 +1,89 @@
+{
+  "global_claim_boundary": "Current digital product architecture only. Refill closures, population fit, release performance, final HMI mapping, complete customer service motion and charging connector remain unresolved. No dock, connector, charge duration, refill cap, finished bottle, validated fit range or physical release performance is claimed.",
+  "mobile_contract": "VERTICAL_SEQUENCED_STATES_NO_HORIZONTAL_CARD_CAROUSEL",
+  "prompt17_registered_assets_sha256": {
+    "front": "a656d982eb64d70aa664ff066dc9b5271e0e4f6dc237cb39046954a074d8f027",
+    "rear": "fbe6b47c39753db6ee701b3293abf144c703f251c7c66e6e625c62551536ffb7",
+    "side": "58235fd1137e702c782cb0f430c4815ef0aea744eb95f9e9fc5b67cf1b4d1b05"
+  },
+  "schema": "MASCK_ONE_WEBSITE_USE_JOURNEY_V18",
+  "sequence": [
+    "PREPARE",
+    "WEAR",
+    "CHOOSE",
+    "CLEAN",
+    "REMOVE",
+    "SERVICE",
+    "RECHARGE"
+  ],
+  "sequence_semantics": "PREPARE_REPLACES_FILL_AND_CHOOSE_COMBINES_SELECT_PLUS_START_BECAUSE_FINISHED_REFILL_HARDWARE_AND_HMI_MAPPING_ARE_NOT_FROZEN",
+  "sources": {
+    "cleanser_graph_head": "8d5762f35c0b64b736648ef3541377b43a168952",
+    "dry_side_head": "fa017c8379dabaefeecf53bf770858bebfde3067",
+    "fresh_water_head": "22d2e5baccbcfa56aa4a70e4e4dd59693e15affd",
+    "hmi_head": "7b32c674860cab87cbdd1f7e3303a4ce53515e95",
+    "occipital_yokes_head": "25686766238b66ecf900009042d721c08e042592",
+    "prompt17_manifest_blob": "dcb3338bd0984d36414cac03a765c807b2b04492",
+    "retention_release_guard_head": "fb586cc1ea1cde92526417593f9e5aa990d2ae4f",
+    "waste_cartridge_head": "4da053e57534c98617b9e8abfae7a35436a3718c",
+    "website_main_at_build": "3ff420c6def7943aa107b95231614ea52e257613"
+  },
+  "stages": [
+    {
+      "copy": "Prepare water and cleanser before wearing.",
+      "dominant_action": "ABSTRACT_SUPPLY_PREPARATION_NO_FINISHED_REFILL_HARDWARE",
+      "key": "prepare",
+      "label": "PREPARE",
+      "truth": "Fresh-water fill and cleanser service architecture exist digitally, but finished customer refill closures and complete product service motion remain unresolved.",
+      "view": "front"
+    },
+    {
+      "copy": "Place the shell to the face, then bring the rear supports into position.",
+      "dominant_action": "NOMINAL_PLACEMENT_WITH_CURRENT_BILATERAL_REAR_SUPPORT_GEOMETRY",
+      "key": "wear",
+      "label": "WEAR",
+      "truth": "Current retention geometry is digital; fit range, comfort, preload, hair interaction and population validation remain open.",
+      "view": "side"
+    },
+    {
+      "copy": "The physical control area is reserved for choosing and activation; final mapping remains open.",
+      "dominant_action": "CONTROL_CAPACITY_REGION_TOUCH_WITHOUT_FAKE_BUTTON_TRAVEL",
+      "key": "choose",
+      "label": "CHOOSE",
+      "truth": "The primary physical HMI capacity region is registered, but control count, function mapping, switch technology, travel, force and tactile response are not frozen.",
+      "view": "front"
+    },
+    {
+      "copy": "The cycle supplies, moves and recovers fluid while you wear it.",
+      "dominant_action": "CUSTOMER_LEVEL_SUPPLY_MOVE_RECOVER_CYCLE",
+      "key": "clean",
+      "label": "CLEAN",
+      "truth": "The website reuses the established supply, move and recover language without repeating engineering routing detail.",
+      "view": "front"
+    },
+    {
+      "copy": "Pull the right-side release, then lift the device away.",
+      "dominant_action": "RIGHT_SIDE_RELEASE_PULL_DIRECTION_PLUS_NOMINAL_LIFT_AWAY",
+      "key": "remove",
+      "label": "REMOVE",
+      "truth": "The current digital right-side release uses a captive one-hand pull in wearer +X; release force, time, wet usability and complete whole-head removal remain unvalidated.",
+      "view": "side"
+    },
+    {
+      "copy": "Routine access begins at the rear service cover.",
+      "dominant_action": "IDENTIFY_REAL_VISIBLE_REAR_SERVICE_COVER_WITHOUT_FAKE_INTERNAL_TUTORIAL",
+      "key": "service",
+      "label": "SERVICE",
+      "truth": "The visible rear service cover belongs to the current exterior candidate. Internal waste and supply service geometry is digital and continuous customer service motion remains open.",
+      "view": "rear"
+    },
+    {
+      "copy": "Charging is reserved at the left-lower power interface; connector hardware is not selected.",
+      "dominant_action": "LOCATE_CHARGING_RESERVATION_WITHOUT_CONNECTOR_CABLE_OR_DOCK",
+      "key": "recharge",
+      "label": "RECHARGE",
+      "truth": "The dry-side candidate reserves a left-lower wall crossing for charging, while connector type, retention, ingress and electrical validation remain unresolved.",
+      "view": "rear"
+    }
+  ]
+}

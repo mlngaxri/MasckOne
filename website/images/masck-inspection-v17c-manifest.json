@@ -1,0 +1,140 @@
+{
+  "asset_version": "v17c",
+  "authority_revision": "2026-08-30-R1",
+  "camera_character": "80MM_EQUIVALENT_RESTRAINED_PRODUCT_PORTRAIT",
+  "camera_id": "CAM_WEARABILITY_V17C_80MM_EQUIV",
+  "claim_boundary": "Registered digital review composition only. Exterior source uses the last PR70 checkpoint whose actual B-rep multi-view renderer passed before the current PR70 geometry regression. Retention uses the current green PR123 bilateral-yoke candidate in the same authority frame. The composition does not close frame-side attachment, fit, comfort, HMI mapping, material, serviceability, ingress, manufacturing or physical-validation gates.",
+  "coordinate_frame": "MASCK_ONE_AUTHORITY_WORLD_MM",
+  "geometry_maturity": {
+    "dry_side": "CURRENT_CANDIDATE_INTERNAL_PACKAGE_NOT_RENDERED_AS_VISIBLE_EXTERIOR",
+    "exterior": "CANDIDATE_LAST_RENDERER_PASS_CHECKPOINT_NOT_RELEASED_MAIN",
+    "hmi": "REGISTERED_CAPACITY_LOCATION_ONLY_MAPPING_AND_FINAL_HARDWARE_UNRESOLVED",
+    "rear_service_cover": "CANDIDATE_VISIBLE_EXTERIOR_GEOMETRY",
+    "retention": "CURRENT_CANDIDATE_MATERIAL_BREP_ATTACHMENT_COUNTERPART_UNRESOLVED"
+  },
+  "schema": "MASCK_ONE_WEBSITE_PRODUCT_INSPECTION_V17C",
+  "sources": {
+    "dry_side_package_head_sha": "fa017c8379dabaefeecf53bf770858bebfde3067",
+    "exterior_current_head_observed_sha": "7361ad3ae3aa91373cd9e723179e19b0554ec1b4",
+    "exterior_render_checkpoint_sha": "17e7db204c693f684855d923fcacd7c95468e599",
+    "hmi_decision_head_sha": "7b32c674860cab87cbdd1f7e3303a4ce53515e95",
+    "retention_current_head_sha": "25686766238b66ecf900009042d721c08e042592"
+  },
+  "views": {
+    "front_three_quarter": {
+      "asset": "masck-inspection-front-3q-v17c.webp",
+      "asset_sha256": "a656d982eb64d70aa664ff066dc9b5271e0e4f6dc237cb39046954a074d8f027",
+      "camera_direction": [
+        -0.43251581,
+        -0.03153761,
+        -0.90107461
+      ],
+      "camera_position_mm": [
+        354.662966,
+        25.860841,
+        728.881179
+      ],
+      "focal_point_mm": [
+        0.0,
+        0.0,
+        -10.0
+      ],
+      "hotspots": {
+        "hmi_primary_capacity": {
+          "x_percent": 71.461,
+          "y_percent": 40.655
+        },
+        "rear_service_cover": {
+          "x_percent": 56.104,
+          "y_percent": 49.599
+        },
+        "right_occipital_backer": {
+          "x_percent": 73.57,
+          "y_percent": 51.689
+        }
+      },
+      "image_px": [
+        1200,
+        1200
+      ],
+      "vertical_view_angle_deg": 18.5
+    },
+    "rear_three_quarter": {
+      "asset": "masck-inspection-rear-3q-v17c.webp",
+      "asset_sha256": "fbe6b47c39753db6ee701b3293abf144c703f251c7c66e6e625c62551536ffb7",
+      "camera_direction": [
+        -0.43251581,
+        -0.03153761,
+        0.90107461
+      ],
+      "camera_position_mm": [
+        354.662966,
+        25.860841,
+        -748.881179
+      ],
+      "focal_point_mm": [
+        0.0,
+        0.0,
+        -10.0
+      ],
+      "hotspots": {
+        "hmi_primary_capacity": {
+          "x_percent": 23.19,
+          "y_percent": 40.641
+        },
+        "rear_service_cover": {
+          "x_percent": 56.655,
+          "y_percent": 50.437
+        },
+        "right_occipital_backer": {
+          "x_percent": 38.0,
+          "y_percent": 52.752
+        }
+      },
+      "image_px": [
+        1200,
+        1200
+      ],
+      "vertical_view_angle_deg": 18.5
+    },
+    "side_rear": {
+      "asset": "masck-inspection-side-rear-v17c.webp",
+      "asset_sha256": "58235fd1137e702c782cb0f430c4815ef0aea744eb95f9e9fc5b67cf1b4d1b05",
+      "camera_direction": [
+        -0.9752813,
+        -0.02985555,
+        0.2189407
+      ],
+      "camera_position_mm": [
+        799.730667,
+        24.481551,
+        -189.531374
+      ],
+      "focal_point_mm": [
+        0.0,
+        0.0,
+        -10.0
+      ],
+      "hotspots": {
+        "hmi_primary_capacity": {
+          "x_percent": 36.336,
+          "y_percent": 40.619
+        },
+        "rear_service_cover": {
+          "x_percent": 64.509,
+          "y_percent": 50.097
+        },
+        "right_occipital_backer": {
+          "x_percent": 60.957,
+          "y_percent": 52.732
+        }
+      },
+      "image_px": [
+        1200,
+        1200
+      ],
+      "vertical_view_angle_deg": 18.5
+    }
+  },
+  "website_build_main_sha": "aa8e03449502239615f20872d5773eaec1b46586"
+}
