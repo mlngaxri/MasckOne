@@ -14,9 +14,9 @@ from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
-from .realized_waste_cartridge import build_realized_waste_cartridge
 from .structural_frame import build_structural_frame_topology
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
+from .realized_waste_cartridge import build_realized_waste_cartridge
 
 
 def _ensure_output_dir(path: str | Path) -> Path:
@@ -39,7 +39,6 @@ def _realized_waste_backbone_manifest() -> dict[str, object]:
 def export_release(output_dir: str | Path = "generated", model: MasckOneModel | None = None) -> dict:
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
-    realized_waste_cartridge = build_realized_waste_cartridge(model=model)
 
     export_map = {
         "rigid_shell": model.shell.solid,
@@ -51,24 +50,15 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for index, actuator in enumerate(model.actuator_envelopes, start=1):
         export_map[f"actuator_envelope_{index}"] = actuator.solid
 
-    cartridge_review_export_map = {
-        "cell11_waste_cartridge_body_candidate": realized_waste_cartridge.body_solid,
-        "cell11_waste_cartridge_closure_candidate": realized_waste_cartridge.closure_solid,
-        "cell11_waste_cartridge_installed_free_cavity_reference": realized_waste_cartridge.installed_free_cavity_reference,
-        "cell11_waste_cartridge_inlet_connector_clearance_reference": realized_waste_cartridge.inlet_connector_clearance_reference,
-        "cell11_waste_cartridge_seal_land_reference": realized_waste_cartridge.seal_land_reference,
-        "cell11_waste_cartridge_vent_clearance_reference": realized_waste_cartridge.vent_clearance_reference,
-        "cell11_waste_cartridge_service_reservation_reference": realized_waste_cartridge.service_reservation_reference,
-    }
-
-    for name, solid in {**export_map, **cartridge_review_export_map}.items():
+    cartridge = build_realized_waste_cartridge(model=model)
+    cartridge_manifest = cartridge.manifest()
+    export_map.update({f"cell11_{name}": solid for name,solid in cartridge.review_shapes().items()})
+    for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
-    # The current waste-cartridge model component remains an authority package envelope,
-    # not physical cartridge material.  Cell 11 body/closure geometry is deliberately
-    # exported only through the standalone review map above.  It does not enter this
-    # compound until the device-side dock, positive retention, wet coupling/seal and
-    # nonteleporting service path are digitally closed and independently reviewed.
+    # The current waste-cartridge solid is an authority package envelope, not cartridge
+    # material. Keep its standalone STEP for package/collision review but do not insert
+    # the proxy box into the physical development compound.
     development_assembly_exclusions = ("waste_cartridge_envelope",)
     shapes = [
         component.solid.val()
@@ -110,9 +100,6 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
         },
-        "digital_geometry": {
-            "realized_waste_cartridge_v1": realized_waste_cartridge.manifest(),
-        },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
         },
@@ -120,25 +107,20 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": (
-            [f"{name}.step" for name in export_map]
-            + [f"{name}.step" for name in cartridge_review_export_map]
-            + ["masck_one_development_assembly.step"]
-        ),
+        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "The released waste-cartridge model component remains an external package-envelope reference and stays "
-            "excluded from physical development-assembly material. Cell 11 now emits standalone source-bound body, "
-            "closure, installed-free-cavity, inlet-clearance, seal-land, vent-clearance and service-reservation STEP "
-            "evidence. Those candidate solids also remain outside the development assembly until device-side docking, "
-            "positive retention, wet coupling/seal, continuous service motion and DFM/tolerance closure are released. "
-            "The geometric free cavity is not usable or retained liquid capacity. No leakage, recovery, hygiene, "
-            "durability, disposal, wet-hand serviceability or physical-performance claim is promoted."
+            "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
+            "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
+            "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
+            "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
+            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
+    report["digital_topology"]["realized_waste_cartridge"] = cartridge_manifest
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2)
         handle.write("\n")

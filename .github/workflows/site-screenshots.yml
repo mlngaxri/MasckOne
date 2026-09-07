@@ -61,9 +61,28 @@ jobs:
           await scrollTo(handoffY);
           await shot('02-architecture-handoff');
 
+          const inspection = await page.evaluate(() => {
+            const el=document.querySelector('.product-inspection');
+            if(!el) return null;
+            return {
+              top:el.offsetTop,
+              range:Math.max(1,el.offsetHeight-innerHeight)
+            };
+          });
+          if(!inspection) throw new Error('product inspection missing');
+          for(const [fraction,name] of [
+            [.06,'03-inspection-front'],
+            [.31,'04-inspection-depth'],
+            [.56,'05-inspection-retention'],
+            [.81,'06-inspection-service']
+          ]){
+            await scrollTo(Math.round(inspection.top+inspection.range*fraction));
+            await shot(name);
+          }
+
           await clickView('system');
           await scrollTo(0);
-          await shot('03-systems-flow');
+          await shot('07-systems-flow');
 
           const motionY = await page.evaluate(() => {
             const el=document.querySelector('.systems-experience');
@@ -72,19 +91,19 @@ jobs:
             return Math.round(range*.72);
           });
           await scrollTo(motionY);
-          await shot('04-systems-motion');
+          await shot('08-systems-motion');
 
           await clickView('proof');
           await scrollTo(0);
-          await shot('05-proof-containment');
+          await shot('09-proof-containment');
 
           const proof2Y = await page.evaluate(() => document.querySelector('.page.clay')?.offsetTop || 0);
           await scrollTo(proof2Y);
-          await shot('06-proof-integrated-evidence');
+          await shot('10-proof-integrated-evidence');
 
           const closingY = await page.evaluate(() => document.querySelector('.closing-chamber')?.offsetTop || 0);
           await scrollTo(closingY);
-          await shot('07-closing-chamber');
+          await shot('11-closing-chamber');
 
           await browser.close();
           JS

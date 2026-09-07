@@ -1,211 +1,99 @@
 from dataclasses import replace
-
+import math
 import cadquery as cq
 import pytest
-
-import masck_one.realized_waste_cartridge as cartridge_module
+import masck_one.realized_waste_cartridge as module
 from masck_one.realized_waste_cartridge import (
-    AUTHORED_AGAINST_MAIN_SHA,
-    BODY_INLET_WALL_WORLD_MM,
-    CAPACITY_STATUS,
-    EVIDENCE_STATUS,
-    EXPECTED_INSTALLED_GEOMETRIC_FREE_CAPACITY_ML,
-    HYGIENE_CLASSIFICATION,
-    INLET_HANDOFF_GAP_MM,
-    KEY_STATUS,
-    PACKAGE_BOUNDS_WORLD_MM,
-    PACKAGE_ENVELOPE_XYZ_MM,
-    PROTECTED_FACE_STATUS,
-    RETAINED_CAPACITY_REQUIREMENT_ML,
-    ROUTE_HANDOFF_WORLD_MM,
-    SERVICE_STATUS,
-    VENT_STATUS,
+    build_realized_waste_cartridge, LinerSeed, volume, cylinder, box,
     RealizedWasteCartridgeError,
-    build_realized_waste_cartridge,
 )
-from masck_one.waste_acquisition import PHASE_MIXED_WASTE
-from masck_one.waste_pump_architecture import (
-    INTERFACE_CARTRIDGE_INLET_I27,
-    ROUTE_BARRIER_TO_CARTRIDGE,
-)
+from masck_one.waste_cartridge_analysis import local_bolt_sweeps, require_installed_service_clear, wall_separation
 
+@pytest.fixture(scope='module')
+def cartridge(): return build_realized_waste_cartridge()
 
-FLOAT_COMPARISON_SLACK_MM = 1e-12
+def test_connected_capacity_is_actual_free_space_clear_of_released_shell_and_all_protected_zones(cartridge):
+    cartridge.validate()
+    assert cartridge.installed_geometric_free_capacity_mL >= 35
+    assert len(cartridge.installed_free_cavity_reference.val().Solids()) == 1
+    assert volume(cartridge.installed_free_cavity_reference.intersect(cartridge.dry_retention_reference)) == pytest.approx(0,abs=1e-7)
+    assert volume(cartridge.installed_free_cavity_reference.intersect(cartridge.vent_clearance_reference)) == pytest.approx(0,abs=1e-7)
+    assert wall_separation(cartridge)['minimum_nested_side_separation_mm'] > .10
 
+@pytest.mark.parametrize('field,value', [
+    ('wall_mm',float('nan')),('floor_mm',float('inf')),('lid_mm',0),
+    ('wall_mm',.01),('draft_deg',0),('collar_width_mm',float('-inf')),
+])
+def test_nonfinite_or_collapsed_seed_is_rejected(field,value):
+    with pytest.raises(RealizedWasteCartridgeError): replace(LinerSeed(),**{field:value})
 
-@pytest.fixture(scope="module")
-def cartridge():
-    return build_realized_waste_cartridge()
+def test_package_and_dry_sockets_cannot_be_counted_as_cavity(cartridge):
+    for fake in (cartridge.model.waste_cartridge_envelope.solid,
+                 cartridge.installed_free_cavity_reference.union(cartridge.retention_pockets_reference)):
+        poisoned=replace(cartridge,installed_free_cavity_reference=fake)
+        with pytest.raises(RealizedWasteCartridgeError): poisoned.validate()
 
+def test_capacity_reduction_and_disconnected_void_cannot_be_promoted(cartridge):
+    shortened=cartridge.installed_free_cavity_reference.cut(box((200,200,3),(0,-80,-.35)))
+    assert volume(shortened)/1000 < 35
+    with pytest.raises(RealizedWasteCartridgeError):
+        replace(cartridge,installed_free_cavity_reference=shortened).validate()
 
-def _bounds(shape: cq.Workplane):
-    box = shape.val().BoundingBox()
-    return {
-        "x": (float(box.xmin), float(box.xmax)),
-        "y": (float(box.ymin), float(box.ymax)),
-        "z": (float(box.zmin), float(box.zmax)),
-    }
+@pytest.mark.parametrize('field,value',[
+    ('fluid_identity','FRESH_WATER'),('route_id','ROUTE_PUMP_TO_CARTRIDGE'),
+    ('physical_validation_eligible',True),('source_backbone_manifest_sha256','0'*64),
+])
+def test_wrong_fluid_backflow_bypass_and_false_physical_or_source_receipts_fail(cartridge,field,value):
+    with pytest.raises(RealizedWasteCartridgeError): replace(cartridge,**{field:value}).validate()
 
+def test_deleted_device_parts_and_filled_inlet_are_rejected(cartridge):
+    with pytest.raises(RealizedWasteCartridgeError):
+        replace(cartridge,device_parts={}).validate()
+    plugged=cartridge.body_solid.union(cylinder((-37,-82,14),(1,0,0),2,2.4))
+    with pytest.raises(RealizedWasteCartridgeError): replace(cartridge,body_solid=plugged).validate()
 
-def test_realization_binds_exact_released_route_identity_and_package(cartridge):
-    manifest = cartridge.manifest()
-    assert manifest["authored_against_main_sha"] == AUTHORED_AGAINST_MAIN_SHA
-    assert manifest["coordinate_frame_id"] == "MASCK_ONE_AUTHORITY_WORLD_MM"
-    assert manifest["fluid_identity"] == PHASE_MIXED_WASTE
-    assert manifest["route_id"] == ROUTE_BARRIER_TO_CARTRIDGE
-    assert manifest["inlet_interface_id"] == INTERFACE_CARTRIDGE_INLET_I27
-    assert tuple(manifest["released_route_handoff_world_mm"]) == ROUTE_HANDOFF_WORLD_MM
-    assert tuple(manifest["body_inlet_wall_world_mm"]) == BODY_INLET_WALL_WORLD_MM
-    assert manifest["inlet_handoff_gap_mm"] == INLET_HANDOFF_GAP_MM
-    assert tuple(manifest["package_envelope_xyz_mm"]) == PACKAGE_ENVELOPE_XYZ_MM
-    assert {
-        axis: tuple(values) for axis, values in manifest["package_bounds_world_mm"].items()
-    } == PACKAGE_BOUNDS_WORLD_MM
+def test_stale_source_is_rejected_before_geometry(monkeypatch):
+    monkeypatch.setattr(module,'SOURCE_GIT_BLOB_IDENTITIES',(('config/masck_one_authority.yaml','0'*40),))
+    with pytest.raises(RealizedWasteCartridgeError,match='source moved'): build_realized_waste_cartridge()
 
+def test_bolt_retraction_is_continuous_but_does_not_promote_device_service(cartridge):
+    assert len(local_bolt_sweeps(cartridge)) == 2
+    with pytest.raises(RealizedWasteCartridgeError,match='installed service remains blocked'):
+        require_installed_service_clear(cartridge)
 
-def test_body_closure_and_cavity_are_valid_nonoverlapping_breps_inside_package(cartridge):
-    for shape in (
-        cartridge.body_solid,
-        cartridge.closure_solid,
-        cartridge.installed_free_cavity_reference,
-    ):
-        assert shape.solids().size() == 1
-        assert shape.val().isValid()
-        assert shape.val().Volume() > 0.0
+def test_positive_bolts_block_unauthorized_axial_cartridge_movement(cartridge):
+    moved=cartridge.closure_solid.translate((0,0,-1))
+    assert all(volume(moved.intersect(cartridge.device_parts[n+'_bolt']))>1e-4 for n in ('left','right'))
+    assert all(volume(moved.intersect(cartridge.device_parts[n+'_bolt'].translate((s*2,0,0))))<1e-7
+               for n,s in [('left',-1),('right',1)])
 
-    assert cartridge.body_solid.val().intersect(cartridge.closure_solid.val()).Volume() == pytest.approx(0.0, abs=1e-7)
-    assert cartridge.body_solid.val().intersect(cartridge.installed_free_cavity_reference.val()).Volume() == pytest.approx(0.0, abs=1e-7)
-    assert cartridge.closure_solid.val().intersect(cartridge.installed_free_cavity_reference.val()).Volume() == pytest.approx(0.0, abs=1e-7)
+def test_key_blocks_reversed_orientation(cartridge):
+    wrong=cartridge.closure_solid.rotate((0,-80,0),(0,-80,1),180)
+    assert volume(wrong.intersect(cartridge.device_parts['key_tongue'])) > 1e-4
+    assert volume(cartridge.closure_solid.intersect(cartridge.device_parts['key_tongue'])) < 1e-7
 
-    for shape in (cartridge.body_solid, cartridge.closure_solid, cartridge.installed_free_cavity_reference):
-        bounds = _bounds(shape)
-        for axis in ("x", "y", "z"):
-            # Preserve the existing 1e-7 mm B-rep containment criterion. The extra
-            # 1e-12 mm only absorbs binary floating-point comparison noise at the
-            # exact threshold and is not engineering clearance.
-            assert bounds[axis][0] >= PACKAGE_BOUNDS_WORLD_MM[axis][0] - 1e-7 - FLOAT_COMPARISON_SLACK_MM
-            assert bounds[axis][1] <= PACKAGE_BOUNDS_WORLD_MM[axis][1] + 1e-7 + FLOAT_COMPARISON_SLACK_MM
+def test_manifest_separates_candidate_material_and_references_from_physical_evidence(cartridge):
+    report=cartridge.manifest()
+    assert report['parts']['cavity']['role']=='REFERENCE_ONLY'
+    assert report['parts']['body']['role']=='CANDIDATE_MATERIAL'
+    assert report['retained_capacity_mL'] is None
+    assert report['physical_validation_eligible'] is False
+    assert report['development_assembly_material_eligible'] is False
+    assert report['digital_mvp_cartridge_dfm_ready'] is False
+    assert report['continuous_service_motion_realized'] is False
 
+def test_body_closure_and_cavity_step_roundtrip(cartridge,tmp_path):
+    for name in ('body_solid','closure_solid','installed_free_cavity_reference'):
+        s=getattr(cartridge,name);path=tmp_path/(name+'.step')
+        cq.exporters.export(s,str(path));t=cq.importers.importStep(str(path))
+        assert t.val().isValid() and len(t.val().Solids())==1
+        assert volume(t)==pytest.approx(volume(s),rel=0,abs=1e-4)
 
-def test_exact_authority_protected_face_envelopes_are_clear(cartridge):
-    manifest = cartridge.manifest()
-    protected = manifest["protected_zone_intersections_mm3"]
-    assert manifest["protected_face_status"] == PROTECTED_FACE_STATUS
-    assert len(protected) == 5
-    assert set(protected) == {
-        "MASCK_ONE-PROTECTED-EYE-LEFT",
-        "MASCK_ONE-PROTECTED-EYE-RIGHT",
-        "MASCK_ONE-PROTECTED-MOUTH",
-        "MASCK_ONE-PROTECTED-NOSTRIL-LEFT",
-        "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT",
-    }
-    assert all(volume == pytest.approx(0.0, abs=1e-7) for volume in protected.values())
-    assert "2P5D" in manifest["protected_face_policy"]
-
-
-def test_geometric_capacity_deficit_is_explicit_and_never_promoted_to_retained_or_usable(cartridge):
-    manifest = cartridge.manifest()
-    assert cartridge.installed_geometric_free_capacity_mL == pytest.approx(
-        EXPECTED_INSTALLED_GEOMETRIC_FREE_CAPACITY_ML,
-        abs=1e-6,
-    )
-    assert cartridge.geometric_capacity_delta_to_retained_requirement_mL == pytest.approx(
-        EXPECTED_INSTALLED_GEOMETRIC_FREE_CAPACITY_ML - RETAINED_CAPACITY_REQUIREMENT_ML,
-        abs=1e-6,
-    )
-    assert cartridge.geometric_margin_over_retained_requirement_mL < 0.0
-    assert manifest["retained_capacity_requirement_mL"] == RETAINED_CAPACITY_REQUIREMENT_ML
-    assert manifest["geometric_capacity_requirement_met"] is False
-    assert manifest["digital_capacity_ready"] is False
-    assert manifest["capacity_status"] == CAPACITY_STATUS
-    assert "BELOW_RETAINED_REQUIREMENT" in manifest["capacity_status"]
-    assert "NOT_USABLE_OR_RETAINED" in manifest["capacity_status"]
-    assert manifest["physical_validation_eligible"] is False
-    assert manifest["development_assembly_material_eligible"] is False
-
-
-def test_inlet_key_vent_hygiene_and_service_boundaries_remain_honest(cartridge):
-    manifest = cartridge.manifest()
-    assert manifest["hygiene_classification"] == HYGIENE_CLASSIFICATION == "WET_REMOVABLE"
-    assert manifest["key_status"] == KEY_STATUS
-    assert manifest["device_key_counterpart_realized"] is False
-    assert manifest["positive_retention_realized"] is False
-    assert manifest["vent_status"] == VENT_STATUS
-    assert manifest["service_status"] == SERVICE_STATUS
-    assert manifest["service_condition"] == "MASK_REMOVED_UNPOWERED"
-    assert manifest["continuous_service_motion_realized"] is False
-    assert manifest["evidence_status"] == EVIDENCE_STATUS
-    assert manifest["inlet_bore_diameter_mm"] == 2.4
-    assert manifest["inlet_reference_diameter_mm"] == 4.0
-
-
-def test_reference_geometry_is_explicit_and_not_silently_material(cartridge):
-    for shape in (
-        cartridge.inlet_connector_clearance_reference,
-        cartridge.seal_land_reference,
-        cartridge.vent_clearance_reference,
-        cartridge.service_reservation_reference,
-    ):
-        assert shape.solids().size() == 1
-        assert shape.val().isValid()
-        assert shape.val().Volume() > 0.0
-    inlet_bounds = _bounds(cartridge.inlet_connector_clearance_reference)
-    assert inlet_bounds["x"] == pytest.approx((-41.0, -37.0), abs=1e-7)
-    assert cartridge.inlet_connector_clearance_reference.val().intersect(cartridge.body_solid.val()).Volume() == pytest.approx(0.0, abs=1e-7)
-
-
-def test_current_shell_interference_is_measured_not_hidden(cartridge):
-    manifest = cartridge.manifest()
-    assert manifest["current_released_shell_interference_mm3"] >= 0.0
-    if manifest["current_released_shell_interference_mm3"] > 1e-7:
-        assert manifest["current_released_shell_state"].startswith("CURRENT_RELEASED_SHELL_INTERFERENCE_PRESENT")
-    else:
-        assert manifest["current_released_shell_state"].startswith("NO_CURRENT_RELEASED_SHELL_INTERFERENCE")
-    assert manifest["development_assembly_material_eligible"] is False
-
-
-def test_manifest_is_deterministic_and_source_bound(cartridge):
-    second = build_realized_waste_cartridge()
-    assert second.manifest() == cartridge.manifest()
-    assert second.manifest_sha256 == cartridge.manifest_sha256
-    assert len(cartridge.manifest_sha256) == 64
-    assert len(cartridge.source_backbone_manifest_sha256) == 64
-
-
-def test_stale_source_binding_nonfinite_collision_and_protected_conflict_fail_closed(cartridge, monkeypatch):
-    monkeypatch.setattr(
-        cartridge_module,
-        "SOURCE_GIT_BLOB_IDENTITIES",
-        (("config/masck_one_authority.yaml", "0" * 40),),
-    )
-    with pytest.raises(RealizedWasteCartridgeError, match="source moved"):
-        build_realized_waste_cartridge()
-    monkeypatch.undo()
-
-    bad_shell = replace(cartridge, current_released_shell_interference_mm3=float("nan"))
-    with pytest.raises(RealizedWasteCartridgeError, match="shell interference must be finite"):
-        bad_shell.validate()
-
-    zones = list(cartridge.protected_zone_intersections_mm3)
-    zones[2] = (zones[2][0], 0.01)
-    bad_protected = replace(cartridge, protected_zone_intersections_mm3=tuple(zones))
-    with pytest.raises(RealizedWasteCartridgeError, match="violates protected zone"):
-        bad_protected.validate()
-
-
-def test_step_round_trip_preserves_body_closure_and_cavity(tmp_path, cartridge):
-    for name, shape in (
-        ("body", cartridge.body_solid),
-        ("closure", cartridge.closure_solid),
-        ("cavity", cartridge.installed_free_cavity_reference),
-    ):
-        path = tmp_path / f"waste_cartridge_{name}.step"
-        cq.exporters.export(shape, str(path))
-        imported = cq.importers.importStep(str(path))
-        assert imported.solids().size() == 1
-        assert imported.val().isValid()
-        assert imported.val().Volume() == pytest.approx(shape.val().Volume(), rel=0.0, abs=1e-4)
-        original_bounds = _bounds(shape)
-        imported_bounds = _bounds(imported)
-        for axis in ("x", "y", "z"):
-            assert imported_bounds[axis] == pytest.approx(original_bounds[axis], abs=1e-4)
+def test_rebuild_repeats_source_bound_geometry_within_kernel_resolution(cartridge):
+    again=build_realized_waste_cartridge()
+    assert again.source_backbone_manifest_sha256==cartridge.source_backbone_manifest_sha256
+    assert set(again.review_shapes())==set(cartridge.review_shapes())
+    for name,s in again.review_shapes().items():
+        original=cartridge.review_shapes()[name]
+        assert len(s.val().Solids())==len(original.val().Solids())
+        assert volume(s)==pytest.approx(volume(original),rel=0,abs=1e-8)

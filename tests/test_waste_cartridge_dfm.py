@@ -164,3 +164,9 @@ def test_release_export_emits_dfm_gate_and_excludes_proxy_from_physical_assembly
     assert "waste_cartridge_envelope.step" in report["exported_step_files"]
     assert (tmp_path / "waste_cartridge_envelope.step").is_file()
     assert (tmp_path / "masck_one_development_assembly.step").is_file()
+    candidate = report["digital_topology"]["realized_waste_cartridge"]
+    assert candidate["installed_geometric_free_capacity_mL"] >= 35
+    assert candidate["development_assembly_material_eligible"] is False
+    assert candidate["physical_validation_eligible"] is False
+    assert (tmp_path / "cell11_body.step").is_file()
+    assert (tmp_path / "cell11_cavity.step").is_file()

@@ -1,620 +1,311 @@
-"""Cell 11 source-bound digital realization of the replaceable waste cartridge.
+"""Cell 11 supported-liner cartridge DOE, digital geometry only.
 
-The released 74 x 36 x 20 mm cartridge package is converted into bounded review
-geometry while preserving the exact mixed-waste route and interface identity.  Physical
-body and closure material are required to clear every authority-derived 2.5D protected
-face envelope.  The mouth hard envelope is therefore cut out of the cartridge footprint,
-with a provisional internal wall seed around that protected boundary.
-
-The resulting installed geometric free cavity is intentionally allowed to fail the
-35 mL retained-capacity requirement.  Geometric capacity is not usable/retained liquid
-performance, and protected-face clearance takes precedence over manufacturing confidence
-or a false capacity pass.  Device-side retention, selected wet coupling/seal, continuous
-service motion, removed-state closure and physical evidence remain release blockers.
+Replaces the thick open tray and deep plug with a formed liner, local dry
+reinforcements and a shallow closure. Process capability and installed-device
+service are unresolved; nominal cavity volume is not retained-liquid evidence.
 """
 from __future__ import annotations
-
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict, replace
+from functools import lru_cache
 from hashlib import sha1, sha256
+from pathlib import Path
 import json
 import math
-from pathlib import Path
-import re
-
 import cadquery as cq
 
-from .model import MasckOneModel, build_model
-from .realized_waste_backbone_release import (
-    Cell4WasteBackboneRelease,
-    build_current_cell4_waste_backbone_release,
-)
+from .model import build_model, _loft_ellipses
+from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .waste_acquisition import PHASE_MIXED_WASTE
-from .waste_pump_architecture import (
-    INTERFACE_CARTRIDGE_INLET_I27,
-    ROUTE_BARRIER_TO_CARTRIDGE,
-)
+from .waste_pump_architecture import ROUTE_BARRIER_TO_CARTRIDGE, INTERFACE_CARTRIDGE_INLET_I27
 
-
-SCHEMA = "MASCK_ONE_CELL11_REALIZED_WASTE_CARTRIDGE_V1"
-WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
-AUTHORED_AGAINST_MAIN_SHA = "afe29ff78419b6625dca5594974b6351f6f80e1b"
-AUTHORITY_REVISION = "2026-08-30-R1"
-
-SOURCE_GIT_BLOB_IDENTITIES: tuple[tuple[str, str], ...] = (
-    ("config/masck_one_authority.yaml", "2608dda483b995539de422290371c219668a1527"),
-    ("src/masck_one/model.py", "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"),
-    ("src/masck_one/anatomy.py", "872d1e5be1b9ce9baa5b63cb53462eb7b36f40ab"),
-    ("src/masck_one/facial_surface.py", "764f6f65b83ac7709d959bb0f37f861c90ea2794"),
-    ("src/masck_one/protected_volumes.py", "ff2b9b288559f9b268e5d08a1d6c78335f745cf1"),
-    ("src/masck_one/waste_acquisition.py", "7108fcfbe2baeaa9a343199a6817122ac2aea7ab"),
-    ("src/masck_one/waste_cartridge.py", "9dc0fe8a0ed92083c68406da3993e57e767e2483"),
-    ("src/masck_one/waste_pump_architecture.py", "ace02ee529070465b11832f475771125636312cb"),
-    ("src/masck_one/realized_waste_backbone.py", "6aa79d9a613e278f32da85b4654c0e35cc09b7ca"),
-    ("src/masck_one/realized_waste_backbone_release.py", "86f2b12d8721ce0fb233d7b026aed3154de9c964"),
-)
-
-CARTRIDGE_ID = "WASTE-CARTRIDGE-I27-CELL11-REALIZATION-V1"
-BODY_ID = "WASTE-CARTRIDGE-I27-CELL11-BODY"
-CLOSURE_ID = "WASTE-CARTRIDGE-I27-CELL11-CLOSURE"
-CAVITY_ID = "WASTE-CARTRIDGE-I27-CELL11-INSTALLED-FREE-CAVITY-REFERENCE"
-INLET_REFERENCE_ID = "WASTE-CARTRIDGE-I27-CELL11-INLET-CONNECTOR-CLEARANCE"
-SEAL_LAND_REFERENCE_ID = "WASTE-CARTRIDGE-I27-CELL11-CLOSURE-SEAL-LAND"
-VENT_REFERENCE_ID = "WASTE-CARTRIDGE-I27-CELL11-VENT-CLEARANCE"
-SERVICE_REFERENCE_ID = "WASTE-CARTRIDGE-I27-CELL11-INFERIOR-SERVICE-RESERVATION"
-KEY_FEATURE_ID = "WASTE-CARTRIDGE-I27-CELL11-ASYMMETRIC-KEY-RIB"
-
-PACKAGE_CENTER_WORLD_MM = (0.0, -80.0, 8.0)
-PACKAGE_ENVELOPE_XYZ_MM = (74.0, 36.0, 20.0)
-PACKAGE_BOUNDS_WORLD_MM = {
-    "x": (-37.0, 37.0),
-    "y": (-98.0, -62.0),
-    "z": (-2.0, 18.0),
-}
-
-BODY_OUTER_XYZ_MM = (74.0, 35.0, 18.0)
-BODY_CENTER_WORLD_MM = (0.0, -80.0, 7.0)
-BODY_WALL_SEED_MM = 1.2
-PROTECTED_BOUNDARY_WALL_SEED_MM = BODY_WALL_SEED_MM
-CLOSURE_PLATE_XYZ_MM = (74.0, 35.0, 2.0)
-CLOSURE_PLATE_CENTER_WORLD_MM = (0.0, -80.0, 17.0)
-CLOSURE_PLUG_XYZ_MM = (70.0, 31.0, 0.8)
-CLOSURE_PLUG_CENTER_WORLD_MM = (0.0, -80.0, 15.6)
-
-KEY_RIB_XYZ_MM = (8.0, 0.5, 5.0)
-KEY_RIB_CENTER_WORLD_MM = (24.0, -97.75, 8.0)
-
-ROUTE_HANDOFF_WORLD_MM = (-41.0, -82.0, 14.0)
-BODY_INLET_WALL_WORLD_MM = (-37.0, -82.0, 14.0)
-INLET_BORE_DIAMETER_MM = 2.4
-INLET_REFERENCE_DIAMETER_MM = 4.0
-INLET_HANDOFF_GAP_MM = 4.0
-
-VENT_BORE_CENTER_XY_MM = (26.0, -90.0)
-VENT_BORE_DIAMETER_MM = 2.0
-VENT_CLEARANCE_DIAMETER_MM = 5.0
-VENT_CLEARANCE_HEIGHT_MM = 8.0
-
-SEAL_LAND_REFERENCE_THICKNESS_MM = 0.20
-SERVICE_TRANSLATION_AXIS_WORLD = (0.0, -1.0, 0.0)
-SERVICE_TRANSLATION_SEED_MM = 45.0
-SERVICE_REFERENCE_XYZ_MM = (76.0, 80.0, 22.0)
-SERVICE_REFERENCE_CENTER_WORLD_MM = (0.0, -102.5, 8.0)
-SERVICE_CONDITION = "MASK_REMOVED_UNPOWERED"
-
-PROTECTED_PRISM_Z_MIN_MM = -20.0
-PROTECTED_PRISM_Z_MAX_MM = 40.0
-EXPECTED_INSTALLED_GEOMETRIC_FREE_CAPACITY_ML = 27.401629078400827
+AUTHORED_AGAINST_MAIN_SHA = 'b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc'
+PREDECESSOR_HEAD_SHA = '4da053e57534c98617b9e8abfae7a35436a3718c'
+AUTHORITY_REVISION = '2026-08-30-R1'
+WORLD_FRAME_ID = 'MASCK_ONE_AUTHORITY_WORLD_MM'
+SCHEMA = 'MASCK_ONE_CELL11_SUPPORTED_LINER_V2'
 RETAINED_CAPACITY_REQUIREMENT_ML = 35.0
-
-BODY_STATUS = (
-    "CELL11_DIGITAL_CARTRIDGE_BODY_AND_OPEN_TRAY_CAVITY_REALIZED_"
-    "PROVISIONAL_WALL_NOT_MATERIAL_OR_PROCESS_FREEZE"
-)
-CLOSURE_STATUS = (
-    "CELL11_SEPARATE_CLOSURE_AND_ALIGNMENT_PLUG_REALIZED_"
-    "SEAL_MATERIAL_COMPRESSION_AND_LEAKAGE_UNRESOLVED"
-)
-CAPACITY_STATUS = (
-    "GEOMETRIC_INSTALLED_FREE_CAVITY_BELOW_RETAINED_REQUIREMENT_"
-    "NOT_USABLE_OR_RETAINED_LIQUID_PERFORMANCE"
-)
-INLET_STATUS = (
-    "RELEASED_ROUTE_HANDOFF_AND_BODY_BORE_REALIZED_CONNECTOR_SEAL_AND_WET_COUPLING_UNRESOLVED"
-)
-KEY_STATUS = (
-    "CARTRIDGE_SIDE_ASYMMETRIC_KEY_FEATURE_REALIZED_DEVICE_COUNTERPART_AND_POSITIVE_RETENTION_UNRESOLVED"
-)
-VENT_STATUS = (
-    "VENT_BORE_AND_EXTERNAL_CLEARANCE_REALIZED_MEDIA_EMISSION_CONTAINMENT_ORIENTATION_AND_LEAKAGE_UNVALIDATED"
-)
-SERVICE_STATUS = (
-    "MASK_REMOVED_INFERIOR_TRANSLATION_RESERVATION_ONLY_CONTINUOUS_SERVICE_MOTION_AND_INTERFACE_DISCONNECT_UNRESOLVED"
-)
-HYGIENE_CLASSIFICATION = "WET_REMOVABLE"
-PROTECTED_FACE_STATUS = (
-    "BODY_AND_CLOSURE_CLEAR_EXACT_AUTHORITY_2P5D_HARD_ENVELOPES_"
-    "ANATOMICAL_3D_VALIDATION_REMAINS_BLOCKED"
-)
-EVIDENCE_STATUS = (
-    "DIGITAL_CARTRIDGE_BODY_CLOSURE_CAVITY_INLET_KEY_VENT_PROTECTED_FACE_AND_SERVICE_REFERENCE_GEOMETRY_ONLY_NOT_"
-    "RETAINED_CAPACITY_SEAL_LEAKAGE_HYGIENE_DURABILITY_WET_HAND_DISPOSAL_OR_PHYSICAL_EVIDENCE"
+PACKAGE_ENVELOPE_XYZ_MM = (74., 36., 20.)
+PACKAGE_CENTER_WORLD_MM = (0., -80., 8.)
+ROUTE_HANDOFF_WORLD_MM = (-41., -82., 14.)
+BODY_INLET_WALL_WORLD_MM = (-37., -82., 14.)
+TOL_MM3 = 1e-7
+ROOT = Path(__file__).resolve().parents[2]
+SOURCE_GIT_BLOB_IDENTITIES = (
+    ('config/masck_one_authority.yaml','2608dda483b995539de422290371c219668a1527'),
+    ('schemas/masck_one_authority.schema.json','58accbe48619058cb99ab51a0387cf01874c3717'),
+    ('src/masck_one/model.py','9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894'),
+    ('src/masck_one/protected_volumes.py','ff2b9b288559f9b268e5d08a1d6c78335f745cf1'),
+    ('src/masck_one/waste_acquisition.py','7108fcfbe2baeaa9a343199a6817122ac2aea7ab'),
+    ('src/masck_one/waste_cartridge.py','9dc0fe8a0ed92083c68406da3993e57e767e2483'),
+    ('src/masck_one/waste_pump_architecture.py','ace02ee529070465b11832f475771125636312cb'),
+    ('src/masck_one/realized_waste_backbone.py','6aa79d9a613e278f32da85b4654c0e35cc09b7ca'),
+    ('src/masck_one/realized_waste_backbone_release.py','86f2b12d8721ce0fb233d7b026aed3154de9c964'),
 )
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-_TOL = 1e-7
-_SHA64 = re.compile(r"^[0-9a-f]{64}$")
+class RealizedWasteCartridgeError(ValueError): pass
 
-
-class RealizedWasteCartridgeError(ValueError):
-    pass
-
-
-def _git_blob_sha(path: Path) -> str:
-    data = path.read_bytes()
-    return sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
-
-
-def _require_current_sources() -> None:
-    seen: set[str] = set()
-    for relative_path, expected in SOURCE_GIT_BLOB_IDENTITIES:
-        if relative_path in seen:
-            raise RealizedWasteCartridgeError(f"duplicate source binding: {relative_path}")
-        seen.add(relative_path)
-        path = _REPO_ROOT / relative_path
-        if not path.is_file():
-            raise RealizedWasteCartridgeError(f"required cartridge source missing: {relative_path}")
-        actual = _git_blob_sha(path)
+def require_sources():
+    for name, expected in SOURCE_GIT_BLOB_IDENTITIES:
+        data=(ROOT/name).read_bytes()
+        actual=sha1(f'blob {len(data)}\0'.encode()+data).hexdigest()
         if actual != expected:
-            raise RealizedWasteCartridgeError(
-                f"cartridge source moved at {relative_path}; expected {expected}, got {actual}"
-            )
+            raise RealizedWasteCartridgeError(f'cartridge source moved: {name}')
 
+def volume(s):
+    shape=s.val() if isinstance(s,cq.Workplane) else s
+    return math.fsum(x.Volume(1e-12) for x in shape.Solids())
 
-def _box(size: tuple[float, float, float], center: tuple[float, float, float]) -> cq.Workplane:
-    return cq.Workplane("XY").box(*size, centered=(True, True, True)).translate(center)
+def box(size, center): return cq.Workplane('XY').box(*size).translate(center)
 
+def cylinder(start, axis, length, diameter):
+    return cq.Workplane(obj=cq.Solid.makeCylinder(diameter/2,length,cq.Vector(*start),cq.Vector(*axis)))
 
-def _cylinder(
-    start: tuple[float, float, float],
-    axis: tuple[float, float, float],
-    length_mm: float,
-    diameter_mm: float,
-) -> cq.Workplane:
-    return cq.Workplane(
-        obj=cq.Solid.makeCylinder(
-            diameter_mm / 2.0,
-            length_mm,
-            cq.Vector(*start),
-            cq.Vector(*axis),
-        )
-    )
+def bounds(s):
+    b=s.val().BoundingBox()
+    return [float(getattr(b,k)) for k in ('xmin','xmax','ymin','ymax','zmin','zmax')]
 
+def protected_prism(zone):
+    p=(cq.Workplane('XY',origin=(zone.center.x,zone.center.y,-100))
+       .ellipse(zone.envelope_width_mm/2,zone.envelope_height_mm/2).extrude(200))
+    return p.rotate((zone.center.x,zone.center.y,0),(zone.center.x,zone.center.y,1),zone.angle_deg)
 
-def _protected_prism(zone, *, radial_offset_mm: float = 0.0) -> cq.Workplane:
-    offset = float(radial_offset_mm)
-    if not math.isfinite(offset) or offset < 0.0:
-        raise RealizedWasteCartridgeError("protected-zone radial offset must be finite and nonnegative")
-    a = float(zone.envelope_width_mm) / 2.0 + offset
-    b = float(zone.envelope_height_mm) / 2.0 + offset
-    if a <= 0.0 or b <= 0.0:
-        raise RealizedWasteCartridgeError("protected-zone prism semiaxes must be positive")
-    z_height = PROTECTED_PRISM_Z_MAX_MM - PROTECTED_PRISM_Z_MIN_MM
-    prism = (
-        cq.Workplane("XY", origin=(0.0, 0.0, PROTECTED_PRISM_Z_MIN_MM))
-        .center(float(zone.center.x), float(zone.center.y))
-        .ellipse(a, b)
-        .extrude(z_height)
-    )
-    angle = float(zone.angle_deg)
-    if angle:
-        prism = prism.rotate(
-            (float(zone.center.x), float(zone.center.y), PROTECTED_PRISM_Z_MIN_MM),
-            (float(zone.center.x), float(zone.center.y), PROTECTED_PRISM_Z_MAX_MM),
-            angle,
-        )
-    return prism
+def _mouth(a,b,z0,z1,extra):
+    return (cq.Workplane('XY',origin=(0,-50,z0)).ellipse(a+extra,b+extra)
+            .workplane(offset=z1-z0).ellipse(a,b).loft(ruled=True))
 
+@dataclass(frozen=True)
+class LinerSeed:
+    wall_mm: float = .15
+    floor_mm: float = .15
+    lid_mm: float = .15
+    shell_reserve_mm: float = .10
+    draft_deg: float = 1.0
+    collar_width_mm: float = .80
+    collar_depth_mm: float = .60
 
-def _one_valid_solid(shape: cq.Workplane, label: str) -> None:
-    if shape.solids().size() != 1 or not shape.val().isValid() or shape.val().Volume() <= 0.0:
-        raise RealizedWasteCartridgeError(f"{label} must be one valid positive B-rep solid")
+    def __post_init__(self):
+        for k,v in asdict(self).items():
+            if type(v) not in (int,float) or not math.isfinite(v) or v <= 0:
+                raise RealizedWasteCartridgeError(f'nonfinite/nonpositive seed: {k}')
+        if not (.10 <= self.wall_mm <= 1.2 and .10 <= self.floor_mm <= 1.2
+                and .10 <= self.lid_mm <= 2 and 1 <= self.draft_deg <= 3
+                and .05 <= self.shell_reserve_mm <= .5
+                and .6 <= self.collar_width_mm <= 1.5 and .4 <= self.collar_depth_mm <= 1.5):
+            raise RealizedWasteCartridgeError('seed outside bounded geometry DOE')
 
+def _core(seed, *, inner):
+    """Nested drafted profiles, no shell() offsets or topology healing.
 
-def _bounds(shape: cq.Workplane) -> dict[str, tuple[float, float]]:
-    box = shape.val().BoundingBox()
-    return {
-        "x": (float(box.xmin), float(box.xmax)),
-        "y": (float(box.ymin), float(box.ymax)),
-        "z": (float(box.zmin), float(box.zmax)),
-    }
+    Ellipse-axis insets are construction parameters, not asserted normal wall
+    thickness. Actual separation of cavity/external walls is measured separately.
+    """
+    t=seed.wall_mm if inner else 0.
+    z0=-2+seed.floor_mm if inner else -2.
+    z1=18-seed.lid_mm if inner else 18.
+    slope=math.tan(math.radians(seed.draft_deg))
+    # Use common top datum so the inner/outer drafted planes stay nested.
+    low=t+slope*(18-z0)
+    high=t+slope*(18-z1)
+    rectangular=(cq.Workplane('XY',origin=(0,-80,z0)).rect(74-2*low,36-2*low)
+                 .workplane(offset=z1-z0).rect(74-2*high,36-2*high).loft(ruled=True))
+    r=t+seed.shell_reserve_mm
+    inside=_loft_ellipses([(-2,151.4-2*r,198.4-2*r),(-1,151.4-2*r,198.4-2*r),
+                          (10,164.4-2*r,203.4-2*r),(22,168.4-2*r,206.4-2*r)])
+    mouth=_mouth(38.5+r+high-t,25.5+r+high-t,z0,z1,slope*(z1-z0))
+    return rectangular.intersect(inside).cut(mouth)
 
+def _valid(s,name):
+    if len(s.val().Solids()) != 1 or not s.val().isValid() or not math.isfinite(volume(s)) or volume(s)<=0:
+        raise RealizedWasteCartridgeError(f'{name} must be one valid connected solid')
 
-def _outside_volume(shape: cq.Workplane, envelope: cq.Workplane) -> float:
-    return float(shape.val().cut(envelope.val()).Volume())
-
-
-def _intersection_volume(a: cq.Workplane, b: cq.Workplane) -> float:
-    return float(a.val().intersect(b.val()).Volume())
-
-
-def _shape_manifest(shape: cq.Workplane) -> dict[str, object]:
-    return {
-        "bounds_world_mm": {axis: list(values) for axis, values in _bounds(shape).items()},
-        "volume_mm3": float(shape.val().Volume()),
-        "valid": bool(shape.val().isValid()),
-        "solid_count": int(shape.solids().size()),
-    }
-
-
-def _build_body(mouth_exact: cq.Workplane, mouth_wall_offset: cq.Workplane) -> cq.Workplane:
-    outer = _box(BODY_OUTER_XYZ_MM, BODY_CENTER_WORLD_MM).cut(mouth_exact)
-    inner_x = BODY_OUTER_XYZ_MM[0] - 2.0 * BODY_WALL_SEED_MM
-    inner_y = BODY_OUTER_XYZ_MM[1] - 2.0 * BODY_WALL_SEED_MM
-    floor_top_z = PACKAGE_BOUNDS_WORLD_MM["z"][0] + BODY_WALL_SEED_MM
-    cutter_height = BODY_OUTER_XYZ_MM[2] - BODY_WALL_SEED_MM + 1.0
-    cavity_cutter = _box(
-        (inner_x, inner_y, cutter_height),
-        (0.0, -80.0, floor_top_z + cutter_height / 2.0),
-    ).cut(mouth_wall_offset)
-    body = outer.cut(cavity_cutter)
-    body = body.union(_box(KEY_RIB_XYZ_MM, KEY_RIB_CENTER_WORLD_MM))
-    inlet_bore = _cylinder(
-        (-38.5, BODY_INLET_WALL_WORLD_MM[1], BODY_INLET_WALL_WORLD_MM[2]),
-        (1.0, 0.0, 0.0),
-        5.0,
-        INLET_BORE_DIAMETER_MM,
-    )
-    return body.cut(inlet_bore)
-
-
-def _build_closure(mouth_exact: cq.Workplane, mouth_wall_offset: cq.Workplane) -> cq.Workplane:
-    plate = _box(CLOSURE_PLATE_XYZ_MM, CLOSURE_PLATE_CENTER_WORLD_MM).cut(mouth_exact)
-    plug = _box(CLOSURE_PLUG_XYZ_MM, CLOSURE_PLUG_CENTER_WORLD_MM).cut(mouth_wall_offset)
-    closure = plate.union(plug)
-    vent_bore = _cylinder(
-        (VENT_BORE_CENTER_XY_MM[0], VENT_BORE_CENTER_XY_MM[1], 15.0),
-        (0.0, 0.0, 1.0),
-        4.0,
-        VENT_BORE_DIAMETER_MM,
-    )
-    return closure.cut(vent_bore)
-
-
-def _build_installed_free_cavity_reference(
-    mouth_wall_offset: cq.Workplane,
-) -> cq.Workplane:
-    inner_x = BODY_OUTER_XYZ_MM[0] - 2.0 * BODY_WALL_SEED_MM
-    inner_y = BODY_OUTER_XYZ_MM[1] - 2.0 * BODY_WALL_SEED_MM
-    floor_top_z = PACKAGE_BOUNDS_WORLD_MM["z"][0] + BODY_WALL_SEED_MM
-    cavity_height = 16.0 - floor_top_z
-    cavity = _box(
-        (inner_x, inner_y, cavity_height),
-        (0.0, -80.0, floor_top_z + cavity_height / 2.0),
-    ).cut(mouth_wall_offset)
-    plug = _box(CLOSURE_PLUG_XYZ_MM, CLOSURE_PLUG_CENTER_WORLD_MM).cut(mouth_wall_offset)
-    return cavity.cut(plug)
-
-
-def _build_seal_land_reference(
-    mouth_exact: cq.Workplane,
-    mouth_wall_offset: cq.Workplane,
-) -> cq.Workplane:
-    outer = _box(
-        (BODY_OUTER_XYZ_MM[0], BODY_OUTER_XYZ_MM[1], SEAL_LAND_REFERENCE_THICKNESS_MM),
-        (0.0, -80.0, 15.9),
-    ).cut(mouth_exact)
-    inner = _box(
-        (
-            BODY_OUTER_XYZ_MM[0] - 2.0 * BODY_WALL_SEED_MM,
-            BODY_OUTER_XYZ_MM[1] - 2.0 * BODY_WALL_SEED_MM,
-            SEAL_LAND_REFERENCE_THICKNESS_MM * 2.0,
-        ),
-        (0.0, -80.0, 15.9),
-    ).cut(mouth_wall_offset)
-    return outer.cut(inner)
-
-
-def _build_inlet_reference() -> cq.Workplane:
-    return _cylinder(
-        ROUTE_HANDOFF_WORLD_MM,
-        (1.0, 0.0, 0.0),
-        INLET_HANDOFF_GAP_MM,
-        INLET_REFERENCE_DIAMETER_MM,
-    )
-
-
-def _build_vent_clearance_reference() -> cq.Workplane:
-    return _cylinder(
-        (VENT_BORE_CENTER_XY_MM[0], VENT_BORE_CENTER_XY_MM[1], 18.0),
-        (0.0, 0.0, 1.0),
-        VENT_CLEARANCE_HEIGHT_MM,
-        VENT_CLEARANCE_DIAMETER_MM,
-    )
-
-
-def _build_service_reference() -> cq.Workplane:
-    return _box(SERVICE_REFERENCE_XYZ_MM, SERVICE_REFERENCE_CENTER_WORLD_MM)
-
-
-@dataclass(frozen=True, slots=True)
+@dataclass
 class RealizedWasteCartridge:
+    seed: LinerSeed
     body_solid: cq.Workplane
     closure_solid: cq.Workplane
     installed_free_cavity_reference: cq.Workplane
     inlet_connector_clearance_reference: cq.Workplane
     seal_land_reference: cq.Workplane
     vent_clearance_reference: cq.Workplane
-    service_reservation_reference: cq.Workplane
+    key_reference: cq.Workplane
+    retention_pockets_reference: cq.Workplane
+    dry_retention_reference: cq.Workplane
+    device_parts: dict
+    outer_reference: cq.Workplane
+    inner_reference: cq.Workplane
+    model: object
     source_backbone_manifest_sha256: str
-    protected_zone_intersections_mm3: tuple[tuple[str, float], ...]
-    current_released_shell_interference_mm3: float
+    fluid_identity: str = PHASE_MIXED_WASTE
+    route_id: str = ROUTE_BARRIER_TO_CARTRIDGE
     physical_validation_eligible: bool = False
 
-    def validate(self) -> None:
-        _require_current_sources()
-        for shape, label in (
-            (self.body_solid, "cartridge body"),
-            (self.closure_solid, "cartridge closure"),
-            (self.installed_free_cavity_reference, "installed free cavity reference"),
-            (self.inlet_connector_clearance_reference, "inlet connector clearance reference"),
-            (self.seal_land_reference, "seal-land reference"),
-            (self.vent_clearance_reference, "vent clearance reference"),
-            (self.service_reservation_reference, "service reservation reference"),
-        ):
-            _one_valid_solid(shape, label)
-
-        package = _box(PACKAGE_ENVELOPE_XYZ_MM, PACKAGE_CENTER_WORLD_MM)
-        for shape, label in (
-            (self.body_solid, "cartridge body"),
-            (self.closure_solid, "cartridge closure"),
-            (self.installed_free_cavity_reference, "cartridge free cavity"),
-        ):
-            if _outside_volume(shape, package) > _TOL:
-                raise RealizedWasteCartridgeError(f"{label} escapes the controlled package envelope")
-
-        if _intersection_volume(self.body_solid, self.closure_solid) > _TOL:
-            raise RealizedWasteCartridgeError("body and closure overlap in the installed assembly state")
-        if _intersection_volume(self.body_solid, self.installed_free_cavity_reference) > _TOL:
-            raise RealizedWasteCartridgeError("body material intrudes into installed free-cavity reference")
-        if _intersection_volume(self.closure_solid, self.installed_free_cavity_reference) > _TOL:
-            raise RealizedWasteCartridgeError("closure material intrudes into installed free-cavity reference")
-
-        geometric_free_mL = float(self.installed_free_cavity_reference.val().Volume()) / 1000.0
-        if not math.isclose(
-            geometric_free_mL,
-            EXPECTED_INSTALLED_GEOMETRIC_FREE_CAPACITY_ML,
-            rel_tol=0.0,
-            abs_tol=1e-6,
-        ):
-            raise RealizedWasteCartridgeError("installed geometric free-cavity accounting changed")
-        if geometric_free_mL >= RETAINED_CAPACITY_REQUIREMENT_ML:
-            raise RealizedWasteCartridgeError(
-                "protected-face-compliant candidate unexpectedly satisfies the retained-capacity threshold; re-review geometry/evidence"
-            )
-
-        zone_ids: set[str] = set()
-        for zone_id, raw_volume in self.protected_zone_intersections_mm3:
-            if type(zone_id) is not str or not zone_id or zone_id in zone_ids:
-                raise RealizedWasteCartridgeError("protected-zone intersection IDs must be unique nonblank strings")
-            zone_ids.add(zone_id)
-            volume = float(raw_volume)
-            if not math.isfinite(volume) or volume < -_TOL:
-                raise RealizedWasteCartridgeError("protected-zone intersection volume must be finite and nonnegative")
-            if volume > _TOL:
-                raise RealizedWasteCartridgeError(
-                    f"cartridge physical material violates protected zone {zone_id}: {volume:.9f} mm3"
-                )
-        if len(zone_ids) != 5:
-            raise RealizedWasteCartridgeError("exact five-zone protected-face audit is required")
-
-        shell_interference = float(self.current_released_shell_interference_mm3)
-        if not math.isfinite(shell_interference) or shell_interference < -_TOL:
-            raise RealizedWasteCartridgeError("current shell interference must be finite and nonnegative")
-        if type(self.source_backbone_manifest_sha256) is not str or _SHA64.fullmatch(self.source_backbone_manifest_sha256) is None:
-            raise RealizedWasteCartridgeError("source backbone manifest identity must be canonical SHA-256")
-        if type(self.physical_validation_eligible) is not bool or self.physical_validation_eligible:
-            raise RealizedWasteCartridgeError("digital cartridge geometry cannot be physical validation evidence")
+    @property
+    def installed_geometric_free_capacity_mL(self): return volume(self.installed_free_cavity_reference)/1000
 
     @property
-    def installed_geometric_free_capacity_mL(self) -> float:
-        return float(self.installed_free_cavity_reference.val().Volume()) / 1000.0
+    def geometric_capacity_delta_to_retained_requirement_mL(self): return self.installed_geometric_free_capacity_mL-35
 
-    @property
-    def geometric_capacity_delta_to_retained_requirement_mL(self) -> float:
-        return self.installed_geometric_free_capacity_mL - RETAINED_CAPACITY_REQUIREMENT_ML
+    def validate(self, *, require_capacity=True):
+        require_sources()
+        self.seed.__post_init__()
+        if self.fluid_identity != PHASE_MIXED_WASTE or self.route_id != ROUTE_BARRIER_TO_CARTRIDGE:
+            raise RealizedWasteCartridgeError('wrong fluid or passive-backflow route identity')
+        if self.physical_validation_eligible is not False:
+            raise RealizedWasteCartridgeError('physical validation cannot be promoted')
+        if self.source_backbone_manifest_sha256 != current_route_digest():
+            raise RealizedWasteCartridgeError('stale or unverified route source')
+        for name in ('body_solid','closure_solid','installed_free_cavity_reference',
+                     'inlet_connector_clearance_reference','seal_land_reference','vent_clearance_reference','key_reference'):
+            _valid(getattr(self,name),name)
+        for name,s in self.device_parts.items(): _valid(s,name)
+        if set(self.device_parts) != {'left_bolt','right_bolt','left_bolt_guide','right_bolt_guide','key_tongue'}:
+            raise RealizedWasteCartridgeError('device material identities changed')
+        if len(self.retention_pockets_reference.val().Solids()) != 2 or volume(self.retention_pockets_reference)<=0:
+            raise RealizedWasteCartridgeError('bilateral retention reservations lost')
+        package=self.model.waste_cartridge_envelope.solid
+        moving=(self.body_solid,self.closure_solid,self.installed_free_cavity_reference)
+        for s in moving:
+            if volume(s.cut(package))>TOL_MM3:
+                raise RealizedWasteCartridgeError('package containment lost')
+            if volume(s.intersect(self.model.shell.solid))>TOL_MM3:
+                raise RealizedWasteCartridgeError('released shell intersection')
+            for z in self.model.protected_volumes.all:
+                if volume(s.intersect(protected_prism(z.zone)))>TOL_MM3:
+                    raise RealizedWasteCartridgeError('protected-mouth/face exclusion lost')
+        for a,b in ((moving[0],moving[1]),(moving[0],moving[2]),(moving[1],moving[2])):
+            if volume(a.intersect(b))>TOL_MM3:
+                raise RealizedWasteCartridgeError('material counted as cavity or parts overlap')
+        # Recompute free space from the authored cavity envelope and actual parts.
+        expected=(self.inner_reference.cut(self.body_solid).cut(self.closure_solid)
+                  .cut(self.vent_clearance_reference).cut(self.dry_retention_reference))
+        for a,b in ((expected,moving[2]),(moving[2],expected)):
+            if volume(a.cut(b))>TOL_MM3:
+                raise RealizedWasteCartridgeError('free cavity accounting changed')
+        if require_capacity and self.installed_geometric_free_capacity_mL < 35:
+            raise RealizedWasteCartridgeError('geometric free cavity below 35 mL')
+        # The local key, both bolt sockets and the inlet/vent must actually exist.
+        if volume(self.closure_solid.intersect(self.retention_pockets_reference))>TOL_MM3:
+            raise RealizedWasteCartridgeError('retention pocket filled')
+        if volume(self.closure_solid.intersect(self.key_reference))>TOL_MM3:
+            raise RealizedWasteCartridgeError('key channel filled')
+        if self.body_solid.val().distance(self.inlet_connector_clearance_reference.val()) > 1e-5:
+            raise RealizedWasteCartridgeError('inlet handoff no longer meets body')
+        inlet=cylinder((-41,-82,14),(1,0,0),9,2.4)
+        vent=cylinder((26,-89,16),(0,0,1),4,2)
+        if volume(self.body_solid.intersect(inlet))>TOL_MM3 or self.installed_free_cavity_reference.val().distance(inlet.val())>1e-6:
+            raise RealizedWasteCartridgeError('inlet lumen blocked or disconnected')
+        if volume(self.closure_solid.intersect(vent))>TOL_MM3:
+            raise RealizedWasteCartridgeError('vent bore blocked')
 
-    @property
-    def geometric_margin_over_retained_requirement_mL(self) -> float:
-        """Backward-compatible signed delta; negative means the geometric requirement is not met."""
-        return self.geometric_capacity_delta_to_retained_requirement_mL
+    def review_shapes(self):
+        return {'body':self.body_solid,'closure':self.closure_solid,'cavity':self.installed_free_cavity_reference,
+                   'seal_land':self.seal_land_reference,'vent_reservation':self.vent_clearance_reference,
+                   'key_channel':self.key_reference,'retention_pockets':self.retention_pockets_reference,
+                   'dry_retention_reservation':self.dry_retention_reference,
+                   'inlet_reference':self.inlet_connector_clearance_reference,**self.device_parts}
 
-    @property
-    def manifest_sha256(self) -> str:
-        raw = json.dumps(
-            self.manifest(include_sha=False),
-            sort_keys=True,
-            separators=(",", ":"),
-            allow_nan=False,
-        ).encode("utf-8")
-        return sha256(raw).hexdigest()
-
-    def manifest(self, *, include_sha: bool = True) -> dict[str, object]:
+    def manifest(self):
         self.validate()
-        shell_state = (
-            "CURRENT_RELEASED_SHELL_INTERFERENCE_PRESENT_CANDIDATE_NOT_ASSEMBLY_MATERIAL"
-            if self.current_released_shell_interference_mm3 > _TOL
-            else "NO_CURRENT_RELEASED_SHELL_INTERFERENCE_BUT_DOCK_RETENTION_SERVICE_STILL_UNRESOLVED"
-        )
-        payload: dict[str, object] = {
-            "schema": SCHEMA,
-            "cartridge_id": CARTRIDGE_ID,
-            "authored_against_main_sha": AUTHORED_AGAINST_MAIN_SHA,
-            "authority_revision": AUTHORITY_REVISION,
-            "coordinate_frame_id": WORLD_FRAME_ID,
-            "fluid_identity": PHASE_MIXED_WASTE,
-            "route_id": ROUTE_BARRIER_TO_CARTRIDGE,
-            "inlet_interface_id": INTERFACE_CARTRIDGE_INLET_I27,
-            "released_route_handoff_world_mm": list(ROUTE_HANDOFF_WORLD_MM),
-            "body_inlet_wall_world_mm": list(BODY_INLET_WALL_WORLD_MM),
-            "inlet_handoff_gap_mm": INLET_HANDOFF_GAP_MM,
-            "source_backbone_manifest_sha256": self.source_backbone_manifest_sha256,
-            "package_center_world_mm": list(PACKAGE_CENTER_WORLD_MM),
-            "package_envelope_xyz_mm": list(PACKAGE_ENVELOPE_XYZ_MM),
-            "package_bounds_world_mm": {axis: list(values) for axis, values in PACKAGE_BOUNDS_WORLD_MM.items()},
-            "body_id": BODY_ID,
-            "body_status": BODY_STATUS,
-            "body_wall_seed_mm": BODY_WALL_SEED_MM,
-            "protected_boundary_wall_seed_mm": PROTECTED_BOUNDARY_WALL_SEED_MM,
-            "body": _shape_manifest(self.body_solid),
-            "closure_id": CLOSURE_ID,
-            "closure_status": CLOSURE_STATUS,
-            "closure": _shape_manifest(self.closure_solid),
-            "cavity_id": CAVITY_ID,
-            "hygiene_classification": HYGIENE_CLASSIFICATION,
-            "installed_geometric_free_capacity_mL": self.installed_geometric_free_capacity_mL,
-            "geometric_capacity_delta_to_retained_requirement_mL": self.geometric_capacity_delta_to_retained_requirement_mL,
-            "retained_capacity_requirement_mL": RETAINED_CAPACITY_REQUIREMENT_ML,
-            "geometric_capacity_requirement_met": False,
-            "capacity_status": CAPACITY_STATUS,
-            "cavity_reference": _shape_manifest(self.installed_free_cavity_reference),
-            "protected_face_status": PROTECTED_FACE_STATUS,
-            "protected_zone_intersections_mm3": {
-                zone_id: volume for zone_id, volume in self.protected_zone_intersections_mm3
-            },
-            "protected_face_policy": (
-                "EXACT_AUTHORITY_2P5D_XY_HARD_ENVELOPES_ARE_CONSERVATIVELY_APPLIED_THROUGH_"
-                "THE_CARTRIDGE_Z_RANGE;ZERO_BODY_AND_CLOSURE_INTERSECTION_REQUIRED"
-            ),
-            "inlet_reference_id": INLET_REFERENCE_ID,
-            "inlet_bore_diameter_mm": INLET_BORE_DIAMETER_MM,
-            "inlet_reference_diameter_mm": INLET_REFERENCE_DIAMETER_MM,
-            "inlet_status": INLET_STATUS,
-            "inlet_connector_clearance_reference": _shape_manifest(self.inlet_connector_clearance_reference),
-            "seal_land_reference_id": SEAL_LAND_REFERENCE_ID,
-            "seal_status": CLOSURE_STATUS,
-            "seal_land_reference": _shape_manifest(self.seal_land_reference),
-            "key_feature_id": KEY_FEATURE_ID,
-            "key_feature_xyz_mm": list(KEY_RIB_XYZ_MM),
-            "key_feature_center_world_mm": list(KEY_RIB_CENTER_WORLD_MM),
-            "key_status": KEY_STATUS,
-            "device_key_counterpart_realized": False,
-            "positive_retention_realized": False,
-            "vent_reference_id": VENT_REFERENCE_ID,
-            "vent_bore_diameter_mm": VENT_BORE_DIAMETER_MM,
-            "vent_status": VENT_STATUS,
-            "vent_clearance_reference": _shape_manifest(self.vent_clearance_reference),
-            "service_reference_id": SERVICE_REFERENCE_ID,
-            "service_condition": SERVICE_CONDITION,
-            "service_translation_axis_world": list(SERVICE_TRANSLATION_AXIS_WORLD),
-            "service_translation_seed_mm": SERVICE_TRANSLATION_SEED_MM,
-            "service_status": SERVICE_STATUS,
-            "continuous_service_motion_realized": False,
-            "service_reservation_reference": _shape_manifest(self.service_reservation_reference),
-            "current_released_shell_interference_mm3": self.current_released_shell_interference_mm3,
-            "current_released_shell_state": shell_state,
-            "development_assembly_material_eligible": False,
-            "digital_capacity_ready": False,
-            "physical_validation_eligible": False,
-            "evidence_status": EVIDENCE_STATUS,
-        }
-        if include_sha:
-            payload["manifest_sha256"] = self.manifest_sha256
-        return payload
+        shape_map=self.review_shapes()
+        materials={'body','closure',*self.device_parts}
+        return dict(schema=SCHEMA,authored_against_main_sha=AUTHORED_AGAINST_MAIN_SHA,
+                    predecessor_head_sha=PREDECESSOR_HEAD_SHA,source_git_blobs=dict(SOURCE_GIT_BLOB_IDENTITIES),
+                    producer_content_sha256=sha256(Path(__file__).read_bytes()).hexdigest(),
+                    source_backbone_manifest_sha256=self.source_backbone_manifest_sha256,
+                    authority_revision=AUTHORITY_REVISION,coordinate_frame_id=WORLD_FRAME_ID,
+                    fluid_identity=self.fluid_identity,route_id=self.route_id,inlet_interface_id=INTERFACE_CARTRIDGE_INLET_I27,
+                    released_route_handoff_world_mm=ROUTE_HANDOFF_WORLD_MM,body_inlet_wall_world_mm=BODY_INLET_WALL_WORLD_MM,
+                    package_envelope_xyz_mm=PACKAGE_ENVELOPE_XYZ_MM,seed=asdict(self.seed),
+                    seed_status='DOE_ONLY_PROCESS_CAPABILITY_UNKNOWN',
+                    installed_geometric_free_capacity_mL=self.installed_geometric_free_capacity_mL,
+                    geometric_capacity_delta_to_retained_requirement_mL=self.geometric_capacity_delta_to_retained_requirement_mL,
+                    geometric_capacity_requirement_met=True,retained_capacity_requirement_mL=35.,retained_capacity_mL=None,
+                    parts={n:dict(id='WASTE-CARTRIDGE-I27-CELL11-'+n.upper().replace('_','-'),
+                                  role='CANDIDATE_MATERIAL' if n in materials else 'REFERENCE_ONLY',
+                                  valid=s.val().isValid(),solid_count=len(s.val().Solids()),
+                                  volume_mm3=volume(s),bounds_world_mm=bounds(s)) for n,s in shape_map.items()},
+                    current_released_shell_interference_mm3=sum(volume(s.intersect(self.model.shell.solid)) for s in (self.body_solid,self.closure_solid)),
+                    protected_zone_intersections_mm3={z.zone.zone_id:sum(volume(s.intersect(protected_prism(z.zone))) for s in (self.body_solid,self.closure_solid)) for z in self.model.protected_volumes.all},
+                    positive_retention_status='LOCAL_SLIDING_BOLT_GEOMETRY_ONLY_DEVICE_MOUNT_AND_LOAD_UNRESOLVED',
+                    seal_status='LOCAL_BOND_LAND_AND_INLET_SOCKET_GEOMETRY_PROCESS_AND_LEAKAGE_UNRESOLVED',
+                    service_condition='MASK_REMOVED_UNPOWERED',continuous_service_motion_realized=False,
+                    digital_mvp_cartridge_dfm_ready=False,development_assembly_material_eligible=False,
+                    physical_validation_eligible=False,
+                    blockers=['INSTALLED_DEVICE_SERVICE_PATH','DEVICE_DOCK_FRAME_ATTACHMENT','FILM_FORMING_AND_BOND_PROCESS',
+                              'MIN_MAX_SEAL_AND_RETENTION_FITS','REMOVED_STATE_PORT_CLOSURE','PHYSICAL_RETAINED_CAPACITY_AND_WET_SYSTEM_VALIDATION'])
 
-
-def _validate_released_route(release: Cell4WasteBackboneRelease) -> str:
-    if type(release) is not Cell4WasteBackboneRelease:
-        raise RealizedWasteCartridgeError("waste backbone release must use exact release type")
-    release.validate_invariants()
-    matches = tuple(
-        route for route in release.realization.routes if route.route_id == ROUTE_BARRIER_TO_CARTRIDGE
-    )
-    if len(matches) != 1:
-        raise RealizedWasteCartridgeError("released cartridge handoff route identity changed")
-    route = matches[0]
-    route.validate()
-    if route.fluid_identity != PHASE_MIXED_WASTE:
-        raise RealizedWasteCartridgeError("cartridge route lost exact mixed-waste identity")
-    if route.target_interface_id != INTERFACE_CARTRIDGE_INLET_I27:
-        raise RealizedWasteCartridgeError("released route no longer terminates at cartridge inlet interface")
-    endpoint = tuple(float(value) for value in route.centerline[-1].end.as_tuple())
-    if endpoint != ROUTE_HANDOFF_WORLD_MM:
-        raise RealizedWasteCartridgeError(
-            f"released cartridge handoff moved; expected {ROUTE_HANDOFF_WORLD_MM}, got {endpoint}"
-        )
+@lru_cache(maxsize=2)
+def _route_digest(source_identity):
+    release=build_current_cell4_waste_backbone_release()
+    matches=[r for r in release.realization.routes if r.route_id==ROUTE_BARRIER_TO_CARTRIDGE]
+    if len(matches)!=1 or matches[0].fluid_identity!=PHASE_MIXED_WASTE or matches[0].target_interface_id!=INTERFACE_CARTRIDGE_INLET_I27:
+        raise RealizedWasteCartridgeError('passive-backflow cartridge route changed')
+    if tuple(matches[0].centerline[-1].end.as_tuple()) != ROUTE_HANDOFF_WORLD_MM:
+        raise RealizedWasteCartridgeError('route handoff moved')
     return release.manifest_sha256
 
+def current_route_digest():
+    # Cache only while the full source content is identical, never by a stale
+    # caller-supplied receipt. Provenance remains revalidated on each use.
+    identity=tuple((p.relative_to(ROOT).as_posix(),sha256(p.read_bytes()).hexdigest())
+                   for p in sorted((ROOT/'src/masck_one').glob('*.py')))
+    return _route_digest(identity)
 
-def build_realized_waste_cartridge(
-    *,
-    model: MasckOneModel | None = None,
-    release: Cell4WasteBackboneRelease | None = None,
-) -> RealizedWasteCartridge:
-    _require_current_sources()
-    model = model or build_model()
-    release = release or build_current_cell4_waste_backbone_release()
-    source_backbone_manifest_sha256 = _validate_released_route(release)
-
-    if str(model.authority.get("project", "authority_revision")) != AUTHORITY_REVISION:
-        raise RealizedWasteCartridgeError("authority revision moved")
-    envelope = tuple(float(value) for value in model.authority.get("fluid", "cartridge", "external_envelope_mm"))
-    if envelope != PACKAGE_ENVELOPE_XYZ_MM:
-        raise RealizedWasteCartridgeError("authority cartridge envelope moved")
-    retained = float(model.authority.get("fluid", "cartridge", "retained_capacity_min_mL"))
-    if retained != RETAINED_CAPACITY_REQUIREMENT_ML:
-        raise RealizedWasteCartridgeError("authority retained-capacity requirement moved")
-    hygiene_classes = tuple(model.authority.get("manufacturing", "hygiene_classes"))
-    if HYGIENE_CLASSIFICATION not in hygiene_classes:
-        raise RealizedWasteCartridgeError("WET_REMOVABLE hygiene class is no longer authority-controlled")
-
-    package_component = model.waste_cartridge_envelope
-    if package_component.name != "waste_cartridge_envelope":
-        raise RealizedWasteCartridgeError("released cartridge package component identity moved")
-    package_bounds = _bounds(package_component.solid)
-    for axis in ("x", "y", "z"):
-        if any(
-            abs(actual - expected) > 1e-6
-            for actual, expected in zip(package_bounds[axis], PACKAGE_BOUNDS_WORLD_MM[axis])
-        ):
-            raise RealizedWasteCartridgeError("released cartridge package placement moved")
-
-    mouth_zone = model.protected_volumes.mouth.zone
-    mouth_exact = _protected_prism(mouth_zone)
-    mouth_wall_offset = _protected_prism(
-        mouth_zone,
-        radial_offset_mm=PROTECTED_BOUNDARY_WALL_SEED_MM,
-    )
-
-    body = _build_body(mouth_exact, mouth_wall_offset)
-    closure = _build_closure(mouth_exact, mouth_wall_offset)
-    cavity = _build_installed_free_cavity_reference(mouth_wall_offset)
-    inlet_reference = _build_inlet_reference()
-    seal_land = _build_seal_land_reference(mouth_exact, mouth_wall_offset)
-    vent_reference = _build_vent_clearance_reference()
-    service_reference = _build_service_reference()
-
-    protected_intersections: list[tuple[str, float]] = []
-    for protected_volume in model.protected_volumes.all:
-        prism = _protected_prism(protected_volume.zone)
-        volume = _intersection_volume(body, prism) + _intersection_volume(closure, prism)
-        protected_intersections.append((protected_volume.zone.zone_id, volume))
-
-    shell_interference = _intersection_volume(body, model.shell.solid) + _intersection_volume(
-        closure, model.shell.solid
-    )
-
-    result = RealizedWasteCartridge(
-        body_solid=body,
-        closure_solid=closure,
-        installed_free_cavity_reference=cavity,
-        inlet_connector_clearance_reference=inlet_reference,
-        seal_land_reference=seal_land,
-        vent_clearance_reference=vent_reference,
-        service_reservation_reference=service_reference,
-        source_backbone_manifest_sha256=source_backbone_manifest_sha256,
-        protected_zone_intersections_mm3=tuple(protected_intersections),
-        current_released_shell_interference_mm3=shell_interference,
-        physical_validation_eligible=False,
-    )
-    result.validate()
+def build_realized_waste_cartridge(*,model=None,seed=None,verify_route=True):
+    require_sources()
+    seed=seed or LinerSeed()
+    seed.__post_init__()
+    m=model or build_model()
+    if tuple(m.authority.get('fluid','cartridge','external_envelope_mm')) != PACKAGE_ENVELOPE_XYZ_MM:
+        raise RealizedWasteCartridgeError('authority package moved')
+    if m.authority.number('fluid','cartridge','retained_capacity_min_mL') != 35.:
+        raise RealizedWasteCartridgeError('authority capacity moved')
+    route_digest='UNVERIFIED_EXPLORATION'
+    if verify_route:
+        route_digest=current_route_digest()
+    outer=_core(seed,inner=False)
+    inner=_core(seed,inner=True)
+    # Closure collar is a separately made local reinforcement, not a thick
+    # plug across the whole fluid space. No undercut is assigned to the liner tool.
+    split=18-seed.lid_mm-seed.collar_depth_mm
+    body=outer.cut(inner).intersect(box((200,200,split+2),(0,-80,(split-2)/2)))
+    collar_band=outer.intersect(box((200,200,seed.collar_depth_mm),(0,-80,split+seed.collar_depth_mm/2)))
+    opening=_core(replace(seed,wall_mm=seed.collar_width_mm),inner=True)
+    collar=collar_band.cut(opening)
+    lid=outer.intersect(box((200,200,seed.lid_mm),(0,-80,18-seed.lid_mm/2)))
+    closure=collar.union(lid)
+    # Reinforced inlet socket bonded to the liner. The 4 mm external handoff
+    # remains a device-side reference; no cartridge material escapes its package.
+    boss=cylinder((-37,-82,14),(1,0,0),2.5,5)
+    bore=cylinder((-41,-82,14),(1,0,0),9,2.4)
+    body=body.union(boss).cut(bore)
+    # Dry retention islands above the fluid chamber, with asymmetric keying.
+    islands=[]
+    for x in (-35.4,35.4):
+        island=box((3.2,6,1.6),(x,-82,17.2)).intersect(outer)
+        islands.append(island)
+        closure=closure.union(island)
+    pockets=[cylinder((-37,-82,17),(1,0,0),1.2,1.4),cylinder((37,-82,17),(-1,0,0),1.2,1.4)]
+    key=box((1.0,2.0,2.5),(-35.2,-79.8,17.3))
+    closure=closure.cut(key)
+    for p in pockets: closure=closure.cut(p)
+    # Closed reference reservation for unknown vent/filter hardware is deducted
+    # from the free cavity. Bore does not stand in for leakage/foam evidence.
+    vent=cylinder((26,-89,16.4),(0,0,1),1.6,5)
+    vent_bore=cylinder((26,-89,16),(0,0,1),4,2)
+    closure=closure.cut(vent_bore)
+    dry=cq.Workplane(obj=cq.Compound.makeCompound([s.val() for s in islands]))
+    body=body.cut(closure)
+    cavity=inner.cut(body).cut(closure).cut(vent).cut(dry)
+    seal=collar_band.cut(opening).intersect(box((200,200,.1),(0,-80,17.8)))
+    device={}
+    for label,sign in (('left',-1),('right',1)):
+        pin=cylinder((sign*35.9,-82,17),(sign,0,0),4.,1.2)
+        guide=box((2.4,4,2.8),(sign*39.5,-82,17)).cut(cylinder((sign*37.5,-82,17),(sign,0,0),4.,1.4))
+        device[label+'_bolt']=pin
+        device[label+'_bolt_guide']=guide
+    device['key_tongue']=box((.8,1.8,2.2),(-35.2,-79.8,17.4))
+    result=RealizedWasteCartridge(seed,body,closure,cavity,
+        cylinder(ROUTE_HANDOFF_WORLD_MM,(1,0,0),4,4),seal,vent,key,
+        cq.Workplane(obj=cq.Compound.makeCompound([p.val() for p in pockets])),dry,device,outer,inner,m,route_digest)
     return result

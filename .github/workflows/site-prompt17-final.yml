@@ -1,0 +1,129 @@
+name: Finalize Prompt 17 product inspection
+
+on:
+  push:
+    paths:
+      - '.site-build/run17c.flag'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install deterministic CAD render stack
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgl1-mesa-dri libglx-mesa0
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]" pillow
+      - name: Verify exact candidate heads and checkpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXT_BRANCH='cell2/exterior-green-baseline-20260905'
+          RET_BRANCH='cell8/occipital-yokes-current-source-20260906'
+          HMI_BRANCH='cell14/hmi-thermal-decision-state-20260906'
+          DRY_BRANCH='cell12/compact-dry-side-package-20260906'
+          EXT_HEAD='7361ad3ae3aa91373cd9e723179e19b0554ec1b4'
+          EXT_RENDER='17e7db204c693f684855d923fcacd7c95468e599'
+          RET_HEAD='25686766238b66ecf900009042d721c08e042592'
+          HMI_HEAD='7b32c674860cab87cbdd1f7e3303a4ce53515e95'
+          DRY_HEAD='fa017c8379dabaefeecf53bf770858bebfde3067'
+          test "$(git ls-remote origin refs/heads/$EXT_BRANCH | cut -f1)" = "$EXT_HEAD"
+          test "$(git ls-remote origin refs/heads/$RET_BRANCH | cut -f1)" = "$RET_HEAD"
+          test "$(git ls-remote origin refs/heads/$HMI_BRANCH | cut -f1)" = "$HMI_HEAD"
+          test "$(git ls-remote origin refs/heads/$DRY_BRANCH | cut -f1)" = "$DRY_HEAD"
+          git fetch origin "$EXT_BRANCH" "$RET_BRANCH" "$HMI_BRANCH" "$DRY_BRANCH"
+          git cat-file -e "$EXT_RENDER^{commit}"
+          git merge-base --is-ancestor "$EXT_RENDER" "$EXT_HEAD"
+          git worktree add --detach /tmp/masck-exterior "$EXT_RENDER"
+          git worktree add --detach /tmp/masck-retention "$RET_HEAD"
+      - name: Export registered visible geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/masck-inspection-step /tmp/masck-exterior-evidence
+          PYTHONPATH=/tmp/masck-exterior/src python - <<'PY'
+          import cadquery as cq
+          from masck_one.integrated_product import build_cell2_exterior_assembly
+          from masck_one.exterior_evidence import render_exterior_view_evidence
+          a=build_cell2_exterior_assembly()
+          shell=a.model.shell.solid
+          cover=a.rear_service_skin.cover
+          assert shell.val().isValid() and shell.solids().size()==1
+          assert cover.val().isValid() and cover.solids().size()==1
+          cq.exporters.export(shell,'/tmp/masck-inspection-step/exterior_shell.step')
+          cq.exporters.export(cover,'/tmp/masck-inspection-step/rear_service_cover.step')
+          report=render_exterior_view_evidence('/tmp/masck-exterior-evidence')
+          assert report['shell_valid'] is True
+          assert report['visible_assembly_valid'] is True
+          assert 'cell2_exterior_three_quarter_right.svg' in report['view_files']
+          PY
+          PYTHONPATH=/tmp/masck-retention/src python - <<'PY'
+          import cadquery as cq
+          from masck_one.occipital_stabilizer import build_occipital_stabilizer
+          s=build_occipital_stabilizer()
+          assert s.left.solid.val().isValid() and s.right.solid.val().isValid()
+          cq.exporters.export(s.left.solid,'/tmp/masck-inspection-step/occipital_yoke_left.step')
+          cq.exporters.export(s.right.solid,'/tmp/masck-inspection-step/occipital_yoke_right.step')
+          assert s.manifest()['visual_intent']=='TWO_LATERAL_REAR_YOKES_NO_CENTRAL_HELMET_RING_NO_EXTERNAL_ROUND_PODS'
+          PY
+      - name: Render prepared camera states and finalize chapter
+        env:
+          MASCK_INSPECTION_STEP_DIR: /tmp/masck-inspection-step
+          MASCK_WEBSITE_BUILD_SHA: ${{ github.sha }}
+        run: |
+          xvfb-run -a python .site-build/render_product_inspection_v17c.py
+          python .site-build/finalize_product_inspection_v17c.py
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import json,re
+          s=Path('website/index.html').read_text()
+          manifest=json.loads(Path('website/images/masck-inspection-v17c-manifest.json').read_text())
+          assert '/* Product inspection final v17c */' in s
+          assert s.count('data-orbit17-view=')==3
+          assert s.count('data-orbit17-step=')==3
+          assert 'Control region' in s and 'Mapping in development' in s
+          assert 'Fit, attachment and control mapping remain open.' in s
+          assert 'headset-style housing' in s
+          chapter=re.search(r'<section class="product-inspection inspection-final-v17c".*?</section>\n</section>\n\n<section class="view" data-view="system"',s,re.S)
+          assert chapter is not None
+          assert '—' not in chapter.group(0)
+          assert '–' not in chapter.group(0)
+          assert manifest['coordinate_frame']=='MASCK_ONE_AUTHORITY_WORLD_MM'
+          assert manifest['sources']['exterior_render_checkpoint_sha']=='17e7db204c693f684855d923fcacd7c95468e599'
+          assert manifest['sources']['retention_current_head_sha']=='25686766238b66ecf900009042d721c08e042592'
+          for view in manifest['views'].values():
+              p=Path('website/images')/view['asset']
+              assert p.is_file() and p.stat().st_size>10000
+              im=Image.open(p).convert('RGBA')
+              assert im.size==(1200,1200)
+              amin,amax=im.getchannel('A').getextrema()
+              assert amin<16 and amax>240,(p.name,amin,amax)
+          scripts=re.findall(r'<script>(.*?)</script>',s,re.S)
+          Path('/tmp/masck-site.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/masck-site.js
+      - name: Commit generated product inspection
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add website/index.html website/images/masck-inspection-*-v17c.webp website/images/masck-inspection-v17c-manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'refine: finalize product orbit and wearability'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
