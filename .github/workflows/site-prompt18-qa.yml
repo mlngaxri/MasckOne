@@ -1,0 +1,59 @@
+name: Prompt 18 production journey QA
+
+on:
+  push:
+    paths:
+      - 'website/use-journey-v18-truth.json'
+      - '.site-build/run18-qa.flag'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser QA tooling
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+          python3 -m pip install --user pillow
+      - name: Test and capture complete use journey on production
+        run: |
+          node .site-build/qa_use_journey_v18.mjs
+          node .site-build/qa_use_journey_v18_mobile_bounds.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+          root=Path('/tmp/masck-p18-qa')
+          stages=['prepare','wear','choose','clean','remove','service','recharge']
+          def sheet(kind, width, height, out):
+              cells=[]
+              for i,key in enumerate(stages,1):
+                  p=root/f'{kind}-{i:02d}-{key}.png'
+                  im=Image.open(p).convert('RGB')
+                  im.thumbnail((width,height))
+                  canvas=Image.new('RGB',(width,height+28),(24,33,28))
+                  x=(width-im.width)//2
+                  y=(height-im.height)//2
+                  canvas.paste(im,(x,y))
+                  d=ImageDraw.Draw(canvas)
+                  d.text((8,height+8),f'{i:02d} {key.upper()}',fill=(235,238,232))
+                  cells.append(canvas)
+              final=Image.new('RGB',(width*len(cells),height+28),(24,33,28))
+              for i,cell in enumerate(cells): final.paste(cell,(i*width,0))
+              final.save(root/out,quality=90)
+          sheet('desktop',320,222,'desktop-contact-sheet.jpg')
+          sheet('mobile',190,411,'mobile-contact-sheet.jpg')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: masck-one-prompt18-use-journey-qa
+          path: /tmp/masck-p18-qa
+          if-no-files-found: error
+          retention-days: 7

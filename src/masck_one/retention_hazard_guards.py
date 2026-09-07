@@ -23,23 +23,28 @@ import cadquery as cq
 
 from .authority import Authority, load_authority
 from .model import MasckOneModel, build_model
+from . import occipital_stabilizer as occipital
 
 SCHEMA = "MASCK_ONE_CELL8_RETENTION_HAZARD_GUARDS_V1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 
-SOURCE_MAIN_SHA = "afe29ff78419b6625dca5594974b6351f6f80e1b"
+SOURCE_MAIN_SHA = "b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc"
 SOURCE_AUTHORITY_REVISION = "2026-08-30-R1"
 SOURCE_AUTHORITY_BLOB_SHA = "2608dda483b995539de422290371c219668a1527"
 SOURCE_MODEL_GIT_BLOB_SHA = "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"
 SOURCE_STRUCTURAL_FRAME_GIT_BLOB_SHA = "bda5ba87d232c0e6a22e200975a80414a10c9a83"
 
 SOURCE_CELL3_RETENTION_PR = 92
-SOURCE_CELL3_RETENTION_HEAD_SHA = "abb806a8e15a1557c8b5a4c754af1bfeea8b6d70"
+SOURCE_CELL3_RETENTION_HEAD_SHA = "88a88bed01fd3b3acfb38ff5f6f3ae3d5bbf54fe"
 SOURCE_HAIR_PINCH_GIT_BLOB_SHA = "04ba87a6f8c6dbd103dae0f19869446b064e2057"
 SOURCE_RETENTION_LOAD_PATH_GIT_BLOB_SHA = "9647405b36642105c929a3fdd0617d03bfe68c98"
 SOURCE_RIGHT_RELEASE_PR = 71
 SOURCE_RIGHT_RELEASE_HEAD_SHA = "0b5a619c6cea344038b0e8b8cc10a50e3d193390"
 SOURCE_RIGHT_RELEASE_LATCH_GIT_BLOB_SHA = "11d90a75eb108c53f5a1621abdace7271bf5cac5"
+
+SOURCE_OCCIPITAL_PR = 123
+SOURCE_OCCIPITAL_HEAD_SHA = "25686766238b66ecf900009042d721c08e042592"
+SOURCE_OCCIPITAL_GIT_BLOB_SHA = "6d35c96bc65bb1e0e877deadc65481bf44954b4e"
 
 DIGITAL_ONLY = "DIGITAL_GUARD_GEOMETRY_AND_CLEARANCE_NOT_PHYSICAL_SAFETY_VALIDATION"
 CANDIDATE_INTERFACE_STATUS = "NON_AUTHORITATIVE_UNMERGED_CANDIDATE_INTERFACE"
@@ -57,7 +62,7 @@ RIGHT_ADJUSTMENT_HAZARD_BOUNDS_MM = (
 RIGHT_ROOT_CAPTURE_HAZARD_BOUNDS_MM = (68.4, 75.6, 1.0, 19.0, -34.6, -27.4)
 RIGHT_SCALP_HAIR_CORRIDOR_BOUNDS_MM = (48.0, 76.0, -9.0, 14.0, -53.5, -27.0)
 
-CANDIDATE_INTERFACE_SHA256 = "ce2618f872e01733a2031085ccb402bc40b61ae1e9b427456c0da049bcd72061"
+CANDIDATE_INTERFACE_SHA256 = "333346d8f965c477fe398dc3ab4685cfb3bb127b5409c827ed779e652873b45b"
 
 # Cell 8 provisional CAD seeds. These are package geometry, not safety thresholds.
 QUICK_GUARD_X_BOUNDS_MM = (70.0, 90.0)
@@ -154,6 +159,7 @@ def _assert_released_source_blobs() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     sources = {
         module_dir / "model.py": SOURCE_MODEL_GIT_BLOB_SHA,
+        module_dir / "occipital_stabilizer.py": SOURCE_OCCIPITAL_GIT_BLOB_SHA,
         module_dir / "structural_frame.py": SOURCE_STRUCTURAL_FRAME_GIT_BLOB_SHA,
         repo_root / "config" / "masck_one_authority.yaml": SOURCE_AUTHORITY_BLOB_SHA,
     }
@@ -167,6 +173,9 @@ def _assert_released_source_blobs() -> None:
 
 def _candidate_interface_payload() -> dict[str, object]:
     return {
+        "source_occipital_pr": SOURCE_OCCIPITAL_PR,
+        "source_occipital_head_sha": SOURCE_OCCIPITAL_HEAD_SHA,
+        "source_occipital_git_blob_sha": SOURCE_OCCIPITAL_GIT_BLOB_SHA,
         "source_cell3_retention_pr": SOURCE_CELL3_RETENTION_PR,
         "source_cell3_retention_head_sha": SOURCE_CELL3_RETENTION_HEAD_SHA,
         "source_hair_pinch_git_blob_sha": SOURCE_HAIR_PINCH_GIT_BLOB_SHA,
@@ -323,6 +332,9 @@ class GuardPart:
             "factory_install": {
                 "motion": "EXACT_PURE_X_TRANSLATION_SWEEP",
                 "translation_x_mm": self.install_translation_x_mm,
+                "start_offset_x_mm": -self.install_translation_x_mm,
+                "complete_interval": [0.0, 1.0],
+                "sweep_construction": "UNION_OF_COMPLETE_AXIS_PRISMS_OF_ALL_MATERIAL_BOXES",
                 "sweep_bounds_mm": list(_bbox(self.exact_factory_install_sweep)),
                 "wearer_present": False,
                 "powered": False,
@@ -409,7 +421,7 @@ class RetentionHazardGuardPackage:
             "assembly_semantics": {
                 "factory_sequence": [
                     "ASSEMBLE_CELL3_RETENTION_AND_RIGHT_RELEASE_SOURCE_MECHANISMS",
-                    "INSTALL_BILATERAL_ADJUSTMENT_GUARDS_BY_EXACT_X_TRANSLATION_WITH_WEARER_ABSENT",
+                    "INSTALL_YOKES_THEN_SLIDE_ADJUSTMENT_GUARDS_FROM_OUTBOARD_BY_EXACT_X_TRANSLATION_WITH_WEARER_ABSENT",
                     "INSTALL_RIGHT_RELEASE_GUARD_BY_EXACT_POSITIVE_X_TRANSLATION_WITH_WEARER_ABSENT",
                     "ATTACH_GUARDS_TO_FUTURE_POSITIVE_FRAME_OR_RETENTION_COUNTERPART",
                 ],
@@ -482,10 +494,10 @@ def _build_guards() -> tuple[GuardPart, GuardPart, GuardPart]:
         solid=_solid_from_primitive_bounds(right_adjust_final_bounds, "right adjustment U shroud"),
         exact_factory_install_sweep=_exact_axis_x_sweep(
             right_adjust_final_bounds,
-            -ADJUST_GUARD_INSTALL_TRAVEL_X_MM,
+            ADJUST_GUARD_INSTALL_TRAVEL_X_MM,
             "right adjustment guard exact install sweep",
         ),
-        install_translation_x_mm=ADJUST_GUARD_INSTALL_TRAVEL_X_MM,
+        install_translation_x_mm=-ADJUST_GUARD_INSTALL_TRAVEL_X_MM,
         source_hazard_ids=(
             "RIGHT_ADJUSTMENT_MEDIAL_GUIDE_NIP",
             "RIGHT_ADJUSTMENT_OUTBOARD_GUIDE_NIP",
@@ -503,10 +515,10 @@ def _build_guards() -> tuple[GuardPart, GuardPart, GuardPart]:
         solid=_solid_from_primitive_bounds(left_adjust_final_bounds, "left adjustment U shroud"),
         exact_factory_install_sweep=_exact_axis_x_sweep(
             left_adjust_final_bounds,
-            ADJUST_GUARD_INSTALL_TRAVEL_X_MM,
+            -ADJUST_GUARD_INSTALL_TRAVEL_X_MM,
             "left adjustment guard exact install sweep",
         ),
-        install_translation_x_mm=-ADJUST_GUARD_INSTALL_TRAVEL_X_MM,
+        install_translation_x_mm=ADJUST_GUARD_INSTALL_TRAVEL_X_MM,
         source_hazard_ids=(
             "LEFT_ADJUSTMENT_MEDIAL_GUIDE_NIP",
             "LEFT_ADJUSTMENT_OUTBOARD_GUIDE_NIP",
@@ -523,12 +535,15 @@ def build_retention_hazard_guards(
 ) -> RetentionHazardGuardPackage:
     _assert_released_source_blobs()
     _assert_candidate_interface_contract()
+    occipital._require_source_files_current()
     authority = authority or load_authority()
     if authority.get("project", "authority_revision") != SOURCE_AUTHORITY_REVISION:
         raise RetentionHazardGuardError("machine authority revision changed; explicit guard rebind required")
     model = model or build_model(authority)
 
     quick, left_adjust, right_adjust = _build_guards()
+    frame_width, _ = authority.pair("geometry", "functional_frame_xy_mm")
+    yokes = tuple(occipital._build_yoke(sign, frame_width)[0] for sign in (-1, 1))
     checks: list[ClearanceCheck] = []
 
     right_latch_hazard = _box_from_bounds(RIGHT_LATCH_HAZARD_BOUNDS_MM)
@@ -691,6 +706,24 @@ def build_retention_hazard_guards(
                     protected,
                 )
             )
+
+    # Sweeps must clear installed yokes and protected/access reservations over
+    # the entire continuous interval. Final-pose clearance alone missed the old
+    # inboard trajectory's yoke, eye and scalp-corridor penetrations.
+    for guard in (quick, left_adjust, right_adjust):
+        obstacles = [(yoke.part_id, yoke.solid) for yoke in yokes]
+        obstacles += [_protected_solid(model, i) for i in range(len(model.protected_volumes.all))]
+        obstacles += [("RIGHT_EMERGENCY_PULL_ACCESS", right_pull_access)]
+        obstacles += [(other.part_id, other.solid) for other in (quick, left_adjust, right_adjust) if other is not guard]
+        if guard is not quick:
+            obstacles += [("RIGHT_ROOT_CAPTURE", right_root), ("LEFT_ROOT_CAPTURE", left_root),
+                          ("RIGHT_SCALP_CORRIDOR", right_hair), ("LEFT_SCALP_CORRIDOR", left_hair)]
+        for obstacle_id, obstacle in obstacles:
+            checks.append(_clearance(
+                f"{guard.part_id}_COMPLETE_INSTALL_CLEAR_{obstacle_id}",
+                f"{guard.part_id}_INSTALL_SWEEP", guard.exact_factory_install_sweep,
+                obstacle_id, obstacle,
+            ))
 
     return RetentionHazardGuardPackage(
         right_quick_release_guard=quick,

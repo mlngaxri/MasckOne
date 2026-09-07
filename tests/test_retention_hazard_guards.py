@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import cadquery as cq
@@ -64,14 +65,49 @@ def test_factory_install_sweeps_are_exact_complete_axis_translation_bounds(packa
         (35.0, 90.0, -8.5, 8.5, -25.0, -10.0)
     )
     assert _bbox(right.exact_factory_install_sweep) == pytest.approx(
-        (54.5, 87.5, -1.5, 29.0, -37.5, -25.75)
+        (76.5, 109.5, -1.5, 29.0, -37.5, -25.75)
     )
     assert _bbox(left.exact_factory_install_sweep) == pytest.approx(
-        (-87.5, -54.5, -1.5, 29.0, -37.5, -25.75)
+        (-109.5, -76.5, -1.5, 29.0, -37.5, -25.75)
     )
     assert float(quick.exact_factory_install_sweep.val().Volume()) == pytest.approx(3059.375)
     assert float(right.exact_factory_install_sweep.val().Volume()) == pytest.approx(2124.375)
     assert float(left.exact_factory_install_sweep.val().Volume()) == pytest.approx(2124.375)
+
+
+def test_complete_outboard_motion_clears_installed_yokes_and_protected_corridors(package):
+    complete = [c for c in package.clearance_checks if "_COMPLETE_INSTALL_CLEAR_" in c.check_id]
+    assert complete and all(c.passes for c in complete)
+    for side in ("LEFT", "RIGHT"):
+        subject = f"CELL8_{side}_ADJUSTMENT_U_SHROUD"
+        checks = {c.obstacle_id: c for c in complete if c.subject_id == subject + "_INSTALL_SWEEP"}
+        assert checks[f"OCCIPITAL_STABILIZER_{side}_YOKE"].minimum_distance_mm > 2.46
+        assert f"{side}_SCALP_CORRIDOR" in checks
+        assert any("PROTECTED-EYE" in key for key in checks)
+        assert "RIGHT_EMERGENCY_PULL_ACCESS" in checks
+    assert package.right_adjustment_guard.install_translation_x_mm == -22.0
+    assert package.left_adjustment_guard.install_translation_x_mm == 22.0
+
+
+def test_reversing_to_old_inboard_motion_is_rejected_even_with_clear_final_pose(monkeypatch, model):
+    quick, left, right = rhg._build_guards()
+    bad = []
+    for sign, guard in ((-1, left), (1, right)):
+        bounds = rhg._adjust_guard_primitive_bounds((76.5, 87.5) if sign == 1 else (-87.5, -76.5))
+        old = rhg._exact_axis_x_sweep(bounds, -sign * 22.0, "hostile old inboard sweep")
+        yoke = rhg.occipital._build_yoke(sign, 155.0)[0].solid
+        assert rhg._intersection_mm3(guard.solid, yoke) == 0.0
+        assert rhg._intersection_mm3(old, yoke) > 39.8
+        bad.append(replace(guard, exact_factory_install_sweep=old, install_translation_x_mm=sign * 22.0))
+    monkeypatch.setattr(rhg, "_build_guards", lambda: (quick, *bad))
+    with pytest.raises(RetentionHazardGuardError, match="clearance failed"):
+        build_retention_hazard_guards(model.authority, model)
+
+
+def test_changed_yoke_producer_is_rejected(monkeypatch):
+    monkeypatch.setattr(rhg, "SOURCE_OCCIPITAL_GIT_BLOB_SHA", "0" * 40)
+    with pytest.raises(RetentionHazardGuardError, match="occipital_stabilizer.py changed"):
+        rhg._assert_released_source_blobs()
 
 
 def test_source_hazards_access_released_packages_and_protected_regions_all_clear(package):
