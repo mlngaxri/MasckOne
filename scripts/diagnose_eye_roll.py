@@ -20,22 +20,17 @@ def snapshot(shape):
 
 def investigate(shape, *, roll_radius_mm, eye_zones):
     rolled = eye._single_solid(shape, "diagnostic source")
-    for index, zone in enumerate(eye_zones, 1):
-        edge = eye._wearer_side_eye_edge(
-            rolled, eye_width_mm=zone.envelope_width_mm,
-            eye_height_mm=zone.envelope_height_mm, eye_x_mm=zone.center.x,
-            eye_y_mm=zone.center.y, eye_cant_deg=zone.angle_deg,
-        )
-        raw = rolled.fillet(roll_radius_mm, [edge])
-        record = {"eye": index, "radius_mm": roll_radius_mm, "raw": snapshot(raw)}
-        # Evaluate the documented kernel repair once, without changing the radius,
-        # protected envelopes, support dimensions or any acceptance assertion.
-        fixed = raw.fix().clean()
-        record["fixed"] = snapshot(fixed)
-        records.append(record)
-        print("EYE_DIAGNOSTIC " + json.dumps(record, allow_nan=False), flush=True)
-        rolled = eye._single_solid(fixed, "diagnostic fixed fillet")
-    return rolled
+    edges = [eye._wearer_side_eye_edge(
+        rolled, eye_width_mm=z.envelope_width_mm, eye_height_mm=z.envelope_height_mm,
+        eye_x_mm=z.center.x, eye_y_mm=z.center.y, eye_cant_deg=z.angle_deg,
+    ) for z in eye_zones]
+    raw = rolled.fillet(roll_radius_mm, edges)
+    record = {"operation": "paired_edges", "radius_mm": roll_radius_mm, "raw": snapshot(raw)}
+    fixed = raw.fix().clean()
+    record["fixed"] = snapshot(fixed)
+    records.append(record)
+    print("EYE_DIAGNOSTIC " + json.dumps(record, allow_nan=False), flush=True)
+    return eye._single_solid(fixed, "diagnostic paired fixed fillet")
 
 eye._fillet_protected_eye_edges_independently = investigate
 result = {"source_candidate_sha": "da14a860e69c48191fc8e8204d895b2b9dd5f469",
