@@ -24,6 +24,7 @@ from .release_package import (
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
+from .step_integrity import solid_volume, verify_step_geometry
 
 
 def _component_record(component, *, included: bool) -> dict:
@@ -47,7 +48,8 @@ def _component_record(component, *, included: bool) -> dict:
         "geometry_role": "DEVELOPMENT_GEOMETRY" if included else "PACKAGE_REFERENCE_ONLY",
         "included_in_development_assembly": included,
         "solid_count": len(solids),
-        "volume_mm3": sum(float(solid.Volume()) for solid in solids),
+        "volume_mm3": solid_volume(compound),
+        "volume_measurement": "SUM_OF_SOLIDS_ADAPTIVE_INTEGRATION_1E-12",
         "bounding_span_mm": spans,
         "volume_semantics": "GEOMETRIC_ONLY_NOT_MASS_OR_USABLE_FLUID_CAPACITY",
         "step_file": f"{component.name}.step",
@@ -166,15 +168,21 @@ def export_release(
     }
     # Complete all engineering/DFM/source checks and JSON serialization before any
     # STEP output is published. A failed kernel export cannot overwrite a good package.
-    report_json = json.dumps(report, indent=2, allow_nan=False) + "\n"
+    json.dumps(report, allow_nan=False)
     shapes = [shape for c in components if c.name in included_names for shape in c.solid.vals()]
     compound = cq.Compound.makeCompound(shapes)
 
     def write_exports(stage: Path) -> None:
-        for component in components:
-            cq.exporters.export(component.solid, str(stage / f"{component.name}.step"))
-        cq.exporters.export(compound, str(stage / "masck_one_development_assembly.step"))
-        (stage / "build_report.json").write_text(report_json, encoding="utf-8")
+        for component, record in zip(components, records):
+            path = stage / f"{component.name}.step"
+            cq.exporters.export(component.solid, str(path))
+            source = cq.Compound.makeCompound(component.solid.vals())
+            record["step_roundtrip"] = verify_step_geometry(source, path)
+        path = stage / "masck_one_development_assembly.step"
+        cq.exporters.export(compound, str(path))
+        report["development_assembly_step_roundtrip"] = verify_step_geometry(compound, path)
+        (stage / "build_report.json").write_text(
+            json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8")
 
     publish_package(output_dir, write_exports)
     return report
