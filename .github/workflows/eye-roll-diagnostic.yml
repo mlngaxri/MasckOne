@@ -2,6 +2,7 @@ name: Diagnose existing exterior eye fillet
 on:
   push:
     branches: [codex/eye-roll-diagnostic-20260907]
+    paths: ['scripts/diagnose_eye_roll.py']
 permissions:
   contents: read
 jobs:
