@@ -32,11 +32,18 @@ def investigate(shape, *, roll_radius_mm, eye_zones):
     print("EYE_DIAGNOSTIC " + json.dumps(record, allow_nan=False), flush=True)
     return eye._single_solid(fixed, "diagnostic paired fixed fillet")
 
+# Bound the next candidate to a smaller hidden support band. All authority values
+# and the existing 2500 mm3 added-volume ceiling remain unchanged.
+eye.EYE_ROLL_SUPPORT_BAND_MM = 5.0
 eye._fillet_protected_eye_edges_independently = investigate
 result = {"source_candidate_sha": "da14a860e69c48191fc8e8204d895b2b9dd5f469",
           "scope": "KERNEL_REPAIR_EXPERIMENT_NOT_PRODUCTION_GEOMETRY"}
 try:
     model = build_model()
+    baseline = eye.build_inferior_turnover_exterior_shell(
+        model.authority, model.facial_reference, model.protected_volumes).val()
+    result["baseline_volume_mm3"] = float(baseline.Volume())
+    result["support_band_mm"] = eye.EYE_ROLL_SUPPORT_BAND_MM
     shell = eye.build_eye_rolled_exterior_shell(model.authority, model.facial_reference,
                                                model.protected_volumes)
     result["final"] = snapshot(shell.val())
