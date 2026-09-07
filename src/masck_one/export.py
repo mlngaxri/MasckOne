@@ -16,6 +16,7 @@ from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 from .structural_frame_realization import build_structural_frame_realization
+from .structural_frame_shell_joints import build_structural_frame_shell_joints
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
 
 
@@ -89,6 +90,26 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     with (output / structural_frame_manifest_name).open("w", encoding="utf-8") as handle:
         json.dump(structural_frame_realization_manifest, handle, indent=2, allow_nan=False)
         handle.write("\n")
+
+    shell_joints = build_structural_frame_shell_joints(
+        model=model,
+        frame=structural_frame_realization,
+    )
+    shell_joint_manifest_name = "structural_frame_shell_joints_manifest.json"
+    shell_joint_frame_step_name = "structural_frame_with_positive_shell_tenons.step"
+    shell_joint_shell_step_name = "rigid_shell_with_frame_mortises_and_pin_bores.step"
+    cq.exporters.export(shell_joints.assembled_frame, str(output / shell_joint_frame_step_name))
+    cq.exporters.export(shell_joints.modified_shell, str(output / shell_joint_shell_step_name))
+    shell_joint_pin_step_names: list[str] = []
+    for index, joint in enumerate(shell_joints.joints, start=1):
+        pin_name = f"structural_frame_shell_capture_pin_{index}.step"
+        cq.exporters.export(joint.pin, str(output / pin_name))
+        shell_joint_pin_step_names.append(pin_name)
+    shell_joint_manifest = shell_joints.manifest()
+    with (output / shell_joint_manifest_name).open("w", encoding="utf-8") as handle:
+        json.dump(shell_joint_manifest, handle, indent=2, allow_nan=False)
+        handle.write("\n")
+
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
     report = {
         "project": "Masck One",
@@ -110,6 +131,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
             "structural_frame_realization": structural_frame_realization_manifest,
+            "structural_frame_shell_joints": shell_joint_manifest,
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
         },
         "dfm_gates": {
@@ -119,25 +141,34 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "standalone_physical_geometry_pending_join": [
+        "standalone_physical_geometry_pending_assembly_rebind": [
             structural_frame_realization.member_id,
+            "STRUCTURAL_FRAME_POSITIVE_SHELL_JOINT_ARCHITECTURE_V1",
         ],
         "exported_step_files": [f"{name}.step" for name in export_map]
-        + [structural_frame_step_name, "masck_one_development_assembly.step"],
-        "exported_manifest_files": [structural_frame_manifest_name],
+        + [
+            structural_frame_step_name,
+            shell_joint_frame_step_name,
+            shell_joint_shell_step_name,
+            *shell_joint_pin_step_names,
+            "masck_one_development_assembly.step",
+        ],
+        "exported_manifest_files": [
+            structural_frame_manifest_name,
+            shell_joint_manifest_name,
+        ],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The Iteration-15 structural topology "
-            "remains unchanged and material-unselected. A source-bound standalone structural reaction-loop B-rep is now "
-            "exported, but its shell join, actuator reaction interfaces, retention counterparts, tooling/service access, "
-            "material and physical structural performance remain unresolved; it is deliberately not inserted into the "
-            "development assembly until positive join semantics and the physical/reference assembly boundary are rebound. "
-            "The realized waste backbone is emitted as validated centerline/manifold data, "
-            "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
-            "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
-            "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
-            "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "remains material-unselected. The source-bound reaction loop now has a separate exact-current positive shell-joint "
+            "architecture with four tenon/mortise counterparts and removable transverse headed capture pins. The jointed frame, "
+            "modified shell counterpart and capture pins are exported as standalone source-bound CAD and remain outside the "
+            "development assembly until Cell 1 rebinds the physical/reference assembly boundary. The digital joints establish "
+            "counterpart geometry and nominal non-interference only; material, strength, fatigue, process capability, production "
+            "tolerance and physical service validation remain unresolved. Actuator reaction interfaces, retention counterparts "
+            "and complete whole-head service motion remain unresolved. The realized waste backbone is emitted as validated "
+            "centerline/manifold data, not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance "
+            "evidence. The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
+            "from physical development-assembly material until body, cavity, seal, retention and service geometry are realized."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
