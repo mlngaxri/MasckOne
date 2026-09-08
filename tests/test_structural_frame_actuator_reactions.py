@@ -74,6 +74,14 @@ def test_regression_rejects_reaction_counterpart_outside_source_frame(monkeypatc
         reactions.build_structural_frame_actuator_reactions()
 
 
+def test_regression_rejects_legacy_reaction_x_that_intrudes_eye_keepout(monkeypatch: pytest.MonkeyPatch) -> None:
+    import masck_one.structural_frame_actuator_reactions as reactions
+
+    monkeypatch.setattr(reactions, "REACTION_X_MM", 66.0)
+    with pytest.raises(StructuralFrameActuatorReactionError, match="hard protected envelope"):
+        reactions.build_structural_frame_actuator_reactions()
+
+
 def test_regression_rejects_source_identity_drift() -> None:
     architecture = build_structural_frame_actuator_reactions()
     with pytest.raises(StructuralFrameActuatorReactionError, match="canonical SHA-256"):
