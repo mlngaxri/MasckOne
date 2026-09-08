@@ -212,9 +212,10 @@ def _box_at(center_x: float, center_y: float, z_center: float, width: float, hei
 
 def _pin_geometry(center_x: float, center_y: float, z_center: float, length: float) -> tuple[cq.Workplane, cq.Workplane]:
     # Pins run along X for the left/right symmetric joint pairs. The shaft is captured
-    # by heads on both ends; the bore is intentionally larger than the shaft.
+    # by heads on both ends; each head extrudes away from the joint so the enlarged
+    # head never intrudes back into frame or shell material after the shaft bore cut.
     shaft = cq.Workplane("YZ").circle(PIN_DIAMETER_MM / 2.0).extrude(length, both=True).translate((center_x, center_y, z_center))
-    head_left = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(PIN_HEAD_THICKNESS_MM).translate((center_x - length, center_y, z_center))
+    head_left = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(-PIN_HEAD_THICKNESS_MM).translate((center_x - length, center_y, z_center))
     head_right = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(PIN_HEAD_THICKNESS_MM).translate((center_x + length, center_y, z_center))
     pin = shaft.union(head_left).union(head_right)
     bore = cq.Workplane("YZ").circle(PIN_BORE_DIAMETER_MM / 2.0).extrude(length + 2.0 * PIN_OVERHANG_MM, both=True).translate((center_x, center_y, z_center))
