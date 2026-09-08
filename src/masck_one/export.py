@@ -10,10 +10,15 @@ from .boundary_release import (
     boundary_release_manifest,
     build_verified_interface_boundary_topology,
 )
+from .brand_identity import build_brand_identity_manifest
+from .component_registry import build_current_component_registry
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
-from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
+from .realized_waste_backbone_release import (
+    Cell4WasteBackboneRelease,
+    build_current_cell4_waste_backbone_release,
+)
 from .structural_frame import build_structural_frame_topology
 from .structural_frame_actuator_reactions import build_structural_frame_actuator_reactions
 from .structural_frame_crown_support import build_structural_frame_crown_support
@@ -29,8 +34,11 @@ def _ensure_output_dir(path: str | Path) -> Path:
     return output
 
 
-def _realized_waste_backbone_manifest() -> dict[str, object]:
-    release = build_current_cell4_waste_backbone_release()
+def _realized_waste_backbone_manifest(
+    release: Cell4WasteBackboneRelease | None = None,
+) -> dict[str, object]:
+    """Return the current validated route realization for deterministic release output."""
+    release = release or build_current_cell4_waste_backbone_release()
     release_manifest = release.manifest()
     return {
         "release": release_manifest,
@@ -62,14 +70,34 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
-    development_assembly_exclusions = ("waste_cartridge_envelope",)
-    shapes = [
-        component.solid.val()
-        for component in model.components
-        if component.status != "REFERENCE_ONLY" and component.name not in development_assembly_exclusions
-    ]
-    compound = cq.Compound.makeCompound(shapes)
+    # Current-main release truth: the canonical component registry owns the
+    # physical-material boundary. Cell 6 geometry remains standalone until that
+    # registry explicitly consumes it.
+    waste_release = build_current_cell4_waste_backbone_release()
+    component_registry = build_current_component_registry(model=model, waste_release=waste_release)
+
+    model_component_by_name = {component.name: component for component in model.components}
+    physical_material_names = component_registry.physical_material_model_component_names
+    missing_material = tuple(name for name in physical_material_names if name not in model_component_by_name)
+    if missing_material:
+        raise ValueError(
+            f"component registry selects model material that does not exist: {missing_material}"
+        )
+    physical_shapes = [model_component_by_name[name].solid.val() for name in physical_material_names]
+    if not physical_shapes:
+        raise ValueError("canonical component registry selected no released physical material")
+    compound = cq.Compound.makeCompound(physical_shapes)
     cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
+
+    development_assembly_exclusions = tuple(
+        sorted(set(model_component_by_name) - set(physical_material_names))
+    )
+
+    registry_manifest = component_registry.manifest()
+    _write_manifest(output / "component_registry.json", registry_manifest)
+
+    brand_identity_manifest = build_brand_identity_manifest()
+    _write_manifest(output / "brand_identity.json", brand_identity_manifest)
 
     checks = run_assertions(model)
     boundary_topology = build_verified_interface_boundary_topology(
@@ -155,13 +183,38 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     _write_manifest(output / crown_support_manifest_name, crown_support_manifest)
 
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+    structural_manifest_files = [
+        structural_frame_manifest_name,
+        shell_joint_manifest_name,
+        actuator_reaction_manifest_name,
+        retention_root_manifest_name,
+        crown_support_manifest_name,
+    ]
+    exported_step_files = [f"{name}.step" for name in export_map] + [
+        structural_frame_step_name,
+        shell_joint_frame_step_name,
+        shell_joint_shell_step_name,
+        *shell_joint_pin_step_names,
+        *shell_joint_retainer_step_names,
+        actuator_reaction_frame_step_name,
+        retention_root_frame_step_name,
+        *retention_root_pin_step_names,
+        *retention_root_retainer_step_names,
+        crown_support_step_name,
+        *crown_pin_step_names,
+        *crown_retainer_step_names,
+        "masck_one_development_assembly.step",
+    ]
     report = {
         "project": "Masck One",
+        "parent_brand": "MASCK",
+        "brand_identity": brand_identity_manifest,
         "authority_revision": model.authority.get("project", "authority_revision"),
         "development_phase": 3,
         "iteration": 15,
         "result": "PASS" if not any(c.status == "FAIL" for c in checks) else "FAIL",
         "checks": [c.to_dict() for c in checks],
+        "component_registry": registry_manifest,
         "digital_topology": {
             "coverage": model.coverage_mesh.manifest(),
             "compliant_interface": model.compliant_interface_topology.manifest(model.coverage_mesh),
@@ -179,10 +232,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "structural_frame_actuator_reactions": actuator_reaction_manifest,
             "structural_frame_retention_roots": retention_root_manifest,
             "structural_frame_crown_support": crown_support_manifest,
-            "realized_waste_backbone": _realized_waste_backbone_manifest(),
+            "realized_waste_backbone": _realized_waste_backbone_manifest(waste_release),
         },
         "dfm_gates": {"waste_cartridge": waste_cartridge_dfm.manifest()},
         "analysis_frameworks": {"contact_simulation": contact_framework.manifest()},
+        "development_assembly_material_components": list(physical_material_names),
         "development_assembly_exclusions": list(development_assembly_exclusions),
         "standalone_physical_geometry_pending_assembly_rebind": [
             structural_frame_realization.member_id,
@@ -191,39 +245,29 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "STRUCTURAL_FRAME_BILATERAL_RETENTION_ROOTS_V1",
             "STRUCTURAL_FRAME_BILATERAL_CROWN_SUPPORT_V1",
         ],
-        "exported_step_files": [f"{name}.step" for name in export_map]
-        + [
-            structural_frame_step_name,
-            shell_joint_frame_step_name,
-            shell_joint_shell_step_name,
-            *shell_joint_pin_step_names,
-            *shell_joint_retainer_step_names,
-            actuator_reaction_frame_step_name,
-            retention_root_frame_step_name,
-            *retention_root_pin_step_names,
-            *retention_root_retainer_step_names,
-            crown_support_step_name,
-            *crown_pin_step_names,
-            *crown_retainer_step_names,
-            "masck_one_development_assembly.step",
-        ],
-        "exported_manifest_files": [
-            structural_frame_manifest_name,
-            shell_joint_manifest_name,
-            actuator_reaction_manifest_name,
-            retention_root_manifest_name,
-            crown_support_manifest_name,
+        "exported_step_files": exported_step_files,
+        # Preserve the Cell 6 release-chain contract while also retaining the
+        # current-main canonical manifest inventory key.
+        "exported_manifest_files": structural_manifest_files,
+        "exported_manifests": [
+            "component_registry.json",
+            "brand_identity.json",
+            *structural_manifest_files,
+            "build_report.json",
         ],
         "note": (
-            "BLOCKED checks are unresolved evidence gates, not software failures. The source-bound reaction loop now exports the positive shell joints, "
-            "four frame-side actuator reaction counterparts, bilateral retention-root counterparts, and bilateral crown-support attachment as one "
-            "deterministic mechanical evidence chain. These mechanical B-reps remain standalone pending canonical assembly rebind. Digital geometry "
-            "does not establish material, strength, fatigue, process capability, production tolerance, anthropometric fit, comfort, hair safety or "
-            "physical service validation. Mounted carrier mates, dry/package supports, adjustment-guard installation, quick-release integration and "
-            "continuous whole-head service motion remain unresolved."
+            "BLOCKED checks are unresolved evidence gates, not software failures. The canonical component registry "
+            "remains the physical-material boundary for the development assembly. Cell 6 structural frame, positive "
+            "shell joints, actuator reaction counterparts, retention roots and crown support are deterministic standalone "
+            "mechanical evidence pending explicit canonical assembly rebind. The MASCK brand identity manifest is a "
+            "source-bound product, interaction and CMF intent contract only and does not override engineering authority, "
+            "protected geometry, manufacturing truth or physical-validation gates. Digital geometry does not establish "
+            "material, strength, fatigue, process capability, production tolerance, anthropometric fit, comfort, hair "
+            "safety, tactile feel, acoustics, wear or service ergonomics. The realized waste backbone remains validated "
+            "centerline/manifold data, not selected tubing, pump, barrier, connector, hydraulic or service-performance "
+            "evidence. The waste-cartridge STEP remains a package-envelope reference until body, cavity, seal, retention "
+            "and service geometry are realized."
         ),
     }
-    with (output / "build_report.json").open("w", encoding="utf-8") as handle:
-        json.dump(report, handle, indent=2)
-        handle.write("\n")
+    _write_manifest(output / "build_report.json", report)
     return report
