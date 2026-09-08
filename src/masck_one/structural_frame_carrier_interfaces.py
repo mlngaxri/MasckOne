@@ -23,6 +23,10 @@ ENTRY_RELIEF_MM = 0.8
 END_STOP_THICKNESS_MM = 0.8
 END_STOP_HEIGHT_MM = 2.4
 SERVICE_PROBE_MM = 0.5
+SERVICE_PROBE_WIDTH_MM = 4.0
+SERVICE_PROBE_LENGTH_MM = 0.30
+SERVICE_PROBE_HEIGHT_MM = 1.0
+SERVICE_PROBE_NOMINAL_GAP_MM = 0.10
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
 
 
@@ -49,6 +53,7 @@ class CarrierInterface:
     center_xy_mm: tuple[float, float]
     interface: cq.Workplane = field(repr=False, compare=False)
     source_mate_intersection_mm3: float = 0.0
+    nominal_service_probe_intersection_mm3: float = 0.0
     hostile_stop_intersection_mm3: float = 0.0
 
     def __post_init__(self) -> None:
@@ -57,6 +62,8 @@ class CarrierInterface:
         _valid_single_solid(self.interface, self.reaction_id)
         if self.source_mate_intersection_mm3 <= _INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameCarrierInterfaceError("carrier interface lacks positive source-mate capture")
+        if self.nominal_service_probe_intersection_mm3 > _INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameCarrierInterfaceError("carrier service entry is obstructed before the positive stop")
         if self.hostile_stop_intersection_mm3 <= _INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameCarrierInterfaceError("carrier interface lacks positive service end stop")
 
@@ -77,9 +84,15 @@ class CarrierInterface:
                 "entry_relief": ENTRY_RELIEF_MM,
                 "end_stop_thickness": END_STOP_THICKNESS_MM,
                 "end_stop_height": END_STOP_HEIGHT_MM,
+                "service_probe_width": SERVICE_PROBE_WIDTH_MM,
+                "service_probe_length": SERVICE_PROBE_LENGTH_MM,
+                "service_probe_height": SERVICE_PROBE_HEIGHT_MM,
+                "service_probe_nominal_gap": SERVICE_PROBE_NOMINAL_GAP_MM,
+                "service_probe_hostile_overtravel": SERVICE_PROBE_MM,
             },
             "measured": {
                 "positive_source_mate_capture_mm3": self.source_mate_intersection_mm3,
+                "nominal_service_probe_intersection_mm3": self.nominal_service_probe_intersection_mm3,
                 "hostile_service_stop_intersection_mm3": self.hostile_stop_intersection_mm3,
             },
         }
@@ -111,7 +124,7 @@ class StructuralFrameCarrierInterfaceArchitecture:
             "coordinate_frame_id": WORLD_FRAME_ID,
             "interfaces": [i.manifest() for i in self.interfaces],
             "carrier_counterpart_status": "EXPLICIT_FRAME_SIDE_RAILS_REALIZED_CELL7_FEMALE_COUNTERPART_OPEN",
-            "service_status": "OPEN_ENTRY_AND_POSITIVE_END_STOP_REALIZED_CONTINUOUS_WHOLE_CARRIER_SWEEP_OPEN",
+            "service_status": "OPEN_ENTRY_AND_INDEPENDENT_POSITIVE_END_STOP_PROBE_REALIZED_CONTINUOUS_WHOLE_CARRIER_SWEEP_OPEN",
             "physical_validation_eligible": self.physical_validation_eligible,
         }
         if include_sha:
@@ -119,13 +132,22 @@ class StructuralFrameCarrierInterfaceArchitecture:
         return payload
 
 
-def _rail(cx: float, cy: float, z0: float) -> cq.Workplane:
-    # Two stacked prisms create a mechanically explicit undercut rail without relying
-    # on coincident/overlap semantics at the future carrier boundary.
+def _rail_components(cx: float, cy: float, z0: float) -> tuple[cq.Workplane, cq.Workplane]:
     root = cq.Workplane("XY").box(RAIL_ROOT_WIDTH_MM, RAIL_LENGTH_MM, RAIL_HEIGHT_MM * 0.55, centered=(True, True, False)).translate((cx, cy, z0))
     crown = cq.Workplane("XY").box(RAIL_CROWN_WIDTH_MM, RAIL_LENGTH_MM - ENTRY_RELIEF_MM, RAIL_HEIGHT_MM * 0.45, centered=(True, True, False)).translate((cx, cy - ENTRY_RELIEF_MM / 2.0, z0 + RAIL_HEIGHT_MM * 0.55))
     stop = cq.Workplane("XY").box(RAIL_CROWN_WIDTH_MM, END_STOP_THICKNESS_MM, END_STOP_HEIGHT_MM, centered=(True, True, False)).translate((cx, cy - RAIL_LENGTH_MM / 2.0 + END_STOP_THICKNESS_MM / 2.0, z0))
-    return root.union(crown).union(stop)
+    return root.union(crown).union(stop), stop
+
+
+def _service_stop_probe(cx: float, cy: float, z0: float) -> cq.Workplane:
+    stop_inner_y = cy - RAIL_LENGTH_MM / 2.0 + END_STOP_THICKNESS_MM
+    probe_center_y = stop_inner_y + SERVICE_PROBE_NOMINAL_GAP_MM + SERVICE_PROBE_LENGTH_MM / 2.0
+    return cq.Workplane("XY").box(
+        SERVICE_PROBE_WIDTH_MM,
+        SERVICE_PROBE_LENGTH_MM,
+        SERVICE_PROBE_HEIGHT_MM,
+        centered=(True, True, False),
+    ).translate((cx, probe_center_y, z0 + RAIL_HEIGHT_MM))
 
 
 def build_structural_frame_carrier_interfaces(*, mates: StructuralFrameActuatorMateArchitecture | None = None) -> StructuralFrameCarrierInterfaceArchitecture:
@@ -134,12 +156,21 @@ def build_structural_frame_carrier_interfaces(*, mates: StructuralFrameActuatorM
     for source in mates.mates:
         bb = source.mate.val().BoundingBox()
         cx, cy = source.center_xy_mm
-        interface = _rail(cx, cy, float(bb.zmax) - 0.20)
+        z0 = float(bb.zmax) - 0.20
+        interface, stop = _rail_components(cx, cy, z0)
         _valid_single_solid(interface, source.reaction_id)
         capture = _intersection_volume(interface, source.mate)
-        # A small hostile motion toward the closed end must encounter positive stop material.
-        hostile = _intersection_volume(interface.translate((0.0, -SERVICE_PROBE_MM, 0.0)), source.mate.union(interface))
-        built.append(CarrierInterface(source.reaction_id, source.center_xy_mm, interface, round(capture, 8), round(hostile, 8)))
+        probe = _service_stop_probe(cx, cy, z0)
+        nominal_probe_intersection = _intersection_volume(probe, stop)
+        hostile_probe_intersection = _intersection_volume(probe.translate((0.0, -SERVICE_PROBE_MM, 0.0)), stop)
+        built.append(CarrierInterface(
+            source.reaction_id,
+            source.center_xy_mm,
+            interface,
+            round(capture, 8),
+            round(nominal_probe_intersection, 8),
+            round(hostile_probe_intersection, 8),
+        ))
     result = StructuralFrameCarrierInterfaceArchitecture(mates.architecture_sha256, tuple(built), False)
     result.__post_init__()
     return result
