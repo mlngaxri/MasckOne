@@ -636,6 +636,7 @@ body:before{border-color:rgba(24,33,28,.10)}
 
 
 
+
 /* Continuous approved product mask v10 */
 .mask-journey.hero-mask-single{
   position:fixed;
@@ -1443,6 +1444,486 @@ button{-webkit-tap-highlight-color:transparent}
 }
 /* End Stage 4 rendered visual QA v16 */
 
+/* Product inspection and wearability v17 */
+.product-inspection{
+  position:relative;
+  height:360svh;
+  overflow:clip;
+  background:
+    radial-gradient(circle at 65% 47%,rgba(255,255,255,.76),rgba(255,255,255,0) 31%),
+    linear-gradient(145deg,#f7f7f2 0%,#eef1eb 56%,#e4ecee 100%);
+  color:var(--ink);
+  border-top:1px solid rgba(24,33,28,.10);
+  isolation:isolate;
+}
+.inspection-sticky{
+  position:sticky;
+  top:0;
+  height:100svh;
+  min-height:660px;
+  overflow:hidden;
+}
+.inspection-sticky:before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  left:55%;
+  top:50%;
+  width:min(54vw,760px);
+  aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:1px solid rgba(24,33,28,.065);
+  box-shadow:0 0 0 11vw rgba(255,255,255,.08);
+  pointer-events:none;
+}
+.inspection-copy{
+  position:absolute;
+  z-index:8;
+  left:max(var(--pad),5.2vw);
+  top:50%;
+  width:min(400px,31vw);
+  transform:translateY(-50%);
+}
+.inspection-kicker{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:19px;
+  font:400 7px/1 "DM Mono",monospace;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:rgba(24,33,28,.47);
+}
+.inspection-kicker:before{
+  content:"";
+  width:29px;
+  height:1px;
+  background:currentColor;
+  opacity:.5;
+}
+.inspection-copy h2{
+  margin:0;
+  font:400 clamp(58px,6.2vw,96px)/.82 "Instrument Serif",serif;
+  letter-spacing:-.048em;
+  text-wrap:balance;
+}
+.inspection-copy>p{
+  max-width:365px;
+  margin:24px 0 0;
+  padding-top:13px;
+  border-top:1px solid rgba(24,33,28,.16);
+  font-size:12px;
+  line-height:1.68;
+  color:rgba(24,33,28,.64);
+}
+.inspection-state-copy{
+  min-height:2.8em;
+  transition:opacity .22s var(--ease),transform .36s var(--ease);
+}
+.inspection-stage{
+  position:absolute;
+  z-index:4;
+  left:64%;
+  top:50%;
+  width:min(49vw,700px);
+  aspect-ratio:1;
+  transform:translate(-50%,-50%);
+}
+.inspection-product{
+  position:absolute;
+  z-index:4;
+  left:50%;
+  top:50%;
+  width:min(64%,430px);
+  height:auto;
+  transform:translate(-50%,-50%);
+  /* Product inspection rendered QA v17b */
+  filter:grayscale(.76) sepia(.10) saturate(.48) contrast(.96) brightness(1.035) drop-shadow(0 19px 29px rgba(24,33,28,.10)) drop-shadow(0 48px 64px rgba(24,33,28,.07));
+  transition:transform .8s var(--ease),filter .6s var(--ease),opacity .45s var(--ease);
+}
+.inspection-stage[data-state="0"] .inspection-product{transform:translate(-50%,-50%) rotate(-1deg) scale(1.02)}
+.inspection-stage[data-state="1"] .inspection-product{transform:translate(-50%,-50%) rotate(-1deg) scale(.96)}
+.inspection-stage[data-state="2"] .inspection-product{transform:translate(-50%,-50%) rotate(0deg) scale(.93)}
+.inspection-stage[data-state="3"] .inspection-product{transform:translate(-50%,-50%) rotate(0deg) scale(.91)}
+.inspection-overlay{
+  position:absolute;
+  z-index:5;
+  inset:0;
+  opacity:0;
+  transform:translateY(8px);
+  transition:opacity .34s var(--ease),transform .52s var(--ease);
+  pointer-events:none;
+}
+.inspection-overlay.active{opacity:1;transform:none}
+.inspection-front-mark{
+  position:absolute;
+  left:50%;
+  bottom:4%;
+  transform:translateX(-50%);
+  font:400 6.5px/1 "DM Mono",monospace;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:rgba(24,33,28,.40);
+  white-space:nowrap;
+}
+.inspection-front-mark:before{
+  content:"";
+  display:block;
+  width:1px;
+  height:36px;
+  margin:0 auto 10px;
+  background:linear-gradient(rgba(24,33,28,0),rgba(24,33,28,.30));
+}
+.inspection-depth-bracket{
+  position:absolute;
+  right:5%;
+  top:25%;
+  bottom:25%;
+  width:21%;
+  border-right:1px solid rgba(24,33,28,.31);
+}
+.inspection-depth-bracket:before,
+.inspection-depth-bracket:after{
+  content:"";
+  position:absolute;
+  right:0;
+  width:42px;
+  height:1px;
+  background:rgba(24,33,28,.31);
+}
+.inspection-depth-bracket:before{top:0}
+.inspection-depth-bracket:after{bottom:0}
+.inspection-depth-label{
+  position:absolute;
+  right:-4px;
+  top:50%;
+  width:176px;
+  transform:translate(100%,-50%);
+  font:400 6.5px/1.5 "DM Mono",monospace;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:rgba(24,33,28,.52);
+}
+.inspection-depth-label b{
+  display:block;
+  margin-bottom:6px;
+  font-weight:400;
+  color:rgba(24,33,28,.82);
+}
+.inspection-retention-arc{
+  position:absolute;
+  z-index:1;
+  left:50%;
+  top:50%;
+  width:78%;
+  height:52%;
+  transform:translate(-50%,-50%) rotate(-5deg);
+  border:1px dashed rgba(24,33,28,.30);
+  border-left-color:rgba(24,33,28,.10);
+  border-radius:50%;
+}
+.inspection-retention-arc:after{
+  content:"";
+  position:absolute;
+  right:-2px;
+  top:50%;
+  width:8px;
+  height:8px;
+  transform:translate(50%,-50%);
+  border:1px solid rgba(24,33,28,.42);
+  border-radius:50%;
+  background:var(--paper);
+}
+.inspection-retention-label,
+.inspection-rear-label,
+.inspection-service-label{
+  position:absolute;
+  padding-left:36px;
+  font:400 6.5px/1.5 "DM Mono",monospace;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:rgba(24,33,28,.50);
+}
+.inspection-retention-label:before,
+.inspection-rear-label:before,
+.inspection-service-label:before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:.58em;
+  width:27px;
+  height:1px;
+  background:currentColor;
+}
+.inspection-retention-label{left:4%;top:24%}
+.inspection-rear-label{right:-1%;top:48%}
+.inspection-retention-label b,
+.inspection-rear-label b,
+.inspection-service-label b{
+  display:block;
+  margin-bottom:5px;
+  font-weight:400;
+  color:rgba(24,33,28,.82);
+}
+.inspection-service-line{
+  position:absolute;
+  right:12%;
+  bottom:23%;
+  width:34%;
+  height:19%;
+  border-right:1px dashed rgba(185,126,101,.66);
+  border-bottom:1px dashed rgba(185,126,101,.66);
+  border-radius:0 0 20px 0;
+}
+.inspection-service-node{
+  position:absolute;
+  right:4%;
+  bottom:11%;
+  width:118px;
+  height:62px;
+  border:1px dashed rgba(185,126,101,.70);
+  border-radius:18px;
+  background:rgba(185,126,101,.035);
+}
+.inspection-service-node:before{
+  content:"TOPOLOGY";
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  font:400 6px/1 "DM Mono",monospace;
+  letter-spacing:.13em;
+  color:rgba(185,126,101,.84);
+}
+.inspection-service-label{right:1%;bottom:2%;color:rgba(145,89,68,.68)}
+.inspection-service-label b{color:rgba(123,73,54,.90)}
+.inspection-rail{
+  position:absolute;
+  z-index:9;
+  right:max(var(--pad),5.2vw);
+  top:50%;
+  width:160px;
+  transform:translateY(-50%);
+  border-top:1px solid rgba(24,33,28,.16);
+}
+.inspection-step{
+  width:100%;
+  appearance:none;
+  display:grid;
+  grid-template-columns:30px 1fr;
+  align-items:center;
+  gap:10px;
+  min-height:47px;
+  padding:0;
+  border:0;
+  border-bottom:1px solid rgba(24,33,28,.11);
+  background:transparent;
+  color:rgba(24,33,28,.38);
+  text-align:left;
+  cursor:pointer;
+  transition:color .25s var(--ease),transform .22s var(--ease);
+}
+.inspection-step i{
+  font:400 6px/1 "DM Mono",monospace;
+  font-style:normal;
+  letter-spacing:.08em;
+  opacity:.55;
+}
+.inspection-step span{
+  font:400 8px/1 "DM Mono",monospace;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+}
+.inspection-step.active{color:rgba(24,33,28,.88)}
+.inspection-step.active i{color:var(--clay);opacity:1}
+.inspection-step:focus-visible{outline:2px solid #75866c;outline-offset:4px}
+@media(hover:hover) and (pointer:fine){
+  .inspection-step:hover{color:var(--ink);transform:translateX(-3px)}
+  .inspection-step:active{transform:translateX(-3px) translateY(1px)}
+}
+.inspection-meta{
+  position:absolute;
+  z-index:9;
+  left:max(var(--pad),5.2vw);
+  right:max(var(--pad),5.2vw);
+  bottom:24px;
+  display:flex;
+  justify-content:space-between;
+  gap:24px;
+  padding-top:10px;
+  border-top:1px solid rgba(24,33,28,.12);
+  font:400 6.5px/1.45 "DM Mono",monospace;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  color:rgba(24,33,28,.39);
+}
+.inspection-meta span:last-child{text-align:right}
+.inspection-progress{
+  position:absolute;
+  z-index:7;
+  left:0;
+  bottom:0;
+  width:100%;
+  height:2px;
+  transform:scaleX(0);
+  transform-origin:left center;
+  background:linear-gradient(90deg,var(--clay),#9ba88f 58%,#91afb5);
+}
+@media(max-width:1100px) and (min-width:901px){
+  .inspection-copy{width:min(350px,31vw)}
+  .inspection-stage{left:62%;width:min(52vw,620px)}
+  .inspection-rail{right:3vw;width:138px}
+  .inspection-depth-label{right:0;width:145px}
+}
+@media(max-width:900px){
+  .product-inspection{height:330svh}
+  .inspection-sticky{min-height:560px}
+  .inspection-sticky:before{left:50%;top:58%;width:92vw;box-shadow:0 0 0 18vw rgba(255,255,255,.07)}
+  .inspection-copy{
+    left:22px;
+    right:22px;
+    top:11.8svh;
+    width:auto;
+    transform:none;
+  }
+  .inspection-kicker{margin-bottom:13px;font-size:6.25px}
+  .inspection-copy h2{font-size:clamp(48px,14vw,64px);line-height:.82}
+  .inspection-copy>p{max-width:78vw;margin-top:14px;padding-top:9px;font-size:11.25px;line-height:1.55}
+  .inspection-stage{
+    left:50%;
+    top:58%;
+    width:94vw;
+    max-width:520px;
+  }
+  .inspection-product{width:min(58%,330px)}
+  .inspection-depth-bracket{right:9%;top:28%;bottom:28%;width:17%}
+  .inspection-depth-label{display:none}
+  .inspection-retention-label{left:2%;top:21%}
+  .inspection-rear-label{right:2%;top:46%;padding-left:28px}
+  .inspection-service-node{right:6%;bottom:17%;width:88px;height:48px;border-radius:14px}
+  .inspection-service-label{display:none}
+  .inspection-rail{
+    left:22px;
+    right:22px;
+    top:auto;
+    bottom:max(58px,calc(45px + env(safe-area-inset-bottom)));
+    width:auto;
+    transform:none;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+  }
+  .inspection-step{
+    grid-template-columns:1fr;
+    gap:4px;
+    min-height:45px;
+    padding:8px 0 6px;
+    border-bottom:0;
+    border-right:1px solid rgba(24,33,28,.10);
+  }
+  .inspection-step:last-child{border-right:0}
+  .inspection-step i,.inspection-step span{text-align:center}
+  .inspection-step span{font-size:6.5px;letter-spacing:.07em}
+  .inspection-meta{
+    left:22px;
+    right:22px;
+    bottom:max(16px,env(safe-area-inset-bottom));
+    gap:12px;
+    padding-top:8px;
+    font-size:5.7px;
+  }
+}
+@media(max-width:390px){
+  .inspection-copy{left:18px;right:18px}
+  .inspection-copy h2{font-size:clamp(44px,14.6vw,58px)}
+  .inspection-copy>p{max-width:84vw}
+  .inspection-stage{top:59%;width:100vw}
+  .inspection-product{width:60%}
+  .inspection-retention-label,.inspection-rear-label{font-size:5.7px}
+  .inspection-rail{left:18px;right:18px}
+  .inspection-step span{font-size:5.8px}
+  .inspection-meta{left:18px;right:18px}
+}
+@media(prefers-reduced-motion:reduce){
+  .inspection-product,.inspection-overlay,.inspection-state-copy,.inspection-step{transition:none!important}
+}
+
+/* Product inspection final v17c */
+.product-inspection.inspection-final-v17c{height:300svh;background:radial-gradient(circle at 65% 48%,rgba(255,255,255,.9),rgba(255,255,255,0) 28%),linear-gradient(145deg,#f7f7f2 0%,#eef1eb 58%,#e7eef0 100%)}
+.orbit17-sticky{position:sticky;top:0;height:100svh;min-height:660px;overflow:hidden;isolation:isolate}
+.orbit17-sticky:before{content:"";position:absolute;left:63%;top:50%;width:min(60vw,820px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.72),rgba(255,255,255,.18) 46%,transparent 72%);pointer-events:none}
+.orbit17-copy{position:absolute;z-index:9;left:max(var(--pad),5vw);top:50%;width:min(410px,31vw);transform:translateY(-50%)}
+.orbit17-kicker{display:flex;align-items:center;gap:11px;margin-bottom:18px;font:400 8px/1 DM Mono,monospace;letter-spacing:.145em;text-transform:uppercase;opacity:.48}
+.orbit17-kicker:before{content:"";width:29px;height:1px;background:currentColor;opacity:.48}
+.orbit17-copy h2{margin:0;font:400 clamp(64px,6.7vw,104px)/.82 Instrument Serif,serif;letter-spacing:-.055em;max-width:430px}
+.orbit17-state-copy{max-width:370px;min-height:4.5em;margin:24px 0 0;padding-top:13px;border-top:1px solid rgba(24,33,28,.16);font:500 clamp(13px,1vw,16px)/1.58 Manrope,system-ui,sans-serif;letter-spacing:-.014em;color:rgba(24,33,28,.65)}
+.orbit17-stage{position:absolute;z-index:4;left:64%;top:50%;width:min(62vw,860px);aspect-ratio:1;transform:translate(-50%,-50%);touch-action:pan-y}
+.orbit17-view{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transform:scale(.985);filter:drop-shadow(0 24px 28px rgba(24,33,28,.08)) drop-shadow(0 54px 70px rgba(24,33,28,.08));transition:opacity .6s var(--ease),transform .9s var(--ease);pointer-events:none}
+.orbit17-view.active{opacity:1;transform:scale(1)}
+.orbit17-hotspot{position:absolute;z-index:8;left:var(--hx);top:var(--hy);width:12px;height:12px;transform:translate(-50%,-50%);opacity:0;pointer-events:none;transition:opacity .35s var(--ease)}
+.orbit17-hotspot.visible{opacity:1;pointer-events:auto}
+.orbit17-hotspot i{position:absolute;inset:2px;border:1px solid rgba(24,33,28,.52);border-radius:50%;background:rgba(247,247,242,.92)}
+.orbit17-hotspot i:after{content:"";position:absolute;left:9px;top:4px;width:34px;height:1px;background:rgba(24,33,28,.34)}
+.orbit17-hotspot span{position:absolute;left:49px;top:-9px;width:max-content;max-width:170px;padding:7px 9px;border:1px solid rgba(24,33,28,.11);border-radius:8px;background:rgba(247,247,242,.84);backdrop-filter:blur(12px);font:400 6.5px/1.45 DM Mono,monospace;letter-spacing:.07em;text-transform:uppercase;color:rgba(24,33,28,.55)}
+.orbit17-hotspot span b{display:block;margin-bottom:3px;font-weight:400;color:rgba(24,33,28,.84)}
+.orbit17-hotspot.topology i{border-style:dashed}.orbit17-hotspot.topology i:after{background:repeating-linear-gradient(90deg,rgba(24,33,28,.32) 0 4px,transparent 4px 7px)}
+.orbit17-hotspot-service span,.orbit17-hotspot-backer span{left:auto;right:49px;text-align:right}.orbit17-hotspot-service i:after,.orbit17-hotspot-backer i:after{left:auto;right:9px}
+.orbit17-rail{position:absolute;z-index:10;right:max(var(--pad),4.8vw);top:50%;width:154px;transform:translateY(-50%);border-top:1px solid rgba(24,33,28,.15)}
+.orbit17-step{appearance:none;width:100%;display:grid;grid-template-columns:30px 1fr;align-items:center;gap:9px;min-height:52px;padding:0;border:0;border-bottom:1px solid rgba(24,33,28,.11);background:transparent;color:rgba(24,33,28,.38);text-align:left;cursor:pointer;transition:color .22s var(--ease),transform .22s var(--ease)}
+.orbit17-step i{font:400 6px/1 DM Mono,monospace;font-style:normal;opacity:.55}.orbit17-step span{font:400 8px/1 DM Mono,monospace;letter-spacing:.1em;text-transform:uppercase}.orbit17-step.active{color:rgba(24,33,28,.9)}.orbit17-step.active i{color:var(--clay);opacity:1}.orbit17-step:focus-visible{outline:1px solid currentColor;outline-offset:4px}
+@media(hover:hover) and (pointer:fine){.orbit17-step:hover{color:var(--ink);transform:translateX(-3px)}.orbit17-hotspot:hover span{background:rgba(247,247,242,.97)}}
+.orbit17-meta{position:absolute;z-index:10;left:max(var(--pad),5vw);right:max(var(--pad),4.8vw);bottom:24px;display:flex;justify-content:space-between;gap:20px;padding-top:9px;border-top:1px solid rgba(24,33,28,.11);font:400 6.5px/1.45 DM Mono,monospace;letter-spacing:.08em;text-transform:uppercase;color:rgba(24,33,28,.4)}
+.orbit17-meta span:last-child{text-align:right}.orbit17-progress{position:absolute;z-index:10;left:0;bottom:0;width:100%;height:2px;background:var(--ink);opacity:.34;transform:scaleX(0);transform-origin:left center}
+@media(max-width:1080px) and (min-width:901px){.orbit17-stage{left:61%;width:63vw}.orbit17-rail{right:2.5vw;width:132px}.orbit17-copy{width:30vw}}
+@media(max-width:900px){.product-inspection.inspection-final-v17c{height:280svh}.orbit17-sticky{min-height:560px}.orbit17-sticky:before{left:50%;top:59%;width:100vw}.orbit17-copy{left:22px;right:22px;top:11.5svh;width:auto;transform:none}.orbit17-kicker{font-size:6.5px;margin-bottom:12px}.orbit17-copy h2{font-size:clamp(50px,14.5vw,68px);line-height:.84}.orbit17-state-copy{max-width:85vw;min-height:3.4em;margin-top:13px;padding-top:9px;font-size:12px;line-height:1.5}.orbit17-stage{left:50%;top:58%;width:104vw;max-width:590px}.orbit17-hotspot span{font-size:5.8px;max-width:128px;padding:5px 7px}.orbit17-hotspot i:after{width:22px}.orbit17-hotspot span{left:37px}.orbit17-hotspot-service span,.orbit17-hotspot-backer span{left:auto;right:37px}.orbit17-rail{left:22px;right:22px;top:auto;bottom:max(58px,calc(44px + env(safe-area-inset-bottom)));width:auto;transform:none;display:grid;grid-template-columns:repeat(3,1fr)}.orbit17-step{grid-template-columns:1fr;gap:4px;min-height:46px;padding:7px 0;border-bottom:0;border-right:1px solid rgba(24,33,28,.11)}.orbit17-step:last-child{border-right:0}.orbit17-step i,.orbit17-step span{text-align:center}.orbit17-meta{left:22px;right:22px;bottom:max(16px,env(safe-area-inset-bottom));font-size:5.5px}.orbit17-meta span:first-child{display:none}}
+@media(max-width:390px){.orbit17-copy{left:18px;right:18px}.orbit17-stage{top:59%;width:110vw}.orbit17-rail,.orbit17-meta{left:18px;right:18px}.orbit17-hotspot span{display:none}}
+@media(prefers-reduced-motion:reduce){.orbit17-view,.orbit17-hotspot,.orbit17-step{transition:none!important}}
+
+
+
+/* Product use journey v18 */
+.use-journey18{position:relative;height:720svh;background:#18211c;color:#f7f7f2;border-top:1px solid rgba(247,247,242,.08);isolation:isolate}
+.journey18-desktop{height:100%}.journey18-mobile{display:none}.journey18-sticky{position:sticky;top:0;height:100svh;min-height:680px;overflow:hidden;background:radial-gradient(circle at 66% 49%,rgba(216,230,224,.13),transparent 31%),linear-gradient(145deg,#18211c 0%,#1d2821 62%,#23302a 100%)}
+.journey18-sticky:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(24,33,28,.18),transparent 38%,transparent 75%,rgba(24,33,28,.12));z-index:1}
+.j18-copy{position:absolute;z-index:8;left:max(var(--pad),5vw);top:50%;width:min(410px,30vw);transform:translateY(-50%)}
+.j18-kicker{display:flex;align-items:center;gap:11px;margin-bottom:18px;font:400 8px/1 DM Mono,monospace;letter-spacing:.145em;text-transform:uppercase;color:rgba(247,247,242,.48)}
+.j18-kicker:before{content:"";width:29px;height:1px;background:currentColor;opacity:.55}
+.j18-copy h2,.j18m-intro h2{margin:0;font:400 clamp(66px,6.7vw,104px)/.82 Instrument Serif,serif;letter-spacing:-.055em;color:#f7f7f2}
+.j18-active-copy{margin-top:30px;padding-top:14px;border-top:1px solid rgba(247,247,242,.17);max-width:370px;min-height:132px}
+.j18-active-copy>span{font:400 6.5px/1 DM Mono,monospace;letter-spacing:.1em;text-transform:uppercase;color:rgba(247,247,242,.38)}
+.j18-active-copy h3{margin:10px 0 9px;font:400 clamp(24px,2vw,31px)/1 Instrument Serif,serif;letter-spacing:-.035em}
+.j18-active-copy p{margin:0;max-width:360px;font:500 clamp(12.5px,.96vw,15px)/1.62 Manrope,system-ui,sans-serif;letter-spacing:-.014em;color:rgba(247,247,242,.66)}
+.j18-visual{position:absolute;z-index:4;left:65%;top:48.5%;width:min(61vw,850px);aspect-ratio:1;transform:translate(-50%,-50%)}
+.j18-glow{position:absolute;left:50%;top:52%;width:72%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.1),rgba(210,228,220,.04) 48%,transparent 72%);filter:blur(4px)}
+.j18-product{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transform:scale(.985);filter:drop-shadow(0 28px 34px rgba(0,0,0,.17)) drop-shadow(0 65px 82px rgba(0,0,0,.18));transition:opacity .55s var(--ease),transform .9s var(--ease);pointer-events:none}
+.j18-product.active{opacity:1;transform:scale(1)}
+.j18-gesture{position:absolute;inset:0;z-index:6;opacity:0;pointer-events:none;transition:opacity .42s var(--ease)}.j18-gesture.active{opacity:1}
+.j18-supply{position:absolute;width:96px;height:96px;border:1px solid rgba(247,247,242,.18);border-radius:50%;display:grid;place-items:center;background:rgba(247,247,242,.035);backdrop-filter:blur(8px);font:400 7px/1 DM Mono,monospace;letter-spacing:.11em;text-transform:uppercase;color:rgba(247,247,242,.72)}
+.j18-water{left:8%;top:33%}.j18-cleanser{right:6%;top:61%}.j18-water:after,.j18-cleanser:after{content:"";position:absolute;inset:18px;border-radius:50%;background:radial-gradient(circle at 38% 32%,rgba(210,232,241,.5),rgba(126,174,193,.12) 58%,transparent 62%)}
+.j18-cleanser:after{background:radial-gradient(circle at 38% 32%,rgba(229,211,188,.5),rgba(185,126,101,.12) 58%,transparent 62%)}.j18-supply span{z-index:1}
+.j18-converge{position:absolute;height:1px;width:17%;background:linear-gradient(90deg,rgba(247,247,242,.08),rgba(247,247,242,.44),rgba(247,247,242,.08));transform-origin:left}.j18-converge.a{left:20%;top:43%;transform:rotate(8deg)}.j18-converge.b{right:18%;top:67%;transform:rotate(192deg)}
+.j18-headref{position:absolute;left:35%;top:21%;width:32%;height:56%;border:1px solid rgba(247,247,242,.15);border-radius:49% 48% 45% 50%;transform:rotate(-3deg);opacity:.8}.j18-headref i{position:absolute;right:-8%;top:46%;width:17%;height:12%;border:1px solid rgba(247,247,242,.14);border-left:0;border-radius:0 80% 80% 0}
+.j18-wear-arrow{position:absolute;left:17%;top:47%;width:18%;height:1px;background:rgba(247,247,242,.36)}.j18-wear-arrow:after{content:"";position:absolute;right:-1px;top:-3px;width:6px;height:6px;border-top:1px solid rgba(247,247,242,.52);border-right:1px solid rgba(247,247,242,.52);transform:rotate(45deg)}.j18-wear-arrow span,.j18-rear-arc span{position:absolute;bottom:9px;left:0;font:400 6px/1 DM Mono,monospace;letter-spacing:.1em;text-transform:uppercase;color:rgba(247,247,242,.52);white-space:nowrap}
+.j18-rear-arc{position:absolute;right:11%;top:43%;width:17%;height:24%;border-right:1px solid rgba(247,247,242,.28);border-radius:0 80px 80px 0}.j18-rear-arc span{left:auto;right:0;bottom:-18px;text-align:right}
+.j18-control-region{position:absolute;left:71.461%;top:40.655%;width:14px;height:14px;transform:translate(-50%,-50%)}.j18-control-region i{position:absolute;inset:2px;border:1px solid rgba(247,247,242,.76);border-radius:50%;background:rgba(247,247,242,.12)}.j18-control-region:before,.j18-control-region:after{content:"";position:absolute;border:1px solid rgba(247,247,242,.22);border-radius:50%;inset:-7px}.j18-control-region:after{inset:-15px;opacity:.46}.j18-control-region span{position:absolute;left:44px;top:-13px;width:176px;padding-left:10px;border-left:1px solid rgba(247,247,242,.2);font:400 6.5px/1.55 DM Mono,monospace;letter-spacing:.08em;text-transform:uppercase;color:rgba(247,247,242,.62)}.j18-control-region span b{font-weight:400;color:rgba(247,247,242,.34)}
+.j18-fingertip{position:absolute;left:79%;top:31%;width:38px;height:38px;border-radius:50%;border:1px solid rgba(247,247,242,.17);background:radial-gradient(circle at 40% 40%,rgba(247,247,242,.18),rgba(247,247,242,.025) 66%,transparent 70%);transform:translate(-50%,-50%)}.j18-fingertip:after{content:"";position:absolute;left:-48px;top:33px;width:54px;height:1px;background:rgba(247,247,242,.22);transform:rotate(-28deg);transform-origin:right}
+.j18-cycle-ring{position:absolute;left:50%;top:51%;width:59%;aspect-ratio:1;transform:translate(-50%,-50%);border:1px solid rgba(247,247,242,.13);border-radius:50%}.j18-cycle-ring:before{content:"";position:absolute;inset:7%;border:1px dashed rgba(247,247,242,.17);border-radius:50%;animation:j18Turn 18s linear infinite}.j18-cycle-word{position:absolute;font:400 7px/1 DM Mono,monospace;letter-spacing:.13em;text-transform:uppercase;color:rgba(247,247,242,.7)}.j18-cycle-word.supply{left:15%;top:48%}.j18-cycle-word.move{left:48%;top:17%}.j18-cycle-word.recover{right:9%;top:59%}@keyframes j18Turn{to{transform:rotate(360deg)}}
+.j18-release-marker{position:absolute;left:74%;top:53%;width:12px;height:12px;transform:translate(-50%,-50%)}.j18-release-marker i,.j18-service-marker i,.j18-charge-marker i{position:absolute;inset:1px;border:1px solid rgba(247,247,242,.7);border-radius:50%}.j18-release-marker span,.j18-service-marker span,.j18-charge-marker span{position:absolute;left:31px;top:-6px;width:max-content;font:400 6.5px/1.5 DM Mono,monospace;letter-spacing:.08em;text-transform:uppercase;color:rgba(247,247,242,.62)}
+.j18-release-arrow{position:absolute;left:75%;top:57%;width:15%;height:1px;background:rgba(247,247,242,.44)}.j18-release-arrow:after{content:"";position:absolute;right:0;top:-3px;width:6px;height:6px;border-top:1px solid rgba(247,247,242,.55);border-right:1px solid rgba(247,247,242,.55);transform:rotate(45deg)}.j18-release-arrow span,.j18-access-line span{position:absolute;top:9px;left:0;font:400 6px/1 DM Mono,monospace;letter-spacing:.1em;text-transform:uppercase;color:rgba(247,247,242,.48)}
+.j18-service-marker{position:absolute;left:56.655%;top:50.437%;width:12px;height:12px;transform:translate(-50%,-50%)}.j18-service-marker span{left:auto;right:31px;text-align:right}.j18-access-line{position:absolute;left:42%;top:54%;width:13%;height:1px;background:rgba(247,247,242,.3);transform:rotate(24deg);transform-origin:right}.j18-access-line span{transform:rotate(-24deg);transform-origin:left}
+.j18-charge-marker{position:absolute;left:39%;top:61%;width:13px;height:13px;transform:translate(-50%,-50%)}.j18-charge-marker i{border-style:dashed}.j18-charge-marker:before{content:"";position:absolute;inset:-9px;border:1px dashed rgba(247,247,242,.18);border-radius:50%}.j18-charge-marker span{left:auto;right:34px;text-align:right}.j18-charge-marker span b{font-weight:400;color:rgba(247,247,242,.34)}
+.j18-rail{position:absolute;z-index:9;left:max(var(--pad),5vw);right:max(var(--pad),5vw);bottom:78px;height:48px;display:grid;grid-template-columns:repeat(7,1fr);border-top:1px solid rgba(247,247,242,.15)}.j18-rail button{appearance:none;position:relative;display:grid;grid-template-columns:24px 1fr;align-items:center;gap:7px;padding:0 12px 0 0;border:0;border-right:1px solid rgba(247,247,242,.08);background:transparent;color:rgba(247,247,242,.34);text-align:left;cursor:pointer;transition:color .2s var(--ease),transform .2s var(--ease)}.j18-rail button:last-child{border-right:0}.j18-rail button i{font:400 5.5px/1 DM Mono,monospace;font-style:normal;opacity:.55}.j18-rail button span{font:400 6.5px/1 DM Mono,monospace;letter-spacing:.08em;text-transform:uppercase}.j18-rail button.active{color:rgba(247,247,242,.9)}.j18-rail button.active i{color:#c6cfb9;opacity:1}.j18-rail button:focus-visible{outline:1px solid rgba(247,247,242,.7);outline-offset:4px}@media(hover:hover) and (pointer:fine){.j18-rail button:hover{color:rgba(247,247,242,.8);transform:translateY(-2px)}}
+.j18-truth{position:absolute;z-index:9;left:max(var(--pad),5vw);right:max(var(--pad),5vw);bottom:24px;display:flex;justify-content:space-between;gap:30px;padding-top:8px;border-top:1px solid rgba(247,247,242,.09);font:400 5.7px/1.45 DM Mono,monospace;letter-spacing:.07em;text-transform:uppercase;color:rgba(247,247,242,.28)}.j18-truth span:last-child{max-width:650px;text-align:right}.j18-progress{position:absolute;z-index:10;left:0;bottom:0;width:100%;height:2px;background:#c6cfb9;opacity:.46;transform:scaleX(0);transform-origin:left center}
+@media(min-width:901px) and (max-width:1120px){.j18-copy{width:31vw}.j18-visual{left:63%;width:64vw}.j18-rail button{grid-template-columns:18px 1fr;padding-right:7px}.j18-rail button span{font-size:5.8px}}
+@media(max-width:900px){
+  .use-journey18{height:auto;background:linear-gradient(160deg,#18211c,#202b24 68%,#25312b)}.journey18-desktop{display:none}.journey18-mobile{display:block;padding:96px 0 58px}.j18m-intro{padding:0 22px 38px}.j18m-intro .j18-kicker{margin-bottom:14px}.j18m-intro h2{font-size:clamp(54px,16vw,76px)}.j18m-intro>p{margin:20px 0 0;max-width:330px;font-size:12.5px;line-height:1.65;color:rgba(247,247,242,.58)}
+  .journey18-mobile-state{position:relative;min-height:76svh;padding:38px 22px 30px;display:grid;grid-template-rows:auto 1fr;border-top:1px solid rgba(247,247,242,.1);overflow:hidden}.j18m-copy{position:relative;z-index:5}.j18m-copy>span{font:400 6px/1 DM Mono,monospace;letter-spacing:.09em;color:rgba(247,247,242,.34)}.j18m-copy h3{margin:9px 0 7px;font:400 clamp(38px,11vw,52px)/.95 Instrument Serif,serif;letter-spacing:-.045em}.j18m-copy p{margin:0;max-width:330px;font-size:12px;line-height:1.58;color:rgba(247,247,242,.59)}.j18m-visual{position:relative;align-self:end;width:min(112vw,560px);aspect-ratio:1;margin:4px 0 -7vw 50%;transform:translateX(-50%)}.j18m-visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 22px 30px rgba(0,0,0,.18)) drop-shadow(0 52px 66px rgba(0,0,0,.18))}.j18m-visual:before{content:"";position:absolute;left:50%;top:53%;width:73%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(247,247,242,.08),transparent 68%)}
+  .j18m-action{position:absolute;z-index:5;font:400 6px/1.4 DM Mono,monospace;letter-spacing:.08em;text-transform:uppercase;color:rgba(247,247,242,.64)}.j18m-action.prepare{left:9%;right:7%;top:43%;display:flex;justify-content:space-between;align-items:center}.j18m-action.prepare span{width:60px;height:60px;display:grid;place-items:center;border:1px solid rgba(247,247,242,.2);border-radius:50%;background:rgba(247,247,242,.035)}.j18m-action.prepare i{height:1px;flex:1;margin:0 9px;background:linear-gradient(90deg,rgba(247,247,242,.1),rgba(247,247,242,.38),rgba(247,247,242,.1))}.j18m-action.wear{left:12%;top:50%;width:22%;height:1px;background:rgba(247,247,242,.36)}.j18m-action.wear i{position:absolute;right:-1px;top:-3px;width:6px;height:6px;border-top:1px solid rgba(247,247,242,.55);border-right:1px solid rgba(247,247,242,.55);transform:rotate(45deg)}.j18m-action.wear span{position:absolute;left:0;bottom:9px;white-space:nowrap}.j18m-action.choose{left:71.46%;top:40.65%;width:12px;height:12px;transform:translate(-50%,-50%)}.j18m-action.choose i,.j18m-action.remove i,.j18m-action.service i,.j18m-action.recharge i{position:absolute;inset:1px;border:1px solid rgba(247,247,242,.72);border-radius:50%}.j18m-action.choose span{position:absolute;left:28px;top:-5px;width:110px}.j18m-action.clean{left:7%;right:7%;top:24%;display:flex;justify-content:space-between}.j18m-action.clean span{padding-top:7px;border-top:1px solid rgba(247,247,242,.23)}.j18m-action.remove{left:74%;top:53%;width:12px;height:12px}.j18m-action.remove:after{content:"";position:absolute;left:15px;top:6px;width:58px;height:1px;background:rgba(247,247,242,.38)}.j18m-action.remove span{position:absolute;left:20px;top:15px;width:110px}.j18m-action.service{left:56.65%;top:50.43%;width:12px;height:12px}.j18m-action.service span{position:absolute;right:25px;top:-4px;width:100px;text-align:right}.j18m-action.recharge{left:39%;top:61%;width:12px;height:12px}.j18m-action.recharge i{border-style:dashed}.j18m-action.recharge span{position:absolute;right:25px;top:-10px;width:132px;text-align:right}
+  .j18m-truth{margin:8px 22px 0;padding-top:16px;border-top:1px solid rgba(247,247,242,.12)}.j18m-truth span{font:400 6px/1 DM Mono,monospace;letter-spacing:.09em;text-transform:uppercase;color:rgba(247,247,242,.36)}.j18m-truth p{margin:9px 0 0;max-width:390px;font-size:10.5px;line-height:1.6;color:rgba(247,247,242,.45)}
+}
+@media(max-width:390px){.journey18-mobile{padding-top:86px}.journey18-mobile-state{min-height:72svh;padding-left:18px;padding-right:18px}.j18m-intro{padding-left:18px;padding-right:18px}.j18m-visual{width:118vw}.j18m-copy p{max-width:300px}.j18m-truth{margin-left:18px;margin-right:18px}}
+@media(prefers-reduced-motion:reduce){.j18-product,.j18-gesture,.j18-rail button{transition:none!important}.j18-cycle-ring:before{animation:none!important}}
+
 </style>
 </head>
 <body>
@@ -1479,6 +1960,108 @@ button{-webkit-tap-highlight-color:transparent}
 <div class="mask-orbit-overlay orbit-front" aria-hidden="true"><div class="mask-orbit-node" style="--delay:0s"><span>Architecture.</span></div><div class="mask-orbit-node" style="--delay:-6s"><span>Systems.</span></div><div class="mask-orbit-node" style="--delay:-12s"><span>Proof.</span></div></div>
 <div class="handoff-halo handoff-halo-stream" aria-hidden="true"><span class="orbit"></span><span class="axis"></span></div>
 <section class="handoff-page" aria-label="Architecture Systems Proof overview"><div class="handoff-stage"></div></section>
+
+<section class="product-inspection inspection-final-v17c" aria-label="MASCK ONE product inspection" data-product-orbit17 data-asset-version="v17c" data-coordinate-frame="MASCK_ONE_AUTHORITY_WORLD_MM" data-camera-id="CAM_WEARABILITY_V17C_80MM_EQUIV" data-exterior-source-sha="17e7db204c693f684855d923fcacd7c95468e599" data-exterior-current-head-sha="7361ad3ae3aa91373cd9e723179e19b0554ec1b4" data-retention-source-sha="25686766238b66ecf900009042d721c08e042592" data-hmi-source-sha="7b32c674860cab87cbdd1f7e3303a4ce53515e95" data-dry-side-source-sha="fa017c8379dabaefeecf53bf770858bebfde3067">
+<div class="orbit17-sticky">
+<div class="orbit17-copy">
+<div class="orbit17-kicker">Product inspection</div>
+<h2>Front to back.</h2>
+<p class="orbit17-state-copy" data-orbit17-copy aria-live="polite">A continuous Bone shell keeps the front visually calm.</p>
+</div>
+<div class="orbit17-stage" data-orbit17-stage data-state="0">
+<img class="orbit17-view active" data-orbit17-view="0" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-front-3q-v17c.webp" alt="MASCK ONE front three-quarter development view" loading="lazy" decoding="async" />
+<img class="orbit17-view" data-orbit17-view="1" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-side-rear-v17c.webp" alt="MASCK ONE side-rear development view showing compact retention" loading="lazy" decoding="async" />
+<img class="orbit17-view" data-orbit17-view="2" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-rear-3q-v17c.webp" alt="MASCK ONE rear three-quarter development view showing retention and service cover" loading="lazy" decoding="async" />
+<div class="orbit17-hotspot orbit17-hotspot-retention" data-orbit17-hotspot="1" style="--hx:60.957%;--hy:52.732%"><i></i><span><b>Bilateral yoke</b>Attachment still open</span></div>
+<div class="orbit17-hotspot orbit17-hotspot-hmi topology" data-orbit17-hotspot="1" style="--hx:36.336%;--hy:40.619%"><i></i><span><b>Control region</b>Mapping in development</span></div>
+<div class="orbit17-hotspot orbit17-hotspot-service" data-orbit17-hotspot="2" style="--hx:56.655%;--hy:50.437%"><i></i><span><b>Service cover</b>Exterior candidate</span></div>
+<div class="orbit17-hotspot orbit17-hotspot-backer" data-orbit17-hotspot="2" style="--hx:38.000%;--hy:52.752%"><i></i><span><b>Occipital backer</b>Fit not validated</span></div>
+</div>
+<nav class="orbit17-rail" aria-label="Product inspection views">
+<button class="orbit17-step active" type="button" data-orbit17-step="0" aria-pressed="true"><i>01</i><span>Front</span></button>
+<button class="orbit17-step" type="button" data-orbit17-step="1" aria-pressed="false"><i>02</i><span>Profile</span></button>
+<button class="orbit17-step" type="button" data-orbit17-step="2" aria-pressed="false"><i>03</i><span>Rear</span></button>
+</nav>
+<div class="orbit17-meta"><span>Registered development geometry</span><span>Fit, attachment and control mapping remain open.</span></div>
+<div class="orbit17-progress" data-orbit17-progress aria-hidden="true"></div>
+</div>
+</section>
+
+<!-- Product use journey v18 -->
+<section class="use-journey18" aria-label="MASCK ONE normal use" data-use-journey18 data-version="v18" data-stage="prepare" data-active-index="0" data-source-main="663a0e78d4d89d6f63043538d56c18fbeab426a2">
+  <div class="journey18-desktop">
+    <div class="journey18-sticky">
+      <div class="j18-copy">
+        <div class="j18-kicker">Normal use</div>
+        <h2>One routine.</h2>
+        <div class="j18-active-copy" aria-live="polite">
+          <span data-j18-count>01 / 07</span>
+          <h3 data-j18-label>PREPARE</h3>
+          <p data-j18-copy>Prepare water and cleanser before wearing.</p>
+        </div>
+      </div>
+      <div class="j18-visual" data-j18-visual>
+        <div class="j18-glow" aria-hidden="true"></div>
+        <img class="j18-product active" data-j18-view="front" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-front-3q-v17c.webp" alt="MASCK ONE front three-quarter view" decoding="async" draggable="false">
+        <img class="j18-product" data-j18-view="side" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-side-rear-v17c.webp" alt="MASCK ONE side and rear view" loading="lazy" decoding="async" draggable="false">
+        <img class="j18-product" data-j18-view="rear" src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-rear-3q-v17c.webp" alt="MASCK ONE rear three-quarter view" loading="lazy" decoding="async" draggable="false">
+        
+<div class="j18-gesture j18-prepare" data-j18-gesture="prepare" aria-hidden="true">
+  <div class="j18-supply j18-water"><span>Water</span></div><div class="j18-supply j18-cleanser"><span>Cleanser</span></div><i class="j18-converge a"></i><i class="j18-converge b"></i>
+</div>
+<div class="j18-gesture j18-wear" data-j18-gesture="wear" aria-hidden="true">
+  <div class="j18-headref"><i></i></div><div class="j18-wear-arrow"><span>Place</span></div><div class="j18-rear-arc"><span>Rear supports</span></div>
+</div>
+<div class="j18-gesture j18-choose" data-j18-gesture="choose" aria-hidden="true">
+  <div class="j18-control-region"><i></i><span>Physical control area<br><b>Mapping in development</b></span></div><div class="j18-fingertip"></div>
+</div>
+<div class="j18-gesture j18-clean" data-j18-gesture="clean" aria-hidden="true">
+  <div class="j18-cycle-ring"></div><span class="j18-cycle-word supply">Supply</span><span class="j18-cycle-word move">Move</span><span class="j18-cycle-word recover">Recover</span>
+</div>
+<div class="j18-gesture j18-remove" data-j18-gesture="remove" aria-hidden="true">
+  <div class="j18-release-marker"><i></i><span>Right release</span></div><div class="j18-release-arrow"><span>Pull +X</span></div>
+</div>
+<div class="j18-gesture j18-service" data-j18-gesture="service" aria-hidden="true">
+  <div class="j18-service-marker"><i></i><span>Rear service cover</span></div><div class="j18-access-line"><span>Access</span></div>
+</div>
+<div class="j18-gesture j18-recharge" data-j18-gesture="recharge" aria-hidden="true">
+  <div class="j18-charge-marker"><i></i><span>Left-lower charge reservation<br><b>Connector open</b></span></div>
+</div>
+
+      </div>
+      <nav class="j18-rail" aria-label="Normal use sequence"><button type="button" data-j18-step="0" aria-label="Show Prepare stage"><i>01</i><span>PREPARE</span></button><button type="button" data-j18-step="1" aria-label="Show Wear stage"><i>02</i><span>WEAR</span></button><button type="button" data-j18-step="2" aria-label="Show Choose stage"><i>03</i><span>CHOOSE</span></button><button type="button" data-j18-step="3" aria-label="Show Clean stage"><i>04</i><span>CLEAN</span></button><button type="button" data-j18-step="4" aria-label="Show Remove stage"><i>05</i><span>REMOVE</span></button><button type="button" data-j18-step="5" aria-label="Show Service stage"><i>06</i><span>SERVICE</span></button><button type="button" data-j18-step="6" aria-label="Show Recharge stage"><i>07</i><span>RECHARGE</span></button></nav>
+      <div class="j18-truth"><span>Current digital architecture</span><span>Refill closures, fit range, release performance, control mapping, full service motion and charging connector remain in development.</span></div>
+      <div class="j18-progress" aria-hidden="true"></div>
+    </div>
+  </div>
+  <div class="journey18-mobile">
+    <header class="j18m-intro"><div class="j18-kicker">Normal use</div><h2>One routine.</h2><p>Prepare it, wear it, let it work, then reset it for next time.</p></header>
+    <article class="journey18-mobile-state" data-j18-mobile-stage="prepare">
+  <div class="j18m-copy"><span>01 / 07</span><h3>PREPARE</h3><p>Prepare water and cleanser before wearing.</p></div>
+  <div class="j18m-visual"><img src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-front-3q-v17c.webp" alt="" loading="lazy" decoding="async" draggable="false"><div class="j18m-action prepare" aria-hidden="true"><span>Water</span><i></i><span>Cleanser</span></div></div>
+</article><article class="journey18-mobile-state" data-j18-mobile-stage="wear">
+  <div class="j18m-copy"><span>02 / 07</span><h3>WEAR</h3><p>Place the shell to the face, then bring the rear supports into position.</p></div>
+  <div class="j18m-visual"><img src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-side-rear-v17c.webp" alt="" loading="lazy" decoding="async" draggable="false"><div class="j18m-action wear" aria-hidden="true"><i></i><span>Place / support</span></div></div>
+</article><article class="journey18-mobile-state" data-j18-mobile-stage="choose">
+  <div class="j18m-copy"><span>03 / 07</span><h3>CHOOSE</h3><p>The physical control area is reserved for choosing and activation; final mapping remains open.</p></div>
+  <div class="j18m-visual"><img src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-front-3q-v17c.webp" alt="" loading="lazy" decoding="async" draggable="false"><div class="j18m-action choose" aria-hidden="true"><i></i><span>Physical control area</span></div></div>
+</article><article class="journey18-mobile-state" data-j18-mobile-stage="clean">
+  <div class="j18m-copy"><span>04 / 07</span><h3>CLEAN</h3><p>The cycle supplies, moves and recovers fluid while you wear it.</p></div>
+  <div class="j18m-visual"><img src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-front-3q-v17c.webp" alt="" loading="lazy" decoding="async" draggable="false"><div class="j18m-action clean" aria-hidden="true"><span>Supply</span><span>Move</span><span>Recover</span></div></div>
+</article><article class="journey18-mobile-state" data-j18-mobile-stage="remove">
+  <div class="j18m-copy"><span>05 / 07</span><h3>REMOVE</h3><p>Pull the right-side release, then lift the device away.</p></div>
+  <div class="j18m-visual"><img src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-side-rear-v17c.webp" alt="" loading="lazy" decoding="async" draggable="false"><div class="j18m-action remove" aria-hidden="true"><i></i><span>Right release / pull +X</span></div></div>
+</article><article class="journey18-mobile-state" data-j18-mobile-stage="service">
+  <div class="j18m-copy"><span>06 / 07</span><h3>SERVICE</h3><p>Routine access begins at the rear service cover.</p></div>
+  <div class="j18m-visual"><img src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-rear-3q-v17c.webp" alt="" loading="lazy" decoding="async" draggable="false"><div class="j18m-action service" aria-hidden="true"><i></i><span>Rear service cover</span></div></div>
+</article><article class="journey18-mobile-state" data-j18-mobile-stage="recharge">
+  <div class="j18m-copy"><span>07 / 07</span><h3>RECHARGE</h3><p>Charging is reserved at the left-lower power interface; connector hardware is not selected.</p></div>
+  <div class="j18m-visual"><img src="https://raw.githubusercontent.com/mlngaxri/MasckOne/main/website/images/masck-inspection-rear-3q-v17c.webp" alt="" loading="lazy" decoding="async" draggable="false"><div class="j18m-action recharge" aria-hidden="true"><i></i><span>Charge reservation / connector open</span></div></div>
+</article>
+    <footer class="j18m-truth"><span>Current digital architecture</span><p>Refill closures, fit range, release performance, control mapping, full service motion and charging connector remain in development.</p></footer>
+  </div>
+</section>
+
 </section>
 
 <section class="view" data-view="system" aria-label="Systems section">
@@ -1557,7 +2140,7 @@ button{-webkit-tap-highlight-color:transparent}
 <p>Fit, flow, airway, motion and recovery still require physical evidence.</p>
 </div>
 </div>
-<div class="visual exploded"><div class="proof-grid"></div><div class="assembly-axis"></div><div class="visual-stage" data-visual><img class="layer-shell" data-asset-slot="explode-shell" data-asset-slot="explode-shell" src="https://masck-one.vercel.app/images/masck-one-shell.webp" alt="Exterior shell layer"  loading="lazy" decoding="async" /><img class="layer-manifold" data-asset-slot="explode-distribution" data-asset-slot="explode-distribution" src="https://masck-one.vercel.app/images/masck-one-manifold.webp" alt="Fresh manifold layer"  loading="lazy" decoding="async" /><img class="layer-interface" data-asset-slot="explode-interface" data-asset-slot="explode-interface" src="https://masck-one.vercel.app/images/masck-one-interface.webp" alt="Facial interface layer"  loading="lazy" decoding="async" /><img class="layer-chassis" data-asset-slot="explode-chassis" data-asset-slot="explode-chassis" src="https://masck-one.vercel.app/images/masck-one-chassis.webp" alt="Actuator chassis layer"  loading="lazy" decoding="async" /><img class="layer-cartridge" data-asset-slot="explode-cartridge" data-asset-slot="explode-cartridge" src="https://masck-one.vercel.app/images/masck-one-cartridge.webp" alt="Waste cartridge layer"  loading="lazy" decoding="async" /></div></div>
+<div class="visual exploded"><div class="proof-grid"></div><div class="assembly-axis"></div><div class="visual-stage" data-visual><img class="layer-shell" data-asset-slot="explode-shell" data-asset-slot="explode-shell" data-asset-slot="explode-shell" src="https://masck-one.vercel.app/images/masck-one-shell.webp" alt="Exterior shell layer"  loading="lazy" decoding="async" /><img class="layer-manifold" data-asset-slot="explode-distribution" data-asset-slot="explode-distribution" data-asset-slot="explode-distribution" src="https://masck-one.vercel.app/images/masck-one-manifold.webp" alt="Fresh manifold layer"  loading="lazy" decoding="async" /><img class="layer-interface" data-asset-slot="explode-interface" data-asset-slot="explode-interface" data-asset-slot="explode-interface" src="https://masck-one.vercel.app/images/masck-one-interface.webp" alt="Facial interface layer"  loading="lazy" decoding="async" /><img class="layer-chassis" data-asset-slot="explode-chassis" data-asset-slot="explode-chassis" data-asset-slot="explode-chassis" src="https://masck-one.vercel.app/images/masck-one-chassis.webp" alt="Actuator chassis layer"  loading="lazy" decoding="async" /><img class="layer-cartridge" data-asset-slot="explode-cartridge" data-asset-slot="explode-cartridge" data-asset-slot="explode-cartridge" src="https://masck-one.vercel.app/images/masck-one-cartridge.webp" alt="Waste cartridge layer"  loading="lazy" decoding="async" /></div></div>
 <div class="evidence-line"></div>
 </section>
 <section class="closing-chamber" aria-label="MASCK ONE development status">
@@ -1861,7 +2444,7 @@ const heroPX=isDesktop?(mx*.52*24+p*18)*(1-detach):0;
 const heroPY=isDesktop?(my*.52*15+p*.52*92)*.62*(1-detach):0;
 const sx=innerWidth-rightPx-w*.5+heroPX,sy0=topPx+h*.5+heroPY,cx=innerWidth*.5,cy=innerHeight*.52;
 const x=mix(sx,cx,detach),y=mix(sy0,cy,detach),scale=mix(1,isDesktop?.72:.82,detach);
-journey.style.opacity='1';
+journey.style.opacity=String(1-smooth(clamp((sy-(handoffEnd-innerHeight*.08))/(innerHeight*.26),0,1)));
 journey.style.zIndex=sy>heroH*.74?'1120':'5';
 journey.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) scale(${scale}) rotate(${mix(-4,0,detach)}deg)`;
 }
@@ -1973,5 +2556,187 @@ requestFrame();
 /* End Stage 4 interaction v15 */
 
 </script>
+<script>
+(()=>{
+const section=document.querySelector('.product-inspection');
+if(!section)return;
+const stage=section.querySelector('[data-inspection-stage]');
+const copy=section.querySelector('[data-inspection-copy]');
+const progress=section.querySelector('[data-inspection-progress]');
+const steps=[...section.querySelectorAll('[data-inspection-step]')];
+const overlays=[...section.querySelectorAll('[data-inspection-overlay]')];
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const lines=[
+  'One continuous Bone exterior defines the front character.',
+  'Final profile depth remains under engineering convergence.',
+  'Retention continues behind the head. Final rear geometry remains in development.',
+  'A removable cartridge architecture provides the service endpoint.'
+];
+let current=-1;
+let queued=false;
+
+function setState(index){
+  index=Math.max(0,Math.min(steps.length-1,index));
+  if(index===current)return;
+  current=index;
+  if(stage)stage.dataset.state=String(index);
+  if(copy)copy.textContent=lines[index];
+  steps.forEach((button,i)=>{
+    const active=i===index;
+    button.classList.toggle('active',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
+  overlays.forEach((overlay,i)=>overlay.classList.toggle('active',i===index));
+}
+
+function update(){
+  queued=false;
+  const rect=section.getBoundingClientRect();
+  const travel=Math.max(1,section.offsetHeight-innerHeight);
+  const p=Math.max(0,Math.min(1,-rect.top/travel));
+  if(progress)progress.style.transform=`scaleX(${p})`;
+  const index=Math.min(steps.length-1,Math.floor(p*steps.length));
+  setState(index);
+}
+
+function requestUpdate(){
+  if(queued)return;
+  queued=true;
+  requestAnimationFrame(update);
+}
+
+steps.forEach((button,index)=>button.addEventListener('click',()=>{
+  const top=section.getBoundingClientRect().top+scrollY;
+  const travel=Math.max(1,section.offsetHeight-innerHeight);
+  const target=top+travel*((index+.08)/steps.length);
+  window.scrollTo({top:target,behavior:reduced.matches?'auto':'smooth'});
+}));
+
+addEventListener('scroll',requestUpdate,{passive:true});
+addEventListener('resize',requestUpdate,{passive:true});
+update();
+})();
+</script>
+
+<script>
+(()=>{
+const section=document.querySelector('[data-product-orbit17]');
+if(!section)return;
+const stage=section.querySelector('[data-orbit17-stage]');
+const copy=section.querySelector('[data-orbit17-copy]');
+const progress=section.querySelector('[data-orbit17-progress]');
+const views=[...section.querySelectorAll('[data-orbit17-view]')];
+const steps=[...section.querySelectorAll('[data-orbit17-step]')];
+const hotspots=[...section.querySelectorAll('[data-orbit17-hotspot]')];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+const hover=matchMedia('(hover:hover) and (pointer:fine)');
+const lines=[
+  'A continuous Bone shell keeps the front visually calm.',
+  'The current profile shows shell depth and bilateral retention. Final fit remains under validation.',
+  'The rear stays lateral and compact around a central service cover, without a headset-style housing.'
+];
+let current=0,raf=0,touchX=null,pointerTimer=0;
+function setState(index){
+  index=Math.max(0,Math.min(2,index));
+  current=index;
+  stage.dataset.state=String(index);
+  if(copy)copy.textContent=lines[index];
+  views.forEach((el,i)=>el.classList.toggle('active',i===index));
+  steps.forEach((el,i)=>{const on=i===index;el.classList.toggle('active',on);el.setAttribute('aria-pressed',String(on))});
+  hotspots.forEach(el=>el.classList.toggle('visible',Number(el.dataset.orbit17Hotspot)===index));
+}
+function metrics(){const top=section.getBoundingClientRect().top+scrollY;return{top,travel:Math.max(1,section.offsetHeight-innerHeight)}}
+function go(index){const m=metrics();const centers=[.08,.50,.92];window.scrollTo({top:m.top+m.travel*centers[index],behavior:reduce.matches?'auto':'smooth'})}
+function update(){raf=0;const r=section.getBoundingClientRect();const travel=Math.max(1,section.offsetHeight-innerHeight);const p=Math.max(0,Math.min(1,-r.top/travel));if(progress)progress.style.transform=`scaleX(${p})`;const index=p<1/3?0:p<2/3?1:2;setState(index)}
+function request(){if(!raf)raf=requestAnimationFrame(update)}
+steps.forEach((button,index)=>button.addEventListener('click',()=>go(index)));
+if(stage){
+  stage.addEventListener('pointermove',e=>{if(!hover.matches)return;clearTimeout(pointerTimer);pointerTimer=setTimeout(()=>{const r=stage.getBoundingClientRect();const x=(e.clientX-r.left)/Math.max(1,r.width);setState(x<.34?0:x<.67?1:2)},70)});
+  stage.addEventListener('pointerleave',()=>{clearTimeout(pointerTimer);request()});
+  stage.addEventListener('touchstart',e=>{touchX=e.changedTouches[0]?.clientX??null},{passive:true});
+  stage.addEventListener('touchend',e=>{if(touchX===null)return;const end=e.changedTouches[0]?.clientX??touchX;const dx=end-touchX;touchX=null;if(Math.abs(dx)<42)return;go(Math.max(0,Math.min(2,current+(dx<0?1:-1))))},{passive:true});
+}
+addEventListener('scroll',request,{passive:true});addEventListener('resize',request,{passive:true});setState(0);request();
+})();
+</script>
+
+
+<script>
+(() => {
+  const chapter = document.querySelector('[data-use-journey18]');
+  if (!chapter || chapter.dataset.j18Bound === 'true') return;
+  chapter.dataset.j18Bound = 'true';
+  const desktop = chapter.querySelector('.journey18-desktop');
+  const labels = ['PREPARE','WEAR','CHOOSE','CLEAN','REMOVE','SERVICE','RECHARGE'];
+  const copies = [
+    'Prepare water and cleanser before wearing.',
+    'Place the shell to the face, then bring the rear supports into position.',
+    'The physical control area is reserved for choosing and activation; final mapping remains open.',
+    'The cycle supplies, moves and recovers fluid while you wear it.',
+    'Pull the right-side release, then lift the device away.',
+    'Routine access begins at the rear service cover.',
+    'Charging is reserved at the left-lower power interface; connector hardware is not selected.'
+  ];
+  const keys = ['prepare','wear','choose','clean','remove','service','recharge'];
+  const views = ['front','side','front','front','side','rear','rear'];
+  const products = [...chapter.querySelectorAll('.journey18-desktop [data-j18-view]')];
+  const gestures = [...chapter.querySelectorAll('.journey18-desktop [data-j18-gesture]')];
+  const steps = [...chapter.querySelectorAll('[data-j18-step]')];
+  const label = chapter.querySelector('[data-j18-label]');
+  const copy = chapter.querySelector('[data-j18-copy]');
+  const count = chapter.querySelector('[data-j18-count]');
+  const progress = chapter.querySelector('.j18-progress');
+  let active = -1;
+  let ticking = false;
+
+  function setStage(index) {
+    index = Math.max(0, Math.min(keys.length - 1, index));
+    if (index === active) return;
+    active = index;
+    chapter.dataset.activeIndex = String(index);
+    chapter.dataset.stage = keys[index];
+    if (label) label.textContent = labels[index];
+    if (copy) copy.textContent = copies[index];
+    if (count) count.textContent = `${String(index + 1).padStart(2,'0')} / ${String(keys.length).padStart(2,'0')}`;
+    products.forEach((img) => img.classList.toggle('active', img.dataset.j18View === views[index]));
+    gestures.forEach((item) => item.classList.toggle('active', item.dataset.j18Gesture === keys[index]));
+    steps.forEach((step, i) => {
+      step.classList.toggle('active', i === index);
+      if (i === index) step.setAttribute('aria-current','step'); else step.removeAttribute('aria-current');
+    });
+  }
+
+  function update() {
+    ticking = false;
+    if (!desktop || getComputedStyle(desktop).display === 'none') return;
+    const rect = chapter.getBoundingClientRect();
+    const travel = Math.max(1, chapter.offsetHeight - innerHeight);
+    const local = Math.max(0, Math.min(travel, -rect.top));
+    const p = local / travel;
+    if (progress) progress.style.transform = `scaleX(${p})`;
+    setStage(Math.round(p * (keys.length - 1)));
+  }
+
+  function onScroll() {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  }
+
+  steps.forEach((step, i) => step.addEventListener('click', () => {
+    const top = scrollY + chapter.getBoundingClientRect().top;
+    const travel = Math.max(1, chapter.offsetHeight - innerHeight);
+    const target = top + travel * (i / (keys.length - 1));
+    scrollTo({top: target, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  }));
+
+  addEventListener('scroll', onScroll, {passive:true});
+  addEventListener('resize', onScroll, {passive:true});
+  setStage(0);
+  update();
+})();
+</script>
+
 </body>
 </html>

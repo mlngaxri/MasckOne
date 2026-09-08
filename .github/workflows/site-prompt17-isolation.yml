@@ -1,0 +1,46 @@
+name: Repair Prompt 17 composition isolation
+
+on:
+  push:
+    paths:
+      - '.site-build/run17d.flag'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Isolate product inspection from legacy handoff layers
+        run: |
+          python .site-build/prompt17_composition_isolation_v17d.py
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('website/index.html').read_text()
+          assert '/* Prompt 17 composition isolation v17d */' in s
+          assert 'body.orbit17-inspection-active .mask-journey' in s
+          assert "classList.toggle('orbit17-inspection-active',active)" in s
+          assert s.count('data-product-orbit17')==1
+          scripts=re.findall(r'<script>(.*?)</script>',s,re.S)
+          Path('/tmp/masck-site.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/masck-site.js
+      - name: Commit isolated composition
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add website/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'refine: isolate product inspection composition'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

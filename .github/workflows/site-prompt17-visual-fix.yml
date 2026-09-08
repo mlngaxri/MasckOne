@@ -1,0 +1,43 @@
+name: Prompt 17 rendered QA repair
+
+on:
+  push:
+    paths:
+      - '.site-build/run17b.flag'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply Prompt 17 rendered QA repair
+        run: |
+          python .site-build/stage5_visual_qa_v17b.py
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('website/index.html').read_text()
+          assert '/* Product inspection rendered QA v17b */' in s
+          assert s.count('class="product-inspection"') == 1
+          scripts=re.findall(r'<script>(.*?)</script>',s,re.S)
+          Path('/tmp/masck-site.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/masck-site.js
+      - name: Commit repaired website
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add website/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'refine: neutralize prompt 17 inspection asset'
+            git push origin HEAD:main
+          fi
