@@ -1,0 +1,137 @@
+[
+  {
+    "preload_scenario_N": 0.05,
+    "passive_offset_mm": 0.6732254635423812,
+    "passive_minimum_centered_k_N_mm": 0.5555555555555558,
+    "passive_minimum_40Hz_force_N": 0.10010228579123023,
+    "continuous_motor_reference_N": 0.27,
+    "active_acquisition_peak_displacement_mm": 0.05891269108736922,
+    "active_acquisition_settle_to_20um_s": 0.028499999999999883,
+    "active_acquisition_peak_force_N": 0.056667571173836216,
+    "active_final_offset_mm": -7.887134234640565e-16,
+    "hard_stop_study_mm": 0.45,
+    "soft_stop_study_mm": 0.35,
+    "normal_command_amplitude_mm": 0.26,
+    "force_for_steady_preload_N": 0.05,
+    "steady_coil_loss_W": 0.01851851851851852,
+    "offset_output_wrench_N_Nmm": [
+      0.0,
+      0.0,
+      0.05,
+      0.0,
+      -0.49000000000000005,
+      0.0
+    ],
+    "offset_output_response_mm_rad": [
+      7.021876449247773e-05,
+      1.0778892430853289e-16,
+      0.6732254635423822,
+      1.3274477555999928e-16,
+      -0.00028087505796793285,
+      6.998736755087912e-17
+    ],
+    "assumed_sensor_alignment_offset_mm": 0.05,
+    "assumed_angular_alignment_deg": 0.2,
+    "supplier_radial_air_gap_mm": 0.25,
+    "estimated_radial_error_mm": 0.10991331847457407,
+    "controls_required": [
+      "noncontact displacement sensor",
+      "center acquisition before stroke",
+      "stroke ramp",
+      "current saturation and anti-windup",
+      "centering-error amplitude derating",
+      "loss-of-signal quiet fault"
+    ],
+    "evidence": "LUMPED_LINEAR_BENCH_MODEL_ONLY_NO_CONTROLLER_OR_SAFETY_VALIDATION"
+  },
+  {
+    "preload_scenario_N": 0.1,
+    "passive_offset_mm": 1.3464509270847624,
+    "passive_minimum_centered_k_N_mm": 1.1111111111111116,
+    "passive_minimum_40Hz_force_N": 0.24454673023567475,
+    "continuous_motor_reference_N": 0.27,
+    "active_acquisition_peak_displacement_mm": 0.11782538217473844,
+    "active_acquisition_settle_to_20um_s": 0.041600000000000165,
+    "active_acquisition_peak_force_N": 0.11333514234767243,
+    "active_final_offset_mm": -1.577426846928113e-15,
+    "hard_stop_study_mm": 0.45,
+    "soft_stop_study_mm": 0.35,
+    "normal_command_amplitude_mm": 0.26,
+    "force_for_steady_preload_N": 0.1,
+    "steady_coil_loss_W": 0.07407407407407408,
+    "offset_output_wrench_N_Nmm": [
+      0.0,
+      0.0,
+      0.1,
+      0.0,
+      -0.9800000000000001,
+      0.0
+    ],
+    "offset_output_response_mm_rad": [
+      0.00014043752898495546,
+      2.1557784861706578e-16,
+      1.3464509270847644,
+      2.6548955111999857e-16,
+      -0.0005617501159358657,
+      1.3997473510175824e-16
+    ],
+    "assumed_sensor_alignment_offset_mm": 0.05,
+    "assumed_angular_alignment_deg": 0.2,
+    "supplier_radial_air_gap_mm": 0.25,
+    "estimated_radial_error_mm": 0.11223053770281002,
+    "controls_required": [
+      "noncontact displacement sensor",
+      "center acquisition before stroke",
+      "stroke ramp",
+      "current saturation and anti-windup",
+      "centering-error amplitude derating",
+      "loss-of-signal quiet fault"
+    ],
+    "evidence": "LUMPED_LINEAR_BENCH_MODEL_ONLY_NO_CONTROLLER_OR_SAFETY_VALIDATION"
+  },
+  {
+    "preload_scenario_N": 0.2,
+    "passive_offset_mm": 2.692901854169525,
+    "passive_minimum_centered_k_N_mm": 2.222222222222223,
+    "passive_minimum_40Hz_force_N": 0.5334356191245637,
+    "continuous_motor_reference_N": 0.27,
+    "active_acquisition_peak_displacement_mm": 0.23565076434947688,
+    "active_acquisition_settle_to_20um_s": 0.05460000000000054,
+    "active_acquisition_peak_force_N": 0.22667028469534486,
+    "active_final_offset_mm": -3.154853693856226e-15,
+    "hard_stop_study_mm": 0.45,
+    "soft_stop_study_mm": 0.35,
+    "normal_command_amplitude_mm": 0.26,
+    "force_for_steady_preload_N": 0.2,
+    "steady_coil_loss_W": 0.29629629629629634,
+    "offset_output_wrench_N_Nmm": [
+      0.0,
+      0.0,
+      0.2,
+      0.0,
+      -1.9600000000000002,
+      0.0
+    ],
+    "offset_output_response_mm_rad": [
+      0.0002808750579699109,
+      4.3115569723413156e-16,
+      2.692901854169529,
+      5.309791022399971e-16,
+      -0.0011235002318717314,
+      2.799494702035165e-16
+    ],
+    "assumed_sensor_alignment_offset_mm": 0.05,
+    "assumed_angular_alignment_deg": 0.2,
+    "supplier_radial_air_gap_mm": 0.25,
+    "estimated_radial_error_mm": 0.11686497615928189,
+    "controls_required": [
+      "noncontact displacement sensor",
+      "center acquisition before stroke",
+      "stroke ramp",
+      "current saturation and anti-windup",
+      "centering-error amplitude derating",
+      "loss-of-signal quiet fault"
+    ],
+    "evidence": "LUMPED_LINEAR_BENCH_MODEL_ONLY_NO_CONTROLLER_OR_SAFETY_VALIDATION"
+  }
+]

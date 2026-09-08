@@ -1,0 +1,90 @@
+[
+  {
+    "center": [
+      50,
+      -44,
+      3
+    ],
+    "angle": -61,
+    "protected_mm3": 0,
+    "thermal_envelope_mm3": 0,
+    "supported_pre_roll_mm3": 0
+  },
+  {
+    "center": [
+      50,
+      -44,
+      5
+    ],
+    "angle": -61,
+    "protected_mm3": 0,
+    "thermal_envelope_mm3": 0,
+    "supported_pre_roll_mm3": 0
+  },
+  {
+    "center": [
+      52,
+      -44,
+      3
+    ],
+    "angle": -61,
+    "protected_mm3": 0,
+    "thermal_envelope_mm3": 0,
+    "supported_pre_roll_mm3": 0
+  },
+  {
+    "center": [
+      52,
+      -44,
+      3
+    ],
+    "angle": 61,
+    "protected_mm3": 0,
+    "thermal_envelope_mm3": 0,
+    "supported_pre_roll_mm3": 0
+  },
+  {
+    "center": [
+      52,
+      -44,
+      5
+    ],
+    "angle": -61,
+    "protected_mm3": 0,
+    "thermal_envelope_mm3": 0,
+    "supported_pre_roll_mm3": 0
+  },
+  {
+    "center": [
+      52,
+      -44,
+      5
+    ],
+    "angle": 61,
+    "protected_mm3": 0,
+    "thermal_envelope_mm3": 0,
+    "supported_pre_roll_mm3": 0
+  },
+  {
+    "center": [
+      52,
+      -48,
+      5
+    ],
+    "angle": -61,
+    "protected_mm3": 0,
+    "thermal_envelope_mm3": 0,
+    "supported_pre_roll_mm3": 0
+  },
+  {
+    "center": [
+      52,
+      -48,
+      5
+    ],
+    "angle": 61,
+    "protected_mm3": 0,
+    "thermal_envelope_mm3": 0,
+    "supported_pre_roll_mm3": 0
+  }
+]

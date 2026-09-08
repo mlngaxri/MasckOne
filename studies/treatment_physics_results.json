@@ -1,0 +1,962 @@
+{
+  "mechanical": [
+    {
+      "thickness_mm": 0.04,
+      "stiffness_6dof": [
+        [
+          23.220329669892635,
+          -7.958078640513122e-13,
+          0.0,
+          1.9895196601282805e-13,
+          5.805082417423819,
+          -1.127586912730294e-11
+        ],
+        [
+          9.592326932761353e-13,
+          23.2203296698915,
+          0.0,
+          -5.805082417432345,
+          6.792788553866558e-12,
+          4.028777311759768e-12
+        ],
+        [
+          0.0,
+          0.0,
+          0.03831442176248423,
+          8.821589292384857e-14,
+          8.28954960230277e-14,
+          0.0
+        ],
+        [
+          -6.792788553866558e-12,
+          -5.805082417432345,
+          8.954816055339876e-14,
+          1396.7432946414947,
+          -6.055245194147574e-11,
+          -6.792788553866558e-12
+        ],
+        [
+          5.805082417423819,
+          -1.9895196601282805e-13,
+          9.532999389882946e-14,
+          4.8260062612826005e-11,
+          1396.743294641559,
+          -2.646309837928129e-10
+        ],
+        [
+          -6.058709089984404e-12,
+          3.3288927170360694e-12,
+          0.0,
+          -9.109157872444484e-12,
+          -2.0325430227785546e-10,
+          704.6053235609429
+        ]
+      ],
+      "axial_stiffness_N_per_mm": 0.03831442176248423,
+      "radial_stiffness_N_per_mm": [
+        23.196202844296003,
+        23.196202844294792
+      ],
+      "eigenfrequencies_Hz": [
+        18.959172908265103,
+        466.25423133613714,
+        466.2542313361593,
+        514.210813461817,
+        661.2410885061806,
+        661.2410885062068
+      ],
+      "coupled_response_to_axial_0p2N": [
+        8.916043574204706e-17,
+        -8.375279057834266e-17,
+        5.219966550449969,
+        -3.350111623161122e-16,
+        -3.566417429712195e-16,
+        -1.0604750560587302e-28
+      ],
+      "free_space_drive_force_peak_N": 0.03438040899496837,
+      "conservative_force_with_0p2N_load_N": 0.23438040899496837,
+      "force_reference_continuous_N": 0.27,
+      "thermal_bridge_in_motion": false,
+      "projected_stroke_pp_mm": [
+        0.4548022477124858,
+        0.2521010025280953
+      ],
+      "moving_mass_assumption_g": 2.7,
+      "physical_validation": false
+    },
+    {
+      "thickness_mm": 0.05,
+      "stiffness_6dof": [
+        [
+          29.025412087365794,
+          8.526512829121202e-13,
+          0.0,
+          -8.58335624798201e-12,
+          7.256353021892551,
+          -5.17985654369113e-12
+        ],
+        [
+          9.947598300641403e-13,
+          29.025412087375116,
+          0.0,
+          -7.256353021907216,
+          7.958078640513122e-12,
+          1.1198153515579179e-11
+        ],
+        [
+          0.0,
+          0.0,
+          0.07426932388580454,
+          -3.6521480284434915e-13,
+          2.6663393715153916e-13,
+          0.0
+        ],
+        [
+          -7.958078640513122e-12,
+          -7.256353021907216,
+          -3.689895611280747e-13,
+          1746.362014815289,
+          -6.38493702354026e-11,
+          7.133849067031406e-11
+        ],
+        [
+          7.256353021892551,
+          8.58335624798201e-12,
+          2.4043267377038546e-13,
+          -5.560707450058544e-11,
+          1746.3620148147202,
+          1.9264234651927836e-10
+        ],
+        [
+          -1.5425882793351775e-11,
+          1.1290524071227992e-11,
+          0.0,
+          7.071321306284517e-11,
+          2.156070877390448e-10,
+          880.7566544510134
+        ]
+      ],
+      "axial_stiffness_N_per_mm": 0.07426932388580454,
+      "radial_stiffness_N_per_mm": [
+        28.995261031209253,
+        28.995261031218465
+      ],
+      "eigenfrequencies_Hz": [
+        26.396295693443594,
+        521.2883440541882,
+        521.2883440542718,
+        574.9051668329893,
+        739.3813761054827,
+        739.3813761056069
+      ],
+      "coupled_response_to_axial_0p2N": [
+        9.278357778938616e-17,
+        1.423940062368767e-16,
+        2.692901854169525,
+        5.695760249421331e-16,
+        -3.7113431115427394e-16,
+        4.4922967793596737e-29
+      ],
+      "free_space_drive_force_peak_N": 0.02503213444290509,
+      "conservative_force_with_0p2N_load_N": 0.2250321344429051,
+      "force_reference_continuous_N": 0.27,
+      "thermal_bridge_in_motion": false,
+      "projected_stroke_pp_mm": [
+        0.4548022477124858,
+        0.2521010025280953
+      ],
+      "moving_mass_assumption_g": 2.7,
+      "physical_validation": false
+    },
+    {
+      "thickness_mm": 0.06,
+      "stiffness_6dof": [
+        [
+          34.83049450483168,
+          6.679101716144942e-13,
+          0.0,
+          -1.8189894035458565e-12,
+          8.70762362627488,
+          -6.185274514791672e-11
+        ],
+        [
+          1.2221335055073723e-12,
+          34.830494504841226,
+          0.0,
+          -8.707623626259647,
+          1.858779796748422e-11,
+          -7.279510327862226e-12
+        ],
+        [
+          0.0,
+          0.0,
+          0.12736054805174035,
+          3.0147412344305735e-13,
+          -4.783395901597487e-13,
+          0.0
+        ],
+        [
+          -1.858779796748422e-11,
+          -8.707623626259647,
+          3.023623018627575e-13,
+          2096.2662771188416,
+          -8.331824119522935e-11,
+          -7.111111699487083e-11
+        ],
+        [
+          8.70762362627488,
+          1.8189894035458565e-12,
+          -4.463651670505442e-13,
+          -4.156675004196586e-11,
+          2096.2662771182772,
+          3.987565833085682e-11
+        ],
+        [
+          -5.6139981552405516e-11,
+          -4.789058039023075e-12,
+          0.0,
+          -6.23856521997368e-11,
+          2.467004378559068e-11,
+          1056.9079853408864
+        ]
+      ],
+      "axial_stiffness_N_per_mm": 0.12736054805174035,
+      "radial_stiffness_N_per_mm": [
+        34.79432414324904,
+        34.79432414325872
+      ],
+      "eigenfrequencies_Hz": [
+        34.56652399780268,
+        571.0431240765969,
+        571.0431240766794,
+        629.7770566012999,
+        810.0734372166072,
+        810.0734372167157
+      ],
+      "coupled_response_to_axial_0p2N": [
+        -8.368163728926606e-17,
+        -5.668491706383043e-17,
+        1.5703450013323579,
+        -2.2673966825333413e-16,
+        3.3472654915444716e-16,
+        -2.589853990931671e-29
+      ],
+      "free_space_drive_force_peak_N": 0.011228416159761778,
+      "conservative_force_with_0p2N_load_N": 0.2112284161597618,
+      "force_reference_continuous_N": 0.27,
+      "thermal_bridge_in_motion": false,
+      "projected_stroke_pp_mm": [
+        0.4548022477124858,
+        0.2521010025280953
+      ],
+      "moving_mass_assumption_g": 2.7,
+      "physical_validation": false
+    },
+    {
+      "thickness_mm": 0.07,
+      "stiffness_6dof": [
+        [
+          40.63557692230734,
+          -2.7569058147491887e-12,
+          0.0,
+          4.433786671143025e-12,
+          10.158894230612077,
+          -1.7972290322632034e-11
+        ],
+        [
+          -4.604316927725449e-12,
+          40.63557692231825,
+          0.0,
+          -10.158894230614806,
+          -1.0402345651527867e-11,
+          -3.7562841725957696e-11
+        ],
+        [
+          0.0,
+          0.0,
+          0.20068757136113646,
+          2.9207192220326306e-13,
+          -1.025970974843915e-12,
+          0.0
+        ],
+        [
+          1.0402345651527867e-11,
+          -10.158894230614806,
+          3.1116775822681575e-13,
+          2446.510868409873,
+          2.79285927717865e-10,
+          9.333689376944676e-11
+        ],
+        [
+          10.158894230612077,
+          -4.433786671143025e-12,
+          -9.815620538589087e-13,
+          1.6569856597925536e-10,
+          2446.5108684092197,
+          4.0333958395422087e-10
+        ],
+        [
+          -1.6707524252979056e-11,
+          -5.291056481837586e-11,
+          0.0,
+          3.666400516522117e-11,
+          3.2228086865870864e-10,
+          1233.059316231218
+        ]
+      ],
+      "axial_stiffness_N_per_mm": 0.20068757136113644,
+      "radial_stiffness_N_per_mm": [
+        40.59339311952053,
+        40.59339311953143
+      ],
+      "eigenfrequencies_Hz": [
+        43.39088301643542,
+        616.7975182730402,
+        616.7975182731477,
+        680.2369669399768,
+        875.1338974875711,
+        875.1338974877028
+      ],
+      "coupled_response_to_axial_0p2N": [
+        -1.00062468754387e-16,
+        -3.172108575555755e-17,
+        0.9965739215613948,
+        -1.2688434302215451e-16,
+        4.0024987501620623e-16,
+        -1.035562232890782e-28
+      ],
+      "free_space_drive_force_peak_N": 0.007836609900681205,
+      "conservative_force_with_0p2N_load_N": 0.2078366099006812,
+      "force_reference_continuous_N": 0.27,
+      "thermal_bridge_in_motion": false,
+      "projected_stroke_pp_mm": [
+        0.4548022477124858,
+        0.2521010025280953
+      ],
+      "moving_mass_assumption_g": 2.7,
+      "physical_validation": false
+    }
+  ],
+  "thermal": {
+    "pcm_nominal_melting_range_C": [
+      27,
+      29
+    ],
+    "supplier_total_enthalpy_range_C": [
+      21,
+      36
+    ],
+    "low_total_enthalpy_J_kg": 231250.0,
+    "sensible_subtraction_J_kg": 30000,
+    "derived_latent_planning_J_kg": 201250.0,
+    "usable_fraction_assumption": 0.7,
+    "pcm_volume_cm3": 8.124899999999998,
+    "pcm_mass_g": 6.256172999999999,
+    "available_planning_energy_J": 881.3383713749997,
+    "initial_solid_fraction_assumption": 0.6,
+    "cases": [
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 0.35,
+        "electrical_W": 1.4285714285714286,
+        "hot_side_W": 1.9285714285714286,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 367.14285714285717,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 161.6601656821427,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 0.35,
+        "electrical_W": 1.4285714285714286,
+        "hot_side_W": 1.9285714285714286,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 475.1428571428571,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 53.66016568214275,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 0.35,
+        "electrical_W": 1.4285714285714286,
+        "hot_side_W": 1.9285714285714286,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 583.1428571428571,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -54.33983431785725,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 0.6,
+        "electrical_W": 0.8333333333333334,
+        "hot_side_W": 1.3333333333333335,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 260.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 268.80302282499986,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 0.6,
+        "electrical_W": 0.8333333333333334,
+        "hot_side_W": 1.3333333333333335,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 368.00000000000006,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 160.8030228249998,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 0.6,
+        "electrical_W": 0.8333333333333334,
+        "hot_side_W": 1.3333333333333335,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 476.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 52.80302282499986,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 1.0,
+        "electrical_W": 0.5,
+        "hot_side_W": 1.0,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 200.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 328.80302282499986,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 1.0,
+        "electrical_W": 0.5,
+        "hot_side_W": 1.0,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 308.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 220.80302282499986,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 1.0,
+        "electrical_W": 0.5,
+        "hot_side_W": 1.0,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 416.00000000000006,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 112.8030228249998,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 1.5,
+        "electrical_W": 0.3333333333333333,
+        "hot_side_W": 0.8333333333333333,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 170.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 358.80302282499986,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 1.5,
+        "electrical_W": 0.3333333333333333,
+        "hot_side_W": 0.8333333333333333,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 277.99999999999994,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 250.8030228249999,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 0.5,
+        "cop_assumption": 1.5,
+        "electrical_W": 0.3333333333333333,
+        "hot_side_W": 0.8333333333333333,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 386.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 142.80302282499986,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 0.35,
+        "electrical_W": 2.857142857142857,
+        "hot_side_W": 3.857142857142857,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 714.2857142857143,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -185.48269146071448,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 0.35,
+        "electrical_W": 2.857142857142857,
+        "hot_side_W": 3.857142857142857,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 822.2857142857143,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -293.4826914607145,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 0.35,
+        "electrical_W": 2.857142857142857,
+        "hot_side_W": 3.857142857142857,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 930.2857142857142,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -401.48269146071436,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 0.6,
+        "electrical_W": 1.6666666666666667,
+        "hot_side_W": 2.666666666666667,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 500.00000000000006,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 28.8030228249998,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 0.6,
+        "electrical_W": 1.6666666666666667,
+        "hot_side_W": 2.666666666666667,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 608.0000000000001,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -79.19697717500026,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 0.6,
+        "electrical_W": 1.6666666666666667,
+        "hot_side_W": 2.666666666666667,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 716.0000000000001,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -187.19697717500026,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 1.0,
+        "electrical_W": 1.0,
+        "hot_side_W": 2.0,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 380.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 148.80302282499986,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 1.0,
+        "electrical_W": 1.0,
+        "hot_side_W": 2.0,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 488.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 40.80302282499986,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 1.0,
+        "electrical_W": 1.0,
+        "hot_side_W": 2.0,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 596.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -67.19697717500014,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 1.5,
+        "electrical_W": 0.6666666666666666,
+        "hot_side_W": 1.6666666666666665,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 320.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 208.80302282499986,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 1.5,
+        "electrical_W": 0.6666666666666666,
+        "hot_side_W": 1.6666666666666665,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 428.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": 100.80302282499986,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 1.0,
+        "cop_assumption": 1.5,
+        "electrical_W": 0.6666666666666666,
+        "hot_side_W": 1.6666666666666665,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 535.9999999999999,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -7.196977175000029,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 0.35,
+        "electrical_W": 5.714285714285714,
+        "hot_side_W": 7.714285714285714,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 1408.5714285714287,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -879.7684057464288,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 0.35,
+        "electrical_W": 5.714285714285714,
+        "hot_side_W": 7.714285714285714,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 1516.5714285714287,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -987.7684057464288,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 0.35,
+        "electrical_W": 5.714285714285714,
+        "hot_side_W": 7.714285714285714,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 1624.5714285714287,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -1095.768405746429,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 0.6,
+        "electrical_W": 3.3333333333333335,
+        "hot_side_W": 5.333333333333334,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 980.0000000000001,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -451.19697717500026,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 0.6,
+        "electrical_W": 3.3333333333333335,
+        "hot_side_W": 5.333333333333334,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 1088.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -559.1969771750001,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 0.6,
+        "electrical_W": 3.3333333333333335,
+        "hot_side_W": 5.333333333333334,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 1196.0000000000002,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -667.1969771750004,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 1.0,
+        "electrical_W": 2.0,
+        "hot_side_W": 4.0,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 740.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -211.19697717500014,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 1.0,
+        "electrical_W": 2.0,
+        "hot_side_W": 4.0,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 847.9999999999999,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -319.19697717500003,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 1.0,
+        "electrical_W": 2.0,
+        "hot_side_W": 4.0,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 956.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -427.19697717500014,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 1.5,
+        "electrical_W": 1.3333333333333333,
+        "hot_side_W": 3.333333333333333,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 620.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -91.19697717500014,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 1.5,
+        "electrical_W": 1.3333333333333333,
+        "hot_side_W": 3.333333333333333,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 728.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -199.19697717500014,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 2.0,
+        "cop_assumption": 1.5,
+        "electrical_W": 1.3333333333333333,
+        "hot_side_W": 3.333333333333333,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 836.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -307.19697717500014,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 0.35,
+        "electrical_W": 11.428571428571429,
+        "hot_side_W": 15.428571428571429,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 2797.1428571428573,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -2268.3398343178574,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 0.35,
+        "electrical_W": 11.428571428571429,
+        "hot_side_W": 15.428571428571429,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 2905.1428571428573,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -2376.3398343178574,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 0.35,
+        "electrical_W": 11.428571428571429,
+        "hot_side_W": 15.428571428571429,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 3013.1428571428573,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -2484.3398343178574,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 0.6,
+        "electrical_W": 6.666666666666667,
+        "hot_side_W": 10.666666666666668,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 1940.0000000000002,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -1411.1969771750005,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 0.6,
+        "electrical_W": 6.666666666666667,
+        "hot_side_W": 10.666666666666668,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 2048.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -1519.196977175,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 0.6,
+        "electrical_W": 6.666666666666667,
+        "hot_side_W": 10.666666666666668,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 2156.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -1627.196977175,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 1.0,
+        "electrical_W": 4.0,
+        "hot_side_W": 8.0,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 1460.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -931.1969771750001,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 1.0,
+        "electrical_W": 4.0,
+        "hot_side_W": 8.0,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 1568.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -1039.196977175,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 1.0,
+        "electrical_W": 4.0,
+        "hot_side_W": 8.0,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 1675.9999999999998,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -1147.196977175,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 1.5,
+        "electrical_W": 2.6666666666666665,
+        "hot_side_W": 6.666666666666666,
+        "ambient_delta_K": 0,
+        "insulation_leak_W": 0.0,
+        "energy_180s_J": 1220.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -691.1969771750001,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 1.5,
+        "electrical_W": 2.6666666666666665,
+        "hot_side_W": 6.666666666666666,
+        "ambient_delta_K": 4,
+        "insulation_leak_W": 0.6,
+        "energy_180s_J": 1327.9999999999998,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -799.1969771749999,
+        "physical_performance_proven": false
+      },
+      {
+        "total_bench_cooling_W": 4.0,
+        "cop_assumption": 1.5,
+        "electrical_W": 2.6666666666666665,
+        "hot_side_W": 6.666666666666666,
+        "ambient_delta_K": 8,
+        "insulation_leak_W": 1.2,
+        "energy_180s_J": 1436.0,
+        "initial_cooling_allocation_J": 528.8030228249999,
+        "margin_J": -907.1969771750001,
+        "physical_performance_proven": false
+      }
+    ],
+    "air_sink_rejection": [
+      {
+        "cooling_W": 1,
+        "assumed_COP": 1,
+        "heat_to_air_W": 2,
+        "required_exposed_area_m2_at_h5_delta5": 0.08,
+        "rise_K_on_0p02m2_at_h5": 20.0
+      },
+      {
+        "cooling_W": 2,
+        "assumed_COP": 1,
+        "heat_to_air_W": 4,
+        "required_exposed_area_m2_at_h5_delta5": 0.16,
+        "rise_K_on_0p02m2_at_h5": 40.0
+      },
+      {
+        "cooling_W": 4,
+        "assumed_COP": 1,
+        "heat_to_air_W": 8,
+        "required_exposed_area_m2_at_h5_delta5": 0.32,
+        "rise_K_on_0p02m2_at_h5": 80.0
+      }
+    ],
+    "verdict": "THERMAL_BUFFER_ARCHITECTURE_REQUIRES_LOAD_COP_LEAK_AND_STATE_OF_CHARGE_GATES",
+    "source": "https://www.rubitherm.eu/media/products/datasheets/Techdata_-RT28HC_EN_21012026.PDF"
+  },
+  "evidence": "LINEAR_BEAM_AND_LUMPED_ENERGY_DESIGN_STUDY_NOT_PHYSICAL_VALIDATION"
+}

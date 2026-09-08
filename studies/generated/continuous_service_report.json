@@ -1,0 +1,284 @@
+{
+  "superior": {
+    "installed": {
+      "rear_spiral": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "front_spiral": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "moving_cup": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "moving_rear_clamp": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "moving_front_clamp": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "fixed_cage": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "fixed_rear_clamp": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "fixed_front_clamp": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "rear_stop_ring": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "rear_buffer": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "front_stop_ring": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "front_buffer_inner": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "front_buffer_outer": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "position_electrode_A": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "position_electrode_B": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "socket_draw_shoe": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "output_shoe": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      }
+    },
+    "nominal_enclosure_deficit_mm3": {
+      "rear_spiral": 0.0,
+      "front_spiral": 0.0,
+      "moving_cup": 0.0,
+      "moving_rear_clamp": 0.0,
+      "moving_front_clamp": 0.0,
+      "fixed_cage": 0.0,
+      "fixed_rear_clamp": 0.0,
+      "fixed_front_clamp": 0.0,
+      "rear_stop_ring": 0.0,
+      "rear_buffer": 0.0,
+      "front_stop_ring": 0.0,
+      "front_buffer_inner": 0.0,
+      "front_buffer_outer": 0.0,
+      "position_electrode_A": 0.0,
+      "position_electrode_B": 0.0
+    },
+    "continuous_service": {
+      "cassette": {
+        "valid": true,
+        "frame_mm3": 17.051757080887,
+        "boundary_mm3": 0,
+        "protected_mm3": 0,
+        "thermal_material_mm3": 0
+      },
+      "bridge": {
+        "valid": true,
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0,
+        "thermal_material_mm3": 0
+      },
+      "output_shoe": {
+        "valid": true,
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0,
+        "thermal_material_mm3": 0
+      }
+    },
+    "motion_vector_mm": [
+      0,
+      0,
+      -32
+    ],
+    "cylinder_bound_radial_excess_mm": 0.0420955796739088,
+    "state": "FACTORY_SERVICE: facial liner and draw fastener removed, dry connector disconnected; socket shoe remains.",
+    "whole_product_service": false,
+    "excluded_unaccepted_sources": [
+      "retention roots/crown",
+      "final eye-roll exterior"
+    ]
+  },
+  "inferior": {
+    "installed": {
+      "rear_spiral": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "front_spiral": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "moving_cup": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "moving_rear_clamp": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "moving_front_clamp": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "fixed_cage": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "fixed_rear_clamp": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "fixed_front_clamp": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "rear_stop_ring": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "rear_buffer": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "front_stop_ring": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "front_buffer_inner": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "front_buffer_outer": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "position_electrode_A": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "position_electrode_B": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "socket_draw_shoe": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      },
+      "output_shoe": {
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0
+      }
+    },
+    "nominal_enclosure_deficit_mm3": {
+      "rear_spiral": 0.0,
+      "front_spiral": 0.0,
+      "moving_cup": 0.0,
+      "moving_rear_clamp": 0.0,
+      "moving_front_clamp": 0.0,
+      "fixed_cage": 0.0,
+      "fixed_rear_clamp": 0.0,
+      "fixed_front_clamp": 0.0,
+      "rear_stop_ring": 0.0,
+      "rear_buffer": 0.0,
+      "front_stop_ring": 0.0,
+      "front_buffer_inner": 0.0,
+      "front_buffer_outer": 0.0,
+      "position_electrode_A": 0.0,
+      "position_electrode_B": 0.0
+    },
+    "continuous_service": {
+      "cassette": {
+        "valid": true,
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0,
+        "thermal_material_mm3": 0
+      },
+      "bridge": {
+        "valid": true,
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0,
+        "thermal_material_mm3": 0
+      },
+      "output_shoe": {
+        "valid": true,
+        "frame_mm3": 0,
+        "boundary_mm3": 0,
+        "protected_mm3": 0,
+        "thermal_material_mm3": 0
+      }
+    },
+    "motion_vector_mm": [
+      0,
+      0,
+      -32
+    ],
+    "cylinder_bound_radial_excess_mm": 0.0420955796739088,
+    "state": "FACTORY_SERVICE: facial liner and draw fastener removed, dry connector disconnected; socket shoe remains.",
+    "whole_product_service": false,
+    "excluded_unaccepted_sources": [
+      "retention roots/crown",
+      "final eye-roll exterior"
+    ]
+  }
+}

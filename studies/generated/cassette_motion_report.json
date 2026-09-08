@@ -1,0 +1,94 @@
+{
+  "nominal_pairs": {
+    "moving_cup": {
+      "fixed_cage": 0,
+      "fixed_rear_clamp": 0,
+      "fixed_front_clamp": 0,
+      "rear_stop_ring": 0,
+      "rear_buffer": 0,
+      "front_stop_ring": 0,
+      "front_buffer_inner": 0,
+      "front_buffer_outer": 0,
+      "position_electrode_A": 0,
+      "position_electrode_B": 0
+    },
+    "moving_rear_clamp": {
+      "fixed_cage": 0,
+      "fixed_rear_clamp": 0,
+      "fixed_front_clamp": 0,
+      "rear_stop_ring": 0,
+      "rear_buffer": 0,
+      "front_stop_ring": 0,
+      "front_buffer_inner": 0,
+      "front_buffer_outer": 0,
+      "position_electrode_A": 0,
+      "position_electrode_B": 0
+    },
+    "moving_front_clamp": {
+      "fixed_cage": 0,
+      "fixed_rear_clamp": 0,
+      "fixed_front_clamp": 0,
+      "rear_stop_ring": 0,
+      "rear_buffer": 0,
+      "front_stop_ring": 0,
+      "front_buffer_inner": 0,
+      "front_buffer_outer": 0,
+      "position_electrode_A": 0,
+      "position_electrode_B": 0
+    }
+  },
+  "continuous_nominal_motion": {
+    "moving_cup": {
+      "valid": true,
+      "swept_volume_mm3": 167.45313546349283,
+      "intersections_mm3": {
+        "fixed_cage": 0,
+        "fixed_rear_clamp": 0,
+        "fixed_front_clamp": 0,
+        "rear_stop_ring": 0,
+        "rear_buffer": 0,
+        "front_stop_ring": 0,
+        "front_buffer_inner": 0,
+        "front_buffer_outer": 0,
+        "position_electrode_A": 0,
+        "position_electrode_B": 0
+      },
+      "supplier_housing_mm3": 0
+    },
+    "moving_rear_clamp": {
+      "valid": true,
+      "swept_volume_mm3": 28.77196215863671,
+      "intersections_mm3": {
+        "fixed_cage": 0,
+        "fixed_rear_clamp": 0,
+        "fixed_front_clamp": 0,
+        "rear_stop_ring": 0,
+        "rear_buffer": 0,
+        "front_stop_ring": 0,
+        "front_buffer_inner": 0,
+        "front_buffer_outer": 0,
+        "position_electrode_A": 0,
+        "position_electrode_B": 0
+      },
+      "supplier_housing_mm3": 0
+    },
+    "moving_front_clamp": {
+      "valid": true,
+      "swept_volume_mm3": 15.678471566913387,
+      "intersections_mm3": {
+        "fixed_cage": 0,
+        "fixed_rear_clamp": 0,
+        "fixed_front_clamp": 0,
+        "rear_stop_ring": 0,
+        "rear_buffer": 0,
+        "front_stop_ring": 0,
+        "front_buffer_inner": 0,
+        "front_buffer_outer": 0,
+        "position_electrode_A": 0,
+        "position_electrode_B": 0
+      },
+      "supplier_housing_mm3": 0
+    }
+  },
+  "elastic_motion": "NOT_SOLVED_BY_RIGID_SWEEPS"
+}

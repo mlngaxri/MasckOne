@@ -1,0 +1,625 @@
+{
+  "base_main": "a0ea51874d8967c512468932fac627e8bba5f95f",
+  "frame_head": "6e172198174d835767787f97eeb50d2e60a2f51a",
+  "human_use_eligible": false,
+  "integration_status": "BLOCKED_CONSUMED_FRAME_PIN_CLEARANCE_GATE; CURRENT_EXTERIOR_NOT_CONSUMED",
+  "material_geometry": {
+    "rear_spiral": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 3.592754517566622
+    },
+    "front_spiral": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 3.5927545175666555
+    },
+    "moving_cup": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 83.94073835782055
+    },
+    "moving_rear_clamp": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 9.952565526572439
+    },
+    "moving_front_clamp": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 5.423370667800237
+    },
+    "fixed_cage": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 116.71144462163446
+    },
+    "fixed_rear_clamp": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 5.423370667800218
+    },
+    "fixed_front_clamp": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 25.44297350326028
+    },
+    "rear_stop_ring": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 3.847194363586045
+    },
+    "rear_buffer": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 3.619114736935492
+    },
+    "front_stop_ring": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 9.957091836898574
+    },
+    "front_buffer": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 9.848892969004053
+    }
+  },
+  "stations": {
+    "superior": {
+      "center_mm": [
+        40,
+        70,
+        7
+      ],
+      "axis_deg": 61,
+      "parts": {
+        "rear_spiral": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -3.2953021666130944,
+            10.023157862918037
+          ]
+        },
+        "front_spiral": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            4.21924694720513,
+            17.53770697673626
+          ]
+        },
+        "moving_cup": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -3.4528652931931534,
+            16.08819539146576
+          ]
+        },
+        "moving_rear_clamp": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -3.2710616856007775,
+            10.15648050848578
+          ]
+        },
+        "moving_front_clamp": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            8.441662022486547,
+            13.472855028034907
+          ]
+        },
+        "fixed_cage": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -1.272459894998167,
+            18.77855418623124
+          ]
+        },
+        "fixed_rear_clamp": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            0.9271129086683221,
+            5.95830591421668
+          ]
+        },
+        "fixed_front_clamp": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            3.123842623784054,
+            18.47554817357728
+          ]
+        },
+        "rear_stop_ring": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -3.7195105843286393,
+            9.62318992621481
+          ]
+        },
+        "rear_buffer": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -3.6710296223040055,
+            9.671670888239444
+          ]
+        },
+        "front_stop_ring": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            5.1112273691923455,
+            17.00101125101607
+          ]
+        },
+        "front_buffer": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            5.062746507167713,
+            16.306359720576612
+          ]
+        },
+        "supplier_total_package_bound": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -1.6323762288994033,
+            17.474652785835485
+          ]
+        }
+      }
+    },
+    "inferior": {
+      "center_mm": [
+        57,
+        -44,
+        7
+      ],
+      "axis_deg": 61,
+      "parts": {
+        "rear_spiral": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -3.2953021666130944,
+            10.023157862918037
+          ]
+        },
+        "front_spiral": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            4.21924694720513,
+            17.53770697673626
+          ]
+        },
+        "moving_cup": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -3.4528652931931534,
+            16.08819539146576
+          ]
+        },
+        "moving_rear_clamp": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -3.2710616856007775,
+            10.15648050848578
+          ]
+        },
+        "moving_front_clamp": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            8.441662022486547,
+            13.472855028034907
+          ]
+        },
+        "fixed_cage": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -1.272459894998167,
+            18.77855418623124
+          ]
+        },
+        "fixed_rear_clamp": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            0.9271129086683221,
+            5.95830591421668
+          ]
+        },
+        "fixed_front_clamp": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            3.123842623784054,
+            18.47554817357728
+          ]
+        },
+        "rear_stop_ring": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -3.7195105843286393,
+            9.62318992621481
+          ]
+        },
+        "rear_buffer": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -3.6710296223040055,
+            9.671670888239444
+          ]
+        },
+        "front_stop_ring": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            5.1112273691923455,
+            17.00101125101607
+          ]
+        },
+        "front_buffer": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            5.062746507167713,
+            16.306359720576612
+          ]
+        },
+        "supplier_total_package_bound": {
+          "protected_mm3": {
+            "MASCK_ONE-PROTECTED-EYE-LEFT": 0,
+            "MASCK_ONE-PROTECTED-EYE-RIGHT": 0,
+            "MASCK_ONE-PROTECTED-MOUTH": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-LEFT": 0,
+            "MASCK_ONE-PROTECTED-NOSTRIL-RIGHT": 0
+          },
+          "released_shell_mm3": 0,
+          "z_range_mm": [
+            -1.6323762288994033,
+            17.474652785835485
+          ]
+        }
+      }
+    }
+  },
+  "thermal_geometry": {
+    "cell_body_L_0": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 321.2519999999996,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_fin_base_L_0": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 206.17599999999555,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "insulation_L_0": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 1114.6240000000007,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_body_L_1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 321.25199999999916,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_fin_base_L_1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 206.17599999999544,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "insulation_L_1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 1114.6240000000016,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_body_L_2": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 219.19199999999915,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_fin_base_L_2": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 106.73599999999794,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "insulation_L_2": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 849.6639999999995,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cheek_spreader_-1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 215.59999999999977,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "contact_barrier_-1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 154.0,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "fixed_folded_bus_-1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 550.8129999999986,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_body_R_0": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 321.2519999999996,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_fin_base_R_0": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 206.17599999999555,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "insulation_R_0": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 1114.6240000000007,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_body_R_1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 321.25199999999916,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_fin_base_R_1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 206.17599999999544,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "insulation_R_1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 1114.6240000000016,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_body_R_2": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 219.19199999999915,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cell_fin_base_R_2": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 106.73599999999777,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "insulation_R_2": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 849.6639999999995,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "cheek_spreader_1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 215.59999999999977,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "contact_barrier_1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 154.0,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    },
+    "fixed_folded_bus_1": {
+      "valid": true,
+      "solids": 1,
+      "volume_mm3": 550.8129999999987,
+      "protected_mm3": 0,
+      "released_shell_mm3": 0
+    }
+  },
+  "pcm_void_mm3": 14833.600000000006
+}

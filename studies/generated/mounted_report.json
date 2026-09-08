@@ -1,0 +1,298 @@
+{
+  "superior": {
+    "parts": {
+      "rear_spiral": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 3.592754517566682,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "front_spiral": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 3.5927545175667173,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "moving_cup": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 84.02016983021622,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "moving_rear_clamp": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 9.952565526572403,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "moving_front_clamp": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 5.423370667800225,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "fixed_cage": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 403.52973787482944,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "fixed_rear_clamp": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 5.423370667800207,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "fixed_front_clamp": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 25.44297350326023,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "rear_stop_ring": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 3.847194363586039,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "rear_buffer": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 3.6191147369354635,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "front_stop_ring": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 22.694197951882657,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "front_buffer_inner": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 1.0524335389525832,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "front_buffer_outer": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 1.5582299561805506,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "position_electrode_A": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 1.1457314687543654,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "position_electrode_B": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 1.1457314687543725,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "socket_draw_shoe": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 61.01072840374639,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "output_shoe": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 51.29362764141279,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      }
+    },
+    "source_reaction_builder_accepted": true,
+    "required_new_frame_ports": [
+      "central draw-pin bore",
+      "genuinely asymmetric key port"
+    ],
+    "installed_fixture_interference_mm3": 0,
+    "wrong_90deg_interference_mm3": 2.277000000000008,
+    "frame_assembly_proof": "CURRENT_REACTION_FRAME_BUILDS; RETENTION_ROOT_AND_FINAL_EXTERIOR_BUILDERS_FAIL; REQUIRED_NEW_PORTS_NOT_PROMOTED"
+  },
+  "inferior": {
+    "parts": {
+      "rear_spiral": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 3.5927545175666786,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "front_spiral": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 3.5927545175666022,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0.5760037340032025
+      },
+      "moving_cup": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 84.02016983021694,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0.15393638037325097
+      },
+      "moving_rear_clamp": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 9.952565526572403,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "moving_front_clamp": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 5.4233706678002624,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "fixed_cage": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 286.02911659709,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0.01662962750332547,
+        "current_exterior_mm3": 11.350824796073699
+      },
+      "fixed_rear_clamp": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 5.423370667800206,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "fixed_front_clamp": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 25.44297350326013,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 5.530636849411302
+      },
+      "rear_stop_ring": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 3.8471943635860426,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "rear_buffer": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 3.6191147369354724,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "front_stop_ring": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 22.69419795188263,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 1.651446108733951
+      },
+      "front_buffer_inner": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 1.05243353895258,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "front_buffer_outer": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 1.5582299561805915,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0.24653933920258997
+      },
+      "position_electrode_A": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 1.145731468754366,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0.06948533303871383
+      },
+      "position_electrode_B": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 1.1457314687543732,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "socket_draw_shoe": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 61.01072840374639,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      },
+      "output_shoe": {
+        "valid": true,
+        "solids": 1,
+        "volume_mm3": 48.63898184912943,
+        "protected_mm3": 0,
+        "released_shell_mm3": 0,
+        "current_exterior_mm3": 0
+      }
+    },
+    "source_reaction_builder_accepted": true,
+    "required_new_frame_ports": [
+      "central draw-pin bore",
+      "genuinely asymmetric key port"
+    ],
+    "installed_fixture_interference_mm3": 0,
+    "wrong_90deg_interference_mm3": 2.277000000000017,
+    "frame_assembly_proof": "CURRENT_REACTION_FRAME_BUILDS; RETENTION_ROOT_AND_FINAL_EXTERIOR_BUILDERS_FAIL; REQUIRED_NEW_PORTS_NOT_PROMOTED"
+  }
+}

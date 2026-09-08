@@ -43,18 +43,23 @@ def spiral(z,hand=1,t=.05):
         arms.append(join([a,*ends]))
     return join([ring(1.25,3.05,z-t/2,z+t/2),ring(6.8,7.6,z-t/2,z+t/2),*arms])
 
+def cup_features(lo=0.,hi=0.):
+    # Every feature is a fixed XY profile extruded along the one moving axis.
+    # Expanding each interval is its exact continuous translation sweep.
+    parts=[ring(6.8,7.6,-7.85+lo,-7.525+hi),
+       ring(1.25,6.4,6.8+lo,7.2+hi),ring(1.25,2.8,7.15+lo,7.975+hi)]
+    for deg in (0,120,240):
+        th=math.radians(deg);x,y=6.35*math.cos(th),6.35*math.sin(th)
+        parts += [cylinder(.23,-7.65+lo,7.0+hi).translate((x,y,0)),
+          box(.95,.4,.4+hi-lo,(6.75,0,-7.65+(lo+hi)/2)).rotate((0,0,0),(0,0,1),deg)]
+    return parts
+
+
 def cassette():
     material={};reference={}
     material['rear_spiral']=spiral(-7.5,1)
     material['front_spiral']=spiral(8,-1)
-    rear=ring(6.8,7.6,-7.85,-7.525)
-    front=ring(1.25,6.4,6.8,7.2)
-    rails=[]
-    for deg in (0,120,240):
-        th=math.radians(deg);x,y=6.35*math.cos(th),6.35*math.sin(th)
-        rails += [cylinder(.23,-7.65,7.0).translate((x,y,0)),
-          bar((x,y,-7.65),(7.1*math.cos(th),7.1*math.sin(th),-7.65),.2)]
-    material['moving_cup']=join([rear,front,ring(1.25,2.8,7.15,7.975),*rails])
+    material['moving_cup']=join(cup_features())
     material['moving_rear_clamp']=ring(6.8,7.6,-7.475,-7.2)
     material['moving_front_clamp']=ring(1.25,2.8,8.025,8.3)
     back=ring(1.25,3.0,-9.1,-8.7)
@@ -68,8 +73,17 @@ def cassette():
     # Rigid fault stops outside nominal +/-.26; compliant buffer surfaces remain separate.
     material['rear_stop_ring']=join([ring(6.8,7.6,-8.4,-8.3),*[cylinder(.22,-8.9,-8.3).translate((7.1*math.cos(math.radians(d)),7.1*math.sin(math.radians(d)),0)) for d in (60,180,300)]])
     material['rear_buffer']=ring(6.8,7.6,-8.3,-8.2)
-    material['front_stop_ring']=join([ring(3.1,6.4,7.65,7.75),*[bar((6.2*math.cos(math.radians(d)),6.2*math.sin(math.radians(d)),7.7),(7.1*math.cos(math.radians(d)),7.1*math.sin(math.radians(d)),7.7),.12) for d in (60,180,300)]])
-    material['front_buffer']=ring(3.1,6.4,7.55,7.65)
+    # The stationary stop carrier also supports two capacitive electrodes.
+    # This removes a separate sensor bracket and adds no moving magnet/wire.
+    material['front_stop_ring']=join([ring(3.1,6.4,7.78,7.975),
+        ring(3.1,3.6,7.65,7.78),ring(6.,6.4,7.65,7.78),
+        *[bar((6.2*math.cos(math.radians(d)),6.2*math.sin(math.radians(d)),7.85),
+          (7.1*math.cos(math.radians(d)),7.1*math.sin(math.radians(d)),7.85),.12) for d in (60,180,300)]])
+    material['front_buffer_inner']=ring(3.1,3.6,7.55,7.65)
+    material['front_buffer_outer']=ring(6.,6.4,7.55,7.65)
+    electrode=ring(3.7,5.9,7.745,7.78)
+    material['position_electrode_A']=electrode.intersect(box(6,14,.1,(3.1,0,7.76)))
+    material['position_electrode_B']=electrode.intersect(box(6,14,.1,(-3.1,0,7.76)))
     reference['supplier_magnet_package']=cylinder(5.55,-5.5,3.5)
     reference['supplier_total_package_bound']=cylinder(6.35,-6.35,10.15)
     reference['commanded_cup_sweep']=ring(6.8,7.6,-8.11,-7.265) # one feature; full sweep below

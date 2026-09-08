@@ -1,0 +1,54 @@
+[
+  {
+    "assumed_total_sensor_delay_ms": 0,
+    "acquisition_peak_mm": 0.23848322734395977,
+    "commanded_tracking_peak_error_mm": 0.035421421543636346,
+    "peak_displacement_mm": 0.2618538176633576,
+    "peak_force_N": 0.2427738476398308,
+    "observed_soft_stop_contact": false,
+    "noise_included": false,
+    "wet_boot_stiffness_included": false,
+    "frame_compliance_included": false,
+    "sensor_velocity_is_idealized": true,
+    "physical_validation": false
+  },
+  {
+    "assumed_total_sensor_delay_ms": 0.5,
+    "acquisition_peak_mm": 0.29990481680137426,
+    "commanded_tracking_peak_error_mm": 0.07213639151352876,
+    "peak_displacement_mm": 0.29990481680137426,
+    "peak_force_N": 0.27,
+    "observed_soft_stop_contact": false,
+    "noise_included": false,
+    "wet_boot_stiffness_included": false,
+    "frame_compliance_included": false,
+    "sensor_velocity_is_idealized": true,
+    "physical_validation": false
+  },
+  {
+    "assumed_total_sensor_delay_ms": 1,
+    "acquisition_peak_mm": 0.4787813050232354,
+    "commanded_tracking_peak_error_mm": 0.1347901040705905,
+    "peak_displacement_mm": 0.4787813050232354,
+    "peak_force_N": 0.27,
+    "observed_soft_stop_contact": true,
+    "noise_included": false,
+    "wet_boot_stiffness_included": false,
+    "frame_compliance_included": false,
+    "sensor_velocity_is_idealized": true,
+    "physical_validation": false
+  },
+  {
+    "assumed_total_sensor_delay_ms": 2,
+    "acquisition_peak_mm": 2.7744069923186028,
+    "commanded_tracking_peak_error_mm": 4.544551328482703,
+    "peak_displacement_mm": 4.62105527551591,
+    "peak_force_N": 0.27,
+    "observed_soft_stop_contact": true,
+    "noise_included": false,
+    "wet_boot_stiffness_included": false,
+    "frame_compliance_included": false,
+    "sensor_velocity_is_idealized": true,
+    "physical_validation": false
+  }
+]

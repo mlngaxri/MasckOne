@@ -1,0 +1,100 @@
+{
+  "cases": [
+    {
+      "foil_thickness_mm": 0.045,
+      "moving_mass_scenario_g": 2.2,
+      "k_N_mm": 0.05426072974391615,
+      "free_axial_frequency_Hz": 24.994911670702162,
+      "free_40Hz_force_amplitude_N": 0.022022858058089723,
+      "radial_over_axial_ratio": 479.7437480723915
+    },
+    {
+      "foil_thickness_mm": 0.045,
+      "moving_mass_scenario_g": 2.7,
+      "k_N_mm": 0.05426072974391615,
+      "free_axial_frequency_Hz": 22.562180259251992,
+      "free_40Hz_force_amplitude_N": 0.03023436891979607,
+      "radial_over_axial_ratio": 479.7437480723915
+    },
+    {
+      "foil_thickness_mm": 0.045,
+      "moving_mass_scenario_g": 3.2,
+      "k_N_mm": 0.05426072974391615,
+      "free_axial_frequency_Hz": 20.724685919948573,
+      "free_40Hz_force_amplitude_N": 0.03844587978150242,
+      "radial_over_axial_ratio": 479.7437480723915
+    },
+    {
+      "foil_thickness_mm": 0.05,
+      "moving_mass_scenario_g": 2.2,
+      "k_N_mm": 0.07414874783771097,
+      "free_axial_frequency_Hz": 29.21868738984854,
+      "free_40Hz_force_amplitude_N": 0.016851973353703073,
+      "radial_over_axial_ratio": 390.075507595032
+    },
+    {
+      "foil_thickness_mm": 0.05,
+      "moving_mass_scenario_g": 2.7,
+      "k_N_mm": 0.07414874783771097,
+      "free_axial_frequency_Hz": 26.37485983202022,
+      "free_40Hz_force_amplitude_N": 0.025063484215409416,
+      "radial_over_axial_ratio": 390.075507595032
+    },
+    {
+      "foil_thickness_mm": 0.05,
+      "moving_mass_scenario_g": 3.2,
+      "k_N_mm": 0.07414874783771097,
+      "free_axial_frequency_Hz": 24.226855734704095,
+      "free_40Hz_force_amplitude_N": 0.03327499507711577,
+      "radial_over_axial_ratio": 390.075507595032
+    },
+    {
+      "foil_thickness_mm": 0.055,
+      "moving_mass_scenario_g": 2.2,
+      "k_N_mm": 0.09831475303138859,
+      "free_axial_frequency_Hz": 33.64481445024493,
+      "free_40Hz_force_amplitude_N": 0.01056881200334689,
+      "radial_over_axial_ratio": 323.6134485406379
+    },
+    {
+      "foil_thickness_mm": 0.055,
+      "moving_mass_scenario_g": 2.7,
+      "k_N_mm": 0.09831475303138859,
+      "free_axial_frequency_Hz": 30.37019607896008,
+      "free_40Hz_force_amplitude_N": 0.018780322865053236,
+      "radial_over_axial_ratio": 323.6134485406379
+    },
+    {
+      "foil_thickness_mm": 0.055,
+      "moving_mass_scenario_g": 3.2,
+      "k_N_mm": 0.09831475303138859,
+      "free_axial_frequency_Hz": 27.896806418147477,
+      "free_40Hz_force_amplitude_N": 0.02699183372675959,
+      "radial_over_axial_ratio": 323.6134485406379
+    }
+  ],
+  "arm_stress_36_elements": {
+    "peak_equivalent_beam_stress_MPa": 81.63235395720874,
+    "element_end": [
+      0,
+      0
+    ],
+    "notch_factor_included": false,
+    "clamp_overlap_idealized": true,
+    "large_deflection": false
+  },
+  "arm_stress_72_elements": {
+    "peak_equivalent_beam_stress_MPa": 81.44856629925438,
+    "element_end": [
+      0,
+      0
+    ],
+    "notch_factor_included": false,
+    "clamp_overlap_idealized": true,
+    "large_deflection": false
+  },
+  "max_normal_stroke_kinetic_energy_microJ": 5.764480624917854,
+  "force_budget_for_unmodelled_wet_boot_and_wires_N": 0.04496786555709492,
+  "fatigue_allowable": null,
+  "physical_validation": false
+}

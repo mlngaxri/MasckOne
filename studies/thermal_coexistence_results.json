@@ -1,0 +1,205 @@
+{
+  "per_cell_cooling_check": [
+    {
+      "cell": 0,
+      "void_mm3": 2934.6,
+      "heat_allocation": 0.19783464566929135,
+      "energy_required_J": 149.74501604550827,
+      "energy_available_J": 167.12171004375008,
+      "margin_J": 17.37669399824182
+    },
+    {
+      "cell": 1,
+      "void_mm3": 2934.6,
+      "heat_allocation": 0.19783464566929135,
+      "energy_required_J": 149.74501604550827,
+      "energy_available_J": 167.12171004375008,
+      "margin_J": 17.37669399824182
+    },
+    {
+      "cell": 2,
+      "void_mm3": 1547.6,
+      "heat_allocation": 0.10433070866141733,
+      "energy_required_J": 69.33007825739095,
+      "energy_available_J": 88.13383713750004,
+      "margin_J": 18.803758880109086
+    },
+    {
+      "cell": 3,
+      "void_mm3": 2934.6,
+      "heat_allocation": 0.19783464566929135,
+      "energy_required_J": 149.74501604550827,
+      "energy_available_J": 167.12171004375008,
+      "margin_J": 17.37669399824182
+    },
+    {
+      "cell": 4,
+      "void_mm3": 2934.6,
+      "heat_allocation": 0.19783464566929135,
+      "energy_required_J": 149.74501604550827,
+      "energy_available_J": 167.12171004375008,
+      "margin_J": 17.37669399824182
+    },
+    {
+      "cell": 5,
+      "void_mm3": 1547.6,
+      "heat_allocation": 0.10433070866141733,
+      "energy_required_J": 69.33007825739095,
+      "energy_available_J": 88.13383713750004,
+      "margin_J": 18.803758880109086
+    }
+  ],
+  "cold_path_resistance_scenario_K_W_per_cell": 12,
+  "cold_path_basis": "0.25mm barrier k=0.2 DOE plus two 0.35x26mm copper folds and contact/spreading reserve",
+  "TEC_control": "six independently balanced stationary modules; equal-current operation is not assumed",
+  "exact_PCM_void_mm3": 14833.600000000006,
+  "PCM_fill_fraction_assumption": 0.875,
+  "PCM_mass_g": 9.994138000000005,
+  "planning_usable_enthalpy_J": 1407.9241907500007,
+  "shared_contact_area_mm2": 1232,
+  "cold_copper_volume_mm3": 1532.8259999999968,
+  "cold_copper_heat_capacity_J_K": 5.24632690889999,
+  "additional_heat_capacity_scenario_J_K": 3.0,
+  "mode_cases": [
+    {
+      "mode": "COOL",
+      "total_inert_contact_load_W": 1,
+      "contact_delta_from_PCM_K": 4,
+      "electrical_W": 0.24043420886524086,
+      "PCM_heat_rate_W": 1.240434208865241,
+      "startup_J": 32.98530763559996,
+      "environmental_leak_J": 90,
+      "required_energy_J": 346.2634652313433,
+      "allocated_energy_J": 844.7545144500003,
+      "margin_J": 498.49104921865705
+    },
+    {
+      "mode": "COOL",
+      "total_inert_contact_load_W": 2,
+      "contact_delta_from_PCM_K": 4,
+      "electrical_W": 0.8888764285886054,
+      "PCM_heat_rate_W": 2.8888764285886053,
+      "startup_J": 32.98530763559996,
+      "environmental_leak_J": 90,
+      "required_energy_J": 642.9830647815489,
+      "allocated_energy_J": 844.7545144500003,
+      "margin_J": 201.7714496684514
+    },
+    {
+      "mode": "COOL",
+      "total_inert_contact_load_W": 2,
+      "contact_delta_from_PCM_K": 8,
+      "electrical_W": 1.2314978079200825,
+      "PCM_heat_rate_W": 3.2314978079200825,
+      "startup_J": 65.97061527119992,
+      "environmental_leak_J": 90,
+      "required_energy_J": 737.6402206968147,
+      "allocated_energy_J": 844.7545144500003,
+      "margin_J": 107.11429375318562
+    },
+    {
+      "mode": "WARM",
+      "total_inert_contact_load_W": 1,
+      "contact_delta_from_PCM_K": 4,
+      "electrical_W": 0.17050032749636698,
+      "PCM_heat_rate_W": 0.8294996725036355,
+      "startup_J": 32.98530763559996,
+      "environmental_leak_J": 90,
+      "required_energy_J": 272.29524868625435,
+      "allocated_energy_J": 563.1696763000003,
+      "margin_J": 290.874427613746
+    },
+    {
+      "mode": "WARM",
+      "total_inert_contact_load_W": 2,
+      "contact_delta_from_PCM_K": 4,
+      "electrical_W": 0.48070114963760524,
+      "PCM_heat_rate_W": 1.5192988503624214,
+      "startup_J": 32.98530763559996,
+      "environmental_leak_J": 90,
+      "required_energy_J": 396.4591007008358,
+      "allocated_energy_J": 563.1696763000003,
+      "margin_J": 166.71057559916454
+    },
+    {
+      "mode": "WARM",
+      "total_inert_contact_load_W": 2,
+      "contact_delta_from_PCM_K": 8,
+      "electrical_W": 0.6114867429822332,
+      "PCM_heat_rate_W": 1.3885132570178218,
+      "startup_J": 65.97061527119992,
+      "environmental_leak_J": 90,
+      "required_energy_J": 405.90300153440785,
+      "allocated_energy_J": 563.1696763000003,
+      "margin_J": 157.26667476559248
+    }
+  ],
+  "water_sensitivity": [
+    {
+      "water_exposure_scenario_mL": 0,
+      "added_water_sensible_J": 0.0,
+      "required_energy_J": 737.6402206968147,
+      "allocated_cooling_J": 844.7545144500003,
+      "margin_J": 107.11429375318562,
+      "cleanser_thermal_properties": "UNKNOWN_NOT_COUNTED",
+      "residual_requirement_is_not_measured_residual": true
+    },
+    {
+      "water_exposure_scenario_mL": 0.4,
+      "added_water_sensible_J": 13.376,
+      "required_energy_J": 767.9118345956022,
+      "allocated_cooling_J": 844.7545144500003,
+      "margin_J": 76.84267985439817,
+      "cleanser_thermal_properties": "UNKNOWN_NOT_COUNTED",
+      "residual_requirement_is_not_measured_residual": true
+    },
+    {
+      "water_exposure_scenario_mL": 4.0,
+      "added_water_sensible_J": 133.76,
+      "required_energy_J": 1101.5425504647694,
+      "allocated_cooling_J": 844.7545144500003,
+      "margin_J": -256.7880360147691,
+      "cleanser_thermal_properties": "UNKNOWN_NOT_COUNTED",
+      "residual_requirement_is_not_measured_residual": true
+    }
+  ],
+  "actuator_heat_four_station_at_0p2N_bias_W": 1.1851851851851853,
+  "dock_cases": [
+    {
+      "ambient_above_PCM_K": 0,
+      "heat_extracted_from_store_W": 1.5,
+      "rejected_to_air_W": 2.022792612908975,
+      "onboard_TEC_electrical_W": 0.522792612908975,
+      "assumed_dock_sink_K_W": 1.5,
+      "assumed_dock_contact_K_W": 1.0,
+      "full_usable_enthalpy_reset_s": 938.6161271666671,
+      "reset_600J_s": 400.0,
+      "dock_fan_power_and_contact_conductance_unqualified": true
+    },
+    {
+      "ambient_above_PCM_K": 4,
+      "heat_extracted_from_store_W": 1.5,
+      "rejected_to_air_W": 2.3136779581281153,
+      "onboard_TEC_electrical_W": 0.8136779581281153,
+      "assumed_dock_sink_K_W": 1.5,
+      "assumed_dock_contact_K_W": 1.0,
+      "full_usable_enthalpy_reset_s": 938.6161271666671,
+      "reset_600J_s": 400.0,
+      "dock_fan_power_and_contact_conductance_unqualified": true
+    },
+    {
+      "ambient_above_PCM_K": 8,
+      "heat_extracted_from_store_W": 1.5,
+      "rejected_to_air_W": 2.742436085247681,
+      "onboard_TEC_electrical_W": 1.242436085247681,
+      "assumed_dock_sink_K_W": 1.5,
+      "assumed_dock_contact_K_W": 1.0,
+      "full_usable_enthalpy_reset_s": 938.6161271666671,
+      "reset_600J_s": 400.0,
+      "dock_fan_power_and_contact_conductance_unqualified": true
+    }
+  ],
+  "back_to_back_cooling": "NOT_GUARANTEED; UPDATE_ENTHALPY_STATE_AND_LIMIT_UNREADY_COOL",
+  "scheduling_decision": "Prefer cooling after fluid delivery/recovery; full concurrent fresh-fluid load can exhaust margin.",
+  "evidence": "ENERGY_AND_RESISTANCE_MODEL_ONLY; NO_HUMAN_TEMPERATURE_LIMITS_OR_PERFORMANCE_CLAIMS"
+}
