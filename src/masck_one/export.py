@@ -12,6 +12,7 @@ from .boundary_release import (
 )
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
+from .legacy_actuator_donor_audit import export_legacy_actuator_donor_review
 from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
@@ -75,6 +76,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+    legacy_actuator_donor_audit = export_legacy_actuator_donor_review(output, model=model)
+    legacy_review_steps = list(legacy_actuator_donor_audit["review_step_files"])
+    legacy_manifest_file = str(legacy_actuator_donor_audit["manifest_file"])
+
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -95,6 +100,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
+            "legacy_actuator_donor_audit": legacy_actuator_donor_audit,
         },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
@@ -103,7 +109,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "exported_step_files": [f"{name}.step" for name in export_map]
+        + ["masck_one_development_assembly.step"]
+        + legacy_review_steps,
+        "reference_only_review_artifacts": [*legacy_review_steps, legacy_manifest_file],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
@@ -113,7 +122,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
             "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
             "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "serviceability. The legacy PR #63 actuator collar, shoe and frame geometry is exported only as reference "
+            "review evidence: its positive overlaps are not attachment, its moving intersections are collisions, and "
+            "none of that donor geometry is included in the physical development assembly. Digital topology/manifests "
+            "and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
