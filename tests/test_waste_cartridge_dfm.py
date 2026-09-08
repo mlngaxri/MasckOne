@@ -171,12 +171,11 @@ def test_release_export_emits_dfm_gate_and_excludes_proxy_from_physical_assembly
     assert report["build_scope"] == "DEVELOPMENT_ONLY"
     assert report["production_readiness"]["production_ready"] is False
     assert set(report["development_assembly_exclusions"]) == {
+        "nasal_lobe_membrane_reference",
         "water_reservoir_envelope", "waste_cartridge_envelope", "battery_reference_envelope",
         "actuator_envelope_1", "actuator_envelope_2", "actuator_envelope_3", "actuator_envelope_4",
     }
-    assert set(report["development_assembly_components"]) == {
-        "rigid_shell", "nasal_lobe_membrane_reference",
-    }
+    assert set(report["development_assembly_components"]) == {"rigid_shell"}
     included = [c for c in report["components"] if c["included_in_development_assembly"]]
     assembly = cq.importers.importStep(str(tmp_path / "masck_one_development_assembly.step"))
     assert assembly.val().isValid()
