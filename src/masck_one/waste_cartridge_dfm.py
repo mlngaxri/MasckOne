@@ -5,7 +5,7 @@ from .waste_cartridge_dfm_legacy import *  # noqa: F401,F403
 from .realized_waste_cartridge import build_realized_waste_cartridge
 
 SOURCE_MAIN_SHA='b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc'
-REALIZED_WASTE_CARTRIDGE_BLOB_SHA='144a40f35f91f6c6cadcd9fcb537b5224b8eed04'
+REALIZED_WASTE_CARTRIDGE_BLOB_SHA='cac2ed2839a2f0a567b8470adbeb080369a6b963'
 LEGACY_AUDIT_BLOB_SHA='f9788cce30c14600c8a624509153596e46c1e478'
 SOURCE_GIT_BLOB_IDENTITIES=(
     *_legacy.SOURCE_GIT_BLOB_IDENTITIES,

@@ -115,7 +115,10 @@ def export_cartridge_review(output):
     report['service']=service_obstructions(c)
     report['orientation_fill']=orientation_fill(c)
     report['sensitivity']=sensitivity(c)
+    from .cartridge_service_corridor import build_service_corridor
+    report['oblique_service_corridor'], service_shapes = build_service_corridor(c)
     shapes=c.review_shapes()
+    shapes.update(service_shapes)
     roundtrips={}
     for name,s in shapes.items():
         target=path/(name+'.step');cq.exporters.export(s,str(target))

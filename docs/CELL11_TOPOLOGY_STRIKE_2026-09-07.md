@@ -1,5 +1,42 @@
 # Cell 11 supported-liner decision and closure boundary
 
+## Oblique service corridor and blind key follow-up
+
+The key now uses a lateral blind pocket with actual closure floor and roof lands.
+The key opening cuts both collar and underlying liner skin; this avoids a detached
+skin island. Tests require those lands and the seal reference to be actual material.
+The connected geometric cavity remains 35.38573221526349 mL. Neither the pocket
+nor its dry reservation is counted as fluid space. This is geometry, not leakage
+validation. Process capability for the thin liner remains unresolved.
+
+A continuous oblique withdrawal corridor is now constructed for translation
+(0,+30,-45) mm, with the device removed and unpowered. Three convex polyhedral
+enclosures cover the entire body and closure: exact B-rep difference contains no
+remaining solids. Each enclosure's translation image is its exact convex hull
+with the translated endpoint, covering the whole closed interval, not sampled
+poses. The enclosures include conservative padding and remain reference geometry.
+They are never capacity or product material.
+
+The complete sweeps have zero intersection against released shell, nasal,
+four actuator packages, water and battery packages, and the unchanged current
+Cell 6 frame candidate. The frame is consumed byte-for-byte from PR #117 head
+`34273de3bd86294080e51873c212e988b4a966f4`, source blob
+`0ea2ada736825fe1a0e06491d16690ae98cfccde`; its ownership and unresolved joins
+are preserved. A (0,+20,-45) mm trial is rejected by a small frame collision;
+the chosen +30 mm transverse travel clears it without modifying the frame.
+
+This establishes a shell/package/frame corridor, **not complete installed service**.
+At an exact (0,+0.6,-0.9) mm witness, unreleased bolts intersect moving cartridge
+material by approximately 0.633644 mm3 each and the fixed key by 0.4 mm3. Key/bolt
+capture and access, wet-route disconnection/passive-backflow sequence, device-side
+interface attachment, and integration with the exterior owner's shell remain open.
+The review explicitly keeps `continuous_installed_device_path_proven=false`.
+
+The prior head `96397f9e1142224979bfc43717ccf325d07fc21f` completed exact engineering
+CI run `34162149979`: 778 passed, CAD smoke and source-bound artifacts succeeded.
+That green belongs to that head. The blind-key/service follow-up requires its own
+focused checks, exact-head CAD review and full engineering CI before promotion.
+
 Released main: `b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc`.
 This advances the existing Cell 11 owner, PR #115, from
 `4da053e57534c98617b9e8abfae7a35436a3718c`. It does not establish a second cartridge

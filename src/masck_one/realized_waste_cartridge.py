@@ -188,6 +188,14 @@ class RealizedWasteCartridge:
             raise RealizedWasteCartridgeError('retention pocket filled')
         if volume(self.closure_solid.intersect(self.key_reference))>TOL_MM3:
             raise RealizedWasteCartridgeError('key channel filled')
+        # A through-key cut must never turn a nominal dry reservation into an
+        # unmodeled opening from the fluid chamber. These are actual material lands.
+        for land in (box((1.8,1.0,.3),(-35.8,-80.5,16.6)),
+                     box((1.8,1.0,.2),(-35.8,-80.5,17.85))):
+            if volume(land.cut(self.closure_solid)) > TOL_MM3:
+                raise RealizedWasteCartridgeError('blind key floor/roof material lost')
+        if volume(self.seal_land_reference.cut(self.closure_solid)) > TOL_MM3:
+            raise RealizedWasteCartridgeError('seal land is not actual closure material')
         if self.body_solid.val().distance(self.inlet_connector_clearance_reference.val()) > 1e-5:
             raise RealizedWasteCartridgeError('inlet handoff no longer meets body')
         inlet=cylinder((-41,-82,14),(1,0,0),9,2.4)
@@ -286,7 +294,8 @@ def build_realized_waste_cartridge(*,model=None,seed=None,verify_route=True):
         islands.append(island)
         closure=closure.union(island)
     pockets=[cylinder((-37,-82,17),(1,0,0),1.2,1.4),cylinder((37,-82,17),(-1,0,0),1.2,1.4)]
-    key=box((1.0,2.0,2.5),(-35.2,-79.8,17.3))
+    # Blind lateral key pocket: solid floor/roof separate the key from fluid.
+    key=box((2.4,1.2,.9),(-36.0,-80.5,17.2))
     closure=closure.cut(key)
     for p in pockets: closure=closure.cut(p)
     # Closed reference reservation for unknown vent/filter hardware is deducted
@@ -295,7 +304,9 @@ def build_realized_waste_cartridge(*,model=None,seed=None,verify_route=True):
     vent_bore=cylinder((26,-89,16),(0,0,1),4,2)
     closure=closure.cut(vent_bore)
     dry=cq.Workplane(obj=cq.Compound.makeCompound([s.val() for s in islands]))
-    body=body.cut(closure)
+    # The lateral key lumen must cut both mating materials, including the liner
+    # skin behind the collar; otherwise a disconnected skin island remains.
+    body=body.cut(closure).cut(key)
     cavity=inner.cut(body).cut(closure).cut(vent).cut(dry)
     seal=collar_band.cut(opening).intersect(box((200,200,.1),(0,-80,17.8)))
     device={}
@@ -304,7 +315,7 @@ def build_realized_waste_cartridge(*,model=None,seed=None,verify_route=True):
         guide=box((2.4,4,2.8),(sign*39.5,-82,17)).cut(cylinder((sign*37.5,-82,17),(sign,0,0),4.,1.4))
         device[label+'_bolt']=pin
         device[label+'_bolt_guide']=guide
-    device['key_tongue']=box((.8,1.8,2.2),(-35.2,-79.8,17.4))
+    device['key_tongue']=box((1.6,1.0,.7),(-35.7,-80.5,17.2))
     result=RealizedWasteCartridge(seed,body,closure,cavity,
         cylinder(ROUTE_HANDOFF_WORLD_MM,(1,0,0),4,4),seal,vent,key,
         cq.Workplane(obj=cq.Compound.makeCompound([p.val() for p in pockets])),dry,device,outer,inner,m,route_digest)
