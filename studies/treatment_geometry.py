@@ -10,7 +10,8 @@ from masck_one.structural_frame_realization import _protected_zone_solid
 
 ROOT=Path(__file__).resolve().parents[1]
 BASE='a0ea51874d8967c512468932fac627e8bba5f95f'
-FRAME_HEAD='6e172198174d835767787f97eeb50d2e60a2f51a'
+FRAME_HEAD='4b1e38f7456fbf06fd30a5f2280e0dabfda7ee2c'
+STATION_POSES={'superior':(36,70,7),'inferior':(52,-45,3)}
 
 def box(x,y,z,center): return cq.Workplane('XY').box(x,y,z).translate(center).val()
 def cylinder(r,z0,z1): return cq.Workplane('XY').circle(r).extrude(z1-z0).translate((0,0,z0)).val()
@@ -24,6 +25,8 @@ def bar(a,b,r):
     return cq.Solid.makeCylinder(r,d.Length,a,d.normalized())
 def iv(a,b):
     # Exceptions are errors, never silently reported as collision-free.
+    aa,bb=a.BoundingBox(),b.BoundingBox()
+    if any(getattr(aa,q+'max')<getattr(bb,q+'min') or getattr(bb,q+'max')<getattr(aa,q+'min') for q in 'xyz'):return 0.
     s=a.intersect(b)
     return sum(max(0.,v.Volume()) for v in s.Solids())
 def valid(a): return bool(a.isValid() and len(a.Solids())==1 and a.Volume()>0)
@@ -108,23 +111,28 @@ def translation_envelope(shape,travel):
     return join(pieces)
 
 
+def thermal_cell_specs():
+    for side in (-1,1):
+      for i,y in enumerate((-26.,-10.,6.)):
+        if side<0:y=(-23.9,-9.2,6.8)[i]
+        height=10.4 if side<0 and i==0 else 14.6
+        yield side,i,side*(52.5 if i<2 else 54.5),y,(19. if i<2 else 10.),height
+
 def thermal_cells():
     mat={};ref={}
     # Six distributed cells; PCM and semiconductor envelopes are references.
-    # Three cells per side intentionally replace the old secondary HMI band reservation.
+    # Three cells per side stay inboard of the secondary HMI band reservation.
     for side in (-1,1):
-      for i,y in enumerate((-26.,-10.,6.)):
+      for _,i,x,y,width,cell_h in [spec for spec in thermal_cell_specs() if spec[0]==side]:
         name=f'{"L" if side<0 else "R"}_{i}'
-        width=19.0 if i<2 else 10.0
-        x=side*(52.5 if i<2 else 54.5)
         nfin=16 if i<2 else 8
-        outer=box(width+.6,15.2,11.6,(x,y,10.2))
-        cavity=box(width,14.6,11,(x,y,10.2))
+        outer=box(width+.6,cell_h+.6,11.6,(x,y,10.2))
+        cavity=box(width,cell_h,11,(x,y,10.2))
         # open at -Z for a separately bonded metal base; top and side walls .30
-        open_cut=box(width,14.6,12,(x,y,9.7))
+        open_cut=box(width,cell_h,12,(x,y,9.7))
         body=outer.cut(open_cut)
-        base=box(width+.6,15.2,.3,(x,y,4.55))
-        fins=[box(.05,14.6,10,(x-width/2+.6+j*(width-1.2)/(nfin-1),y,9.7)) for j in range(nfin)]
+        base=box(width+.6,cell_h+.6,.3,(x,y,4.55))
+        fins=[box(.05,cell_h,10,(x-width/2+.6+j*(width-1.2)/(nfin-1),y,9.7)) for j in range(nfin)]
         finpack=join([base,*fins])
         mat[f'cell_body_{name}']=body
         mat[f'cell_fin_base_{name}']=finpack
@@ -132,10 +140,10 @@ def thermal_cells():
         ref[f'pcm_void_{name}']=void
         # 6.1 x 7.2 x 2.14 exact catalog packaging only.
         ref[f'tec_package_{name}']=box(6.1,7.2,2.14,(x,y,3.18))
-        mat[f'cold_bus_{name}']=box(width+.6,15.2,.6,(x,y,1.81))
-        insulation=box(width+3,17.6,14,(x,y,10.2)).cut(outer)
+        mat[f'cold_bus_{name}']=box(width+.6,cell_h+.6,.6,(x,y,1.81))
+        insulation=box(width+3,cell_h+3,14,(x,y,10.2)).cut(outer)
         # A bottom opening preserves the solid thermal path, not fictitious insulation.
-        insulation=insulation.cut(box(width+.6,15.2,3,(x,y,3.8)))
+        insulation=insulation.cut(box(width+.6,cell_h+.6,3,(x,y,3.8)))
         mat[f'insulation_{name}']=insulation.intersect(box(30,16,30,(x,y,10)))
       # Same stationary contact plate serves both heat-flow directions.
       mat[f'cheek_spreader_{side}']=box(22,28,.35,(side*52,-4,-3.5))
@@ -155,11 +163,11 @@ def measure():
     material,reference=cassette();tm,tr=thermal_cells()
     model=build_model();pz=protected(model)
     report={'base_main':BASE,'frame_head':FRAME_HEAD,'human_use_eligible':False,
-      'integration_status':'BLOCKED_CONSUMED_FRAME_PIN_CLEARANCE_GATE; CURRENT_EXTERIOR_NOT_CONSUMED',
+      'integration_status':'REACTION_FRAME_ACCEPTED; PROPOSED_PORTS_REQUIRED; SUPPORTED_PRE_ROLL_DIAGNOSTIC_ONLY',
       'material_geometry':{},'stations':{},'thermal_geometry':{}}
     for k,v in material.items():report['material_geometry'][k]={'valid':valid(v),'solids':len(v.Solids()),'volume_mm3':v.Volume()}
     for k,v in tm.items():report['thermal_geometry'][k]={'valid':valid(v),'solids':len(v.Solids()),'volume_mm3':v.Volume()}
-    for station,center in [('superior',(40,70,7)),('inferior',(57,-44,7))]:
+    for station,center in STATION_POSES.items():
       arr={k:pose(v,center) for k,v in material.items()}
       rr={k:pose(v,center) for k,v in reference.items() if k=='supplier_total_package_bound'}
       items=arr|rr
@@ -170,7 +178,8 @@ def measure():
     for k,v in tm.items():
       report['thermal_geometry'][k]['protected_mm3']=sum(iv(v,p) for p in pz.values())
       report['thermal_geometry'][k]['released_shell_mm3']=iv(v,model.shell.solid.val())
-    report['pcm_void_mm3']=sum(v.Volume() for k,v in tr.items() if k.startswith('pcm_void'))
+    report['pcm_cells_mm3']={k:v.Volume() for k,v in tr.items() if k.startswith('pcm_void')}
+    report['pcm_void_mm3']=sum(report['pcm_cells_mm3'].values())
     cq.exporters.export(cq.Compound.makeCompound(list(tm.values())),str(out/'shared_thermal_material.step'))
     cq.exporters.export(cq.Compound.makeCompound(list(tr.values())),str(out/'shared_thermal_reference.step'))
     (out/'geometry_report.json').write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')

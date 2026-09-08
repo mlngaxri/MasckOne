@@ -1,0 +1,434 @@
+{
+  "cell_body_L_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 268.0799999999998,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_fin_base_L_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 147.8799999999971,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "insulation_L_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 1367.5200000000004,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_body_L_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 321.25199999999916,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_fin_base_L_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 206.17599999999584,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "insulation_L_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 1114.6240000000005,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_body_L_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 219.19199999999915,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_fin_base_L_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 106.735999999998,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "insulation_L_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 849.6639999999998,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cheek_spreader_-1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 215.59999999999977,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "contact_barrier_-1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 154.0,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "fixed_folded_bus_-1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 521.8329999999992,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_body_R_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 321.2519999999996,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_fin_base_R_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 206.17599999999555,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "insulation_R_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 1114.6240000000007,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_body_R_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 321.25199999999916,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_fin_base_R_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 206.17599999999544,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "insulation_R_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 1114.6240000000016,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_body_R_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 219.19199999999915,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cell_fin_base_R_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 106.73599999999777,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "insulation_R_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 849.6639999999995,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cheek_spreader_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 215.59999999999977,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "contact_barrier_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 154.0,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "fixed_folded_bus_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 544.2249999999988,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "heater_dielectric_-1_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 10.025999999999964,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "heater_foil_-1_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 0.5340000000000067,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "heater_dielectric_-1_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 10.025999999999973,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "heater_foil_-1_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 0.5340000000000065,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "hot_TIM_L_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 5.673000000000011,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cold_TIM_L_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 2.195999999999991,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "TEC_edge_encapsulation_L_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 13.464200000000094,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "hot_TIM_L_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 5.673000000000009,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cold_TIM_L_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 2.195999999999991,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "TEC_edge_encapsulation_L_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 13.464200000000071,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "hot_TIM_L_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 5.67300000000001,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cold_TIM_L_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 2.195999999999991,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "TEC_edge_encapsulation_L_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 13.464200000000067,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "heater_dielectric_1_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 10.025999999999964,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "heater_foil_1_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 0.5340000000000062,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "heater_dielectric_1_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 10.025999999999973,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "heater_foil_1_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 0.5340000000000065,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "hot_TIM_R_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 5.673000000000011,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cold_TIM_R_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 2.195999999999991,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "TEC_edge_encapsulation_R_0": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 13.464200000000082,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "hot_TIM_R_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 5.673000000000009,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cold_TIM_R_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 2.195999999999991,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "TEC_edge_encapsulation_R_1": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 13.464200000000075,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "hot_TIM_R_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 5.67300000000001,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "cold_TIM_R_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 2.195999999999991,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "TEC_edge_encapsulation_R_2": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 13.464200000000089,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0
+  },
+  "superior_convoluted_rod_boot": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 5.213080309550575,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "superior_stationary_boot_seat": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 1.9847011589053403,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "inferior_convoluted_rod_boot": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 5.213080309550575,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  },
+  "inferior_stationary_boot_seat": {
+    "valid": true,
+    "solids": 1,
+    "volume_mm3": 1.984701158905341,
+    "protected_mm3": 0.0,
+    "frame_mm3": 0.0,
+    "supported_pre_roll_boundary_mm3": 0.0
+  }
+}

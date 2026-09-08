@@ -1,5 +1,5 @@
 """Representative mounted cassette; frame fixture is an explicit proposed interface port.
-The consumed complete frame is blocked by its existing pin/bore gate.
+The reaction frame builds; proposed saddle ports and downstream integration remain open.
 """
 import math,json
 from pathlib import Path
@@ -44,11 +44,30 @@ def station(kind,center):
     # One fabricated rigid carrier, not two overlapping alleged mating parts.
     world['fixed_cage']=join([world['fixed_cage'],bridge])
     # The peripheral moving cup transfers motion to a separate light output shoe.
-    takeoff=pose(cq.Vertex.makeVertex(7.1,0,-7.65),center).Center().toTuple()
-    shoe_center=(takeoff[0],center[1],-5.7)
-    world['output_shoe']=join([box(8,10,.6,shoe_center),bar(takeoff,(takeoff[0],center[1],-5.6),.65)])
+    # Offset the rod boot into a clear serviceable corridor. A short closed-section
+    # moving arm carries force from the rear clamp without crossing the rear stops.
+    dy=10.0 if kind=='superior' else -10.0
+    arm_z=-6.6+(5-center[2])/math.cos(math.radians(61)) if kind=='inferior' else -6.6
+    arm_local=box(1.4,abs(dy)+.6,1.,(7.1,dy/2,arm_z)).cut(
+        box(1.,abs(dy)+1,.6,(7.1,dy/2,arm_z)))
+    root=cylinder(.4,-7.4,arm_z+.5).translate((7.1,0,0))
+    end=cylinder(.4,arm_z-.5,arm_z+.5).translate((7.1,dy,0))
+    arm_local=join([arm_local,root,end])
+    takeoff=pose(cq.Vertex.makeVertex(7.1,dy,arm_z),center).Center().toTuple()
+    shoe_center=(takeoff[0],takeoff[1],-6.3)
+    world['output_shoe']=join([pose(arm_local,center),box(8,10,.6,shoe_center),
+        bar(takeoff,(takeoff[0],takeoff[1],-6.2),.4)])
+    def polycyl(r,z0,z1):
+        n=32;rr=r/math.cos(math.pi/n)
+        pts=[(rr*math.cos(2*math.pi*j/n),rr*math.sin(2*math.pi*j/n)) for j in range(n)]
+        return cq.Workplane('XY').polyline(pts).close().extrude(z1-z0).translate((0,0,z0)).val()
+    bounds=[pose(box(1.4,abs(dy)+.6,1.,(7.1,dy/2,arm_z)),center),
+        pose(polycyl(.4,-7.4,arm_z+.5).translate((7.1,0,0)),center),
+        pose(polycyl(.4,arm_z-.5,arm_z+.5).translate((7.1,dy,0)),center),
+        box(8,10,.6,shoe_center),
+        polycyl(.4,-6.2,takeoff[2]).translate((takeoff[0],takeoff[1],0))]
     # Fastener identity is kept as purchased-hardware reference, not invented threads.
-    ref={'bridge_shape':bridge,'frame_fixture_original':source_fixture,'frame_fixture_required_port':fixture,
+    ref={'bridge_shape':bridge,'output_piece_bounds':cq.Compound.makeCompound(bounds),'output_arm_local':arm_local,'output_shoe_center':cq.Vertex.makeVertex(*shoe_center),'frame_fixture_original':source_fixture,'frame_fixture_required_port':fixture,
       'required_key_port':key_port,'required_draw_pin_bore':axial_hole,
       'draw_fastener_envelope':join([cylinder(.9,-7.4,-1.8),cylinder(1.8,-7.9,-7.4)]).translate((cx,cy,0)),
       'supplier_magnet_package':pose(ref['supplier_magnet_package'],center)}
@@ -60,7 +79,7 @@ def evaluate():
  exterior_path=out/'consumed_supported_pre_roll_boundary.brep'
  ext=cq.Shape.importBrep(str(exterior_path)) if exterior_path.exists() else None
  allmat=[]
- for kind,c in [('superior',(40,70,7)),('inferior',(52,-44,5))]:
+ for kind,c in STATION_POSES.items():
   mat,ref=station(kind,c);allmat+=list(mat.values())
   rows={k:dict(valid=valid(s),solids=len(s.Solids()),volume_mm3=s.Volume(),
     protected_mm3=sum(iv(s,p) for p in pz.values()),released_shell_mm3=iv(s,m.shell.solid.val()),

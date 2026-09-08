@@ -1,0 +1,482 @@
+{
+  "outlets": [
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-01",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -0.6458333333333334,
+        -77.0448717948718,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-02",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -0.6458333333333334,
+        97.76282051282051,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-03",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -0.6458333333333334,
+        49.2051282051282,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-04",
+      "fluid": "FRESH_WATER",
+      "center": [
+        74.91666666666667,
+        -14.243589743589746,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-05",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -74.91666666666667,
+        -14.243589743589746,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-06",
+      "fluid": "FRESH_WATER",
+      "center": [
+        65.22916666666667,
+        51.79487179487179,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-07",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -65.22916666666667,
+        51.79487179487179,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-08",
+      "fluid": "FRESH_WATER",
+      "center": [
+        0.6458333333333334,
+        -18.775641025641022,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-09",
+      "fluid": "FRESH_WATER",
+      "center": [
+        54.895833333333336,
+        -67.33333333333333,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-10",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -55.541666666666664,
+        -66.68589743589745,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-11",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -35.520833333333336,
+        10.35897435897436,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-12",
+      "fluid": "FRESH_WATER",
+      "center": [
+        36.166666666666664,
+        11.006410256410254,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-13",
+      "fluid": "FRESH_WATER",
+      "center": [
+        40.041666666666664,
+        84.81410256410255,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-14",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -40.041666666666664,
+        84.81410256410255,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-15",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -38.104166666666664,
+        -29.782051282051285,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-16",
+      "fluid": "FRESH_WATER",
+      "center": [
+        38.104166666666664,
+        -31.724358974358978,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-17",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -31.645833333333332,
+        -90.64102564102564,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-FRESH_WATER-18",
+      "fluid": "FRESH_WATER",
+      "center": [
+        -1.2916666666666667,
+        14.891025641025635,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-CLEANSER-01",
+      "fluid": "CLEANSER",
+      "center": [
+        0.6458333333333334,
+        -77.0448717948718,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-CLEANSER-02",
+      "fluid": "CLEANSER",
+      "center": [
+        0.6458333333333334,
+        97.76282051282051,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-CLEANSER-03",
+      "fluid": "CLEANSER",
+      "center": [
+        0.6458333333333334,
+        49.2051282051282,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-CLEANSER-04",
+      "fluid": "CLEANSER",
+      "center": [
+        -74.91666666666667,
+        -12.301282051282058,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-CLEANSER-05",
+      "fluid": "CLEANSER",
+      "center": [
+        74.91666666666667,
+        -12.301282051282058,
+        0.0
+      ],
+      "intersections_mm3": {}
+    },
+    {
+      "id": "MANIFOLD-OUTLET-CLEANSER-06",
+      "fluid": "CLEANSER",
+      "center": [
+        -64.58333333333333,
+        51.14743589743589,
+        0.0
+      ],
+      "intersections_mm3": {}
+    }
+  ],
+  "routes": [
+    {
+      "id": "ROUTE-WASTE-ACQUISITION-TO-PUMP-I26",
+      "fluid": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+      "stage": "ACQUISITION_TO_PUMP",
+      "segments": [
+        {
+          "primitive": {
+            "kind": "LINE",
+            "start_xyz_mm": [
+              -52.0,
+              -34.0,
+              12.0
+            ],
+            "end_xyz_mm": [
+              -48.0,
+              -44.0,
+              16.0
+            ],
+            "length_mm": 11.489125293076057,
+            "bounds_min_xyz_mm": [
+              -52.0,
+              -44.0,
+              12.0
+            ],
+            "bounds_max_xyz_mm": [
+              -48.0,
+              -34.0,
+              16.0
+            ]
+          },
+          "exact_route_reservation_vs_material_or_cassette_bound_mm3": {}
+        }
+      ]
+    },
+    {
+      "id": "ROUTE-WASTE-PUMP-TO-BACKFLOW-BARRIER-I26",
+      "fluid": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+      "stage": "PUMP_TO_PASSIVE_BACKFLOW_BARRIER",
+      "segments": [
+        {
+          "primitive": {
+            "kind": "LINE",
+            "start_xyz_mm": [
+              -48.0,
+              -44.0,
+              16.0
+            ],
+            "end_xyz_mm": [
+              -43.0,
+              -44.0,
+              16.0
+            ],
+            "length_mm": 5.0,
+            "bounds_min_xyz_mm": [
+              -48.0,
+              -44.0,
+              16.0
+            ],
+            "bounds_max_xyz_mm": [
+              -43.0,
+              -44.0,
+              16.0
+            ]
+          },
+          "exact_route_reservation_vs_material_or_cassette_bound_mm3": {}
+        },
+        {
+          "primitive": {
+            "kind": "ARC_XY",
+            "center_xyz_mm": [
+              -43.0,
+              -52.0,
+              16.0
+            ],
+            "radius_mm": 8.0,
+            "start_angle_deg": 90.0,
+            "sweep_angle_deg": 90.0,
+            "start_xyz_mm": [
+              -43.0,
+              -44.0,
+              16.0
+            ],
+            "end_xyz_mm": [
+              -51.0,
+              -52.0,
+              16.0
+            ],
+            "length_mm": 12.566370614359172,
+            "bounds_min_xyz_mm": [
+              -51.0,
+              -52.0,
+              16.0
+            ],
+            "bounds_max_xyz_mm": [
+              -43.0,
+              -44.0,
+              16.0
+            ]
+          },
+          "exact_route_reservation_vs_material_or_cassette_bound_mm3": {}
+        },
+        {
+          "primitive": {
+            "kind": "LINE",
+            "start_xyz_mm": [
+              -51.0,
+              -52.0,
+              16.0
+            ],
+            "end_xyz_mm": [
+              -51.0,
+              -58.0,
+              16.0
+            ],
+            "length_mm": 6.0,
+            "bounds_min_xyz_mm": [
+              -51.0,
+              -58.0,
+              16.0
+            ],
+            "bounds_max_xyz_mm": [
+              -51.0,
+              -52.0,
+              16.0
+            ]
+          },
+          "exact_route_reservation_vs_material_or_cassette_bound_mm3": {}
+        }
+      ]
+    },
+    {
+      "id": "ROUTE-WASTE-BARRIER-TO-CARTRIDGE-I27",
+      "fluid": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+      "stage": "PASSIVE_BACKFLOW_BARRIER_TO_CARTRIDGE_HANDOFF",
+      "segments": [
+        {
+          "primitive": {
+            "kind": "LINE",
+            "start_xyz_mm": [
+              -51.0,
+              -58.0,
+              16.0
+            ],
+            "end_xyz_mm": [
+              -51.0,
+              -68.0,
+              16.0
+            ],
+            "length_mm": 10.0,
+            "bounds_min_xyz_mm": [
+              -51.0,
+              -68.0,
+              16.0
+            ],
+            "bounds_max_xyz_mm": [
+              -51.0,
+              -58.0,
+              16.0
+            ]
+          },
+          "exact_route_reservation_vs_material_or_cassette_bound_mm3": {}
+        },
+        {
+          "primitive": {
+            "kind": "ARC_XY",
+            "center_xyz_mm": [
+              -43.0,
+              -68.0,
+              16.0
+            ],
+            "radius_mm": 8.0,
+            "start_angle_deg": 180.0,
+            "sweep_angle_deg": 90.0,
+            "start_xyz_mm": [
+              -51.0,
+              -68.0,
+              16.0
+            ],
+            "end_xyz_mm": [
+              -43.0,
+              -76.0,
+              16.0
+            ],
+            "length_mm": 12.566370614359172,
+            "bounds_min_xyz_mm": [
+              -51.0,
+              -76.0,
+              16.0
+            ],
+            "bounds_max_xyz_mm": [
+              -43.0,
+              -68.0,
+              16.0
+            ]
+          },
+          "exact_route_reservation_vs_material_or_cassette_bound_mm3": {}
+        },
+        {
+          "primitive": {
+            "kind": "LINE",
+            "start_xyz_mm": [
+              -43.0,
+              -76.0,
+              16.0
+            ],
+            "end_xyz_mm": [
+              -41.0,
+              -82.0,
+              14.0
+            ],
+            "length_mm": 6.6332495807108,
+            "bounds_min_xyz_mm": [
+              -43.0,
+              -82.0,
+              14.0
+            ],
+            "bounds_max_xyz_mm": [
+              -41.0,
+              -76.0,
+              16.0
+            ]
+          },
+          "exact_route_reservation_vs_material_or_cassette_bound_mm3": {}
+        }
+      ]
+    }
+  ],
+  "source_distribution": "a6072a0f509b2ad3a04e35356fc0166374362ad4c7e8c8159f367a8826427a04",
+  "source_waste": "a5b47c3ffacef5e73c88e688543b72445930470825078ff0d6de94937737e444",
+  "missing_geometry": [
+    "fresh channel walls/cross-sections",
+    "registered outlet-to-groove surfaces",
+    "acquisition gutters",
+    "pump installed hardware"
+  ],
+  "complete_cleaning_coexistence": false,
+  "physical_validation": false
+}

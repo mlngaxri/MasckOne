@@ -29,8 +29,8 @@ def z_projection_bound(s,lo=-32):
     # encloses the original solid; then extend every interval by the complete motion.
     pieces=[];base=[];zmin=s.BoundingBox().zmin
     for f in s.Faces():
-      if f.geomType()=='PLANE' and f.normalAt().z>.999999:
-        depth=f.Center().z-zmin
+      if f.geomType()=='PLANE' and f.normalAt().z>1e-7:
+        depth=f.BoundingBox().zmax-zmin
         if depth>1e-7:
           base.append(cq.Solid.extrudeLinear(f.outerWire(),f.innerWires(),(0,0,-depth)))
           pieces.append(cq.Solid.extrudeLinear(f.outerWire(),f.innerWires(),(0,0,-depth+lo)))
@@ -38,12 +38,26 @@ def z_projection_bound(s,lo=-32):
     if not valid(sweep) or s.cut(b).Volume()>1e-7:raise ValueError('projection does not enclose source solid')
     return sweep
 
+def polyhedron_motion_bound(pieces,lo,hi):
+    solids=[]
+    for piece in pieces.Solids():
+      v=np.unique(np.array([np.array(v.Center().toTuple())+np.array(d) for v in piece.Vertices() for d in (lo,hi)]),axis=0)
+      h=ConvexHull(v);faces=[]
+      for ids,eq in zip(h.simplices,h.equations):
+        tri=v[ids].copy()
+        if np.dot(np.cross(tri[1]-tri[0],tri[2]-tri[0]),eq[:3])<0:tri=tri[::-1]
+        faces.append(cq.Face.makeFromWires(cq.Wire.makePolygon([cq.Vector(*p) for p in tri],close=True)))
+      solid=cq.Solid.makeSolid(cq.Shell.makeShell(faces))
+      if not valid(solid):raise ValueError('invalid continuous polyhedron')
+      solids.append(solid)
+    return join(solids)
+
 def verify():
  from mounted_station import station
- out=ROOT/'studies/generated';frame=cq.Shape.importBrep(str(out/'consumed_frame_reactions.brep'))
+ out=ROOT/'studies/generated';(out/'continuous_service_report.json').unlink(missing_ok=True);frame=cq.Shape.importBrep(str(out/'consumed_frame_reactions.brep'))
  boundary=cq.Shape.importBrep(str(out/'consumed_supported_pre_roll_boundary.brep'))
  model=build_model();pz=protected(model);thermal,tr=thermal_cells();r={}
- for kind,c in [('superior',(40,70,7)),('inferior',(52,-44,5))]:
+ for kind,c in STATION_POSES.items():
    mat,ref=station(kind,c)
    frame_port=frame.cut(ref['required_draw_pin_bore']).cut(ref['required_key_port'])
    installed={k:dict(frame_mm3=iv(s,frame_port),boundary_mm3=iv(s,boundary),
@@ -52,14 +66,16 @@ def verify():
    bare,_=cassette()
    containment={k:pose(s,c).cut(env0).Volume() for k,s in bare.items()}
    sweeps={'cassette':env,'bridge':z_projection_bound(ref['bridge_shape']),
-           'output_shoe':z_projection_bound(mat['output_shoe'])}
+           'output_shoe':polyhedron_motion_bound(ref['output_piece_bounds'],(0,0,-32),(0,0,0))}
+   output_deficit=mat['output_shoe'].cut(ref['output_piece_bounds']).Volume()
+   if output_deficit>1e-7:raise ValueError('output feature bounds fail enclosure')
    tests={}
    for k,s in sweeps.items():
      tests[k]=dict(valid=valid(s),frame_mm3=iv(s,frame_port),boundary_mm3=iv(s,boundary),
        protected_mm3=sum(iv(s,p) for p in pz.values()),
        thermal_material_mm3=sum(iv(s,p) for p in thermal.values()))
      s.exportBrep(str(out/f'{kind}_{k}_service_bound.brep'))
-   r[kind]=dict(installed=installed,nominal_enclosure_deficit_mm3=containment,continuous_service=tests,
+   r[kind]=dict(output_enclosure_deficit_mm3=output_deficit,installed=installed,nominal_enclosure_deficit_mm3=containment,continuous_service=tests,
        motion_vector_mm=[0,0,-32],cylinder_bound_radial_excess_mm=8.7*(1/math.cos(math.pi/32)-1),
        state='FACTORY_SERVICE: facial liner and draw fastener removed, dry connector disconnected; socket shoe remains.',
        whole_product_service=False,excluded_unaccepted_sources=['retention roots/crown','final eye-roll exterior'])

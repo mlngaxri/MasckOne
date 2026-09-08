@@ -22,7 +22,7 @@ def study():
  usable=mass/1000*(250000*.925-30000)*.7
  # Geometry sizes produce unequal cell capacities. Independently allocate the
  # six TEC heat loads; equal current would strand energy in the wider cells.
- cell_volumes=[2934.6,2934.6,1547.6]*2
+ cell_volumes=[g['pcm_cells_mm3'][k] for k in sorted(g['pcm_cells_mm3'])]
  weights=[v/sum(cell_volumes) for v in cell_volumes]
  def cool_device(q,delta):
   cases=[solve(q*w,delta,12,8) for w in weights]

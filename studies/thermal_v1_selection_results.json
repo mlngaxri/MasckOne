@@ -1,0 +1,331 @@
+{
+  "selected": "SHARED_STATIONARY_SPREADERS; RESISTIVE_WARM; TEC_COOL; FULLY_SOLID_PCM_RESET",
+  "why": "Slight heater-laminate complexity buys full cooling reserve and an observable reset endpoint; mixed-phase startup rejected.",
+  "physical_validation": false,
+  "cooling": [
+    {
+      "water_mL": 0,
+      "concurrent_massage": false,
+      "net_inert_contact_W": 2,
+      "water_sensible_J": 0.0,
+      "TEC_electrical_W": 1.2420489396716023,
+      "TEC_current_A": [
+        0.2695590606841363,
+        0.3794060989726743,
+        0.20768662128174592,
+        0.37940609897267435,
+        0.37940609897267435,
+        0.20768662128174592
+      ],
+      "store_energy_from_contact_water_TEC_J": 583.5688091408884,
+      "environmental_parasitic_J": 90,
+      "startup_J": 65.35749544079994,
+      "prior_motor_heat_upper_bound_J": 214.272,
+      "concurrent_motor_J": 0,
+      "total_required_J": 953.1983045816883,
+      "planning_available_J": 1327.7973434687508,
+      "margin_J": 374.59903888706253,
+      "per_cell": [
+        {
+          "cell": "pcm_void_L_0",
+          "capacity_J": 198.4093361250004,
+          "base_required_J": 104.87354643117416,
+          "remaining_before_motor_coupling_J": 93.53578969382625
+        },
+        {
+          "cell": "pcm_void_L_1",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 162.04760163661496,
+          "remaining_before_motor_coupling_J": 116.48858176963506
+        },
+        {
+          "cell": "pcm_void_L_2",
+          "capacity_J": 146.88972856250015,
+          "base_required_J": 73.95497662033462,
+          "remaining_before_motor_coupling_J": 72.93475194216553
+        },
+        {
+          "cell": "pcm_void_R_0",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 162.047601636615,
+          "remaining_before_motor_coupling_J": 116.488581769635
+        },
+        {
+          "cell": "pcm_void_R_1",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 162.047601636615,
+          "remaining_before_motor_coupling_J": 116.488581769635
+        },
+        {
+          "cell": "pcm_void_R_2",
+          "capacity_J": 146.88972856250015,
+          "base_required_J": 73.95497662033462,
+          "remaining_before_motor_coupling_J": 72.93475194216553
+        }
+      ]
+    },
+    {
+      "water_mL": 0.4,
+      "concurrent_massage": false,
+      "net_inert_contact_W": 2,
+      "water_sensible_J": 13.376,
+      "TEC_electrical_W": 1.3378593683441462,
+      "TEC_current_A": [
+        0.2788948285010269,
+        0.39521811866897005,
+        0.21398615386942252,
+        0.3952181186689701,
+        0.3952181186689701,
+        0.21398615386942252
+      ],
+      "store_energy_from_contact_water_TEC_J": 614.1906863019464,
+      "environmental_parasitic_J": 90,
+      "startup_J": 65.35749544079994,
+      "prior_motor_heat_upper_bound_J": 214.272,
+      "concurrent_motor_J": 0,
+      "total_required_J": 983.8201817427462,
+      "planning_available_J": 1327.7973434687508,
+      "margin_J": 343.9771617260046,
+      "per_cell": [
+        {
+          "cell": "pcm_void_L_0",
+          "capacity_J": 198.4093361250004,
+          "base_required_J": 108.75516132356397,
+          "remaining_before_motor_coupling_J": 89.65417480143644
+        },
+        {
+          "cell": "pcm_void_L_1",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 169.31549399841145,
+          "remaining_before_motor_coupling_J": 109.22068940783856
+        },
+        {
+          "cell": "pcm_void_L_2",
+          "capacity_J": 146.88972856250015,
+          "base_required_J": 76.42326921197373,
+          "remaining_before_motor_coupling_J": 70.46645935052642
+        },
+        {
+          "cell": "pcm_void_R_0",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 169.31549399841165,
+          "remaining_before_motor_coupling_J": 109.22068940783836
+        },
+        {
+          "cell": "pcm_void_R_1",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 169.31549399841165,
+          "remaining_before_motor_coupling_J": 109.22068940783836
+        },
+        {
+          "cell": "pcm_void_R_2",
+          "capacity_J": 146.88972856250015,
+          "base_required_J": 76.42326921197373,
+          "remaining_before_motor_coupling_J": 70.46645935052642
+        }
+      ]
+    },
+    {
+      "water_mL": 4,
+      "concurrent_massage": false,
+      "net_inert_contact_W": 2,
+      "water_sensible_J": 133.76,
+      "TEC_electrical_W": 2.5758346540360937,
+      "TEC_current_A": [
+        0.36983796063629465,
+        0.5665107625251131,
+        0.27341565293044107,
+        0.5665107625251131,
+        0.5665107625251131,
+        0.27341565293044107
+      ],
+      "store_energy_from_contact_water_TEC_J": 957.4102377264969,
+      "environmental_parasitic_J": 90,
+      "startup_J": 65.35749544079994,
+      "prior_motor_heat_upper_bound_J": 214.272,
+      "concurrent_motor_J": 0,
+      "total_required_J": 1327.0397331672968,
+      "planning_available_J": 1327.7973434687508,
+      "margin_J": 0.7576103014539513,
+      "per_cell": [
+        {
+          "cell": "pcm_void_L_0",
+          "capacity_J": 198.4093361250004,
+          "base_required_J": 148.3223825109259,
+          "remaining_before_motor_coupling_J": 50.0869536140745
+        },
+        {
+          "cell": "pcm_void_L_1",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 254.51844203278287,
+          "remaining_before_motor_coupling_J": 24.017741373467146
+        },
+        {
+          "cell": "pcm_void_L_2",
+          "capacity_J": 146.88972856250015,
+          "base_required_J": 100.44501227901105,
+          "remaining_before_motor_coupling_J": 46.4447162834891
+        },
+        {
+          "cell": "pcm_void_R_0",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 254.51844203278287,
+          "remaining_before_motor_coupling_J": 24.017741373467146
+        },
+        {
+          "cell": "pcm_void_R_1",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 254.51844203278287,
+          "remaining_before_motor_coupling_J": 24.017741373467146
+        },
+        {
+          "cell": "pcm_void_R_2",
+          "capacity_J": 146.88972856250015,
+          "base_required_J": 100.44501227901105,
+          "remaining_before_motor_coupling_J": 46.4447162834891
+        }
+      ]
+    },
+    {
+      "water_mL": 0.4,
+      "concurrent_massage": true,
+      "net_inert_contact_W": 2,
+      "water_sensible_J": 13.376,
+      "TEC_electrical_W": 1.3378593683441462,
+      "TEC_current_A": [
+        0.2788948285010269,
+        0.39521811866897005,
+        0.21398615386942252,
+        0.3952181186689701,
+        0.3952181186689701,
+        0.21398615386942252
+      ],
+      "store_energy_from_contact_water_TEC_J": 614.1906863019464,
+      "environmental_parasitic_J": 90,
+      "startup_J": 65.35749544079994,
+      "prior_motor_heat_upper_bound_J": 214.272,
+      "concurrent_motor_J": 214.272,
+      "total_required_J": 1198.092181742746,
+      "planning_available_J": 1327.7973434687508,
+      "margin_J": 129.7051617260047,
+      "per_cell": [
+        {
+          "cell": "pcm_void_L_0",
+          "capacity_J": 198.4093361250004,
+          "base_required_J": 108.75516132356397,
+          "remaining_before_motor_coupling_J": 89.65417480143644
+        },
+        {
+          "cell": "pcm_void_L_1",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 169.31549399841145,
+          "remaining_before_motor_coupling_J": 109.22068940783856
+        },
+        {
+          "cell": "pcm_void_L_2",
+          "capacity_J": 146.88972856250015,
+          "base_required_J": 76.42326921197373,
+          "remaining_before_motor_coupling_J": 70.46645935052642
+        },
+        {
+          "cell": "pcm_void_R_0",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 169.31549399841165,
+          "remaining_before_motor_coupling_J": 109.22068940783836
+        },
+        {
+          "cell": "pcm_void_R_1",
+          "capacity_J": 278.53618340625,
+          "base_required_J": 169.31549399841165,
+          "remaining_before_motor_coupling_J": 109.22068940783836
+        },
+        {
+          "cell": "pcm_void_R_2",
+          "capacity_J": 146.88972856250015,
+          "base_required_J": 76.42326921197373,
+          "remaining_before_motor_coupling_J": 70.46645935052642
+        }
+      ]
+    }
+  ],
+  "warming": [
+    {
+      "contact_delta_from_PCM_K": 4,
+      "delivered_inert_W": 2,
+      "off_TEC_module_K_W": 66.72576803707709,
+      "heat_leak_to_PCM_W": 0.27673436100029114,
+      "steady_resistive_heater_W": 2.7767343610002913,
+      "electrical_energy_180s_plus_startup_Wh": 0.1479141479723479,
+      "PCM_energy_consumed_J": 49.81218498005241,
+      "PCM_energy_remaining_J": 1277.9851584886983,
+      "benchmark_battery_Wh": 4.07,
+      "benchmark_energy_fraction": 0.036342542499348374
+    },
+    {
+      "contact_delta_from_PCM_K": 8,
+      "delivered_inert_W": 2,
+      "off_TEC_module_K_W": 66.32723663149412,
+      "heat_leak_to_PCM_W": 0.5560238213681975,
+      "steady_resistive_heater_W": 3.0560238213681976,
+      "electrical_energy_180s_plus_startup_Wh": 0.1709560509130765,
+      "PCM_energy_consumed_J": 100.08428784627554,
+      "PCM_energy_remaining_J": 1227.7130556224752,
+      "benchmark_battery_Wh": 4.07,
+      "benchmark_energy_fraction": 0.042003943713286605
+    }
+  ],
+  "condensation": [
+    {
+      "ambient_C": 22,
+      "RH_percent": 40,
+      "dewpoint_C": 7.790227800165041,
+      "dry_exposed_cold_surface_minimum_scenario_C": 9.790227800165042,
+      "uncertainty_reserve_DOE_K": 2,
+      "not_human_temperature_limit": true
+    },
+    {
+      "ambient_C": 25,
+      "RH_percent": 60,
+      "dewpoint_C": 16.69533692075516,
+      "dry_exposed_cold_surface_minimum_scenario_C": 18.69533692075516,
+      "uncertainty_reserve_DOE_K": 2,
+      "not_human_temperature_limit": true
+    },
+    {
+      "ambient_C": 28,
+      "RH_percent": 80,
+      "dewpoint_C": 24.22205852140649,
+      "dry_exposed_cold_surface_minimum_scenario_C": 26.22205852140649,
+      "uncertainty_reserve_DOE_K": 2,
+      "not_human_temperature_limit": true
+    },
+    {
+      "ambient_C": 30,
+      "RH_percent": 90,
+      "dewpoint_C": 28.17557203213099,
+      "dry_exposed_cold_surface_minimum_scenario_C": 30.17557203213099,
+      "uncertainty_reserve_DOE_K": 2,
+      "not_human_temperature_limit": true
+    }
+  ],
+  "condensed_water_latent_load": "UNKNOWN; DEWPOINT_GATE_OR_MEASURED_MASS_TRANSFER_REQUIRED",
+  "sensor_architecture": [
+    "contact plate sensor per side",
+    "cold TEC-side sensor per side",
+    "store sensor per cell",
+    "ambient humidity/temperature outside wet region"
+  ],
+  "readiness": "Per-cell reset endpoint plus enthalpy accounting; do not infer phase fraction from plateau temperature.",
+  "rejected_or_conditional": {
+    "all_reversible_TEC_60_40_PCM": "PROMISING_BUT_INFERIOR_RESERVE; earlier 0.4mL case only 76.84J before motor coupling",
+    "passive_PCM_direct_contact": "CONDITIONAL; no independent temperature modulation, PCM band and starting state dictate response",
+    "wearable_natural_convection_TEC": "REJECTED_IN_4W_REJECTION_5K_SCENARIO; 0.16m2 at h=5W/m2K exceeds calm compact shell area",
+    "water_sensible_store": "4K gives 16.72J/g versus ~140.88J/g planning PCM, before containment; mass penalty",
+    "moving_thermal_spreader": "REJECTED; stiffness and moving mass penalize the 40Hz guide"
+  },
+  "cooling_sequence": "CLEAN/MASSAGE, RECOVERY, COOL with oscillation off preferred; no added user handling",
+  "sources": [
+    "https://www.weather.gov/media/epz/wxcalc/vaporPressure.pdf",
+    "https://thermal.ferrotec.com/technology/thermoelectric-reference-guide/thermalref11/"
+  ]
+}
