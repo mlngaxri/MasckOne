@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "masck-one-cad"
 version = "0.1.0"
-description = "Deterministic engineering and code-CAD foundation for Masck One"
+description = "Deterministic engineering and product-identity foundation for Masck One within the MASCK personal-care hardware brand"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
@@ -23,6 +23,7 @@ dev = [
 masck-one-cad = "masck_one.cli:main"
 masck-one-preflight = "masck_one.preflight:main"
 masck-one-authority-check = "masck_one.authority:main"
+masck-brand-check = "masck_one.brand_identity:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
