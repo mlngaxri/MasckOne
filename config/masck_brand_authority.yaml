@@ -1,0 +1,205 @@
+brand:
+  revision: "2026-09-08-B1"
+  status: "DIRECTIONALLY_SELECTED_WITH_PROVISIONAL_MARK"
+  master_name: "MASCK"
+  company_category: "premium automated personal-care hardware"
+  founding_category: "face-worn automated treatment systems"
+  execution_focus: "Masck One"
+  promise: "Turn repetitive personal-care routines into precise, low-attention automated experiences."
+  principles:
+    - "hero_product_first"
+    - "hidden_complexity"
+    - "quiet_precision"
+    - "calm_confidence"
+    - "mechanical_quality_over_decoration"
+    - "broad_brand_narrow_execution"
+
+architecture:
+  master_brand: "MASCK"
+  master_mark_id: "M_CUT"
+  product_name: "Masck One"
+  product_machine_id: "MASCK_ONE"
+  product_designation: "M/1"
+  product_designation_role: "MODEL_BADGE_NOT_MASTER_BRAND"
+  future_scope: "Adjacent personal-care hardware may use MASCK only after the founding hero product earns expansion."
+
+master_mark:
+  id: "M_CUT"
+  status: "PROVISIONAL_MASTER_MARK_CANDIDATE"
+  construction_intent: "A calm M silhouette whose central negative incision creates the memorable cut. The cut is brand geometry, not a literal numeral one."
+  required_properties:
+    - "reads_at_3_to_5_mm"
+    - "works_one_colour"
+    - "survives_emboss_deboss"
+    - "works_as_microtexture"
+    - "works_as_optical_inlay"
+    - "works_as_app_icon"
+    - "not_tied_to_mask_form_factor"
+  prohibited_motifs:
+    - "literal_mask"
+    - "eye_symbol"
+    - "droplet"
+    - "leaf"
+    - "sparkle"
+    - "infinity_symbol"
+    - "power_button"
+    - "gamer_slash"
+    - "medical_cross"
+    - "plain_M1"
+  preferred_uses:
+    - "primary_control"
+    - "dock"
+    - "app_icon"
+    - "packaging"
+  product_designation_uses:
+    - "rear_or_underside_product_identity"
+    - "dock_device_identity"
+    - "packaging"
+    - "app_device_label"
+
+interaction_signature:
+  primary_control:
+    status: "DEVELOPMENT_INTENT_NOT_PHYSICALLY_VALIDATED"
+    mark: "M_CUT"
+    product_designation_on_primary_control: false
+    experience:
+      feel:
+        - "dense"
+        - "precise"
+        - "quiet"
+        - "smooth"
+        - "highly_constrained"
+        - "deliberate"
+      sound:
+        - "short"
+        - "muted"
+        - "low_rattle"
+        - "no_metallic_ring"
+        - "no_hollow_plastic_clack"
+      behavior:
+        - "negligible_initial_slack"
+        - "clean_force_build"
+        - "crisp_mechanical_transition"
+        - "progressive_soft_landing"
+        - "controlled_return"
+    architecture_intent:
+      guidance: "Separated low-friction guidance with explicit anti-rock behavior; do not hide wobble using an over-tight plastic bore."
+      sealing: "Wet barrier separated from the precision guidance force path where practical."
+      tactile_generation: "A dedicated tactile mechanism independent from the electrical sensor."
+      sensing: "Mechanically quiet sensing preferred when cost and package justify it."
+      landing: "Normal travel ends through progressive damping; the cosmetic shell is not the normal stop."
+      acoustics: "Break resonant paths and suppress chatter, spring ring, microswitch domination and pneumatic pop."
+      branding: "The M-Cut should be physical surface/optical geometry rather than printed decoration."
+    candidate_mechanical_reference:
+      evidence_status: "PROVISIONAL_DESIGN_REFERENCE_ONLY"
+      cap_diameter_mm: 9.72
+      shallow_finger_dish_mm: 0.10
+      force_peak_N: 1.16
+      force_peak_travel_mm: 0.52
+      post_transition_force_N: 0.80
+      first_landing_start_mm: 0.78
+      second_landing_start_mm: 0.90
+      nominal_bottom_travel_mm: 0.93
+      hard_stop_travel_mm: 1.07
+
+optical_language:
+  philosophy: "One restrained optical system rather than multiple decorative indicators."
+  states:
+    "off": "M-Cut nearly disappears tone-on-tone."
+    wake: "The central cut appears to wake from within."
+    clean: "Neutral warm-white acknowledgement."
+    massage: "Brief restrained pulse or motion acknowledgement; avoid arbitrary colour coding."
+    warm: "Subtle warmer white-point shift, subject to optical validation."
+    cool: "Subtle cleaner/cooler white-point shift, subject to optical validation."
+  prohibited:
+    - "giant_glowing_ring"
+    - "rgb_gamer_behavior"
+    - "orange_heater_icon"
+    - "electric_blue_cooler_icon"
+
+cmf:
+  status: "PRIMARY_DIRECTION_PROVISIONAL_MATERIAL_GRADES"
+  palette:
+    shell:
+      name: "Mineral Ivory"
+      hex: "#E9E5DC"
+      finish: "fine low-gloss satin"
+      intent: "warm mineral, not glossy appliance white"
+    primary_control:
+      name: "Warm Porcelain"
+      hex: "#DED9CF"
+      finish: "fine satin with subtle local contrast"
+      intent: "discoverable by touch and shadow without becoming a visual target"
+    facial_interface:
+      name: "Soft Stone"
+      hex: "#CFC8BC"
+      finish: "soft matte compliant surface"
+      intent: "visually communicate human-contact softness"
+    recessive_mechanics:
+      name: "Smoke Graphite"
+      hex: "#454542"
+      finish: "quiet warm graphite"
+      intent: "recede instead of creating black tech panels"
+    optical_inlay:
+      name: "Opal Neutral"
+      hex: "#F2EFE7"
+      finish: "diffused flush optical surface"
+      intent: "nearly tone-on-tone when unlit"
+  material_families:
+    visible_rigid_shell: "quality engineering thermoplastic or composite selected for stiffness, dimensional stability, cleanability and finish"
+    primary_control_cap: "dimensionally stable engineering polymer; no degradable rubberized soft-touch coating"
+    facial_contact: "qualified cleanable compliant elastomer family"
+    precision_guides: "low-friction engineering bearing polymer"
+    tactile_flexure: "spring-metal or superior repeatable-energy architecture if validated"
+    tactile_damping: "lossy constrained layer or equivalent resonance-control architecture"
+    bumpers_and_diaphragm: "qualified silicone/LSR-class elastomer where appropriate"
+    optical_mark: "sealed diffused optical polymer or equivalent integral light guide"
+
+surface_language:
+  desired:
+    - "continuous_sculpted_facial_field"
+    - "integrated_eye_openings"
+    - "perceived_thinness"
+    - "quiet_seam_hierarchy"
+    - "compact_rear_architecture"
+    - "soft_human_scale_with_precise_close_up_detail"
+  prohibited:
+    - "goggle_eye_rings"
+    - "vr_headset"
+    - "respirator"
+    - "medical_ppe"
+    - "tactical_panels"
+    - "helmet"
+    - "robot_face"
+    - "fake_vents"
+    - "decorative_fasteners"
+    - "random_technical_paneling"
+
+cost_discipline:
+  rule: "Premium does not mean maximum part count."
+  preferred:
+    - "share_functions_when_it_does_not_compromise_feel_or_service"
+    - "remove_parts_with_low_experience_value"
+    - "minimize_manual_alignment"
+    - "minimize_calibration_burden"
+    - "avoid_adhesive_dependency_where_service_or_yield_suffers"
+    - "use_precision_only_where_the_user_can_feel_or_function_requires_it"
+  reject:
+    - "complexity_for_luxury_theatre"
+    - "cosmetic_parts_without_function"
+    - "high_cost_features_with_negligible_experience_gain"
+
+repository_contract:
+  engineering_authority: "config/masck_one_authority.yaml"
+  brand_authority: "config/masck_brand_authority.yaml"
+  brand_assets: "brand/assets"
+  brand_docs: "docs/BRAND_ARCHITECTURE.md"
+  code_loader: "src/masck_one/brand_identity.py"
+  generated_manifest: "generated/brand_identity.json"
+  precedence: "Brand intent may constrain aesthetics, interaction and product identity but never overrides engineering safety, geometry, physical evidence or validation gates."
+
+evidence_boundary:
+  - "The M-Cut vector geometry is provisional and requires design review and trademark clearance."
+  - "CMF values are design direction, not qualified production colour/material capability."
+  - "Button force, acoustics, lifetime, sealing and subjective feel require physical prototype validation."
+  - "No brand document may promote unvalidated physical performance or safety claims."
