@@ -32,6 +32,9 @@ SHOULDER_GAP_MM = 0.10
 SHOULDER_WIDTH_MM = 8.0
 SHOULDER_HEIGHT_MM = 8.0
 SHOULDER_THICKNESS_MM = 0.80
+CONNECTOR_WIDTH_MM = 2.0
+CONNECTOR_HEIGHT_MM = 2.0
+CONNECTOR_OVERLAP_MM = 0.10
 FLEXURE_WIDTH_MM = 3.0
 FLEXURE_HEIGHT_MM = 6.0
 FLEXURE_THICKNESS_MM = 0.60
@@ -95,6 +98,9 @@ class ActuatorReactionMate:
                 "shoulder_width": SHOULDER_WIDTH_MM,
                 "shoulder_height": SHOULDER_HEIGHT_MM,
                 "shoulder_thickness": SHOULDER_THICKNESS_MM,
+                "connector_width": CONNECTOR_WIDTH_MM,
+                "connector_height": CONNECTOR_HEIGHT_MM,
+                "connector_overlap": CONNECTOR_OVERLAP_MM,
                 "flexure_width": FLEXURE_WIDTH_MM,
                 "flexure_height": FLEXURE_HEIGHT_MM,
                 "flexure_thickness": FLEXURE_THICKNESS_MM,
@@ -168,6 +174,13 @@ def _build_mate(cx: float, cy: float, z_max: float) -> cq.Workplane:
         .box(SHOULDER_WIDTH_MM, SHOULDER_HEIGHT_MM, SHOULDER_THICKNESS_MM, centered=(True, True, False))
         .translate((cx, cy, shoulder_z0))
     )
+    connector_z0 = z_max - CONNECTOR_OVERLAP_MM
+    connector_span = SHOULDER_GAP_MM + 2.0 * CONNECTOR_OVERLAP_MM
+    connector = (
+        cq.Workplane("XY")
+        .box(CONNECTOR_WIDTH_MM, CONNECTOR_HEIGHT_MM, connector_span, centered=(True, True, False))
+        .translate((cx, cy, connector_z0))
+    )
     bridge_z0 = shoulder_z0 + SHOULDER_THICKNESS_MM
     bridge = (
         cq.Workplane("XY")
@@ -180,7 +193,7 @@ def _build_mate(cx: float, cy: float, z_max: float) -> cq.Workplane:
         .box(CARRIER_PAD_WIDTH_MM, CARRIER_PAD_HEIGHT_MM, CARRIER_PAD_THICKNESS_MM, centered=(True, True, False))
         .translate((cx, cy, pad_z0))
     )
-    return key.union(tooth).union(shoulder).union(bridge).union(pad)
+    return key.union(tooth).union(connector).union(shoulder).union(bridge).union(pad)
 
 
 def build_structural_frame_actuator_mates(
