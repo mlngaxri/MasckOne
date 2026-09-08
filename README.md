@@ -1,4 +1,4 @@
-# MASCK One — deterministic engineering/code-CAD repository
+# Masck One — deterministic engineering/code-CAD repository
 
 This repository is the controlled digital-engineering implementation of **Masck One**, the founding hero product of the broader **MASCK** master brand.
 
