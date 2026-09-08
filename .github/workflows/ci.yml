@@ -131,6 +131,9 @@ jobs:
       - name: Validate engineering authority contract
         run: python -m masck_one.authority
 
+      - name: Validate MASCK brand/product identity contract
+        run: python -m masck_one.brand_identity
+
       - name: Repository preflight
         run: python -m masck_one.preflight
 

@@ -1,6 +1,8 @@
 # Masck One — deterministic engineering/code-CAD repository
 
-This repository is the controlled digital-engineering implementation of **Masck One**.
+This repository is the controlled digital-engineering implementation of **Masck One**, the founding hero product of the broader **MASCK** master brand.
+
+MASCK is being structured as a premium automated personal-care hardware brand rather than a company permanently limited to one mask form factor. Execution remains deliberately narrow: this repository is for making Masck One exceptional, not for inventing a speculative portfolio.
 
 The project is intentionally strict about the difference between a value that can be encoded or checked digitally today and a physical behavior that has actually been validated. The repository may generate deterministic geometry and analysis infrastructure from the current engineering authority while still reporting physical evidence gates as `BLOCKED` or `VALIDATION_GATED`.
 
@@ -28,14 +30,33 @@ The engineering foundation now includes:
 
 - Product name: **Masck One**.
 - Machine ID: `MASCK_ONE`.
-- `config/masck_one_authority.yaml` is the current machine-readable parameter authority.
+- Parent brand: **MASCK**.
+- `config/masck_one_authority.yaml` is the current machine-readable engineering parameter authority.
 - `schemas/masck_one_authority.schema.json` is its strict structural contract.
+- `config/masck_brand_authority.yaml` is the machine-readable brand/product-identity contract and never overrides engineering authority.
+- `schemas/masck_brand_authority.schema.json` is its strict structural contract.
 - Authority loading also performs deterministic semantic cross-checks before CAD generation is permitted.
 - Duplicate YAML keys are rejected rather than silently overwritten.
 - Generated CAD must be reproducible from source.
 - Validation-gated requirements remain validation-gated until evidence closes them.
 - Missing real-world evidence is represented explicitly rather than fabricated.
 - Generated STEP files are build artifacts and are not source authority.
+
+## Brand and product identity
+
+The selected brand architecture is intentionally broader than the first product:
+
+- **MASCK** is the master company/brand.
+- **M-Cut** is the current provisional standalone master-mark direction.
+- **Masck One** is the founding hero product.
+- **M/1** is a compact product designation, not the company logo.
+- The long-term territory is premium automated personal-care hardware, while near-term execution remains overwhelmingly focused on Masck One.
+
+The primary physical control is intended to become a recurring MASCK interaction: dense, precise, quiet, highly constrained and mechanically satisfying, with the master M-Cut integrated into the surface/optical architecture rather than printed decoration. The current exterior language explicitly rejects goggle eye rings, VR/headset cues, respirator/medical PPE character, tactical panels and fake technical detailing.
+
+Read [`docs/BRAND_ARCHITECTURE.md`](docs/BRAND_ARCHITECTURE.md) before changing product naming, master-mark role, M/1 usage, CMF direction, primary-control brand behavior or the no-goggle exterior language. Read [`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md) for the engineering-versus-brand source hierarchy.
+
+Normal release export now emits `brand_identity.json` beside the engineering manifests. It is product/interaction/CMF intent, not physical performance evidence, production material qualification or trademark clearance.
 
 ## Digital product vision
 
@@ -55,6 +76,7 @@ Key engineering modules:
 - `src/masck_one/interface_topology.py` — main compliant facial-interface contact/protected topology and parameter-zone authority boundary.
 - `src/masck_one/nasal_subsystem.py` — dedicated bridge/dorsum/sidewall/lobe/philtrum functional partition and local lobe-thickness boundary.
 - `src/masck_one/nasal_preflight.py` — Iteration-11 source-chain, role, safety-exclusion and thickness-localization CI gate.
+- `src/masck_one/brand_identity.py` — strict MASCK master-brand / Masck One product-identity loader and deterministic manifest producer.
 
 ## Controlled toolchain
 
@@ -80,6 +102,16 @@ python -m masck_one.authority
 
 This performs strict JSON Schema validation followed by deterministic semantic checks. It does not claim physical validation; it establishes that the digital authority is explicit and internally self-consistent.
 
+## Validate the brand/product identity contract
+
+```bash
+python -m masck_one.brand_identity
+# or, after installation:
+masck-brand-check
+```
+
+This validates the parent/product split, M-Cut/M/1 roles, primary-control identity, CMF token structure, no-goggle exterior constraints and the explicit provisional evidence boundary.
+
 ## Engineering preflight
 
 ```bash
@@ -102,7 +134,7 @@ python -m pytest
 python -m masck_one.cli --output generated
 ```
 
-The build emits STEP files and `build_report.json`. Iteration 11 replaces the ambiguous `nasal_interface.step` placeholder with `nasal_lobe_membrane_reference.step`. The build report now also records deterministic coverage, compliant-interface and nasal-subsystem topology manifests. Software-verifiable failures fail the command; evidence-gated items remain explicitly `BLOCKED` instead of being reported as fabricated passes.
+The build emits STEP files, `component_registry.json`, `brand_identity.json` and `build_report.json`. Iteration 11 replaces the ambiguous `nasal_interface.step` placeholder with `nasal_lobe_membrane_reference.step`. The build report now also records deterministic coverage, compliant-interface, nasal-subsystem and source-bound brand/product identity manifests. Software-verifiable failures fail the command; evidence-gated items remain explicitly `BLOCKED` instead of being reported as fabricated passes.
 
 ## Engineering governance
 

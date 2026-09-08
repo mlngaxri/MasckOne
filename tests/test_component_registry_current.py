@@ -66,8 +66,8 @@ def _by_id(registry):
     return {item.component_id: item for item in registry.components}
 
 
-def test_registry_is_bound_to_post_121_released_base(registry):
-    assert SOURCE_MAIN_SHA == "d02bce5b5cb43e33febd6e1a40fdc98f3893efca"
+def test_registry_is_bound_to_post_120_released_base(registry):
+    assert SOURCE_MAIN_SHA == "a0ea51874d8967c512468932fac627e8bba5f95f"
     assert registry.source_main_sha == SOURCE_MAIN_SHA
     assert registry.coordinate_frame_id == WORLD_FRAME_ID
     assert registry.length_unit == LENGTH_UNIT
