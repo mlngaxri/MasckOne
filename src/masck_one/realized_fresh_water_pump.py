@@ -44,7 +44,7 @@ PORT_RESERVATION_PROJECTION_MM = 2.0
 PROVISIONAL_LUMEN_SEED_MM = 2.0
 
 CRADLE_BASE_SIZE_XYZ_MM = (32.8, 27.0, 1.5)
-CRADLE_RAIL_SIZE_XYZ_MM = (1.0, 27.0, 8.2)
+CRADLE_RAIL_SIZE_XYZ_MM = (1.0, 27.0, 8.7)
 PACKAGE_SIDE_GAP_MM = 0.4
 PACKAGE_BASE_GAP_MM = 0.5
 SERVICE_SIZE_XYZ_MM = (34.0, 29.0, 12.2)
@@ -192,8 +192,10 @@ def build_realized_fresh_water_pump(authority: Authority) -> RealizedFreshWaterP
     base = _box(CRADLE_BASE_SIZE_XYZ_MM, base_center)
     half_x = PUMP_SIZE_XYZ_MM[0] / 2.0
     rail_offset = half_x + PACKAGE_SIDE_GAP_MM + CRADLE_RAIL_SIZE_XYZ_MM[0] / 2.0
-    left_rail = _box(CRADLE_RAIL_SIZE_XYZ_MM, Point3(PUMP_CENTER.x - rail_offset, PUMP_CENTER.y, PUMP_CENTER.z))
-    right_rail = _box(CRADLE_RAIL_SIZE_XYZ_MM, Point3(PUMP_CENTER.x + rail_offset, PUMP_CENTER.y, PUMP_CENTER.z))
+    base_top_z = base_center.z + CRADLE_BASE_SIZE_XYZ_MM[2] / 2.0
+    rail_center_z = base_top_z + CRADLE_RAIL_SIZE_XYZ_MM[2] / 2.0
+    left_rail = _box(CRADLE_RAIL_SIZE_XYZ_MM, Point3(PUMP_CENTER.x - rail_offset, PUMP_CENTER.y, rail_center_z))
+    right_rail = _box(CRADLE_RAIL_SIZE_XYZ_MM, Point3(PUMP_CENTER.x + rail_offset, PUMP_CENTER.y, rail_center_z))
     cradle = base.union(left_rail).union(right_rail)
 
     inlet = FreshWaterPumpDatum(
