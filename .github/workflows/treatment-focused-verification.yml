@@ -1,6 +1,8 @@
 name: Treatment focused verification
 
 on:
+  push:
+    branches: [codex/treatment-live117-reconcile-20260909]
   pull_request:
     branches: [main]
 
@@ -8,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: treatment-focused-${{ github.event.pull_request.number }}
+  group: treatment-focused-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -19,7 +21,7 @@ jobs:
       - name: Checkout exact treatment head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
       - name: Set up Python
         uses: actions/setup-python@v5
