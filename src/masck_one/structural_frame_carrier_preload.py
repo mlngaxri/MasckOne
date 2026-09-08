@@ -8,6 +8,7 @@ from pathlib import Path
 import cadquery as cq
 
 from .structural_frame_carrier_interfaces import (
+    RAIL_HEIGHT_MM,
     REACTION_IDS,
     StructuralFrameCarrierInterfaceArchitecture,
     build_structural_frame_carrier_interfaces,
@@ -130,7 +131,11 @@ class StructuralFrameCarrierPreloadArchitecture:
 def _feature_for_interface(interface) -> tuple[cq.Workplane, cq.Workplane]:
     bb = interface.interface.val().BoundingBox()
     cx, cy = interface.center_xy_mm
-    z_top = float(bb.zmax)
+    # The carrier rail's positive end stop intentionally extends above the rail crown,
+    # so bb.zmax is not the rail top. Anchor the preload leaf to the actual crown top
+    # derived from the source rail height; otherwise the leaf floats above the rail and
+    # has zero positive source capture.
+    z_top = float(bb.zmin) + RAIL_HEIGHT_MM
     sign = 1.0 if cx >= 0.0 else -1.0
     root_x = cx + sign * (LEAF_OUTBOARD_OFFSET_MM - LEAF_ROOT_WIDTH_MM / 2.0)
     root = cq.Workplane("XY").box(
