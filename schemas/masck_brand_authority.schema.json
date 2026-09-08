@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://masck.example/schemas/masck_brand_authority.schema.json",
+  "title": "MASCK brand authority",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "brand",
+    "architecture",
+    "master_mark",
+    "interaction_signature",
+    "optical_language",
+    "cmf",
+    "surface_language",
+    "cost_discipline",
+    "repository_contract",
+    "evidence_boundary"
+  ],
+  "properties": {
+    "brand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revision", "status", "master_name", "company_category", "founding_category", "execution_focus", "promise", "principles"],
+      "properties": {
+        "revision": {"type": "string", "minLength": 1},
+        "status": {"type": "string", "minLength": 1},
+        "master_name": {"const": "MASCK"},
+        "company_category": {"type": "string", "minLength": 1},
+        "founding_category": {"type": "string", "minLength": 1},
+        "execution_focus": {"const": "Masck One"},
+        "promise": {"type": "string", "minLength": 1},
+        "principles": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["master_brand", "master_mark_id", "product_name", "product_machine_id", "product_designation", "product_designation_role", "future_scope"],
+      "properties": {
+        "master_brand": {"const": "MASCK"},
+        "master_mark_id": {"const": "M_CUT"},
+        "product_name": {"const": "Masck One"},
+        "product_machine_id": {"const": "MASCK_ONE"},
+        "product_designation": {"const": "M/1"},
+        "product_designation_role": {"const": "MODEL_BADGE_NOT_MASTER_BRAND"},
+        "future_scope": {"type": "string", "minLength": 1}
+      }
+    },
+    "master_mark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "construction_intent", "required_properties", "prohibited_motifs", "preferred_uses", "product_designation_uses"],
+      "properties": {
+        "id": {"const": "M_CUT"},
+        "status": {"const": "PROVISIONAL_MASTER_MARK_CANDIDATE"},
+        "construction_intent": {"type": "string", "minLength": 1},
+        "required_properties": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string"}},
+        "prohibited_motifs": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string"}},
+        "preferred_uses": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+        "product_designation_uses": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "interaction_signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_control"],
+      "properties": {
+        "primary_control": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "mark", "product_designation_on_primary_control", "experience", "architecture_intent", "candidate_mechanical_reference"],
+          "properties": {
+            "status": {"type": "string"},
+            "mark": {"const": "M_CUT"},
+            "product_designation_on_primary_control": {"const": false},
+            "experience": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["feel", "sound", "behavior"],
+              "properties": {
+                "feel": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string"}},
+                "sound": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string"}},
+                "behavior": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string"}}
+              }
+            },
+            "architecture_intent": {
+              "type": "object",
+              "minProperties": 6,
+              "additionalProperties": {"type": "string", "minLength": 1}
+            },
+            "candidate_mechanical_reference": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["evidence_status", "cap_diameter_mm", "shallow_finger_dish_mm", "force_peak_N", "force_peak_travel_mm", "post_transition_force_N", "first_landing_start_mm", "second_landing_start_mm", "nominal_bottom_travel_mm", "hard_stop_travel_mm"],
+              "properties": {
+                "evidence_status": {"const": "PROVISIONAL_DESIGN_REFERENCE_ONLY"},
+                "cap_diameter_mm": {"type": "number", "exclusiveMinimum": 0},
+                "shallow_finger_dish_mm": {"type": "number", "minimum": 0},
+                "force_peak_N": {"type": "number", "exclusiveMinimum": 0},
+                "force_peak_travel_mm": {"type": "number", "exclusiveMinimum": 0},
+                "post_transition_force_N": {"type": "number", "exclusiveMinimum": 0},
+                "first_landing_start_mm": {"type": "number", "exclusiveMinimum": 0},
+                "second_landing_start_mm": {"type": "number", "exclusiveMinimum": 0},
+                "nominal_bottom_travel_mm": {"type": "number", "exclusiveMinimum": 0},
+                "hard_stop_travel_mm": {"type": "number", "exclusiveMinimum": 0}
+              }
+            }
+          }
+        }
+      }
+    },
+    "optical_language": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["philosophy", "states", "prohibited"],
+      "properties": {
+        "philosophy": {"type": "string", "minLength": 1},
+        "states": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["off", "wake", "clean", "massage", "warm", "cool"],
+          "properties": {
+            "off": {"type": "string"},
+            "wake": {"type": "string"},
+            "clean": {"type": "string"},
+            "massage": {"type": "string"},
+            "warm": {"type": "string"},
+            "cool": {"type": "string"}
+          }
+        },
+        "prohibited": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "cmf": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "palette", "material_families"],
+      "properties": {
+        "status": {"type": "string"},
+        "palette": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["shell", "primary_control", "facial_interface", "recessive_mechanics", "optical_inlay"],
+          "properties": {
+            "shell": {"$ref": "#/$defs/cmfToken"},
+            "primary_control": {"$ref": "#/$defs/cmfToken"},
+            "facial_interface": {"$ref": "#/$defs/cmfToken"},
+            "recessive_mechanics": {"$ref": "#/$defs/cmfToken"},
+            "optical_inlay": {"$ref": "#/$defs/cmfToken"}
+          }
+        },
+        "material_families": {
+          "type": "object",
+          "minProperties": 6,
+          "additionalProperties": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "surface_language": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["desired", "prohibited"],
+      "properties": {
+        "desired": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string"}},
+        "prohibited": {"type": "array", "minItems": 6, "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "cost_discipline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule", "preferred", "reject"],
+      "properties": {
+        "rule": {"type": "string", "minLength": 1},
+        "preferred": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string"}},
+        "reject": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "repository_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engineering_authority", "brand_authority", "brand_assets", "brand_docs", "code_loader", "generated_manifest", "precedence"],
+      "properties": {
+        "engineering_authority": {"const": "config/masck_one_authority.yaml"},
+        "brand_authority": {"const": "config/masck_brand_authority.yaml"},
+        "brand_assets": {"const": "brand/assets"},
+        "brand_docs": {"const": "docs/BRAND_ARCHITECTURE.md"},
+        "code_loader": {"const": "src/masck_one/brand_identity.py"},
+        "generated_manifest": {"const": "generated/brand_identity.json"},
+        "precedence": {"type": "string", "minLength": 1}
+      }
+    },
+    "evidence_boundary": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "$defs": {
+    "cmfToken": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "hex", "finish", "intent"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "hex": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+        "finish": {"type": "string", "minLength": 1},
+        "intent": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
