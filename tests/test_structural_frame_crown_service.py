@@ -7,6 +7,7 @@ import pytest
 
 import masck_one.structural_frame_crown_service as crown_service
 from masck_one.structural_frame_crown_service import (
+    StructuralFrameCrownServiceArchitecture,
     StructuralFrameCrownServiceError,
     build_structural_frame_crown_service,
     export_structural_frame_crown_service,
@@ -39,6 +40,13 @@ def test_hostile_nonfinite_crown_service_evidence_is_rejected() -> None:
     path = architecture.paths[0]
     with pytest.raises(StructuralFrameCrownServiceError, match="finite and nonnegative"):
         type(path)(path.side, path.pin_withdraw_sweep, path.clip_install_sweep, pin_sweep_crown_intersection_mm3=float("nan"))
+
+
+def test_hostile_malformed_source_identity_is_rejected() -> None:
+    architecture = build_structural_frame_crown_service()
+    for malformed in ("g" * 64, "A" * 64, "0" * 63, "0" * 65):
+        with pytest.raises(StructuralFrameCrownServiceError, match="lowercase SHA-256 digest"):
+            StructuralFrameCrownServiceArchitecture(malformed, architecture.paths, False)
 
 
 def test_crown_service_collision_kernel_failure_is_rejected(monkeypatch) -> None:
