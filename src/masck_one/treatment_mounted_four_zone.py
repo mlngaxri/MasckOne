@@ -13,7 +13,6 @@ from OCP.gp import gp_Vec
 
 from .model import MasckOneModel, build_model
 from .structural_frame_actuator_mates import (
-    CARRIER_PAD_THICKNESS_MM,
     SHOULDER_GAP_MM,
     SHOULDER_HEIGHT_MM,
     SHOULDER_THICKNESS_MM,
@@ -737,12 +736,18 @@ def build_mounted_four_zone_architecture(
             "moving_front_clamp",
             "moving_output_linkage",
         )
-        moving = cq.Compound.makeCompound([material[name] for name in moving_names])
-        operational_start = moving.translate(tuple(float(-OPERATIONAL_HALF_STROKE_MM * v) for v in axis))
-        operational = _translation_envelope(
-            operational_start,
-            tuple(float(2.0 * OPERATIONAL_HALF_STROKE_MM * v) for v in axis),
+        operational_travel = tuple(
+            float(2.0 * OPERATIONAL_HALF_STROKE_MM * v) for v in axis
         )
+        operational_envelopes = []
+        for name in moving_names:
+            start_shape = material[name].translate(
+                tuple(float(-OPERATIONAL_HALF_STROKE_MM * v) for v in axis)
+            )
+            operational_envelopes.append(
+                _translation_envelope(start_shape, operational_travel)
+            )
+        operational = cq.Compound.makeCompound(operational_envelopes)
         fixed_collision_names = (
             "fixed_backbone",
             "front_stop_ring",
