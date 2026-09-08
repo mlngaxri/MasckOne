@@ -12,18 +12,14 @@ permissions:
 jobs:
   engineering-integrity:
     runs-on: ubuntu-latest
-    # Current released main passes the full engineering suite before entering the
-    # required deterministic CAD smoke build. Thirty minutes preserves every existing
-    # gate while providing measured runtime margin for the full suite plus export.
-    timeout-minutes: 30
+    # Preserve every current source/brand gate and allow measured margin for
+    # per-solid STEP round-trip verification plus package-integrity verification.
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Exact base-lineage verification must not be defeated by a shallow boundary.
-          # Full history lets the provenance gate distinguish a reconstructed/rebased
-          # source head from a merely compatible synthetic merge result.
           fetch-depth: 0
 
       - name: Bind tested source provenance
@@ -181,6 +177,9 @@ jobs:
                   f"{registry['source_main_sha']} != CI provenance source_base_sha {source_base}"
               )
           PY
+
+      - name: Verify generated package integrity
+        run: python -m masck_one.release_package /tmp/masck-one-generated
 
       - name: Preserve source-bound CAD review artifacts
         uses: actions/upload-artifact@v4

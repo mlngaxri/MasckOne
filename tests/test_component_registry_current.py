@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from masck_one.assertions import Check
 from masck_one.component_registry import (
     AUTHORITY_REVISION,
     HYGIENE_UNRESOLVED,
@@ -67,7 +68,7 @@ def _by_id(registry):
 
 
 def test_registry_is_bound_to_post_120_released_base(registry):
-    assert SOURCE_MAIN_SHA == "a0ea51874d8967c512468932fac627e8bba5f95f"
+    assert SOURCE_MAIN_SHA == "ff76a17fa25276a401fbe57ad02564b771fa1865"
     assert registry.source_main_sha == SOURCE_MAIN_SHA
     assert registry.coordinate_frame_id == WORLD_FRAME_ID
     assert registry.length_unit == LENGTH_UNIT
@@ -308,8 +309,22 @@ def test_export_uses_registry_as_physical_material_boundary(monkeypatch, tmp_pat
         "build_current_component_registry",
         lambda model, waste_release: registry,
     )
-    monkeypatch.setattr(release_export.cq.exporters, "export", lambda *args, **kwargs: None)
-    monkeypatch.setattr(release_export, "run_assertions", lambda model: ())
+
+    def write_fixture_step(_shape, path, *args, **kwargs):
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write("fixture STEP placeholder\n")
+
+    monkeypatch.setattr(release_export.cq.exporters, "export", write_fixture_step)
+    monkeypatch.setattr(
+        release_export,
+        "verify_step_geometry",
+        lambda *args, **kwargs: {"status": "PASS", "fixture": True},
+    )
+    monkeypatch.setattr(
+        release_export,
+        "run_assertions",
+        lambda model: (Check("REGISTRY_EXPORT_FIXTURE", "PASS", "controlled export fixture"),),
+    )
     monkeypatch.setattr(release_export, "build_verified_interface_boundary_topology", lambda *args: object())
     monkeypatch.setattr(
         release_export,
