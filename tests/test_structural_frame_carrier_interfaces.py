@@ -24,6 +24,7 @@ def test_four_frame_side_carrier_interfaces_are_positive_and_source_bound() -> N
         assert len(value.Solids()) == 1
         assert value.Volume() > 0.0
         assert item.source_mate_intersection_mm3 > 1e-7
+        assert item.nominal_service_probe_intersection_mm3 <= 1e-7
         assert item.hostile_stop_intersection_mm3 > 1e-7
 
 
@@ -36,6 +37,21 @@ def test_hostile_loss_of_positive_capture_is_rejected() -> None:
             center_xy_mm=item.center_xy_mm,
             interface=item.interface,
             source_mate_intersection_mm3=0.0,
+            nominal_service_probe_intersection_mm3=item.nominal_service_probe_intersection_mm3,
+            hostile_stop_intersection_mm3=item.hostile_stop_intersection_mm3,
+        )
+
+
+def test_hostile_nominal_service_obstruction_is_rejected() -> None:
+    architecture = build_structural_frame_carrier_interfaces()
+    item = architecture.interfaces[0]
+    with pytest.raises(StructuralFrameCarrierInterfaceError, match="service entry is obstructed"):
+        type(item)(
+            reaction_id=item.reaction_id,
+            center_xy_mm=item.center_xy_mm,
+            interface=item.interface,
+            source_mate_intersection_mm3=item.source_mate_intersection_mm3,
+            nominal_service_probe_intersection_mm3=0.01,
             hostile_stop_intersection_mm3=item.hostile_stop_intersection_mm3,
         )
 
@@ -49,6 +65,7 @@ def test_hostile_loss_of_end_stop_is_rejected() -> None:
             center_xy_mm=item.center_xy_mm,
             interface=item.interface,
             source_mate_intersection_mm3=item.source_mate_intersection_mm3,
+            nominal_service_probe_intersection_mm3=item.nominal_service_probe_intersection_mm3,
             hostile_stop_intersection_mm3=0.0,
         )
 
@@ -56,6 +73,7 @@ def test_hostile_loss_of_end_stop_is_rejected() -> None:
 def test_manifest_keeps_cell7_counterpart_and_continuous_service_open() -> None:
     manifest = build_structural_frame_carrier_interfaces().manifest()
     assert manifest["carrier_counterpart_status"].endswith("CELL7_FEMALE_COUNTERPART_OPEN")
+    assert "INDEPENDENT_POSITIVE_END_STOP_PROBE_REALIZED" in manifest["service_status"]
     assert manifest["service_status"].endswith("CONTINUOUS_WHOLE_CARRIER_SWEEP_OPEN")
     assert manifest["physical_validation_eligible"] is False
 
