@@ -156,6 +156,10 @@ def test_actual_model_package_brep_remains_source_bound(audit):
 
 
 def test_release_export_emits_dfm_gate_and_excludes_proxy_from_physical_assembly(tmp_path):
+    import cadquery as cq
+    from masck_one.release_package import verify_package
+    from masck_one.step_integrity import solid_volume
+
     report = export_release(tmp_path)
     gate = report["dfm_gates"]["waste_cartridge"]
     assert gate["manifest_sha256"] == build_waste_cartridge_dfm_audit().manifest_sha256
@@ -164,3 +168,28 @@ def test_release_export_emits_dfm_gate_and_excludes_proxy_from_physical_assembly
     assert "waste_cartridge_envelope.step" in report["exported_step_files"]
     assert (tmp_path / "waste_cartridge_envelope.step").is_file()
     assert (tmp_path / "masck_one_development_assembly.step").is_file()
+    assert report["build_scope"] == "DEVELOPMENT_ONLY"
+    assert report["production_readiness"]["production_ready"] is False
+    assert set(report["development_assembly_exclusions"]) == {
+        "nasal_lobe_membrane_reference",
+        "water_reservoir_envelope", "waste_cartridge_envelope", "battery_reference_envelope",
+        "actuator_envelope_1", "actuator_envelope_2", "actuator_envelope_3", "actuator_envelope_4",
+    }
+    assert set(report["development_assembly_components"]) == {"rigid_shell"}
+    included = [c for c in report["components"] if c["included_in_development_assembly"]]
+    assembly = cq.importers.importStep(str(tmp_path / "masck_one_development_assembly.step"))
+    assert assembly.val().isValid()
+    assert len(assembly.val().Solids()) == sum(c["solid_count"] for c in included)
+    evidence = report["development_assembly_step_roundtrip"]
+    assert evidence["status"] == "PASS"
+    assert solid_volume(assembly.val()) == pytest.approx(evidence["step_volume_mm3"], rel=0, abs=1e-8)
+    assert evidence["source_volume_mm3"] == pytest.approx(sum(c["volume_mm3"] for c in included), rel=0, abs=1e-8)
+    for record in report["components"]:
+        imported = cq.importers.importStep(str(tmp_path / record["step_file"]))
+        assert imported.val().isValid()
+        assert len(imported.val().Solids()) == record["solid_count"]
+        assert record["step_roundtrip"]["status"] == "PASS"
+        assert solid_volume(imported.val()) == pytest.approx(record["step_roundtrip"]["step_volume_mm3"], rel=0, abs=1e-8)
+    package = verify_package(tmp_path)
+    payload_manifests = set(report["exported_manifests"]) - {"package_manifest.json"}
+    assert set(package["files"]) == {*report["exported_step_files"], *payload_manifests}
