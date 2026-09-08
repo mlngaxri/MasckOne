@@ -11,6 +11,11 @@ from masck_one.structural_frame_shell_joints import (
     JOINT_IDS,
     PIN_BORE_DIAMETER_MM,
     PIN_DIAMETER_MM,
+    PIN_HEAD_DIAMETER_MM,
+    PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM,
+    PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM,
+    PIN_HEAD_THICKNESS_MM,
+    PIN_OVERHANG_MM,
     StructuralFrameShellJointError,
     build_structural_frame_shell_joints,
 )
@@ -55,12 +60,34 @@ def test_joint_manifest_is_deterministic_source_bound_and_not_physical_evidence(
     json.dumps(first.manifest(), sort_keys=True, allow_nan=False)
 
 
-def test_capture_pin_has_positive_radial_bore_clearance() -> None:
+def test_capture_pin_has_positive_radial_and_head_relief_clearance() -> None:
     assert PIN_BORE_DIAMETER_MM > PIN_DIAMETER_MM
+    assert PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM > 0.0
+    assert PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM > 0.0
+    assert PIN_HEAD_DIAMETER_MM > PIN_BORE_DIAMETER_MM
     architecture = build_structural_frame_shell_joints()
     for joint in architecture.joints:
         assert _intersection_volume(joint.pin, joint.frame_tenon_union) <= 1e-7
         assert _intersection_volume(joint.pin, joint.shell_with_mortise_and_pin_bore) <= 1e-7
+        dimensions = joint.manifest()["dimensions_mm"]
+        assert dimensions["pin_head_relief_radial_clearance"] == PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM
+        assert dimensions["pin_head_relief_axial_clearance"] == PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM
+
+
+def test_regression_rejects_loss_of_pin_head_relief(monkeypatch: pytest.MonkeyPatch) -> None:
+    import masck_one.structural_frame_shell_joints as joints
+
+    def legacy_pin_geometry(center_x, center_y, z_center, length):
+        shaft = cq.Workplane("YZ").circle(PIN_DIAMETER_MM / 2.0).extrude(length, both=True).translate((center_x, center_y, z_center))
+        head_left = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(-PIN_HEAD_THICKNESS_MM).translate((center_x - length, center_y, z_center))
+        head_right = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(PIN_HEAD_THICKNESS_MM).translate((center_x + length, center_y, z_center))
+        pin = shaft.union(head_left).union(head_right)
+        shaft_bore = cq.Workplane("YZ").circle(PIN_BORE_DIAMETER_MM / 2.0).extrude(length + 2.0 * PIN_OVERHANG_MM, both=True).translate((center_x, center_y, z_center))
+        return pin, shaft_bore
+
+    monkeypatch.setattr(joints, "_pin_geometry", legacy_pin_geometry)
+    with pytest.raises(StructuralFrameShellJointError, match="shell-side bore"):
+        joints.build_structural_frame_shell_joints()
 
 
 def test_regression_rejects_loss_of_positive_frame_capture(monkeypatch: pytest.MonkeyPatch) -> None:
