@@ -14,7 +14,7 @@ from .structural_frame_realization import (
 )
 
 
-SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_SHELL_JOINTS_V1"
+SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_SHELL_JOINTS_V2"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 JOINT_IDS = (
     "FRAME_SHELL_JOINT_SUPERIOR_LEFT",
@@ -23,9 +23,6 @@ JOINT_IDS = (
     "FRAME_SHELL_JOINT_INFERIOR_RIGHT",
 )
 
-# Digital closure seeds only. They define a deterministic removable positive joint for
-# the current CAD baseline and are not production tolerances, process capability, or a
-# released fastener specification.
 TENON_WIDTH_MM = 7.0
 TENON_HEIGHT_MM = 6.0
 TENON_FRAME_EMBED_MM = 1.0
@@ -38,11 +35,18 @@ PIN_HEAD_THICKNESS_MM = 0.8
 PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM = 0.2
 PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM = 0.15
 PIN_OVERHANG_MM = 0.7
+PIN_RETENTION_EXTENSION_MM = 1.25
+PIN_GROOVE_RADIUS_MM = 0.60
+PIN_GROOVE_WIDTH_MM = 0.50
+PIN_CLIP_INNER_RADIUS_MM = 0.66
+PIN_CLIP_OUTER_RADIUS_MM = 1.70
+PIN_CLIP_THICKNESS_MM = 0.38
+PIN_CLIP_SLOT_WIDTH_MM = 1.25
+PIN_CLIP_AXIAL_PROBE_MM = 0.34
 JOINT_X_FRACTION = 0.36
 JOINT_Y_FRACTION = 0.31
 
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
-_DISTANCE_TOLERANCE_MM = 1e-6
 
 
 class StructuralFrameShellJointError(ValueError):
@@ -69,10 +73,6 @@ def _intersection_volume(a: cq.Workplane, b: cq.Workplane) -> float:
         return 0.0
 
 
-def _distance(a: cq.Workplane, b: cq.Workplane) -> float:
-    return max(0.0, float(a.val().distance(b.val())))
-
-
 def _valid_single_solid(shape: cq.Workplane, label: str) -> None:
     value = shape.val()
     if not value.isValid() or len(value.Solids()) != 1 or _volume(shape) <= 0.0:
@@ -86,6 +86,7 @@ class ShellJoint:
     tenon: cq.Workplane = field(repr=False, compare=False)
     mortise_tool: cq.Workplane = field(repr=False, compare=False)
     pin: cq.Workplane = field(repr=False, compare=False)
+    retainer_clip: cq.Workplane = field(repr=False, compare=False)
     pin_bore_tool: cq.Workplane = field(repr=False, compare=False)
     frame_tenon_union: cq.Workplane = field(repr=False, compare=False)
     shell_with_mortise_and_pin_bore: cq.Workplane = field(repr=False, compare=False)
@@ -94,6 +95,9 @@ class ShellJoint:
     nominal_tenon_shell_intersection_mm3: float
     nominal_pin_frame_intersection_mm3: float
     nominal_pin_shell_intersection_mm3: float
+    nominal_clip_pin_intersection_mm3: float
+    clip_negative_axial_stop_intersection_mm3: float
+    clip_positive_axial_stop_intersection_mm3: float
 
     def __post_init__(self) -> None:
         if self.joint_id not in JOINT_IDS:
@@ -104,6 +108,7 @@ class ShellJoint:
             ("tenon", self.tenon),
             ("mortise tool", self.mortise_tool),
             ("capture pin", self.pin),
+            ("retainer clip", self.retainer_clip),
             ("pin bore", self.pin_bore_tool),
             ("frame with tenon", self.frame_tenon_union),
             ("shell counterpart", self.shell_with_mortise_and_pin_bore),
@@ -119,19 +124,29 @@ class ShellJoint:
             raise StructuralFrameShellJointError("capture pin must clear the frame-side bore")
         if _finite(self.nominal_pin_shell_intersection_mm3, "pin shell intersection") > _INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameShellJointError("capture pin must clear the shell-side bore")
+        if _finite(self.nominal_clip_pin_intersection_mm3, "clip pin intersection") > _INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameShellJointError("retainer clip must seat in the pin groove without nominal collision")
+        if min(
+            _finite(self.clip_negative_axial_stop_intersection_mm3, "negative clip stop"),
+            _finite(self.clip_positive_axial_stop_intersection_mm3, "positive clip stop"),
+        ) <= _INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameShellJointError("retainer clip must be positively captured by both pin-groove shoulders")
 
     def manifest(self) -> dict[str, object]:
         return {
             "joint_id": self.joint_id,
             "coordinate_frame_id": WORLD_FRAME_ID,
             "center_xy_mm": list(self.center_xy_mm),
-            "interface_semantics": "POSITIVE_TENON_MORTISE_WITH_REMOVABLE_TRANSVERSE_CAPTURE_PIN",
+            "interface_semantics": "POSITIVE_TENON_MORTISE_WITH_SINGLE_HEAD_CAPTURE_PIN_AND_GROOVE_RETAINER",
             "assembly_sequence": [
                 "translate frame tenon into shell mortise along +Z",
-                "insert transverse headed capture pin after mortise seating",
-                "remove capture pin before frame separation",
+                "insert single-headed capture pin continuously from the head side through the aligned transverse bore",
+                "install split retainer radially into the exposed distal pin groove",
+                "remove split retainer radially before withdrawing capture pin",
+                "withdraw capture pin continuously toward the head side",
                 "translate frame away from shell along -Z",
             ],
+            "service_installation_status": "ONE_PIECE_PIN_INSERTION_AND_SEPARATE_RADIAL_RETAINER_INSTALLATION_GEOMETRY_REALIZED",
             "geometry_seed_status": "DIGITAL_MVP_CLOSURE_SEEDS_NOT_PRODUCTION_TOLERANCE_OR_FASTENER_RELEASE",
             "dimensions_mm": {
                 "tenon_width": TENON_WIDTH_MM,
@@ -145,6 +160,12 @@ class ShellJoint:
                 "pin_head_thickness": PIN_HEAD_THICKNESS_MM,
                 "pin_head_relief_radial_clearance": PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM,
                 "pin_head_relief_axial_clearance": PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM,
+                "pin_retention_extension": PIN_RETENTION_EXTENSION_MM,
+                "pin_groove_radius": PIN_GROOVE_RADIUS_MM,
+                "pin_groove_width": PIN_GROOVE_WIDTH_MM,
+                "retainer_inner_radius": PIN_CLIP_INNER_RADIUS_MM,
+                "retainer_outer_radius": PIN_CLIP_OUTER_RADIUS_MM,
+                "retainer_thickness": PIN_CLIP_THICKNESS_MM,
             },
             "measured": {
                 "frame_capture_volume_mm3": self.frame_capture_volume_mm3,
@@ -152,6 +173,9 @@ class ShellJoint:
                 "nominal_tenon_shell_intersection_mm3": self.nominal_tenon_shell_intersection_mm3,
                 "nominal_pin_frame_intersection_mm3": self.nominal_pin_frame_intersection_mm3,
                 "nominal_pin_shell_intersection_mm3": self.nominal_pin_shell_intersection_mm3,
+                "nominal_clip_pin_intersection_mm3": self.nominal_clip_pin_intersection_mm3,
+                "clip_negative_axial_stop_intersection_mm3": self.clip_negative_axial_stop_intersection_mm3,
+                "clip_positive_axial_stop_intersection_mm3": self.clip_positive_axial_stop_intersection_mm3,
             },
         }
 
@@ -194,7 +218,7 @@ class StructuralFrameShellJointArchitecture:
             "joint_count": len(self.joints),
             "joints": [joint.manifest() for joint in self.joints],
             "frame_shell_nominal_intersection_mm3": self.frame_shell_nominal_intersection_mm3,
-            "service_status": "REMOVABLE_AFTER_FOUR_CAPTURE_PINS_ARE_WITHDRAWN",
+            "service_status": "REMOVABLE_AFTER_FOUR_RADIAL_RETAINERS_AND_SINGLE_HEADED_CAPTURE_PINS_ARE_WITHDRAWN",
             "load_path_status": "POSITIVE_GEOMETRIC_COUNTERPARTS_REALIZED_STRENGTH_AND_FATIGUE_NOT_VALIDATED",
             "physical_validation_eligible": self.physical_validation_eligible,
         }
@@ -214,22 +238,25 @@ def _box_at(center_x: float, center_y: float, z_center: float, width: float, hei
     return cq.Workplane("XY").box(width, height, depth, centered=(True, True, True)).translate((center_x, center_y, z_center))
 
 
-def _pin_geometry(center_x: float, center_y: float, z_center: float, length: float) -> tuple[cq.Workplane, cq.Workplane]:
-    # The shaft uses the controlled radial running clearance. Each enlarged head also
-    # receives its own coaxial shell-side relief pocket. The relief is real removed
-    # B-rep material, not a semantic waiver of a detected head/shell collision.
-    shaft = cq.Workplane("YZ").circle(PIN_DIAMETER_MM / 2.0).extrude(length, both=True).translate((center_x, center_y, z_center))
-    head_left = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(-PIN_HEAD_THICKNESS_MM).translate((center_x - length, center_y, z_center))
-    head_right = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(PIN_HEAD_THICKNESS_MM).translate((center_x + length, center_y, z_center))
-    pin = shaft.union(head_left).union(head_right)
+def _pin_geometry(center_x: float, center_y: float, z_center: float, length: float) -> tuple[cq.Workplane, cq.Workplane, cq.Workplane]:
+    shaft_half_span = length + PIN_RETENTION_EXTENSION_MM
+    shaft = cq.Workplane("YZ").circle(PIN_DIAMETER_MM / 2.0).extrude(shaft_half_span, both=True).translate((center_x, center_y, z_center))
+    head = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(-PIN_HEAD_THICKNESS_MM).translate((center_x - shaft_half_span, center_y, z_center))
+    groove_center_x = center_x + length + 0.55 * PIN_RETENTION_EXTENSION_MM
+    groove_tool = cq.Workplane("YZ").circle(PIN_DIAMETER_MM / 2.0 + 0.05).extrude(PIN_GROOVE_WIDTH_MM / 2.0, both=True).translate((groove_center_x, center_y, z_center))
+    groove_core = cq.Workplane("YZ").circle(PIN_GROOVE_RADIUS_MM).extrude(PIN_GROOVE_WIDTH_MM / 2.0, both=True).translate((groove_center_x, center_y, z_center))
+    pin = shaft.cut(groove_tool).union(groove_core).union(head)
 
-    shaft_bore = cq.Workplane("YZ").circle(PIN_BORE_DIAMETER_MM / 2.0).extrude(length + 2.0 * PIN_OVERHANG_MM, both=True).translate((center_x, center_y, z_center))
+    shaft_bore = cq.Workplane("YZ").circle(PIN_BORE_DIAMETER_MM / 2.0).extrude(shaft_half_span + PIN_OVERHANG_MM, both=True).translate((center_x, center_y, z_center))
     relief_radius = PIN_HEAD_DIAMETER_MM / 2.0 + PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM
     relief_depth = PIN_HEAD_THICKNESS_MM + PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM
-    head_relief_left = cq.Workplane("YZ").circle(relief_radius).extrude(-relief_depth).translate((center_x - length, center_y, z_center))
-    head_relief_right = cq.Workplane("YZ").circle(relief_radius).extrude(relief_depth).translate((center_x + length, center_y, z_center))
-    bore = shaft_bore.union(head_relief_left).union(head_relief_right)
-    return pin, bore
+    head_relief = cq.Workplane("YZ").circle(relief_radius).extrude(-relief_depth).translate((center_x - shaft_half_span, center_y, z_center))
+    bore = shaft_bore.union(head_relief)
+
+    clip_outer = cq.Workplane("YZ").circle(PIN_CLIP_OUTER_RADIUS_MM).circle(PIN_CLIP_INNER_RADIUS_MM).extrude(PIN_CLIP_THICKNESS_MM / 2.0, both=True).translate((groove_center_x, center_y, z_center))
+    slot = cq.Workplane("XY").box(PIN_CLIP_THICKNESS_MM + 0.2, PIN_CLIP_SLOT_WIDTH_MM, 2.0 * PIN_CLIP_OUTER_RADIUS_MM, centered=(True, True, True)).translate((groove_center_x, center_y + PIN_CLIP_OUTER_RADIUS_MM, z_center))
+    clip = clip_outer.cut(slot)
+    return pin, bore, clip
 
 
 def build_structural_frame_shell_joints(
@@ -273,19 +300,22 @@ def build_structural_frame_shell_joints(
             raise StructuralFrameShellJointError(f"{joint_id} mortise does not cut current shell material")
 
         pin_z = frame_top + 0.65 * TENON_SHELL_INSERT_MM
-        pin, bore = _pin_geometry(cx, cy, pin_z, TENON_WIDTH_MM / 2.0 + PIN_OVERHANG_MM)
+        pin, bore, clip = _pin_geometry(cx, cy, pin_z, TENON_WIDTH_MM / 2.0 + PIN_OVERHANG_MM)
 
         joint_frame = assembled_frame.union(tenon).cut(bore)
         joint_shell = modified_shell.cut(mortise).cut(bore)
         _valid_single_solid(joint_frame, f"{joint_id} frame union")
         _valid_single_solid(joint_shell, f"{joint_id} shell counterpart")
 
+        negative_stop = _intersection_volume(clip.translate((-PIN_CLIP_AXIAL_PROBE_MM, 0.0, 0.0)), pin)
+        positive_stop = _intersection_volume(clip.translate((PIN_CLIP_AXIAL_PROBE_MM, 0.0, 0.0)), pin)
         record = ShellJoint(
             joint_id=joint_id,
             center_xy_mm=(cx, cy),
             tenon=tenon,
             mortise_tool=mortise,
             pin=pin,
+            retainer_clip=clip,
             pin_bore_tool=bore,
             frame_tenon_union=joint_frame,
             shell_with_mortise_and_pin_bore=joint_shell,
@@ -294,6 +324,9 @@ def build_structural_frame_shell_joints(
             nominal_tenon_shell_intersection_mm3=round(_intersection_volume(tenon.cut(bore), joint_shell), 8),
             nominal_pin_frame_intersection_mm3=round(_intersection_volume(pin, joint_frame), 8),
             nominal_pin_shell_intersection_mm3=round(_intersection_volume(pin, joint_shell), 8),
+            nominal_clip_pin_intersection_mm3=round(_intersection_volume(clip, pin), 8),
+            clip_negative_axial_stop_intersection_mm3=round(negative_stop, 8),
+            clip_positive_axial_stop_intersection_mm3=round(positive_stop, 8),
         )
         record.__post_init__()
         assembled_frame = joint_frame
