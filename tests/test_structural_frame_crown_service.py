@@ -34,6 +34,13 @@ def test_hostile_crown_service_collision_is_rejected() -> None:
         type(path)(path.side, path.pin_withdraw_sweep, path.clip_install_sweep, pin_sweep_crown_intersection_mm3=0.01)
 
 
+def test_hostile_nonfinite_crown_service_evidence_is_rejected() -> None:
+    architecture = build_structural_frame_crown_service()
+    path = architecture.paths[0]
+    with pytest.raises(StructuralFrameCrownServiceError, match="finite and nonnegative"):
+        type(path)(path.side, path.pin_withdraw_sweep, path.clip_install_sweep, pin_sweep_crown_intersection_mm3=float("nan"))
+
+
 def test_crown_service_collision_kernel_failure_is_rejected(monkeypatch) -> None:
     class BrokenIntersection:
         def val(self):
@@ -44,6 +51,25 @@ def test_crown_service_collision_kernel_failure_is_rejected(monkeypatch) -> None
     b = cq.Workplane("XY").box(1.0, 1.0, 1.0)
     with pytest.raises(StructuralFrameCrownServiceError, match="collision-free status cannot be claimed"):
         crown_service._intersection(a, b, label="hostile kernel")
+
+
+def test_crown_service_nonfinite_kernel_volume_is_rejected(monkeypatch) -> None:
+    class NonfiniteCommon:
+        def isValid(self):
+            return True
+
+        def Volume(self):
+            return float("nan")
+
+    class NonfiniteIntersection:
+        def val(self):
+            return NonfiniteCommon()
+
+    monkeypatch.setattr(cq.Workplane, "intersect", lambda self, other: NonfiniteIntersection())
+    a = cq.Workplane("XY").box(1.0, 1.0, 1.0)
+    b = cq.Workplane("XY").box(1.0, 1.0, 1.0)
+    with pytest.raises(StructuralFrameCrownServiceError, match="finite and nonnegative"):
+        crown_service._intersection(a, b, label="hostile nonfinite")
 
 
 def test_crown_service_export_is_deterministic_and_roundtrips(tmp_path) -> None:
