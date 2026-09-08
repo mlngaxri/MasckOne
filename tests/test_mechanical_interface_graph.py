@@ -24,6 +24,7 @@ EXPECTED_CANDIDATE_HEADS = (
     (117, "34273de3bd86294080e51873c212e988b4a966f4"),
     (118, "37e03df4b6abbd222422c8bfd4e70b03a4e5ae07"),
     (92, "ce1a175a79f87da65d88a40eca146f3dc5419528"),
+    (123, "ca128295794ff51ed96e7a840428de55ea36de6b"),
     (71, "0b5a619c6cea344038b0e8b8cc10a50e3d193390"),
     (109, "fb586cc1ea1cde92526417593f9e5aa990d2ae4f"),
     (114, "630cc19497661ae834032eb8ea06e28dfd6100b7"),
@@ -33,6 +34,7 @@ EXPECTED_BLOBS = {
     "FRAME_V1": "0ea2ada736825fe1a0e06491d16690ae98cfccde",
     "CARRIER_V1": "9c613f40ed1b8cb43c3a40bb945d53084a71d121",
     "RETENTION_V2": "9647405b36642105c929a3fdd0617d03bfe68c98",
+    "OCCIPITAL_YOKES_V1": "4c58b0dc81fd2e95a6f1405ea5eeb1641ba8a3c8",
     "QUICK_RELEASE_V1": "11d90a75eb108c53f5a1621abdace7271bf5cac5",
     "RETENTION_GUARDS_V1": "b497e9154067cef9ee24da4d421ea6c7861c348e",
     "SERVICE_INVENTORY_V1": "e44c8ca12d7b163a5a3fb54fbce7ca2c16d0fc5c",
@@ -127,20 +129,30 @@ def test_service_motion_truth_does_not_promote_latch_pull_to_whole_removal():
     assert separation.status == "UNRESOLVED" and separation.continuous is False
 
 
-def test_guard_factory_sweeps_are_candidate_reference_motion_only():
+def test_guard_factory_sweeps_preserve_collision_truth():
     graph = build_mechanical_interface_graph()
-    expected = {
-        "RIGHT_QUICK_RELEASE_GUARD_FACTORY_INSTALL": 35.0,
-        "LEFT_RETENTION_GUARD_FACTORY_INSTALL": 22.0,
-        "RIGHT_RETENTION_GUARD_FACTORY_INSTALL": 22.0,
-    }
-    for motion_id, travel in expected.items():
-        motion = next(item for item in graph.service_motions if item.motion_id == motion_id)
-        assert motion.status == "CANDIDATE_CONTINUOUS"
-        assert motion.continuous is True
-        assert motion.travel_mm == pytest.approx(travel)
-        assert motion.whole_product_motion is False
-        assert "reference motion only" in motion.note
+    quick = next(item for item in graph.service_motions if item.motion_id == "RIGHT_QUICK_RELEASE_GUARD_FACTORY_INSTALL")
+    assert quick.status == "CANDIDATE_CONTINUOUS"
+    assert quick.continuous is True
+    assert quick.travel_mm == pytest.approx(35.0)
+    assert quick.whole_product_motion is False
+    assert quick.interference_mm3 == pytest.approx(0.0)
+
+    for side in ("LEFT", "RIGHT"):
+        reference = next(item for item in graph.service_motions if item.motion_id == f"{side}_RETENTION_GUARD_PURE_X_SWEEP_REFERENCE")
+        assert reference.status == "CANDIDATE_CONTINUOUS"
+        assert reference.continuous is True
+        assert reference.travel_mm == pytest.approx(22.0)
+        assert reference.interference_mm3 == pytest.approx(39.840676)
+        assert "not a collision-free integrated factory path" in reference.note
+
+        factory = next(item for item in graph.service_motions if item.motion_id == f"{side}_RETENTION_GUARD_FACTORY_INSTALL")
+        assert factory.status == "UNRESOLVED"
+        assert factory.continuous is False
+        assert factory.travel_mm is None
+        assert factory.sample_count is None
+        assert set(factory.blocking_source_ids) == {"RETENTION_GUARDS_V1", "OCCIPITAL_YOKES_V1"}
+        assert factory.interference_mm3 == pytest.approx(39.840676)
 
 
 def test_frame_unit_identity_and_actuator_index_drift_fail_closed():
@@ -202,6 +214,7 @@ def test_whole_package_and_whole_head_motion_cannot_be_falsely_closed():
         continuous=True,
         travel_mm=7.3,
         sample_count=39,
+        blocking_source_ids=(),
     )
     with pytest.raises(MechanicalInterfaceGraphError, match="whole-head removal must remain unresolved"):
         graph_with(motions=motions)
