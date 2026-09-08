@@ -16,7 +16,7 @@ import cadquery as cq
 
 SCHEMA = "MASCK_ONE_CELL12_BATTERY_DISCONNECT_INTERFACE_V1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
-SOURCE_MAIN_SHA = "a0ea51874d8967c512468932fac627e8bba5f95f"
+SOURCE_MAIN_SHA = "ff76a17fa25276a401fbe57ad02564b771fa1865"
 
 # Kept wholly inside the current 48 x 66 x 22 mm dry-bay package.
 MATING_DATUM_WORLD_MM = (17.0, -20.0, -39.0)
@@ -58,14 +58,17 @@ class BatteryDisconnectInterface:
     def validate(self):
         for shape in (self.connector_reservation, self.key_reservation, self.strain_relief_reservation, self.disconnect_service_sweep):
             _geometry(shape)
-        # Service motion is pure +Y from the installed mating datum. The sweep
-        # must contain the installed connector reservation and extend by the
-        # declared disconnect travel without leaving the current dry-bay bounds.
-        if float(self.connector_reservation.val().cut(self.disconnect_service_sweep.val()).Volume()) > 1e-7:
-            raise DrySideDisconnectError("disconnect sweep does not contain installed connector reservation")
+        # Package containment is checked first so an escaped sweep cannot be
+        # misclassified merely because translation also breaks installed-state
+        # containment. This keeps the hostile failure mode exact and actionable.
         bb = self.disconnect_service_sweep.val().BoundingBox()
         if bb.ymax > 33.0 + 1e-7 or bb.ymin < -33.0 - 1e-7 or bb.xmin < -24.0 - 1e-7 or bb.xmax > 24.0 + 1e-7 or bb.zmin < -47.0 - 1e-7 or bb.zmax > -25.0 + 1e-7:
             raise DrySideDisconnectError("disconnect service sweep escapes current dry-bay package")
+        # Service motion is pure +Y from the installed mating datum. The sweep
+        # must contain the installed connector reservation and extend by the
+        # declared disconnect travel without teleporting the installed state.
+        if float(self.connector_reservation.val().cut(self.disconnect_service_sweep.val()).Volume()) > 1e-7:
+            raise DrySideDisconnectError("disconnect sweep does not contain installed connector reservation")
         return self
 
     def manifest(self):
