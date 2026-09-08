@@ -27,6 +27,7 @@ SERVICE_PROBE_WIDTH_MM = 4.0
 SERVICE_PROBE_LENGTH_MM = 0.30
 SERVICE_PROBE_HEIGHT_MM = 1.0
 SERVICE_PROBE_NOMINAL_GAP_MM = 0.10
+SERVICE_ENTRY_EXTENSION_MM = 1.0
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
 
 
@@ -52,18 +53,23 @@ class CarrierInterface:
     reaction_id: str
     center_xy_mm: tuple[float, float]
     interface: cq.Workplane = field(repr=False, compare=False)
+    service_sweep: cq.Workplane = field(repr=False, compare=False)
     source_mate_intersection_mm3: float = 0.0
     nominal_service_probe_intersection_mm3: float = 0.0
+    continuous_service_sweep_intersection_mm3: float = 0.0
     hostile_stop_intersection_mm3: float = 0.0
 
     def __post_init__(self) -> None:
         if self.reaction_id not in REACTION_IDS:
             raise StructuralFrameCarrierInterfaceError("unknown carrier interface")
         _valid_single_solid(self.interface, self.reaction_id)
+        _valid_single_solid(self.service_sweep, f"{self.reaction_id} continuous service sweep")
         if self.source_mate_intersection_mm3 <= _INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameCarrierInterfaceError("carrier interface lacks positive source-mate capture")
         if self.nominal_service_probe_intersection_mm3 > _INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameCarrierInterfaceError("carrier service entry is obstructed before the positive stop")
+        if self.continuous_service_sweep_intersection_mm3 > _INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameCarrierInterfaceError("continuous carrier service-entry sweep intersects frame-side rail material")
         if self.hostile_stop_intersection_mm3 <= _INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameCarrierInterfaceError("carrier interface lacks positive service end stop")
 
@@ -73,7 +79,7 @@ class CarrierInterface:
             "coordinate_frame_id": WORLD_FRAME_ID,
             "center_xy_mm": list(self.center_xy_mm),
             "interface_semantics": "POSITIVE_TAPERED_CARRIER_RAIL_WITH_OPEN_SERVICE_ENTRY_AND_END_STOP",
-            "service_insertion_axis": "+Y",
+            "service_insertion_axis": "+Y_TO_-Y",
             "constrained_dofs_when_future_carrier_counterpart_is_seated": ["X", "Z", "RY", "RZ"],
             "intentionally_unclaimed_dofs": ["Y", "RX"],
             "dimensions_mm": {
@@ -88,11 +94,14 @@ class CarrierInterface:
                 "service_probe_length": SERVICE_PROBE_LENGTH_MM,
                 "service_probe_height": SERVICE_PROBE_HEIGHT_MM,
                 "service_probe_nominal_gap": SERVICE_PROBE_NOMINAL_GAP_MM,
+                "service_entry_extension": SERVICE_ENTRY_EXTENSION_MM,
                 "service_probe_hostile_overtravel": SERVICE_PROBE_MM,
             },
             "measured": {
                 "positive_source_mate_capture_mm3": self.source_mate_intersection_mm3,
                 "nominal_service_probe_intersection_mm3": self.nominal_service_probe_intersection_mm3,
+                "continuous_service_sweep_intersection_mm3": self.continuous_service_sweep_intersection_mm3,
+                "continuous_service_sweep_volume_mm3": float(self.service_sweep.val().Volume()),
                 "hostile_service_stop_intersection_mm3": self.hostile_stop_intersection_mm3,
             },
         }
@@ -124,7 +133,7 @@ class StructuralFrameCarrierInterfaceArchitecture:
             "coordinate_frame_id": WORLD_FRAME_ID,
             "interfaces": [i.manifest() for i in self.interfaces],
             "carrier_counterpart_status": "EXPLICIT_FRAME_SIDE_RAILS_REALIZED_CELL7_FEMALE_COUNTERPART_OPEN",
-            "service_status": "OPEN_ENTRY_AND_INDEPENDENT_POSITIVE_END_STOP_PROBE_REALIZED_CONTINUOUS_WHOLE_CARRIER_SWEEP_OPEN",
+            "service_status": "CONTINUOUS_FRAME_SIDE_ENTRY_SWEEP_AND_INDEPENDENT_POSITIVE_END_STOP_PROBE_REALIZED_WHOLE_CARRIER_SWEEP_OPEN",
             "physical_validation_eligible": self.physical_validation_eligible,
         }
         if include_sha:
@@ -150,6 +159,20 @@ def _service_stop_probe(cx: float, cy: float, z0: float) -> cq.Workplane:
     ).translate((cx, probe_center_y, z0 + RAIL_HEIGHT_MM))
 
 
+def _continuous_service_sweep(cx: float, cy: float, z0: float) -> cq.Workplane:
+    """Exact prismatic swept volume of the service probe from open entry to seated nominal gap."""
+    stop_inner_y = cy - RAIL_LENGTH_MM / 2.0 + END_STOP_THICKNESS_MM
+    seated_min_y = stop_inner_y + SERVICE_PROBE_NOMINAL_GAP_MM
+    entry_max_y = cy + RAIL_LENGTH_MM / 2.0 + SERVICE_ENTRY_EXTENSION_MM
+    sweep_length = entry_max_y - seated_min_y
+    return cq.Workplane("XY").box(
+        SERVICE_PROBE_WIDTH_MM,
+        sweep_length,
+        SERVICE_PROBE_HEIGHT_MM,
+        centered=(True, True, False),
+    ).translate((cx, seated_min_y + sweep_length / 2.0, z0 + RAIL_HEIGHT_MM))
+
+
 def build_structural_frame_carrier_interfaces(*, mates: StructuralFrameActuatorMateArchitecture | None = None) -> StructuralFrameCarrierInterfaceArchitecture:
     mates = build_structural_frame_actuator_mates() if mates is None else mates
     built: list[CarrierInterface] = []
@@ -161,14 +184,18 @@ def build_structural_frame_carrier_interfaces(*, mates: StructuralFrameActuatorM
         _valid_single_solid(interface, source.reaction_id)
         capture = _intersection_volume(interface, source.mate)
         probe = _service_stop_probe(cx, cy, z0)
+        sweep = _continuous_service_sweep(cx, cy, z0)
         nominal_probe_intersection = _intersection_volume(probe, stop)
+        sweep_intersection = _intersection_volume(sweep, interface)
         hostile_probe_intersection = _intersection_volume(probe.translate((0.0, -SERVICE_PROBE_MM, 0.0)), stop)
         built.append(CarrierInterface(
             source.reaction_id,
             source.center_xy_mm,
             interface,
+            sweep,
             round(capture, 8),
             round(nominal_probe_intersection, 8),
+            round(sweep_intersection, 8),
             round(hostile_probe_intersection, 8),
         ))
     result = StructuralFrameCarrierInterfaceArchitecture(mates.architecture_sha256, tuple(built), False)
@@ -181,6 +208,7 @@ def export_structural_frame_carrier_interfaces(output_dir: Path) -> dict[str, ob
     architecture = build_structural_frame_carrier_interfaces()
     for item in architecture.interfaces:
         cq.exporters.export(item.interface, str(output_dir / f"{item.reaction_id.lower()}_carrier_interface.step"))
+        cq.exporters.export(item.service_sweep, str(output_dir / f"{item.reaction_id.lower()}_carrier_service_sweep.step"))
     manifest = architecture.manifest()
     (output_dir / "structural_frame_carrier_interfaces_manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return manifest
