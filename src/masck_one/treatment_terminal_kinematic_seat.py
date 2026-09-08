@@ -3,12 +3,12 @@ from __future__ import annotations
 """Treatment-owned terminal kinematic seat for a low-play massage reaction path.
 
 The existing Cell 6 rail remains deliberately clearance-fit for smooth service motion.
-This module adds a *terminal* four-face taper candidate around the rigid Cell 6
-8 x 8 mm reaction shoulder. The carrier can therefore run freely on the parallel
-rail for most of its stroke, then use axial seating motion to remove X/Z dead-zone
-at the final installed coordinate. The spring/detent is intended only to maintain
-axial seating; alternating massage reaction is intended to pass through rigid taper
-faces and the rigid shoulder.
+This module adds a terminal four-face taper candidate around the rigid Cell 6
+8 x 8 mm reaction shoulder. The carrier runs freely on the parallel rail for most
+of its stroke, then uses axial seating motion to remove X/Z dead-zone at the final
+installed coordinate. The spring/detent is intended only to maintain axial seating;
+alternating massage reaction is intended to pass through rigid taper faces and the
+rigid shoulder.
 
 Digital geometry and analytical screening only. Exact contact pressure, friction,
 insertion/release force, tolerance closure, wear, creep, acoustics and human-use
@@ -44,9 +44,8 @@ SCHEMA = "MASCK_ONE_TREATMENT_TERMINAL_KINEMATIC_SEAT_V1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 SOURCE_CELL6_HEAD_SHA = "fcccde02b31cc1c4e01136630d92e550e4e09a11"
 
-# The current treatment yoke has 0.16 mm radial X running clearance and 0.12 mm
-# radial Z running clearance. The taper consumes those clearances only at the
-# terminal shoulder edge, preserving a low-drag parallel approach elsewhere.
+# Current treatment-yoke parallel running clearances. These are deliberately left
+# available over the long approach and consumed only by the terminal taper.
 RUNNING_X_CLEARANCE_MM = 0.16
 RUNNING_Z_CLEARANCE_MM = 0.12
 X_TAPER_SPAN_MM = 0.58
@@ -57,14 +56,13 @@ Z_PAD_X_WIDTH_MM = 3.20
 BACK_ENVELOPE_AVAILABLE_MM = 0.63
 BACK_ENVELOPE_MARGIN_MM = 0.03
 
-# Put the mathematical contact line 0.10 mm inside the shoulder's +Y edge. The
-# taper immediately opens toward +Y, so nominal geometry still has zero common
-# volume. This makes lateral/vertical hostile probes measurable rather than relying
-# on a zero-thickness coplanar edge contact.
-CONTACT_INSET_Y_MM = 0.10
+# The taper continues a short distance beyond the zero-clearance contact plane.
+# That continuation remains outside the shoulder at nominal seat, but enters the
+# shoulder under a -Y overtravel probe. It gives the digital model a real positive
+# seating datum instead of a zero-thickness end-edge that could simply translate.
+TAPER_OVERTRAVEL_EXTENSION_MM = 0.10
 
-# Small digital probes. These prove the directionality of the terminal seat rather
-# than production tolerance capability.
+# Small digital probes. They prove directionality, not production tolerance.
 AXIAL_OVERTRAVEL_PROBE_MM = 0.05
 LATERAL_ENGAGEMENT_PROBE_MM = 0.05
 VERTICAL_ENGAGEMENT_PROBE_MM = 0.05
@@ -132,16 +130,20 @@ def _x_taper_pad(
     shoulder_z0: float,
     sign: float,
 ) -> cq.Shape:
-    y0 = contact_y
-    y1 = contact_y + X_TAPER_SPAN_MM
+    entry_y = contact_y - X_TAPER_SPAN_MM
+    end_y = contact_y + TAPER_OVERTRAVEL_EXTENSION_MM
     half_w = SHOULDER_WIDTH_MM / 2.0
-    inner0 = cx + sign * half_w
-    inner1 = cx + sign * (half_w + RUNNING_X_CLEARANCE_MM)
+    inner_entry = cx + sign * (half_w + RUNNING_X_CLEARANCE_MM)
+    # Continue the same taper slope beyond the nominal contact plane. This material
+    # is outside the +Y shoulder edge at nominal seat and becomes a positive datum
+    # only if the carrier is driven past the selected seating coordinate.
+    inward_extension = RUNNING_X_CLEARANCE_MM * TAPER_OVERTRAVEL_EXTENSION_MM / X_TAPER_SPAN_MM
+    inner_end = cx + sign * (half_w - inward_extension)
     outer = cx + sign * (half_w + RUNNING_X_CLEARANCE_MM + SEAT_PAD_WALL_MM)
     if sign > 0.0:
-        outline = [(inner0, y0), (outer, y0), (outer, y1), (inner1, y1)]
+        outline = [(inner_entry, entry_y), (outer, entry_y), (outer, end_y), (inner_end, end_y)]
     else:
-        outline = [(outer, y0), (inner0, y0), (inner1, y1), (outer, y1)]
+        outline = [(outer, entry_y), (inner_entry, entry_y), (inner_end, end_y), (outer, end_y)]
     z0 = shoulder_z0 - X_PAD_Z_MARGIN_MM
     height = SHOULDER_THICKNESS_MM + 2.0 * X_PAD_Z_MARGIN_MM
     return (
@@ -161,15 +163,17 @@ def _z_taper_pad(
     shoulder_z0: float,
     sign: float,
 ) -> cq.Shape:
-    y0 = contact_y
-    y1 = contact_y + Z_TAPER_SPAN_MM
+    entry_y = contact_y - Z_TAPER_SPAN_MM
+    end_y = contact_y + TAPER_OVERTRAVEL_EXTENSION_MM
     contact_z = shoulder_z0 + (SHOULDER_THICKNESS_MM if sign > 0.0 else 0.0)
-    clear_z = contact_z + sign * RUNNING_Z_CLEARANCE_MM
-    outer_z = clear_z + sign * SEAT_PAD_WALL_MM
+    clear_entry_z = contact_z + sign * RUNNING_Z_CLEARANCE_MM
+    inward_extension = RUNNING_Z_CLEARANCE_MM * TAPER_OVERTRAVEL_EXTENSION_MM / Z_TAPER_SPAN_MM
+    inner_end_z = contact_z - sign * inward_extension
+    outer_z = clear_entry_z + sign * SEAT_PAD_WALL_MM
     if sign > 0.0:
-        outline = [(y0, contact_z), (y0, outer_z), (y1, outer_z), (y1, clear_z)]
+        outline = [(entry_y, clear_entry_z), (entry_y, outer_z), (end_y, outer_z), (end_y, inner_end_z)]
     else:
-        outline = [(y0, outer_z), (y0, contact_z), (y1, clear_z), (y1, outer_z)]
+        outline = [(entry_y, outer_z), (entry_y, clear_entry_z), (end_y, inner_end_z), (end_y, outer_z)]
     return (
         cq.Workplane("YZ", origin=(cx, 0.0, 0.0))
         .polyline(outline)
@@ -262,7 +266,7 @@ class TerminalKinematicSeat:
                 "running_z_clearance": RUNNING_Z_CLEARANCE_MM,
                 "x_taper_span": X_TAPER_SPAN_MM,
                 "z_taper_span": Z_TAPER_SPAN_MM,
-                "contact_inset_y": CONTACT_INSET_Y_MM,
+                "taper_overtravel_extension": TAPER_OVERTRAVEL_EXTENSION_MM,
                 "x_taper_half_angle_deg": ax,
                 "z_taper_half_angle_deg": az,
                 "back_envelope_available": BACK_ENVELOPE_AVAILABLE_MM,
@@ -325,8 +329,8 @@ def build_terminal_kinematic_seats(
     reactions: StructuralFrameActuatorReactionArchitecture | None = None,
     mates: StructuralFrameActuatorMateArchitecture | None = None,
 ) -> TerminalKinematicSeatArchitecture:
-    if max(X_TAPER_SPAN_MM, Z_TAPER_SPAN_MM) > BACK_ENVELOPE_AVAILABLE_MM - BACK_ENVELOPE_MARGIN_MM + 1e-12:
-        raise TreatmentTerminalKinematicSeatError("terminal taper exceeds current yoke back envelope")
+    if TAPER_OVERTRAVEL_EXTENSION_MM > BACK_ENVELOPE_AVAILABLE_MM - BACK_ENVELOPE_MARGIN_MM + 1e-12:
+        raise TreatmentTerminalKinematicSeatError("terminal overtravel wedge exceeds current yoke back envelope")
     model = build_model() if model is None else model
     reactions = build_structural_frame_actuator_reactions(model=model) if reactions is None else reactions
     mates = build_structural_frame_actuator_mates(model=model, reactions=reactions) if mates is None else mates
@@ -336,7 +340,7 @@ def build_terminal_kinematic_seats(
     built: list[TerminalKinematicSeat] = []
     for mate in mates.mates:
         cx, cy = mate.center_xy_mm
-        contact_y = cy + SHOULDER_HEIGHT_MM / 2.0 - CONTACT_INSET_Y_MM
+        contact_y = cy + SHOULDER_HEIGHT_MM / 2.0
         parts = (
             ("x_left_datum", _x_taper_pad(cx=cx, contact_y=contact_y, shoulder_z0=shoulder_z0, sign=-1.0)),
             ("x_right_datum", _x_taper_pad(cx=cx, contact_y=contact_y, shoulder_z0=shoulder_z0, sign=1.0)),
