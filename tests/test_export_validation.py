@@ -4,7 +4,6 @@ import cadquery as cq
 import pytest
 
 from masck_one.assertions import Check
-from masck_one.cli import main
 from masck_one import export as export_module
 from masck_one.export import _component_record, export_release
 from masck_one.model import build_model
@@ -45,10 +44,27 @@ def test_unknown_or_duplicate_export_identity_is_rejected(tmp_path, model):
     assert list(tmp_path.iterdir()) == []
 
 
-def test_production_cli_rejects_before_build_or_export(tmp_path, monkeypatch, capsys):
+def test_production_export_rejects_before_geometry_generation(tmp_path, monkeypatch):
     def unexpected_build():
         raise AssertionError("production refusal must precede geometry generation")
+
     monkeypatch.setattr(export_module, "build_model", unexpected_build)
-    assert main(["--production", "--output", str(tmp_path)]) == 1
-    assert "Production export is blocked" in capsys.readouterr().err
+    with pytest.raises(ExportValidationError, match="Production export is blocked"):
+        export_module.export_release(tmp_path, production=True)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_production_cli_forwards_scope_and_surfaces_refusal(tmp_path, monkeypatch, capsys):
+    import masck_one.cli as cli_module
+
+    calls = []
+
+    def refuse(output, *, production=False):
+        calls.append((output, production))
+        raise ExportValidationError("sentinel production refusal")
+
+    monkeypatch.setattr(cli_module, "export_release", refuse)
+    assert cli_module.main(["--production", "--output", str(tmp_path)]) == 1
+    assert calls == [(tmp_path, True)]
+    assert "sentinel production refusal" in capsys.readouterr().err
     assert list(tmp_path.iterdir()) == []
