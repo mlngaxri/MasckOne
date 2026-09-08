@@ -54,17 +54,35 @@ def _segment(a: tuple[float, float, float], b: tuple[float, float, float], diame
     if length <= 0.0:
         raise ValueError("route segment must have positive length")
     direction = cq.Vector(dx / length, dy / length, dz / length)
-    # Build on a plane normal to the segment, with a small overlap at each end so
-    # successive orthogonal cylinders fuse into one connected route reference.
+    # Build on a plane normal to the segment. The small terminal extension is a
+    # digital boolean robustness allowance, not tubing length or bend-radius evidence.
     plane = cq.Plane(origin=cq.Vector(ax, ay, az), normal=direction)
     return cq.Workplane(plane).circle(diameter / 2.0).extrude(length + 0.02, both=False)
 
 
+def _junction(point: tuple[float, float, float], diameter: float) -> cq.Workplane:
+    # A full-radius junction solid gives each sharp centerline turn finite overlap with
+    # both adjacent segment B-reps. It prevents tangent/edge-only boolean joins while
+    # remaining a geometric route reference rather than a selected fitting or tube bend.
+    return cq.Workplane("XY").sphere(diameter / 2.0).translate(point)
+
+
 def _route_solid() -> cq.Workplane:
-    solid = _segment(ROUTE_POINTS_WORLD_MM[0], ROUTE_POINTS_WORLD_MM[1], LUMEN_DIAMETER_SEED_MM)
-    for a, b in zip(ROUTE_POINTS_WORLD_MM[1:-1], ROUTE_POINTS_WORLD_MM[2:]):
-        solid = solid.union(_segment(a, b, LUMEN_DIAMETER_SEED_MM))
-    return solid
+    # Fuse at Shape level rather than chaining Workplane.union across differently
+    # oriented local planes. The previous Workplane construction could report one
+    # topological solid while OpenCascade still marked the result invalid at sharp turns.
+    shapes = [
+        _segment(a, b, LUMEN_DIAMETER_SEED_MM).val()
+        for a, b in zip(ROUTE_POINTS_WORLD_MM[:-1], ROUTE_POINTS_WORLD_MM[1:])
+    ]
+    shapes.extend(
+        _junction(point, LUMEN_DIAMETER_SEED_MM).val()
+        for point in ROUTE_POINTS_WORLD_MM[1:-1]
+    )
+    fused = shapes[0]
+    for shape in shapes[1:]:
+        fused = fused.fuse(shape)
+    return cq.Workplane(obj=fused)
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,6 +110,10 @@ class CleanserPumpDistribution:
             raise ValueError("cleanser pump screening package volume drifted")
         if self.route_centerline_length_mm <= 0.0 or self.neutral_geometric_lumen_volume_mL <= 0.0:
             raise ValueError("cleanser route geometric accounting must remain positive")
+        for point in ROUTE_POINTS_WORLD_MM[1:-1]:
+            witness = cq.Workplane("XY").sphere(LUMEN_DIAMETER_SEED_MM / 4.0).translate(point)
+            if self.route_reference_solid.val().intersect(witness.val()).Volume() <= 0.0:
+                raise ValueError("cleanser route junction continuity drifted")
 
     def manifest(self) -> dict[str, object]:
         payload = {
