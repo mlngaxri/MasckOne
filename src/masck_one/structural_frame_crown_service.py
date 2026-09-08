@@ -30,11 +30,19 @@ def _valid(shape: cq.Workplane, label: str) -> None:
         raise StructuralFrameCrownServiceError(f"{label} must be one valid positive-volume B-rep")
 
 
-def _intersection(a: cq.Workplane, b: cq.Workplane) -> float:
+def _intersection(a: cq.Workplane, b: cq.Workplane, *, label: str) -> float:
+    """Return positive common volume, failing closed if the kernel cannot prove it."""
     try:
-        return max(0.0, float(a.intersect(b).val().Volume()))
-    except Exception:
-        return 0.0
+        common = a.intersect(b).val()
+        if not common.isValid():
+            raise StructuralFrameCrownServiceError(f"{label} intersection result is invalid")
+        return max(0.0, float(common.Volume()))
+    except StructuralFrameCrownServiceError:
+        raise
+    except Exception as exc:
+        raise StructuralFrameCrownServiceError(
+            f"{label} intersection proof failed; collision-free status cannot be claimed"
+        ) from exc
 
 
 def _box_from_bounds(bb: cq.BoundBox, *, dx: float = 0.0, dy: float = 0.0, dz: float = 0.0) -> cq.Workplane:
@@ -104,7 +112,15 @@ def build_structural_frame_crown_service(*, crown: StructuralFrameCrownSupportAr
         clip_extension = clip_full.cut(clip_seated)
         _valid(pin_extension, f"{attachment.side} pin service extension")
         _valid(clip_extension, f"{attachment.side} clip service extension")
-        paths.append(CrownServicePath(attachment.side, pin_extension, clip_extension, round(_intersection(pin_extension, crown.crown_support), 8), round(_intersection(pin_extension, attachment.source_lug_reference), 8), round(_intersection(clip_extension, crown.crown_support), 8), round(_intersection(clip_extension, attachment.source_lug_reference), 8)))
+        paths.append(CrownServicePath(
+            attachment.side,
+            pin_extension,
+            clip_extension,
+            round(_intersection(pin_extension, crown.crown_support, label=f"{attachment.side} pin/crown"), 8),
+            round(_intersection(pin_extension, attachment.source_lug_reference, label=f"{attachment.side} pin/lug"), 8),
+            round(_intersection(clip_extension, crown.crown_support, label=f"{attachment.side} clip/crown"), 8),
+            round(_intersection(clip_extension, attachment.source_lug_reference, label=f"{attachment.side} clip/lug"), 8),
+        ))
     result = StructuralFrameCrownServiceArchitecture(crown.architecture_sha256, tuple(paths), False)
     result.__post_init__()
     return result
