@@ -92,8 +92,9 @@ class StructuralFrameCrownServiceArchitecture:
     physical_validation_eligible: bool = False
 
     def __post_init__(self) -> None:
-        if len(self.source_crown_architecture_sha256) != 64:
-            raise StructuralFrameCrownServiceError("source crown identity must be SHA-256")
+        source_sha = self.source_crown_architecture_sha256
+        if len(source_sha) != 64 or any(c not in "0123456789abcdef" for c in source_sha):
+            raise StructuralFrameCrownServiceError("source crown identity must be a lowercase SHA-256 digest")
         if tuple(p.side for p in self.paths) != ("WEARER_LEFT", "WEARER_RIGHT"):
             raise StructuralFrameCrownServiceError("bilateral crown service paths required")
         if self.physical_validation_eligible is not False:
