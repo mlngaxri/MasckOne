@@ -35,6 +35,8 @@ PIN_DIAMETER_MM = 1.8
 PIN_BORE_DIAMETER_MM = 2.0
 PIN_HEAD_DIAMETER_MM = 3.4
 PIN_HEAD_THICKNESS_MM = 0.8
+PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM = 0.2
+PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM = 0.15
 PIN_OVERHANG_MM = 0.7
 JOINT_X_FRACTION = 0.36
 JOINT_Y_FRACTION = 0.31
@@ -141,6 +143,8 @@ class ShellJoint:
                 "pin_bore_diameter": PIN_BORE_DIAMETER_MM,
                 "pin_head_diameter": PIN_HEAD_DIAMETER_MM,
                 "pin_head_thickness": PIN_HEAD_THICKNESS_MM,
+                "pin_head_relief_radial_clearance": PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM,
+                "pin_head_relief_axial_clearance": PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM,
             },
             "measured": {
                 "frame_capture_volume_mm3": self.frame_capture_volume_mm3,
@@ -211,14 +215,20 @@ def _box_at(center_x: float, center_y: float, z_center: float, width: float, hei
 
 
 def _pin_geometry(center_x: float, center_y: float, z_center: float, length: float) -> tuple[cq.Workplane, cq.Workplane]:
-    # Pins run along X for the left/right symmetric joint pairs. The shaft is captured
-    # by heads on both ends; each head extrudes away from the joint so the enlarged
-    # head never intrudes back into frame or shell material after the shaft bore cut.
+    # The shaft uses the controlled radial running clearance. Each enlarged head also
+    # receives its own coaxial shell-side relief pocket. The relief is real removed
+    # B-rep material, not a semantic waiver of a detected head/shell collision.
     shaft = cq.Workplane("YZ").circle(PIN_DIAMETER_MM / 2.0).extrude(length, both=True).translate((center_x, center_y, z_center))
     head_left = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(-PIN_HEAD_THICKNESS_MM).translate((center_x - length, center_y, z_center))
     head_right = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(PIN_HEAD_THICKNESS_MM).translate((center_x + length, center_y, z_center))
     pin = shaft.union(head_left).union(head_right)
-    bore = cq.Workplane("YZ").circle(PIN_BORE_DIAMETER_MM / 2.0).extrude(length + 2.0 * PIN_OVERHANG_MM, both=True).translate((center_x, center_y, z_center))
+
+    shaft_bore = cq.Workplane("YZ").circle(PIN_BORE_DIAMETER_MM / 2.0).extrude(length + 2.0 * PIN_OVERHANG_MM, both=True).translate((center_x, center_y, z_center))
+    relief_radius = PIN_HEAD_DIAMETER_MM / 2.0 + PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM
+    relief_depth = PIN_HEAD_THICKNESS_MM + PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM
+    head_relief_left = cq.Workplane("YZ").circle(relief_radius).extrude(-relief_depth).translate((center_x - length, center_y, z_center))
+    head_relief_right = cq.Workplane("YZ").circle(relief_radius).extrude(relief_depth).translate((center_x + length, center_y, z_center))
+    bore = shaft_bore.union(head_relief_left).union(head_relief_right)
     return pin, bore
 
 
