@@ -10,12 +10,17 @@ from masck_one.structural_frame_realization import build_structural_frame_realiz
 from masck_one.structural_frame_shell_joints import (
     JOINT_IDS,
     PIN_BORE_DIAMETER_MM,
+    PIN_CLIP_AXIAL_PROBE_MM,
+    PIN_CLIP_INNER_RADIUS_MM,
+    PIN_CLIP_OUTER_RADIUS_MM,
     PIN_DIAMETER_MM,
+    PIN_GROOVE_RADIUS_MM,
     PIN_HEAD_DIAMETER_MM,
     PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM,
     PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM,
     PIN_HEAD_THICKNESS_MM,
     PIN_OVERHANG_MM,
+    PIN_RETENTION_EXTENSION_MM,
     StructuralFrameShellJointError,
     build_structural_frame_shell_joints,
 )
@@ -46,6 +51,9 @@ def test_four_positive_shell_joint_counterparts_are_real_breps() -> None:
         assert joint.nominal_tenon_shell_intersection_mm3 <= 1e-7
         assert joint.nominal_pin_frame_intersection_mm3 <= 1e-7
         assert joint.nominal_pin_shell_intersection_mm3 <= 1e-7
+        assert joint.nominal_clip_pin_intersection_mm3 <= 1e-7
+        assert joint.clip_negative_axial_stop_intersection_mm3 > 0.0
+        assert joint.clip_positive_axial_stop_intersection_mm3 > 0.0
 
 
 def test_joint_manifest_is_deterministic_source_bound_and_not_physical_evidence() -> None:
@@ -57,36 +65,61 @@ def test_joint_manifest_is_deterministic_source_bound_and_not_physical_evidence(
     assert first.source_frame_geometry_sha256 == build_structural_frame_realization().geometry_sha256
     assert first.physical_validation_eligible is False
     assert first.manifest()["load_path_status"].startswith("POSITIVE_GEOMETRIC_COUNTERPARTS_REALIZED")
+    assert "SINGLE_HEADED_CAPTURE_PINS" in first.manifest()["service_status"]
     json.dumps(first.manifest(), sort_keys=True, allow_nan=False)
 
 
-def test_capture_pin_has_positive_radial_and_head_relief_clearance() -> None:
+def test_capture_pin_is_single_head_service_insertable_and_clip_retained() -> None:
     assert PIN_BORE_DIAMETER_MM > PIN_DIAMETER_MM
     assert PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM > 0.0
     assert PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM > 0.0
     assert PIN_HEAD_DIAMETER_MM > PIN_BORE_DIAMETER_MM
+    assert PIN_RETENTION_EXTENSION_MM > 0.0
+    assert PIN_GROOVE_RADIUS_MM < PIN_DIAMETER_MM / 2.0
+    assert PIN_GROOVE_RADIUS_MM < PIN_CLIP_INNER_RADIUS_MM < PIN_DIAMETER_MM / 2.0
+    assert PIN_CLIP_OUTER_RADIUS_MM > PIN_CLIP_INNER_RADIUS_MM
+    assert PIN_CLIP_AXIAL_PROBE_MM > 0.0
+
     architecture = build_structural_frame_shell_joints()
     for joint in architecture.joints:
         assert _intersection_volume(joint.pin, joint.frame_tenon_union) <= 1e-7
         assert _intersection_volume(joint.pin, joint.shell_with_mortise_and_pin_bore) <= 1e-7
-        dimensions = joint.manifest()["dimensions_mm"]
-        assert dimensions["pin_head_relief_radial_clearance"] == PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM
-        assert dimensions["pin_head_relief_axial_clearance"] == PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM
+        assert _intersection_volume(joint.retainer_clip, joint.pin) <= 1e-7
+        assert _intersection_volume(joint.retainer_clip.translate((-PIN_CLIP_AXIAL_PROBE_MM, 0.0, 0.0)), joint.pin) > 0.0
+        assert _intersection_volume(joint.retainer_clip.translate((PIN_CLIP_AXIAL_PROBE_MM, 0.0, 0.0)), joint.pin) > 0.0
+        manifest = joint.manifest()
+        assert manifest["service_installation_status"].startswith("ONE_PIECE_PIN_INSERTION")
+        assert manifest["dimensions_mm"]["pin_head_relief_radial_clearance"] == PIN_HEAD_RELIEF_RADIAL_CLEARANCE_MM
+        assert manifest["dimensions_mm"]["pin_head_relief_axial_clearance"] == PIN_HEAD_RELIEF_AXIAL_CLEARANCE_MM
 
 
 def test_regression_rejects_loss_of_pin_head_relief(monkeypatch: pytest.MonkeyPatch) -> None:
     import masck_one.structural_frame_shell_joints as joints
 
-    def legacy_pin_geometry(center_x, center_y, z_center, length):
-        shaft = cq.Workplane("YZ").circle(PIN_DIAMETER_MM / 2.0).extrude(length, both=True).translate((center_x, center_y, z_center))
-        head_left = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(-PIN_HEAD_THICKNESS_MM).translate((center_x - length, center_y, z_center))
-        head_right = cq.Workplane("YZ").circle(PIN_HEAD_DIAMETER_MM / 2.0).extrude(PIN_HEAD_THICKNESS_MM).translate((center_x + length, center_y, z_center))
-        pin = shaft.union(head_left).union(head_right)
-        shaft_bore = cq.Workplane("YZ").circle(PIN_BORE_DIAMETER_MM / 2.0).extrude(length + 2.0 * PIN_OVERHANG_MM, both=True).translate((center_x, center_y, z_center))
-        return pin, shaft_bore
+    original = joints._pin_geometry
 
-    monkeypatch.setattr(joints, "_pin_geometry", legacy_pin_geometry)
+    def no_head_relief(center_x, center_y, z_center, length):
+        pin, _bore, clip = original(center_x, center_y, z_center, length)
+        shaft_half_span = length + PIN_RETENTION_EXTENSION_MM
+        shaft_bore = cq.Workplane("YZ").circle(PIN_BORE_DIAMETER_MM / 2.0).extrude(shaft_half_span + PIN_OVERHANG_MM, both=True).translate((center_x, center_y, z_center))
+        return pin, shaft_bore, clip
+
+    monkeypatch.setattr(joints, "_pin_geometry", no_head_relief)
     with pytest.raises(StructuralFrameShellJointError, match="shell-side bore"):
+        joints.build_structural_frame_shell_joints()
+
+
+def test_regression_rejects_retainer_without_positive_groove_shoulders(monkeypatch: pytest.MonkeyPatch) -> None:
+    import masck_one.structural_frame_shell_joints as joints
+
+    original = joints._pin_geometry
+
+    def clip_far_from_groove(center_x, center_y, z_center, length):
+        pin, bore, clip = original(center_x, center_y, z_center, length)
+        return pin, bore, clip.translate((20.0, 0.0, 0.0))
+
+    monkeypatch.setattr(joints, "_pin_geometry", clip_far_from_groove)
+    with pytest.raises(StructuralFrameShellJointError, match="positively captured"):
         joints.build_structural_frame_shell_joints()
 
 
