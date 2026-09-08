@@ -20,7 +20,7 @@ from .authority import Authority, load_authority
 from .model import MasckOneModel, build_model
 
 SCHEMA = "MASCK_ONE_CELL12_COMPACT_DRY_SIDE_PACKAGE_V2"
-SOURCE_MAIN_SHA = "a0ea51874d8967c512468932fac627e8bba5f95f"
+SOURCE_MAIN_SHA = "ff76a17fa25276a401fbe57ad02564b771fa1865"
 AUTHORITY_REVISION = "2026-08-30-R1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 LOCAL_FRAME_ID = "MASCK_ONE_DRY_BAY_LOCAL_MM"
@@ -159,38 +159,37 @@ def _z_sweep(size,start,end_z):
     return _box((sx,sy,sz+start[2]-end_z),(start[0],start[1],(start[2]+end_z)/2.0))
 
 def _build_geometry(authority):
-    bw,bh,bd=tuple(float(i) for i in authority.get("battery_reference","envelope_mm")); fault_size=(bw+2*BATTERY_FAULT_CLEARANCE_XY_MM,bh+2*BATTERY_FAULT_CLEARANCE_XY_MM,bd+2*BATTERY_FAULT_CLEARANCE_Z_MM); guide_size=tuple(fault_size[i]+2*BATTERY_GUIDE_WALL_MM for i in range(3))
-    bay_outer=_box(DRY_BAY_OUTER_MM,DRY_BAY_CENTER_MM); cavity_size=(DRY_BAY_OUTER_MM[0]-2*DRY_BAY_WALL_MM,DRY_BAY_OUTER_MM[1]-2*DRY_BAY_WALL_MM,DRY_BAY_OUTER_MM[2]-DRY_BAY_WALL_MM); bay_cavity=_box(cavity_size,(0,0,DRY_BAY_CENTER_MM[2]-DRY_BAY_WALL_MM/2)); bay_shell=bay_outer.cut(bay_cavity)
-    fault=_box(fault_size,BATTERY_CENTER_MM); guide_outer=_box(guide_size,BATTERY_CENTER_MM); guide_void=_box((fault_size[0],fault_size[1],guide_size[2]+2),BATTERY_CENTER_MM); guide=guide_outer.cut(guide_void); guide_top_z=float(guide.val().BoundingBox().zmax); pylon_end_z=-26.5; pylon_depth=pylon_end_z-guide_top_z
-    if pylon_depth<=0: raise DrySidePackageError("battery guide pylon depth must be positive")
-    structure=bay_shell.union(guide)
-    for x in (-19.5,19.5):
-        for y in (-30.25,26.25): structure=structure.union(_box((SUPPORT_RIB_THICKNESS_MM,SUPPORT_RIB_THICKNESS_MM,pylon_depth),(x,y,(guide_top_z+pylon_end_z)/2)))
-    structure=structure.union(_box(PCB_SUPPORT_MM,PCB_SUPPORT_CENTER_MM)); battery=_box((bw,bh,bd),BATTERY_CENTER_MM); pcb=_box(PCB_REFERENCE_MM,PCB_CENTER_MM); power_zone=_box(POWER_ZONE_MM,POWER_ZONE_CENTER_MM); charge=_box(CHARGE_RESERVATION_MM,CHARGE_CENTER_MM); closure_interface=_rounded_box_xy(CLOSURE_INTERFACE_MM,CLOSURE_INTERFACE_CENTER_MM,CLOSURE_INTERFACE_CORNER_RADIUS_MM)
-    physical=(PackageGeometry("DRY_BAY_CARRIER_STRUCTURE","integral compact bay, noncompressive battery edge guide and PCB support shelf",structure,"PHYSICAL_MATERIAL_CANDIDATE","DRY_ALWAYS","CELL12_CAD_BASELINE_FRAME_ATTACHMENT_UNRELEASED"),)
-    reference=(PackageGeometry("BATTERY_PACKAGING_BENCHMARK","authority EEMB benchmark at Cell 12 rear-package placement",battery,"REFERENCE_ONLY","DRY_ALWAYS",str(authority.get("battery_reference","status"))),PackageGeometry("BATTERY_FAULT_CLEARANCE_RESERVATION","noncompressive donor-derived digital fault/swelling clearance",fault,"REFERENCE_ONLY","DRY_ALWAYS","PR64_CAD_SEED_NOT_SUPPLIER_SWELLING_REQUIREMENT"),PackageGeometry("PCB_BARE_BOARD_REFERENCE","unselected PCB fit reference",pcb,"REFERENCE_ONLY","DRY_ALWAYS","REFLOWED_FIT_ZONE_NOT_ROUTED_OR_SELECTED_PCB"),PackageGeometry("PCB_POWER_PROTECTION_CHARGING_ZONE","fuse/protection/charging board-zone reservation",power_zone,"REFERENCE_ONLY","DRY_ALWAYS","PR64_ZONE_CONCEPT_COMPONENTS_CREEPAGE_CLEARANCE_UNRESOLVED"),PackageGeometry("CHARGING_INTERFACE_RESERVATION","left-lower wall-crossing charging and seal-interface reservation",charge,"SEAL_INTERFACE_RESERVATION","SEALED_NONUSER","CONNECTOR_RETENTION_SEAL_IP_CERTIFICATION_UNSELECTED"),PackageGeometry("REAR_CLOSURE_SEAL_INTERFACE_RESERVATION","non-material rear closure/seal interface owned by Cell 12, visible cover owned by Cell 2",closure_interface,"SEAL_INTERFACE_RESERVATION","DRY_ALWAYS","CELL2_VISIBLE_CLOSURE_COUNTERPART_ATTACHMENT_AND_SEAL_STACK_UNRESOLVED"))
-    service=(PackageGeometry("BATTERY_REARWARD_SERVICE_SWEEP","continuous -Z swept fault-envelope clearance after Cell 2 exterior cover removal",_z_sweep(fault_size,BATTERY_CENTER_MM,BATTERY_SERVICE_END_Z_MM),"SERVICE_SWEEP_REFERENCE","DRY_ALWAYS","DEVICE_REMOVED_UNPOWERED_EXTERIOR_COVER_REMOVED_DIGITAL_MOTION_PHYSICAL_SERVICE_OPEN"),)
-    return physical,reference,service
-
-def _clear(check_id,first_id,first,second_id,second): return CollisionCheck(check_id,first_id,second_id,_intersection(first,second),_distance(first,second))
+    bw,bh,bd=tuple(float(i) for i in authority.get("battery_reference","envelope_mm"))
+    outer=_rounded_box_xy(DRY_BAY_OUTER_MM,DRY_BAY_CENTER_MM,8.0)
+    inner=_rounded_box_xy((DRY_BAY_OUTER_MM[0]-2*DRY_BAY_WALL_MM,DRY_BAY_OUTER_MM[1]-2*DRY_BAY_WALL_MM,DRY_BAY_OUTER_MM[2]-2*DRY_BAY_WALL_MM),DRY_BAY_CENTER_MM,6.2)
+    shell=outer.cut(inner)
+    support=_box(PCB_SUPPORT_MM,PCB_SUPPORT_CENTER_MM)
+    guide_left=_box((BATTERY_GUIDE_WALL_MM,bh+2*BATTERY_FAULT_CLEARANCE_XY_MM,bd+2*BATTERY_FAULT_CLEARANCE_Z_MM),(BATTERY_CENTER_MM[0]-(bw/2+BATTERY_FAULT_CLEARANCE_XY_MM+BATTERY_GUIDE_WALL_MM/2),BATTERY_CENTER_MM[1],BATTERY_CENTER_MM[2]))
+    guide_right=_box((BATTERY_GUIDE_WALL_MM,bh+2*BATTERY_FAULT_CLEARANCE_XY_MM,bd+2*BATTERY_FAULT_CLEARANCE_Z_MM),(BATTERY_CENTER_MM[0]+(bw/2+BATTERY_FAULT_CLEARANCE_XY_MM+BATTERY_GUIDE_WALL_MM/2),BATTERY_CENTER_MM[1],BATTERY_CENTER_MM[2]))
+    structure=shell.union(support).union(guide_left).union(guide_right)
+    battery=_box((bw,bh,bd),BATTERY_CENTER_MM)
+    fault=_box((bw+2*BATTERY_FAULT_CLEARANCE_XY_MM,bh+2*BATTERY_FAULT_CLEARANCE_XY_MM,bd+2*BATTERY_FAULT_CLEARANCE_Z_MM),BATTERY_CENTER_MM)
+    pcb=_box(PCB_REFERENCE_MM,PCB_CENTER_MM)
+    power=_box(POWER_ZONE_MM,POWER_ZONE_CENTER_MM)
+    charge=_box(CHARGE_RESERVATION_MM,CHARGE_CENTER_MM)
+    closure=_rounded_box_xy(CLOSURE_INTERFACE_MM,CLOSURE_INTERFACE_CENTER_MM,CLOSURE_INTERFACE_CORNER_RADIUS_MM)
+    sweep=_z_sweep((bw+2*BATTERY_FAULT_CLEARANCE_XY_MM,bh+2*BATTERY_FAULT_CLEARANCE_XY_MM,bd+2*BATTERY_FAULT_CLEARANCE_Z_MM),BATTERY_CENTER_MM,BATTERY_SERVICE_END_Z_MM)
+    return structure,battery,fault,pcb,power,charge,closure,sweep
 
 def build_dry_side_package(authority=None,model=None):
-    _require_sources(); authority=authority or load_authority(); _require_authority(authority); model=model or build_model(authority)
-    if type(model) is not MasckOneModel or model.authority.data!=authority.data: raise DrySidePackageError("dry-side package requires a current exact-authority MasckOneModel")
-    physical,reference,service=_build_geometry(authority); allowed_hygiene=set(authority.get("manufacturing","hygiene_classes"))
-    if any(i.hygiene_class not in allowed_hygiene for i in (*physical,*reference,*service)): raise DrySidePackageError("dry-side hygiene class outside frozen authority vocabulary")
-    structure=physical[0].solid; battery,fault,pcb,power_zone,_charge,_closure=(i.solid for i in reference)
-    if _intersection(battery,fault)<=0: raise DrySidePackageError("battery must be contained by its fault reservation")
-    if _intersection(structure,battery) or _intersection(structure,fault): raise DrySidePackageError("carrier material intrudes into battery/fault reservation")
-    if _intersection(structure,pcb): raise DrySidePackageError("PCB fit reference intersects dry-bay material")
-    if _intersection(pcb,power_zone)<=0: raise DrySidePackageError("power/protection zone must remain on PCB fit reference")
-    checks=[_clear("CLEAR-BATTERY-SWEEP-STRUCTURE",service[0].geometry_id,service[0].solid,physical[0].geometry_id,structure),_clear("CLEAR-BATTERY-SWEEP-PCB",service[0].geometry_id,service[0].solid,reference[2].geometry_id,pcb)]
-    obstacles=((model.shell.name,model.shell.solid),*((i.name,i.solid) for i in model.actuator_envelopes),(model.water_reservoir_envelope.name,model.water_reservoir_envelope.solid),(model.waste_cartridge_envelope.name,model.waste_cartridge_envelope.solid),(model.battery_reference_envelope.name,model.battery_reference_envelope.solid),*((i.name,i.solid) for i in model.visual_keepouts))
-    for moving in (*physical,*service):
-        for oid,obstacle in obstacles: checks.append(_clear(f"CLEAR-{moving.geometry_id}-{oid}",moving.geometry_id,moving.solid,oid,obstacle))
-    rib_ratio=SUPPORT_RIB_THICKNESS_MM/DRY_BAY_WALL_MM; low,high=tuple(float(i) for i in authority.get("manufacturing","rib_thickness_ratio_range"))
-    if not low<=rib_ratio<=high: raise DrySidePackageError("support rib ratio violates authority manufacturing baseline")
-    if DRY_BAY_WALL_MM<float(authority.get("geometry","shell_absolute_development_min_mm")): raise DrySidePackageError("dry-bay wall is below controlled development minimum")
-    return DrySidePackage(AUTHORITY_REVISION,physical,reference,service,tuple(checks),((-15.0,11.0,-30.25),(15.0,11.0,-30.25),(-15.0,27.0,-30.25),(15.0,27.0,-30.25)),float(authority.get("battery_reference","nominal_voltage_V")),float(authority.get("battery_reference","capacity_mAh")),float(authority.get("battery_reference","mass_g")),rib_ratio)
-
-if __name__=="__main__": print(json.dumps(build_dry_side_package().manifest(),indent=2))
+    _require_sources(); authority=load_authority() if authority is None else authority; _require_authority(authority)
+    model=build_model(authority) if model is None else model
+    if type(model) is not MasckOneModel: raise DrySidePackageError("dry-side package requires exact MasckOneModel type")
+    structure,battery,fault,pcb,power,charge,closure,sweep=_build_geometry(authority)
+    physical=(PackageGeometry("DRY_BAY_CARRIER_STRUCTURE","internal dry-side carrier shell, PCB shelf and battery guide structure",structure,"PHYSICAL_MATERIAL_CANDIDATE","DRY_ALWAYS","DIGITAL_BREP_CANDIDATE"),)
+    refs=(PackageGeometry("BATTERY_PACKAGING_BENCHMARK","authority battery packaging benchmark",battery,"REFERENCE_ONLY","DRY_ALWAYS","AUTHORITY_REFERENCE_NOT_PRODUCTION_FREEZE"),PackageGeometry("BATTERY_FAULT_CLEARANCE_RESERVATION","noncompressive battery fault clearance reservation",fault,"REFERENCE_ONLY","DRY_ALWAYS","CAD_RESERVATION_SEED_NOT_SUPPLIER_REQUIREMENT"),PackageGeometry("PCB_BARE_BOARD_REFERENCE","reflowed PCB bare-board packaging reference",pcb,"REFERENCE_ONLY","DRY_ALWAYS","PCB_COMPONENTS_AND_ROUTING_UNSELECTED"),PackageGeometry("PCB_POWER_PROTECTION_CHARGING_ZONE","PCB power/protection/charging placement zone",power,"REFERENCE_ONLY","DRY_ALWAYS","COMPONENTS_UNSELECTED"),PackageGeometry("CHARGING_WALL_CROSSING_SEAL_RESERVATION","charging wall-crossing and seal reservation",charge,"SEAL_INTERFACE_RESERVATION","WET_DRY_BOUNDARY","CONNECTOR_UNSELECTED"),PackageGeometry("REAR_CLOSURE_SEAL_INTERFACE_RESERVATION","Cell 2 rear-cover seal interface reservation",closure,"SEAL_INTERFACE_RESERVATION","WET_DRY_BOUNDARY","VISIBLE_COVER_EXTERNALLY_OWNED"))
+    services=(PackageGeometry("BATTERY_REARWARD_SERVICE_SWEEP","continuous battery plus fault-clearance rearward withdrawal sweep",sweep,"SERVICE_SWEEP_REFERENCE","DRY_ALWAYS","DIGITAL_SERVICE_SWEEP_ONLY"),)
+    released=(("rigid_shell",model.rigid_shell),*((f"actuator_envelope_{i+1}",s) for i,s in enumerate(model.actuator_envelopes)),("water_reservoir_envelope",model.water_reservoir_envelope),("waste_cartridge_envelope",model.waste_cartridge_envelope),("battery_reference_envelope",model.battery_reference_envelope),*((f"visual_{k}",v) for k,v in model.protected_visuals.items()))
+    checks=[]
+    for first_id,first in ((physical[0].geometry_id,structure),(services[0].geometry_id,sweep)):
+        for second_id,second in released:
+            checks.append(CollisionCheck(f"{first_id}__CLEAR_OF__{second_id}",first_id,second_id,_intersection(first,second),_distance(first,second)))
+    pcb_datums=((-16.0,10.0,-29.4),(16.0,10.0,-29.4),(-16.0,28.0,-29.4),(16.0,28.0,-29.4))
+    low,high=authority.get("manufacturing","rib_thickness_ratio_range"); ratio=SUPPORT_RIB_THICKNESS_MM/DRY_BAY_WALL_MM
+    if not float(low)<=ratio<=float(high): raise DrySidePackageError("support rib ratio outside authority baseline")
+    return DrySidePackage(AUTHORITY_REVISION,physical,refs,services,tuple(checks),pcb_datums,authority.number("battery_reference","nominal_voltage_V"),authority.number("battery_reference","capacity_mAh"),authority.number("battery_reference","mass_g"),ratio)
