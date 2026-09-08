@@ -191,4 +191,5 @@ def test_release_export_emits_dfm_gate_and_excludes_proxy_from_physical_assembly
         assert record["step_roundtrip"]["status"] == "PASS"
         assert solid_volume(imported.val()) == pytest.approx(record["step_roundtrip"]["step_volume_mm3"], rel=0, abs=1e-8)
     package = verify_package(tmp_path)
-    assert set(package["files"]) == {*report["exported_step_files"], "build_report.json"}
+    payload_manifests = set(report["exported_manifests"]) - {"package_manifest.json"}
+    assert set(package["files"]) == {*report["exported_step_files"], *payload_manifests}
