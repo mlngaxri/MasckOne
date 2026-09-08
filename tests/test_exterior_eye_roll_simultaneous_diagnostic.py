@@ -7,6 +7,7 @@ release regressions continue to require the canonical result to be one valid pos
 solid with the protected openings preserved.
 """
 
+import cadquery as cq
 import pytest
 
 from masck_one.anatomy import build_facial_reference
@@ -52,7 +53,7 @@ def supported_protected_shell():
         )
         supported = supported.fuse(patch).clean()
 
-    cut = cut_rigid_hard_envelopes(supported, protected).val()
+    cut = cut_rigid_hard_envelopes(cq.Workplane(obj=supported), protected).val()
     return authority, protected, _single_solid(cut, "simultaneous-roll source")
 
 
