@@ -309,7 +309,17 @@ def test_export_uses_registry_as_physical_material_boundary(monkeypatch, tmp_pat
         "build_current_component_registry",
         lambda model, waste_release: registry,
     )
-    monkeypatch.setattr(release_export.cq.exporters, "export", lambda *args, **kwargs: None)
+
+    def write_fixture_step(_shape, path, *args, **kwargs):
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write("fixture STEP placeholder\n")
+
+    monkeypatch.setattr(release_export.cq.exporters, "export", write_fixture_step)
+    monkeypatch.setattr(
+        release_export,
+        "verify_step_geometry",
+        lambda *args, **kwargs: {"status": "PASS", "fixture": True},
+    )
     monkeypatch.setattr(
         release_export,
         "run_assertions",
