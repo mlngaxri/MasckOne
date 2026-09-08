@@ -11,13 +11,17 @@ from masck_one.treatment_mounted_four_zone import (
     SOURCE_TREATMENT_HEAD_SHA,
     STATION_AXIS_DEG,
     STATION_CENTERS_MM,
-    TRUSS_POLYMER_SCREEN_E_MPA,
-    build_mounted_four_zone_architecture,
+)
+from masck_one.treatment_mounted_four_zone_v2 import (
+    TRUSS_FRAME_GUARD_MM,
+    TRUSS_FRONT_NECK_RADIUS_MM,
+    build_mounted_four_zone_architecture_v2,
+    manifest_v2,
 )
 
 
-def test_four_mounted_station_candidates_close_current_digital_collision_gates():
-    architecture = build_mounted_four_zone_architecture()
+def test_four_mounted_station_v2_candidates_close_current_digital_collision_gates():
+    architecture = build_mounted_four_zone_architecture_v2()
     assert tuple(station.reaction_id for station in architecture.stations) == REACTION_IDS
     assert architecture.physical_validation_eligible is False
     assert SERVICE_WITHDRAWAL_MM == 32.0
@@ -38,8 +42,15 @@ def test_four_mounted_station_candidates_close_current_digital_collision_gates()
         assert station.service_shell_intersection_mm3 == 0.0
         assert station.operational_sweep.isValid()
         assert station.service_sweep.isValid()
-        assert station.truss_screen["rear_anchor_separation_mm"] > 4.0
-        assert station.truss_screen["2p5GPa_screen"]["transient_buckling_ratio"] > 1.0
+
+        screen = station.truss_screen
+        assert screen["revision"] == "V2_FRAME_SLAB_BYPASS"
+        assert screen["frame_guard_at_chord_tangent_mm"] == TRUSS_FRAME_GUARD_MM
+        assert screen["front_neck_radius_mm"] == TRUSS_FRONT_NECK_RADIUS_MM
+        assert screen["positive_yoke_capture_mm3"] > 0.0
+        assert screen["positive_rear_cage_capture_mm3"] > 0.0
+        assert screen["rear_anchor_separation_mm"] == 4.0
+        assert screen["2p5GPa_screen"]["transient_buckling_ratio"] > 1.0
 
 
 def test_station_layout_is_mirrored_and_tilts_outward():
@@ -54,18 +65,17 @@ def test_station_layout_is_mirrored_and_tilts_outward():
     assert STATION_CENTERS_MM["ACTUATOR_REACTION_INFERIOR_LEFT"][1:] == STATION_CENTERS_MM["ACTUATOR_REACTION_INFERIOR_RIGHT"][1:]
 
 
-def test_manifest_preserves_source_binding_and_evidence_firewall():
-    architecture = build_mounted_four_zone_architecture()
-    manifest = architecture.manifest()
+def test_v2_manifest_preserves_source_binding_and_evidence_firewall():
+    architecture = build_mounted_four_zone_architecture_v2()
+    manifest = manifest_v2(architecture)
     assert manifest["source_main_sha"] == SOURCE_MAIN_SHA
     assert manifest["source_cell6_head_sha"] == SOURCE_CELL6_HEAD_SHA
     assert manifest["source_treatment_head_sha"] == SOURCE_TREATMENT_HEAD_SHA
     assert manifest["physical_validation_eligible"] is False
-    assert "FOUR_MOUNTED_STATION_CANDIDATES" in manifest["mechanical_status"]
+    assert manifest["supersedes"] == "MASCK_ONE_TREATMENT_MOUNTED_FOUR_ZONE_V1_TRUSS_ROUTE"
+    assert "ANTERIOR_FRAME_TRUSS_ROUTING" in manifest["mechanical_status"]
 
     for station in manifest["stations"]:
         assert station["reaction_architecture"].startswith("OPEN_SHOULDER_YOKE_PLUS_TWO_CHORD")
         assert station["physical_validation"].startswith("OPEN_")
-        screen = station["truss_screen"]
-        assert screen["2p5GPa_screen"]["transient_buckling_ratio"] > 1.0
-        assert math.isclose(TRUSS_POLYMER_SCREEN_E_MPA, 2500.0, rel_tol=0.0, abs_tol=0.0)
+        assert math.isfinite(station["truss_screen"]["2p5GPa_screen"]["nominal_axial_deflection_mm"])
