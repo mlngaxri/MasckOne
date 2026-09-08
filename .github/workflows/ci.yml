@@ -157,6 +157,27 @@ jobs:
       - name: Deterministic CAD smoke build
         run: python -m masck_one.cli --output /tmp/masck-one-generated
 
+      - name: Verify registry release-base provenance
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          registry = json.loads(
+              Path("/tmp/masck-one-generated/component_registry.json").read_text(encoding="utf-8")
+          )
+          provenance = json.loads(
+              Path("/tmp/masck-one-ci-source-provenance.json").read_text(encoding="utf-8")
+          )
+          source_base = provenance["source_base_sha"]
+          if source_base is not None and registry["source_main_sha"] != source_base:
+              raise SystemExit(
+                  "component_registry.json source_main_sha "
+                  f"{registry['source_main_sha']} != CI provenance source_base_sha {source_base}"
+              )
+          PY
+
       - name: Verify generated package integrity
         run: python -m masck_one.release_package /tmp/masck-one-generated
 
