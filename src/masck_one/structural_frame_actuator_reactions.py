@@ -25,7 +25,10 @@ REACTION_IDS = (
 
 # Deterministic DIGITAL MVP geometry seeds. These are not production tolerances,
 # fastener release dimensions, material allowables, force capability, or fatigue proof.
-REACTION_X_MM = 66.0
+# X=69 mm is the first controlled frame-side seed in this lineage that keeps the
+# complete 10 mm boss outside the authority-derived eye protected envelope while
+# retaining positive B-rep capture into the released reaction loop at Y=48 mm.
+REACTION_X_MM = 69.0
 REACTION_Y_MM = 48.0
 BOSS_WIDTH_MM = 10.0
 BOSS_HEIGHT_MM = 10.0
