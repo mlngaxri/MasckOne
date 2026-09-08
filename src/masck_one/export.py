@@ -10,6 +10,7 @@ from .boundary_release import (
     boundary_release_manifest,
     build_verified_interface_boundary_topology,
 )
+from .cleanser_cassette_reconciliation import build_reconciled_cleanser_cassette
 from .component_registry import build_current_component_registry
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
@@ -44,6 +45,7 @@ def _realized_waste_backbone_manifest(
 def export_release(output_dir: str | Path = "generated", model: MasckOneModel | None = None) -> dict:
     model = model or build_model()
     output = _ensure_output_dir(output_dir)
+    cleanser_cassette = build_reconciled_cleanser_cassette(model.authority)
 
     export_map = {
         "rigid_shell": model.shell.solid,
@@ -51,6 +53,18 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "water_reservoir_envelope": model.water_reservoir_envelope.solid,
         "waste_cartridge_envelope": model.waste_cartridge_envelope.solid,
         "battery_reference_envelope": model.battery_reference_envelope.solid,
+        "cleanser_cassette_body": cleanser_cassette.body_solid,
+        "cleanser_cassette_cradle": cleanser_cassette.cradle_solid,
+        "cleanser_cassette_retention_key_locked": cleanser_cassette.retention_key_locked_solid,
+        "cleanser_cassette_internal_cavity_reference": cleanser_cassette.cavity_reference_solid,
+        "cleanser_cassette_refill_closure_reservation_reference": cleanser_cassette.source_storage.refill_closure_reservation_solid,
+        "cleanser_cassette_purge_connector_reservation_reference": cleanser_cassette.source_storage.purge_connector_reservation_solid,
+        "cleanser_cassette_outlet_connector_reservation_reference": cleanser_cassette.source_storage.outlet_connector_reservation_solid,
+        "cleanser_cassette_drain_path_reference": cleanser_cassette.source_storage.drain_path_reference_solid,
+        "cleanser_cassette_key_unlock_rotation_sweep_reference": cleanser_cassette.key_unlock_rotation_sweep_reference_solid,
+        "cleanser_cassette_key_withdrawal_sweep_reference": cleanser_cassette.key_withdrawal_sweep_reference_solid,
+        "cleanser_cassette_withdrawal_sweep_reference": cleanser_cassette.cassette_withdrawal_sweep_reference_solid,
+        "cleanser_upstream_complete_module_service_envelope_reference": cleanser_cassette.upstream_complete_module_service_envelope_reference_solid,
     }
     for index, actuator in enumerate(model.actuator_envelopes, start=1):
         export_map[f"actuator_envelope_{index}"] = actuator.solid
@@ -81,8 +95,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     cq.exporters.export(compound, str(output / "masck_one_development_assembly.step"))
 
     development_assembly_exclusions = tuple(
-        sorted(set(model_component_by_name) - set(physical_material_names))
-    )
+        sorted(
+            set(model_component_by_name) - set(physical_material_names)
+        )
+    ) + ("cleanser_cassette_pending_positive_cradle_to_frame_attachment",)
 
     registry_manifest = component_registry.manifest()
     with (output / "component_registry.json").open("w", encoding="utf-8") as handle:
@@ -100,6 +116,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+    cleanser_manifest = cleanser_cassette.manifest()
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -121,6 +138,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(waste_release),
+            "realized_cleanser_cassette": cleanser_manifest,
         },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
@@ -132,7 +150,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "development_assembly_exclusions": list(development_assembly_exclusions),
         "exported_step_files": [f"{name}.step" for name in export_map]
         + ["masck_one_development_assembly.step"],
-        "exported_manifests": ["component_registry.json", "build_report.json"],
+        "exported_manifests": [
+            "component_registry.json",
+            "cleanser_cassette_manifest.json",
+            "build_report.json",
+        ],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The canonical component registry "
             "is the physical-material boundary for the development assembly: only released PHYSICAL_MATERIAL may enter "
@@ -143,11 +165,17 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
             "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
-            "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
-            "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "realized. The reconciled cleanser cassette consumes source-bound body/cavity/port geometry and adds positive "
+            "rotate-to-release key capture plus digital tolerance closure, but remains outside the physical development "
+            "compound until a released positive cradle-to-frame attachment exists. Cleanser compatibility, sealing, "
+            "usable capacity, dose, leakage, hygiene, service force, durability and flow remain physical gates. Reference "
+            "cavity, reservation and service-sweep STEP files must never be interpreted as physical material. Digital "
+            "topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
+    with (output / "cleanser_cassette_manifest.json").open("w", encoding="utf-8") as handle:
+        json.dump(cleanser_manifest, handle, indent=2, allow_nan=False)
+        handle.write("\n")
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=2, allow_nan=False)
         handle.write("\n")
