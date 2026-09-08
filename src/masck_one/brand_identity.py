@@ -47,12 +47,27 @@ _UniqueKeySafeLoader.add_constructor(
 )
 
 
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
 def default_brand_authority_path() -> Path:
-    return Path(__file__).resolve().parents[2] / "config" / "masck_brand_authority.yaml"
+    return _repo_root() / "config" / "masck_brand_authority.yaml"
 
 
 def default_brand_schema_path() -> Path:
-    return Path(__file__).resolve().parents[2] / "schemas" / "masck_brand_authority.schema.json"
+    return _repo_root() / "schemas" / "masck_brand_authority.schema.json"
+
+
+def _stable_contract_path(path: Path) -> str:
+    resolved = path.resolve()
+    root = _repo_root().resolve()
+    try:
+        return resolved.relative_to(root).as_posix()
+    except ValueError:
+        # Explicit external test/override paths stay distinguishable without leaking
+        # machine-specific absolute roots into normal deterministic release artifacts.
+        return f"external:{resolved.name}"
 
 
 @dataclass(frozen=True)
@@ -108,8 +123,8 @@ class BrandIdentity:
             "cmf": self.data["cmf"],
             "cost_discipline": self.data["cost_discipline"],
             "evidence_boundary": self.data["evidence_boundary"],
-            "source_contract": str(self.source),
-            "schema_contract": str(self.schema_source),
+            "source_contract": _stable_contract_path(self.source),
+            "schema_contract": _stable_contract_path(self.schema_source),
             "canonical_content_sha256": sha256(canonical.encode("utf-8")).hexdigest(),
         }
 
