@@ -36,6 +36,7 @@ jobs:
             src/masck_one/treatment_carrier_counterpart.py \
             src/masck_one/treatment_mounted_four_zone.py \
             src/masck_one/treatment_mounted_four_zone_v2.py \
+            src/masck_one/treatment_mounted_four_zone_v3.py \
             src/masck_one/treatment_terminal_kinematic_seat.py \
             studies/treatment_live117_reconciliation.py \
             studies/treatment_mount_play_budget.py
@@ -45,5 +46,6 @@ jobs:
             tests/test_treatment_live117_reconciliation.py \
             tests/test_treatment_carrier_counterpart.py \
             tests/test_treatment_mounted_four_zone.py \
+            tests/test_treatment_mounted_four_zone_v3.py \
             tests/test_treatment_mount_play_budget.py \
             tests/test_treatment_terminal_kinematic_seat.py
