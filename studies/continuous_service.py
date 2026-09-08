@@ -65,9 +65,16 @@ def verify():
    env=cylinder_motion_bound(c);env0=cylinder_motion_bound(c,0,0)
    bare,_=cassette()
    containment={k:pose(s,c).cut(env0).Volume() for k,s in bare.items()}
-   sweeps={'cassette':env,'bridge':z_projection_bound(ref['bridge_shape']),
+   tb=ref['bridge_tower_bound'].BoundingBox()
+   tower_motion=box(tb.xlen,tb.ylen,tb.zlen+32,
+       (ref['bridge_tower_bound'].Center().x,ref['bridge_tower_bound'].Center().y,ref['bridge_tower_bound'].Center().z-16))
+   bridge_motion=join([z_projection_bound(ref['bridge_z_prismatic']),tower_motion])
+   if ref['bridge_shape'].cut(bridge_motion).Volume()>1e-7:raise ValueError('bridge sweep misses source')
+   sweeps={'cassette':env,'bridge':bridge_motion,
            'output_shoe':polyhedron_motion_bound(ref['output_piece_bounds'],(0,0,-32),(0,0,0))}
-   output_deficit=mat['output_shoe'].cut(ref['output_piece_bounds']).Volume()
+   output_remainder=mat['output_shoe']
+   for piece in ref['output_piece_bounds'].Solids():output_remainder=output_remainder.cut(piece)
+   output_deficit=output_remainder.Volume()
    if output_deficit>1e-7:raise ValueError('output feature bounds fail enclosure')
    tests={}
    for k,s in sweeps.items():
@@ -78,6 +85,9 @@ def verify():
    r[kind]=dict(output_enclosure_deficit_mm3=output_deficit,installed=installed,nominal_enclosure_deficit_mm3=containment,continuous_service=tests,
        motion_vector_mm=[0,0,-32],cylinder_bound_radial_excess_mm=8.7*(1/math.cos(math.pi/32)-1),
        state='FACTORY_SERVICE: facial liner and draw fastener removed, dry connector disconnected; socket shoe remains.',
-       whole_product_service=False,excluded_unaccepted_sources=['retention roots/crown','final eye-roll exterior'])
+       whole_product_service=False,excluded_unaccepted_sources=['retention roots/crown','final eye-roll exterior',
+         'purchased actuator electrical pins: dimensions absent from public drawing',
+         'mounting fastener selection and tool envelope'],
+       hardware_reservations_included_in_material_sweep=False)
  Path('studies/generated/continuous_service_report.json').write_text(json.dumps(r,indent=2,allow_nan=False)+'\n');print(json.dumps(r,indent=2))
 if __name__=='__main__':verify()

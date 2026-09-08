@@ -1,0 +1,157 @@
+{
+  "cases": [
+    {
+      "cold_K_W": 6,
+      "hot_K_W": 4,
+      "short_cell_area_correction": 1.4038461538461537,
+      "operating_solution": true,
+      "TEC_electrical_W": 0.9468711076576427,
+      "global_margin_J": 414.35504864957534,
+      "local_margin_before_motor_heat_J": [
+        88.45567369790403,
+        115.44943981042249,
+        69.46122441053798,
+        138.15014394060552,
+        138.15014394060552,
+        78.96042284949955
+      ],
+      "left_side_margin_after_half_motor_J": 166.23033791886448,
+      "right_side_margin_after_half_motor_J": 248.12471073071058
+    },
+    {
+      "cold_K_W": 6,
+      "hot_K_W": 8,
+      "short_cell_area_correction": 1.4038461538461537,
+      "operating_solution": true,
+      "TEC_electrical_W": 1.1341474312687345,
+      "global_margin_J": 380.64531039957865,
+      "local_margin_before_motor_heat_J": [
+        82.10623147646821,
+        105.62147753224434,
+        67.42453056623383,
+        131.19846347500373,
+        131.19846347500373,
+        77.36814387462479
+      ],
+      "left_side_margin_after_half_motor_J": 148.01623957494638,
+      "right_side_margin_after_half_motor_J": 232.6290708246323
+    },
+    {
+      "cold_K_W": 6,
+      "hot_K_W": 16,
+      "short_cell_area_correction": 1.4038461538461537,
+      "operating_solution": true,
+      "TEC_electrical_W": 1.775377781500778,
+      "global_margin_J": 265.2238473578109,
+      "local_margin_before_motor_heat_J": [
+        58.59594001139311,
+        68.234734434346,
+        62.22075585951865,
+        108.51926471172831,
+        108.51926471172831,
+        73.40588762909636
+      ],
+      "left_side_margin_after_half_motor_J": 81.91543030525776,
+      "right_side_margin_after_half_motor_J": 183.30841705255298
+    },
+    {
+      "cold_K_W": 12,
+      "hot_K_W": 4,
+      "short_cell_area_correction": 1.4038461538461537,
+      "operating_solution": true,
+      "TEC_electrical_W": 1.1277592186905185,
+      "global_margin_J": 381.79518866365765,
+      "local_margin_before_motor_heat_J": [
+        83.89490052419316,
+        105.79633051419557,
+        67.16180615131465,
+        131.03655880916259,
+        131.03655880916259,
+        77.14103385562893
+      ],
+      "left_side_margin_after_half_motor_J": 149.7170371897034,
+      "right_side_margin_after_half_motor_J": 232.07815147395408
+    },
+    {
+      "cold_K_W": 12,
+      "hot_K_W": 8,
+      "short_cell_area_correction": 1.4038461538461537,
+      "operating_solution": true,
+      "TEC_electrical_W": 1.3573043256330097,
+      "global_margin_J": 340.4770694140093,
+      "local_margin_before_motor_heat_J": [
+        76.31831348528712,
+        93.27394079795738,
+        64.84407713836531,
+        122.4819988907615,
+        122.4819988907615,
+        75.3487402108762
+      ],
+      "left_side_margin_after_half_motor_J": 127.3003314216098,
+      "right_side_margin_after_half_motor_J": 213.1767379923992
+    },
+    {
+      "cold_K_W": 12,
+      "hot_K_W": 16,
+      "short_cell_area_correction": 1.4038461538461537,
+      "operating_solution": true,
+      "TEC_electrical_W": 2.24900109036011,
+      "global_margin_J": 179.97165176313115,
+      "local_margin_before_motor_heat_J": [
+        45.28234363847156,
+        35.22856750481864,
+        58.834011184550704,
+        92.02971294073998,
+        92.02971294073998,
+        70.83930355381015
+      ],
+      "left_side_margin_after_half_motor_J": 32.208922327840895,
+      "right_side_margin_after_half_motor_J": 147.76272943529014
+    },
+    {
+      "cold_K_W": 24,
+      "hot_K_W": 4,
+      "short_cell_area_correction": 1.4038461538461537,
+      "operating_solution": true,
+      "TEC_electrical_W": 1.572096759454676,
+      "global_margin_J": 301.8144313261091,
+      "local_margin_before_motor_heat_J": [
+        73.03313399543022,
+        81.13762898573,
+        61.9083255744697,
+        113.48945690809589,
+        113.48945690809589,
+        73.02842895428748
+      ],
+      "left_side_margin_after_half_motor_J": 108.94308855562994,
+      "right_side_margin_after_half_motor_J": 192.87134277047923
+    },
+    {
+      "cold_K_W": 24,
+      "hot_K_W": 8,
+      "short_cell_area_correction": 1.4038461538461537,
+      "operating_solution": true,
+      "TEC_electrical_W": 1.9306472088659887,
+      "global_margin_J": 237.27535043207286,
+      "local_margin_before_motor_heat_J": [
+        62.06415267990576,
+        59.54784807759398,
+        58.90555058231767,
+        100.13495290325451,
+        100.13495290325451,
+        70.75989328574639
+      ],
+      "left_side_margin_after_half_motor_J": 73.38155133981743,
+      "right_side_margin_after_half_motor_J": 163.89379909225542
+    },
+    {
+      "cold_K_W": 24,
+      "hot_K_W": 16,
+      "operating_solution": false
+    }
+  ],
+  "resistances": "DOE values including interfaces, not measured performance",
+  "rejection_rule": "No operating solution or negative cell enthalpy reserve rejects that operating case.",
+  "motor_coupling": "Neither per-side nor global reserve proves arbitrary concentrated motor heat. Per-cell readiness must gate operation.",
+  "physical_validation": false
+}

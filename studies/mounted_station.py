@@ -36,11 +36,16 @@ def station(kind,center):
     # Return the load directly to the fixed rear hub, not a long front cage cantilever.
     target=pose(cq.Vertex.makeVertex(0,2.8,-9.0),center).Center().toTuple()
     if kind=='superior':points=[(cx,cy,-6.4),(64,59,-6.4),(56,66,-6.4),(target[0],target[1],-6.4)]
-    else:points=[(cx,cy,-6.4),(target[0],target[1],-6.4)]
+    else:points=[(cx,cy,-6.4),(63,-39,-6.4),(target[0],-39,-6.4)]
     tube=swept_tube(points,height=2.)
     saddle=box(8.8,8.8,1.,(cx,cy,-5.9)).cut(cylinder(1.05,-8,-4).translate((cx,cy,0)))
     tower=bar(points[-1],target,.85)
     bridge=join([saddle,tube,tower])
+    tb=tower.BoundingBox()
+    tower_bound=box(tb.xlen,tb.ylen,tb.zlen,tower.Center().toTuple())
+    # The oblique tower is not a Z prism. Its symmetric cylinder AABB is a
+    # measured conservative enclosure, kept separate from the planar tube proof.
+    if tower.cut(tower_bound).Volume()>1e-7:raise ValueError('tower bound misses source')
     # One fabricated rigid carrier, not two overlapping alleged mating parts.
     world['fixed_cage']=join([world['fixed_cage'],bridge])
     # The peripheral moving cup transfers motion to a separate light output shoe.
@@ -67,10 +72,13 @@ def station(kind,center):
         box(8,10,.6,shoe_center),
         polycyl(.4,-6.2,takeoff[2]).translate((takeoff[0],takeoff[1],0))]
     # Fastener identity is kept as purchased-hardware reference, not invented threads.
-    ref={'bridge_shape':bridge,'output_piece_bounds':cq.Compound.makeCompound(bounds),'output_arm_local':arm_local,'output_shoe_center':cq.Vertex.makeVertex(*shoe_center),'frame_fixture_original':source_fixture,'frame_fixture_required_port':fixture,
+    ref={'bridge_shape':bridge,'bridge_z_prismatic':join([saddle,tube]),'bridge_tower_bound':tower_bound,
+      'output_piece_bounds':cq.Compound.makeCompound(bounds),'output_arm_local':arm_local,'output_shoe_center':cq.Vertex.makeVertex(*shoe_center),'frame_fixture_original':source_fixture,'frame_fixture_required_port':fixture,
       'required_key_port':key_port,'required_draw_pin_bore':axial_hole,
       'draw_fastener_envelope':join([cylinder(.9,-7.4,-1.8),cylinder(1.8,-7.9,-7.4)]).translate((cx,cy,0)),
-      'supplier_magnet_package':pose(ref['supplier_magnet_package'],center)}
+      'supplier_magnet_package':pose(ref['supplier_magnet_package'],center),
+      'rear_mount_fastener_reservation':pose(ref['rear_mount_fastener_reservation'],center),
+      'front_mount_fastener_reservation':pose(ref['front_mount_fastener_reservation'],center)}
     return world,ref
 
 

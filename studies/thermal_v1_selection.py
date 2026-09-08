@@ -16,7 +16,11 @@ def dewpoint(t,rh):
 def study():
     old=previous();g=json.loads(Path('studies/generated/geometry_report.json').read_text())
     ids=sorted(g['pcm_cells_mm3']);vol=[g['pcm_cells_mm3'][k] for k in ids]
-    weight=[v/sum(vol) for v in vol];U=old['planning_usable_enthalpy_J']
+    capacity_weight=[v/sum(vol) for v in vol]
+    # Each stationary cheek plate takes half the imposed bench contact load.
+    # Only modules sharing that plate can redistribute its load.
+    weight=[.5*v/sum(vol[:3] if i<3 else vol[3:]) for i,v in enumerate(vol)]
+    U=old['planning_usable_enthalpy_J']
     C=old['cold_copper_heat_capacity_J_K']+3
     motor=4*.2976 # rounded-up multirate steady result, inert preload scenario
     # Worst coupling bound accounts for all prior motor electrical heat, without
@@ -39,15 +43,17 @@ def study():
         # Distributed even motor coupling is only a scenario. Also report local
         # available reserve so a concentrated coupling can be assessed separately.
         n=(q*w+c['electrical_W_per_cell']+.5*w)*180+C*8*w
-        per.append(dict(cell=ids[i],capacity_J=U*w,base_required_J=n,
-           remaining_before_motor_coupling_J=U*w-n))
+        per.append(dict(cell=ids[i],capacity_J=U*capacity_weight[i],base_required_J=n,
+           remaining_before_motor_coupling_J=U*capacity_weight[i]-n))
       cooling.append(dict(water_mL=water,concurrent_massage=concurrent,
          net_inert_contact_W=2,water_sensible_J=water*4.18*8,TEC_electrical_W=pin,
          TEC_current_A=[c['current_per_cell_A'] for c in cells],
          store_energy_from_contact_water_TEC_J=(q+pin)*180,
          environmental_parasitic_J=90,startup_J=C*8,
          prior_motor_heat_upper_bound_J=prior_motor_J,concurrent_motor_J=concurrent_J,
-         total_required_J=need,planning_available_J=U,margin_J=U-need,per_cell=per))
+         total_required_J=need,planning_available_J=U,margin_J=U-need,per_cell=per,
+         local_motor_heat_allocation='Not inferred from global energy: require per-cell heat-flow measurement or bound. Global margin alone does not prove every cell.',
+         per_side_reserved_motor_J=(prior_motor_J+concurrent_J)/2))
     warming=[]
     for delta in (4,8):
       # Reversible TEC left electrically open during resistive WARM. Include its

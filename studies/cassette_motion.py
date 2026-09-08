@@ -8,7 +8,7 @@ from treatment_geometry import *
 def rigid_axial_sweep(name,lo,hi):
  if name=='moving_cup':return join(cup_features(lo,hi))
  if name=='moving_rear_clamp':return ring(6.8,7.6,-7.475+lo,-7.2+hi)
- if name=='moving_front_clamp':return ring(1.25,2.8,8.025+lo,8.3+hi)
+ if name=='moving_front_clamp':return ring(1.6,2.8,8.025+lo,8.3+hi)
  raise ValueError('unbound motion member')
 
 
