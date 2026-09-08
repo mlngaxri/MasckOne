@@ -5,6 +5,7 @@ import json
 import cadquery as cq
 import pytest
 
+import masck_one.structural_frame_crown_service as crown_service
 from masck_one.structural_frame_crown_service import (
     StructuralFrameCrownServiceError,
     build_structural_frame_crown_service,
@@ -31,6 +32,18 @@ def test_hostile_crown_service_collision_is_rejected() -> None:
     path = architecture.paths[0]
     with pytest.raises(StructuralFrameCrownServiceError, match="collides with material"):
         type(path)(path.side, path.pin_withdraw_sweep, path.clip_install_sweep, pin_sweep_crown_intersection_mm3=0.01)
+
+
+def test_crown_service_collision_kernel_failure_is_rejected(monkeypatch) -> None:
+    class BrokenIntersection:
+        def val(self):
+            raise RuntimeError("kernel failure")
+
+    monkeypatch.setattr(cq.Workplane, "intersect", lambda self, other: BrokenIntersection())
+    a = cq.Workplane("XY").box(1.0, 1.0, 1.0)
+    b = cq.Workplane("XY").box(1.0, 1.0, 1.0)
+    with pytest.raises(StructuralFrameCrownServiceError, match="collision-free status cannot be claimed"):
+        crown_service._intersection(a, b, label="hostile kernel")
 
 
 def test_crown_service_export_is_deterministic_and_roundtrips(tmp_path) -> None:
