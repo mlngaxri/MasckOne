@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import cadquery as cq
@@ -36,7 +37,12 @@ def _intersection(a: cq.Workplane, b: cq.Workplane, *, label: str) -> float:
         common = a.intersect(b).val()
         if not common.isValid():
             raise StructuralFrameCrownServiceError(f"{label} intersection result is invalid")
-        return max(0.0, float(common.Volume()))
+        volume = float(common.Volume())
+        if not math.isfinite(volume) or volume < 0.0:
+            raise StructuralFrameCrownServiceError(
+                f"{label} intersection volume must be finite and nonnegative"
+            )
+        return volume
     except StructuralFrameCrownServiceError:
         raise
     except Exception as exc:
@@ -64,7 +70,15 @@ class CrownServicePath:
             raise StructuralFrameCrownServiceError("invalid crown side")
         _valid(self.pin_withdraw_sweep, f"{self.side} pin withdrawal sweep")
         _valid(self.clip_install_sweep, f"{self.side} clip installation sweep")
-        if any(v > _TOL_MM3 for v in (self.pin_sweep_crown_intersection_mm3, self.pin_sweep_lug_intersection_mm3, self.clip_sweep_crown_intersection_mm3, self.clip_sweep_lug_intersection_mm3)):
+        measured = (
+            self.pin_sweep_crown_intersection_mm3,
+            self.pin_sweep_lug_intersection_mm3,
+            self.clip_sweep_crown_intersection_mm3,
+            self.clip_sweep_lug_intersection_mm3,
+        )
+        if any(not math.isfinite(v) or v < 0.0 for v in measured):
+            raise StructuralFrameCrownServiceError("crown service intersection evidence must be finite and nonnegative")
+        if any(v > _TOL_MM3 for v in measured):
             raise StructuralFrameCrownServiceError("continuous crown service corridor collides with material")
 
     def manifest(self) -> dict[str, object]:
@@ -78,8 +92,9 @@ class StructuralFrameCrownServiceArchitecture:
     physical_validation_eligible: bool = False
 
     def __post_init__(self) -> None:
-        if len(self.source_crown_architecture_sha256) != 64:
-            raise StructuralFrameCrownServiceError("source crown identity must be SHA-256")
+        source_sha = self.source_crown_architecture_sha256
+        if len(source_sha) != 64 or any(c not in "0123456789abcdef" for c in source_sha):
+            raise StructuralFrameCrownServiceError("source crown identity must be a lowercase SHA-256 digest")
         if tuple(p.side for p in self.paths) != ("WEARER_LEFT", "WEARER_RIGHT"):
             raise StructuralFrameCrownServiceError("bilateral crown service paths required")
         if self.physical_validation_eligible is not False:
