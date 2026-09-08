@@ -16,6 +16,8 @@ from .model import MasckOneModel, build_model
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
+from .whole_product_collision_matrix import export_whole_product_collision_review
+from .whole_product_collision_release import build_current_main_collision_release
 
 
 def _ensure_output_dir(path: str | Path) -> Path:
@@ -52,10 +54,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
-    # The current waste-cartridge solid is an authority package envelope, not cartridge
-    # material. Keep its standalone STEP for package/collision review but do not insert
-    # the proxy box into the physical development compound.
-    development_assembly_exclusions = ("waste_cartridge_envelope",)
+    # Development-reference/package proxy solids remain standalone review STEP files
+    # but must never silently enter the physical-material development compound.
+    development_assembly_exclusions = (
+        "nasal_lobe_membrane_reference",
+        "waste_cartridge_envelope",
+    )
     shapes = [
         component.solid.val()
         for component in model.components
@@ -75,6 +79,22 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+
+    collision_release = build_current_main_collision_release(model)
+    collision_matrix = collision_release.matrix
+    collision_outputs = export_whole_product_collision_review(
+        output,
+        collision_matrix,
+        model,
+    )
+    collision_release_path = output / "whole_product_collision_release.json"
+    collision_release_path.write_text(
+        json.dumps(collision_release.manifest(), indent=2) + "\n",
+        encoding="utf-8",
+    )
+    collision_outputs = collision_outputs + (collision_release_path,)
+    collision_step_names = [path.name for path in collision_outputs if path.suffix.lower() == ".step"]
+
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -102,18 +122,32 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
+        "integration_ledgers": {
+            "whole_product_collision_release": collision_release.manifest(),
+        },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "exported_step_files": [f"{name}.step" for name in export_map]
+        + ["masck_one_development_assembly.step"]
+        + collision_step_names,
+        "exported_collision_review_files": [path.name for path in collision_outputs],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
-            "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
-            "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
-            "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
-            "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
-            "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
-            "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "released by Iteration 15. The nasal-lobe membrane STEP remains a development local-thickness reference and "
+            "is excluded from physical development-assembly material until final material, attachment and service geometry "
+            "are released. The realized waste backbone is emitted as validated centerline/manifold data, not selected "
+            "tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. The waste-cartridge "
+            "STEP remains an external package-envelope reference only and is deliberately excluded from physical "
+            "development-assembly material until body, cavity, seal, retention and service geometry are realized. The "
+            "cartridge DFM gate records digital closure requirements only and does not establish usable capacity, retained-"
+            "liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand serviceability. The "
+            "whole-product collision release separates exact finite B-rep checks, authority-derived protected hard-envelope "
+            "checks, conservative route-service reservations and explicit blocked geometry. Finite package/reference overlap "
+            "remains visible but is not mislabeled as realized-material interference. Actuator sweep/carrier, structural-"
+            "frame material/join, storage/pump/barrier/cartridge realization, battery/PCB/charging, WARM hardware and "
+            "unresolved fresh route/manifold/distribution geometry fail closed rather than disappearing from whole-product "
+            "collision truth. The producer graph is exact-Git-blob bound to the current released main. Digital topology/"
+            "manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
