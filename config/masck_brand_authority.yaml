@@ -105,7 +105,7 @@ interaction_signature:
 optical_language:
   philosophy: "One restrained optical system rather than multiple decorative indicators."
   states:
-    off: "M-Cut nearly disappears tone-on-tone."
+    "off": "M-Cut nearly disappears tone-on-tone."
     wake: "The central cut appears to wake from within."
     clean: "Neutral warm-white acknowledgement."
     massage: "Brief restrained pulse or motion acknowledgement; avoid arbitrary colour coding."
