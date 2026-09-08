@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 64" role="img" aria-labelledby="title desc">
+  <title id="title">Masck One M/1 provisional product designation</title>
+  <desc id="desc">The M-Cut master geometry paired with a quiet slash and numeral one as a model designation.</desc>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke-width="7">
+      <path d="M10 48V19c0-2.8 3.4-4.2 5.4-2.2L29 31.2"/>
+      <path d="M35 31.2l13.6-14.4c2-2 5.4-.6 5.4 2.2v29"/>
+    </g>
+    <path d="M32 22v22" stroke-width="2" opacity="0.72"/>
+    <path d="M68 48L82 16" stroke-width="3"/>
+    <path d="M94 22l6-5v31" stroke-width="5"/>
+  </g>
+</svg>
