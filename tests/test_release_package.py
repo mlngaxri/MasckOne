@@ -82,15 +82,19 @@ class ReleasePackageTests(unittest.TestCase):
 
     def test_manifest_cannot_escape_package_or_claim_production_scope(self):
         publish_package(self.output, self.writer)
-        manifest = verify_package(self.output)
+        valid_manifest = verify_package(self.output)
         path = self.output / MANIFEST_NAME
-        manifest["files"]["../outside.step"] = manifest["files"].pop("part.step")
-        path.write_text(json.dumps(manifest))
-        with self.assertRaises(ExportValidationError):
+
+        escaped_manifest = json.loads(json.dumps(valid_manifest))
+        escaped_manifest["files"]["../outside.step"] = escaped_manifest["files"].pop("part.step")
+        path.write_text(json.dumps(escaped_manifest))
+        with self.assertRaisesRegex(ExportValidationError, "inside package"):
             verify_package(self.output)
-        manifest["scope"] = "PRODUCTION"
-        path.write_text(json.dumps(manifest))
-        with self.assertRaises(ExportValidationError):
+
+        production_manifest = json.loads(json.dumps(valid_manifest))
+        production_manifest["scope"] = "PRODUCTION"
+        path.write_text(json.dumps(production_manifest))
+        with self.assertRaisesRegex(ExportValidationError, "DEVELOPMENT_ONLY"):
             verify_package(self.output)
 
     def test_symlink_cannot_redirect_artifact_replacement(self):
