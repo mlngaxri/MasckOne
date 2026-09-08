@@ -5,6 +5,7 @@ from pathlib import Path
 
 import cadquery as cq
 
+from .assembly_service_inventory import build_current_assembly_service_inventory
 from .assertions import run_assertions
 from .boundary_release import (
     boundary_release_manifest,
@@ -75,6 +76,13 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+    assembly_service_inventory = build_current_assembly_service_inventory()
+    assembly_service_manifest = assembly_service_inventory.manifest()
+    assembly_service_path = output / "assembly_service_inventory_v1.json"
+    assembly_service_path.write_text(
+        json.dumps(assembly_service_manifest, sort_keys=True, indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -99,10 +107,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
         },
+        "assembly_service_inventory": assembly_service_manifest,
         "analysis_frameworks": {
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
+        "generated_control_files": [assembly_service_path.name],
         "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
@@ -113,7 +123,9 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
             "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
             "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
-            "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
+            "serviceability. The Cell 15 assembly/service inventory source-binds released-main instances, donor assembly "
+            "stages and exact-head candidate motion evidence without promoting unmerged candidates or physical service "
+            "claims. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
