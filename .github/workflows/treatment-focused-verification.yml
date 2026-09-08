@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: treatment-focused-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   treatment-focused:
     runs-on: ubuntu-latest
