@@ -13,8 +13,8 @@ jobs:
   engineering-integrity:
     runs-on: ubuntu-latest
     # Preserve every current source/brand gate and allow measured margin for
-    # per-solid STEP round-trip verification plus package-integrity verification.
-    timeout-minutes: 45
+    # the full suite, per-solid STEP round-trip verification and package checks.
+    timeout-minutes: 75
 
     steps:
       - name: Checkout
