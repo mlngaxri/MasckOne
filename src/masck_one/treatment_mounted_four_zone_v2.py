@@ -11,7 +11,6 @@ central opening. Digital architecture only; no physical stiffness/fatigue/comfor
 human-use claims.
 """
 
-from dataclasses import replace
 import json
 import math
 from pathlib import Path
@@ -58,7 +57,6 @@ from .treatment_mounted_four_zone import (
     YOKE_WALL_MM,
     YOKE_X_CLEARANCE_MM,
     _bar,
-    _box,
     _iv,
     _join,
     _local_cassette_material,
@@ -134,14 +132,18 @@ def _posterior_truss_v2(
     front_y = cy + SHOULDER_HEIGHT_MM / 2.0 + YOKE_BACK_GAP_MM + YOKE_BACK_WALL_MM / 2.0
     shoulder_mid_z = frame_zmax + SHOULDER_GAP_MM + SHOULDER_THICKNESS_MM / 2.0
     front_offset = side_x + YOKE_WALL_MM / 2.0 + TRUSS_CHORD_RADIUS_MM - 0.15
-    yoke_anchor_points = [
-        np.array((cx - front_offset, front_y, shoulder_mid_z), dtype=float),
-        np.array((cx + front_offset, front_y, shoulder_mid_z), dtype=float),
-    ]
 
+    # The neck starts inside the actual side wall of the open yoke, then moves
+    # diagonally outward while rising to the anterior chord plane. This preserves
+    # positive B-rep capture without letting the large chord radius enter the frame.
+    yoke_anchor_points = [
+        np.array((cx - side_x, front_y, shoulder_mid_z), dtype=float),
+        np.array((cx + side_x, front_y, shoulder_mid_z), dtype=float),
+    ]
     routing_z = frame_zmax + TRUSS_CHORD_RADIUS_MM + TRUSS_FRAME_GUARD_MM
     front_chord_points = [
-        np.array((point[0], point[1], routing_z), dtype=float) for point in yoke_anchor_points
+        np.array((cx - front_offset, front_y, routing_z), dtype=float),
+        np.array((cx + front_offset, front_y, routing_z), dtype=float),
     ]
     rear_anchors = [
         np.array(_pose_point(point, center, angle_deg), dtype=float)
