@@ -1,0 +1,69 @@
+{
+  "status": "WIP_DIGITAL_AND_INERT_BENCH_ARCHITECTURE_NOT_HUMAN_USE_OR_PRODUCTION",
+  "main": "a0ea51874d8967c512468932fac627e8bba5f95f",
+  "frame_head": "6e172198174d835767787f97eeb50d2e60a2f51a",
+  "exterior_head": "257c7f1dda61dcb54b535d3f52ceb5a88be23d6a",
+  "source_blobs": [
+    {
+      "path": "src/masck_one/structural_frame_actuator_reactions.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dae953807584b97747cf3f936271e019b6746d4f"
+    },
+    {
+      "path": "src/masck_one/structural_frame_shell_joints.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ec6c94dda6f5e439e887e929810bbc5dc729964e"
+    },
+    {
+      "path": "src/masck_one/structural_frame_retention_roots.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "62bc4be5218b9f5816c96f8eae89d88a77c3b604"
+    },
+    {
+      "path": "src/masck_one/structural_frame_crown_support.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "261158519358fe18a74b79b5739063a1eb93a1d6"
+    },
+    {
+      "path": "src/masck_one/structural_frame_realization.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "10d23cbacf44c77776f8333d8f49712e06e41ff4"
+    },
+    {
+      "path": "src/masck_one/exterior_surface.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bb9185ffadc91f11ccac3285bb4c3d4db496e9dd"
+    },
+    {
+      "path": "src/masck_one/exterior_construction.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2bc77bd0ddd95b13ccab246d6ee26fbfbc8d482d"
+    },
+    {
+      "path": "src/masck_one/exterior_eye_roll.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f7ff330440a2cf0a712e4d3d9eb3a1e4f22a6915"
+    },
+    {
+      "path": "src/masck_one/exterior_rigid_clearance.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dd3e4e1b6c8bfaf3c4b6b36d79a02305329b74ed"
+    },
+    {
+      "path": "src/masck_one/exterior_inferior_turnover.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "559559abab8a41d234f50e0c8a326999efea8ee1"
+    }
+  ],
+  "validation": "Initial positive B-reps and linear/thermal studies completed; moved socket integration, wet suspension, source exterior and full motion proof in progress. Owner branches remain authoritative."
+}
