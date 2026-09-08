@@ -27,7 +27,6 @@ def _ensure_output_dir(path: str | Path) -> Path:
 
 
 def _realized_waste_backbone_manifest() -> dict[str, object]:
-    """Return the current validated route realization for deterministic release output."""
     release = build_current_cell4_waste_backbone_release()
     release_manifest = release.manifest()
     return {
@@ -54,9 +53,6 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     for name, solid in export_map.items():
         cq.exporters.export(solid, str(output / f"{name}.step"))
 
-    # The current waste-cartridge solid is an authority package envelope, not cartridge
-    # material. Keep its standalone STEP for package/collision review but do not insert
-    # the proxy box into the physical development compound.
     development_assembly_exclusions = ("waste_cartridge_envelope",)
     shapes = [
         component.solid.val()
@@ -82,29 +78,27 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     )
     structural_frame_step_name = "structural_frame_reaction_loop_v1.step"
     structural_frame_manifest_name = "structural_frame_realization_manifest.json"
-    cq.exporters.export(
-        structural_frame_realization.solid,
-        str(output / structural_frame_step_name),
-    )
+    cq.exporters.export(structural_frame_realization.solid, str(output / structural_frame_step_name))
     structural_frame_realization_manifest = structural_frame_realization.manifest()
     with (output / structural_frame_manifest_name).open("w", encoding="utf-8") as handle:
         json.dump(structural_frame_realization_manifest, handle, indent=2, allow_nan=False)
         handle.write("\n")
 
-    shell_joints = build_structural_frame_shell_joints(
-        model=model,
-        frame=structural_frame_realization,
-    )
+    shell_joints = build_structural_frame_shell_joints(model=model, frame=structural_frame_realization)
     shell_joint_manifest_name = "structural_frame_shell_joints_manifest.json"
     shell_joint_frame_step_name = "structural_frame_with_positive_shell_tenons.step"
     shell_joint_shell_step_name = "rigid_shell_with_frame_mortises_and_pin_bores.step"
     cq.exporters.export(shell_joints.assembled_frame, str(output / shell_joint_frame_step_name))
     cq.exporters.export(shell_joints.modified_shell, str(output / shell_joint_shell_step_name))
     shell_joint_pin_step_names: list[str] = []
+    shell_joint_retainer_step_names: list[str] = []
     for index, joint in enumerate(shell_joints.joints, start=1):
         pin_name = f"structural_frame_shell_capture_pin_{index}.step"
+        retainer_name = f"structural_frame_shell_pin_retainer_{index}.step"
         cq.exporters.export(joint.pin, str(output / pin_name))
+        cq.exporters.export(joint.retainer_clip, str(output / retainer_name))
         shell_joint_pin_step_names.append(pin_name)
+        shell_joint_retainer_step_names.append(retainer_name)
     shell_joint_manifest = shell_joints.manifest()
     with (output / shell_joint_manifest_name).open("w", encoding="utf-8") as handle:
         json.dump(shell_joint_manifest, handle, indent=2, allow_nan=False)
@@ -134,16 +128,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "structural_frame_shell_joints": shell_joint_manifest,
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
         },
-        "dfm_gates": {
-            "waste_cartridge": waste_cartridge_dfm.manifest(),
-        },
-        "analysis_frameworks": {
-            "contact_simulation": contact_framework.manifest(),
-        },
+        "dfm_gates": {"waste_cartridge": waste_cartridge_dfm.manifest()},
+        "analysis_frameworks": {"contact_simulation": contact_framework.manifest()},
         "development_assembly_exclusions": list(development_assembly_exclusions),
         "standalone_physical_geometry_pending_assembly_rebind": [
             structural_frame_realization.member_id,
-            "STRUCTURAL_FRAME_POSITIVE_SHELL_JOINT_ARCHITECTURE_V1",
+            "STRUCTURAL_FRAME_POSITIVE_SHELL_JOINT_ARCHITECTURE_V2",
         ],
         "exported_step_files": [f"{name}.step" for name in export_map]
         + [
@@ -151,24 +141,17 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             shell_joint_frame_step_name,
             shell_joint_shell_step_name,
             *shell_joint_pin_step_names,
+            *shell_joint_retainer_step_names,
             "masck_one_development_assembly.step",
         ],
-        "exported_manifest_files": [
-            structural_frame_manifest_name,
-            shell_joint_manifest_name,
-        ],
+        "exported_manifest_files": [structural_frame_manifest_name, shell_joint_manifest_name],
         "note": (
-            "BLOCKED checks are unresolved evidence gates, not software failures. The Iteration-15 structural topology "
-            "remains material-unselected. The source-bound reaction loop now has a separate exact-current positive shell-joint "
-            "architecture with four tenon/mortise counterparts and removable transverse headed capture pins. The jointed frame, "
-            "modified shell counterpart and capture pins are exported as standalone source-bound CAD and remain outside the "
-            "development assembly until Cell 1 rebinds the physical/reference assembly boundary. The digital joints establish "
-            "counterpart geometry and nominal non-interference only; material, strength, fatigue, process capability, production "
-            "tolerance and physical service validation remain unresolved. Actuator reaction interfaces, retention counterparts "
-            "and complete whole-head service motion remain unresolved. The realized waste backbone is emitted as validated "
-            "centerline/manifold data, not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance "
-            "evidence. The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
-            "from physical development-assembly material until body, cavity, seal, retention and service geometry are realized."
+            "BLOCKED checks are unresolved evidence gates, not software failures. The source-bound reaction loop has four positive shell joints. "
+            "Each joint now uses a continuously insertable single-headed transverse capture pin plus a separately radially installable split retainer "
+            "captured by explicit groove shoulders. Pins and retainers are standalone deterministic STEP outputs and remain outside the development "
+            "assembly until Cell 1 rebinds the physical/reference assembly boundary. Digital geometry establishes positive counterpart and service "
+            "installation geometry only; material, strength, fatigue, process capability, production tolerance and physical service validation remain open. "
+            "Actuator carrier mates, retention counterparts and complete whole-head service motion remain unresolved."
         ),
     }
     with (output / "build_report.json").open("w", encoding="utf-8") as handle:
