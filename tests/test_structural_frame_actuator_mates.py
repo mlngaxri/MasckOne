@@ -52,6 +52,16 @@ def test_manifest_is_source_chained_and_not_physical_evidence() -> None:
     assert manifest["coupling_status"].endswith("CARRIER_BODY_MATING_OPEN")
 
 
+def test_each_reaction_mate_is_one_connected_brep_after_boolean_rebuild() -> None:
+    architecture = build_structural_frame_actuator_mates()
+    for mate in architecture.mates:
+        rebuilt = cq.Workplane(obj=mate.mate.val())
+        value = rebuilt.val()
+        assert value.isValid()
+        assert len(value.Solids()) == 1
+        assert value.Volume() > 0.0
+
+
 def test_export_roundtrips_all_four_mates(tmp_path: Path) -> None:
     manifest = export_structural_frame_actuator_mates(tmp_path)
     assert manifest["schema"] == "MASCK_ONE_STRUCTURAL_FRAME_ACTUATOR_MATES_V1"
