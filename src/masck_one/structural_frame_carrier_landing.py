@@ -17,7 +17,8 @@ SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_CARRIER_LANDING_V1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 ROOT_WIDTH_MM = 2.0
 ROOT_LENGTH_MM = 0.9
-ROOT_HEIGHT_MM = 0.55
+ROOT_HEIGHT_MM = 0.70
+ROOT_STOP_CAPTURE_MM = 0.20
 TONGUE_WIDTH_MM = 2.0
 TONGUE_LENGTH_MM = 2.2
 TONGUE_HEIGHT_MM = 0.45
@@ -78,6 +79,7 @@ class CarrierLandingFeature:
                 "root_width": ROOT_WIDTH_MM,
                 "root_length": ROOT_LENGTH_MM,
                 "root_height": ROOT_HEIGHT_MM,
+                "root_stop_capture": ROOT_STOP_CAPTURE_MM,
                 "tongue_width": TONGUE_WIDTH_MM,
                 "tongue_length": TONGUE_LENGTH_MM,
                 "tongue_height": TONGUE_HEIGHT_MM,
@@ -131,9 +133,9 @@ class StructuralFrameCarrierLandingArchitecture:
 def _feature_for_interface(interface) -> tuple[cq.Workplane, cq.Workplane]:
     bb = interface.interface.val().BoundingBox()
     cx, cy = interface.center_xy_mm
-    z0 = float(bb.zmax) - ROOT_HEIGHT_MM
     stop_inner_y = cy - 3.0 + 0.8
-    root_y = stop_inner_y + ROOT_LENGTH_MM / 2.0
+    root_y = stop_inner_y - ROOT_STOP_CAPTURE_MM + ROOT_LENGTH_MM / 2.0
+    z0 = float(bb.zmax) - ROOT_HEIGHT_MM
     root = cq.Workplane("XY").box(ROOT_WIDTH_MM, ROOT_LENGTH_MM, ROOT_HEIGHT_MM, centered=(True, True, False)).translate((cx, root_y, z0))
     tongue_y = root_y + ROOT_LENGTH_MM / 2.0 + TONGUE_LENGTH_MM / 2.0
     tongue = cq.Workplane("XY").box(TONGUE_WIDTH_MM, TONGUE_LENGTH_MM, TONGUE_HEIGHT_MM, centered=(True, True, False)).translate((cx, tongue_y, z0 + TONGUE_RISE_MM))
