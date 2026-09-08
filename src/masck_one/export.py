@@ -13,6 +13,10 @@ from .boundary_release import (
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
+from .physical_hmi_thermal import (
+    build_physical_hmi_thermal_decision_state,
+    export_physical_hmi_thermal_review_artifacts,
+)
 from .realized_waste_backbone_release import build_current_cell4_waste_backbone_release
 from .structural_frame import build_structural_frame_topology
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
@@ -75,6 +79,14 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     contact_framework = build_contact_simulation_framework(model.authority, attachment)
     structural_frame = build_structural_frame_topology(model.authority, attachment)
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+
+    # Cell 14 reference geometry is deliberately exported outside physical development
+    # assembly material. The manifest keeps current authority/main/donor provenance and
+    # forces HMI mapping and physical thermal evidence to remain unresolved.
+    hmi_thermal = build_physical_hmi_thermal_decision_state(model.authority)
+    hmi_thermal_artifacts = export_physical_hmi_thermal_review_artifacts(output, hmi_thermal)
+    hmi_thermal_step_files = tuple(name for name in hmi_thermal_artifacts if name.endswith(".step"))
+
     report = {
         "project": "Masck One",
         "authority_revision": model.authority.get("project", "authority_revision"),
@@ -95,6 +107,7 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(),
+            "physical_hmi_thermal": hmi_thermal.manifest(),
         },
         "dfm_gates": {
             "waste_cartridge": waste_cartridge_dfm.manifest(),
@@ -103,7 +116,10 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "contact_simulation": contact_framework.manifest(),
         },
         "development_assembly_exclusions": list(development_assembly_exclusions),
-        "exported_step_files": [f"{name}.step" for name in export_map] + ["masck_one_development_assembly.step"],
+        "exported_step_files": [f"{name}.step" for name in export_map]
+        + ["masck_one_development_assembly.step"]
+        + list(hmi_thermal_step_files),
+        "reference_review_artifacts": list(hmi_thermal_artifacts),
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The structural frame is currently "
             "a topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
@@ -111,8 +127,12 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
             "The waste-cartridge STEP remains an external package-envelope reference only and is deliberately excluded "
             "from physical development-assembly material until body, cavity, seal, retention and service geometry are "
-            "realized. The cartridge DFM gate records digital closure requirements only and does not establish usable "
-            "capacity, retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
+            "realized. Cell 14 HMI and WARM STEP files are reference-only interface/package reservations and are never "
+            "inserted into physical development-assembly material; final control count/mapping, switch/seal hardware, "
+            "WARM hardware/limits and physical wet-use/thermal evidence remain blocked. COOL is a bounded optional local "
+            "reservation only and has no authority-world STEP until a released dry-bay datum and explicit transform exist. "
+            "The cartridge DFM gate records digital closure requirements only and does not establish usable capacity, "
+            "retained-liquid behavior, sealing, leakage, hygiene, durability, disposal performance or wet-hand "
             "serviceability. Digital topology/manifests and analysis frameworks are not physical validation evidence."
         ),
     }
