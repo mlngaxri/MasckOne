@@ -1,0 +1,39 @@
+name: Treatment focused verification
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  treatment-focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile treatment sources
+        run: |
+          python -m py_compile \
+            src/masck_one/treatment_carrier_counterpart.py \
+            src/masck_one/treatment_mounted_four_zone.py \
+            studies/treatment_live117_reconciliation.py \
+            studies/treatment_mount_play_budget.py
+      - name: Run treatment tests
+        run: |
+          python -m pytest -q \
+            tests/test_treatment_live117_reconciliation.py \
+            tests/test_treatment_carrier_counterpart.py \
+            tests/test_treatment_mounted_four_zone.py \
+            tests/test_treatment_mount_play_budget.py
