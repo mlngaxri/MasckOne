@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from masck_one.assertions import Check
 from masck_one.component_registry import (
     AUTHORITY_REVISION,
     HYGIENE_UNRESOLVED,
@@ -309,7 +310,11 @@ def test_export_uses_registry_as_physical_material_boundary(monkeypatch, tmp_pat
         lambda model, waste_release: registry,
     )
     monkeypatch.setattr(release_export.cq.exporters, "export", lambda *args, **kwargs: None)
-    monkeypatch.setattr(release_export, "run_assertions", lambda model: ())
+    monkeypatch.setattr(
+        release_export,
+        "run_assertions",
+        lambda model: (Check("REGISTRY_EXPORT_FIXTURE", "PASS", "controlled export fixture"),),
+    )
     monkeypatch.setattr(release_export, "build_verified_interface_boundary_topology", lambda *args: object())
     monkeypatch.setattr(
         release_export,
