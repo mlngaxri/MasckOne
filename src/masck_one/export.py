@@ -10,6 +10,7 @@ from .boundary_release import (
     boundary_release_manifest,
     build_verified_interface_boundary_topology,
 )
+from .brand_identity import build_brand_identity_manifest
 from .component_registry import build_current_component_registry
 from .contact_simulation import build_contact_simulation_framework
 from .interface_attachment import build_interface_attachment_architecture
@@ -89,6 +90,11 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         json.dump(registry_manifest, handle, indent=2, allow_nan=False)
         handle.write("\n")
 
+    brand_identity_manifest = build_brand_identity_manifest()
+    with (output / "brand_identity.json").open("w", encoding="utf-8") as handle:
+        json.dump(brand_identity_manifest, handle, indent=2, allow_nan=False)
+        handle.write("\n")
+
     checks = run_assertions(model)
     boundary_topology = build_verified_interface_boundary_topology(
         model.authority,
@@ -102,6 +108,8 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
     report = {
         "project": "Masck One",
+        "parent_brand": "MASCK",
+        "brand_identity": brand_identity_manifest,
         "authority_revision": model.authority.get("project", "authority_revision"),
         "development_phase": 3,
         "iteration": 15,
@@ -132,12 +140,14 @@ def export_release(output_dir: str | Path = "generated", model: MasckOneModel | 
         "development_assembly_exclusions": list(development_assembly_exclusions),
         "exported_step_files": [f"{name}.step" for name in export_map]
         + ["masck_one_development_assembly.step"],
-        "exported_manifests": ["component_registry.json", "build_report.json"],
+        "exported_manifests": ["component_registry.json", "brand_identity.json", "build_report.json"],
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. The canonical component registry "
             "is the physical-material boundary for the development assembly: only released PHYSICAL_MATERIAL may enter "
             "that STEP compound; development references, package references, protected keepouts, centerlines, topology "
-            "and unresolved identities remain non-material review evidence. The structural frame is currently a "
+            "and unresolved identities remain non-material review evidence. The MASCK brand identity manifest is a "
+            "source-bound product/interaction/CMF contract only; it does not override engineering authority, protected "
+            "geometry, manufacturing truth or physical-validation gates. The structural frame is currently a "
             "topology/datum contract without invented cross-section or material; no frame STEP member geometry is "
             "released by Iteration 15. The realized waste backbone is emitted as validated centerline/manifold data, "
             "not selected tubing, pump, barrier, connector, hydraulic, service, or physical-performance evidence. "
