@@ -17,7 +17,7 @@ from .authority import Authority, load_authority
 from .model import MasckOneModel, build_model
 
 SCHEMA = "MASCK_ONE_CELL12_BATTERY_BENCHMARK_BINDING_V1"
-SOURCE_MAIN_SHA = "afe29ff78419b6625dca5594974b6351f6f80e1b"
+SOURCE_MAIN_SHA = "ff76a17fa25276a401fbe57ad02564b771fa1865"
 AUTHORITY_REVISION = "2026-08-30-R1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 AUTHORITY_PATH = "config/masck_one_authority.yaml"
