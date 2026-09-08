@@ -4,13 +4,13 @@ from __future__ import annotations
 
 The existing Cell 6 rail remains deliberately clearance-fit for smooth service motion.
 This module adds a *terminal* four-face taper candidate around the rigid Cell 6
-8 x 8 mm reaction shoulder.  The carrier can therefore run freely on the parallel
+8 x 8 mm reaction shoulder. The carrier can therefore run freely on the parallel
 rail for most of its stroke, then use axial seating motion to remove X/Z dead-zone
-at the final installed coordinate.  The spring/detent is intended only to maintain
+at the final installed coordinate. The spring/detent is intended only to maintain
 axial seating; alternating massage reaction is intended to pass through rigid taper
 faces and the rigid shoulder.
 
-Digital geometry and analytical screening only.  Exact contact pressure, friction,
+Digital geometry and analytical screening only. Exact contact pressure, friction,
 insertion/release force, tolerance closure, wear, creep, acoustics and human-use
 performance require nonlinear/physical validation.
 """
@@ -38,18 +38,14 @@ from .structural_frame_actuator_reactions import (
     StructuralFrameActuatorReactionArchitecture,
     build_structural_frame_actuator_reactions,
 )
-from .structural_frame_carrier_detent import (
-    BEAM_HEIGHT_MM,
-    BEAM_LENGTH_MM,
-    BEAM_WIDTH_MM,
-)
+from .structural_frame_carrier_detent import BEAM_HEIGHT_MM, BEAM_LENGTH_MM, BEAM_WIDTH_MM
 
 SCHEMA = "MASCK_ONE_TREATMENT_TERMINAL_KINEMATIC_SEAT_V1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 SOURCE_CELL6_HEAD_SHA = "fcccde02b31cc1c4e01136630d92e550e4e09a11"
 
 # The current treatment yoke has 0.16 mm radial X running clearance and 0.12 mm
-# radial Z running clearance.  The taper consumes those clearances only at the
+# radial Z running clearance. The taper consumes those clearances only at the
 # terminal shoulder edge, preserving a low-drag parallel approach elsewhere.
 RUNNING_X_CLEARANCE_MM = 0.16
 RUNNING_Z_CLEARANCE_MM = 0.12
@@ -61,14 +57,20 @@ Z_PAD_X_WIDTH_MM = 3.20
 BACK_ENVELOPE_AVAILABLE_MM = 0.63
 BACK_ENVELOPE_MARGIN_MM = 0.03
 
-# Small digital probes.  These prove the directionality of the terminal seat rather
+# Put the mathematical contact line 0.10 mm inside the shoulder's +Y edge. The
+# taper immediately opens toward +Y, so nominal geometry still has zero common
+# volume. This makes lateral/vertical hostile probes measurable rather than relying
+# on a zero-thickness coplanar edge contact.
+CONTACT_INSET_Y_MM = 0.10
+
+# Small digital probes. These prove the directionality of the terminal seat rather
 # than production tolerance capability.
 AXIAL_OVERTRAVEL_PROBE_MM = 0.05
 LATERAL_ENGAGEMENT_PROBE_MM = 0.05
 VERTICAL_ENGAGEMENT_PROBE_MM = 0.05
 SERVICE_RETRACTION_PROBE_MM = 2.0
 
-# Analytical-only retention screen.  0.60 N is the existing transient treatment
+# Analytical-only retention screen. 0.60 N is the existing transient treatment
 # force reference, not a measured force at this mount.
 TRANSIENT_REACTION_REFERENCE_N = 0.60
 DETENT_MODULUS_STUDY_MPA = 2500.0
@@ -185,8 +187,8 @@ def taper_half_angles_deg() -> tuple[float, float]:
 
 
 def detent_linear_proxy() -> dict[str, float]:
-    # Cantilever screen only.  The real molded/metal beam material, root compliance,
-    # large deflection, nose cam and hysteresis are not represented here.
+    # Cantilever screen only. The real beam material, root compliance, large
+    # deflection, nose cam and hysteresis are not represented here.
     inertia = BEAM_WIDTH_MM * BEAM_HEIGHT_MM**3 / 12.0
     stiffness = 3.0 * DETENT_MODULUS_STUDY_MPA * inertia / BEAM_LENGTH_MM**3
     force = stiffness * DETENT_RETAINED_DEFLECTION_SEED_MM
@@ -260,6 +262,7 @@ class TerminalKinematicSeat:
                 "running_z_clearance": RUNNING_Z_CLEARANCE_MM,
                 "x_taper_span": X_TAPER_SPAN_MM,
                 "z_taper_span": Z_TAPER_SPAN_MM,
+                "contact_inset_y": CONTACT_INSET_Y_MM,
                 "x_taper_half_angle_deg": ax,
                 "z_taper_half_angle_deg": az,
                 "back_envelope_available": BACK_ENVELOPE_AVAILABLE_MM,
@@ -333,7 +336,7 @@ def build_terminal_kinematic_seats(
     built: list[TerminalKinematicSeat] = []
     for mate in mates.mates:
         cx, cy = mate.center_xy_mm
-        contact_y = cy + SHOULDER_HEIGHT_MM / 2.0
+        contact_y = cy + SHOULDER_HEIGHT_MM / 2.0 - CONTACT_INSET_Y_MM
         parts = (
             ("x_left_datum", _x_taper_pad(cx=cx, contact_y=contact_y, shoulder_z0=shoulder_z0, sign=-1.0)),
             ("x_right_datum", _x_taper_pad(cx=cx, contact_y=contact_y, shoulder_z0=shoulder_z0, sign=1.0)),
