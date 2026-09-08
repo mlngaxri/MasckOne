@@ -68,7 +68,7 @@ def _by_id(registry):
 
 
 def test_registry_is_bound_to_post_120_released_base(registry):
-    assert SOURCE_MAIN_SHA == "a0ea51874d8967c512468932fac627e8bba5f95f"
+    assert SOURCE_MAIN_SHA == "ff76a17fa25276a401fbe57ad02564b771fa1865"
     assert registry.source_main_sha == SOURCE_MAIN_SHA
     assert registry.coordinate_frame_id == WORLD_FRAME_ID
     assert registry.length_unit == LENGTH_UNIT
