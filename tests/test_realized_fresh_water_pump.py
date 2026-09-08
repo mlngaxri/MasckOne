@@ -39,6 +39,9 @@ def test_supplier_family_package_and_drainable_cradle_are_real_breps():
     assert pump.package_solid.val().isValid()
     assert pump.package_solid.val().Volume() == pytest.approx(6150.0, abs=1e-7)
     assert pump.package_solid.val().Center().toTuple() == pytest.approx(PUMP_CENTER.as_tuple(), abs=1e-9)
+    assert pump.support_cradle_solid.solids().size() == 1
+    assert pump.support_cradle_solid.val().isValid()
+    assert pump.support_cradle_solid.val().Volume() > 0.0
     assert pump.package_solid.val().intersect(pump.support_cradle_solid.val()).Volume() == pytest.approx(0.0, abs=1e-7)
     assert pump.manifest()["support"]["cavity_classification"] == CAVITY_CLASSIFICATION == "WET_DRAINABLE"
     assert pump.manifest()["support"]["both_y_ends_open"] is True
