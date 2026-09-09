@@ -48,7 +48,7 @@ from .treatment_terminal_datum_preload_v3 import (
 
 SCHEMA_V8 = "MASCK_ONE_TREATMENT_MOUNTED_FOUR_ZONE_V8"
 SOURCE_MAIN_SHA = "42fa11818184cde998c6df25d7c46d4fb0e4c3eb"
-SOURCE_CELL6_HEAD_SHA = "fcccde02b31cc1c4e01136630d92e550e4e09a11"
+SOURCE_CELL6_HEAD_SHA = "c38d481c9868fb705a0b4084b2961807209e504c"
 SOURCE_FAILURE_EVIDENCE_HEAD = "b803b36ddd270c3bcebf696e267015bc535ca7c9"
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
 
@@ -290,12 +290,28 @@ def export_mounted_four_zone_architecture_v8(output_dir: Path) -> dict[str, obje
         station_manifest = {
             "reaction_id": station.reaction_id,
             "terminal_datum": datum_map[station.reaction_id].manifest(),
-            "fusion_handoff": next(row for row in fusion_handoff_manifest(architecture, datums)["stations"] if row["reaction_id"] == station.reaction_id),
+            "fusion_handoff": next(
+                row
+                for row in fusion_handoff_manifest(architecture, datums)["stations"]
+                if row["reaction_id"] == station.reaction_id
+            ),
         }
-        (output_dir / f"{slug}_fusion_manifest.json").write_text(json.dumps(station_manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        (output_dir / f"{slug}_fusion_manifest.json").write_text(
+            json.dumps(station_manifest, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
 
-    cq.exporters.export(cq.Compound.makeCompound(installed_station_shapes), str(output_dir / "treatment_four_zone_installed_assembly.step"))
+    cq.exporters.export(
+        cq.Compound.makeCompound(installed_station_shapes),
+        str(output_dir / "treatment_four_zone_installed_assembly.step"),
+    )
     manifest = manifest_v8(architecture, datums)
-    (output_dir / "treatment_mounted_four_zone_v8_manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    (output_dir / "treatment_fusion_handoff.json").write_text(json.dumps(manifest["fusion_handoff"], indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (output_dir / "treatment_mounted_four_zone_v8_manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (output_dir / "treatment_fusion_handoff.json").write_text(
+        json.dumps(manifest["fusion_handoff"], indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     return manifest
