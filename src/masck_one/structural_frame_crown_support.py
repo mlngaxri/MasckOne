@@ -98,6 +98,19 @@ def _intersection(a: cq.Workplane, b: cq.Workplane) -> float:
     return 0.0 if volume <= _INTERSECTION_TOLERANCE_MM3 else volume
 
 
+def _protected_solid(protected: object) -> cq.Workplane:
+    zone = protected.zone
+    return _protected_zone_solid(
+        center_x_mm=zone.center.x,
+        center_y_mm=zone.center.y,
+        envelope_width_mm=zone.envelope_width_mm,
+        envelope_height_mm=zone.envelope_height_mm,
+        angle_deg=zone.angle_deg,
+        z_min_mm=CROWN_LUG_CENTER_Z_MM - max(EYELET_Z_MM, 2.0 * CROWN_MEMBER_RADIUS_MM),
+        z_max_mm=CROWN_LUG_CENTER_Z_MM + max(EYELET_Z_MM, 2.0 * CROWN_MEMBER_RADIUS_MM),
+    )
+
+
 def _lug_reference(side_sign: float) -> tuple[cq.Workplane, cq.Workplane]:
     center = (side_sign * CROWN_LUG_CENTER_ABS_X_MM, CROWN_LUG_CENTER_Y_MM, CROWN_LUG_CENTER_Z_MM)
     material = _box(CROWN_LUG_XYZ_MM, center)
@@ -249,7 +262,7 @@ def build_structural_frame_crown_support(*, model: MasckOneModel | None = None, 
 
         protected_intersection = 0.0
         for protected in model.protected_volumes.all:
-            protected_solid = _protected_zone_solid(protected)
+            protected_solid = _protected_solid(protected)
             protected_intersection += _intersection(eyelet, protected_solid)
             protected_intersection += _intersection(pin, protected_solid)
             protected_intersection += _intersection(clip, protected_solid)
@@ -282,7 +295,7 @@ def build_structural_frame_crown_support(*, model: MasckOneModel | None = None, 
     )
 
     for protected in model.protected_volumes.all:
-        if _intersection(crown, _protected_zone_solid(protected)) > _INTERSECTION_TOLERANCE_MM3:
+        if _intersection(crown, _protected_solid(protected)) > _INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameCrownSupportError("crown support intersects a hard protected envelope")
 
     return StructuralFrameCrownSupportArchitecture(
