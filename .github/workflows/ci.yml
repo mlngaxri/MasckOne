@@ -13,8 +13,8 @@ jobs:
   engineering-integrity:
     runs-on: ubuntu-latest
     # Preserve every current source/brand gate and allow measured margin for
-    # per-solid STEP round-trip verification plus package-integrity verification.
-    timeout-minutes: 45
+    # the full suite, per-solid STEP round-trip verification and package checks.
+    timeout-minutes: 75
 
     steps:
       - name: Checkout
@@ -152,7 +152,9 @@ jobs:
         run: python -m masck_one.surface_workflow_preflight
 
       - name: Unit and integration tests
-        run: python -m pytest --durations=20
+        # Fail on the first regression so a long CAD-heavy suite surfaces the exact
+        # blocker before exhausting the job budget. A green run still executes every test.
+        run: python -m pytest -x --durations=20
 
       - name: Deterministic CAD smoke build
         run: python -m masck_one.cli --output /tmp/masck-one-generated

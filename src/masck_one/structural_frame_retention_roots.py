@@ -254,7 +254,6 @@ def build_structural_frame_retention_roots(
     bb = current_frame.val().BoundingBox()
     frame_z_min = float(bb.zmin)
     frame_z_max = float(bb.zmax)
-    frame_z_center = (frame_z_min + frame_z_max) / 2.0
 
     roots: list[RetentionRootCounterpart] = []
     for root_id, side_sign in zip(ROOT_IDS, (-1.0, 1.0), strict=True):
@@ -270,21 +269,69 @@ def build_structural_frame_retention_roots(
             for ear_y in ear_centers_y
         ]
 
-        # A narrow temple-side stem couples both ears into the existing perimeter reaction loop.
-        # The stem spans only the required root-to-frame Z distance and stays at the authority-side
-        # root datum rather than creating a rear pod or separate scaffold truth.
-        stem_z_low = min(ROOT_Z_MM - CLEVIS_EAR_Z_MM / 2.0, frame_z_min - FRAME_STEM_OVERLAP_MM)
-        stem_z_high = max(ROOT_Z_MM + CLEVIS_EAR_Z_MM / 2.0, frame_z_max + FRAME_STEM_OVERLAP_MM)
-        stem_depth = stem_z_high - stem_z_low
-        stem_center_z = (stem_z_low + stem_z_high) / 2.0
-        stem = _box((FRAME_STEM_X_MM, FRAME_STEM_Y_MM, stem_depth), (x, ROOT_Y_MM, stem_center_z))
+        # Close the clevis around the nominal yoke without putting frame material through
+        # the yoke boss. Candidate bridges approach from above and below the root; the
+        # released counterpart deterministically selects a valid, yoke-clear candidate that
+        # positively captures the current source frame. If neither side reaches the frame,
+        # geometry remains blocked rather than being represented by disconnected solids.
+        bridge_z_thickness = FRAME_STEM_OVERLAP_MM
+        bridge_y_span = 2.0 * ear_offset + CLEVIS_EAR_Y_THICKNESS_MM
+        candidates: list[tuple[float, float, cq.Workplane, float]] = []
+        for approach_sign in (1.0, -1.0):
+            bridge_center_z = ROOT_Z_MM + approach_sign * (
+                YOKE_ROOT_BOSS_XYZ_MM[2] / 2.0
+                + CLEVIS_SIDE_CLEARANCE_MM
+                + bridge_z_thickness / 2.0
+            )
+            bridge = _box(
+                (CLEVIS_EAR_X_MM, bridge_y_span, bridge_z_thickness),
+                (x, ROOT_Y_MM, bridge_center_z),
+            )
 
-        local_counterpart = _single(stem.union(ears[0]).union(ears[1]), f"{root_id} clevis/stem")
-        capture = _intersection_volume(current_frame, local_counterpart)
-        if capture <= _INTERSECTION_TOLERANCE_MM3:
-            raise StructuralFrameRetentionRootError(f"{root_id} clevis/stem does not positively capture source frame")
+            if approach_sign > 0.0:
+                stem_z_low = bridge_center_z
+                stem_z_high = max(
+                    bridge_center_z + bridge_z_thickness / 2.0,
+                    frame_z_max + FRAME_STEM_OVERLAP_MM,
+                )
+            else:
+                stem_z_low = min(
+                    frame_z_min - FRAME_STEM_OVERLAP_MM,
+                    bridge_center_z - bridge_z_thickness / 2.0,
+                )
+                stem_z_high = bridge_center_z
+            stem_depth = stem_z_high - stem_z_low
+            if stem_depth <= 0.0:
+                continue
+            stem_center_z = (stem_z_low + stem_z_high) / 2.0
+            stem = _box(
+                (FRAME_STEM_X_MM, FRAME_STEM_Y_MM, stem_depth),
+                (x, ROOT_Y_MM, stem_center_z),
+            )
 
-        yoke_intersection = _intersection_volume(local_counterpart, yoke_material)
+            try:
+                candidate = _single(
+                    bridge.union(stem).union(ears[0]).union(ears[1]),
+                    f"{root_id} clevis/bridge/stem candidate",
+                )
+            except StructuralFrameRetentionRootError:
+                continue
+            yoke_overlap = _intersection_volume(candidate, yoke_material)
+            if yoke_overlap > _INTERSECTION_TOLERANCE_MM3:
+                continue
+            candidate_capture = _intersection_volume(current_frame, candidate)
+            if candidate_capture <= _INTERSECTION_TOLERANCE_MM3:
+                continue
+            candidates.append((candidate_capture, approach_sign, candidate, yoke_overlap))
+
+        if not candidates:
+            raise StructuralFrameRetentionRootError(
+                f"{root_id} has no connected yoke-clear clevis path that positively captures source frame"
+            )
+        capture, _approach_sign, local_counterpart, yoke_intersection = max(
+            candidates,
+            key=lambda item: (item[0], item[1]),
+        )
 
         pin_stack_y = YOKE_ROOT_BOSS_XYZ_MM[1] + 2.0 * (CLEVIS_SIDE_CLEARANCE_MM + CLEVIS_EAR_Y_THICKNESS_MM)
         pin_total_length = pin_stack_y + CLEVIS_PIN_HEAD_THICKNESS_MM + CLEVIS_PIN_DISTAL_EXTENSION_MM
@@ -295,9 +342,24 @@ def build_structural_frame_retention_roots(
         raw_pin = _single(shaft.union(head), f"{root_id} raw capture pin")
         distal_y = ROOT_Y_MM + pin_stack_y / 2.0 + CLEVIS_PIN_DISTAL_EXTENSION_MM / 2.0
         groove_center_y = distal_y - CLEVIS_PIN_GROOVE_WIDTH_MM / 2.0
-        groove_tool = _cylinder_y(CLEVIS_PIN_RADIUS_MM, CLEVIS_PIN_GROOVE_WIDTH_MM, (x, groove_center_y, ROOT_Z_MM))
-        groove_core = _cylinder_y(CLEVIS_PIN_RADIUS_MM - CLEVIS_PIN_GROOVE_DEPTH_MM, CLEVIS_PIN_GROOVE_WIDTH_MM + 0.02, (x, groove_center_y, ROOT_Z_MM))
-        capture_pin = _single(raw_pin.cut(groove_tool).union(groove_core), f"{root_id} grooved capture pin")
+        groove_outer = _cylinder_y(
+            CLEVIS_PIN_RADIUS_MM,
+            CLEVIS_PIN_GROOVE_WIDTH_MM,
+            (x, groove_center_y, ROOT_Z_MM),
+        )
+        groove_inner = _cylinder_y(
+            CLEVIS_PIN_RADIUS_MM - CLEVIS_PIN_GROOVE_DEPTH_MM,
+            CLEVIS_PIN_GROOVE_WIDTH_MM + 0.02,
+            (x, groove_center_y, ROOT_Z_MM),
+        )
+        groove_annulus = _single(
+            groove_outer.cut(groove_inner),
+            f"{root_id} annular capture-pin groove cutter",
+        )
+        capture_pin = _single(
+            raw_pin.cut(groove_annulus),
+            f"{root_id} grooved capture pin",
+        )
         split_retainer = _clip_for_pin(center_x=x, groove_center_y=groove_center_y, center_z=ROOT_Z_MM)
 
         pin_yoke_intersection = _intersection_volume(capture_pin, yoke_material)

@@ -11,7 +11,10 @@ permissions:
 jobs:
   first-failure:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The CAD-heavy first regression currently surfaces after ~44 minutes on
+    # hosted runners. Keep this diagnostic bounded, but long enough to capture
+    # the actual failing assertion instead of cancelling before evidence exists.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,11 +32,11 @@ jobs:
         run: |
           set -o pipefail
           python -m pytest -x -vv --tb=long 2>&1 | tee /tmp/cell6-first-failure.txt
-      - name: Preserve diagnostic on failure
-        if: failure()
+      - name: Preserve diagnostic receipt
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cell6-first-pytest-failure-${{ github.sha }}
+          name: cell6-first-pytest-receipt-${{ github.sha }}
           path: /tmp/cell6-first-failure.txt
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 1
