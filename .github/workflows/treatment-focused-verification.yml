@@ -38,28 +38,18 @@ jobs:
             src/masck_one/treatment_carrier_counterpart.py \
             src/masck_one/treatment_mounted_four_zone.py \
             src/masck_one/treatment_mounted_four_zone_v2.py \
-            src/masck_one/treatment_mounted_four_zone_v4.py \
-            src/masck_one/treatment_mounted_four_zone_v6.py \
-            src/masck_one/treatment_mounted_four_zone_v7.py \
-            src/masck_one/treatment_terminal_datum_preload.py \
-            src/masck_one/treatment_terminal_datum_preload_v2.py \
-            studies/treatment_parallel_preload_flexure.py \
-            studies/treatment_terminal_preload_material_trade.py \
-            studies/treatment_terminal_event_phasing.py \
-            studies/treatment_preload_robustness_doe.py \
-            studies/treatment_buttery_terminal_profile_v2.py
-      - name: Run current terminal closure tests
+            src/masck_one/treatment_terminal_datum_preload_v3.py \
+            src/masck_one/treatment_guided_preload_spring.py \
+            src/masck_one/treatment_mounted_four_zone_v8.py \
+            studies/treatment_terminal_mechanics_v2.py
+      - name: Run current V8 closure tests
         run: |
           python -m pytest -q \
             tests/test_treatment_live117_reconciliation.py \
             tests/test_treatment_carrier_counterpart.py \
-            tests/test_treatment_terminal_datum_preload.py \
-            tests/test_treatment_terminal_datum_preload_v2.py \
-            tests/test_treatment_parallel_preload_flexure.py \
-            tests/test_treatment_terminal_preload_material_trade.py \
-            tests/test_treatment_terminal_event_phasing.py \
-            tests/test_treatment_buttery_terminal_profile_v2.py \
-            tests/test_treatment_mounted_four_zone_v6.py \
-            tests/test_treatment_mounted_four_zone_v7.py
+            tests/test_treatment_terminal_mechanics_v2.py \
+            tests/test_treatment_terminal_datum_preload_v3.py \
+            tests/test_treatment_guided_preload_spring.py \
+            tests/test_treatment_mounted_four_zone_v8.py
 
 # Fast branch-level design loop only. Complete repository CI remains the release gate.
