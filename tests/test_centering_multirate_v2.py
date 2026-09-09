@@ -22,9 +22,17 @@ def test_v2_noise_and_load_studies_respect_actuator_force_authority(centering_v2
     checks = centering_v2_manifest["digital_checks"]
     assert checks["acquires_through_20um_noise_at_4ms"] is True
     assert checks["30um_noise_is_not_claimed"] is True
-    assert checks["load_0p12_to_0p20N_full_stroke_at_4ms"] is True
-    assert checks["overauthority_0p28_to_0p32N_not_claimed_full_stroke"] is True
-    assert checks["load_sweep_avoids_hard_stop"] is True
+
+    rows = centering_v2_manifest["load_sweep_at_4ms"]
+    inside_authority = [row for row in rows if row["load_N"] <= 0.20]
+    above_force_ceiling = [row for row in rows if row["load_N"] >= 0.28]
+
+    assert all(row["full_stroke_under_nominal"] and not row["hard_stop_exceeded"] for row in inside_authority)
+    assert all(not row["full_stroke_under_nominal"] for row in above_force_ceiling)
+    assert all(not row["hard_stop_exceeded"] for row in rows)
+    # The old all-load assertion is intentionally false: 0.28-0.32 N exceeds the
+    # 0.27 N study actuator ceiling and must not be represented as full-stroke authority.
+    assert checks["load_0p12_to_0p32N_full_stroke_at_4ms"] is False
     assert centering_v2_manifest["physical_validation_eligible"] is False
 
 
