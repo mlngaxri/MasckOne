@@ -12,9 +12,8 @@ tolerance specification. The selected corner is intentionally conservative enoug
 separate fragile from robust topologies before detailed DFM/physical data exist.
 """
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import json
-import math
 from pathlib import Path
 
 import numpy as np
@@ -36,8 +35,6 @@ CAM_TRAVELS_MM = (0.65, 0.80, 0.95)
 RADIAL_ERROR_SEEDS_MM = (0.02, 0.03, 0.05)
 RELAXATION_SEEDS = (0.10, 0.20, 0.30)
 
-# Geometry options for the two-leaf fixed-guided spring cassette. Width is the width
-# of ONE leaf; pair envelope is roughly 2*width + inter-leaf gap.
 SPRING_GEOMETRY_OPTIONS = (
     (0.65, 0.12),
     (0.80, 0.15),
@@ -154,8 +151,8 @@ def candidate(
         "preload_target_N": preload_target_N,
         "entry_overclosure_mm": overclosure_mm,
         "cam_travel_mm": cam_travel_mm,
-        "X": x.__dict__,
-        "Z": z.__dict__,
+        "X": asdict(x),
+        "Z": asdict(z),
         "combined_peak_ideal_cam_axial_force_N": combined_cam,
         "maximum_entry_force_N": max_entry,
         "minimum_robustness_corner_contact_margin_N": min_margin,
@@ -178,10 +175,7 @@ def doe() -> list[dict[str, object]]:
 
 
 def selected_candidate() -> dict[str, object]:
-    # The 0.40 N / 0.015 mm / 0.80 mm point is selected as the current robustness
-    # seed because it preserves a small positive contact margin at the deliberately
-    # hostile 0.05 mm + 20% corner while keeping entry/cam force well below the
-    # current axial-detent proxy. It is not a final force or tolerance requirement.
+    # Current robustness seed only, not a production force/tolerance requirement.
     return candidate(0.40, 0.015, 0.80)
 
 
@@ -201,11 +195,17 @@ def build_manifest() -> dict[str, object]:
         },
         "selected_current_robustness_seed": selected,
         "selected_spring_geometry_screens": {
-            "X": spring_geometry_screen(k_N_per_mm=x["stiffness_N_per_mm"], force_N=x["maximum_backup_entry_force_N"] if "maximum_backup_entry_force_N" in x else x["backup_entry_force_N"]),
-            "Z": spring_geometry_screen(k_N_per_mm=z["stiffness_N_per_mm"], force_N=z["backup_entry_force_N"]),
+            "X": spring_geometry_screen(
+                k_N_per_mm=x["stiffness_N_per_mm"],
+                force_N=x["backup_entry_force_N"],
+            ),
+            "Z": spring_geometry_screen(
+                k_N_per_mm=z["stiffness_N_per_mm"],
+                force_N=z["backup_entry_force_N"],
+            ),
         },
         "selection_reason": (
-            "THE_PREVIOUS_0P30N_0P005MM_SEED_HAS_TOO_LITTLE ROBUSTNESS TO DIMENSIONAL ERROR/RELAXATION. "
+            "THE_PREVIOUS_0P30N_0P005MM_SEED_HAS_TOO_LITTLE_ROBUSTNESS_TO_DIMENSIONAL_ERROR_AND_RELAXATION. "
             "0P40N_PRELOAD_WITH_0P015MM_ENTRY_OVERCLOSURE_AND_0P80MM_CAM_TRAVEL PRESERVES A SMALL "
             "POSITIVE CONTACT MARGIN AT THE DELIBERATELY HOSTILE STUDY CORNER WHILE KEEPING THE "
             "RADIAL TAKEUP SUBORDINATE TO THE FINAL AXIAL EVENT."
