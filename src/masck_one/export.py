@@ -17,6 +17,7 @@ from .boundary_release import (
 from .brand_identity import build_brand_identity_manifest
 from .component_registry import build_current_component_registry
 from .contact_simulation import build_contact_simulation_framework
+from .integration_contract import integration_contract_manifest
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .release_package import (
@@ -248,6 +249,7 @@ def export_release(
         "result": "PASS",
         "build_scope": "DEVELOPMENT_ONLY",
         "release_source_binding": _release_source_binding(),
+        "integration_contract": integration_contract_manifest(),
         "checks": check_records,
         "production_readiness": development_readiness(check_records, records),
         "components": records,
@@ -295,6 +297,8 @@ def export_release(
             "references, protected keepouts, topology and unresolved identities remain "
             "non-material. The release source binding records CI source provenance only; "
             "it does not alter component ownership, geometry authority or physical evidence. "
+            "The integration contract is navigation and edit ownership only; live GitHub "
+            "supersedes its dated head snapshot and subsystem owners retain their internals. "
             "The MASCK brand identity manifest is a source-bound product, interaction and "
             "CMF contract only; it does not override engineering authority, protected geometry, "
             "manufacturing truth or physical-validation gates. The structural frame is currently "
