@@ -42,14 +42,15 @@ jobs:
             src/masck_one/treatment_guided_preload_spring.py \
             src/masck_one/treatment_mounted_four_zone_v8.py \
             studies/treatment_terminal_mechanics_v2.py
-      - name: Run current V8 closure tests
-        run: |
-          python -m pytest -q \
-            tests/test_treatment_live117_reconciliation.py \
-            tests/test_treatment_carrier_counterpart.py \
-            tests/test_treatment_terminal_mechanics_v2.py \
-            tests/test_treatment_terminal_datum_preload_v3.py \
-            tests/test_treatment_guided_preload_spring.py \
-            tests/test_treatment_mounted_four_zone_v8.py
+      - name: Verify reconciliation baseline
+        run: python -m pytest -q tests/test_treatment_live117_reconciliation.py tests/test_treatment_carrier_counterpart.py
+      - name: Verify terminal mechanics model
+        run: python -m pytest -q tests/test_treatment_terminal_mechanics_v2.py
+      - name: Verify terminal datum B-reps
+        run: python -m pytest -q tests/test_treatment_terminal_datum_preload_v3.py
+      - name: Verify guided spring cassette B-reps
+        run: python -m pytest -q tests/test_treatment_guided_preload_spring.py
+      - name: Verify complete four-zone V8
+        run: python -m pytest -q tests/test_treatment_mounted_four_zone_v8.py
 
 # Fast branch-level design loop only. Complete repository CI remains the release gate.
