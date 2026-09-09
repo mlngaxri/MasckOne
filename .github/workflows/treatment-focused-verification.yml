@@ -48,7 +48,8 @@ jobs:
             studies/treatment_terminal_seat_tolerance.py \
             studies/treatment_datum_preload_mount.py \
             studies/treatment_terminal_seating_profile.py \
-            studies/treatment_terminal_preload_material_trade.py
+            studies/treatment_terminal_preload_material_trade.py \
+            studies/treatment_parallel_preload_flexure.py
       - name: Run treatment tests
         run: |
           python -m pytest -q \
@@ -64,4 +65,5 @@ jobs:
             tests/test_treatment_datum_preload_mount.py \
             tests/test_treatment_terminal_seating_profile.py \
             tests/test_treatment_terminal_datum_preload.py \
-            tests/test_treatment_terminal_preload_material_trade.py
+            tests/test_treatment_terminal_preload_material_trade.py \
+            tests/test_treatment_parallel_preload_flexure.py
