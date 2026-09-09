@@ -38,6 +38,8 @@ def test_bilateral_retention_roots_are_positive_source_bound_breps() -> None:
             abs=1e-12,
         )
         assert root.capture_pin.val().isValid()
+        assert len(root.capture_pin.val().Solids()) == 1
+        assert float(root.capture_pin.val().Volume()) > 0.0
         assert root.split_retainer.val().isValid()
 
     manifest = architecture.manifest()
