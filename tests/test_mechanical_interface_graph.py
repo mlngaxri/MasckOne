@@ -170,7 +170,7 @@ def test_missing_positive_counterpart_breaks_selected_retention_chain():
     interfaces = tuple(
         edge for edge in graph.interfaces if edge.interface_id != "RETENTION_ROOT_TO_YOKE_LEFT"
     )
-    with pytest.raises(MechanicalInterfaceGraphError, match="lacks positive/integral counterparts"):
+    with pytest.raises(MechanicalInterfaceGraphError, match="missing an exact required counterpart"):
         graph_with(interfaces=interfaces)
 
 

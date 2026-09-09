@@ -441,6 +441,30 @@ class MechanicalInterfaceGraph:
             raise MechanicalInterfaceGraphError(
                 "selected bilateral retention load path is incomplete"
             )
+        required_retention_interface_ids = {
+            "FRAME_TO_RETENTION_ROOT_LEFT",
+            "FRAME_TO_RETENTION_ROOT_RIGHT",
+            "RETENTION_ROOT_TO_YOKE_LEFT",
+            "RETENTION_ROOT_TO_YOKE_RIGHT",
+            "YOKE_TO_ADJUSTMENT_LEFT",
+            "YOKE_TO_ADJUSTMENT_RIGHT",
+            "ADJUSTMENT_TO_CARRIER_LEFT",
+            "ADJUSTMENT_TO_CARRIER_RIGHT",
+            "CARRIER_TO_CROWN_LEFT",
+            "CARRIER_TO_CROWN_RIGHT",
+        }
+        edge_by_id = {edge.interface_id: edge for edge in self.interfaces}
+        if not required_retention_interface_ids.issubset(edge_by_id):
+            raise MechanicalInterfaceGraphError(
+                "selected retention load path is missing an exact required counterpart"
+            )
+        if any(
+            not edge_by_id[interface_id].transfers_load_digitally
+            for interface_id in required_retention_interface_ids
+        ):
+            raise MechanicalInterfaceGraphError(
+                "selected retention load path counterpart lost positive/integral load transfer"
+            )
         connected = _connected_nodes("FRAME_REACTION_LOOP", realized_edges)
         if not required_retention_nodes.issubset(connected):
             raise MechanicalInterfaceGraphError(
