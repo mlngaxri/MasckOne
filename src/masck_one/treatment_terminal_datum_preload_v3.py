@@ -23,6 +23,8 @@ import json
 from pathlib import Path
 
 import cadquery as cq
+from OCP.BRepPrimAPI import BRepPrimAPI_MakePrism
+from OCP.gp import gp_Vec
 
 from studies.treatment_terminal_mechanics_v2 import (
     CAM_TRAVEL_MM,
@@ -58,7 +60,6 @@ from .treatment_terminal_datum_preload_v2 import (
     TERMINAL_SERVICE_RETRACTION_PROBE_MM,
     _box,
     _intersection_volume,
-    _translation_envelope,
     _x_cam_pad,
     _z_cam_pad,
 )
@@ -78,6 +79,27 @@ _INTERSECTION_TOLERANCE_MM3 = 1e-7
 
 class TreatmentTerminalDatumPreloadV3Error(ValueError):
     pass
+
+
+def _translation_reference_compound(
+    shape: cq.Shape,
+    travel: tuple[float, float, float],
+) -> cq.Compound:
+    """Conservative rigid-translation envelope without Boolean fusion.
+
+    A service sweep is reference geometry, not a manufactured solid. Keeping the
+    start/end bodies and swept face prisms as a compound avoids kernel-fragile
+    unions across spline/tangent faces while still covering the complete rigid
+    translation path for collision screening.
+    """
+    pieces: list[cq.Shape] = [shape, shape.translate(travel)]
+    for face in shape.Faces():
+        swept = cq.Shape.cast(BRepPrimAPI_MakePrism(face.wrapped, gp_Vec(*travel)).Shape())
+        pieces.extend(swept.Solids())
+    compound = cq.Compound.makeCompound(pieces)
+    if not compound.isValid() or not compound.Solids():
+        raise TreatmentTerminalDatumPreloadV3Error("terminal reference service sweep must remain valid")
+    return compound
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,6 +157,7 @@ class TerminalDatumPreloadV3Station:
                 "master_probe_intersections_mm3": list(self.master_probe_intersections_mm3),
                 "service_source_intersection_mm3": self.service_source_intersection_mm3,
             },
+            "service_sweep_semantics": "BOOLEAN_FREE_REFERENCE_COMPOUND_OF_START_END_AND_FACE_PRISMS",
             "physical_validation": "OPEN_CONTACT_PRESSURE_FRICTION_WEAR_FORCE_TRAVEL_TOLERANCE_DAMPING_ACOUSTICS_AND_WET_CONTAMINATION",
         }
 
@@ -238,15 +261,19 @@ def build_terminal_datum_preload_v3_architecture(
         master_probe_x = _intersection_volume(master_x.translate((-master_x_sign * MASTER_ENGAGEMENT_PROBE_MM, 0.0, 0.0)), source)
         master_probe_z = _intersection_volume(master_z.translate((0.0, 0.0, MASTER_ENGAGEMENT_PROBE_MM)), source)
 
-        # Service motion is a reference proof over physically distinct parts. Do not
-        # force disconnected swept envelopes into one Boolean solid: that is both
-        # kernel-fragile and semantically wrong for a Fusion manufacturing handoff.
         service_parts = [
-            _translation_envelope(shape, (0.0, TERMINAL_SERVICE_RETRACTION_PROBE_MM, 0.0))
+            _translation_reference_compound(
+                shape,
+                (0.0, TERMINAL_SERVICE_RETRACTION_PROBE_MM, 0.0),
+            )
             for shape in installed_parts
         ]
         service = cq.Compound.makeCompound(service_parts)
-        service_iv = sum(_intersection_volume(swept, source) for swept in service_parts)
+        service_iv = sum(
+            _intersection_volume(piece, source)
+            for swept in service_parts
+            for piece in swept.Solids()
+        )
 
         built.append(TerminalDatumPreloadV3Station(
             mate.reaction_id, mate.center_xy_mm,
