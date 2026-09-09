@@ -43,7 +43,8 @@ jobs:
             studies/treatment_live117_reconciliation.py \
             studies/treatment_mount_play_budget.py \
             studies/treatment_terminal_seat_tolerance.py \
-            studies/treatment_datum_preload_mount.py
+            studies/treatment_datum_preload_mount.py \
+            studies/treatment_terminal_seating_profile.py
       - name: Run treatment tests
         run: |
           python -m pytest -q \
@@ -54,4 +55,5 @@ jobs:
             tests/test_treatment_mount_play_budget.py \
             tests/test_treatment_terminal_kinematic_seat.py \
             tests/test_treatment_terminal_seat_tolerance.py \
-            tests/test_treatment_datum_preload_mount.py
+            tests/test_treatment_datum_preload_mount.py \
+            tests/test_treatment_terminal_seating_profile.py
