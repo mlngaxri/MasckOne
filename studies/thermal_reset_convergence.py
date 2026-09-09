@@ -73,7 +73,7 @@ def study():
             plate_store_W_K=inputs.plate_store_W_K,plate_mass_g=plate_mass_g),
         two_cheek_known_mass_DOE_g=2*(store.mass_g+metal_mass_g),
         unknown_mass='INSULATION_HEATER_SENSORS_ENCAPSULATION_HARNESS_AND_MOUNTS',
-        original_WARM_reservation_depth_mm=2.4,new_passive_fixture_depth_mm=10.6,
+        original_WARM_reservation_depth_mm=2.4,new_passive_fixture_depth_mm=p.store_depth_mm+p.choke_length_mm+p.plate_thickness_mm,
         shell_growth_required='UNKNOWN_UNTIL_CURRENT_EXTERIOR_AND_FRAME_CHECK',
         cases=cases,asymmetric_cheeks=asymmetric,cooling_sensitivity=sensitivity,warm_sensitivity=warm_sensitivity,
         dock_reset=reset,trade=architecture_trade(350.,180.,1.,5.),

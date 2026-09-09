@@ -88,6 +88,7 @@ class FixtureInputs:
     initial_plate_delta_K: float
     initial_store_enthalpy_J: float
     motor_to_store_W: float
+    heater_center_fraction: float=.2
 
     def __post_init__(self):
         values={k:v for k,v in asdict(self).items() if k!='store'}
@@ -96,6 +97,7 @@ class FixtureInputs:
                 'initial_store_enthalpy_J'}
         if any(v < 0 for k,v in values.items() if k not in signed):
             raise ValueError('negative capacity, mass, conductance or heat source')
+        if self.heater_center_fraction>1:raise ValueError('invalid spatial heater fraction')
         if min(self.plate_heat_capacity_J_K,self.back_heat_capacity_J_K,
                self.sensor_heat_capacity_J_K,self.plate_center_edge_W_K,
                self.plate_store_W_K,self.sensor_plate_W_K) <= 0:
@@ -140,21 +142,22 @@ def transient(inputs: FixtureInputs, phases, step_s=0.02):
         qairE=p.plate_ambient_W_K/2*(p.ambient_delta_K-edge)
         qback=p.plate_back_W_K*((center+edge)/2-back)
         qba=p.back_ambient_W_K*(back-p.ambient_delta_K)
-        # Columns connect to the edge region. A 65/35 heater distribution is an
-        # explicit nonuniform DOE, not a prediction of actual foil trace density.
-        return [(power*.65+qloadC+qairC-qce-qcs-qback/2)/C,
-                (power*.35+qloadE+qairE+qce-qst-qback/2)/C,qcs/p.sensor_heat_capacity_J_K,
+        # Selected foil study places 60% near columns, with 40% distributed.
+        # Two-node approximation maps that to 20% center / 80% edge heating.
+        return [(power*p.heater_center_fraction+qloadC+qairC-qce-qcs-qback/2)/C,
+                (power*(1-p.heater_center_fraction)+qloadE+qairE+qce-qst-qback/2)/C,qcs/p.sensor_heat_capacity_J_K,
                 qst+p.motor_to_store_W,(qback-qba)/p.back_heat_capacity_J_K,
                 power,qloadC+qloadE,qairC+qairE-qba,p.motor_to_store_W,qback]
     out=[];samples=[];time=0.;peak_gradient=0.;peak_sensor_lag=0.;exhaustion=None
     for label,duration,power in phases:
-        count=math.ceil(duration/step_s);dt=duration/count;phase_start=list(y)
+        count=math.ceil(duration/step_s);dt=duration/count;phase_start=list(y);trajectory=[]
         for index in range(count):
             a=rate(y,power);b=rate([v+dt*k/2 for v,k in zip(y,a)],power)
             c=rate([v+dt*k/2 for v,k in zip(y,b)],power)
             d=rate([v+dt*k for v,k in zip(y,c)],power)
             y=[v+dt*(i+2*j+2*k+l)/6 for v,i,j,k,l in zip(y,a,b,c,d)]
             time+=dt
+            trajectory.append(((index+1)*dt,(y[0]+y[1])/2))
             peak_gradient=max(peak_gradient,abs(y[0]-y[1]))
             peak_sensor_lag=max(peak_sensor_lag,abs(y[0]-y[2]))
             if exhaustion is None and y[3]>=p.store.capacity_J:
@@ -162,7 +165,12 @@ def transient(inputs: FixtureInputs, phases, step_s=0.02):
             if index % max(1,round(5/dt))==0:
                 samples.append(dict(phase=label,time_s=time,plate_delta_K=(y[0]+y[1])/2,
                     center_delta_K=y[0],edge_delta_K=y[1],store_enthalpy_J=y[3]))
-        out.append(dict(phase=label,time_s=time,plate_delta_K=(y[0]+y[1])/2,
+        start_mean=(phase_start[0]+phase_start[1])/2;end_mean=(y[0]+y[1])/2
+        target=start_mean+.9*(end_mean-start_mean);direction=1 if end_mean>start_mean else -1
+        endpoint_response=next((t for t,v in trajectory if direction*(v-target)>=0),None)
+        out.append(dict(phase=label,time_s=time,plate_delta_K=end_mean,
+                        time_to_90_percent_of_phase_endpoint_change_s=endpoint_response,
+                        response_definition='PHASE_ENDPOINT_CHANGE_NOT_ASYMPTOTIC_OR_HUMAN_RESPONSE',
                         store_delta_K=p.store.temperature_above_solidus_K(y[3]),
                         store_enthalpy_J=y[3],latent_planning_margin_J=p.store.capacity_J-y[3],
                         imposed_load_to_plate_J=y[6]-phase_start[6],
@@ -220,3 +228,72 @@ def local_energy_budget(capacities_J,required_J):
     return dict(margins_J=margins,minimum_margin_J=min(margins.values()),
                 global_margin_J=sum(margins.values()),all_stores_have_planning_reserve=min(margins.values())>=0,
                 physical_readiness=False)
+
+
+def plate_field(*,width_mm,height_mm,thickness_mm,conductivity_W_mK,heater_W,
+                heater_width_mm,heater_height_mm,post_xy_mm,total_store_W_K,
+                store_delta_K,load_W_K,load_delta_K,ambient_W_K,ambient_delta_K,
+                nx=22,ny=28,post_heater_fraction=0.,post_width_mm=.92):
+    """Steady finite-volume sheet screen, adiabatic perimeter, distributed load.
+
+    Conductive columns are attached to their actual nearest cells. Total transfer
+    conductance includes the downstream PCM resistance. This is a 2D thin-sheet
+    architecture screen, not 3D contact/temperature or hotspot validation.
+    """
+    import numpy as np
+    finite(width_mm=width_mm,height_mm=height_mm,thickness_mm=thickness_mm,
+           conductivity_W_mK=conductivity_W_mK,heater_W=heater_W,
+           total_store_W_K=total_store_W_K,store_delta_K=store_delta_K,load_W_K=load_W_K,
+           load_delta_K=load_delta_K,ambient_W_K=ambient_W_K,ambient_delta_K=ambient_delta_K,
+           heater_width_mm=heater_width_mm,heater_height_mm=heater_height_mm,post_heater_fraction=post_heater_fraction,post_width_mm=post_width_mm)
+    if post_width_mm<=0:raise ValueError('positive post footprint required')
+    if not 0<=post_heater_fraction<=1:raise ValueError('heater split must be a fraction')
+    if min(width_mm,height_mm,thickness_mm,conductivity_W_mK,total_store_W_K,heater_width_mm,heater_height_mm)<=0:
+        raise ValueError('positive geometry and conductive paths required')
+    if min(heater_W,load_W_K,ambient_W_K)<0 or type(nx) is not int or type(ny) is not int or min(nx,ny)<2 or not post_xy_mm:
+        raise ValueError('invalid finite volume inputs')
+    dx=width_mm/nx;dy=height_mm/ny;N=nx*ny
+    xs=(np.arange(nx)+.5)*dx-width_mm/2;ys=(np.arange(ny)+.5)*dy-height_mm/2
+    A=np.zeros((N,N));b=np.zeros(N)
+    gx=conductivity_W_mK*thickness_mm*.001*dy/dx
+    gy=conductivity_W_mK*thickness_mm*.001*dx/dy
+    heater_indices=[j*nx+i for j,y in enumerate(ys) for i,x in enumerate(xs)
+                    if abs(x)<heater_width_mm/2 and abs(y)<heater_height_mm/2]
+    if not heater_indices:raise ValueError('heater unresolved on grid')
+    for j in range(ny):
+        for i in range(nx):
+            n=j*nx+i
+            A[n,n]+=(load_W_K+ambient_W_K)/N
+            b[n]+=(load_W_K*load_delta_K+ambient_W_K*ambient_delta_K)/N
+            for ii,jj,g in [(i+1,j,gx),(i,j+1,gy)]:
+                if ii<nx and jj<ny:
+                    m=jj*nx+ii;A[n,n]+=g;A[m,m]+=g;A[n,m]-=g;A[m,n]-=g
+    near_posts=[j*nx+i for j,y in enumerate(ys) for i,x in enumerate(xs)
+                if j*nx+i in heater_indices and any(1.0<math.hypot(x-a,y-c)<3.0 for a,c in post_xy_mm)]
+    if post_heater_fraction and not near_posts:raise ValueError('post heater region unresolved')
+    for n in heater_indices:b[n]+=heater_W*(1-post_heater_fraction)/len(heater_indices)
+    for n in near_posts:b[n]+=heater_W*post_heater_fraction/len(near_posts)
+    post_weights=[]
+    for x,y in post_xy_mm:
+        finite(x=x,y=y)
+        if abs(x)>=width_mm/2 or abs(y)>=height_mm/2:raise ValueError('post outside plate')
+        half=post_width_mm/2
+        weights=[]
+        for j,yc in enumerate(ys):
+            oy=max(0.,min(y+half,yc+dy/2)-max(y-half,yc-dy/2))
+            for i,xc in enumerate(xs):
+                ox=max(0.,min(x+half,xc+dx/2)-max(x-half,xc-dx/2))
+                if ox*oy>0:weights.append((j*nx+i,ox*oy/post_width_mm**2))
+        if abs(sum(w for n,w in weights)-1)>1e-8:raise ValueError('post footprint not contained')
+        for n,w in weights:
+            g=total_store_W_K/len(post_xy_mm)*w;A[n,n]+=g;b[n]+=g*store_delta_K
+            post_weights.append((n,g))
+    T=np.linalg.solve(A,b)
+    store_heat=sum(g*(T[n]-store_delta_K) for n,g in post_weights)
+    load_heat=load_W_K*(load_delta_K-float(T.mean()))
+    air_heat=ambient_W_K*(ambient_delta_K-float(T.mean()))
+    return dict(mean_delta_K=float(T.mean()),max_minus_min_K=float(T.max()-T.min()),
+                maximum_delta_K=float(T.max()),minimum_delta_K=float(T.min()),
+                store_heat_W=store_heat,load_heat_W=load_heat,
+                balance_residual_W=heater_W+load_heat+air_heat-store_heat,
+                temperature_delta_grid_K=T.reshape(ny,nx).tolist(),grid_shape=[nx,ny])
