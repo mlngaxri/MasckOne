@@ -13,8 +13,8 @@ jobs:
   engineering-integrity:
     runs-on: ubuntu-latest
     # Preserve every current source/brand gate and allow measured margin for
-    # the full suite, per-solid STEP round-trip verification and package checks.
-    timeout-minutes: 75
+    # per-solid STEP round-trip verification plus package-integrity verification.
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -47,6 +47,7 @@ jobs:
             fi
             source_head_sha="$PR_HEAD_SHA"
             source_base_sha="$PR_BASE_SHA"
+            release_base_sha="$source_base_sha"
             tested_base_parent_sha="$(git rev-parse 'HEAD^1')"
             tested_head_parent_sha="$(git rev-parse 'HEAD^2')"
             if [[ "$tested_base_parent_sha" != "$source_base_sha" ]]; then
@@ -86,6 +87,8 @@ jobs:
           else
             source_head_sha="$checked_out_sha"
             source_head_tree_sha="$checked_out_tree_sha"
+            source_base_sha=""
+            release_base_sha="$source_head_sha"
             source_kind="PUSH_HEAD"
             cat > /tmp/masck-one-ci-source-provenance.json <<EOF
           {
@@ -105,7 +108,9 @@ jobs:
           EOF
           fi
 
+          echo "release_base_sha=$release_base_sha" >> "$GITHUB_OUTPUT"
           echo "source_head_sha=$source_head_sha" >> "$GITHUB_OUTPUT"
+          echo "source_head_tree_sha=$source_head_tree_sha" >> "$GITHUB_OUTPUT"
           echo "tested_commit_sha=$checked_out_sha" >> "$GITHUB_OUTPUT"
           echo "tested_tree_sha=$checked_out_tree_sha" >> "$GITHUB_OUTPUT"
           cat /tmp/masck-one-ci-source-provenance.json
@@ -152,31 +157,64 @@ jobs:
         run: python -m masck_one.surface_workflow_preflight
 
       - name: Unit and integration tests
-        # Fail on the first regression so a long CAD-heavy suite surfaces the exact
-        # blocker before exhausting the job budget. A green run still executes every test.
-        run: python -m pytest -x --durations=20
+        run: python -m pytest --durations=20
 
       - name: Deterministic CAD smoke build
+        env:
+          MASCK_ONE_RELEASE_BASE_SHA: ${{ steps.source-provenance.outputs.release_base_sha }}
+          MASCK_ONE_SOURCE_HEAD_SHA: ${{ steps.source-provenance.outputs.source_head_sha }}
+          MASCK_ONE_SOURCE_HEAD_TREE_SHA: ${{ steps.source-provenance.outputs.source_head_tree_sha }}
+          MASCK_ONE_TESTED_COMMIT_SHA: ${{ steps.source-provenance.outputs.tested_commit_sha }}
+          MASCK_ONE_TESTED_TREE_SHA: ${{ steps.source-provenance.outputs.tested_tree_sha }}
         run: python -m masck_one.cli --output /tmp/masck-one-generated
 
-      - name: Verify registry release-base provenance
+      - name: Verify exact release source provenance
         shell: bash
         run: |
           python - <<'PY'
           import json
+          import re
+          import subprocess
           from pathlib import Path
 
+          report = json.loads(
+              Path("/tmp/masck-one-generated/build_report.json").read_text(encoding="utf-8")
+          )
           registry = json.loads(
               Path("/tmp/masck-one-generated/component_registry.json").read_text(encoding="utf-8")
           )
           provenance = json.loads(
               Path("/tmp/masck-one-ci-source-provenance.json").read_text(encoding="utf-8")
           )
-          source_base = provenance["source_base_sha"]
-          if source_base is not None and registry["source_main_sha"] != source_base:
+          binding = report.get("release_source_binding")
+          if not isinstance(binding, dict) or binding.get("binding_state") != "CI_EXACT_BOUND":
+              raise SystemExit("build_report.json is not exact-CI source bound")
+
+          expected_release_base = provenance["source_base_sha"] or provenance["source_head_sha"]
+          expected = {
+              "release_base_sha": expected_release_base,
+              "source_head_sha": provenance["source_head_sha"],
+              "source_head_tree_sha": provenance["source_head_tree_sha"],
+              "tested_commit_sha": provenance["tested_commit_sha"],
+              "tested_tree_sha": provenance["tested_tree_sha"],
+          }
+          for field, value in expected.items():
+              if binding.get(field) != value:
+                  raise SystemExit(
+                      f"build_report release_source_binding {field} {binding.get(field)!r} "
+                      f"!= CI provenance {value!r}"
+                  )
+
+          registry_baseline = registry.get("source_main_sha")
+          if not isinstance(registry_baseline, str) or re.fullmatch(r"[0-9a-f]{40}", registry_baseline) is None:
+              raise SystemExit("component registry source_main_sha is malformed")
+          ancestor = subprocess.run(
+              ["git", "merge-base", "--is-ancestor", registry_baseline, expected_release_base],
+              check=False,
+          )
+          if ancestor.returncode != 0:
               raise SystemExit(
-                  "component_registry.json source_main_sha "
-                  f"{registry['source_main_sha']} != CI provenance source_base_sha {source_base}"
+                  "component registry source baseline is not an ancestor of the exact release base"
               )
           PY
 

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import math
+import os
+import re
 from hashlib import sha256
 from pathlib import Path
 
@@ -15,6 +17,7 @@ from .boundary_release import (
 from .brand_identity import build_brand_identity_manifest
 from .component_registry import build_current_component_registry
 from .contact_simulation import build_contact_simulation_framework
+from .integration_contract import integration_contract_manifest
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .release_package import (
@@ -29,12 +32,52 @@ from .realized_waste_backbone_release import (
 )
 from .step_integrity import solid_volume, verify_step_geometry
 from .structural_frame import build_structural_frame_topology
-from .structural_frame_actuator_reactions import build_structural_frame_actuator_reactions
-from .structural_frame_crown_support import build_structural_frame_crown_support
-from .structural_frame_realization import build_structural_frame_realization
-from .structural_frame_retention_roots import build_structural_frame_retention_roots
-from .structural_frame_shell_joints import build_structural_frame_shell_joints
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
+
+
+_SHA40 = re.compile(r"^[0-9a-f]{40}$")
+_RELEASE_SOURCE_ENV = {
+    "release_base_sha": "MASCK_ONE_RELEASE_BASE_SHA",
+    "source_head_sha": "MASCK_ONE_SOURCE_HEAD_SHA",
+    "source_head_tree_sha": "MASCK_ONE_SOURCE_HEAD_TREE_SHA",
+    "tested_commit_sha": "MASCK_ONE_TESTED_COMMIT_SHA",
+    "tested_tree_sha": "MASCK_ONE_TESTED_TREE_SHA",
+}
+
+
+def _release_source_binding() -> dict[str, object]:
+    values = {field: os.environ.get(env_name) for field, env_name in _RELEASE_SOURCE_ENV.items()}
+    provided = {field: value for field, value in values.items() if value not in (None, "")}
+    if not provided:
+        return {
+            "schema": "MASCK_ONE_RELEASE_SOURCE_BINDING_V1",
+            "binding_state": "UNBOUND_LOCAL_BUILD",
+            **{field: None for field in _RELEASE_SOURCE_ENV},
+            "physical_validation_eligible": False,
+            "evidence_scope": "LOCAL_BUILD_NOT_RELEASE_PROVENANCE",
+        }
+    if len(provided) != len(_RELEASE_SOURCE_ENV):
+        missing = sorted(set(_RELEASE_SOURCE_ENV) - set(provided))
+        raise ExportValidationError(
+            "Incomplete release source binding; missing environment fields: "
+            + ", ".join(missing)
+        )
+    malformed = sorted(
+        field
+        for field, value in provided.items()
+        if type(value) is not str or _SHA40.fullmatch(value) is None
+    )
+    if malformed:
+        raise ExportValidationError(
+            "Malformed release source binding SHA fields: " + ", ".join(malformed)
+        )
+    return {
+        "schema": "MASCK_ONE_RELEASE_SOURCE_BINDING_V1",
+        "binding_state": "CI_EXACT_BOUND",
+        **provided,
+        "physical_validation_eligible": False,
+        "evidence_scope": "DIGITAL_SOURCE_PROVENANCE_ONLY",
+    }
 
 
 def _component_record(component, *, included: bool) -> dict:
@@ -102,13 +145,6 @@ def _realized_waste_backbone_manifest(
         "routes": [route.manifest() for route in release.realization.routes],
         "total_geometric_dead_volume_mL": release.realization.total_geometric_dead_volume_mL,
     }
-
-
-def _write_manifest(path: Path, payload: dict[str, object]) -> None:
-    path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n",
-        encoding="utf-8",
-    )
 
 
 def export_release(
@@ -199,88 +235,10 @@ def export_release(
         model.authority,
         attachment,
     )
-    structural_frame_realization = build_structural_frame_realization(
-        model=model,
-        structural_frame=structural_frame,
-    )
-    shell_joints = build_structural_frame_shell_joints(
-        model=model,
-        frame=structural_frame_realization,
-    )
-    actuator_reactions = build_structural_frame_actuator_reactions(
-        model=model,
-        shell_joints=shell_joints,
-    )
-    retention_roots = build_structural_frame_retention_roots(
-        model=model,
-        reactions=actuator_reactions,
-    )
-    crown_support = build_structural_frame_crown_support(
-        model=model,
-        roots=retention_roots,
-    )
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
 
     registry_manifest = component_registry.manifest()
     brand_identity_manifest = build_brand_identity_manifest()
-    structural_frame_realization_manifest = structural_frame_realization.manifest()
-    shell_joint_manifest = shell_joints.manifest()
-    actuator_reaction_manifest = actuator_reactions.manifest()
-    retention_root_manifest = retention_roots.manifest()
-    crown_support_manifest = crown_support.manifest()
-
-    structural_frame_step_name = "structural_frame_reaction_loop_v1.step"
-    shell_joint_frame_step_name = "structural_frame_with_positive_shell_tenons.step"
-    shell_joint_shell_step_name = "rigid_shell_with_frame_mortises_and_pin_bores.step"
-    actuator_reaction_frame_step_name = "structural_frame_with_four_actuator_reaction_counterparts.step"
-    retention_root_frame_step_name = "structural_frame_with_bilateral_retention_roots.step"
-    crown_support_step_name = "structural_frame_crown_support.step"
-
-    shell_joint_pin_step_names = [
-        f"structural_frame_shell_capture_pin_{index}.step"
-        for index, _joint in enumerate(shell_joints.joints, start=1)
-    ]
-    shell_joint_retainer_step_names = [
-        f"structural_frame_shell_pin_retainer_{index}.step"
-        for index, _joint in enumerate(shell_joints.joints, start=1)
-    ]
-    retention_root_pin_step_names = [
-        f"{root.root_id.lower()}_capture_pin.step" for root in retention_roots.roots
-    ]
-    retention_root_retainer_step_names = [
-        f"{root.root_id.lower()}_split_retainer.step" for root in retention_roots.roots
-    ]
-    crown_pin_step_names = [
-        f"structural_frame_crown_{crown_attachment.side.lower()}_capture_pin.step"
-        for crown_attachment in crown_support.attachments
-    ]
-    crown_retainer_step_names = [
-        f"structural_frame_crown_{crown_attachment.side.lower()}_split_retainer.step"
-        for crown_attachment in crown_support.attachments
-    ]
-
-    structural_manifest_files = [
-        "structural_frame_realization_manifest.json",
-        "structural_frame_shell_joints_manifest.json",
-        "structural_frame_actuator_reactions_manifest.json",
-        "structural_frame_retention_roots_manifest.json",
-        "structural_frame_crown_support_manifest.json",
-    ]
-    structural_step_files = [
-        structural_frame_step_name,
-        shell_joint_frame_step_name,
-        shell_joint_shell_step_name,
-        *shell_joint_pin_step_names,
-        *shell_joint_retainer_step_names,
-        actuator_reaction_frame_step_name,
-        retention_root_frame_step_name,
-        *retention_root_pin_step_names,
-        *retention_root_retainer_step_names,
-        crown_support_step_name,
-        *crown_pin_step_names,
-        *crown_retainer_step_names,
-    ]
-
     report = {
         "project": "Masck One",
         "parent_brand": "MASCK",
@@ -290,6 +248,8 @@ def export_release(
         "iteration": 15,
         "result": "PASS",
         "build_scope": "DEVELOPMENT_ONLY",
+        "release_source_binding": _release_source_binding(),
+        "integration_contract": integration_contract_manifest(),
         "checks": check_records,
         "production_readiness": development_readiness(check_records, records),
         "components": records,
@@ -309,11 +269,6 @@ def export_release(
             ),
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
-            "structural_frame_realization": structural_frame_realization_manifest,
-            "structural_frame_shell_joints": shell_joint_manifest,
-            "structural_frame_actuator_reactions": actuator_reaction_manifest,
-            "structural_frame_retention_roots": retention_root_manifest,
-            "structural_frame_crown_support": crown_support_manifest,
             "realized_waste_backbone": _realized_waste_backbone_manifest(waste_release),
         },
         "dfm_gates": {
@@ -325,23 +280,13 @@ def export_release(
         "development_assembly_material_components": list(included_names),
         "development_assembly_exclusions": list(development_assembly_exclusions),
         "development_assembly_components": list(included_names),
-        "standalone_physical_geometry_pending_assembly_rebind": [
-            structural_frame_realization.member_id,
-            "STRUCTURAL_FRAME_POSITIVE_SHELL_JOINT_ARCHITECTURE_V2",
-            "STRUCTURAL_FRAME_FOUR_ACTUATOR_REACTION_COUNTERPARTS_V1",
-            "STRUCTURAL_FRAME_BILATERAL_RETENTION_ROOTS_V1",
-            "STRUCTURAL_FRAME_BILATERAL_CROWN_SUPPORT_V1",
-        ],
         "exported_step_files": [
             f"{component.name}.step" for component in components
         ]
-        + structural_step_files
         + ["masck_one_development_assembly.step"],
-        "exported_manifest_files": structural_manifest_files,
         "exported_manifests": [
             "component_registry.json",
             "brand_identity.json",
-            *structural_manifest_files,
             "build_report.json",
             "package_manifest.json",
         ],
@@ -350,19 +295,21 @@ def export_release(
             "The canonical component registry is the sole physical-material membership "
             "authority for the development assembly. Package references, development "
             "references, protected keepouts, topology and unresolved identities remain "
-            "non-material. Cell 6 structural frame, positive shell joints, actuator reaction "
-            "counterparts, retention roots and crown support are deterministic standalone "
-            "mechanical evidence pending explicit canonical assembly rebind. The MASCK brand "
-            "identity manifest is a source-bound product, interaction and CMF contract only; "
-            "it does not override engineering authority, protected geometry, manufacturing "
-            "truth or physical-validation gates. Digital structural geometry does not establish "
-            "material, strength, fatigue, process capability, production tolerance, fit, comfort, "
-            "hair safety, tactile feel, acoustics, wear or service ergonomics. The realized waste "
-            "backbone is emitted as validated centerline and manifold data, not selected tubing, "
-            "pump, barrier, connector, hydraulic, service or physical-performance evidence. The "
-            "waste-cartridge STEP remains an external package-envelope reference only until body, "
-            "cavity, seal, retention and service geometry are realized. Digital topology, manifests "
-            "and analysis frameworks are not physical validation evidence."
+            "non-material. The release source binding records CI source provenance only; "
+            "it does not alter component ownership, geometry authority or physical evidence. "
+            "The integration contract is navigation and edit ownership only; live GitHub "
+            "supersedes its dated head snapshot and subsystem owners retain their internals. "
+            "The MASCK brand identity manifest is a source-bound product, interaction and "
+            "CMF contract only; it does not override engineering authority, protected geometry, "
+            "manufacturing truth or physical-validation gates. The structural frame is currently "
+            "a topology/datum contract without invented cross-section or material; no frame STEP "
+            "member geometry is released by Iteration 15. The realized waste backbone is emitted "
+            "as validated centerline and manifold data, not selected tubing, pump, barrier, "
+            "connector, hydraulic, service or physical-performance evidence. The waste-cartridge "
+            "STEP remains an external package-envelope reference only and is deliberately excluded "
+            "from physical development-assembly material until body, cavity, seal, retention and "
+            "service geometry are realized. Digital topology, manifests and analysis frameworks "
+            "are not physical validation evidence."
         ),
     }
     json.dumps(report, allow_nan=False)
@@ -389,58 +336,18 @@ def export_release(
             assembly_path,
         )
 
-        structural_roundtrip: dict[str, dict[str, object]] = {}
-
-        def export_verified(name: str, solid) -> None:
-            path = stage / name
-            cq.exporters.export(solid, str(path))
-            source = cq.Compound.makeCompound(solid.vals())
-            structural_roundtrip[name] = verify_step_geometry(source, path)
-
-        export_verified(structural_frame_step_name, structural_frame_realization.solid)
-        export_verified(shell_joint_frame_step_name, shell_joints.assembled_frame)
-        export_verified(shell_joint_shell_step_name, shell_joints.modified_shell)
-        for joint, pin_name, retainer_name in zip(
-            shell_joints.joints,
-            shell_joint_pin_step_names,
-            shell_joint_retainer_step_names,
-        ):
-            export_verified(pin_name, joint.pin)
-            export_verified(retainer_name, joint.retainer_clip)
-        export_verified(
-            actuator_reaction_frame_step_name,
-            actuator_reactions.frame_with_reaction_counterparts,
+        (stage / "component_registry.json").write_text(
+            json.dumps(registry_manifest, indent=2, allow_nan=False) + "\n",
+            encoding="utf-8",
         )
-        export_verified(retention_root_frame_step_name, retention_roots.frame_with_retention_roots)
-        for root, pin_name, retainer_name in zip(
-            retention_roots.roots,
-            retention_root_pin_step_names,
-            retention_root_retainer_step_names,
-        ):
-            export_verified(pin_name, root.capture_pin)
-            export_verified(retainer_name, root.split_retainer)
-        export_verified(crown_support_step_name, crown_support.crown_support)
-        for crown_attachment, pin_name, retainer_name in zip(
-            crown_support.attachments,
-            crown_pin_step_names,
-            crown_retainer_step_names,
-        ):
-            export_verified(pin_name, crown_attachment.capture_pin)
-            export_verified(retainer_name, crown_attachment.split_retainer)
-
-        report["structural_frame_step_roundtrip"] = structural_roundtrip
-
-        _write_manifest(stage / "component_registry.json", registry_manifest)
-        _write_manifest(stage / "brand_identity.json", brand_identity_manifest)
-        _write_manifest(
-            stage / structural_manifest_files[0],
-            structural_frame_realization_manifest,
+        (stage / "brand_identity.json").write_text(
+            json.dumps(brand_identity_manifest, indent=2, allow_nan=False) + "\n",
+            encoding="utf-8",
         )
-        _write_manifest(stage / structural_manifest_files[1], shell_joint_manifest)
-        _write_manifest(stage / structural_manifest_files[2], actuator_reaction_manifest)
-        _write_manifest(stage / structural_manifest_files[3], retention_root_manifest)
-        _write_manifest(stage / structural_manifest_files[4], crown_support_manifest)
-        _write_manifest(stage / "build_report.json", report)
+        (stage / "build_report.json").write_text(
+            json.dumps(report, indent=2, allow_nan=False) + "\n",
+            encoding="utf-8",
+        )
 
     publish_package(output_dir, write_exports)
     return report

@@ -325,9 +325,20 @@ def test_export_uses_registry_as_physical_material_boundary(monkeypatch, tmp_pat
         "run_assertions",
         lambda model: (Check("REGISTRY_EXPORT_FIXTURE", "PASS", "controlled export fixture"),),
     )
+    monkeypatch.setattr(release_export, "build_verified_interface_boundary_topology", lambda *args: object())
+    monkeypatch.setattr(
+        release_export,
+        "build_interface_attachment_architecture",
+        lambda *args: SimpleNamespace(manifest=lambda: {}),
+    )
     monkeypatch.setattr(
         release_export,
         "build_contact_simulation_framework",
+        lambda *args: SimpleNamespace(manifest=lambda: {}),
+    )
+    monkeypatch.setattr(
+        release_export,
+        "build_structural_frame_topology",
         lambda *args: SimpleNamespace(manifest=lambda: {}),
     )
     monkeypatch.setattr(
