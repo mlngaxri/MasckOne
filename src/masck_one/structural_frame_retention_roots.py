@@ -342,9 +342,24 @@ def build_structural_frame_retention_roots(
         raw_pin = _single(shaft.union(head), f"{root_id} raw capture pin")
         distal_y = ROOT_Y_MM + pin_stack_y / 2.0 + CLEVIS_PIN_DISTAL_EXTENSION_MM / 2.0
         groove_center_y = distal_y - CLEVIS_PIN_GROOVE_WIDTH_MM / 2.0
-        groove_tool = _cylinder_y(CLEVIS_PIN_RADIUS_MM, CLEVIS_PIN_GROOVE_WIDTH_MM, (x, groove_center_y, ROOT_Z_MM))
-        groove_core = _cylinder_y(CLEVIS_PIN_RADIUS_MM - CLEVIS_PIN_GROOVE_DEPTH_MM, CLEVIS_PIN_GROOVE_WIDTH_MM + 0.02, (x, groove_center_y, ROOT_Z_MM))
-        capture_pin = _single(raw_pin.cut(groove_tool).union(groove_core), f"{root_id} grooved capture pin")
+        groove_outer = _cylinder_y(
+            CLEVIS_PIN_RADIUS_MM,
+            CLEVIS_PIN_GROOVE_WIDTH_MM,
+            (x, groove_center_y, ROOT_Z_MM),
+        )
+        groove_inner = _cylinder_y(
+            CLEVIS_PIN_RADIUS_MM - CLEVIS_PIN_GROOVE_DEPTH_MM,
+            CLEVIS_PIN_GROOVE_WIDTH_MM + 0.02,
+            (x, groove_center_y, ROOT_Z_MM),
+        )
+        groove_annulus = _single(
+            groove_outer.cut(groove_inner),
+            f"{root_id} annular capture-pin groove cutter",
+        )
+        capture_pin = _single(
+            raw_pin.cut(groove_annulus),
+            f"{root_id} grooved capture pin",
+        )
         split_retainer = _clip_for_pin(center_x=x, groove_center_y=groove_center_y, center_z=ROOT_Z_MM)
 
         pin_yoke_intersection = _intersection_volume(capture_pin, yoke_material)
