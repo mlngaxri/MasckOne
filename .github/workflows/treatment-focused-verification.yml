@@ -13,28 +13,25 @@ concurrency:
   group: treatment-focused-${{ github.ref }}
   cancel-in-progress: true
 
-x-common-steps: &common_steps
-  - name: Checkout exact treatment head
-    uses: actions/checkout@v4
-    with:
-      ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      fetch-depth: 1
-  - name: Set up Python
-    uses: actions/setup-python@v5
-    with:
-      python-version: "3.13"
-      cache: pip
-  - name: Install project
-    run: |
-      python -m pip install --upgrade pip
-      python -m pip install -e ".[dev]"
-
 jobs:
   terminal-mechanics:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      *common_steps
+      - name: Checkout exact treatment head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
       - name: Verify terminal mechanics and centering studies
         run: python -m pytest -q tests/test_treatment_terminal_mechanics_v2.py tests/test_centering_multirate_v2.py
 
@@ -42,7 +39,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      *common_steps
+      - name: Checkout exact treatment head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
       - name: Verify terminal datum B-reps
         run: python -m pytest -q tests/test_treatment_terminal_datum_preload_v3.py
 
@@ -50,7 +60,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      *common_steps
+      - name: Checkout exact treatment head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
       - name: Verify guided spring cassette B-reps
         run: python -m pytest -q tests/test_treatment_guided_preload_spring.py
 
@@ -58,7 +81,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      *common_steps
+      - name: Checkout exact treatment head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
       - name: Compile current V8 CAD sources
         run: |
           python -m py_compile \
