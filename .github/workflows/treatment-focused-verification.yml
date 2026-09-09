@@ -40,6 +40,7 @@ jobs:
             src/masck_one/treatment_mounted_four_zone_v2.py \
             src/masck_one/treatment_mounted_four_zone_v4.py \
             src/masck_one/treatment_mounted_four_zone_v6.py \
+            src/masck_one/treatment_mounted_four_zone_v7.py \
             src/masck_one/treatment_terminal_datum_preload.py \
             src/masck_one/treatment_terminal_datum_preload_v2.py \
             studies/treatment_parallel_preload_flexure.py \
@@ -58,6 +59,7 @@ jobs:
             tests/test_treatment_terminal_preload_material_trade.py \
             tests/test_treatment_terminal_event_phasing.py \
             tests/test_treatment_buttery_terminal_profile_v2.py \
-            tests/test_treatment_mounted_four_zone_v6.py
+            tests/test_treatment_mounted_four_zone_v6.py \
+            tests/test_treatment_mounted_four_zone_v7.py
 
 # Fast branch-level design loop only. Complete repository CI remains the release gate.
