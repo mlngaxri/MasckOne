@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import math
+import os
+import re
 from hashlib import sha256
 from pathlib import Path
 
@@ -15,6 +17,7 @@ from .boundary_release import (
 from .brand_identity import build_brand_identity_manifest
 from .component_registry import build_current_component_registry
 from .contact_simulation import build_contact_simulation_framework
+from .integration_contract import integration_contract_manifest
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .release_package import (
@@ -30,6 +33,51 @@ from .realized_waste_backbone_release import (
 from .step_integrity import solid_volume, verify_step_geometry
 from .structural_frame import build_structural_frame_topology
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
+
+
+_SHA40 = re.compile(r"^[0-9a-f]{40}$")
+_RELEASE_SOURCE_ENV = {
+    "release_base_sha": "MASCK_ONE_RELEASE_BASE_SHA",
+    "source_head_sha": "MASCK_ONE_SOURCE_HEAD_SHA",
+    "source_head_tree_sha": "MASCK_ONE_SOURCE_HEAD_TREE_SHA",
+    "tested_commit_sha": "MASCK_ONE_TESTED_COMMIT_SHA",
+    "tested_tree_sha": "MASCK_ONE_TESTED_TREE_SHA",
+}
+
+
+def _release_source_binding() -> dict[str, object]:
+    values = {field: os.environ.get(env_name) for field, env_name in _RELEASE_SOURCE_ENV.items()}
+    provided = {field: value for field, value in values.items() if value not in (None, "")}
+    if not provided:
+        return {
+            "schema": "MASCK_ONE_RELEASE_SOURCE_BINDING_V1",
+            "binding_state": "UNBOUND_LOCAL_BUILD",
+            **{field: None for field in _RELEASE_SOURCE_ENV},
+            "physical_validation_eligible": False,
+            "evidence_scope": "LOCAL_BUILD_NOT_RELEASE_PROVENANCE",
+        }
+    if len(provided) != len(_RELEASE_SOURCE_ENV):
+        missing = sorted(set(_RELEASE_SOURCE_ENV) - set(provided))
+        raise ExportValidationError(
+            "Incomplete release source binding; missing environment fields: "
+            + ", ".join(missing)
+        )
+    malformed = sorted(
+        field
+        for field, value in provided.items()
+        if type(value) is not str or _SHA40.fullmatch(value) is None
+    )
+    if malformed:
+        raise ExportValidationError(
+            "Malformed release source binding SHA fields: " + ", ".join(malformed)
+        )
+    return {
+        "schema": "MASCK_ONE_RELEASE_SOURCE_BINDING_V1",
+        "binding_state": "CI_EXACT_BOUND",
+        **provided,
+        "physical_validation_eligible": False,
+        "evidence_scope": "DIGITAL_SOURCE_PROVENANCE_ONLY",
+    }
 
 
 def _component_record(component, *, included: bool) -> dict:
@@ -200,6 +248,8 @@ def export_release(
         "iteration": 15,
         "result": "PASS",
         "build_scope": "DEVELOPMENT_ONLY",
+        "release_source_binding": _release_source_binding(),
+        "integration_contract": integration_contract_manifest(),
         "checks": check_records,
         "production_readiness": development_readiness(check_records, records),
         "components": records,
@@ -245,18 +295,21 @@ def export_release(
             "The canonical component registry is the sole physical-material membership "
             "authority for the development assembly. Package references, development "
             "references, protected keepouts, topology and unresolved identities remain "
-            "non-material. The MASCK brand identity manifest is a source-bound product, "
-            "interaction and CMF contract only; it does not override engineering authority, "
-            "protected geometry, manufacturing truth or physical-validation gates. The "
-            "structural frame is currently a topology/datum contract without invented "
-            "cross-section or material; no frame STEP member geometry is released by "
-            "Iteration 15. The realized waste backbone is emitted as validated centerline "
-            "and manifold data, not selected tubing, pump, barrier, connector, hydraulic, "
-            "service or physical-performance evidence. The waste-cartridge STEP remains an "
-            "external package-envelope reference only and is deliberately excluded from "
-            "physical development-assembly material until body, cavity, seal, retention and "
-            "service geometry are realized. Digital topology, manifests and analysis "
-            "frameworks are not physical validation evidence."
+            "non-material. The release source binding records CI source provenance only; "
+            "it does not alter component ownership, geometry authority or physical evidence. "
+            "The integration contract is navigation and edit ownership only; live GitHub "
+            "supersedes its dated head snapshot and subsystem owners retain their internals. "
+            "The MASCK brand identity manifest is a source-bound product, interaction and "
+            "CMF contract only; it does not override engineering authority, protected geometry, "
+            "manufacturing truth or physical-validation gates. The structural frame is currently "
+            "a topology/datum contract without invented cross-section or material; no frame STEP "
+            "member geometry is released by Iteration 15. The realized waste backbone is emitted "
+            "as validated centerline and manifold data, not selected tubing, pump, barrier, "
+            "connector, hydraulic, service or physical-performance evidence. The waste-cartridge "
+            "STEP remains an external package-envelope reference only and is deliberately excluded "
+            "from physical development-assembly material until body, cavity, seal, retention and "
+            "service geometry are realized. Digital topology, manifests and analysis frameworks "
+            "are not physical validation evidence."
         ),
     }
     json.dumps(report, allow_nan=False)
