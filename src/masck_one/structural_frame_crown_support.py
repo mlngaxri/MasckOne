@@ -37,6 +37,7 @@ EYELET_X_THICKNESS_MM = 2.0
 EYELET_Y_MM = 7.0
 EYELET_Z_MM = 6.0
 EYELET_LUG_SIDE_GAP_MM = 0.25
+CROWN_MEMBER_EYELET_ATTACH_Y_OFFSET_MM = EYELET_Y_MM / 2.0
 CAPTURE_PIN_RADIUS_MM = 1.00
 CAPTURE_PIN_HEAD_RADIUS_MM = 1.75
 CAPTURE_PIN_HEAD_THICKNESS_MM = 0.90
@@ -90,9 +91,14 @@ def _capsule(start: tuple[float, float, float], end: tuple[float, float, float],
 
 def _intersection(a: cq.Workplane, b: cq.Workplane) -> float:
     try:
-        volume = float(a.intersect(b).val().Volume())
-    except Exception:
-        return 0.0
+        common = a.intersect(b).val()
+        if not common.isValid():
+            raise StructuralFrameCrownSupportError("intersection proof produced invalid B-rep evidence")
+        volume = float(common.Volume())
+    except StructuralFrameCrownSupportError:
+        raise
+    except Exception as exc:
+        raise StructuralFrameCrownSupportError("intersection kernel evaluation failed") from exc
     if not math.isfinite(volume) or volume < 0.0:
         raise StructuralFrameCrownSupportError("intersection volume must be finite and nonnegative")
     return 0.0 if volume <= _INTERSECTION_TOLERANCE_MM3 else volume
@@ -213,10 +219,10 @@ class StructuralFrameCrownSupportArchitecture:
                 "bore_axis": CROWN_LUG_BORE_AXIS,
             },
             "crown_route_xyz_mm": [
-                [-CROWN_LUG_CENTER_ABS_X_MM - CROWN_LUG_XYZ_MM[0] / 2.0 - EYELET_LUG_SIDE_GAP_MM - EYELET_X_THICKNESS_MM / 2.0, CROWN_LUG_CENTER_Y_MM, CROWN_LUG_CENTER_Z_MM],
+                [-CROWN_LUG_CENTER_ABS_X_MM - CROWN_LUG_XYZ_MM[0] / 2.0 - EYELET_LUG_SIDE_GAP_MM - EYELET_X_THICKNESS_MM / 2.0, CROWN_LUG_CENTER_Y_MM + CROWN_MEMBER_EYELET_ATTACH_Y_OFFSET_MM, CROWN_LUG_CENTER_Z_MM],
                 [-CROWN_APEX_HALF_X_MM, CROWN_APEX_Y_MM, CROWN_LUG_CENTER_Z_MM],
                 [CROWN_APEX_HALF_X_MM, CROWN_APEX_Y_MM, CROWN_LUG_CENTER_Z_MM],
-                [CROWN_LUG_CENTER_ABS_X_MM + CROWN_LUG_XYZ_MM[0] / 2.0 + EYELET_LUG_SIDE_GAP_MM + EYELET_X_THICKNESS_MM / 2.0, CROWN_LUG_CENTER_Y_MM, CROWN_LUG_CENTER_Z_MM],
+                [CROWN_LUG_CENTER_ABS_X_MM + CROWN_LUG_XYZ_MM[0] / 2.0 + EYELET_LUG_SIDE_GAP_MM + EYELET_X_THICKNESS_MM / 2.0, CROWN_LUG_CENTER_Y_MM + CROWN_MEMBER_EYELET_ATTACH_Y_OFFSET_MM, CROWN_LUG_CENTER_Z_MM],
             ],
             "attachments": [a.manifest() for a in self.attachments],
             "load_path_status": "BILATERAL_CARRIER_CROWN_LUG_TO_ONE_PIECE_CROWN_SUPPORT_POSITIVE_ATTACHMENT_REALIZED",
@@ -281,18 +287,24 @@ def build_structural_frame_crown_support(*, model: MasckOneModel | None = None, 
         ))
         eyelets.append(eyelet)
 
-    left_center = (-(CROWN_LUG_CENTER_ABS_X_MM + CROWN_LUG_XYZ_MM[0] / 2.0 + EYELET_LUG_SIDE_GAP_MM + EYELET_X_THICKNESS_MM / 2.0), CROWN_LUG_CENTER_Y_MM, CROWN_LUG_CENTER_Z_MM)
-    right_center = (-left_center[0], CROWN_LUG_CENTER_Y_MM, CROWN_LUG_CENTER_Z_MM)
+    left_eyelet_center = (-(CROWN_LUG_CENTER_ABS_X_MM + CROWN_LUG_XYZ_MM[0] / 2.0 + EYELET_LUG_SIDE_GAP_MM + EYELET_X_THICKNESS_MM / 2.0), CROWN_LUG_CENTER_Y_MM, CROWN_LUG_CENTER_Z_MM)
+    right_eyelet_center = (-left_eyelet_center[0], CROWN_LUG_CENTER_Y_MM, CROWN_LUG_CENTER_Z_MM)
+    left_member_attach = (left_eyelet_center[0], CROWN_LUG_CENTER_Y_MM + CROWN_MEMBER_EYELET_ATTACH_Y_OFFSET_MM, CROWN_LUG_CENTER_Z_MM)
+    right_member_attach = (right_eyelet_center[0], CROWN_LUG_CENTER_Y_MM + CROWN_MEMBER_EYELET_ATTACH_Y_OFFSET_MM, CROWN_LUG_CENTER_Z_MM)
     left_apex = (-CROWN_APEX_HALF_X_MM, CROWN_APEX_Y_MM, CROWN_LUG_CENTER_Z_MM)
     right_apex = (CROWN_APEX_HALF_X_MM, CROWN_APEX_Y_MM, CROWN_LUG_CENTER_Z_MM)
     crown = _single(
         eyelets[0]
-        .union(_capsule(left_center, left_apex, CROWN_MEMBER_RADIUS_MM))
+        .union(_capsule(left_member_attach, left_apex, CROWN_MEMBER_RADIUS_MM))
         .union(_capsule(left_apex, right_apex, CROWN_MEMBER_RADIUS_MM))
-        .union(_capsule(right_apex, right_center, CROWN_MEMBER_RADIUS_MM))
+        .union(_capsule(right_apex, right_member_attach, CROWN_MEMBER_RADIUS_MM))
         .union(eyelets[1]),
         "one-piece bilateral crown support",
     )
+
+    for attachment in attachments:
+        if _intersection(attachment.capture_pin, crown) > _INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameCrownSupportError(f"{attachment.side} seated capture pin intersects crown support")
 
     for protected in model.protected_volumes.all:
         if _intersection(crown, _protected_solid(protected)) > _INTERSECTION_TOLERANCE_MM3:
