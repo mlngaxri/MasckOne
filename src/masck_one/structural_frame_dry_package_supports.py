@@ -171,7 +171,10 @@ def _rail(side_sign: float, root_x: float, socket_cz: float, boss_back_z: float,
     package_side_x = battery_box.xmax if side_sign > 0.0 else battery_box.xmin
     rail_center_x = package_side_x + side_sign * (BATTERY_SIDE_CLEARANCE_MM + SIDE_RAIL_THICKNESS_MM / 2.0)
     arm_center_x = (root_x + rail_center_x) / 2.0
-    arm_len = abs(root_x - rail_center_x) + POST_WIDTH_MM
+    # Span only between the post and side-rail centrelines. Both end solids
+    # positively capture the arm, while avoiding the previous half-post-width
+    # overrun through the rail and into the nominal battery envelope.
+    arm_len = abs(root_x - rail_center_x)
     arm = cq.Workplane("XY").box(arm_len, ARM_Y_MM, ARM_Z_MM, centered=(True, True, True)).translate((arm_center_x, 0.0, battery_cz))
     rail_y = (battery_box.ymax - battery_box.ymin) + 2.0 * SIDE_RAIL_Y_OVERHANG_MM
     rail_z = (battery_box.zmax - battery_box.zmin) + 2.0 * SIDE_RAIL_Z_OVERHANG_MM
