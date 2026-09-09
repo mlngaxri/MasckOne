@@ -70,17 +70,10 @@ def _axis_segment(
     nonzero = sum(abs(v) > 1e-9 for v in (dx, dy, dz))
     if nonzero != 1:
         raise DrySideHarnessError("harness route segments must be orthogonal and nonzero")
-    if abs(dx) > 1e-9:
-        length = abs(dx)
-        start = (min(x0, x1), y0, z0)
-        return cq.Workplane("YZ").circle(radius).extrude(length).translate(start)
-    if abs(dy) > 1e-9:
-        length = abs(dy)
-        start = (x0, min(y0, y1), z0)
-        return cq.Workplane("XZ").circle(radius).extrude(length).translate(start)
-    length = abs(dz)
-    start = (x0, y0, min(z0, z1))
-    return cq.Workplane("XY").circle(radius).extrude(length).translate(start)
+    length = math.sqrt(dx * dx + dy * dy + dz * dz)
+    direction = cq.Vector(dx / length, dy / length, dz / length)
+    solid = cq.Solid.makeCylinder(radius, length, cq.Vector(*first), direction)
+    return cq.Workplane("XY").newObject([solid])
 
 
 def _route_solid(points: tuple[tuple[float, float, float], ...], radius: float) -> cq.Workplane:
