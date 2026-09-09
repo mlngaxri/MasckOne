@@ -1,0 +1,119 @@
+{
+  "consumed_git_blobs": {
+    "src/masck_one/structural_frame_actuator_mates.py": "3cedc1a0032b418d9e02592bb4996e29dc9632b7",
+    "src/masck_one/treatment_mounted_four_zone_v7.py": "26b6ab2a8e26e17a721c730e358d51c70edf3eee",
+    "src/masck_one/treatment_terminal_datum_preload_v2.py": "a51800976ac5b31f29cfeac286a5425cb71bcb60",
+    "studies/treatment_buttery_terminal_profile_v2.py": "2df3ff24e7dea813e36d9b738bbe77add2eecb44"
+  },
+  "consumed_head": "cd8ca3e1764ec1a5144289a613c32d4ebcd2da46",
+  "digital_mechanism_closed": false,
+  "evidence_class": "ANALYTICAL_SOURCE_BOUND_IDEALIZATION",
+  "execution": {
+    "CadQuery_not_available": true,
+    "core_executed": true,
+    "node_cli_not_executed": true,
+    "runtime": "V8 functions.exec"
+  },
+  "fusion_export_verified": false,
+  "intended_contact_certificate": {
+    "maximum_opposing_X_preload_moment_Nmm": 0.32000000000000006,
+    "minimum_Z_preload_moment_Nmm": 2.32,
+    "minimum_Z_resultant_separation_mm": 5.8,
+    "minimum_px_over_pz_for_this_necessary_condition": 7.249999999999999,
+    "signed_residual_lower_bound_Nmm": 1.9999999999999998,
+    "status": "REJECTED_INTENDED_FOUR_PATCH_FRICTIONLESS_EQUILIBRIUM"
+  },
+  "numerical_self_tests": {
+    "checks": 15,
+    "status": "PASS_NUMERICAL_MODEL_SELF_TESTS_ONLY"
+  },
+  "physical_validation_eligible": false,
+  "schema": "MASCK_ONE_TERMINAL_MECHANICS_DIAGNOSTIC",
+  "spring_boundary_condition_comparison": {
+    "X": {
+      "effective_length_mm": 7.86949728962574,
+      "free_shoe_rotation": {
+        "assumed_normal_leaf_separation_mm": 0,
+        "contact_overhang_mm": 0,
+        "force_N": 0.10000000000000007,
+        "ideal_guidance_rotational_stiffness_Nmm_per_rad": 0,
+        "stiffness_N_per_mm": 0.5263157894736846,
+        "tip_rotation_rad": 0.036215782217208704
+      },
+      "free_shoe_with_0p75mm_contact_overhang_DOE": {
+        "assumed_normal_leaf_separation_mm": 0,
+        "contact_overhang_mm": 0.75,
+        "force_N": 0.07615200727324796,
+        "ideal_guidance_rotational_stiffness_Nmm_per_rad": 0,
+        "stiffness_N_per_mm": 0.4008000382802524,
+        "tip_rotation_rad": 0.03283586979965962
+      },
+      "imposed_zero_tip_rotation": {
+        "assumed_normal_leaf_separation_mm": 0,
+        "contact_overhang_mm": 0,
+        "force_N": 0.4000000000000001,
+        "ideal_guidance_rotational_stiffness_Nmm_per_rad": 0,
+        "stiffness_N_per_mm": 2.105263157894737,
+        "tip_rotation_rad": 0
+      },
+      "interpretation": "0.40 N requires an actual rotational constraint. The transverse V7 pair does not supply it intrinsically. Unilateral shoe contact may constrain rotation, but then contact moment, pressure, friction and lift-off must be solved together. The free-shoe result is not a measured seated force.",
+      "normal_separated_0p8mm_pair_DOE": {
+        "assumed_normal_leaf_separation_mm": 0.8,
+        "contact_overhang_mm": 0,
+        "force_N": 0.3865671641791045,
+        "ideal_guidance_rotational_stiffness_Nmm_per_rad": 927.1240247605431,
+        "stiffness_N_per_mm": 2.034564021995287,
+        "tip_rotation_rad": 0.0016216021888302396
+      },
+      "physical_validation_eligible": false,
+      "studied_displacement_mm": 0.19
+    },
+    "Z": {
+      "effective_length_mm": 7.273211378759818,
+      "free_shoe_rotation": {
+        "assumed_normal_leaf_separation_mm": 0,
+        "contact_overhang_mm": 0,
+        "force_N": 0.10000000000000005,
+        "ideal_guidance_rotational_stiffness_Nmm_per_rad": 0,
+        "stiffness_N_per_mm": 0.666666666666667,
+        "tip_rotation_rad": 0.030935440795392583
+      },
+      "free_shoe_with_0p75mm_contact_overhang_DOE": {
+        "assumed_normal_leaf_separation_mm": 0,
+        "contact_overhang_mm": 0.75,
+        "force_N": 0.07455706813418163,
+        "ideal_guidance_rotational_stiffness_Nmm_per_rad": 0,
+        "stiffness_N_per_mm": 0.49704712089454417,
+        "tip_rotation_rad": 0.02782130606020658
+      },
+      "imposed_zero_tip_rotation": {
+        "assumed_normal_leaf_separation_mm": 0,
+        "contact_overhang_mm": 0,
+        "force_N": 0.4000000000000001,
+        "ideal_guidance_rotational_stiffness_Nmm_per_rad": 0,
+        "stiffness_N_per_mm": 2.6666666666666674,
+        "tip_rotation_rad": 0
+      },
+      "interpretation": "0.40 N requires an actual rotational constraint. The transverse V7 pair does not supply it intrinsically. Unilateral shoe contact may constrain rotation, but then contact moment, pressure, friction and lift-off must be solved together. The free-shoe result is not a measured seated force.",
+      "normal_separated_0p8mm_pair_DOE": {
+        "assumed_normal_leaf_separation_mm": 0.8,
+        "contact_overhang_mm": 0,
+        "force_N": 0.3865671641791046,
+        "ideal_guidance_rotational_stiffness_Nmm_per_rad": 1003.133226858597,
+        "stiffness_N_per_mm": 2.5771144278606974,
+        "tip_rotation_rad": 0.001385168990838473
+      },
+      "physical_validation_eligible": false,
+      "studied_displacement_mm": 0.15
+    }
+  },
+  "unresolved_CAD_and_mechanics": [
+    "Exact spline-fit cam normals/contact patches have not been solved here.",
+    "Include all actual carrier contacts before asserting full assembly equilibrium.",
+    "Resolve preload line of action and full six-component interface wrench.",
+    "Define stress-free spring manufacturing geometry separately from installed deformation.",
+    "Resolve root/tip rotational compliance and nonlinear unilateral contact.",
+    "Evaluate the posterior ladder with bending/torsion and real joint compliance.",
+    "Rebuild valid B-reps and continuous sweeps before releasing component STEP."
+  ]
+}
