@@ -232,12 +232,21 @@ def build_terminal_datum_preload_v3_architecture(
         z_stop = _box(PRELOAD_Z_X_SPAN_MM, FULL_SEAT_LAND_MM, RIGID_BACKUP_THICKNESS_MM, (cx, y_center, z_stop_center))
 
         source = mate.mate.val()
-        all_installed = cq.Compound.makeCompound([master_x, master_z, preload_x, preload_z, x_stop, z_stop])
+        installed_parts = [master_x, master_z, preload_x, preload_z, x_stop, z_stop]
+        all_installed = cq.Compound.makeCompound(installed_parts)
         nominal = _intersection_volume(all_installed, source)
         master_probe_x = _intersection_volume(master_x.translate((-master_x_sign * MASTER_ENGAGEMENT_PROBE_MM, 0.0, 0.0)), source)
         master_probe_z = _intersection_volume(master_z.translate((0.0, 0.0, MASTER_ENGAGEMENT_PROBE_MM)), source)
-        service = _translation_envelope(all_installed, (0.0, TERMINAL_SERVICE_RETRACTION_PROBE_MM, 0.0))
-        service_iv = _intersection_volume(service, source)
+
+        # Service motion is a reference proof over physically distinct parts. Do not
+        # force disconnected swept envelopes into one Boolean solid: that is both
+        # kernel-fragile and semantically wrong for a Fusion manufacturing handoff.
+        service_parts = [
+            _translation_envelope(shape, (0.0, TERMINAL_SERVICE_RETRACTION_PROBE_MM, 0.0))
+            for shape in installed_parts
+        ]
+        service = cq.Compound.makeCompound(service_parts)
+        service_iv = sum(_intersection_volume(swept, source) for swept in service_parts)
 
         built.append(TerminalDatumPreloadV3Station(
             mate.reaction_id, mate.center_xy_mm,
