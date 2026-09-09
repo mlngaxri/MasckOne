@@ -77,11 +77,13 @@ def _component_contracts(cartridge) -> dict[str, dict[str, object]]:
     }
 
 
-def fusion_handoff_manifest(cartridge=None) -> dict[str, object]:
+def fusion_handoff_manifest(cartridge=None, *, service_report=None) -> dict[str, object]:
     cartridge = cartridge or build_realized_waste_cartridge()
     cartridge.validate()
     owner = cartridge.manifest()
-    service, _ = build_service_corridor(cartridge)
+    service = service_report
+    if service is None:
+        service, _ = build_service_corridor(cartridge)
     components = _component_contracts(cartridge)
 
     return {
@@ -175,7 +177,7 @@ def export_fusion_handoff(output_dir: str | Path, cartridge=None) -> dict[str, o
     cartridge = cartridge or build_realized_waste_cartridge()
     cartridge.validate()
     service, service_shapes = build_service_corridor(cartridge)
-    manifest = fusion_handoff_manifest(cartridge)
+    manifest = fusion_handoff_manifest(cartridge, service_report=service)
 
     material_shapes = cartridge.manufacturing_components()
     reference_shapes = {**cartridge.reference_geometry(), **service_shapes}
