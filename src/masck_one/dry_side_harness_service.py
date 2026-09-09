@@ -76,9 +76,17 @@ def _axis_segment(
     return cq.Workplane("XY").newObject([solid])
 
 
-def _route_solid(points: tuple[tuple[float, float, float], ...], radius: float) -> cq.Workplane:
+def _validate_route_topology(points: tuple[tuple[float, float, float], ...]) -> None:
     if len(points) < 2:
         raise DrySideHarnessError("harness route needs at least two points")
+    for first, second in zip(points, points[1:], strict=True):
+        deltas = tuple(b - a for a, b in zip(first, second, strict=True))
+        if sum(abs(delta) > 1e-9 for delta in deltas) != 1:
+            raise DrySideHarnessError("harness route segments must be orthogonal and nonzero")
+
+
+def _route_solid(points: tuple[tuple[float, float, float], ...], radius: float) -> cq.Workplane:
+    _validate_route_topology(points)
     route = _sphere(points[0], radius)
     for first, second in zip(points, points[1:], strict=True):
         route = route.union(_axis_segment(first, second, radius)).union(_sphere(second, radius))
@@ -118,6 +126,7 @@ class DrySideHarnessService:
 
     def validate(self) -> "DrySideHarnessService":
         _geometry(self.route_envelope)
+        _validate_route_topology(self.route_points_world_mm)
         if len(self.clip_reservations) != len(CLIP_CENTERS_WORLD_MM):
             raise DrySideHarnessError("dry-side harness requires both support reservations")
         for clip in self.clip_reservations:
