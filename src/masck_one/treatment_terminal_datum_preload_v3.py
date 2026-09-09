@@ -66,7 +66,7 @@ from .treatment_terminal_datum_preload_v2 import (
 
 SCHEMA = "MASCK_ONE_TREATMENT_TERMINAL_DATUM_PRELOAD_V3"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
-SOURCE_CELL6_HEAD_SHA = "fcccde02b31cc1c4e01136630d92e550e4e09a11"
+SOURCE_CELL6_HEAD_SHA = "c38d481c9868fb705a0b4084b2961807209e504c"
 SOURCE_FAILURE_EVIDENCE_HEAD = "b803b36ddd270c3bcebf696e267015bc535ca7c9"
 
 MASTER_X_DEPTH_MM = 0.30
@@ -100,6 +100,41 @@ def _translation_reference_compound(
     if not compound.isValid() or not compound.Solids():
         raise TreatmentTerminalDatumPreloadV3Error("terminal reference service sweep must remain valid")
     return compound
+
+
+def _solid_pair_intersection_volume(a: cq.Shape, b: cq.Shape) -> float:
+    """Intersection volume using only solid-to-solid Boolean operands.
+
+    OpenCascade can return a null topology when a swept spline solid is intersected
+    directly with a multi-solid compound. Service proof therefore decomposes both
+    operands first. This changes only verification topology, not clearance criteria.
+    """
+    total = 0.0
+    for left in a.Solids():
+        lb = left.BoundingBox()
+        for right in b.Solids():
+            rb = right.BoundingBox()
+            if (
+                lb.xmax < rb.xmin
+                or rb.xmax < lb.xmin
+                or lb.ymax < rb.ymin
+                or rb.ymax < lb.ymin
+                or lb.zmax < rb.zmin
+                or rb.zmax < lb.zmin
+            ):
+                continue
+            try:
+                common = left.intersect(right)
+            except Exception as exc:
+                raise TreatmentTerminalDatumPreloadV3Error(
+                    "solid-pair service intersection kernel failure"
+                ) from exc
+            if not common.isValid():
+                raise TreatmentTerminalDatumPreloadV3Error(
+                    "solid-pair service intersection result is invalid"
+                )
+            total += sum(max(0.0, float(solid.Volume())) for solid in common.Solids())
+    return total
 
 
 @dataclass(frozen=True, slots=True)
@@ -157,7 +192,7 @@ class TerminalDatumPreloadV3Station:
                 "master_probe_intersections_mm3": list(self.master_probe_intersections_mm3),
                 "service_source_intersection_mm3": self.service_source_intersection_mm3,
             },
-            "service_sweep_semantics": "BOOLEAN_FREE_REFERENCE_COMPOUND_OF_START_END_AND_FACE_PRISMS",
+            "service_sweep_semantics": "BOOLEAN_FREE_REFERENCE_COMPOUND_OF_START_END_AND_FACE_PRISMS_SOLID_PAIR_COLLISION_PROOF",
             "physical_validation": "OPEN_CONTACT_PRESSURE_FRICTION_WEAR_FORCE_TRAVEL_TOLERANCE_DAMPING_ACOUSTICS_AND_WET_CONTAMINATION",
         }
 
@@ -270,7 +305,7 @@ def build_terminal_datum_preload_v3_architecture(
         ]
         service = cq.Compound.makeCompound(service_parts)
         service_iv = sum(
-            _intersection_volume(piece, source)
+            _solid_pair_intersection_volume(piece, source)
             for swept in service_parts
             for piece in swept.Solids()
         )
