@@ -35,9 +35,9 @@ jobs:
       - name: Verify terminal mechanics and centering studies
         run: python -m pytest -q tests/test_treatment_terminal_mechanics_v2.py tests/test_centering_multirate_v2.py
 
-  terminal-datum:
+  reference-kernel:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 6
     steps:
       - name: Checkout exact treatment head
         uses: actions/checkout@v4
@@ -53,12 +53,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-      - name: Verify terminal datum B-reps
-        run: python -m pytest -q tests/test_treatment_terminal_datum_preload_v3.py
+      - name: Verify Boolean-free reference motion kernel
+        run: python -m pytest -q tests/test_treatment_reference_geometry.py
 
-  guided-spring:
+  terminal-datum-v4:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - name: Checkout exact treatment head
         uses: actions/checkout@v4
@@ -74,12 +74,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-      - name: Verify guided spring cassette B-reps
-        run: python -m pytest -q tests/test_treatment_guided_preload_spring.py
+      - name: Verify terminal datum V4 B-reps
+        run: python -m pytest -q tests/test_treatment_terminal_datum_preload_v4.py
 
-  four-zone-v8:
+  guided-spring-v4:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 10
     steps:
       - name: Checkout exact treatment head
         uses: actions/checkout@v4
@@ -95,15 +95,35 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-      - name: Compile current V8 CAD sources
+      - name: Verify guided spring cassettes on V4 datums
+        run: python -m pytest -q tests/test_treatment_guided_preload_spring_v4.py
+
+  four-zone-v9:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact treatment head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile current V9 CAD sources
         run: |
           python -m py_compile \
-            src/masck_one/treatment_mounted_four_zone.py \
-            src/masck_one/treatment_mounted_four_zone_v2.py \
-            src/masck_one/treatment_terminal_datum_preload_v3.py \
+            src/masck_one/treatment_reference_geometry.py \
+            src/masck_one/treatment_terminal_datum_preload_v4.py \
             src/masck_one/treatment_guided_preload_spring.py \
-            src/masck_one/treatment_mounted_four_zone_v8.py
-      - name: Verify complete four-zone V8
-        run: python -m pytest -q tests/test_treatment_mounted_four_zone_v8.py
+            src/masck_one/treatment_mounted_four_zone_v9.py
+      - name: Verify complete four-zone V9
+        run: python -m pytest -q tests/test_treatment_mounted_four_zone_v9.py
 
 # Fast branch-level design loop only. Complete repository CI remains the release gate.
