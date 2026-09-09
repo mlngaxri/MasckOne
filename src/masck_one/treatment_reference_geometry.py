@@ -8,14 +8,16 @@ independent positive-volume pieces and must never be Boolean-fused merely to mak
 single review body.
 
 OpenCascade can emit locally invalid solids when a curved face is linearly swept, and
-can also return an invalid common at tangential contact. Reference pieces are therefore
-shape-healed before use. Collision remains fail-closed for any finite positive common
-that cannot be healed to valid B-rep topology.
+CadQuery's high-level Boolean wrapper can also expose degenerate common topology at
+coincident/tangent boundaries. Reference pieces are shape-healed before use and
+collision common is evaluated with OpenCascade's direct BRepAlgoAPI operator.
+Any finite positive common that cannot be healed remains a hard failure.
 """
 
 import math
 
 import cadquery as cq
+from OCP.BRepAlgoAPI import BRepAlgoAPI_Common
 from OCP.BRepPrimAPI import BRepPrimAPI_MakePrism
 from OCP.ShapeFix import ShapeFix_Shape
 from OCP.gp import gp_Vec
@@ -26,17 +28,14 @@ class TreatmentReferenceGeometryError(ValueError):
 
 
 def _heal(shape: cq.Shape) -> cq.Shape:
-    """Apply OpenCascade's topology repair without changing nominal design intent."""
     if shape.isValid():
         return shape
     fixer = ShapeFix_Shape(shape.wrapped)
     fixer.Perform()
-    healed = cq.Shape.cast(fixer.Shape())
-    return healed
+    return cq.Shape.cast(fixer.Shape())
 
 
 def _positive_valid_solids(shape: cq.Shape) -> list[cq.Shape]:
-    """Return valid positive solids, healing the aggregate once when required."""
     candidate = _heal(shape)
     solids = candidate.Solids()
     out: list[cq.Shape] = []
@@ -66,12 +65,8 @@ def translation_reference_compound(
     pieces: list[cq.Shape] = []
     for endpoint in (shape, shape.translate(travel)):
         pieces.extend(_positive_valid_solids(endpoint))
-
     for face in shape.Faces():
-        prism = cq.Shape.cast(
-            BRepPrimAPI_MakePrism(face.wrapped, gp_Vec(*travel)).Shape()
-        )
-        # Faces parallel to travel legitimately generate no positive swept volume.
+        prism = cq.Shape.cast(BRepPrimAPI_MakePrism(face.wrapped, gp_Vec(*travel)).Shape())
         pieces.extend(_positive_valid_solids(prism))
 
     if not pieces:
@@ -86,8 +81,24 @@ def translation_reference_compound(
     return compound
 
 
+def _direct_common(left: cq.Shape, right: cq.Shape) -> cq.Shape:
+    try:
+        operation = BRepAlgoAPI_Common(left.wrapped, right.wrapped)
+        operation.Build()
+    except Exception as exc:
+        raise TreatmentReferenceGeometryError("direct OCC common kernel failure") from exc
+    if not operation.IsDone():
+        raise TreatmentReferenceGeometryError("direct OCC common did not complete")
+    return cq.Shape.cast(operation.Shape())
+
+
+def _bbox_tuple(shape: cq.Shape) -> tuple[float, float, float, float, float, float]:
+    bb = shape.BoundingBox()
+    return (bb.xmin, bb.xmax, bb.ymin, bb.ymax, bb.zmin, bb.zmax)
+
+
 def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
-    """Return positive common volume using only solid-to-solid Boolean operands.
+    """Return positive common volume using direct OCC solid-to-solid operands.
 
     Boundary-only or topologically empty commons contribute zero. Any common with
     finite positive volume must heal to valid B-rep topology or the check fails.
@@ -111,11 +122,8 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
                 or rb.zmax < lb.zmin
             ):
                 continue
-            try:
-                common = left.intersect(right)
-            except Exception as exc:
-                raise TreatmentReferenceGeometryError("solid-pair intersection kernel failure") from exc
 
+            common = _direct_common(left, right)
             raw_solids = common.Solids()
             if not raw_solids:
                 continue
@@ -132,7 +140,11 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
                 if volume <= 0.0:
                     continue
                 if not solid.isValid():
-                    raise TreatmentReferenceGeometryError("positive common cannot be healed to valid solid")
+                    raise TreatmentReferenceGeometryError(
+                        "positive common cannot be healed to valid solid: "
+                        f"raw_volume_mm3={raw_volume:.12g}, "
+                        f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}"
+                    )
                 total += volume
 
     if not math.isfinite(total):
