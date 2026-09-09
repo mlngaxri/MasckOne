@@ -1,0 +1,30 @@
+{
+  "schema": "MASCK_ONE_CELL6_CURRENT_RELEASE_HANDOFF_V1",
+  "world_frame_id": "MASCK_ONE_AUTHORITY_WORLD_MM",
+  "released_main_sha": "ac59fcd59f50b019cb972bfc526c2daea784bd17",
+  "cell6_geometry_parent_sha": "44e6cdecaf2741084fcc99f4c4949b2c317f4923",
+  "cell6_geometry_tree_status": "PRESERVE_PENDING_EXPLICIT_CURRENT_MAIN_RECONCILIATION",
+  "released_source_blobs_verified_unchanged": {
+    "src/masck_one/authority.py": "6866e3a428dab8b32b5a1d9e58da78b8f5aa1aa2",
+    "src/masck_one/model.py": "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"
+  },
+  "frame_owned_interfaces": [
+    "FRAME_SIDE_ACTUATOR_REACTION_COUNTERPARTS",
+    "FRAME_SIDE_CARRIER_RAIL_PRELOAD_LANDING_DETENT",
+    "BILATERAL_RETENTION_ROOT_CLEVIS_COUNTERPARTS",
+    "BILATERAL_CROWN_SUPPORT_COUNTERPARTS",
+    "DRY_PACKAGE_SUPPORTS",
+    "FRAME_SERVICE_AND_TOOL_ACCESS_CORRIDORS"
+  ],
+  "consumer_policy": "DO_NOT_REBIND_TREATMENT_OR_RETENTION_UNTIL_CELL6_CURRENT_MAIN_RECONCILIATION_AND_EXACT_HEAD_CI_PASS",
+  "treatment_owner_pr": 135,
+  "retention_owner_pr": 141,
+  "physical_validation_open": [
+    "FIT",
+    "COMFORT",
+    "FATIGUE",
+    "ACOUSTIC_FEEL",
+    "RETENTION_FORCE",
+    "RELEASE_TIME"
+  ]
+}
