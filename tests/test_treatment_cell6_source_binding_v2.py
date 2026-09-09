@@ -12,11 +12,15 @@ from masck_one.treatment_cell6_source_binding import (
     manifest,
     verify_consumed_counterface_blobs,
 )
+from masck_one.treatment_terminal_datum_preload_v4 import (
+    SOURCE_CELL6_HEAD_SHA as ACTIVE_TERMINAL_DATUM_CELL6_HEAD_SHA,
+)
 
 
 def test_treatment_cell6_v2_binding_is_exact_and_current() -> None:
     assert RELEASED_MAIN_SHA == "42fa11818184cde998c6df25d7c46d4fb0e4c3eb"
     assert CELL6_HEAD_SHA == "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be"
+    assert ACTIVE_TERMINAL_DATUM_CELL6_HEAD_SHA == CELL6_HEAD_SHA
     assert TREATMENT_PREMERGE_HEAD_SHA == "0073fc33d0605ea84e5322111d10a457585bdb59"
     assert TREATMENT_CELL6_MERGE_CHECKPOINT_SHA == "d070d927d03aa995fd7d34e86dc2629a5b37a5b4"
     assert len(CONSUMED_COUNTERFACE_BLOB_SHA1) == 6
