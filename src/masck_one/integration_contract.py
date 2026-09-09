@@ -41,13 +41,14 @@ _CONTRACT = {
         "treatment_mechanics": {
             "pr": 135,
             "branch": "codex/treatment-live117-reconcile-20260909",
-            "head_sha": "ee02c102ab6122123d805e4e3aa74163078b96bf",
+            "head_sha": "43c3866eea56801696068ad4e417d5b21498682d",
             "base_sha": "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be",
             "implementation_paths": [
                 "src/masck_one/treatment_*.py",
                 "studies/treatment_*.py",
                 "studies/treatment_*.cjs",
             ],
+            "status_note": "STACKED_ON_STRUCTURAL_OWNER_WITH_TREATMENT_OWNED_RED_GEOMETRY_GATES",
         },
         "primary_hmi": {
             "pr": None,
@@ -88,31 +89,39 @@ _CONTRACT = {
             "status_note": "HOLD_PENDING_EXACT_RELEASE_PROVENANCE_GATE",
         },
         "waste_cartridge": {
-            "sprint_branch": "sol-high/cartridge-service-20260909",
-            "sprint_head_sha": "42fa11818184cde998c6df25d7c46d4fb0e4c3eb",
-            "upstream_pr": 115,
-            "upstream_branch": "cell11/realized-waste-cartridge-v1-20260906",
-            "upstream_head_sha": "96397f9e1142224979bfc43717ccf325d07fc21f",
+            "pr": 140,
+            "branch": "sol-high/cartridge-service-20260909",
+            "head_sha": "7bf392eb2c5fb7e6b2c3a23c86bbbdfb1cc7f94f",
+            "base_sha": "42fa11818184cde998c6df25d7c46d4fb0e4c3eb",
+            "supersedes_pr": 115,
             "implementation_paths": [
                 "src/masck_one/realized_waste_cartridge.py",
-                "src/masck_one/waste_cartridge_analysis.py",
-                "src/masck_one/waste_cartridge_dfm.py",
-                "src/masck_one/waste_cartridge_dfm_legacy.py",
+                "src/masck_one/cartridge_service_corridor.py",
+                "src/masck_one/cartridge_fusion_handoff.py",
+                "scripts/export_cartridge_fusion_handoff.py",
             ],
-            "status_note": "SPRINT_BRANCH_OBSERVED_WITH_NO_BRANCH_DELTA_AT_SNAPSHOT",
+            "status_note": (
+                "CURRENT_MAIN_BOUND_CONSOLIDATED_OWNER_WITH_DIRECT_FUSION_HANDOFF; "
+                "INSTALLED_EXTRACTION_REMAINS_BLOCKED_PENDING_RELEASED_FRAME_BREP_AND_INTERFACES"
+            ),
         },
         "retention_quick_release": {
-            "sprint_branch": "sol-high/retention-quick-release-20260909",
-            "sprint_head_sha": "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be",
-            "upstream_pr": 92,
-            "upstream_branch": "cell3/retention-load-path-20260905",
-            "upstream_head_sha": "88a88bed01fd3b3acfb38ff5f6f3ae3d5bbf54fe",
+            "pr": 141,
+            "branch": "sol-high/retention-quick-release-20260909",
+            "head_sha": "331c2ad246cffe3828feb9f4f1f9c067d4d99d24",
+            "base_sha": "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be",
+            "stacked_on_pr": 117,
+            "donor_pr": 92,
             "implementation_paths": [
-                "src/masck_one/retention_*.py",
-                "src/masck_one/occipital_stabilizer.py",
-                "src/masck_one/hair_pinch_keepouts.py",
+                "src/masck_one/mechanical_interface_graph.py",
             ],
-            "status_note": "SPRINT_BRANCH_CURRENTLY_ANCHORED_ON_STRUCTURAL_OWNER_HEAD",
+            "shared_owner_binding_paths": [
+                "src/masck_one/structural_frame_retention_roots.py",
+            ],
+            "status_note": (
+                "STACKED_CONSOLIDATION_OVER_STRUCTURAL_OWNER; RETENTION GRAPH OWNS LOAD_PATH "
+                "SELECTION_WHILE STRUCTURAL FRAME RETAINS ROOT_BREP OWNERSHIP"
+            ),
         },
         "brand_identity": {
             "released_pr": 134,
