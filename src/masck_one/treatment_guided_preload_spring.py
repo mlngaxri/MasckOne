@@ -10,6 +10,14 @@ carrier backbone.
 Pair separation is deliberately along the commanded motion axis (X for the X shoe,
 Z for the Z shoe). This is the geometric correction to the rejected V7 transverse
 pair, which did not intrinsically constrain in-plane shoe rotation.
+
+The root overmold is cut by the complete installed spring occupied volume, not merely
+by the root-head block. The spring leaves intentionally overlap the head in Y to form
+a connected spring, so cutting only the head leaves the first leaf segment buried in
+polymer. The complete-volume cut creates explicit leaf exit windows while the
+positive pull-out probe still proves geometric head capture. This changes the local
+root pocket only; spring force, alloy, fatigue and insert-molding process remain
+physical-validation work.
 """
 
 from dataclasses import dataclass, field
@@ -127,6 +135,7 @@ class GuidedPreloadSpringStation:
             "reaction_id": self.reaction_id,
             "architecture": "AXIS_SEPARATED_TWO_LEAF_PARALLELOGRAM_WITH_CAPTIVE_ROOT_AND_MOVING_TIP_SHOE",
             "manufacturing_state": "FREE_SPRING_GEOMETRY_IS_THE_MANUFACTURED_PART_INSTALLED_SHAPE_IS_REFERENCE_OCCUPIED_VOLUME",
+            "root_capture_geometry": "COMPLETE_INSTALLED_SPRING_VOLUME_CUT_CREATES_LEAF_EXIT_WINDOWS_WITH_POSITIVE_HEAD_PULL_OUT_CAPTURE",
             "guide_pair_separation_mm": GUIDE_PAIR_SEPARATION_MM,
             "leaf_width_mm": LEAF_WIDTH_MM,
             "leaf_thickness_mm": LEAF_THICKNESS_MM,
@@ -165,7 +174,10 @@ def _x_cassette(station: TerminalDatumPreloadV3Station) -> dict[str, cq.Shape]:
     installed, root_head_i, tip_head_i = spring(True)
     free, _root_head_f, _tip_head_f = spring(False)
     root_capture_raw = _box(bridge_span + 2 * ROOT_CAPTURE_COVER_MM, ROOT_CAPTURE_LENGTH_Y_MM, LEAF_WIDTH_MM + 2 * ROOT_CAPTURE_COVER_MM, (root_center_x, root_y - ROOT_HEAD_LENGTH_Y_MM / 2 + HEAD_END_OVERLAP_MM, z_mid))
-    root_capture = root_capture_raw.cut(root_head_i).clean()
+    # The leaves overlap the root head by design so the spring is one connected part.
+    # Cut the complete installed spring occupancy, not only the head, to create true
+    # leaf exit windows and prevent hidden spring/polymer interpenetration.
+    root_capture = root_capture_raw.cut(installed).clean()
 
     installed_tip_center_x = root_center_x + sign * axis.installed_deflection_mm
     tip_capture_raw = _box(bridge_span + 2 * TIP_CAPTURE_COVER_MM, TIP_CAPTURE_LENGTH_Y_MM, LEAF_WIDTH_MM + 2 * TIP_CAPTURE_COVER_MM, (installed_tip_center_x, tip_y, z_mid))
@@ -215,7 +227,8 @@ def _z_cassette(station: TerminalDatumPreloadV3Station) -> dict[str, cq.Shape]:
     installed, root_head_i, tip_head_i = spring(True)
     free, _root_head_f, _tip_head_f = spring(False)
     root_capture_raw = _box(LEAF_WIDTH_MM + 2 * ROOT_CAPTURE_COVER_MM, ROOT_CAPTURE_LENGTH_Y_MM, bridge_span + 2 * ROOT_CAPTURE_COVER_MM, (x_mid, root_y - ROOT_HEAD_LENGTH_Y_MM / 2 + HEAD_END_OVERLAP_MM, root_center_z))
-    root_capture = root_capture_raw.cut(root_head_i).clean()
+    # Same complete-volume root-pocket rule as the X cassette.
+    root_capture = root_capture_raw.cut(installed).clean()
 
     installed_tip_center_z = root_center_z + axis.installed_deflection_mm
     tip_capture_raw = _box(LEAF_WIDTH_MM + 2 * TIP_CAPTURE_COVER_MM, TIP_CAPTURE_LENGTH_Y_MM, bridge_span + 2 * TIP_CAPTURE_COVER_MM, (x_mid, tip_y, installed_tip_center_z))
@@ -255,7 +268,9 @@ def build_guided_preload_spring_station(station: TerminalDatumPreloadV3Station) 
         "X_to_Z_spring": _iv(x["installed"], z["installed"]),
     }
     if max(overlap.values()) > _INTERSECTION_TOLERANCE_MM3:
-        raise TreatmentGuidedPreloadSpringError(f"{station.reaction_id} spring/polymer material overlap")
+        raise TreatmentGuidedPreloadSpringError(
+            f"{station.reaction_id} spring/polymer material overlap: {overlap}"
+        )
     result = GuidedPreloadSpringStation(
         station.reaction_id,
         (("terminal_x_spring_installed", x["installed"]), ("terminal_z_spring_installed", z["installed"])),
