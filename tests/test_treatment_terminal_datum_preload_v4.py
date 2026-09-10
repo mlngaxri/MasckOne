@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+import math
+
 import pytest
 
 from masck_one.structural_frame_actuator_reactions import REACTION_IDS
+from masck_one.treatment_terminal_datum_preload_v2 import (
+    TERMINAL_SERVICE_RETRACTION_PROBE_MM,
+)
 from masck_one.treatment_terminal_datum_preload_v4 import (
     SCHEMA,
+    SERVICE_REMAINING_RETRACTION_MM,
+    SERVICE_UNSEAT_MM,
     SOURCE_CELL6_HEAD_SHA,
     build_terminal_datum_preload_v4_architecture,
 )
@@ -35,3 +42,25 @@ def test_v4_keeps_reference_motion_and_physical_validation_firewall(datum_v4):
     for station in manifest["stations"]:
         assert station["load_path"].startswith("RIGID_MASTER_DATUMS")
         assert station["physical_validation"].startswith("OPEN_")
+
+
+def test_v4_service_sequence_unseats_before_low_drag_withdrawal(datum_v4):
+    manifest = datum_v4.manifest()
+    service = manifest["service_motion"]
+
+    assert 0.0 < SERVICE_UNSEAT_MM < TERMINAL_SERVICE_RETRACTION_PROBE_MM
+    assert math.isclose(
+        SERVICE_UNSEAT_MM + SERVICE_REMAINING_RETRACTION_MM,
+        TERMINAL_SERVICE_RETRACTION_PROBE_MM,
+        rel_tol=0.0,
+        abs_tol=1e-12,
+    )
+    assert service["sequence"] == [
+        "CHECK_SEATED_CONTACT_SEPARATELY",
+        "UNLOAD_AND_UNSEAT_PLUS_Y",
+        "LOW_DRAG_WITHDRAWAL_PLUS_Y",
+    ]
+    assert service["unseat_mm"] == SERVICE_UNSEAT_MM
+    assert service["full_reference_endpoint_mm"] == TERMINAL_SERVICE_RETRACTION_PROBE_MM
+    assert service["tangent_t0_prism_sweep_prohibited"] is True
+    assert service["collision_threshold_weakened"] is False
