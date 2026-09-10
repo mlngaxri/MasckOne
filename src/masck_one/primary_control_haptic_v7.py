@@ -10,7 +10,8 @@ V7 replaces them with one continuous elastomer body. Three low-area pads remain 
 early landing features and the annulus remains the later progressive stage, but all
 are fused into one molded part. Three tangential undercut lock tabs pass through the
 rigid hard-stop shelf and mechanically key the elastomer without adhesive or loose
-retainers. The rigid shelf remains the independent abuse stop.
+retainers. A short local counterbore above the shelf clears the bumper envelope while
+the rigid shelf itself remains the independent abuse stop.
 
 Elastomer family, durometer, compression set, rate dependence, wet aging, molding
 process and physical force/acoustic behavior remain PHYSICAL VALIDATION REQUIRED.
@@ -38,6 +39,7 @@ LANDING_ANNULUS_OD_MM = 9.00
 LANDING_ANNULUS_ID_MM = 7.72
 
 LANDING_LOCK_RADIUS_MM = 4.05
+LANDING_LOCK_HEAD_RADIUS_MM = 4.00
 LANDING_LOCK_SLOT_RADIAL_MM = 0.30
 LANDING_LOCK_SLOT_TANGENTIAL_MM = 0.52
 LANDING_LOCK_STEM_RADIAL_MM = 0.22
@@ -48,6 +50,24 @@ LANDING_LOCK_HEAD_HEIGHT_MM = 0.16
 LANDING_LOCK_STEM_SHELF_OVERLAP_MM = 0.02
 LANDING_LOCK_COUNT = 3
 LOCK_AZIMUTHS_DEG = (0.0, 120.0, 240.0)
+
+LANDING_CLEARANCE_RADIAL_MM = 0.03
+_LANDING_PAD_OUTER_CORNER_RADIUS_MM = math.hypot(
+    LANDING_PAD_RADIUS_MM + LANDING_PAD_RADIAL_MM / 2.0,
+    LANDING_PAD_TANGENTIAL_MM / 2.0,
+)
+LANDING_CLEARANCE_BORE_RADIUS_MM = (
+    max(LANDING_ANNULUS_OD_MM / 2.0, _LANDING_PAD_OUTER_CORNER_RADIUS_MM)
+    + LANDING_CLEARANCE_RADIAL_MM
+)
+LANDING_CLEARANCE_BORE_DIAMETER_MM = 2.0 * LANDING_CLEARANCE_BORE_RADIUS_MM
+LANDING_CLEARANCE_HEIGHT_MM = v1.FIRST_BUMPER_HEIGHT_MM + 0.03
+LANDING_BARREL_WALL_REMAINING_MM = (
+    v1.BARREL_OD_MM / 2.0 - LANDING_CLEARANCE_BORE_RADIUS_MM
+)
+MIN_LANDING_BARREL_WALL_MM = 1.20
+if LANDING_BARREL_WALL_REMAINING_MM < MIN_LANDING_BARREL_WALL_MM:
+    raise ValueError("landing clearance counterbore leaves insufficient barrel wall")
 
 MIN_RIGID_STOP_PROJECTED_AREA_FRACTION = 0.97
 MIN_LOCK_HEAD_TO_BARREL_BORE_RADIAL_CLEARANCE_MM = 0.04
@@ -67,14 +87,17 @@ def _oriented_box(
     azimuth_deg: float,
     z_center_mm: float,
 ) -> cq.Shape:
-    angle = math.radians(azimuth_deg)
+    # Create on the +X radial axis first, then rotate both position and local axes
+    # together. The previous implementation pre-positioned at azimuth and then
+    # rotated again, so the box centre advanced to 2*azimuth while its orientation
+    # advanced only once. That broke the intended radial/tangential lock geometry.
     shape = v1._box(
         radial_mm,
         tangential_mm,
         axial_mm,
         (
-            v1.MOUNT_X_MM + radius_mm * math.cos(angle),
-            v1.MOUNT_Y_MM + radius_mm * math.sin(angle),
+            v1.MOUNT_X_MM + radius_mm,
+            v1.MOUNT_Y_MM,
             z_center_mm,
         ),
     )
@@ -121,7 +144,7 @@ def _progressive_landing(rest_z: float) -> cq.Shape:
             LANDING_LOCK_HEAD_RADIAL_MM,
             LANDING_LOCK_HEAD_TANGENTIAL_MM,
             LANDING_LOCK_HEAD_HEIGHT_MM,
-            radius_mm=LANDING_LOCK_RADIUS_MM,
+            radius_mm=LANDING_LOCK_HEAD_RADIUS_MM,
             azimuth_deg=azimuth_deg,
             z_center_mm=(
                 shelf_top
@@ -135,6 +158,22 @@ def _progressive_landing(rest_z: float) -> cq.Shape:
     if not landing.isValid() or len(landing.Solids()) != 1 or landing.Volume() <= 0.0:
         raise PrimaryControlHapticV7Error("progressive landing must be one connected elastomer body")
     return landing
+
+
+def _cut_landing_clearance(shell: cq.Shape, rest_z: float) -> cq.Shape:
+    """Clear only the elastomer envelope above the independent hard-stop shelf."""
+    shelf_top = rest_z - v1.HARD_STOP_MM
+    cutter = v1._cylinder(
+        LANDING_CLEARANCE_BORE_DIAMETER_MM,
+        LANDING_CLEARANCE_HEIGHT_MM,
+        shelf_top,
+    )
+    before = float(shell.Volume())
+    cleared = shell.cut(cutter).clean()
+    removed = before - float(cleared.Volume())
+    if not cleared.isValid() or not cleared.Solids() or removed <= 0.0:
+        raise PrimaryControlHapticV7Error("landing clearance counterbore must remove positive barrel material")
+    return cleared
 
 
 def _cut_lock_slots(shell: cq.Shape, rest_z: float) -> tuple[cq.Shape, float]:
@@ -291,7 +330,7 @@ class PrimaryControlHapticArchitectureV7:
         if self.rigid_stop_projected_area_fraction < MIN_RIGID_STOP_PROJECTED_AREA_FRACTION:
             raise PrimaryControlHapticV7Error("landing locks remove too much rigid hard-stop projected area")
         if self.lock_head_to_barrel_bore_clearance_mm < MIN_LOCK_HEAD_TO_BARREL_BORE_RADIAL_CLEARANCE_MM:
-            raise PrimaryControlHapticV7Error("landing lock head lacks radial clearance inside barrel bore")
+            raise PrimaryControlHapticV7Error("landing lock head lacks full-corner radial clearance inside barrel bore")
         if any(value > _INTERSECTION_TOLERANCE_MM3 for value in self.keepout_intersections_mm3.values()):
             raise PrimaryControlHapticV7Error("V7 primary control intersects a protected package/visual keepout")
 
@@ -330,9 +369,14 @@ class PrimaryControlHapticArchitectureV7:
                     "second_landing_start_mm": v1.SECOND_LANDING_START_MM,
                     "nominal_bottom_mm": v1.NOMINAL_BOTTOM_MM,
                     "rigid_hard_stop_mm": v1.HARD_STOP_MM,
+                    "landing_clearance_bore_diameter_mm": LANDING_CLEARANCE_BORE_DIAMETER_MM,
+                    "landing_clearance_radial_mm": LANDING_CLEARANCE_RADIAL_MM,
+                    "landing_barrel_wall_remaining_mm": LANDING_BARREL_WALL_REMAINING_MM,
+                    "hard_stop_shelf_removed_by_clearance_counterbore": False,
                     "lock_count": LANDING_LOCK_COUNT,
                     "lock_slot_radial_mm": LANDING_LOCK_SLOT_RADIAL_MM,
                     "lock_slot_tangential_mm": LANDING_LOCK_SLOT_TANGENTIAL_MM,
+                    "lock_head_radius_mm": LANDING_LOCK_HEAD_RADIUS_MM,
                     "lock_head_radial_mm": LANDING_LOCK_HEAD_RADIAL_MM,
                     "lock_head_tangential_mm": LANDING_LOCK_HEAD_TANGENTIAL_MM,
                     "lock_slot_removed_mm3": self.landing_lock_slot_removed_mm3,
@@ -347,7 +391,7 @@ class PrimaryControlHapticArchitectureV7:
                 },
                 "cost_rule": (
                     "ONE_MOLDED_LANDING_BODY; ZERO_ADHESIVE; ZERO_LOOSE_BUMPER_RETENTION; "
-                    "PRESERVE_INDEPENDENT_RIGID_ABUSE_STOP"
+                    "LOCAL_COUNTERBORE_ONLY_WHERE_ELASTOMER_NEEDS_CLEARANCE; PRESERVE_INDEPENDENT_RIGID_ABUSE_STOP"
                 ),
                 "tactile_quality_interpretation": (
                     "DIGITAL PRECURSOR ONLY: EARLY LOCAL PAD CONTACT AND LATER ANNULAR ENGAGEMENT ARE GEOMETRICALLY "
@@ -376,7 +420,8 @@ def build_primary_control_haptic_architecture_v7(
 
     landing = _progressive_landing(base.rest_cap_underside_z_mm)
     shell_before = material["shell_with_primary_control_interface"]
-    shell_after, slot_removed = _cut_lock_slots(shell_before, base.rest_cap_underside_z_mm)
+    shell_cleared = _cut_landing_clearance(shell_before, base.rest_cap_underside_z_mm)
+    shell_after, slot_removed = _cut_lock_slots(shell_cleared, base.rest_cap_underside_z_mm)
     landing_shell_overlap = v1._intersection_volume(shell_after, landing)
 
     material_parts = _replace_landing_parts(
@@ -391,10 +436,11 @@ def build_primary_control_haptic_architecture_v7(
     stop_area = math.pi * (stop_outer_radius**2 - stop_inner_radius**2)
     slot_area = LANDING_LOCK_COUNT * LANDING_LOCK_SLOT_RADIAL_MM * LANDING_LOCK_SLOT_TANGENTIAL_MM
     remaining_stop_fraction = (stop_area - slot_area) / stop_area
-    lock_clearance = (
-        v1.BARREL_BORE_DIAMETER_MM / 2.0
-        - (LANDING_LOCK_RADIUS_MM + LANDING_LOCK_HEAD_RADIAL_MM / 2.0)
+    lock_head_outer_corner_radius = math.hypot(
+        LANDING_LOCK_HEAD_RADIUS_MM + LANDING_LOCK_HEAD_RADIAL_MM / 2.0,
+        LANDING_LOCK_HEAD_TANGENTIAL_MM / 2.0,
     )
+    lock_clearance = v1.BARREL_BORE_DIAMETER_MM / 2.0 - lock_head_outer_corner_radius
 
     result = PrimaryControlHapticArchitectureV7(
         SOURCE_MAIN_SHA,
