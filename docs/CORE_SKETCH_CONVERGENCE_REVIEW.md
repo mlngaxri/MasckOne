@@ -7,6 +7,10 @@ Released input: `2f62835a63764bb3431c5b3b1755acb556862366`
 
 The exact observations, source blobs and workflow identities are in [the source snapshot](CORE_SKETCH_SOURCE_SNAPSHOT.json). This is a dated review, not a replacement for live GitHub. The [backlog](CORE_SKETCH_EXECUTION_BACKLOG.md) owns task acceptance; the [five-lane plan](CORE_SKETCH_FIVE_LANE_EXECUTION_PLAN.md) owns routing. Research narrative and green CI are not empirical proof of a complete routine.
 
+## Current-main reconciliation
+
+This review was recovered intact before reconciliation. Released main subsequently tightened `mass.cg_z_max_mm` to **27.9 mm**, added a mass ledger with explicit unresolved mass/position evidence, and added source/integrity guards. The 30 mm arithmetic below is retained as historical diagnosis, not current authority. New contracts consume current authority by content, not its unchanged revision label alone. Mutable owner heads remain dated observations in JSON and are not compiled into release provenance.
+
 ## 1. Verdict and surviving architecture
 
 **The Core Sketch still describes one coherent product. Its physical feasibility is a conditional hypothesis, not a closed result.** The coherent unit is a prepared, untethered, complete facial routine plus the dock that prepares it. Cleaning, massage, optical treatment and thermal functions remain subordinate capabilities. A dock is necessary because isolation, cleaning and product preservation are likely to cost more package volume than the session liquids themselves.

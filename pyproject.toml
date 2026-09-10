@@ -17,6 +17,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest==9.0.2",
+  # The CAD suite is CPU-bound and independent per test; running it serially
+  # exceeded the CI job budget. See .github/workflows/ci.yml.
+  "pytest-xdist==3.8.0",
 ]
 
 [project.scripts]

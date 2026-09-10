@@ -82,12 +82,17 @@
     "project": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "authority_revision", "schema_version", "units"],
+      "required": [
+        "id", "name", "authority_revision", "schema_version",
+        "development_phase", "completed_iteration", "units"
+      ],
       "properties": {
         "id": {"const": "MASCK_ONE"},
         "name": {"const": "Masck One"},
         "authority_revision": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}-R[0-9]+$"},
         "schema_version": {"const": "1.0.0"},
+        "development_phase": {"$ref": "#/$defs/positiveInteger"},
+        "completed_iteration": {"$ref": "#/$defs/positiveInteger"},
         "units": {
           "type": "object",
           "additionalProperties": false,
@@ -223,11 +228,13 @@
         "visible_seam": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["gap_mm", "tolerance_mm", "flush_mismatch_max_mm", "status"],
+          "required": ["gap_mm", "tolerance_mm", "flush_mismatch_max_mm", "control_strategy", "control_strategy_status", "status"],
           "properties": {
             "gap_mm": {"$ref": "#/$defs/nonNegativeNumber"},
             "tolerance_mm": {"$ref": "#/$defs/nonNegativeNumber"},
             "flush_mismatch_max_mm": {"$ref": "#/$defs/nonNegativeNumber"},
+            "control_strategy": {"enum": ["SELF_LOCATING_LOCAL_DATUM", "BUTT_JOINT_TO_GLOBAL_OUTLINE"]},
+            "control_strategy_status": {"$ref": "#/$defs/status"},
             "status": {"$ref": "#/$defs/status"}
           }
         },
@@ -361,10 +368,12 @@
         "water_reservoir": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["gross_mL", "minimum_usable_mL", "status"],
+          "required": ["gross_mL", "minimum_usable_mL", "envelope_mm", "envelope_status", "status"],
           "properties": {
             "gross_mL": {"$ref": "#/$defs/positiveNumber"},
             "minimum_usable_mL": {"$ref": "#/$defs/positiveNumber"},
+            "envelope_mm": {"$ref": "#/$defs/positiveTriple"},
+            "envelope_status": {"$ref": "#/$defs/status"},
             "status": {"$ref": "#/$defs/status"}
           }
         },
