@@ -107,7 +107,7 @@ SOURCE_GIT_BLOBS = {
     "src/masck_one/waste_cartridge.py": "9dc0fe8a0ed92083c68406da3993e57e767e2483",
     "src/masck_one/waste_cartridge_dfm.py": "f5428a430370c4231b7115a09f39ac31d5669b17",
     "src/masck_one/realized_waste_backbone.py": "6aa79d9a613e278f32da85b4654c0e35cc09b7ca",
-    "src/masck_one/warm_cool_package.py": "96bc48a24bc6d1c81afc3540e9930e9e52470ef6",
+    "src/masck_one/warm_cool_package.py": "85a6bfcf25d18d82c7e17f96f045d3c5719e6cf5",
 }
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
