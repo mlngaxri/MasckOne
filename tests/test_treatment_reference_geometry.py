@@ -88,6 +88,29 @@ def test_exact_cut_volume_fallback_distinguishes_contact_from_penetration(monkey
     assert intersection_volume_mm3(base, _box(0.75)) == pytest.approx(0.25, abs=1e-9)
 
 
+def test_exact_cut_volume_fallback_tries_reverse_subtraction_when_first_direction_fails(monkeypatch):
+    base = _box(0.0)
+    touching = _box(1.0)
+    original_cut = reference_geometry._direct_cut
+    cut_calls = 0
+
+    def failed_common(_left: cq.Shape, _right: cq.Shape) -> cq.Shape:
+        raise TreatmentReferenceGeometryError("forced Common failure")
+
+    def fail_first_cut(left: cq.Shape, right: cq.Shape) -> cq.Shape:
+        nonlocal cut_calls
+        cut_calls += 1
+        if cut_calls == 1:
+            raise TreatmentReferenceGeometryError("forced first subtraction failure")
+        return original_cut(left, right)
+
+    monkeypatch.setattr(reference_geometry, "_direct_common", failed_common)
+    monkeypatch.setattr(reference_geometry, "_direct_cut", fail_first_cut)
+
+    assert intersection_volume_mm3(base, touching) == 0.0
+    assert cut_calls == 2
+
+
 def test_translation_reference_is_boolean_free_and_covers_midpath_collision():
     moving = (
         cq.Workplane("XY")
