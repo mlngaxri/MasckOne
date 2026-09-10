@@ -30,6 +30,25 @@ def _export_step(shape: cq.Workplane, path: Path) -> dict[str, object]:
     return verify_step_geometry(shape.val(), path)
 
 
+def _solid_bounds_key(shape: cq.Shape) -> tuple[float, ...]:
+    """Stable source-side ordering for partitioned reference STEP assets.
+
+    Multi-solid reference compounds can legitimately contain pieces with nearly
+    identical outer bounds. Exporting the pieces separately avoids ambiguous
+    before/after solid pairing inside the strict global STEP verifier without
+    weakening its position, volume, or material-occupancy limits.
+    """
+    bb = shape.BoundingBox()
+    return (
+        round(float(bb.zmin), 9),
+        round(float(bb.zmax), 9),
+        round(float(bb.ymin), 9),
+        round(float(bb.ymax), 9),
+        round(float(bb.xmin), 9),
+        round(float(bb.xmax), 9),
+    )
+
+
 def _component_contracts(cartridge) -> dict[str, dict[str, object]]:
     return {
         "body": {
@@ -98,6 +117,10 @@ def fusion_handoff_manifest(cartridge=None, *, service_report=None) -> dict[str,
         "service_datums": owner["service_datums"],
         "step_coordinate_space": "WORLD_MM",
         "step_import_rule": "ONE_STEP_FILE_PER_NAMED_FUSION_COMPONENT_KEEP_REFERENCE_BODIES_SEPARATE",
+        "reference_partition_rule": (
+            "MULTI_SOLID_REFERENCE_COMPOUNDS_EXPORT_AS_DETERMINISTIC_ONE_SOLID_STEP_PARTS; "
+            "GLOBAL_STEP_POSITION_VOLUME_AND_MATERIAL_LIMITS_UNCHANGED"
+        ),
         "manufacturing_components": components,
         "references": {
             "cavity": "REFERENCE_ONLY_GEOMETRIC_FREE_SPACE_NOT_RETAINED_LIQUID",
@@ -182,6 +205,7 @@ def export_fusion_handoff(output_dir: str | Path, cartridge=None) -> dict[str, o
     material_shapes = cartridge.manufacturing_components()
     reference_shapes = {**cartridge.reference_geometry(), **service_shapes}
     files: dict[str, dict[str, object]] = {}
+    reference_export_partitions: dict[str, int] = {}
 
     for name, contract in manifest["manufacturing_components"].items():
         filename = f"{PREFIX}_{name}.step"
@@ -194,16 +218,39 @@ def export_fusion_handoff(output_dir: str | Path, cartridge=None) -> dict[str, o
         }
 
     for name in manifest["references"]:
-        filename = f"{PREFIX}_{name}_REFERENCE.step"
-        path = output / filename
-        roundtrip = _export_step(reference_shapes[name], path)
-        files[filename] = {
-            "classification": "REFERENCE_ONLY_NOT_PRODUCT_MATERIAL",
-            "roundtrip": roundtrip,
-            **_file_record(path),
-        }
+        shape = reference_shapes[name]
+        solids = sorted(shape.val().Solids(), key=_solid_bounds_key)
+        if not solids:
+            raise ValueError(f"reference {name} contains no solids")
+        reference_export_partitions[name] = len(solids)
+
+        if len(solids) == 1:
+            filename = f"{PREFIX}_{name}_REFERENCE.step"
+            path = output / filename
+            roundtrip = _export_step(cq.Workplane(obj=solids[0]), path)
+            files[filename] = {
+                "classification": "REFERENCE_ONLY_NOT_PRODUCT_MATERIAL",
+                "reference_group": name,
+                "source_solid_index": 0,
+                "roundtrip": roundtrip,
+                **_file_record(path),
+            }
+            continue
+
+        for index, solid in enumerate(solids, start=1):
+            filename = f"{PREFIX}_{name}_{index:02d}_REFERENCE.step"
+            path = output / filename
+            roundtrip = _export_step(cq.Workplane(obj=solid), path)
+            files[filename] = {
+                "classification": "REFERENCE_ONLY_NOT_PRODUCT_MATERIAL",
+                "reference_group": name,
+                "source_solid_index": index - 1,
+                "roundtrip": roundtrip,
+                **_file_record(path),
+            }
 
     manifest["service_corridor"] = service
+    manifest["reference_export_partitions"] = reference_export_partitions
     manifest["files"] = files
     manifest_path = output / f"{PREFIX}_fusion_handoff.json"
     manifest_path.write_text(
