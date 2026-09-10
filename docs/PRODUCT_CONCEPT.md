@@ -23,6 +23,14 @@ This makes **whole-routine execution and portability** first-class concept requi
 
 Masck One is therefore best understood as an **adaptive automated facial-skincare platform**, not merely a cleanser, LED mask, massage mask, or proprietary skincare brand.
 
+### Completion boundary after whole-product review
+
+The promise applies to the selected supported facial session, including every region required by its product/application profiles and a validated normal release. Legacy aggregate cleansing coverage, a commanded pump quantity or retraction of massage islands alone cannot establish completion. Stationary supports, seals and thermal/fluid contact surfaces must also be accounted for. Required facial regions may not be silently excluded to make the device pass.
+
+“Supported” is an evidence boundary, not permission to quietly narrow the product to easy aqueous formulations or omit a required facial finish. The compatibility cohort and total ownership benefit must be established early. An unavailable required stage means the selected routine is incomplete. Completion does not replace future label-required care/reapplication or sunscreen on other exposed regions.
+
+See [the convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) for the twenty conflicts, surviving architecture and explicit kill/pivot conditions. No engineering authority or human-use limit is changed by that review.
+
 ## 2. Portability means complete routine portability
 
 Portability is only meaningful if Masck removes the need to return to a sink, vanity or product shelf for remaining facial-skincare steps.
@@ -43,11 +51,11 @@ The target routine is staged rather than attempting to perform incompatible func
 
 A representative morning sequence is:
 
-`CLEAN -> RINSE/RECOVER -> PHYSICAL/OPTICAL TREATMENT -> LEAVE-ON TREATMENT/SERUM -> MOISTURISE -> SPF -> NON-WIPING RELEASE`
+`CLEAN -> RINSE/RECOVER -> optional PHYSICAL/OPTICAL TREATMENT -> LEAVE-ON TREATMENT/SERUM -> MOISTURISE -> FACIAL SPF -> required SETTLE -> NON-WIPING RELEASE`
 
 A representative evening sequence is:
 
-`CLEAN -> RINSE/RECOVER -> PHYSICAL/OPTICAL TREATMENT -> LEAVE-ON TREATMENT/SERUM -> MOISTURISE -> NON-WIPING RELEASE`
+`CLEAN -> RINSE/RECOVER -> optional PHYSICAL/OPTICAL TREATMENT -> LEAVE-ON TREATMENT/SERUM -> MOISTURISE -> required SETTLE -> NON-WIPING RELEASE`
 
 Exact steps are user-, product- and evidence-dependent. Individual stages may be skipped where appropriate. The product should not run every available modality merely because the hardware contains it.
 
@@ -89,7 +97,7 @@ When the user loads or changes a product, the system should identify it once usi
 
 The product record should ultimately distinguish more than brand and marketing name. Where possible it should track exact SKU, market/region and formulation/version so a reformulation cannot silently inherit an obsolete application profile.
 
-A physical flow fingerprint may then verify that the measured product behaviour is consistent with the identified product. If measured behaviour changes materially, Masck should stop or ask whether the product was changed rather than blindly continuing.
+A physical flow fingerprint may then check whether measured behaviour is consistent with the recorded product; a matching fingerprint cannot chemically authenticate the contents or prove that a formulation is unchanged. If measured behaviour changes materially, Masck should stop or ask whether the product was changed rather than blindly continuing.
 
 ## 6. Growing product/application database
 
@@ -127,7 +135,7 @@ As more units use the same exact product/version, aggregated non-sensitive engin
 
 The central new technical concept is an **adaptive application engine**.
 
-Different products should not receive identical pump pressure, flow rate, dose, passage geometry, spreading motion or settling time. Masck should identify the product, retrieve or estimate an application profile, perform bounded physical calibration where required, then control delivery using sensor feedback.
+Different products should not receive identical application profiles. Estimates may guide characterisation, but automatic consumer application requires an eligible validated product/routine context. Identity, preserved formulation, delivery behaviour, required coverage and sequence compatibility remain separate evidence. Two validated products do not automatically form a validated layered routine.
 
 The high-level control chain is:
 
@@ -195,6 +203,12 @@ The preferred architecture is:
 The exact number of bulk product slots is not frozen. The system should be able to represent a realistic enthusiast routine with cleanser, multiple optional treatment/serum products, moisturiser and SPF without requiring nightly manual refilling.
 
 Product changes should be occasional ownership events rather than per-session chores. Removable reservoir modules may be preferable to asking a user to drain and clean a chamber every time they change serum.
+
+### Prepared is not permanently ready
+
+The dock prepares a particular versioned session, not an unlimited permission to run a schedule. Its receipt binds physical contents, product/formulation identity, storage history, service result, profile/hardware versions and resource state. Hold times and preservation limits need evidence; none is assumed here. A late substitution, expired dose, uncertain partial delivery or incomplete service must revalidate or invalidate readiness. Saved routines remain intact when a temporary eligible session changes.
+
+Bulk storage does not select universal decanting into open tanks. Retail-package functions and compatibility with Masck storage/contact materials must be preserved through a qualified interface. No dilution or formulation change is assumed to make the user's skincare compatible.
 
 ## 11. Mass, centre of gravity and ergonomics
 

@@ -1,61 +1,37 @@
-# MASCK ONE Core Sketch Status Board
+# MASCK ONE Core Sketch status board
 
-Status: **high-level dashboard derived from `CORE_SKETCH_EXECUTION_BACKLOG.md`**
+Status: **concept-level triage derived from the execution backlog; no physical closure implied**\
+Review: 2026-09-10. Exact observed owner heads and CI are in [repository mapping](CORE_SKETCH_REPO_MAPPING.md).
 
-This board is intentionally compact. The backlog remains authoritative for task detail.
+## Product decision
 
-## P0 existential gates
+**Continue the complete facial-routine hypothesis through bounded proof gates.** The five lanes survive. Full-routine completion, user-product choice, offline use, dock bulk/session wearable, protected anatomy, unpowered release and calm cost-conscious tactile quality remain locked concept intent. These are not achieved-product claims.
 
-| ID | Gate | Current state |
+## First proof gates
+
+| Gate | Tasks | State and immediate decision |
 |---|---|---|
-| CS-000 | Complete-routine hierarchy | LOCKED |
-| CS-001 | No manual facial finish after normal completion | LOCKED / HUMAN proof later |
-| CS-003 | User-product compatibility | LOCKED |
-| CS-004 | Offline physical independence | LOCKED |
-| CS-010 | Reduced full-routine cheek rig | PROVE |
-| CS-012 | Leave-on survival through release | PROVE |
-| CS-013 | Multi-product contamination proof | PROVE |
-| CS-014 | Practical product-family envelope | EXPLORE |
-| CS-020 | Canonical routine state model | SELECTED |
-| CS-030 | Calm continuous master surface | LOCKED / INTEGRATE |
-| CS-050 | Size-family decision | PROVE |
-| CS-053 | Full-routine mass/CG reconciliation | PROVE |
-| CS-070 | Bulk-slot count / routine coverage | EXPLORE |
-| CS-080 | Product-profile schema | SELECTED |
-| CS-081 | KNOWN/CHARACTERISED/VALIDATED/RESTRICTED evidence model | LOCKED |
-| CS-094 | Deterministic routine compatibility guard | PROVE |
-| CS-100 | Premium dock archetype | EXPLORE |
-| CS-110 | Worst-case session-dose quantity model | PROVE |
-| CS-120 | Gentle cleanse experience | INTEGRATE / PROVE |
-| CS-121 | Rinse completeness | PROVE |
-| CS-142 | Incidental heat budget | PROVE |
-| CS-160 | Non-wiping application state | PROVE |
-| CS-161 | Thin-serum application | PROVE |
-| CS-163 | Moisturizer application | PROVE |
-| CS-170..174 | Facial SPF regulatory/application proof | PROVE / BLOCKED |
-| CS-180 | Non-wiping release path | INTEGRATE / PROVE |
-| CS-181 | Emergency release | INTEGRATE / PROVE |
-| CS-190 | Inspectable facial interface | SELECTED |
-| CS-191 | Dock clean/service effectiveness | PROVE |
-| CS-200 | Primary HMI force-path correction | INTEGRATE / BLOCKED |
-| CS-210 | Preflight readiness summary | SELECTED |
-| CS-223 | Privacy defaults | LOCKED |
-| CS-270 | Integrated digital package | BLOCKED |
-| CS-272 | Full-system physical alpha | BLOCKED |
-| CS-274 | Product truth review | RECURRING |
-| CS-291 | Routine value proof | PROVE |
+| G0 required domain and meaningful compatibility | CS-015/014/080/094/291/293 | PROVE. Define required facial regions and representative actual routines before selecting convenient products or geometry. |
+| G1 reduced cross-stage transfer | CS-010/012/013/121/160..165 | PROVE. Off-face inert-surrogate evidence; quantitative acceptance and uncertainty must be specified before the run. No visual-only pass. |
+| G2 whole-face contact/support/release | CS-018/050/180/181/271 | PROVE. Include stationary contacts and formerly hidden patches. A cheek result cannot close whole-face completion. |
+| G3 preservation and prepared-session validity | CS-016/017/095/112/113/191/210 | Contract direction SELECTED; implementation/preservation PROVE. Current contents, history and service determine READY. |
+| G4 joint resources and ownership value | CS-053/070/100/108/110/142/291/293 | PROVE. All wet/loaded/waste states, fault inventory, dock work, cost and user attention count. |
+| G5 SPF-containing AM feasibility | CS-170..175 | PROVE / qualified physical and claims evidence BLOCKED. Start early; generic deposition cannot establish SPF protection. |
 
-## Immediate execution order
+CS-015..018 are the newly identified missing contracts. CS-293 becomes existential P0 so broad practical compatibility cannot be postponed until launch messaging.
 
-1. Reduced full-routine cheek rig.
-2. Full-routine mass/CG and session-dose reconciliation.
-3. Thin serum + moisturizer + multi-layer non-wiping application proof.
-4. Product-profile/evidence model and unknown-product bounded flow.
-5. Dock slot-count/footprint/loading study.
-6. Continue current canonical HMI/treatment/retention/cartridge/thermal owner work.
-7. Separate sunscreen regulatory/deposition proof lane.
-8. Human-factors sizing/placement/vision work once safe prototypes exist.
+## Existing owners continue bounded work
 
-## Core warning
+- Treatment #135: exact collision verification unresolved after kernel operations exhausted the bounded fallback. No clearance claim.
+- Cartridge #140: focused evidence green; full gate rejects a stale DFM binding to newly present realization source.
+- HMI #144: full/focused CI green while the functional force path remains explicitly rejected. Correct topology through the current owner.
+- Retention #141: focused evidence green; preserve current load/release owner and add film/contact input through the interface contract.
+- Dry-side #142: hostile-test assertion failure; prove containment independently of clip engagement rejection.
+- Thermal #143: current candidate exact runs green; released WARM remains a package reference in the canonical registry.
+- Frame #117: exact run cancelled; exterior #70: no exact-head run returned. Neither is a green promotion.
 
-Do not polish optional features ahead of the complete-routine proof. If CLEAN → RINSE → LEAVE-ON → NON-WIPING RELEASE cannot be made reliable and comfortable, Masck One has not yet earned the more expensive layers of optical, thermal or broad product compatibility.
+## Deferred commitment
+
+Whole-product digital/Fusion freeze, full-system physical alpha, human safety/comfort/efficacy, formulation preservation, SPF protection, measured tactile feel and production approval remain BLOCKED by their specific evidence gates. Optional modalities and discretionary CMF refinement do not outrank G0..G5. Their quality constraints still apply to every candidate.
+
+The [convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) records twenty contradictions, preserve/extend/invalid assumptions, and explicit kill/pivot conditions. The [backlog](CORE_SKETCH_EXECUTION_BACKLOG.md) owns detailed acceptance; this board must not become a competing task or evidence registry.

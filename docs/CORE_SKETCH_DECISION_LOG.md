@@ -122,3 +122,51 @@ Use this file for decisions that materially alter or defend the stable Core Sket
 **Decision:** Exploratory deep-research output is archived in full, while selected/rejected ideas are triaged separately.
 
 **Reason:** The team should retain useful research without allowing generic competitor/gadget ideas to become accidental requirements.
+
+## D-017 — Completion is required-region and context specific
+
+**Decision:** CS-015 defines complete selected-session evidence; legacy aggregate cleansing coverage and pump telemetry cannot certify a finished leave-on routine.
+
+**Reason:** Required patches, stationary support shadows and layered-product context were not fully represented by the earlier completion wording.
+
+**Consequence:** CS-018 accounts for every contact state. No protected region or required stage is silently removed. Normal non-wiping release and immediate unpowered emergency release retain different acceptance conditions. D-010's shared responsibility is implemented by Lane 1 acceptance input and one Lane 3 release-geometry producer.
+
+## D-018 — Readiness binds physical preparation
+
+**Decision:** A versioned prepared-session contract is selected; READY is conditional at use, not permanent after docking.
+
+**Reason:** Overrides, missed routines, hold history, changed contents and partial delivery can invalidate an otherwise valid schedule.
+
+**Consequence:** CS-016 belongs to Lane 4; Lane 2 supplies the physical receipt. No duplicate uncertain dose, stale-ready promotion or silent network dependence. Saved routines remain distinct from temporary sessions.
+
+## D-019 — Product preservation is separate from identity
+
+**Decision:** Dock bulk storage is retained, but no universal open refill/decant interface is selected. Product validation is scoped to its formulation, storage, delivery and routine context.
+
+**Reason:** A correct label and plausible flow behavior cannot prove unchanged formulation, preservation or compatible layers.
+
+**Consequence:** CS-017 and strengthened CS-080/094 are existential work. No AI/community promotion, assumed shelf life or formulation modification is used to evade the gate.
+
+## D-020 — Replace the topic-order waterfall with six proof gates
+
+**Decision:** G0..G5 in the backlog control new work admission. SPF-containing AM feasibility and real compatibility/ownership value begin early alongside reduced-region evidence.
+
+**Reason:** The previous sequence could spend heavily on ID and optional features before discovering a full-routine contradiction.
+
+**Consequence:** CS-293 becomes P0; qualified physical unknowns stay blocked. Bounded current-owner corrections can finish in parallel; a green legacy suite does not freeze the expanded product.
+
+## D-021 — Retain five lanes, assign one producer per interface
+
+**Decision:** The five outcome lanes survive; the shared-artifact table in the five-lane plan resolves writing ownership and acceptance responsibilities.
+
+**Reason:** Joint responsibility without one geometry/schema producer risks parallel architectures at the contact/release, dose/preparation and mass-budget boundaries.
+
+**Consequence:** Existing owner branches are preserved. New Lane 4 work needs explicit activation; the conductor integrates and cannot override protected geometry or physical-validation criteria.
+
+## D-022 — One concept lineage, no silent authority changes
+
+**Decision:** PR #148 is the canonical concept continuation. PR #147's product thesis was reviewed for unique requirements; its complete-routine, product-choice, barrier, makeup-boundary and SPF cautions are retained in this lineage. Its conservative-estimate language does not authorize unknown-product application.
+
+**Reason:** Two concurrent concept documents must not become competing architecture truth.
+
+**Consequence:** Reconcile PR #147 as superseded after publishing this update. Preserve its history. Machine engineering and brand authority remain unchanged; the Aperture/M-Cut primary-control assignment is recorded under CS-043 for the existing owners.

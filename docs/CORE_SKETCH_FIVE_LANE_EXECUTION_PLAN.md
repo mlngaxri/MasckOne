@@ -36,7 +36,7 @@ Old treatment/massage convergence becomes a subordinate package here. Do not dis
 Dock bulk storage, app/database architecture, exterior styling, or whole-product release authority.
 
 **First closure objective**
-A reduced-region physical path that can complete CLEAN -> RINSE -> thin leave-on -> thicker leave-on -> final leave-on -> non-wiping release without obvious pooling, carryover, leakage or film removal.
+An off-face inert-surrogate evidence plan for the reduced sequence, with required-region, carryover, spatial-film, removal-loss and uncertainty criteria declared before testing. CS-015/018 also map whole-face support shadows; reduced-region success is not a whole-face or human-use pass.
 
 ## Lane 2/5 — Dock, Product Loading, Session Preparation and Hygiene
 
@@ -65,7 +65,7 @@ Old waste-cartridge/premium blind-service work becomes a subordinate package her
 AI safety decisions, face application physics, final shell form, or treatment efficacy claims.
 
 **First closure objective**
-A complete ownership-loop specification from user pouring a known product into the dock through preparation of the next routine, return of the mask, waste/service handling and next-use readiness with no per-session manual filling.
+A complete ownership-loop and product-preservation contract from associating an identified product with a qualified storage interface through preparation, return, service and next-use readiness. Bulk storage does not assume universal pouring/decanting. CS-017 and the physical CS-016 preparation receipt are required.
 
 ## Lane 3/5 — Wearable Human Factors, Industrial Design and Sensory Quality
 
@@ -128,14 +128,14 @@ None of the old five lanes maps cleanly to this mission; this is a genuinely new
 Detailed pump/valve mechanics, optical hardware design, or changing protected-anatomy engineering authority.
 
 **First closure objective**
-A versioned conceptual data/state contract showing exactly how one identified product becomes a bounded application profile, how routines are scheduled and overridden, how unknown products fail safely, and how the mask can execute the last prepared/default routine with no network or phone.
+A versioned conceptual data/state contract showing exactly how one identified product becomes a bounded application profile, how routines are scheduled and overridden, how unknown products fail safely, and how the mask can execute the currently eligible prepared session with no network or phone. The last prepared/default routine is not executable when its physical contents or validity have changed.
 
 ## Lane 5/5 — Treatment Stack and Whole-Product Integration Conductor
 
 **Priority:** P0 integration
 
 **Mission**
-Keep one product truth while integrating cleaning, massage, WARM/COOL, optical treatment, leave-on application, SPF, dock preparation, dry-side packaging, power, service and the digital state model. This lane decides sequencing and integration conflicts; it does not casually redesign healthy owner subsystems.
+Keep one product truth while integrating cleaning, massage, WARM/COOL, optical treatment, leave-on application, SPF, dock preparation, dry-side packaging, power, service and the digital state model. This lane coordinates sequencing and integration conflicts. It cannot overrule Lane 1 application/film evidence, Lane 3 protected fit/release constraints or qualified physical-validation gates. It does not redesign healthy owner subsystems.
 
 **Owns**
 - product-wide dependency graph and integration order;
@@ -181,9 +181,33 @@ The five lanes may run concurrently only where their dependencies permit. Lane 1
 Do not perform a final whole-product/Fusion freeze merely because the old five subsystem lanes are green. A new freeze requires, at minimum:
 
 1. the complete-routine state machine and ownership split are stable;
-2. reduced-region leave-on/non-wiping feasibility has credible evidence;
-3. the multi-product dock/session-dose architecture is coherent;
+2. required-region, carryover and non-wiping feasibility have scoped evidence, including the whole-face stationary-contact/support-transition problem;
+3. the multi-product dock/session-dose architecture includes preservation, hold-history, changeover and prepared-session validity;
 4. the fit/sizing/worn-state envelope is selected;
 5. Routine OS/product-identity contracts exist;
 6. treatment/optical/thermal roles are reconciled;
-7. all remaining unsupported capabilities remain explicitly evidence-gated.
+7. all remaining unsupported capabilities remain explicitly evidence-gated;
+8. required G0..G5 outcomes and joint mass/CG/torque/fault/service budgets are satisfied for the selected scope. A blocked required stage cannot be hidden by labeling the entire product frozen.
+
+## One producer per shared artifact
+
+This table resolves the previous ambiguous joint ownership. A consumer supplies acceptance criteria and can reject an interface; it does not fork the producer's source. Lane numbers route work, not grant authority to edit every subordinate branch.
+
+| Shared artifact | Writing/geometry producer | Required consumers and acceptance |
+|---|---|---|
+| Required-region and all-contact phase map | Lane 1, CS-015/018 | Lane 3 supplies fit/support geometry; Lane 5 checks whole-product phase consistency |
+| Retention, support transfer and continuous normal/emergency removal geometry | Lane 3 through existing retention owner | Lane 1 supplies film/coverage criteria; Lane 5 integrates exact geometry; emergency release remains independent |
+| Existing massage carrier and face-side delivery geometry | Lane 1 through the current treatment/fluid producers | Lane 3 package/fit; Lane 5 treatment budgets; no second carrier or fluid truth |
+| Bulk-to-session physical graph, cassette and preparation receipt | Lane 2 | Lane 1 face-side interface; Lane 3 package acceptance; Lane 4 receipt schema/eligibility; Lane 5 resource totals |
+| Product-profile, prepared-session and routine state contract | Lane 4 | Lane 1 application evidence; Lane 2 actual contents/service; Lane 3 user interaction; Lane 5 capability matrix |
+| Thermal/optical package and per-phase treatment budget | Lane 5 through current thermal and any explicitly activated optical owner | Lane 1 contact/film constraints; Lane 2 reset/service; Lane 3 package/fit; Lane 4 eligible sequencing |
+| Whole-product mass/CG/power ledger and canonical component registry | Lane 5 through existing ledger/integration producers | Lane 3 owns human-factors acceptance; all lanes supply exact components and state-dependent resources |
+| Wearable CMF, controls and sensory language | Lane 3 through existing exterior/HMI/brand producers | Lane 2 dock family consistency; Lane 4 readiness/failure semantics; no decorative activity cues |
+
+New Lane 4 and the new required-region/product-preservation work need bounded owner activation; no active implementation owner was identified merely from their appearance in concept docs. Until activated, their implementation status remains unassigned/PROVE, not silently delegated to a mechanical branch.
+
+## Work admission and existing owners
+
+Use G0..G5 in the backlog rather than the order of document sections. Existing treatment/HMI/cartridge/retention/dry-side/frame owners may finish bounded defects and exact evidence. Reuse unchanged accepted inputs; do not rerun a full CAD suite for a concept-only edit.
+
+Before expanding an owner, require its smallest new interface input: Lane 1 contact domain for delivery/retention changes, Lane 2 physical receipt for Routine OS, or the joint resource budget for optional modalities. The live owner/evidence snapshot is in [repository mapping](CORE_SKETCH_REPO_MAPPING.md). No current open conductor PR was observed; released registry/provenance work is the starting point, not a still-active historical PR.

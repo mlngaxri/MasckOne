@@ -148,27 +148,25 @@ Nothing downstream should be considered product-safe until the complete sequence
 
 ## CS-010 — Reduced full-routine cheek rig
 
-**Priority:** P0  
-**State:** PROVE  
-**Dependencies:** CS-000..004  
-**Evidence:** BENCH
+**Priority:** P0, G1\
+**State:** PROVE; acceptance thresholds not yet established\
+**Dependencies:** CS-000..004, CS-014/015 acceptance domain; CS-018 supplies interface-edge cases\
+**Owner:** Lane 1; existing treatment geometry remains with its current producer\
+**Evidence:** off-face inert-surrogate BENCH evidence only at this gate
 
-**Build/test question**
+**Question**
 
-Can one reduced facial region execute:
-
-**CLEAN → RINSE/RECOVER → optional TREAT → SERUM → MOISTURISE → representative final leave-on → NON-WIPING RELEASE**
-
-without cross-contamination, pooling, unacceptable residual cleanser or wiping the final layer away?
+Can the reduced CLEAN -> RINSE/RECOVER -> representative thin and thicker leave-on -> SETTLE -> NON-WIPING RELEASE sequence preserve distinct layers without unacceptable carryover, pooling or loss?
 
 **Acceptance**
 
-- visibly controlled cleansing and recovery;
-- clean transition into leave-on phase;
-- at least one thin serum family and one thicker emulsion/cream family applied evenly enough to justify whole-face development;
-- removal does not materially strip the final layer;
-- no uncontrolled leakage toward eye/airway analog boundaries;
-- all limitations recorded honestly.
+- Before an acceptance run, identify the required region and prohibited analog boundaries, surrogate families, reference application, measurement uncertainty and decision thresholds. Bounds requiring formulation/biological/protection expertise remain BLOCKED until specified by the qualified evidence owner.
+- Separately quantify cleaning-tracer residue, each deposited layer, spatial nonuniformity, pooled/collected/device-resident quantity and final-film loss during release. Do not count commanded volume as deposited volume or visual cleanliness as chemical purity.
+- Include representative curvature, interface edges, repeated trials and declared fit variation; report uncertainty and failures, not only the best demonstration.
+- Close a per-layer quantity balance and compare before/after-release spatial maps. Preserve the existing leakage and protected-region criteria.
+- Treat the result as reduced-region evidence only. It cannot certify whole-face coverage, SPF, skin safety, efficacy or powered on-face operation. CS-018 and qualified later validation remain separate gates.
+- Exploratory off-face measurements may establish unknown inputs; they cannot retrospectively supply a passing acceptance criterion.
+- No optional optical or thermal subsystem is required to answer this first transfer question. No human cosmetic-use procedure is specified by this task.
 
 ## CS-011 — Barrier-preservation proof plan
 
@@ -197,6 +195,12 @@ without cross-contamination, pooling, unacceptable residual cleanser or wiping t
 - repeat across representative face curvature/fit variation;
 - identify zones requiring geometry/application refinement.
 
+**Convergence acceptance, 2026-09-10**
+
+- Use the required-domain map from CS-015 and all-contact map from CS-018, including stationary supports and thermal/fluid surfaces.
+- Report local loss as well as total retained quantity, before and after normal release. A high global retained fraction cannot hide a stripped required region.
+- Emergency release remains independent and takes priority; do not make film preservation a prerequisite for release.
+
 ## CS-013 — Multi-product contamination proof
 
 **Priority:** P0  
@@ -207,6 +211,12 @@ without cross-contamination, pooling, unacceptable residual cleanser or wiping t
 - demonstrate that cleanser/rinse water does not meaningfully contaminate serum/moisturizer delivery;
 - demonstrate that one leave-on product does not unpredictably back-contaminate another stored product;
 - define acceptable carryover metrics before full architecture freeze.
+
+**Convergence acceptance, 2026-09-10**
+
+- Set carryover metrics and uncertainty before the experiment, not after viewing results. Distinguish residual free water, residual cleaning tracer and subsequent layer dilution.
+- Trace contamination through the whole product-contact graph, including shared downstream interfaces, dock returns and stored-product backflow.
+- The legacy 0.90 recovery and 400 µL free-liquid targets remain controlling for their original scope; they do not close residue composition or layered-product compatibility.
 
 ## CS-014 — Product family envelope
 
@@ -222,6 +232,75 @@ Define the practical range of consumer liquids/gels/lotions/creams Masck intends
 - explicitly identify classes not currently supportable;
 - avoid claiming “all liquids” literally;
 - use this envelope to drive loading/application/service work.
+
+**Convergence acceptance, 2026-09-10**
+
+- Define a representative target-user product/routine cohort jointly with CS-291/293 before selecting only easy families. Preserve difficult thin/thick and sunscreen questions explicitly.
+- Characterisation, formulation preservation and a validated application context are separate gates. Do not promise universal compatibility, dilution, heating or other reformulation to make a product fit the machine.
+- Report both supported individual products and supported complete routines. A collection of compatible products can still fail to cover the user's actual sequence.
+
+---
+
+## CS-015 — Required-region completion contract
+
+**Priority:** P0, G0\
+**State:** PROVE\
+**Owner:** Lane 1; Lane 4 consumes the versioned completion semantics\
+**Dependencies:** CS-000..004, representative cohort from CS-014/293\
+**Evidence:** DIGITAL definition, later qualified application evidence
+
+**Acceptance**
+
+- Define each stage's required facial domain from its intended product/routine use, prohibited anatomy, permitted fit/hardware range and coverage/film acceptance basis before optimizing the mask.
+- Enumerate seams, eye/mouth boundaries, nose/cheek transitions and support-shadow regions. Any required region with no valid delivery/release path is an explicit blocker, not a silently excluded patch.
+- Preserve legacy cleansing coverage gates without treating their aggregate percentage as full-routine completion evidence.
+- Separate metered quantity, deposited quantity, spatial film, validated method and real-time machine observables. Do not invent a sensor to make completion appear observable.
+- An unavailable required stage or unresolved application uncertainty prevents COMPLETE for that selected routine. Facial SPF completion never implies other body coverage or removal of future label obligations.
+
+## CS-016 — Prepared-session validity and interruption contract
+
+**Priority:** P0, G3\
+**State:** SELECTED contract direction; implementation and validity limits PROVE\
+**Owner:** Lane 4; Lane 2 produces the physical preparation receipt\
+**Dependencies:** CS-015; initial identity/context definitions from CS-080 and storage-history fields from CS-017. CS-094 consumes the resulting contract; its completed implementation is not a prerequisite.
+
+**Acceptance**
+
+- Bind routine revision, temporary overrides, exact product/version and slot association, preparation receipt, physical dose state, storage/hold history, profile/hardware revisions, service result and resource availability.
+- READY is re-evaluated at use. Unknown hold time, incomplete service, changed contents or missing required resource cannot inherit yesterday's READY.
+- Revalidate skip/reorder/substitution independently. A requested product not onboard requires re-preparation; a valid temporary session never overwrites the saved routine.
+- Persist progress and uncertainty across interruption. Do not replay an uncertain physical dose or claim software transaction logs prove exact fluid delivery.
+- Specify local clock/version validity, received revocation handling and unknown remote-update risk without silently adding a network requirement to normal use.
+- Supply deterministic non-hardware examples for changed routine, expired preparation, partial delivery, lost power, missing required SPF and valid optional-stage omission. No safety-critical limits are invented in this concept contract.
+
+## CS-017 — Product preservation across dock and session storage
+
+**Priority:** P0, G3\
+**State:** PROVE; formulation/hygiene compatibility BLOCKED on qualified evidence\
+**Owner:** Lane 2; Lane 4 stores the versioned evidence context\
+**Dependencies:** CS-014/070 product and slot envelope
+
+**Acceptance**
+
+- Identify which retail-package functions must be preserved: containment, light/air exposure control, material contact and intended storage history. Dock bulk storage does not select universal open pouring or unqualified repackaging.
+- Compare original-container interfaces and qualified serviceable reservoirs at architecture level, including changeover, residue traps, assembly/service work and waste.
+- Define product-contact materials and hold-history evidence needed for bulk and prepared doses. No unmeasured shelf life, chemical equivalence, sanitation or preservation claim.
+- Bind changed product/formulation, opened/loaded state, unknown age and interrupted service to CS-016 readiness. Physical flow similarity is not chemical identification.
+
+## CS-018 — All-contact support and film-preserving transition
+
+**Priority:** P0, G2\
+**State:** PROVE\
+**Owner:** Lane 1 produces contact/occlusion requirements; Lane 3 owns retention/removal geometry\
+**Dependencies:** CS-015; current treatment, thermal, fluid, exterior and retention geometry
+
+**Acceptance**
+
+- For contact, leave-on, settle and release, classify every moving island, stationary annulus, seal, support and other possible contact surface; include required facial patches hidden beneath them.
+- Show the structural support/reaction path during each state and how every required patch can become accessible without wiping an already finished patch.
+- Consume current authority/world frames and protected envelopes. Require exact forbidden-material collision checks and continuous conservative motion evidence where motion matters; sampled poses alone are insufficient.
+- Keep the emergency-release path independently available. No optical/thermal plate, face contact or cosmetic shell becomes an accidental release stop.
+- An off-face cheek pass cannot close whole-face load transfer, fit, sightlines or film preservation. Record remaining measured-human questions separately.
 
 ---
 
@@ -254,6 +333,11 @@ Define the practical range of consumer liquids/gels/lotions/creams Masck intends
 - early removal can report exactly what completed;
 - an unavailable mandatory step prevents false “complete” status;
 - the state model is shared by device/app/dock concepts.
+
+**Convergence acceptance, 2026-09-10**
+
+- Consume CS-015/016. Completion refers to the selected eligible session, not an unchanged saved routine when the user made a deliberate exception.
+- Include incomplete, uncertain-dose and service-incomplete outcomes; none may silently converge to COMPLETE. Emergency release does not wait for state reconciliation.
 
 ## CS-021 — Phase-transition experience
 
@@ -466,6 +550,10 @@ Define the practical range of consumer liquids/gels/lotions/creams Masck intends
 - front face is visually product-first;
 - primary-control mark is integrated, not printed decoration.
 
+**Convergence acceptance, 2026-09-10**
+
+- Reconcile the concept Aperture Mark micro-control intent with the released brand authority's M-Cut control assignment through the existing brand/HMI owners. This review does not change either machine authority or current cap geometry. It is a detail/authority task, not an existential product redesign.
+
 ---
 
 # 8. Phase 5 — fit, sizing and on-face human factors
@@ -529,6 +617,11 @@ Users can:
 - dry/loaded mass, CG Z and torque reconciled with current targets;
 - no hidden assumption of rear counterweight solving poor front packaging;
 - comfort evaluated dynamically, not only static CAD mass properties.
+
+**Convergence acceptance, 2026-09-10**
+
+- Lane 5 produces one mass/CG/torque ledger; Lane 3 owns human-factors acceptance. Include prepared, operating, interrupted and retained-waste states, all new isolation hardware and uncertainty.
+- Couple mass and pitch torque using the actual common datum. At 255 g with a 30 mm horizontal lever, gravity gives 0.075021 N m; this conditional example exceeds 0.070 N m and must not be treated as independent budget headroom. It is not a new CG requirement.
 
 ## CS-054 — Forward/peripheral vision
 
@@ -805,6 +898,11 @@ Apply this grammar to primary button, retention/release, cartridge/service inter
 - evidence/provenance cannot be omitted;
 - application data separated from medical efficacy claims.
 
+**Convergence acceptance, 2026-09-10**
+
+- Validation context includes formulation/version, delivery method, hardware/fit range, dose and required-region evidence, sequence/layer context, storage history and profile revision. Product validation is not automatic routine validation.
+- Reuse evidence through justified equivalence classes rather than either testing an unbounded Cartesian product or assuming all combinations are equivalent.
+
 ## CS-081 — Evidence-state model
 
 **Priority:** P0  
@@ -845,6 +943,10 @@ Internal states:
 - unexpected physical signature can flag mismatch;
 - product falls back to conservative state rather than inheriting old validation silently;
 - user receives simple next action.
+
+**Convergence acceptance, 2026-09-10**
+
+- A matching barcode/flow fingerprint can be consistent with multiple formulations or contents. A mismatch can reject; a match alone cannot establish chemistry, authenticity or continued validity.
 
 ## CS-084 — Community-learning privacy model
 
@@ -937,6 +1039,10 @@ Internal states:
 - run another saved routine;
 - recurring schedule remains unchanged unless user chooses “edit schedule.”
 
+**Convergence acceptance, 2026-09-10**
+
+- Use CS-016: reordering/substitution can invalidate already prepared quantities, storage or sequence evidence. Show a calm re-preparation state rather than pretending an unfilled product is available.
+
 ## CS-094 — Routine compatibility guard
 
 **Priority:** P0  
@@ -947,6 +1053,11 @@ Internal states:
 - deterministic validated rules gate sequence/frequency/temperature constraints;
 - AI suggestions cannot bypass them;
 - user receives reason and safe alternatives only where evidence supports them.
+
+**Convergence acceptance, 2026-09-10**
+
+- Product trust states alone do not validate a layered routine. Check the complete context from CS-080/016 and preserve mandatory-stage, interval and settling constraints.
+- Optional treatment conflicts should remove or defer the optional capability where the selected routine permits it, not silently remove a required facial finish.
 
 ## CS-095 — Prepared-routine behavior
 
@@ -959,6 +1070,10 @@ Internal states:
 - handle user changing tonight’s routine after preparation;
 - handle missed session without wasting/contaminating product unnecessarily;
 - prevent wrong prepared routine from starting silently.
+
+**Convergence acceptance, 2026-09-10**
+
+- Implement the CS-016 physical preparation contract. The last prepared/default routine is executable only while its local contents, history and resources remain eligible; offline is not permission to execute stale preparation.
 
 ## CS-096 — No-phone daily operation
 
@@ -988,6 +1103,10 @@ Internal states:
 - not a transparent fluidics showcase;
 - mask is rested/protected intentionally;
 - form works on bathroom vanity and, if acoustic/wet constraints allow, bedroom surface.
+
+**Convergence acceptance, 2026-09-10**
+
+- Do not select a premium silhouette before allocating bulk interfaces, clean/service fluids, waste, thermal rejection and service access. Compare daily and weekly active-attention burden, not only docking elegance.
 
 ## CS-101 — Dock footprint study
 
@@ -1090,6 +1209,10 @@ Internal states:
 - noisy service can defer to user-approved window when safe;
 - readiness remains available on demand.
 
+**Convergence acceptance, 2026-09-10**
+
+- Quiet timing may defer optional service. Required hygiene/thermal/charge readiness cannot be asserted when those tasks are incomplete. Bedside suitability remains an evidence question.
+
 ---
 
 # 14. Phase 11 — session-dose and whole-system balance
@@ -1105,6 +1228,11 @@ Internal states:
 - include cleanser, rinse water/post-flush strategy, leave-ons and sunscreen;
 - define worst-case prepared routine;
 - feed mass/CG study rather than assuming “few mL” is always negligible.
+
+**Convergence acceptance, 2026-09-10**
+
+- Include session products, prime/dead volume, interface losses, service flush demand, remaining waste, uncertainty and fault-releasable inventory. Do not count package volume as usable contents.
+- Preserve existing uncontrolled-release limits while extending the graph to new product chambers. Do not assume the historical six-cycle cartridge service requirement is demonstrated for expanded routines.
 
 ## CS-111 — Microdose packaging location
 
@@ -1129,6 +1257,10 @@ Internal states:
 - cross-carryover limits defined;
 - service state prevents old product from invalidating newly loaded product.
 
+**Convergence acceptance, 2026-09-10**
+
+- Isolation extends from bulk storage through dock receivers, valves, wearable channels, applicators and service returns. Separate reservoirs alone do not close downstream carryover. Bind this graph to CS-013/017.
+
 ## CS-113 — Missed/changed routine handling
 
 **Priority:** P1  
@@ -1140,6 +1272,10 @@ Internal states:
 - safe behavior when user changes schedule after metering;
 - product waste minimized without unsafe recombination;
 - state visible to user only when action needed.
+
+**Convergence acceptance, 2026-09-10**
+
+- Consume CS-016 for missed, altered and partly executed sessions. Account for unused/discarded product and service work in the ownership budget; no automatic redispense of uncertain doses.
 
 ---
 
@@ -1169,6 +1305,10 @@ Internal states:
 - no obvious foaming remains;
 - no pooled water released at stage transition;
 - sensory state communicates “clean face” naturally.
+
+**Convergence acceptance, 2026-09-10**
+
+- Distinguish residual free liquid from cleaning-product concentration and adsorbed/device residue. Preserve the legacy recovery/leakage checks, then evaluate carryover separately under CS-013.
 
 ## CS-122 — Recovery cleanliness
 
@@ -1270,6 +1410,10 @@ Internal states:
 - optical/electronics/charging heat cannot masquerade as treatment;
 - comfort measured over longest routine.
 
+**Convergence acceptance, 2026-09-10**
+
+- Use the longest eligible routine and each local store/cheek, not a global energy sum that hides a local deficit. Include previous treatment, prepared storage, fluid state, incidental electronics/actuator heat and dock reset. Optional modality timing follows CS-094/271.
+
 ---
 
 # 18. Phase 15 — optical treatment
@@ -1362,6 +1506,10 @@ Internal states:
 - deposited film is not broadly removed by later device motion;
 - transition is repeatable across fit variation.
 
+**Convergence acceptance, 2026-09-10**
+
+- Consume CS-018. Retraction of massage islands is insufficient if stationary treatment surfaces or support contacts still obstruct required leave-on regions.
+
 ## CS-161 — Thin-serum application
 
 **Priority:** P0  
@@ -1436,6 +1584,11 @@ Internal states:
 - distinguish sunscreen product regulation from device application claims;
 - public wording defined for pre-validation, validation and launch states.
 
+**Convergence acceptance, 2026-09-10**
+
+- Start the AM feasibility/claims/required-region review alongside the first surrogate transfer work. Keep SPF evidence distinct without delaying the AM existential question until later product freeze.
+- An inert deposition proxy does not establish sunscreen protection or authorize human testing. If the intended SPF-containing AM routine cannot be validated, report an explicit AM scope blocker.
+
 ## CS-171 — SPF product-family compatibility
 
 **Priority:** P0  
@@ -1507,6 +1660,10 @@ Internal states:
 - no edge drags across cheeks/nose during realistic user removal;
 - current retention/quick-release owner lineage reused.
 
+**Convergence acceptance, 2026-09-10**
+
+- Lane 3 owns the release geometry and continuous path; Lane 1 owns the required-region/final-film acceptance input. Use one shared contact map from CS-018, not two release architectures.
+
 ## CS-181 — Emergency release
 
 **Priority:** P0  
@@ -1560,6 +1717,11 @@ Internal states:
 - validate removal of representative cleanser/oil/sunscreen residues;
 - no unsupported “self-sanitizing” claim;
 - user intervention only when genuinely needed.
+
+**Convergence acceptance, 2026-09-10**
+
+- Include the intended products' residue families, water/service/waste inventory, inspectability, unknown hold times and changeover burden. A dry-looking or visibly clean part is not proof of hygiene. Qualified service evidence remains required.
+- Preparation receipts must identify incomplete required service, even when quiet-night policy defers further activity.
 
 ## CS-192 — Dry-state management
 
@@ -1624,6 +1786,10 @@ Prior HMI work exposed a force-path contradiction between low-force spring/landi
 - physical force/travel/wobble/acoustics still validated separately;
 - existing HMI PR/owner lineage reused.
 
+**Convergence acceptance, 2026-09-10**
+
+- The exact-head green HMI gate can correctly reject the selected force path. At the 2026-09-10 review, PR #144 preserves that rejection; do not interpret passing regression tests as a functional button. Let the existing owner correct the topology, not just tune a target force curve.
+
 ## CS-201 — Primary button tactile target
 
 **Priority:** P0  
@@ -1680,6 +1846,10 @@ Before start, system knows whether:
 - mandatory subsystem available.
 
 If not, user is told before fluid application where possible.
+
+**Convergence acceptance, 2026-09-10**
+
+- READY consumes the physical preparation receipt and current eligibility from CS-016. Separate unavailable optional modes from a missing required routine stage; do not require the user to read internal engineering state names.
 
 ## CS-211 — Calm service language
 
@@ -2061,6 +2231,10 @@ For every routine phase, show:
 - removal-ready condition;
 - no impossible cross-phase collision/occupancy assumptions.
 
+**Convergence acceptance, 2026-09-10**
+
+- Review all contact shadows and structural support through CLEAN, RECOVER, optional treatment, layered application, SETTLE and normal/emergency release. Reference material identities and routine-state contracts must agree at the same source head.
+
 ## CS-272 — Full-system physical alpha
 
 **Priority:** P0  
@@ -2179,6 +2353,10 @@ Measure whether target users value:
 
 Do not assume skincare enthusiasts want automation merely because they buy devices.
 
+**Convergence acceptance, 2026-09-10**
+
+- Evaluate total daily/weekly active attention, including loading, service, product waste, failures, manual starting-state prerequisites and wear inconvenience. Compare actual supported routines, not only the automatic wearing interval. Predeclare the meaningful value criterion before selection.
+
 ## CS-292 — Price research
 
 **Priority:** P2  
@@ -2188,10 +2366,15 @@ Use real concept/prototype studies; do not freeze A$799/A$999 from competitor pr
 
 ## CS-293 — Product compatibility coverage target
 
-**Priority:** P1  
+**Priority:** P0, G0/G4\
 **State:** EXPLORE
 
 Define launch threshold for number/share of target-market products with validated profiles so “works with your skincare” is credible.
+
+**Convergence acceptance, 2026-09-10**
+
+- This is an early existential feasibility gate, not just later launch marketing. Define a representative target-user product/routine cohort before selecting the easiest compatible formulations.
+- Report unsupported starting states, brands/formulation versions and complete sequences. Material narrowing toward proprietary formulations or recurring manual facial finishing requires explicit concept review.
 
 ---
 
@@ -2237,62 +2420,28 @@ These are not reasons to postpone concept validation; they are the next layer af
 
 # 34. Master dependency order
 
-Work should generally progress in this order unless an existing owner lane is already safely advancing in parallel:
+Section numbers above group topics; they are not a waterfall implementation schedule. The earlier sequence that placed surface/CMF work before session isolation, final-film proof and SPF feasibility is superseded by this dependency order.
 
-1. **Protect locked product identity** — CS-000..004.
-2. **Prove the complete reduced routine** — CS-010..014.
-3. **Freeze the routine state model** — CS-020..022.
-4. **Converge ID master surface and CMF** — CS-030..043.
-5. **Prove sizing, fit, comfort, vision and mass/CG** — CS-050..058.
-6. **Freeze sensory grammar** — CS-060..064.
-7. **Prove loading/product identity** — CS-070..077.
-8. **Build product-profile/evidence system** — CS-080..086.
-9. **Build routine/scheduling UX** — CS-090..096.
-10. **Converge dock ownership experience** — CS-100..108.
-11. **Resolve session-dose/multi-product balance** — CS-110..113.
-12. **Close cleanse/rinse/recovery** — CS-120..123.
-13. **Close massage and thermal experience** — CS-130..142.
-14. **Close optical treatment only to justified claims** — CS-150..155.
-15. **Close serum/moisturizer leave-on application** — CS-160..165.
-16. **Attack SPF as a separate high-rigor proof problem** — CS-170..175.
-17. **Close non-wiping normal/emergency removal** — CS-180..182.
-18. **Close hygiene/service** — CS-190..195.
-19. **Resolve primary HMI and whole-product tactile grammar** — CS-200..203.
-20. **Close failure/offline/accessibility/privacy paths** — CS-210..227.
-21. **Validate long-term ownership and onboarding** — CS-230..252.
-22. **Keep rejected-feature register enforced** — CS-R01..R15.
-23. **Run integrated digital/physical gates** — CS-270..284.
-24. **Prove user value/commercial comprehension** — CS-290..293.
-25. **Then drive production-intent DFM/material/reliability/regulatory closure** — CS-300..305.
+1. **G0: completion domain and representative compatibility.** CS-015/014/080/094/291/293 define what success must cover. Preserve CS-000..004.
+2. **G1: reduced off-face transfer evidence.** CS-010/012/013/121/160..165 use that domain and predeclared measurement criteria.
+3. **G2: whole-face contact/support/release.** CS-018/050/180/181/271 run alongside G1. Reduced-region success is necessary evidence, not sufficient whole-product proof.
+4. **G3: preparation, preservation and readiness.** CS-016/017/095/112/113/191/210 run in parallel and can reject an otherwise attractive face-side topology.
+5. **G4: joint package and ownership feasibility.** CS-053/070/100/108/110/142/291/293 constrain all candidate architectures from the start.
+6. **G5: AM SPF feasibility.** CS-170..175 start alongside G0/G1 with qualified evidence ownership. Distinct assays do not make this a deferred optional AM requirement.
 
-Parallel work is allowed when dependencies are genuinely independent, but parallel branches must not create multiple owners for one subsystem.
-
----
+Only after those conflicts are bounded should the broader fit, sensory, interface, optional-modality, service-life and manufacturing work consume major new refinement effort. Their constraints apply now; their detailed polish does not outrank existential proof.
 
 # 35. Immediate top queue
 
-The next highest-value work after adopting this backlog is:
+**New primary work:** CS-015 required-region contract, CS-018 all-contact map, and the CS-010/013 off-face evidence plan. In parallel, specify CS-016 prepared-session validity and CS-017 preservation requirements. Activate each only with one named owner artifact and exact consumed interfaces.
 
-### P0-A — Existential routine rig
-Close CS-010/012/013/014. If full cleanse→leave-on→non-wiping release does not work on a reduced region, do not spend months polishing optional features.
+**Parallel architecture screens:** CS-053/110 joint budgets, CS-291/293 representative routine value/compatibility, and CS-170 AM feasibility. Do not postpone these until after optional feature or exterior freeze.
 
-### P0-B — Full-routine mass/CG reconciliation
-Close CS-053/110/111 using representative product quantities and currently selected optical/thermal/treatment packages.
+**Allow existing owners to finish bounded defects:** treatment exact-collision verification, HMI force-path correction, cartridge DFM source binding, dry-side hostile rejection checks, and current retention trajectory/attachment evidence. Preserve canonical branches and exact-head results. These are enabling repairs, not permission to freeze the expanded product.
 
-### P0-C — Leave-on application families
-Close CS-160/161/163 before treating “works with your skincare” as credible.
+**Defer discretionary work:** new modalities, additional cosmetic surface variations, sound tuning, broad app screens, travel dock, and final whole-product Fusion packaging until their upstream questions are bounded. No tactile, protected-anatomy, cost, privacy or physical-validation requirement is weakened by this ordering.
 
-### P0-D — Product identity/database skeleton
-Close CS-080/081/083/085 so new product work has a safe data model rather than ad-hoc AI logic.
-
-### P0-E — Current mechanical owner-lane blockers
-Continue the canonical HMI, treatment, retention, cartridge, structural and thermal owner lineages; do not reopen parallel versions. In particular, resolve the known HMI force-path contradiction rather than cosmetically tuning it.
-
-### P0-F — Dock/product slot packaging study
-Close CS-070/100/101/104 enough to know whether the whole-routine system can exist as an acceptable home object.
-
-### P0-G — SPF separate proof lane
-Start regulatory/application research and representative deposition bench work, but keep it isolated from the rest of the routine so sunscreen difficulty does not contaminate simpler serum/moisturizer proof.
+See [the convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) for contradictions and explicit kill/pivot conditions, and [the repository map](CORE_SKETCH_REPO_MAPPING.md) for observed owners and failure scopes.
 
 ---
 
@@ -2302,7 +2451,7 @@ When receiving a broad instruction such as “perfect Masck,” “continue,” 
 
 1. fetch live GitHub state;
 2. read this file and `CORE_SKETCH_V1.md`;
-3. identify the highest-priority non-DONE item whose dependencies are satisfied and whose subsystem already has an owner lineage;
+3. use the G0..G5 dependency order to select a bounded non-DONE item; preserve an existing owner, or reserve exactly one owner artifact for genuinely unowned work;
 4. continue that owner lineage;
 5. perform actual engineering/design/validation work;
 6. commit meaningful checkpoint(s);

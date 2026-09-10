@@ -12,3 +12,5 @@ When several valid tasks are available, choose in this order:
 8. **Physical validation when digital work has hit its evidence ceiling.** Do not run endless CAD/review loops on a question that only a bench/human test can answer.
 9. **Preserve routine completion.** A simplification that makes the user manually finish the face is not simplification of Masck; it changes the product.
 10. **Preserve user skincare choice.** Do not solve difficult compatibility by quietly forcing proprietary formulations unless the Core Sketch is explicitly reopened.
+
+The G0..G5 order in the backlog resolves ties among P0 tasks. The number of P0 labels is not permission to run every subsystem simultaneously. A green software check can intentionally preserve a rejected mechanical architecture; promotion requires the stated engineering result as well as execution success.

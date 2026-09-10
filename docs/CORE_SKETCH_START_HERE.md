@@ -32,3 +32,9 @@ The non-negotiable hierarchy is **COMPLETE FACIAL ROUTINE -> cleaning + treatmen
 A final whole-product/Fusion freeze is premature until the new complete-routine P0 concept and feasibility gates are reconciled. Green legacy subsystem CI is valuable evidence but is not sufficient by itself to freeze the expanded product.
 
 Live engineering authority and accepted evidence always outrank product-concept documents on claims of what physically exists or works.
+
+## Current convergence result
+
+Read [the whole-product review](CORE_SKETCH_CONVERGENCE_REVIEW.md) before selecting broad new work. It records twenty contradictions, preserve/extend/invalid assumptions and kill/pivot conditions. Use the backlog's G0..G5 gates; document section order is not an implementation waterfall. New contracts CS-015..018 cover required regions, prepared-session validity, product preservation and all-contact support transfer.
+
+[The source snapshot](CORE_SKETCH_SOURCE_SNAPSHOT.json) records observed heads and exact CI scope. It is dated evidence, not a new authority registry. Refresh only consumed identities when acting; do not repeat unchanged expensive verification.

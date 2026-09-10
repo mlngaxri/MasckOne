@@ -1,33 +1,20 @@
 # MASCK ONE To-Do Quick Reference
 
-Use the full backlog for acceptance criteria.
+Use [the backlog](CORE_SKETCH_EXECUTION_BACKLOG.md) for acceptance and [the convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) for reasoning. Section numbers are topic groups, not a waterfall schedule.
 
 ## Now
 
-- Prove reduced CLEAN → RINSE → LEAVE-ON → NON-WIPING RELEASE sequence.
-- Define practical supported skincare physical families.
-- Reconcile full-routine session quantities with mass/CG/torque.
-- Prove thin-serum and moisturizer application.
-- Freeze product-profile/evidence schema.
-- Triage dock slot count and footprint.
-- Continue canonical HMI/treatment/retention/cartridge/thermal owner blockers.
-- Start separate SPF regulatory/deposition proof lane.
+- G0: CS-015 required facial regions and CS-014/293 representative product/routine cohort.
+- G1: CS-010/012/013 off-face inert-surrogate transfer evidence with prespecified uncertainty and decision criteria.
+- G2: CS-018 whole-face stationary/moving contact shadows, support transfer and the existing retention path.
+- G3: CS-016 prepared-session contract and CS-017 preservation, with actual dock contents/service receipts.
+- G4: CS-053/110 all-state mass/CG/torque/fault inventory, dock burden and CS-291/293 real ownership value.
+- G5: CS-170..175 early AM/SPF feasibility, kept distinct from generic deposition evidence.
 
-## Next
+## Bounded work allowed in parallel
 
-- Human sizing/placement/vision studies.
-- Dock pickup/return/refill/service experience.
-- Routine editor/scheduling/offline cache.
-- Product identification + reformulation flow.
-- Multi-layer leave-on proof.
-- Optical claims-led architecture and eye-safety validation.
-- WARM/COOL user-value and incidental-heat proof.
+Current treatment, HMI, cartridge, retention, dry-side, frame and evidence owners may finish their existing geometry/provenance/force-path defects. See the repository map for exact observed states. Do not interpret green tests that preserve a rejection as functional closure.
 
-## Then
+## After upstream conflicts are bounded
 
-- full-face integrated alpha;
-- premium tactile/acoustic/CMF gate;
-- hygiene/lifetime ownership gate;
-- broad compatibility-scale proof;
-- demand/price proof;
-- DFM/material/reliability/regulatory production-intent closure.
+Fit/vision validation, broader dock interaction, routine editor, justified optical/thermal integration, premium CMF/tactile measurements, service-life evidence and manufacturing/Fusion closure follow their specific gates. Their constraints apply now; discretionary polish, travel dock and additional modalities do not outrank complete-routine feasibility.

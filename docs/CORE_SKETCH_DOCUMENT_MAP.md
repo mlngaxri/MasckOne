@@ -21,7 +21,9 @@ Do not start from the research archive when implementing. Research records explo
 
 ## Execution and review
 
-- `CORE_SKETCH_FIVE_LANE_EXECUTION_PLAN.md` — top-level workstream ownership and concurrency boundaries.
+- `CORE_SKETCH_CONVERGENCE_REVIEW.md` — whole-product contradictions, surviving architecture, proof gates and kill/pivot conditions.
+- `CORE_SKETCH_SOURCE_SNAPSHOT.json` — dated exact-head/blob/workflow observations, not engineering authority.
+- `CORE_SKETCH_FIVE_LANE_EXECUTION_PLAN.md` — top-level workstream ownership and one-producer interface boundaries.
 - `CORE_SKETCH_TODO_QUICKREF.md` — fast view of what to work on next.
 - `CORE_SKETCH_PRIORITY_RULES.md` — P0/P1/P2/P3 ordering semantics.
 - `CORE_SKETCH_WORK_PACKET_TEMPLATE.md` — template for activating a bounded backlog task.

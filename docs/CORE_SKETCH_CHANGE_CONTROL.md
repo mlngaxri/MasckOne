@@ -6,7 +6,7 @@ The Core Sketch is intended to remain recognizable while detailed engineering is
 
 ## Refinements that do not require re-opening the product concept
 
-Provided the user experience and locked invariants remain intact, normal engineering/ID work may refine:
+Provided the user experience and locked invariants remain intact, and released engineering/brand authority and its change process are respected, normal engineering/ID work may refine:
 
 - exact shell dimensions and curvature;
 - exact edge radii/gaps;
@@ -29,6 +29,10 @@ Provided the user experience and locked invariants remain intact, normal enginee
 The following are product-concept changes, not local refinements:
 
 - dropping whole-routine completion and requiring manual facial skincare afterward;
+- silently excluding required facial regions, required stages or difficult product families to make a completion claim pass;
+- narrowing support to a trivial cohort or requiring reformulation/dilution of the user's products;
+- introducing recurring manual preparation/finishing that materially defeats the complete-routine ownership promise;
+- changing the offline promise through compulsory profile freshness/network checks without explicit review;
 - forcing MASCK proprietary skincare;
 - moving bulk product onto the head such that session-dose architecture is abandoned;
 - making phone/cloud/app mandatory for normal use or safe release;
@@ -57,3 +61,5 @@ A proposed Core Sketch change should include:
 8. explicit decision-log entry if accepted.
 
 Local convenience, a competitor feature or an agent’s aesthetic preference is not sufficient evidence for a Core Sketch change.
+
+The explicit kill/pivot conditions in [the convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) require a recorded decision. A failed optional modality first triggers a modality decision; a failed required AM/SPF outcome cannot be hidden by claiming the unchanged morning routine is complete. Unknown preservation, fit or efficacy is an evidence gap, not permission to assign a favorable assumption.

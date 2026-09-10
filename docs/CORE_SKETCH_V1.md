@@ -65,6 +65,12 @@ For supported routines, Masck One should be able to execute, as applicable:
 
 Not every routine contains every stage. The product executes the **user’s saved routine**, not a fixed “all features every time” program.
 
+### Completion contract
+
+Completion concerns every facial region required by the selected product/routine context, not only an aggregate cleansing percentage. Metered quantity, actual deposition, spatial film and protection are different evidence. CS-015 defines the required-domain contract; CS-018 includes all moving and stationary contacts, support shadows and release states. No required region may be excluded merely because current geometry cannot reach it.
+
+An eligible deliberate temporary session can complete without altering the saved routine. A missing required stage, uncertain partial delivery or unclosed application condition cannot be labeled completion of that routine. The promise does not remove future label-required care or reapplication.
+
 ## 1.2 Explicit boundary: makeup and decorative cosmetics
 
 V1’s complete-routine promise is for **facial skincare**, not decorative cosmetics.
@@ -146,6 +152,8 @@ Target user-facing state:
 > **Ready for Morning Routine**
 
 or, on the device itself, a restrained ready indication with no text required.
+
+Prepared-session validity must still hold at pickup/start. CS-016 binds physical contents, routine revision, product identity/version, hold history, completed service, hardware/profile revision and available resources. READY expires when those conditions no longer hold; it is not inherited from a previous successful docking event. Unknown bounds remain unresolved, not optimistic defaults.
 
 ## 4.2 Pickup
 
@@ -466,7 +474,7 @@ Specific material family/grade remains a qualification task.
 - MASCK is the master brand.
 - M-Cut remains the provisional master mark.
 - M/1 is the compact product designation.
-- Aperture Mark is the micro-mark associated with the primary control.
+- Aperture Mark is the selected concept micro-mark for the primary control. The reviewed released brand authority still assigns M-Cut there; CS-043 must reconcile that difference through the brand/HMI owners before changing machine authority or cap geometry.
 
 Branding should be sparse enough that the product can sit on a bathroom counter without reading as promotional merchandise.
 
@@ -742,7 +750,7 @@ Exact identity is resolved but application behavior may not yet be sufficiently 
 Masck has enough product/application behavior information to model or calibrate delivery within a bounded envelope, but this does not automatically equal validated consumer use.
 
 ### VALIDATED
-The product/application profile has passed the evidence standard required for its supported use.
+The product/application profile has passed the evidence standard for an explicit supported context: formulation/version, preserved storage history, hardware/fit range, delivery method, required coverage and sequence/layer conditions. VALIDATED does not automatically compose across products or hardware revisions.
 
 ### RESTRICTED / UNSUPPORTED
 The current system should not automatically apply it.
@@ -774,9 +782,9 @@ When the user scans a product Masck does not recognize:
 1. Masck attempts exact identity resolution from barcode/label/search/ingredients.
 2. If identity remains uncertain, it asks the user to confirm rather than guessing silently.
 3. It classifies the product’s likely routine role and physical family only within bounded categories.
-4. The dock may perform a small controlled flow/application-characterization check.
+4. A qualified off-face characterisation process may check behavior where the material/contact protocol permits it; unknown-product onboarding does not authorize automatic application to a person.
 5. The product is assigned an evidence state.
-6. Only if the state allows use does it become available in routine building.
+6. Only an eligible validated application context becomes executable. Identification or characterisation alone cannot promote unknown products into consumer use.
 
 User-facing language should be calm and nonjudgmental.
 
@@ -867,6 +875,8 @@ Examples:
 - Run PM routine early.
 
 The app should visually distinguish **Today only** from **Edit schedule**.
+
+Temporary changes are constrained by prepared physical contents and the validated sequence. Skipping an eligible optional stage is different from substituting an unfilled product or reordering layers. CS-016/093/095 define revalidation and re-preparation without corrupting the saved routine. Unknown delivery after power loss is not automatically replayed.
 
 ## 19.4 Compatibility rules
 
@@ -979,6 +989,8 @@ Reasons:
 The microdose package should be located with whole-product balance in mind. It must not become a heavy forehead or cheek cartridge merely because fluid access is convenient.
 
 ---
+
+The storage interface must preserve the product's required packaging/contact conditions. Bulk-at-dock does not select one universal refill tank or justify unqualified decanting. CS-017 owns preservation and hold-history evidence; CS-112 includes common downstream paths and changeover, not merely separate reservoirs.
 
 # 24. Portability
 
@@ -1123,6 +1135,8 @@ Once the device and routines are configured, normal use must not depend on:
 Loss of cloud service must not make the physical skincare appliance unusable.
 
 ---
+
+Offline capability uses locally eligible profiles and prepared-session state. It cannot imply instant knowledge of a new remote recall. Received revocations, product/history validity and the unresolved update policy must be explicit; a cloud dependency may not be introduced silently to solve this tension.
 
 # 30. Ownership over years
 
@@ -1294,3 +1308,7 @@ The Core Sketch is being respected when a future design still produces this expe
 11. Complexity remains inside the system.
 
 If later work produces a technically impressive device but loses that experience, it has drifted from Masck One.
+
+## Whole-product convergence qualification
+
+[The 2026-09-10 review](CORE_SKETCH_CONVERGENCE_REVIEW.md) preserves this product identity while replacing the earlier topic-order waterfall with G0..G5 proof gates in the execution backlog. Optional-feature refinement and whole-product Fusion freeze do not outrank required-region delivery, all-contact support transfer, preservation, prepared-session validity or joint resource feasibility. These remain concept/engineering obligations, not achieved human or manufacturing performance.
