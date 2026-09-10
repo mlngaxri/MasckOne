@@ -414,6 +414,120 @@ def _semantic_issues(data: dict[str, Any]) -> list[AuthorityValidationIssue]:
             {"maximum": gross_water},
         )
 
+    # A tolerance is only real if some process can hold it. The visible seam's
+    # budget is holdable or not depending entirely on how the seam is located,
+    # which is a part-split decision rather than a process one. Referenced to the
+    # global outline the gap accumulates three contributors over a ~200 mm chain;
+    # self-locating collapses it to two over the local mating feature. See
+    # src/masck_one/process_capability.py.
+    from .process_capability import (  # local import keeps authority import-light
+        ProcessClass,
+        SEAM_BUTT_JOINT_CHAIN_MM,
+        SEAM_BUTT_JOINT_CONTRIBUTORS,
+        SEAM_SELF_LOCATING_CHAIN_MM,
+        SEAM_SELF_LOCATING_CONTRIBUTORS,
+        Feasibility,
+        assess_stack,
+    )
+
+    seam_budget = float(_get(data, "geometry", "visible_seam", "tolerance_mm"))
+    seam_strategy = str(_get(data, "geometry", "visible_seam", "control_strategy"))
+    if seam_budget > 0.0:
+        if seam_strategy == "SELF_LOCATING_LOCAL_DATUM":
+            contributors, chain = SEAM_SELF_LOCATING_CONTRIBUTORS, SEAM_SELF_LOCATING_CHAIN_MM
+        else:
+            contributors, chain = SEAM_BUTT_JOINT_CONTRIBUTORS, SEAM_BUTT_JOINT_CHAIN_MM
+        seam = assess_stack(
+            "AUTHORITY_VISIBLE_SEAM",
+            process=ProcessClass.INJECTION_MOULDED_FILLED,
+            chain_length_mm=chain,
+            contributor_count=contributors,
+            total_budget_mm=seam_budget,
+        )
+        if seam.feasibility is Feasibility.INFEASIBLE:
+            add(
+                "VISIBLE_SEAM_TOLERANCE_NOT_MANUFACTURABLE",
+                "geometry.visible_seam.tolerance_mm",
+                "The declared seam control strategy cannot hold the declared seam tolerance. "
+                "Worst-case stacking gives each contributor budget/N, and no moulding process "
+                "holds that over this dimension chain. Shorten the chain (locate the seam to "
+                "itself), remove a contributor, or relax the tolerance.",
+                {
+                    "control_strategy": seam_strategy,
+                    "required_per_contributor_mm": seam.required_per_contributor_mm,
+                    "shortfall_factor": seam.shortfall_factor,
+                },
+                {"achievable_typical_mm": seam.achievable_typical_mm},
+            )
+
+    # Added airway resistance is inertia-dominated: dP = K * rho * V^2 / 2 with
+    # V = Q / (paths * area). For a fixed aperture, K is a property of the
+    # geometry and cannot change with flow, so every flow-specific limit must
+    # satisfy limit / flow^2 = constant. Density, area and path count all cancel,
+    # which makes this a geometry-independent requirement invariant: if it fails,
+    # no aperture can satisfy the whole set and the requirement is defective
+    # rather than merely demanding. See src/masck_one/airway_resistance.py.
+    airway_limits = _get(data, "safety", "airway", "max_added_pressure_drop_pa")
+    ratios: list[tuple[str, float]] = []
+    for key in sorted(airway_limits):
+        if key.startswith("at_") and key.endswith("_lpm"):
+            try:
+                flow = float(key[len("at_") : -len("_lpm")])
+            except ValueError:
+                continue
+            if flow > 0.0:
+                ratios.append((key, float(airway_limits[key]) / (flow * flow)))
+    if len(ratios) >= 2:
+        reference_key, reference = ratios[0]
+        for key, ratio in ratios[1:]:
+            if not _isclose(ratio, reference, abs_tol=1e-12):
+                add(
+                    "AIRWAY_PRESSURE_DROP_REQUIREMENT_INCONSISTENT",
+                    f"safety.airway.max_added_pressure_drop_pa.{key}",
+                    "Added airway pressure drop scales with the square of flow, so a fixed "
+                    "aperture implies one loss coefficient. These limits imply different "
+                    "coefficients at different flows and cannot all be met by one geometry.",
+                    {"key": key, "limit_over_flow_squared": ratio},
+                    {"key": reference_key, "limit_over_flow_squared": reference},
+                )
+
+    # Wearer head load couples the mass, CG and torque limits: tau = m * g * z.
+    # The worst permitted configuration is the heaviest allowed product at the
+    # highest allowed CG. If that corner exceeds the torque limit then a design
+    # can satisfy every individual limit and still violate the set, which makes
+    # the requirement set itself defective. See src/masck_one/mass_balance.py.
+    _G = 9.80665
+    torque_limit = float(_get(data, "mass", "pitch_torque_max_Nm"))
+    cg_limit_mm = float(_get(data, "mass", "cg_z_max_mm"))
+    for mass_key in ("dry_target_max_g", "loaded_absolute_max_g"):
+        mass_g = float(_get(data, "mass", mass_key))
+        torque = (mass_g / 1000.0) * _G * (cg_limit_mm / 1000.0)
+        if torque > torque_limit and not _isclose(torque, torque_limit, abs_tol=1e-12):
+            add(
+                "MASS_BALANCE_LIMIT_SET_DOES_NOT_CLOSE",
+                "mass.cg_z_max_mm",
+                f"Head pitch torque at mass.{mass_key} and the maximum allowed CG height "
+                "exceeds mass.pitch_torque_max_Nm. A design meeting every individual limit "
+                "would still violate the set, so the limits are mutually unsatisfiable.",
+                {"corner": mass_key, "torque_Nm": torque, "cg_z_max_mm": cg_limit_mm},
+                {
+                    "pitch_torque_max_Nm": torque_limit,
+                    "max_cg_z_mm_at_this_mass": torque_limit / (mass_g / 1000.0 * _G) * 1000.0,
+                },
+            )
+
+    reservoir_envelope = [float(v) for v in _get(data, "fluid", "water_reservoir", "envelope_mm")]
+    reservoir_envelope_mL = (reservoir_envelope[0] * reservoir_envelope[1] * reservoir_envelope[2]) / 1000.0
+    if not _isclose(reservoir_envelope_mL, gross_water, abs_tol=1e-9):
+        add(
+            "WATER_RESERVOIR_ENVELOPE_VOLUME_MISMATCH",
+            "fluid.water_reservoir.envelope_mm",
+            "Water-reservoir packaging envelope must enclose exactly the declared gross volume. "
+            "This is envelope bookkeeping only; wall thickness, ports and usable capacity remain unresolved.",
+            reservoir_envelope_mL,
+            {"expected_mL": gross_water},
+        )
+
     face_water = float(_get(data, "fluid", "clean_cycle", "face_water_mL"))
     cleanser = float(_get(data, "fluid", "clean_cycle", "cleanser_mL"))
     flush = float(_get(data, "fluid", "clean_cycle", "post_flush_water_mL"))
@@ -587,6 +701,7 @@ def load_authority(
             ("geometry", "nostrils", "minimum_deformed_area_each_mm2"),
             ("actuation", "count"),
             ("fluid", "water_reservoir", "gross_mL"),
+            ("fluid", "water_reservoir", "envelope_mm"),
             ("fluid", "cartridge", "external_envelope_mm"),
         ]
     )

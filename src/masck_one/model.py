@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 import math
 from typing import Iterable
 
@@ -24,12 +25,32 @@ CAD_PLANAR_FACE_SPAN_TOLERANCE_MM = 1e-10
 CAD_AXIS_NORMAL_TOLERANCE = 1e-9
 
 
+class GeometryRole(Enum):
+    """What a solid *is*, declared rather than inferred.
+
+    This is the distinction ENGINEERING_GOVERNANCE treats as fundamental:
+    manufactured material physically exists in the product; everything else is a
+    design aid. Before this was declared, export inferred the role from whether
+    a body happened to be included in the development assembly, so adding a real
+    part without registering it silently reported it as reference geometry, and
+    including an envelope for a visualisation silently promoted it to
+    manufactured material.
+    """
+
+    PHYSICAL_MATERIAL = "PHYSICAL_MATERIAL"
+    NON_MATERIAL_REFERENCE = "NON_MATERIAL_REFERENCE"
+    MOTION_SWEEP = "MOTION_SWEEP"
+    KEEPOUT = "KEEPOUT"
+    PROTECTED_ANATOMY = "PROTECTED_ANATOMY"
+
+
 @dataclass(frozen=True)
 class Component:
     name: str
     solid: cq.Workplane
     status: str
     notes: str = ""
+    geometry_role: GeometryRole = GeometryRole.NON_MATERIAL_REFERENCE
 
     def brep_bounding_span_z_mm(self) -> float:
         """Return the OpenCascade bounding-box Z span.
@@ -257,6 +278,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
     shell = Component(
         "rigid_shell", _build_shell(authority, facial_reference), "CAD_BASELINE",
         "XY envelope and apertures follow authority; Class-A Z surface remains CAD-CLOSURE.",
+        geometry_role=GeometryRole.PHYSICAL_MATERIAL,
     )
     nasal_interface = Component(
         "nasal_lobe_membrane_reference",
@@ -264,9 +286,11 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE",
         "Only the dedicated nasal-lobe development role carries the 0.30 mm authority thickness; bridge, dorsum, sidewall and philtrum thicknesses remain unresolved. Not final anatomical membrane CAD.",
     )
+    rw, rh, rd = (float(v) for v in authority.get("fluid", "water_reservoir", "envelope_mm"))
     water_reservoir = Component(
-        "water_reservoir_envelope", _box_centered(26.0, 25.0, 10.0, Point3(0.0, 76.0, 7.0)),
-        "ENGINEERING_BASELINE_ENVELOPE", "6500 mm^3 gross volume; final wall/port geometry not frozen.",
+        "water_reservoir_envelope", _box_centered(rw, rh, rd, Point3(0.0, 76.0, 7.0)),
+        "ENGINEERING_BASELINE_ENVELOPE",
+        "Gross packaging envelope derived from authority; final wall/port geometry not frozen.",
     )
     cw, ch, cd = (float(v) for v in authority.get("fluid", "cartridge", "external_envelope_mm"))
     waste_cartridge = Component(

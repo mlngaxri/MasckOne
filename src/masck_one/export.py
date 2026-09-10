@@ -17,9 +17,13 @@ from .boundary_release import (
 from .brand_identity import build_brand_identity_manifest
 from .component_registry import build_current_component_registry
 from .contact_simulation import build_contact_simulation_framework
+from .airway_resistance import build_airway_resistance_screen
 from .integration_contract import integration_contract_manifest
+from .mass_balance import build_mass_balance_ledger
+from .process_capability import seam_feasibility
+from .moldability import screen_component_draft
 from .interface_attachment import build_interface_attachment_architecture
-from .model import MasckOneModel, build_model
+from .model import GeometryRole, MasckOneModel, build_model
 from .release_package import (
     ExportValidationError,
     development_readiness,
@@ -96,6 +100,12 @@ def _component_record(component, *, included: bool) -> dict:
         )
     ):
         raise ExportValidationError(f"Invalid or non-volumetric B-rep for {component.name}")
+    if included and component.geometry_role is not GeometryRole.PHYSICAL_MATERIAL:
+        raise ExportValidationError(
+            f"{component.name} is declared {component.geometry_role.value} but is included "
+            "in the physical development assembly; a reference body must never be assembled "
+            "as manufactured material"
+        )
     compound = cq.Compound.makeCompound(shapes)
     bounds = compound.BoundingBox()
     spans = [float(bounds.xlen), float(bounds.ylen), float(bounds.zlen)]
@@ -105,7 +115,11 @@ def _component_record(component, *, included: bool) -> dict:
         "name": component.name,
         "status": component.status,
         "notes": component.notes,
-        "geometry_role": "PHYSICAL_MATERIAL" if included else "NON_MATERIAL_REFERENCE",
+        # Read the declared role. Inferring it from assembly inclusion silently
+        # promoted envelopes to manufactured material and demoted real parts to
+        # reference geometry -- the exact substitution ENGINEERING_GOVERNANCE
+        # forbids. Inclusion is a separate fact, checked against the role below.
+        "geometry_role": component.geometry_role.value,
         "included_in_development_assembly": included,
         "solid_count": len(solids),
         "volume_mm3": solid_volume(compound),
@@ -244,12 +258,16 @@ def export_release(
         "parent_brand": "MASCK",
         "brand_identity": brand_identity_manifest,
         "authority_revision": model.authority.get("project", "authority_revision"),
-        "development_phase": 3,
-        "iteration": 15,
+        "development_phase": model.authority.get("project", "development_phase"),
+        "iteration": model.authority.get("project", "completed_iteration"),
         "result": "PASS",
         "build_scope": "DEVELOPMENT_ONLY",
         "release_source_binding": _release_source_binding(),
         "integration_contract": integration_contract_manifest(),
+        "airway_resistance_screen": build_airway_resistance_screen(model.authority).manifest(),
+        "mass_balance_ledger": build_mass_balance_ledger(model.authority).manifest(),
+        "seam_process_capability": seam_feasibility(model.authority).manifest(),
+        "shell_draft_screen": screen_component_draft(model.shell).manifest(),
         "checks": check_records,
         "production_readiness": development_readiness(check_records, records),
         "components": records,

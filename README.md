@@ -8,23 +8,62 @@ The project is intentionally strict about the difference between a value that ca
 
 ## Current development state
 
-**Phase 2: compliant facial interface and nose/T-zone architecture — Iteration 11 release candidate.**
+**Phase 5: waste acquisition and containment — Iteration 28 complete.**
 
-Phase 1 is complete. The current code-CAD baseline generates the rigid shell development geometry, a localized nasal-lobe membrane development reference, nominal protected apertures, four actuator packaging references, water-reservoir envelope, waste-cartridge envelope, battery packaging reference, STEP exports, and structured assertion reports. These are development artifacts, not claims that fit, cleansing efficacy, airflow, pressure, materials, or production readiness have been physically validated.
+Phases 1 to 5 of [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md) are
+complete. `project.development_phase` and `project.completed_iteration` in
+`config/masck_one_authority.yaml` are the single source of truth for this
+position; the roadmap, this README and `build_report.json` are all checked
+against them by `tests/test_program_position.py`, so they cannot drift apart
+silently.
 
-The engineering foundation now includes:
+The current code-CAD baseline generates rigid shell development geometry, a
+localized nasal-lobe membrane development reference, nominal protected
+apertures, four actuator packaging references, water-reservoir envelope,
+waste-cartridge envelope, battery packaging reference, per-solid verified STEP
+exports, and structured assertion reports. These are development artifacts. They
+are not claims that fit, cleansing efficacy, airflow, pressure, materials,
+tactile quality or production readiness have been physically validated.
 
-- canonical right-handed global coordinates and rigid transforms (`+X` wearer-right, `+Y` superior, `+Z` anterior);
-- semantic authority-derived eye, nostril and mouth landmarks with unresolved anatomical depth kept explicit;
-- external headform/reference-surface ingestion with units, handedness, provenance, hashes and rigid registration;
-- a neutral facial-surface abstraction whose current planar development implementation is explicitly non-anatomical;
-- conservative eye, mouth and nostril/airway protected envelopes with unresolved 3D anatomy kept evidence-gated;
-- a deterministic 459-state worn-pose/misregistration regression screen using the authority's 5 mm radial and ±4° rotational limits;
-- a triangle-level facial coverage mesh that partitions active targets from protected zones, preserves a dedicated nose/T-zone and nose-to-upper-lip/philtrum target region, consumes the authority's 90% aggregate / 90% T-zone / 100 mm² hole thresholds, and refuses to treat synthetic geometric success as cleansing-efficacy evidence;
-- a compliant-interface topology that assigns every coverage triangle to a stable contact/T-zone/protected-opening parameter zone, conserves target/protected area exactly, preserves one connected development contact field, and keeps the true eye/mouth/nostril protected regions material-free;
-- a dedicated nasal subsystem topology that partitions the active central nose/philtrum target into bridge/dorsum, left/right sidewall, nasal-lobe and philtrum roles without introducing unsupported anatomical dimensions;
-- explicit localization of the authority-backed 0.30 mm center / 0.25–0.35 mm DOE thickness family to the nasal-lobe development role only;
-- correction of the former broad 0.30 mm trapezoidal nasal placeholder: generated thickness CAD is now a local `nasal_lobe_membrane_reference`, while bridge/dorsum/sidewall/philtrum thickness remains unresolved until later geometry/material evidence.
+Released capability by phase:
+
+- **Phase 1 — foundations and human reference.** Canonical right-handed global
+  coordinates and rigid transforms (`+X` wearer-right, `+Y` superior, `+Z`
+  anterior); authority-derived eye, nostril and mouth landmarks with unresolved
+  anatomical depth kept explicit; external headform ingestion with units,
+  handedness, provenance, hashes and rigid registration; a neutral facial-surface
+  abstraction whose current planar development implementation is explicitly
+  non-anatomical; conservative eye/mouth/airway protected envelopes; a
+  deterministic 459-state worn-pose regression screen at the authority's 5 mm
+  radial and ±4° rotational limits; and a triangle-level coverage mesh that
+  partitions active targets from protected zones and refuses to treat synthetic
+  geometric success as cleansing-efficacy evidence.
+- **Phase 2 — compliant facial interface.** Contact/T-zone/protected-opening
+  parameter zones with exact area conservation and one connected contact field;
+  a nasal subsystem partitioned into bridge/dorsum, sidewall, lobe and philtrum
+  roles; the authority-backed 0.30 mm nasal-lobe thickness family localized to
+  the lobe role only; perimeter and aperture-edge boundaries; interface-to-frame
+  attachment; and a nonlinear contact-simulation framework with evidence-gated
+  material cards.
+- **Phase 3 — rigid structure and actuation.** Structural-frame datum network
+  and subsystem reservations; Class-A surface workflow and deviation governance;
+  four actuator local frames and development envelopes; coupling, swept volumes
+  and collision assertions; and the actuation parameter/sensitivity framework.
+- **Phase 4 — fresh fluid delivery.** Water-reservoir and cleanser-storage
+  architecture, pump packaging and tubing interfaces, a parametric manifold
+  branching model, and skin-facing distribution grooves with protected-region
+  outlet-direction rules.
+- **Phase 5 — waste acquisition and containment.** Facial waste gutters and
+  regional buffers, mixed-phase waste-pump packaging and fault states, keyed
+  cartridge insertion and service geometry, and complete fresh/waste routing,
+  bend-radius, dead-volume and service-clearance checks.
+
+Known open dependency: the structural frame is still **topology and reservations
+only**. `structural_frame.py` reports
+`load_validation_status="BLOCKED_PENDING_REALIZED_GEOMETRY_MATERIAL_AND_ANALYSIS_PHYSICAL_EVIDENCE"`,
+and no released load-bearing frame B-rep exists. Treatment reaction, retention
+load paths, installed cartridge extraction and dry-side support all stack on
+that gap. See [`docs/STRUCTURAL_FRAME_TOPOLOGY.md`](docs/STRUCTURAL_FRAME_TOPOLOGY.md).
 
 ## Repository principles
 
@@ -75,8 +114,22 @@ Key engineering modules:
 - `src/masck_one/coverage.py` — facial-region segmentation, target/protected area accounting and coverage metrics.
 - `src/masck_one/interface_topology.py` — main compliant facial-interface contact/protected topology and parameter-zone authority boundary.
 - `src/masck_one/nasal_subsystem.py` — dedicated bridge/dorsum/sidewall/lobe/philtrum functional partition and local lobe-thickness boundary.
-- `src/masck_one/nasal_preflight.py` — Iteration-11 source-chain, role, safety-exclusion and thickness-localization CI gate.
+- `src/masck_one/nasal_preflight.py` — nasal source-chain, role, safety-exclusion and thickness-localization CI gate.
+- `src/masck_one/interface_boundaries.py` — perimeter, seal/compliance zones and aperture-edge transitions.
+- `src/masck_one/interface_attachment.py` — interface-to-structural-frame attachment and clamp architecture.
+- `src/masck_one/contact_simulation.py` — nonlinear membrane/contact framework with evidence-gated material cards.
+- `src/masck_one/structural_frame.py` — frame datum network and subsystem reservations (topology only; no released load-bearing B-rep).
+- `src/masck_one/surface_workflow.py` — Class-A exterior surface workflow and deviation governance.
+- `src/masck_one/actuator_frames.py`, `actuator_coupling.py`, `actuation_parameters.py` — four actuator local frames, load paths, swept volumes and sensitivity framework.
+- `src/masck_one/water_reservoir.py`, `cleanser_storage.py`, `distribution_manifold.py`, `distribution_geometry.py` — fresh fluid delivery.
+- `src/masck_one/waste_acquisition.py`, `waste_pump_architecture.py`, `waste_cartridge.py`, `waste_routes.py` — waste acquisition, transport and containment.
+- `src/masck_one/component_registry.py` — canonical component/interface registry and source binding.
+- `src/masck_one/export.py`, `step_integrity.py`, `release_package.py` — deterministic export, per-solid STEP round-trip verification and package integrity.
+- `src/masck_one/integration_contract.py` — edit-ownership map for concurrent sprint lanes (navigation only; live GitHub is authoritative for PR/branch state).
 - `src/masck_one/brand_identity.py` — strict MASCK master-brand / Masck One product-identity loader and deterministic manifest producer.
+
+The full module set is larger than this list; see `src/masck_one/` and
+[`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md).
 
 ## Controlled toolchain
 
@@ -117,9 +170,14 @@ This validates the parent/product split, M-Cut/M/1 roles, primary-control identi
 ```bash
 python -m masck_one.preflight
 python -m masck_one.nasal_preflight
+python -m masck_one.boundary_preflight
+python -m masck_one.attachment_preflight
+python -m masck_one.contact_simulation_preflight
+python -m masck_one.structural_frame_preflight
+python -m masck_one.surface_workflow_preflight
 ```
 
-The existing repository preflight checks the controlled runtime/dependencies and upstream engineering contracts. The Iteration-11 nasal preflight additionally checks exact upstream hashes, central target assignment closure, area conservation, bilateral sidewall balance, protected-opening exclusion, lobe-thickness localization, local lobe CAD thickness and evidence status.
+The repository preflight checks the controlled runtime/dependencies and upstream engineering contracts. The nasal preflight additionally checks exact upstream hashes, central target assignment closure, area conservation, bilateral sidewall balance, protected-opening exclusion, lobe-thickness localization, local lobe CAD thickness and evidence status. CI additionally runs the boundary, attachment, contact-simulation, structural-frame and Class-A surface-workflow preflights; see `.github/workflows/ci.yml` for the released gate order.
 
 ## Test
 
@@ -134,7 +192,7 @@ python -m pytest
 python -m masck_one.cli --output generated
 ```
 
-The build emits STEP files, `component_registry.json`, `brand_identity.json` and `build_report.json`. Iteration 11 replaces the ambiguous `nasal_interface.step` placeholder with `nasal_lobe_membrane_reference.step`. The build report now also records deterministic coverage, compliant-interface, nasal-subsystem and source-bound brand/product identity manifests. Software-verifiable failures fail the command; evidence-gated items remain explicitly `BLOCKED` instead of being reported as fabricated passes.
+The build emits STEP files, `component_registry.json`, `brand_identity.json` and `build_report.json`. The nasal thickness solid is exported as `nasal_lobe_membrane_reference.step`, deliberately named for the local development role it represents rather than as a whole nasal interface. The build report also records deterministic coverage, compliant-interface, nasal-subsystem and source-bound brand/product identity manifests. Software-verifiable failures fail the command; evidence-gated items remain explicitly `BLOCKED` instead of being reported as fabricated passes.
 
 ## Engineering governance
 
@@ -151,6 +209,16 @@ Read [`docs/WORN_POSE.md`](docs/WORN_POSE.md) before adding fit/misregistration 
 Read [`docs/COVERAGE_MESH.md`](docs/COVERAGE_MESH.md) before changing facial target regions, T-zone segmentation or coverage metrics.
 
 Read [`docs/COMPLIANT_INTERFACE_TOPOLOGY.md`](docs/COMPLIANT_INTERFACE_TOPOLOGY.md) before changing skin-contact intent, protected openings or broad interface parameter zones.
+
+Read [`docs/MOLDABILITY.md`](docs/MOLDABILITY.md) before changing aperture geometry, the shell part split or the exterior finish specification.
+
+Read [`docs/PROCESS_CAPABILITY.md`](docs/PROCESS_CAPABILITY.md) before tightening any tolerance or choosing a part split that places a visible seam.
+
+Read [`docs/MULTI_AGENT_INTEGRITY.md`](docs/MULTI_AGENT_INTEGRITY.md) before changing a pinned ratchet value, and before adding a skip, deleting a test or widening a tolerance. Several agents and more than one toolchain edit this repository concurrently; CI rejects silent weakening in about 1.5 seconds.
+
+Read [`docs/MASS_BALANCE.md`](docs/MASS_BALANCE.md) before changing any `mass:` limit or moving mass anteriorly to solve a packaging problem.
+
+Read [`docs/AIRWAY_RESISTANCE.md`](docs/AIRWAY_RESISTANCE.md) before changing `safety.airway` limits, nostril aperture geometry or anything that reduces the deformed nasal opening.
 
 Read [`docs/NASAL_SUBSYSTEM.md`](docs/NASAL_SUBSYSTEM.md) before changing the nose/T-zone functional partition, nasal-lobe thickness application boundary, protected nostril exclusions or philtrum continuity.
 
