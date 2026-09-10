@@ -228,11 +228,13 @@
         "visible_seam": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["gap_mm", "tolerance_mm", "flush_mismatch_max_mm", "status"],
+          "required": ["gap_mm", "tolerance_mm", "flush_mismatch_max_mm", "control_strategy", "control_strategy_status", "status"],
           "properties": {
             "gap_mm": {"$ref": "#/$defs/nonNegativeNumber"},
             "tolerance_mm": {"$ref": "#/$defs/nonNegativeNumber"},
             "flush_mismatch_max_mm": {"$ref": "#/$defs/nonNegativeNumber"},
+            "control_strategy": {"enum": ["SELF_LOCATING_LOCAL_DATUM", "BUTT_JOINT_TO_GLOBAL_OUTLINE"]},
+            "control_strategy_status": {"$ref": "#/$defs/status"},
             "status": {"$ref": "#/$defs/status"}
           }
         },

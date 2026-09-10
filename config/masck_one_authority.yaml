@@ -77,6 +77,17 @@ geometry:
     gap_mm: 0.40
     tolerance_mm: 0.15
     flush_mismatch_max_mm: 0.15
+    # How the seam is located decides whether its tolerance is holdable at all.
+    # Referenced to the global part outline the gap accumulates three
+    # contributors over a ~200 mm chain and needs +/-0.050 mm each, which
+    # moulding misses by ~6x. A self-locating seam -- the two shells mating to
+    # each other via a shiplap or tongue -- removes the frame term and collapses
+    # the chain to the local feature, needing +/-0.075 mm each, which is held
+    # even at the pessimistic end of the moulding band.
+    # Enforced by VISIBLE_SEAM_TOLERANCE_NOT_MANUFACTURABLE.
+    # See docs/PROCESS_CAPABILITY.md.
+    control_strategy: SELF_LOCATING_LOCAL_DATUM
+    control_strategy_status: ENGINEERING_BASELINE
     status: DESIGN_BASELINE
   misregistration:
     translation_radial_max_mm: 5.0

@@ -20,6 +20,7 @@ from .contact_simulation import build_contact_simulation_framework
 from .airway_resistance import build_airway_resistance_screen
 from .integration_contract import integration_contract_manifest
 from .mass_balance import build_mass_balance_ledger
+from .process_capability import seam_feasibility
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
 from .release_package import (
@@ -254,6 +255,7 @@ def export_release(
         "integration_contract": integration_contract_manifest(),
         "airway_resistance_screen": build_airway_resistance_screen(model.authority).manifest(),
         "mass_balance_ledger": build_mass_balance_ledger(model.authority).manifest(),
+        "seam_process_capability": seam_feasibility(model.authority).manifest(),
         "checks": check_records,
         "production_readiness": development_readiness(check_records, records),
         "components": records,

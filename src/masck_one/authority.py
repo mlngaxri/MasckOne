@@ -414,6 +414,52 @@ def _semantic_issues(data: dict[str, Any]) -> list[AuthorityValidationIssue]:
             {"maximum": gross_water},
         )
 
+    # A tolerance is only real if some process can hold it. The visible seam's
+    # budget is holdable or not depending entirely on how the seam is located,
+    # which is a part-split decision rather than a process one. Referenced to the
+    # global outline the gap accumulates three contributors over a ~200 mm chain;
+    # self-locating collapses it to two over the local mating feature. See
+    # src/masck_one/process_capability.py.
+    from .process_capability import (  # local import keeps authority import-light
+        ProcessClass,
+        SEAM_BUTT_JOINT_CHAIN_MM,
+        SEAM_BUTT_JOINT_CONTRIBUTORS,
+        SEAM_SELF_LOCATING_CHAIN_MM,
+        SEAM_SELF_LOCATING_CONTRIBUTORS,
+        Feasibility,
+        assess_stack,
+    )
+
+    seam_budget = float(_get(data, "geometry", "visible_seam", "tolerance_mm"))
+    seam_strategy = str(_get(data, "geometry", "visible_seam", "control_strategy"))
+    if seam_budget > 0.0:
+        if seam_strategy == "SELF_LOCATING_LOCAL_DATUM":
+            contributors, chain = SEAM_SELF_LOCATING_CONTRIBUTORS, SEAM_SELF_LOCATING_CHAIN_MM
+        else:
+            contributors, chain = SEAM_BUTT_JOINT_CONTRIBUTORS, SEAM_BUTT_JOINT_CHAIN_MM
+        seam = assess_stack(
+            "AUTHORITY_VISIBLE_SEAM",
+            process=ProcessClass.INJECTION_MOULDED_FILLED,
+            chain_length_mm=chain,
+            contributor_count=contributors,
+            total_budget_mm=seam_budget,
+        )
+        if seam.feasibility is Feasibility.INFEASIBLE:
+            add(
+                "VISIBLE_SEAM_TOLERANCE_NOT_MANUFACTURABLE",
+                "geometry.visible_seam.tolerance_mm",
+                "The declared seam control strategy cannot hold the declared seam tolerance. "
+                "Worst-case stacking gives each contributor budget/N, and no moulding process "
+                "holds that over this dimension chain. Shorten the chain (locate the seam to "
+                "itself), remove a contributor, or relax the tolerance.",
+                {
+                    "control_strategy": seam_strategy,
+                    "required_per_contributor_mm": seam.required_per_contributor_mm,
+                    "shortfall_factor": seam.shortfall_factor,
+                },
+                {"achievable_typical_mm": seam.achievable_typical_mm},
+            )
+
     # Added airway resistance is inertia-dominated: dP = K * rho * V^2 / 2 with
     # V = Q / (paths * area). For a fixed aperture, K is a property of the
     # geometry and cannot change with flow, so every flow-specific limit must
