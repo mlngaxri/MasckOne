@@ -37,7 +37,7 @@ AUTHORITY = ROOT / "config" / "masck_one_authority.yaml"
 # baselines, measured at the commit that introduced this file
 # ---------------------------------------------------------------------------
 
-MIN_TEST_FUNCTIONS = 799
+MIN_TEST_FUNCTIONS = 828
 MAX_SKIP_MARKERS = 2          # the two git-history skips in test_pinned_commits
 MIN_EVIDENCE_MARKERS = 138
 
@@ -174,6 +174,20 @@ def test_planar_development_surface_can_never_be_anatomical_evidence() -> None:
 # ---------------------------------------------------------------------------
 # numerical tolerances may only tighten
 # ---------------------------------------------------------------------------
+
+def test_geometry_role_is_declared_not_inferred() -> None:
+    """Role must be a fact about the body, not a restatement of assembly membership.
+
+    Inferring it silently promoted reference envelopes to manufactured material
+    and demoted unregistered real parts to reference geometry.
+    """
+
+    text = (SRC / "export.py").read_text(encoding="utf-8")
+    assert '"PHYSICAL_MATERIAL" if included' not in text, (
+        "geometry_role is being inferred from assembly inclusion again"
+    )
+    assert "component.geometry_role.value" in text
+
 
 def test_named_tolerances_do_not_loosen() -> None:
     """Widening a tolerance makes a geometry failure vanish without a fix.

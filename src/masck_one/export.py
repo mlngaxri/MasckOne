@@ -22,7 +22,7 @@ from .integration_contract import integration_contract_manifest
 from .mass_balance import build_mass_balance_ledger
 from .process_capability import seam_feasibility
 from .interface_attachment import build_interface_attachment_architecture
-from .model import MasckOneModel, build_model
+from .model import GeometryRole, MasckOneModel, build_model
 from .release_package import (
     ExportValidationError,
     development_readiness,
@@ -99,6 +99,12 @@ def _component_record(component, *, included: bool) -> dict:
         )
     ):
         raise ExportValidationError(f"Invalid or non-volumetric B-rep for {component.name}")
+    if included and component.geometry_role is not GeometryRole.PHYSICAL_MATERIAL:
+        raise ExportValidationError(
+            f"{component.name} is declared {component.geometry_role.value} but is included "
+            "in the physical development assembly; a reference body must never be assembled "
+            "as manufactured material"
+        )
     compound = cq.Compound.makeCompound(shapes)
     bounds = compound.BoundingBox()
     spans = [float(bounds.xlen), float(bounds.ylen), float(bounds.zlen)]
@@ -108,7 +114,11 @@ def _component_record(component, *, included: bool) -> dict:
         "name": component.name,
         "status": component.status,
         "notes": component.notes,
-        "geometry_role": "PHYSICAL_MATERIAL" if included else "NON_MATERIAL_REFERENCE",
+        # Read the declared role. Inferring it from assembly inclusion silently
+        # promoted envelopes to manufactured material and demoted real parts to
+        # reference geometry -- the exact substitution ENGINEERING_GOVERNANCE
+        # forbids. Inclusion is a separate fact, checked against the role below.
+        "geometry_role": component.geometry_role.value,
         "included_in_development_assembly": included,
         "solid_count": len(solids),
         "volume_mm3": solid_volume(compound),

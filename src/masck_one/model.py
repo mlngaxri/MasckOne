@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 import math
 from typing import Iterable
 
@@ -24,12 +25,32 @@ CAD_PLANAR_FACE_SPAN_TOLERANCE_MM = 1e-10
 CAD_AXIS_NORMAL_TOLERANCE = 1e-9
 
 
+class GeometryRole(Enum):
+    """What a solid *is*, declared rather than inferred.
+
+    This is the distinction ENGINEERING_GOVERNANCE treats as fundamental:
+    manufactured material physically exists in the product; everything else is a
+    design aid. Before this was declared, export inferred the role from whether
+    a body happened to be included in the development assembly, so adding a real
+    part without registering it silently reported it as reference geometry, and
+    including an envelope for a visualisation silently promoted it to
+    manufactured material.
+    """
+
+    PHYSICAL_MATERIAL = "PHYSICAL_MATERIAL"
+    NON_MATERIAL_REFERENCE = "NON_MATERIAL_REFERENCE"
+    MOTION_SWEEP = "MOTION_SWEEP"
+    KEEPOUT = "KEEPOUT"
+    PROTECTED_ANATOMY = "PROTECTED_ANATOMY"
+
+
 @dataclass(frozen=True)
 class Component:
     name: str
     solid: cq.Workplane
     status: str
     notes: str = ""
+    geometry_role: GeometryRole = GeometryRole.NON_MATERIAL_REFERENCE
 
     def brep_bounding_span_z_mm(self) -> float:
         """Return the OpenCascade bounding-box Z span.
@@ -257,6 +278,7 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
     shell = Component(
         "rigid_shell", _build_shell(authority, facial_reference), "CAD_BASELINE",
         "XY envelope and apertures follow authority; Class-A Z surface remains CAD-CLOSURE.",
+        geometry_role=GeometryRole.PHYSICAL_MATERIAL,
     )
     nasal_interface = Component(
         "nasal_lobe_membrane_reference",
