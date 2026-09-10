@@ -78,13 +78,22 @@ def test_hostile_route_escaping_dry_bay_is_rejected() -> None:
         hostile.validate()
 
 
-def test_hostile_support_detached_from_route_is_rejected() -> None:
+def test_hostile_support_detached_inside_dry_bay_is_rejected_for_non_engagement() -> None:
     valid = build_dry_side_harness_service()
     detached = valid.clip_reservations[0].translate((-30.0, 0.0, 0.0))
+    detached_bb = detached.val().BoundingBox()
+    xmin, xmax, ymin, ymax, zmin, zmax = DRY_BAY_BOUNDS_WORLD_MM
+    assert detached_bb.xmin >= xmin and detached_bb.xmax <= xmax
+    assert detached_bb.ymin >= ymin and detached_bb.ymax <= ymax
+    assert detached_bb.zmin >= zmin and detached_bb.zmax <= zmax
+    assert valid.route_envelope.val().intersect(detached.val()).Volume() <= 1e-9
     hostile = DrySideHarnessService(
         route_envelope=valid.route_envelope,
         clip_reservations=(detached, valid.clip_reservations[1]),
         route_points_world_mm=valid.route_points_world_mm,
     )
-    with pytest.raises(DrySideHarnessError, match="support reservation"):
+    with pytest.raises(
+        DrySideHarnessError,
+        match="harness support reservation must engage the route envelope",
+    ):
         hostile.validate()
