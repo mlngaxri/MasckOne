@@ -16,12 +16,17 @@ def test_tactile_service_reduces_local_bolt_guide_play_without_tight_capture_nos
     service = build_cartridge_tactile_service()
     manifest = service.manifest()
     bolt = manifest["bolt_guidance"]
+    # The service manifest intentionally canonicalizes dimensional reporting to
+    # 1e-9 mm. Compare the engineering value at that same deterministic precision
+    # instead of requiring binary floating-point identity (1.36 - 1.30 is not
+    # exactly representable). This changes no clearance requirement or tolerance.
+    expected_guide_clearance_mm = round(NEW_RADIAL_GUIDE_CLEARANCE_MM, 9)
 
     assert manifest["schema"] == SCHEMA
     assert NEW_RADIAL_GUIDE_CLEARANCE_MM < LEGACY_RADIAL_GUIDE_CLEARANCE_MM
-    assert service.guide_radial_clearance_mm == NEW_RADIAL_GUIDE_CLEARANCE_MM
+    assert service.guide_radial_clearance_mm == expected_guide_clearance_mm
     assert bolt["legacy_radial_clearance_mm"] == LEGACY_RADIAL_GUIDE_CLEARANCE_MM
-    assert bolt["new_radial_clearance_mm"] == NEW_RADIAL_GUIDE_CLEARANCE_MM
+    assert bolt["new_radial_clearance_mm"] == expected_guide_clearance_mm
     assert service.capture_pocket_radial_clearance_mm > service.guide_radial_clearance_mm
     assert bolt["debris_relief_count_per_guide"] == 2
 
