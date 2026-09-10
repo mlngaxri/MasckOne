@@ -17,7 +17,7 @@ jobs:
           cache: pip
       - run: python -m pip install -e '.[dev]'
       - name: Thermal mechanics and evidence firewalls
-        run: python -m pytest -q tests/test_warm_cool_package.py tests/test_thermal_heat_rejection.py tests/test_thermal_reset.py
+        run: python -m pytest -q tests/test_warm_cool_package.py tests/test_thermal_heat_rejection.py tests/test_thermal_reset.py tests/test_thermal_reset_network.py
       - name: Energy and spreading study
         run: |
           python studies/thermal_reset_convergence.py

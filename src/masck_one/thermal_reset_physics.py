@@ -177,12 +177,99 @@ def transient(inputs: FixtureInputs, phases, step_s=0.02):
                         heater_energy_J=y[5]-phase_start[5],backside_energy_J=y[9]-phase_start[9]))
     final_energy=C*(y[0]+y[1])+p.sensor_heat_capacity_J_K*y[2]+y[3]+p.back_heat_capacity_J_K*y[4]
     energy_residual=final_energy-initial_energy-sum(y[5:9])
+    # Preserve all stored energy for the off-face reset model. The sensor node
+    # is lumped into the reset plate by energy, not by temperature averaging.
+    reset_plate_C=2*C+p.sensor_heat_capacity_J_K
+    reset_state=dict(store_enthalpy_J=y[3],plate_heat_capacity_J_K=reset_plate_C,
+        plate_delta_K=(C*(y[0]+y[1])+p.sensor_heat_capacity_J_K*y[2])/reset_plate_C,
+        back_delta_K=y[4],back_heat_capacity_J_K=p.back_heat_capacity_J_K)
     return dict(phases=out,transient_samples=samples,heater_energy_J=y[5],load_energy_J=y[6],ambient_energy_J=y[7],
                 motor_energy_J=y[8],energy_balance_residual_J=energy_residual,
                 peak_center_edge_gradient_K=peak_gradient,peak_sensor_lag_K=peak_sensor_lag,
                 sensor_time_constant_s=p.sensor_heat_capacity_J_K/p.sensor_plate_W_K,
                 store_exhaustion_s=exhaustion,reset_energy_to_solidus_J=max(0.,y[3]),
+                reset_store_energy_scope='STORE_ONLY; USE_RESET_INITIAL_STATE_FOR_COMPLETE_NETWORK',
+                reset_initial_state=reset_state,final_total_energy_relative_to_solidus_J=final_energy,
                 input_status='ASSUMED_OFF_FACE_BOUNDARY_CONDITIONS',human_use_eligible=False)
+
+
+def dock_transient(stores, initial_states, *, contact_W_K, store_plate_W_K,
+                   sink_heat_capacity_J_K, sink_ambient_W_K, ambient_delta_K,
+                   plate_back_W_K, back_ambient_W_K, plate_ambient_W_K,
+                   charging_heat_W=0., duration_s=7200., step_s=.2):
+    """Two independent stores coupled through one finite-capacity OFF-FACE sink.
+
+    Includes plate, retained water-equivalent film, sensor, backside and sink
+    energy. No evaporation credit. Charging heat enters the shared sink. All
+    temperatures use the same unspecified material solidus datum. H<=0 is a
+    MODEL state only, never an observable or certified reset signal.
+    """
+    sides=tuple(sorted(stores))
+    if len(sides)!=2 or set(initial_states)!=set(sides) or set(contact_W_K)!=set(sides) or set(store_plate_W_K)!=set(sides):
+        raise ValueError('exactly two separately identified thermal stores required')
+    finite(sink_heat_capacity_J_K=sink_heat_capacity_J_K,sink_ambient_W_K=sink_ambient_W_K,
+        ambient_delta_K=ambient_delta_K,plate_back_W_K=plate_back_W_K,
+        back_ambient_W_K=back_ambient_W_K,plate_ambient_W_K=plate_ambient_W_K,
+        charging_heat_W=charging_heat_W,duration_s=duration_s,step_s=step_s)
+    if min(sink_heat_capacity_J_K,sink_ambient_W_K,duration_s,step_s)<=0 or step_s>1:
+        raise ValueError('positive reset capacities, duration and resolved time step required')
+    if min(plate_back_W_K,back_ambient_W_K,plate_ambient_W_K,charging_heat_W)<0:
+        raise ValueError('negative reset transport/source')
+    y=[];cp=[];cb=[]
+    expected={'store_enthalpy_J','plate_delta_K','plate_heat_capacity_J_K','back_delta_K','back_heat_capacity_J_K'}
+    for side in sides:
+        state=initial_states[side]
+        if set(state)!=expected:raise ValueError('complete explicit reset initial state required')
+        finite(**state);finite(contact=contact_W_K[side],store_plate=store_plate_W_K[side])
+        if min(state['plate_heat_capacity_J_K'],state['back_heat_capacity_J_K'],store_plate_W_K[side])<=0 or contact_W_K[side]<0:
+            raise ValueError('invalid reset capacity or conductance')
+        cp.append(state['plate_heat_capacity_J_K']);cb.append(state['back_heat_capacity_J_K'])
+        y.extend([state['store_enthalpy_J'],state['plate_delta_K'],state['back_delta_K']])
+    y.extend([ambient_delta_K,0.,0.])  # shared sink, ambient rejection, charge input
+    taus=[sink_heat_capacity_J_K/(sink_ambient_W_K+sum(contact_W_K.values()))]
+    for i,side in enumerate(sides):
+        taus.extend([cp[i]/(store_plate_W_K[side]+contact_W_K[side]+plate_back_W_K+plate_ambient_W_K),
+            cb[i]/max(plate_back_W_K+back_ambient_W_K,1e-12),stores[side].sensible_J_K/store_plate_W_K[side]])
+    if step_s>min(taus)/4:raise ValueError('reset time step must resolve fastest node')
+    def energy(s):
+        return sum(s[3*i]+cp[i]*s[3*i+1]+cb[i]*s[3*i+2] for i in range(2))+sink_heat_capacity_J_K*s[6]
+    def rate(s):
+        out=[];qd=0.;qa=0.
+        for i,side in enumerate(sides):
+            H,T,B=s[3*i:3*i+3]
+            qsp=store_plate_W_K[side]*(stores[side].temperature_above_solidus_K(H)-T)
+            qpd=contact_W_K[side]*(T-s[6]);qpb=plate_back_W_K*(T-B)
+            qpa=plate_ambient_W_K*(T-ambient_delta_K);qba=back_ambient_W_K*(B-ambient_delta_K)
+            out.extend([-qsp,(qsp-qpd-qpb-qpa)/cp[i],(qpb-qba)/cb[i]])
+            qd+=qpd;qa+=qpa+qba
+        qs=sink_ambient_W_K*(s[6]-ambient_delta_K)
+        return out+[(qd+charging_heat_W-qs)/sink_heat_capacity_J_K,qa+qs,charging_heat_W]
+    initial=energy(y);first={s:0. if y[3*i]<=0 else None for i,s in enumerate(sides)}
+    maxH={s:y[3*i] for i,s in enumerate(sides)};sink_peak=y[6];samples=[];first_both=None
+    count=math.ceil(duration_s/step_s);dt=duration_s/count
+    for j in range(count):
+        a=rate(y);b=rate([v+dt*k/2 for v,k in zip(y,a)])
+        c=rate([v+dt*k/2 for v,k in zip(y,b)]);d=rate([v+dt*k for v,k in zip(y,c)])
+        y=[v+dt*(aa+2*bb+2*cc+dd)/6 for v,aa,bb,cc,dd in zip(y,a,b,c,d)]
+        t=(j+1)*dt;sink_peak=max(sink_peak,y[6])
+        for i,side in enumerate(sides):
+            maxH[side]=max(maxH[side],y[3*i])
+            if first[side] is None and y[3*i]<=0:first[side]=t
+        if first_both is None and all(y[3*i]<=0 for i in range(2)):
+            first_both=dict(time_s=t,heat_rejected_to_ambient_J=y[7],charging_heat_J=y[8],
+                sink_delta_K=y[6],total_energy_relative_to_solidus_J=energy(y))
+        if j%max(1,round(60/dt))==0 or j==count-1:
+            samples.append(dict(time_s=t,sink_delta_K=y[6],store_enthalpy_J={s:y[3*i] for i,s in enumerate(sides)}))
+    states={s:dict(store_enthalpy_J=y[3*i],plate_delta_K=y[3*i+1],back_delta_K=y[3*i+2],
+                   first_solidus_crossing_s=first[s],maximum_store_enthalpy_J=maxH[s]) for i,s in enumerate(sides)}
+    return dict(model='FINITE_SHARED_SINK_TWO_LOCAL_STORES_OFF_FACE',zones=states,
+        initial_total_energy_relative_to_solidus_J=initial,final_total_energy_relative_to_solidus_J=energy(y),
+        heat_rejected_to_ambient_J=y[7],charging_heat_J=y[8],energy_balance_residual_J=energy(y)-initial+y[7]-y[8],
+        peak_sink_delta_K=sink_peak,final_sink_delta_K=y[6],samples=samples,
+        first_both_stores_below_solidus=first_both,
+        both_stores_below_solidus_at_end=all(y[3*i]<=0 for i in range(2)),
+        endpoint_is_not_hardware_readiness=True,latent_temperature_does_not_observe_enthalpy=True,
+        evaporation_heat_credit_J=0.,physical_readiness=False)
 
 
 def dock_reset(energy_J,store_above_ambient_K,contact_area_mm2,contact_h_W_m2K,
@@ -236,7 +323,7 @@ def plate_field(*,width_mm,height_mm,thickness_mm,conductivity_W_mK,heater_W,
                 nx=22,ny=28,post_heater_fraction=0.,post_width_mm=.92):
     """Steady finite-volume sheet screen, adiabatic perimeter, distributed load.
 
-    Conductive columns are attached to their actual nearest cells. Total transfer
+    Conductive columns use exact footprint overlap with the sheet cells. Total transfer
     conductance includes the downstream PCM resistance. This is a 2D thin-sheet
     architecture screen, not 3D contact/temperature or hotspot validation.
     """

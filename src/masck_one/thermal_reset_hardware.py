@@ -294,7 +294,11 @@ def export_thermal_reset(output_dir: Path,source_head_sha: str,p=Parameters()):
     service=cq.Assembly(name='THERMAL_BENCH_SERVICE')
     for key,shape in parts.items():service.add(shape if key.startswith('dock') else shape.translate((0,0,p.reset_travel_mm)),name=key)
     service.export(str(output_dir/'THERMAL_BENCH_SERVICE.step'))
-    manifest['source_file_sha256']={str(Path(__file__).name):sha256(Path(__file__).read_bytes()).hexdigest()}
+    source_root=Path(__file__).resolve().parents[2]
+    source_paths=['src/masck_one/thermal_reset_hardware.py','src/masck_one/thermal_reset_physics.py',
+                  'src/masck_one/warm_cool_package.py','studies/thermal_reset_convergence.py',
+                  'studies/thermal_plate_spreading.py','scripts/export_thermal_reset.py']
+    manifest['source_file_sha256']={name:sha256((source_root/name).read_bytes()).hexdigest() for name in source_paths}
     manifest['producer_head_sha']=source_head_sha
     manifest['standalone_part_coordinates']='LOCAL; APPLY_COMPONENT_WORLD_TRANSFORM_ONCE'
     manifest['assembly_coordinates']='WORLD; DO_NOT_APPLY_COMPONENT_TRANSFORM_AGAIN'
