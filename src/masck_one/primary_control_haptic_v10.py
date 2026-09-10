@@ -40,7 +40,14 @@ HOSTILE_OVERPULL_MM = NOMINAL_CAPTURE_CLEARANCE_MM + 0.02
 MIN_CAPTURE_HOSTILE_INTERSECTION_MM3 = 0.005
 
 DIAPHRAGM_GROOVE_OD_MM = 10.90
-DIAPHRAGM_GROOVE_ID_MM = 8.55
+# The shallow diaphragm pocket must break through to the already-empty 8.50 mm
+# guide bore. A 0.01 mm radial cutter runout avoids leaving a rigid 0.025 mm annulus
+# under the installed membrane; it removes no guide material because the bore is
+# already void at this radius and the precision guide stations are farther rearward.
+DIAPHRAGM_GROOVE_BORE_RADIAL_RUNOUT_MM = 0.01
+DIAPHRAGM_GROOVE_ID_MM = (
+    v1.BARREL_BORE_DIAMETER_MM - 2.0 * DIAPHRAGM_GROOVE_BORE_RADIAL_RUNOUT_MM
+)
 DIAPHRAGM_GROOVE_HEIGHT_MM = 0.36
 DIAPHRAGM_GROOVE_Z0_FROM_REST_MM = -0.22
 INSTALLED_DIAPHRAGM_MEMBRANE_THICKNESS_MM = 0.16
@@ -221,6 +228,10 @@ class PrimaryControlHapticArchitectureV10:
             raise PrimaryControlHapticV10Error("diaphragm groove leaves insufficient outer barrel ligament")
         if FREE_TO_INSTALLED_MEMBRANE_COMPRESSION_SEED_MM <= 0.0:
             raise PrimaryControlHapticV10Error("return seat requires positive free-to-installed compression seed")
+        if DIAPHRAGM_GROOVE_BORE_RADIAL_RUNOUT_MM <= 0.0:
+            raise PrimaryControlHapticV10Error("diaphragm groove requires positive runout into the existing bore")
+        if DIAPHRAGM_GROOVE_ID_MM >= v1.BARREL_BORE_DIAMETER_MM:
+            raise PrimaryControlHapticV10Error("diaphragm groove must break through to the existing barrel bore")
         if any(value > _INTERSECTION_TOLERANCE_MM3 for value in self.keepout_intersections_mm3.values()):
             raise PrimaryControlHapticV10Error("V10 primary-control module intersects released package keepout")
         refs = dict(self.reference_parts)
@@ -252,6 +263,7 @@ class PrimaryControlHapticArchitectureV10:
                 "manufactured_free_geometry": "wet_diaphragm",
                 "installed_deformed_reference": "wet_diaphragm_installed_return_reference",
                 "outer_bead_shell_reaction_groove_removed_mm3": self.diaphragm_groove_removed_mm3,
+                "groove_bore_radial_runout_mm": DIAPHRAGM_GROOVE_BORE_RADIAL_RUNOUT_MM,
                 "installed_shell_intersection_mm3": self.installed_diaphragm_shell_intersection_mm3,
                 "installed_moving_intersection_mm3": self.installed_diaphragm_moving_intersection_mm3,
                 "groove_outer_ligament_mm": self.groove_outer_ligament_mm,
