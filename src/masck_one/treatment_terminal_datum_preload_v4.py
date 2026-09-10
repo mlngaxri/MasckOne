@@ -19,6 +19,14 @@ exactly a degree-5 Bezier with scalar control values [0,0,0,1,1,1], so V4 constr
 that exact Bezier ramp and then an exact flat seating land. The intended zero entry
 slope/curvature and zero full-seat slope/curvature are preserved without penetration.
 
+The Bezier half-space proof is analytic: every control point and every linear profile
+vertex must remain on the allowed side of its datum plane. A Bezier curve lies inside
+the convex hull of its control polygon, so this proves the intended curve cannot cross
+the datum. OpenCascade bounding boxes are not used for this half-space assertion
+because they carry approximately 1e-7 mm numerical padding even for exact tangent
+geometry. Actual volumetric source intersection remains the collision authority and
+is not relaxed.
+
 Third, service withdrawal no longer starts by prism-sweeping an exactly seated or
 tangent datum. The nominal seated state is checked independently, then every terminal
 part translates +Y by a small positive unseat distance before the remaining
@@ -89,6 +97,7 @@ SCHEMA = "MASCK_ONE_TREATMENT_TERMINAL_DATUM_PRELOAD_V4"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 SOURCE_CELL6_HEAD_SHA = "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be"
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
+_ANALYTIC_HALFSPACE_TOL_MM = 1e-12
 
 # Exact degree-5 Bezier representation of smootherstep. For S(s), controls are
 # [0,0,0,1,1,1]. Gap is clearance * (1-S), hence [c,c,c,0,0,0].
@@ -144,6 +153,21 @@ def _exact_gap_bezier_controls(
     return tuple(controls)
 
 
+def _require_halfspace(
+    values: tuple[float, ...],
+    *,
+    datum: float,
+    side_sign: float,
+    label: str,
+) -> None:
+    signed = tuple(side_sign * (value - datum) for value in values)
+    minimum = min(signed)
+    if minimum < -_ANALYTIC_HALFSPACE_TOL_MM:
+        raise TreatmentTerminalDatumPreloadV4Error(
+            f"{label} control polygon crosses datum half-space: signed_margin_mm={minimum:.12g}"
+        )
+
+
 def _exact_x_cam_pad(
     *,
     cx: float,
@@ -170,6 +194,13 @@ def _exact_x_cam_pad(
     land_end_y = contact_y + POSTERIOR_EXTENSION_MM
     outer_x = face_x + side_sign * (clearance_mm + depth_mm)
 
+    _require_halfspace(
+        tuple(x for x, _y in inner_controls) + (face_x, outer_x),
+        datum=face_x,
+        side_sign=side_sign,
+        label="exact X cam",
+    )
+
     profile = (
         cq.Workplane("XY")
         .moveTo(*inner_controls[0])
@@ -185,10 +216,6 @@ def _exact_x_cam_pad(
     if not shape.isValid() or len(shape.Solids()) != 1 or shape.Volume() <= 0.0:
         raise TreatmentTerminalDatumPreloadV4Error("exact X cam pad is invalid")
     bb = shape.BoundingBox()
-    if side_sign > 0.0 and bb.xmin < face_x - 1e-9:
-        raise TreatmentTerminalDatumPreloadV4Error("exact X cam crosses positive-side datum plane")
-    if side_sign < 0.0 and bb.xmax > face_x + 1e-9:
-        raise TreatmentTerminalDatumPreloadV4Error("exact X cam crosses negative-side datum plane")
     if bb.ymin > start_y + 1e-9 or bb.ymax < land_end_y - 1e-9:
         raise TreatmentTerminalDatumPreloadV4Error("exact X cam lost complete take-up/land span")
     if not land_start_y < land_end_y:
@@ -220,6 +247,13 @@ def _exact_z_cam_pad(
     land_end_y = contact_y + POSTERIOR_EXTENSION_MM
     outer_z = contact_z + side_sign * (clearance_mm + depth_mm)
 
+    _require_halfspace(
+        tuple(z for _y, z in inner_controls) + (contact_z, outer_z),
+        datum=contact_z,
+        side_sign=side_sign,
+        label="exact Z cam",
+    )
+
     profile = (
         cq.Workplane("YZ", origin=(x_center, 0.0, 0.0))
         .moveTo(*inner_controls[0])
@@ -233,10 +267,6 @@ def _exact_z_cam_pad(
     if not shape.isValid() or len(shape.Solids()) != 1 or shape.Volume() <= 0.0:
         raise TreatmentTerminalDatumPreloadV4Error("exact Z cam pad is invalid")
     bb = shape.BoundingBox()
-    if side_sign > 0.0 and bb.zmin < contact_z - 1e-9:
-        raise TreatmentTerminalDatumPreloadV4Error("exact Z cam crosses positive-side datum plane")
-    if side_sign < 0.0 and bb.zmax > contact_z + 1e-9:
-        raise TreatmentTerminalDatumPreloadV4Error("exact Z cam crosses negative-side datum plane")
     if bb.ymin > start_y + 1e-9 or bb.ymax < land_end_y - 1e-9:
         raise TreatmentTerminalDatumPreloadV4Error("exact Z cam lost complete take-up/land span")
     if not land_start_y < land_end_y:
@@ -286,12 +316,15 @@ class TerminalDatumPreloadV4Architecture:
                 "full_seat_slope_intent": 0.0,
                 "full_seat_curvature_intent": 0.0,
                 "interpolating_spline_removed": True,
+                "datum_halfspace_proof": "BEZIER_CONTROL_POLYGON_CONVEX_HULL_PLUS_LINEAR_PROFILE_VERTICES",
+                "bbox_not_used_as_material_halfspace": True,
+                "volumetric_collision_authority_preserved": True,
                 "collision_threshold_weakened": False,
             },
             "verification_revision": (
-                "EXACT_C2_BEZIER_CAM_PLUS_BRIDGE_CLEAR_COAXIAL_Z_DATUM_PAIR_PLUS_"
-                "BOOLEAN_FREE_REFERENCE_SWEEPS_AFTER_EXPLICIT_POSITIVE_DATUM_UNSEAT_"
-                "WITH_SOLID_PAIR_VOLUMETRIC_COLLISION"
+                "EXACT_C2_BEZIER_CAM_WITH_ANALYTIC_CONTROL_HULL_HALFSPACE_PLUS_"
+                "BRIDGE_CLEAR_COAXIAL_Z_DATUM_PAIR_PLUS_BOOLEAN_FREE_REFERENCE_SWEEPS_"
+                "AFTER_EXPLICIT_POSITIVE_DATUM_UNSEAT_WITH_SOLID_PAIR_VOLUMETRIC_COLLISION"
             ),
             "Z_datum_relocation": {
                 "direction": "INBOARD_TOWARD_PRODUCT_CENTER_MIRRORED_BY_STATION",
