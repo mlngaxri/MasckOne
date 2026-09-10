@@ -36,15 +36,17 @@ jobs:
             src/masck_one/mechanical_interface_graph.py \
             src/masck_one/retention_quick_release_tactile.py \
             src/masck_one/retention_quick_release_tactile_v2.py \
+            src/masck_one/retention_quick_release_tactile_v3.py \
             src/masck_one/structural_frame_retention_roots.py
-      - name: Verify positive retention graph and tactile quick release
+      - name: Verify positive retention graph and selected tactile successor
         run: |
           python -m pytest -q \
             tests/test_mechanical_interface_graph.py \
-            tests/test_retention_quick_release_tactile.py \
-            tests/test_retention_quick_release_tactile_v2.py
+            tests/test_retention_quick_release_tactile_v3.py
 
-# Branch-level mechanism verification only. V1 remains regression evidence for the
-# low-play guide/key/damping/hard-stop architecture; V2 is the tactile successor that
-# removes the faceted cam approximation. Parent Cell 6 and complete repository CI
-# remain separate release gates and no physical force/wet-use claim is promoted here.
+# Branch-level mechanism verification only. V1 and V2 remain explicit superseded
+# evidence: V1 carries the faceted cam and V2 reproduces the rib/bumper conflict that
+# exact-head CI exposed. V3 reasserts their low-play guide, key, preload, damping and
+# hard-stop requirements while fixing both defects. Parent Cell 6 and complete repo
+# CI remain separate release gates; no physical force, wet-use or tactile claim is
+# promoted by this focused gate.
