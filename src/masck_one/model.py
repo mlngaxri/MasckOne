@@ -264,9 +264,11 @@ def build_model(authority: Authority | None = None) -> MasckOneModel:
         "DEVELOPMENT_LOCAL_THICKNESS_REFERENCE",
         "Only the dedicated nasal-lobe development role carries the 0.30 mm authority thickness; bridge, dorsum, sidewall and philtrum thicknesses remain unresolved. Not final anatomical membrane CAD.",
     )
+    rw, rh, rd = (float(v) for v in authority.get("fluid", "water_reservoir", "envelope_mm"))
     water_reservoir = Component(
-        "water_reservoir_envelope", _box_centered(26.0, 25.0, 10.0, Point3(0.0, 76.0, 7.0)),
-        "ENGINEERING_BASELINE_ENVELOPE", "6500 mm^3 gross volume; final wall/port geometry not frozen.",
+        "water_reservoir_envelope", _box_centered(rw, rh, rd, Point3(0.0, 76.0, 7.0)),
+        "ENGINEERING_BASELINE_ENVELOPE",
+        "Gross packaging envelope derived from authority; final wall/port geometry not frozen.",
     )
     cw, ch, cd = (float(v) for v in authority.get("fluid", "cartridge", "external_envelope_mm"))
     waste_cartridge = Component(

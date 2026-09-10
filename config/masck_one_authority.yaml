@@ -131,6 +131,8 @@ fluid:
   water_reservoir:
     gross_mL: 6.5
     minimum_usable_mL: 5.5
+    envelope_mm: [26.0, 25.0, 10.0]
+    envelope_status: ENGINEERING_BASELINE
     status: ENGINEERING_BASELINE
   clean_cycle:
     face_water_mL: 3.2

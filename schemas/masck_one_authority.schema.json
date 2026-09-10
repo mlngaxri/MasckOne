@@ -361,10 +361,12 @@
         "water_reservoir": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["gross_mL", "minimum_usable_mL", "status"],
+          "required": ["gross_mL", "minimum_usable_mL", "envelope_mm", "envelope_status", "status"],
           "properties": {
             "gross_mL": {"$ref": "#/$defs/positiveNumber"},
             "minimum_usable_mL": {"$ref": "#/$defs/positiveNumber"},
+            "envelope_mm": {"$ref": "#/$defs/positiveTriple"},
+            "envelope_status": {"$ref": "#/$defs/status"},
             "status": {"$ref": "#/$defs/status"}
           }
         },

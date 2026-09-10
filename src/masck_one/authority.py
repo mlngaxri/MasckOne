@@ -414,6 +414,18 @@ def _semantic_issues(data: dict[str, Any]) -> list[AuthorityValidationIssue]:
             {"maximum": gross_water},
         )
 
+    reservoir_envelope = [float(v) for v in _get(data, "fluid", "water_reservoir", "envelope_mm")]
+    reservoir_envelope_mL = (reservoir_envelope[0] * reservoir_envelope[1] * reservoir_envelope[2]) / 1000.0
+    if not _isclose(reservoir_envelope_mL, gross_water, abs_tol=1e-9):
+        add(
+            "WATER_RESERVOIR_ENVELOPE_VOLUME_MISMATCH",
+            "fluid.water_reservoir.envelope_mm",
+            "Water-reservoir packaging envelope must enclose exactly the declared gross volume. "
+            "This is envelope bookkeeping only; wall thickness, ports and usable capacity remain unresolved.",
+            reservoir_envelope_mL,
+            {"expected_mL": gross_water},
+        )
+
     face_water = float(_get(data, "fluid", "clean_cycle", "face_water_mL"))
     cleanser = float(_get(data, "fluid", "clean_cycle", "cleanser_mL"))
     flush = float(_get(data, "fluid", "clean_cycle", "post_flush_water_mL"))
@@ -587,6 +599,7 @@ def load_authority(
             ("geometry", "nostrils", "minimum_deformed_area_each_mm2"),
             ("actuation", "count"),
             ("fluid", "water_reservoir", "gross_mL"),
+            ("fluid", "water_reservoir", "envelope_mm"),
             ("fluid", "cartridge", "external_envelope_mm"),
         ]
     )
