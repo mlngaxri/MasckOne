@@ -25,11 +25,12 @@ AABB overlap is followed by exact shape-to-shape distance: pairs with strictly p
 distance are provably disjoint and never need a Boolean common. Touching/overlapping
 pairs have zero distance and still run the strict Common path. If both Common execution
 paths fail on a zero-distance pair, exact BRepAlgoAPI Cut volume identities are tried
-in both subtraction directions. A-B and B-A must remove the same positive common
-volume, so either successful direction can distinguish contact-only from penetration.
-No fuzzy value, geometric tolerance expansion, sampling approximation, or collision
-threshold change is introduced; failure of both exact subtraction directions remains
-a hard verification error.
+in both subtraction directions. If both subtraction directions also fail, the larger
+operand is exactly clipped into non-overlapping AABB partitions whose summed positive
+volume must reproduce the original operand before the same strict pairwise test is
+recursed on the smaller pieces. No fuzzy value, geometric tolerance expansion,
+sampling approximation, collision threshold change, or material omission is
+introduced; failure after bounded exact partitioning remains a hard verification error.
 """
 
 import math
@@ -43,6 +44,10 @@ from OCP.gp import gp_Vec
 
 
 _GEOMETRIC_DIRECTION_TOL = 1e-12
+_PARTITION_MAX_DEPTH = 6
+_PARTITION_MARGIN_MM = 1.0
+_PARTITION_VOLUME_ABS_TOL_MM3 = 1e-6
+_PARTITION_VOLUME_REL_TOL = 1e-10
 
 
 class TreatmentReferenceGeometryError(ValueError):
@@ -303,15 +308,215 @@ def _bbox_tuple(shape: cq.Shape) -> tuple[float, float, float, float, float, flo
     return (bb.xmin, bb.xmax, bb.ymin, bb.ymax, bb.zmin, bb.zmax)
 
 
+def _bbox_volume(shape: cq.Shape) -> float:
+    bb = shape.BoundingBox()
+    spans = (bb.xmax - bb.xmin, bb.ymax - bb.ymin, bb.zmax - bb.zmin)
+    if not all(math.isfinite(value) and value >= 0.0 for value in spans):
+        raise TreatmentReferenceGeometryError("partition operand has invalid bounding box")
+    return spans[0] * spans[1] * spans[2]
+
+
+def _partition_box(
+    *,
+    xmin: float,
+    xmax: float,
+    ymin: float,
+    ymax: float,
+    zmin: float,
+    zmax: float,
+) -> cq.Shape:
+    dimensions = (xmax - xmin, ymax - ymin, zmax - zmin)
+    if not all(math.isfinite(value) and value > 0.0 for value in dimensions):
+        raise TreatmentReferenceGeometryError("partition box dimensions must be positive finite")
+    return (
+        cq.Workplane("XY")
+        .box(*dimensions, centered=(True, True, True))
+        .translate(
+            (
+                (xmin + xmax) / 2.0,
+                (ymin + ymax) / 2.0,
+                (zmin + zmax) / 2.0,
+            )
+        )
+        .val()
+    )
+
+
+def _exact_clip_to_box(source: cq.Shape, box: cq.Shape) -> list[cq.Shape]:
+    """Clip one solid with a simple exact box without using monkey-patchable fallbacks."""
+    try:
+        operation = BRepAlgoAPI_Common(source.wrapped, box.wrapped)
+        operation.Build()
+    except Exception as exc:
+        raise TreatmentReferenceGeometryError(
+            "exact partition clip raised: "
+            f"source_bbox={_bbox_tuple(source)}, box_bbox={_bbox_tuple(box)}"
+        ) from exc
+    if not operation.IsDone():
+        raise TreatmentReferenceGeometryError(
+            "exact partition clip did not complete: "
+            f"source_bbox={_bbox_tuple(source)}, box_bbox={_bbox_tuple(box)}"
+        )
+    return _positive_valid_solids(cq.Shape.cast(operation.Shape()))
+
+
+def _partition_solid_once(source: cq.Shape) -> list[cq.Shape]:
+    """Split a positive solid into exact, non-overlapping AABB-clipped pieces."""
+    bb = source.BoundingBox()
+    spans = {
+        "x": bb.xmax - bb.xmin,
+        "y": bb.ymax - bb.ymin,
+        "z": bb.zmax - bb.zmin,
+    }
+    axis = max(spans, key=spans.get)
+    span = spans[axis]
+    if not math.isfinite(span) or span <= 0.0:
+        raise TreatmentReferenceGeometryError("cannot partition degenerate positive solid")
+
+    margin = max(_PARTITION_MARGIN_MM, 0.05 * max(spans.values()))
+    split = (
+        (bb.xmin + bb.xmax) / 2.0
+        if axis == "x"
+        else (bb.ymin + bb.ymax) / 2.0
+        if axis == "y"
+        else (bb.zmin + bb.zmax) / 2.0
+    )
+
+    common = {
+        "xmin": bb.xmin - margin,
+        "xmax": bb.xmax + margin,
+        "ymin": bb.ymin - margin,
+        "ymax": bb.ymax + margin,
+        "zmin": bb.zmin - margin,
+        "zmax": bb.zmax + margin,
+    }
+    first = dict(common)
+    second = dict(common)
+    first[f"{axis}max"] = split
+    second[f"{axis}min"] = split
+
+    pieces = [
+        piece
+        for bounds in (first, second)
+        for piece in _exact_clip_to_box(source, _partition_box(**bounds))
+    ]
+    if len(pieces) < 2:
+        raise TreatmentReferenceGeometryError(
+            "exact partitioning did not produce two positive operand pieces: "
+            f"source_bbox={_bbox_tuple(source)}"
+        )
+
+    source_volume = float(source.Volume())
+    piece_volume = sum(float(piece.Volume()) for piece in pieces)
+    if not all(math.isfinite(value) and value > 0.0 for value in (source_volume, piece_volume)):
+        raise TreatmentReferenceGeometryError("exact partition volume identity is nonfinite")
+    allowed_delta = max(
+        _PARTITION_VOLUME_ABS_TOL_MM3,
+        _PARTITION_VOLUME_REL_TOL * source_volume,
+    )
+    if abs(piece_volume - source_volume) > allowed_delta:
+        raise TreatmentReferenceGeometryError(
+            "exact partition pieces do not conserve operand volume: "
+            f"source_mm3={source_volume:.12g}, pieces_mm3={piece_volume:.12g}, "
+            f"delta_mm3={piece_volume - source_volume:.12g}, allowed_mm3={allowed_delta:.12g}"
+        )
+    return pieces
+
+
+def _common_positive_volume_mm3(common: cq.Shape, left: cq.Shape, right: cq.Shape) -> float:
+    total = 0.0
+    raw_solids = common.Solids()
+    if not raw_solids:
+        return 0.0
+    for raw in raw_solids:
+        raw_volume = max(0.0, float(raw.Volume()))
+        if not math.isfinite(raw_volume):
+            raise TreatmentReferenceGeometryError("intersection volume is nonfinite")
+        if raw_volume <= 0.0:
+            continue
+        solid = _heal(raw)
+        volume = max(0.0, float(solid.Volume()))
+        if not math.isfinite(volume):
+            raise TreatmentReferenceGeometryError("healed intersection volume is nonfinite")
+        if volume <= 0.0:
+            continue
+        if not solid.isValid():
+            raise TreatmentReferenceGeometryError(
+                "positive common cannot be healed to valid solid: "
+                f"raw_volume_mm3={raw_volume:.12g}, "
+                f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}"
+            )
+        total += volume
+    return total
+
+
+def _pair_intersection_volume_mm3(
+    left: cq.Shape,
+    right: cq.Shape,
+    *,
+    partition_depth: int,
+) -> float:
+    lb = left.BoundingBox()
+    rb = right.BoundingBox()
+    if (
+        lb.xmax < rb.xmin
+        or rb.xmax < lb.xmin
+        or lb.ymax < rb.ymin
+        or rb.ymax < lb.ymin
+        or lb.zmax < rb.zmin
+        or rb.zmax < lb.zmin
+    ):
+        return 0.0
+
+    if _exact_shape_distance(left, right) > 0.0:
+        return 0.0
+
+    try:
+        common = _direct_common(left, right)
+    except TreatmentReferenceGeometryError as common_error:
+        try:
+            return _exact_cut_removed_volume_mm3(left, right)
+        except TreatmentReferenceGeometryError as cut_error:
+            if partition_depth >= _PARTITION_MAX_DEPTH:
+                raise TreatmentReferenceGeometryError(
+                    "exact collision verification exhausted bounded partitioning: "
+                    f"depth={partition_depth}, left_bbox={_bbox_tuple(left)}, "
+                    f"right_bbox={_bbox_tuple(right)}; common={common_error}; cut={cut_error}"
+                ) from cut_error
+
+            partition_right = _bbox_volume(right) >= _bbox_volume(left)
+            source = right if partition_right else left
+            pieces = _partition_solid_once(source)
+            if partition_right:
+                return sum(
+                    _pair_intersection_volume_mm3(
+                        left,
+                        piece,
+                        partition_depth=partition_depth + 1,
+                    )
+                    for piece in pieces
+                )
+            return sum(
+                _pair_intersection_volume_mm3(
+                    piece,
+                    right,
+                    partition_depth=partition_depth + 1,
+                )
+                for piece in pieces
+            )
+
+    return _common_positive_volume_mm3(common, left, right)
+
+
 def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
     """Return positive common volume using exact OCC solid-to-solid operands.
 
     Boundary-only or topologically empty commons contribute zero. After cheap AABB
     rejection, an exact OCC minimum-distance check skips only pairs with strictly
     positive separation. Touching/overlapping pairs still execute exact Common. If
-    Common cannot execute, exact Cut volume identity in either subtraction direction
-    supplies the same volumetric collision witness without altering geometry or
-    collision thresholds.
+    Common and both exact Cut identities cannot execute, bounded exact partitioning of
+    the larger operand conditions the same geometry into smaller non-overlapping pieces
+    whose volume identity is proved before recursion. Collision criteria are unchanged.
     """
     total = 0.0
     left_solids = a.Solids()
@@ -320,54 +525,12 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
         return 0.0
 
     for left in left_solids:
-        lb = left.BoundingBox()
         for right in right_solids:
-            rb = right.BoundingBox()
-            if (
-                lb.xmax < rb.xmin
-                or rb.xmax < lb.xmin
-                or lb.ymax < rb.ymin
-                or rb.ymax < lb.ymin
-                or lb.zmax < rb.zmin
-                or rb.zmax < lb.zmin
-            ):
-                continue
-
-            if _exact_shape_distance(left, right) > 0.0:
-                continue
-
-            try:
-                common = _direct_common(left, right)
-            except TreatmentReferenceGeometryError:
-                total += _exact_cut_removed_volume_mm3(left, right)
-                continue
-
-            raw_solids = common.Solids()
-            if not raw_solids:
-                continue
-            for raw in raw_solids:
-                raw_volume = max(0.0, float(raw.Volume()))
-                if not math.isfinite(raw_volume):
-                    raise TreatmentReferenceGeometryError(
-                        "intersection volume is nonfinite"
-                    )
-                if raw_volume <= 0.0:
-                    continue
-                solid = _heal(raw)
-                volume = max(0.0, float(solid.Volume()))
-                if not math.isfinite(volume):
-                    raise TreatmentReferenceGeometryError(
-                        "healed intersection volume is nonfinite"
-                    )
-                if volume <= 0.0:
-                    continue
-                if not solid.isValid():
-                    raise TreatmentReferenceGeometryError(
-                        "positive common cannot be healed to valid solid: "
-                        f"raw_volume_mm3={raw_volume:.12g}, "
-                        f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}"
-                    )
-                total += volume
+            total += _pair_intersection_volume_mm3(
+                left,
+                right,
+                partition_depth=0,
+            )
 
     if not math.isfinite(total):
         raise TreatmentReferenceGeometryError(
