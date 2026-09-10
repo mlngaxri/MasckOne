@@ -1,0 +1,46 @@
+name: Retention tactile focused verification
+
+on:
+  push:
+    branches: [sol-high/retention-quick-release-20260909]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: retention-tactile-focused-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quick-release-tactile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact retention head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile owner-local retention sources
+        run: |
+          python -m py_compile \
+            src/masck_one/mechanical_interface_graph.py \
+            src/masck_one/retention_quick_release_tactile.py \
+            src/masck_one/structural_frame_retention_roots.py
+      - name: Verify positive retention graph and tactile quick release
+        run: |
+          python -m pytest -q \
+            tests/test_mechanical_interface_graph.py \
+            tests/test_retention_quick_release_tactile.py
+
+# Branch-level mechanism verification only. Parent Cell 6 and complete repository CI
+# remain separate release gates and no physical force/wet-use claim is promoted here.
