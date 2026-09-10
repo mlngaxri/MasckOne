@@ -20,8 +20,11 @@ solid even though the non-canonical prism is valid and has the same positive vol
 Disabling that representation rewrite preserves the exact source face and translation;
 it does not heal, approximate, omit, or enlarge swept geometry.
 
-Collision common is evaluated with OpenCascade's direct BRepAlgoAPI operator. Any
-finite positive common that cannot be healed remains a hard failure.
+Collision common is evaluated with OpenCascade's exact BRepAlgoAPI Common operator.
+If the compact two-shape constructor does not complete, the same solid pair is retried
+through explicit argument/tool lists with parallel execution enabled. No fuzzy value,
+geometric tolerance expansion, sampling approximation, or collision threshold change
+is introduced. Any finite positive common that cannot be healed remains a hard failure.
 """
 
 import math
@@ -30,6 +33,7 @@ import cadquery as cq
 from OCP.BRepAlgoAPI import BRepAlgoAPI_Common
 from OCP.BRepPrimAPI import BRepPrimAPI_MakePrism
 from OCP.ShapeFix import ShapeFix_Shape
+from OCP.TopTools import TopTools_ListOfShape
 from OCP.gp import gp_Vec
 
 
@@ -164,16 +168,38 @@ def translation_reference_compound(
     return compound
 
 
+def _explicit_list_common(left: cq.Shape, right: cq.Shape) -> cq.Shape:
+    """Run the same exact Common through explicit OCC argument/tool lists.
+
+    This is an execution-path fallback only. It intentionally does not set a fuzzy
+    value or alter either operand. Parallel mode changes scheduling, not geometry.
+    """
+    arguments = TopTools_ListOfShape()
+    arguments.Append(left.wrapped)
+    tools = TopTools_ListOfShape()
+    tools.Append(right.wrapped)
+
+    operation = BRepAlgoAPI_Common()
+    operation.SetArguments(arguments)
+    operation.SetTools(tools)
+    operation.SetRunParallel(True)
+    operation.Build()
+    if not operation.IsDone():
+        raise TreatmentReferenceGeometryError(
+            "explicit-list OCC common did not complete: "
+            f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}"
+        )
+    return cq.Shape.cast(operation.Shape())
+
+
 def _direct_common(left: cq.Shape, right: cq.Shape) -> cq.Shape:
     try:
         operation = BRepAlgoAPI_Common(left.wrapped, right.wrapped)
         operation.Build()
-    except Exception as exc:
-        raise TreatmentReferenceGeometryError(
-            "direct OCC common kernel failure"
-        ) from exc
+    except Exception:
+        return _explicit_list_common(left, right)
     if not operation.IsDone():
-        raise TreatmentReferenceGeometryError("direct OCC common did not complete")
+        return _explicit_list_common(left, right)
     return cq.Shape.cast(operation.Shape())
 
 
@@ -183,10 +209,12 @@ def _bbox_tuple(shape: cq.Shape) -> tuple[float, float, float, float, float, flo
 
 
 def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
-    """Return positive common volume using direct OCC solid-to-solid operands.
+    """Return positive common volume using exact OCC solid-to-solid operands.
 
     Boundary-only or topologically empty commons contribute zero. Any common with
     finite positive volume must heal to valid B-rep topology or the check fails.
+    The explicit-list retry is the same Boolean operation on the same operands and
+    does not relax collision criteria.
     """
     total = 0.0
     left_solids = a.Solids()
