@@ -26,11 +26,13 @@ distance are provably disjoint and never need a Boolean common. Touching/overlap
 pairs have zero distance and still run the strict Common path. If both Common execution
 paths fail on a zero-distance pair, exact BRepAlgoAPI Cut volume identities are tried
 in both subtraction directions. If both subtraction directions also fail, the larger
-operand is exactly clipped into non-overlapping AABB partitions whose summed positive
-volume must reproduce the original operand before the same strict pairwise test is
-recursed on the smaller pieces. No fuzzy value, geometric tolerance expansion,
-sampling approximation, collision threshold change, or material omission is
-introduced; failure after bounded exact partitioning remains a hard verification error.
+operand is selected once, exactly clipped into non-overlapping AABB partitions whose
+summed positive volume must reproduce that operand, and that same operand side remains
+locked throughout recursive subdivision. This prevents recursion from switching onto
+a smaller but topologically more complex swept operand after the original large source
+has already been conditioned. No fuzzy value, geometric tolerance expansion, sampling
+approximation, collision threshold change, or material omission is introduced; failure
+after bounded exact partitioning remains a hard verification error.
 """
 
 import math
@@ -455,7 +457,11 @@ def _pair_intersection_volume_mm3(
     right: cq.Shape,
     *,
     partition_depth: int,
+    partition_side: str | None,
 ) -> float:
+    if partition_side not in {None, "left", "right"}:
+        raise TreatmentReferenceGeometryError("partition side must be left, right, or None")
+
     lb = left.BoundingBox()
     rb = right.BoundingBox()
     if (
@@ -480,19 +486,26 @@ def _pair_intersection_volume_mm3(
             if partition_depth >= _PARTITION_MAX_DEPTH:
                 raise TreatmentReferenceGeometryError(
                     "exact collision verification exhausted bounded partitioning: "
-                    f"depth={partition_depth}, left_bbox={_bbox_tuple(left)}, "
-                    f"right_bbox={_bbox_tuple(right)}; common={common_error}; cut={cut_error}"
+                    f"depth={partition_depth}, partition_side={partition_side}, "
+                    f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}; "
+                    f"common={common_error}; cut={cut_error}"
                 ) from cut_error
 
-            partition_right = _bbox_volume(right) >= _bbox_volume(left)
-            source = right if partition_right else left
+            locked_partition_side = partition_side
+            if locked_partition_side is None:
+                locked_partition_side = (
+                    "right" if _bbox_volume(right) >= _bbox_volume(left) else "left"
+                )
+
+            source = right if locked_partition_side == "right" else left
             pieces = _partition_solid_once(source)
-            if partition_right:
+            if locked_partition_side == "right":
                 return sum(
                     _pair_intersection_volume_mm3(
                         left,
                         piece,
                         partition_depth=partition_depth + 1,
+                        partition_side=locked_partition_side,
                     )
                     for piece in pieces
                 )
@@ -501,6 +514,7 @@ def _pair_intersection_volume_mm3(
                     piece,
                     right,
                     partition_depth=partition_depth + 1,
+                    partition_side=locked_partition_side,
                 )
                 for piece in pieces
             )
@@ -515,8 +529,11 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
     rejection, an exact OCC minimum-distance check skips only pairs with strictly
     positive separation. Touching/overlapping pairs still execute exact Common. If
     Common and both exact Cut identities cannot execute, bounded exact partitioning of
-    the larger operand conditions the same geometry into smaller non-overlapping pieces
-    whose volume identity is proved before recursion. Collision criteria are unchanged.
+    the initially larger operand conditions the same geometry into smaller
+    non-overlapping pieces whose volume identity is proved before recursion. The
+    selected partition side remains fixed throughout that recursion so a complex
+    opposite operand is never selected merely because a conditioned piece became
+    smaller. Collision criteria are unchanged.
     """
     total = 0.0
     left_solids = a.Solids()
@@ -530,6 +547,7 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
                 left,
                 right,
                 partition_depth=0,
+                partition_side=None,
             )
 
     if not math.isfinite(total):
