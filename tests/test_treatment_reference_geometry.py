@@ -3,8 +3,10 @@ from __future__ import annotations
 import pytest
 import cadquery as cq
 
+import masck_one.treatment_reference_geometry as reference_geometry
 from masck_one.treatment_reference_geometry import (
     _explicit_list_common,
+    _exact_shape_distance,
     intersection_volume_mm3,
     translation_reference_compound,
 )
@@ -31,6 +33,45 @@ def test_explicit_list_common_preserves_exact_positive_common_semantics():
     assert common.isValid()
     assert common.Solids()
     assert sum(float(solid.Volume()) for solid in common.Solids()) == pytest.approx(0.25, abs=1e-9)
+
+
+def test_exact_distance_skips_only_provably_separated_pairs_with_overlapping_aabbs(monkeypatch):
+    ring = (
+        cq.Workplane("XY")
+        .circle(2.0)
+        .circle(1.0)
+        .extrude(1.0)
+        .val()
+    )
+    inner = cq.Workplane("XY").circle(0.5).extrude(1.0).val()
+
+    # Their axis-aligned boxes overlap in all axes, but the central cylinder remains
+    # exactly separated from the ring's inner wall. Common must not be needed.
+    assert _exact_shape_distance(ring, inner) > 0.0
+
+    def forbidden_common(_left: cq.Shape, _right: cq.Shape) -> cq.Shape:
+        raise AssertionError("provably separated pair should not execute Boolean Common")
+
+    monkeypatch.setattr(reference_geometry, "_direct_common", forbidden_common)
+    assert intersection_volume_mm3(ring, inner) == 0.0
+
+
+def test_exact_distance_does_not_hide_touching_or_positive_overlap(monkeypatch):
+    base = _box(0.0)
+    overlapping = _box(0.75)
+    assert _exact_shape_distance(base, overlapping) == 0.0
+
+    calls = 0
+    original = reference_geometry._direct_common
+
+    def counted_common(left: cq.Shape, right: cq.Shape) -> cq.Shape:
+        nonlocal calls
+        calls += 1
+        return original(left, right)
+
+    monkeypatch.setattr(reference_geometry, "_direct_common", counted_common)
+    assert intersection_volume_mm3(base, overlapping) == pytest.approx(0.25, abs=1e-9)
+    assert calls > 0
 
 
 def test_translation_reference_is_boolean_free_and_covers_midpath_collision():
