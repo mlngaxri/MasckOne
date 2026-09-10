@@ -115,16 +115,24 @@ def dynamic_pressure_pa(velocity_m_s: float) -> float:
     return 0.5 * AIR_DENSITY_KG_M3 * velocity * velocity
 
 
-def hydraulic_diameter_mm(area_mm2: float) -> float:
-    """Equivalent circular diameter of the aperture."""
+def equivalent_circular_diameter_mm(area_mm2: float) -> float:
+    """Diameter of the circle with the same area as the aperture.
+
+    Used as the Reynolds length scale. For a circular aperture this equals the
+    hydraulic diameter 4A/P exactly; for a slot or lobed opening of the same
+    area it is larger than the true hydraulic diameter, so the Reynolds numbers
+    reported here are upper estimates for non-circular geometry. Since the
+    screen's conclusion is that K sits *below* the Re-independent range, an
+    overestimate is the conservative direction.
+    """
 
     return math.sqrt(4.0 * _positive(area_mm2, "area_mm2") / math.pi)
 
 
 def reynolds_number(flow_lpm: float, area_mm2: float, *, paths: int = PARALLEL_AIRWAY_PATHS) -> float:
     velocity = path_velocity_m_s(flow_lpm, area_mm2, paths=paths)
-    d_h = hydraulic_diameter_mm(area_mm2) * 1e-3
-    return AIR_DENSITY_KG_M3 * velocity * d_h / AIR_DYNAMIC_VISCOSITY_PA_S
+    length_scale_m = equivalent_circular_diameter_mm(area_mm2) * 1e-3
+    return AIR_DENSITY_KG_M3 * velocity * length_scale_m / AIR_DYNAMIC_VISCOSITY_PA_S
 
 
 def added_pressure_drop_pa(
@@ -233,7 +241,7 @@ class AirwayResistanceScreen:
     """Deterministic breathing-resistance screen bound to the machine authority."""
 
     minimum_area_mm2: float
-    hydraulic_diameter_mm: float
+    equivalent_circular_diameter_mm: float
     requirement_points: tuple[AirwayScreenPoint, ...]
     implied_loss_coefficient_budget: float
     requirement_points_are_mutually_consistent: bool
@@ -254,7 +262,7 @@ class AirwayResistanceScreen:
             },
             "parallel_paths": PARALLEL_AIRWAY_PATHS,
             "minimum_area_mm2": self.minimum_area_mm2,
-            "hydraulic_diameter_mm": round(self.hydraulic_diameter_mm, 4),
+            "equivalent_circular_diameter_mm": round(self.equivalent_circular_diameter_mm, 4),
             "requirement_points": [p.manifest() for p in self.requirement_points],
             "implied_loss_coefficient_budget": round(self.implied_loss_coefficient_budget, 6),
             "requirement_points_are_mutually_consistent": self.requirement_points_are_mutually_consistent,
@@ -362,7 +370,7 @@ def build_airway_resistance_screen(authority: Authority) -> AirwayResistanceScre
 
     return AirwayResistanceScreen(
         minimum_area_mm2=area,
-        hydraulic_diameter_mm=hydraulic_diameter_mm(area),
+        equivalent_circular_diameter_mm=equivalent_circular_diameter_mm(area),
         requirement_points=tuple(points),
         implied_loss_coefficient_budget=budget,
         requirement_points_are_mutually_consistent=consistent,

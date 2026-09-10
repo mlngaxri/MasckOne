@@ -22,7 +22,7 @@ from masck_one.airway_resistance import (
     allowable_loss_coefficient,
     build_airway_resistance_screen,
     dynamic_pressure_pa,
-    hydraulic_diameter_mm,
+    equivalent_circular_diameter_mm,
     minimum_compliant_area_mm2,
     path_velocity_m_s,
     reynolds_number,
@@ -74,8 +74,8 @@ def test_pressure_drop_scales_with_inverse_square_of_area() -> None:
     assert math.isclose(narrow / wide, 4.0, rel_tol=1e-12)
 
 
-def test_hydraulic_diameter_matches_equivalent_circle() -> None:
-    d = hydraulic_diameter_mm(120.0)
+def test_length_scale_matches_the_equal_area_circle() -> None:
+    d = equivalent_circular_diameter_mm(120.0)
     assert math.isclose(math.pi * (d / 2) ** 2, 120.0, rel_tol=1e-12)
 
 

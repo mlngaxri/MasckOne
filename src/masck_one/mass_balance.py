@@ -93,6 +93,10 @@ class MassEntry:
     z_mm: float
     evidence: MassEvidence
     note: str = ""
+    # Knowing what a part weighs says nothing about where it sits. The liquid
+    # charges have authority-derived masses but only development placeholder
+    # positions, so a CG computed from them would be false precision.
+    position_evidence: MassEvidence = MassEvidence.UNRESOLVED
 
     def __post_init__(self) -> None:
         if not self.item_id.strip():
@@ -112,6 +116,10 @@ class MassEntry:
         return self.evidence in _ESTABLISHED_EVIDENCE
 
     @property
+    def is_position_established(self) -> bool:
+        return self.position_evidence in _ESTABLISHED_EVIDENCE
+
+    @property
     def moment_g_mm(self) -> float:
         return self.mass_g * self.z_mm
 
@@ -122,6 +130,8 @@ class MassEntry:
             "z_mm": round(self.z_mm, 4),
             "evidence": self.evidence.value,
             "established": self.is_established,
+            "position_evidence": self.position_evidence.value,
+            "position_established": self.is_position_established,
             "note": self.note,
         }
 
@@ -213,11 +223,23 @@ class MassBalanceLedger:
     def is_complete(self) -> bool:
         return bool(self.entries) and not self.unresolved_items
 
+    @property
+    def positions_established(self) -> bool:
+        """True only when every mass-bearing entry also has a real position."""
+
+        bearing = [e for e in self.entries if e.is_established and e.mass_g > 0.0]
+        return bool(bearing) and all(e.is_position_established for e in bearing)
+
     def cg_z_mm(self) -> float | None:
-        """CG of the established entries, or None if nothing is established."""
+        """CG of the established entries.
+
+        Returns None unless every mass-bearing entry has established position
+        evidence as well. A mass with a placeholder location produces a number
+        that looks like a CG and is not one.
+        """
 
         mass = self.established_mass_g
-        if mass <= 0.0:
+        if mass <= 0.0 or not self.positions_established:
             return None
         return math.fsum(
             e.moment_g_mm for e in self.entries if e.is_established
@@ -235,6 +257,7 @@ class MassBalanceLedger:
             "entries": [e.manifest() for e in self.entries],
             "established_mass_g": round(self.established_mass_g, 4),
             "established_cg_z_mm": None if cg is None else round(cg, 4),
+            "positions_established": self.positions_established,
             "unresolved_items": list(self.unresolved_items),
             "is_complete": self.is_complete,
             "limits": {
@@ -285,7 +308,11 @@ def check_limit_closure(
                 torque_nm=torque,
                 torque_limit_nm=float(torque_limit_nm),
                 margin_fraction=(torque_limit_nm - torque) / torque_limit_nm,
-                closes=torque <= torque_limit_nm,
+                # Same tolerance as authority._semantic_issues, so a corner
+                # sitting exactly on the limit cannot be judged differently by
+                # the two implementations.
+                closes=torque <= torque_limit_nm
+                or math.isclose(torque, torque_limit_nm, rel_tol=1e-9, abs_tol=1e-12),
             )
         )
     return tuple(corners), all(c.closes for c in corners)
@@ -310,7 +337,11 @@ def liquid_charge_entries(authority: Authority) -> tuple[MassEntry, ...]:
             mass_g=water_ml * WATER_DENSITY_G_ML,
             z_mm=float(reservoir_z),
             evidence=MassEvidence.DERIVED_FROM_AUTHORITY,
-            note=f"{water_ml} mL at {WATER_DENSITY_G_ML} g/mL (water, 25 degC)",
+            note=(
+                f"{water_ml} mL at {WATER_DENSITY_G_ML} g/mL (water, 25 degC); "
+                "position is a development placeholder, not the released reservoir "
+                "centroid"
+            ),
         ),
         MassEntry(
             item_id="charge_cleanser",
@@ -371,7 +402,8 @@ def battery_entry(authority: Authority) -> MassEntry:
         evidence=MassEvidence.SUPPLIER_DATASHEET,
         note=(
             f"{authority.get('battery_reference', 'candidate')}; "
-            "candidate cell, not a production freeze"
+            "candidate cell, not a production freeze; position is a development "
+            "placeholder"
         ),
     )
 

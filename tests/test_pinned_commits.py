@@ -180,6 +180,32 @@ def test_commit_pin_debt_does_not_grow() -> None:
 
 @requires_git
 @requires_full_history
+def test_unresolvable_pins_do_not_grow() -> None:
+    """A hash that resolves to nothing must not be able to appear silently.
+
+    Restricting the reachability rule to objects that are actually commits fixed
+    a 26/39 false-positive rate against blob content pins, but it opened a hole:
+    a fabricated or mistyped hash resolves to nothing, so it is neither a commit
+    nor a blob and nothing judged it.
+
+    Absence is genuinely ambiguous -- it may be a stale blob from an earlier
+    version of a bound file, or a PR head a clone never fetched -- so these are
+    not failed outright. But the count is pinned, so a new one cannot slip in
+    unnoticed.
+    """
+
+    absent = _classify()["absent"]
+    assert len(absent) <= 4, (
+        "unresolvable pinned hashes increased:\n  "
+        + "\n  ".join(
+            f"{sha} referenced by {', '.join(sorted(files))}" for sha, files in absent
+        )
+        + "\n\nA hash that resolves to no git object is not provenance."
+    )
+
+
+@requires_git
+@requires_full_history
 def test_blob_pins_are_classified_not_judged() -> None:
     """Content pins are a legitimate, different mechanism.
 

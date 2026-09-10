@@ -101,6 +101,14 @@ declares an evidence class:
 An `UNRESOLVED` entry may not also assert a mass — it is recorded at 0 g and the
 ledger reports its total as a lower bound.
 
+**Mass evidence and position evidence are tracked separately.** Knowing what a
+part weighs says nothing about where it sits. Every entry carries its own
+`position_evidence`, and the ledger withholds a CG entirely unless *every*
+mass-bearing entry has an established position. The current entries have
+authority-derived masses but development placeholder positions, so
+`established_cg_z_mm` is `null` — averaging placeholders produces a number that
+looks like a CG and is not one.
+
 `REQUIRED_MASS_COVERAGE` lists every subsystem that must carry a mass before a
 total may be called product mass. Anything not supplied is **materialised as
 `UNRESOLVED`, not omitted**: a ledger that silently skips the structural frame
@@ -113,6 +121,7 @@ and reports its liquid charge as complete is worse than no ledger at all.
 | established mass | **29.08 g** (water + cleanser charge, battery) |
 | dry budget | 215 g |
 | unresolved subsystems | **18 of 21** |
+| established CG | **withheld** — positions are placeholders |
 | status | `INCOMPLETE_LEDGER_TOTAL_IS_A_LOWER_BOUND_NOT_PRODUCT_MASS` |
 
 Only three entries are evidenced today. The liquid charges are derivable because

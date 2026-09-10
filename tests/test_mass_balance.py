@@ -154,12 +154,49 @@ def test_incomplete_ledger_reports_a_lower_bound_not_product_mass(authority) -> 
 
 def test_ledger_cg_uses_only_established_entries(authority) -> None:
     entries = (
-        MassEntry("a", 10.0, 10.0, MassEvidence.MEASURED),
-        MassEntry("b", 10.0, 30.0, MassEvidence.MEASURED),
+        MassEntry("a", 10.0, 10.0, MassEvidence.MEASURED,
+                  position_evidence=MassEvidence.MEASURED),
+        MassEntry("b", 10.0, 30.0, MassEvidence.MEASURED,
+                  position_evidence=MassEvidence.MEASURED),
         MassEntry("c", 100.0, 500.0, MassEvidence.ENVELOPE_UPPER_BOUND),
     )
     ledger = build_mass_balance_ledger(authority, entries)
     assert math.isclose(ledger.cg_z_mm(), 20.0, rel_tol=1e-12)
+
+
+def test_cg_is_withheld_when_positions_are_placeholders(authority) -> None:
+    """Knowing what a part weighs says nothing about where it sits.
+
+    The default ledger has authority-derived masses but only development
+    placeholder positions. Averaging those produces a number that looks like a
+    CG and is not one, so it must be withheld.
+    """
+
+    ledger = build_mass_balance_ledger(authority)
+    assert ledger.established_mass_g > 0.0
+    assert not ledger.positions_established
+    assert ledger.cg_z_mm() is None
+    assert ledger.manifest()["established_cg_z_mm"] is None
+
+
+def test_one_placeholder_position_withholds_the_whole_cg(authority) -> None:
+    entries = (
+        MassEntry("a", 10.0, 10.0, MassEvidence.MEASURED,
+                  position_evidence=MassEvidence.MEASURED),
+        MassEntry("b", 10.0, 30.0, MassEvidence.MEASURED),
+    )
+    assert build_mass_balance_ledger(authority, entries).cg_z_mm() is None
+
+
+def test_zero_mass_entries_do_not_block_a_cg(authority) -> None:
+    """Unresolved entries carry 0 g, so they must not veto a CG on their own."""
+
+    entries = (
+        MassEntry("a", 10.0, 10.0, MassEvidence.MEASURED,
+                  position_evidence=MassEvidence.MEASURED),
+        MassEntry("gap", 0.0, 0.0, MassEvidence.UNRESOLVED),
+    )
+    assert build_mass_balance_ledger(authority, entries).cg_z_mm() is not None
 
 
 def test_ledger_with_no_established_entries_has_no_cg(authority) -> None:
