@@ -210,6 +210,8 @@ Read [`docs/COVERAGE_MESH.md`](docs/COVERAGE_MESH.md) before changing facial tar
 
 Read [`docs/COMPLIANT_INTERFACE_TOPOLOGY.md`](docs/COMPLIANT_INTERFACE_TOPOLOGY.md) before changing skin-contact intent, protected openings or broad interface parameter zones.
 
+Read [`docs/COST_PRESSURE.md`](docs/COST_PRESSURE.md) before adding a tooling action, a tighter tolerance or a part.
+
 Read [`docs/MOLDABILITY.md`](docs/MOLDABILITY.md) before changing aperture geometry, the shell part split or the exterior finish specification.
 
 Read [`docs/PROCESS_CAPABILITY.md`](docs/PROCESS_CAPABILITY.md) before tightening any tolerance or choosing a part split that places a visible seam.
