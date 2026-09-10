@@ -56,6 +56,7 @@ from .treatment_reference_geometry import (
     translation_reference_compound,
 )
 from .treatment_terminal_datum_preload_v4 import (
+    SERVICE_UNSEAT_MM,
     TerminalDatumPreloadV4Architecture,
     build_terminal_datum_preload_v4_architecture,
 )
@@ -65,6 +66,9 @@ SOURCE_MAIN_SHA = "42fa11818184cde998c6df25d7c46d4fb0e4c3eb"
 SOURCE_CELL6_HEAD_SHA = "c38d481c9868fb705a0b4084b2961807209e504c"
 SOURCE_FAILURE_EVIDENCE_HEAD = "b803b36ddd270c3bcebf696e267015bc535ca7c9"
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
+SERVICE_REFERENCE_REMAINING_WITHDRAWAL_MM = SERVICE_WITHDRAWAL_MM - SERVICE_UNSEAT_MM
+if SERVICE_REFERENCE_REMAINING_WITHDRAWAL_MM <= 0.0:
+    raise ValueError("four-zone service withdrawal must exceed positive unseat distance")
 
 
 class TreatmentMountedFourZoneV9Error(TreatmentMountedFourZoneError):
@@ -79,6 +83,21 @@ def _join_to_one(base: cq.Shape, additions: list[cq.Shape], label: str) -> cq.Sh
     if not result.isValid() or len(result.Solids()) != 1:
         raise TreatmentMountedFourZoneV9Error(f"{label} must resolve to one fixed backbone solid")
     return result
+
+
+def _service_reference_after_unseat(shape: cq.Shape) -> cq.Compound:
+    """Build only the post-unseat continuous service reference.
+
+    The exact seated state is verified independently through nominal collision checks.
+    Starting the 3-D service reference after the same positive +Y unseat already used
+    by terminal datum V4 prevents exact contact/tangency at t=0 from becoming fake
+    swept material while preserving the complete 32 mm service endpoint.
+    """
+    unseated = shape.translate((0.0, SERVICE_UNSEAT_MM, 0.0))
+    return translation_reference_compound(
+        unseated,
+        (0.0, SERVICE_REFERENCE_REMAINING_WITHDRAWAL_MM, 0.0),
+    )
 
 
 def _build_collision_robust_v2_base(
@@ -196,7 +215,7 @@ def _build_collision_robust_v2_base(
         )
 
         service_pieces = [
-            translation_reference_compound(shape, (0.0, SERVICE_WITHDRAWAL_MM, 0.0))
+            _service_reference_after_unseat(shape)
             for shape in material.values()
         ]
         service = cq.Compound.makeCompound(service_pieces)
@@ -213,6 +232,10 @@ def _build_collision_robust_v2_base(
         truss_screen = dict(truss_screen)
         truss_screen["reference_motion_verifier"] = (
             "BOOLEAN_FREE_FACE_PRISM_COMPOUNDS_WITH_SOLID_PAIR_VOLUMETRIC_COLLISION"
+        )
+        truss_screen["service_unseat_mm"] = SERVICE_UNSEAT_MM
+        truss_screen["service_reference_remaining_withdrawal_mm"] = (
+            SERVICE_REFERENCE_REMAINING_WITHDRAWAL_MM
         )
         built.append(
             MountedTreatmentStation(
@@ -359,11 +382,11 @@ def build_mounted_four_zone_architecture_v9(
         )
 
         service_pieces = [
-            translation_reference_compound(shape, (0.0, SERVICE_WITHDRAWAL_MM, 0.0))
+            _service_reference_after_unseat(shape)
             for shape in installed_material.values()
         ]
         service_pieces.extend(
-            translation_reference_compound(shape, (0.0, SERVICE_WITHDRAWAL_MM, 0.0))
+            _service_reference_after_unseat(shape)
             for _name, shape in guided.free_springs + guided.free_shoes
         )
         service = cq.Compound.makeCompound(service_pieces)
@@ -384,7 +407,8 @@ def build_mounted_four_zone_architecture_v9(
             name: round(value, 8) for name, value in partition_checks.items()
         }
         truss_screen["service_semantics_v9"] = (
-            "FULL_32MM_BOOLEAN_FREE_RIGID_WITHDRAWAL_REFERENCE_FOR_INSTALLED_AND_FREE_ENDPOINT_STATES; "
+            "SEATED_STATE_CHECKED_INDEPENDENTLY_THEN_0.05MM_POSITIVE_UNSEAT_PLUS_31.95MM_"
+            "BOOLEAN_FREE_WITHDRAWAL_REFERENCE_FOR_INSTALLED_AND_FREE_ENDPOINT_STATES; "
             "NONLINEAR_SPRING_UNLOAD_PATH_REMAINS_PHYSICAL_FEA_VALIDATION"
         )
 
@@ -445,6 +469,8 @@ def fusion_handoff_manifest(
                 "carrier_insertion_direction_world_unit": [0.0, -1.0, 0.0],
                 "carrier_service_withdrawal_direction_world_unit": [0.0, 1.0, 0.0],
                 "service_withdrawal_mm": SERVICE_WITHDRAWAL_MM,
+                "service_unseat_mm": SERVICE_UNSEAT_MM,
+                "service_reference_after_unseat_mm": SERVICE_REFERENCE_REMAINING_WITHDRAWAL_MM,
                 "functional_datums": {
                     "X_master": "rigid_master_x_v3",
                     "Z_master": "rigid_master_z_v3",
@@ -490,7 +516,9 @@ def fusion_handoff_manifest(
         "fusion_role": "HUMAN_EDITABLE_ASSEMBLY_DFM_DRAWING_AND_PROTOTYPE_MANUFACTURING_ENVIRONMENT",
         "coordinate_frame": "+X_WEARER_RIGHT_+Y_SUPERIOR_+Z_ANTERIOR",
         "selected_terminal_mechanics": mechanics["selected_architecture"],
-        "reference_sweep_semantics": "BOOLEAN_FREE_COMPOUNDS_NEVER_MANUFACTURED_MATERIAL",
+        "reference_sweep_semantics": (
+            "BOOLEAN_FREE_COMPOUNDS_AFTER_EXPLICIT_POSITIVE_SERVICE_UNSEAT_NEVER_MANUFACTURED_MATERIAL"
+        ),
         "stations": stations,
         "export_rules": {
             "manufactured_springs": "EXPORT_STRESS_FREE_BREP",
@@ -519,8 +547,9 @@ def manifest_v9(
                 "AXIS_SEPARATED_PARALLELOGRAM_SPRINGS -> ONE_FINAL_AXIAL_SEAT -> LOSSY_BACKUP -> RIGID_STOP"
             ),
             "verification_revision": (
-                "MANUFACTURED_BREPS_STRICT; OPERATIONAL_AND_SERVICE_MOTION_BOOLEAN_FREE_REFERENCE; "
-                "COLLISION_SOLID_PAIR_VOLUMETRIC"
+                "MANUFACTURED_BREPS_STRICT; OPERATIONAL_MOTION_BOOLEAN_FREE_REFERENCE; "
+                "SERVICE_SEATED_STATE_CHECKED_SEPARATELY_THEN_EXPLICIT_0.05MM_POSITIVE_UNSEAT_BEFORE_"
+                "BOOLEAN_FREE_REMAINING_WITHDRAWAL_REFERENCE; COLLISION_SOLID_PAIR_VOLUMETRIC"
             ),
             "V8_rejection": (
                 "SUPERSEDED_AS_CURRENT_CANDIDATE_BECAUSE_REFERENCE_SWEEP_BOOLEAN_FUSION_AND_EMPTY_COMMON_"
