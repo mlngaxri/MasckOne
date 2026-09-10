@@ -3,6 +3,10 @@ project:
   name: Masck One
   authority_revision: 2026-08-30-R1
   schema_version: 1.0.0
+  # Single source of truth for released program position. docs/DEVELOPMENT_ROADMAP.md
+  # is checked against these values by tests/test_program_position.py.
+  development_phase: 5
+  completed_iteration: 28
   units:
     length: mm
     area: mm2
