@@ -1,16 +1,23 @@
 from __future__ import annotations
 
-"""Mounted four-zone V10: source-correct verification successor to V9.
+"""Mounted four-zone V10: source-precise verification successor to V9.
 
 V10 does not introduce another physical treatment architecture. It deliberately
 reuses the selected V9 station geometry and current V4 guided-datum stack, while
-correcting two evidence-layer defects that prevented promotion:
+correcting evidence-layer defects that prevented promotion:
 
-- the V9 manifest still named an older Cell 6 head after the treatment owner had
-  already rebound the active datum architecture to the newer Cell 6 owner head;
+- the older verification wording blurred two different facts: the exact Cell 6 head
+  whose counterface geometry is consumed by the treatment stack, and whatever Cell 6
+  owner head happens to be live later. V10 now labels the pinned geometry-source head
+  explicitly and does not claim that it is the current live owner head;
 - the old V9 wording implied every source face was prism-swept even though exact
   planar/cylindrical faces tangent to translation generate zero 3-D swept volume and
   must be excluded analytically before OpenCascade prism construction.
+
+The exact consumed Cell 6 counterfaces remain protected separately by their Git-blob
+binding. A newer Cell 6 owner head must be reconstructed and those blob identities
+rechecked before promotion; this module never turns a historical source-head label
+into a claim of current-owner compatibility.
 
 Manufactured B-reps, datum/load-path intent, 40 Hz treatment motion, service travel,
 protected regions and collision thresholds are unchanged. Physical force, friction,
@@ -32,8 +39,12 @@ from .treatment_mounted_four_zone import MountedFourZoneArchitecture
 
 SCHEMA_V10 = "MASCK_ONE_TREATMENT_MOUNTED_FOUR_ZONE_V10"
 SOURCE_MAIN_SHA = v9.SOURCE_MAIN_SHA
-SOURCE_CELL6_HEAD_SHA = DATUM_SOURCE_CELL6_HEAD_SHA
+GEOMETRY_SOURCE_CELL6_HEAD_SHA = DATUM_SOURCE_CELL6_HEAD_SHA
+# Compatibility alias for existing downstream consumers. Its semantics are now
+# explicit: this is the pinned geometry-source head, not a live-owner-head claim.
+SOURCE_CELL6_HEAD_SHA = GEOMETRY_SOURCE_CELL6_HEAD_SHA
 SOURCE_FAILURE_EVIDENCE_HEAD = v9.SOURCE_FAILURE_EVIDENCE_HEAD
+SOURCE_CELL6_HEAD_SEMANTICS = "PINNED_CONSUMED_GEOMETRY_SOURCE_NOT_LIVE_OWNER_HEAD"
 
 
 class TreatmentMountedFourZoneV10Error(v9.TreatmentMountedFourZoneV9Error):
@@ -44,11 +55,25 @@ def build_mounted_four_zone_architecture_v10(
     **kwargs,
 ) -> tuple[MountedFourZoneArchitecture, TerminalDatumPreloadV4Architecture]:
     architecture, datums = v9.build_mounted_four_zone_architecture_v9(**kwargs)
-    if datums.source_cell6_head_sha != SOURCE_CELL6_HEAD_SHA:
+    if datums.source_cell6_head_sha != GEOMETRY_SOURCE_CELL6_HEAD_SHA:
         raise TreatmentMountedFourZoneV10Error(
-            "V10 terminal datums are not bound to the active Cell 6 owner head"
+            "V10 terminal datums are not bound to the pinned Cell 6 geometry-source head"
         )
     return architecture, datums
+
+
+def _cell6_provenance_fields() -> dict[str, object]:
+    return {
+        "source_cell6_head_sha": GEOMETRY_SOURCE_CELL6_HEAD_SHA,
+        "source_cell6_geometry_head_sha": GEOMETRY_SOURCE_CELL6_HEAD_SHA,
+        "source_cell6_head_semantics": SOURCE_CELL6_HEAD_SEMANTICS,
+        "active_cell6_owner_head_claimed": False,
+        "live_cell6_owner_recheck_required_before_promotion": True,
+        "compatibility_rule": (
+            "RECONSTRUCT_LIVE_CELL6_OWNER_AND_REVERIFY_EXACT_CONSUMED_COUNTERFACE_GIT_BLOBS; "
+            "DO_NOT_INFER_COMPATIBILITY_FROM_HEAD_LABEL"
+        ),
+    }
 
 
 def fusion_handoff_manifest_v10(
@@ -60,7 +85,7 @@ def fusion_handoff_manifest_v10(
         {
             "schema": "MASCK_ONE_TREATMENT_FUSION_HANDOFF_V3",
             "source_main_sha": SOURCE_MAIN_SHA,
-            "source_cell6_head_sha": SOURCE_CELL6_HEAD_SHA,
+            **_cell6_provenance_fields(),
             "verification_successor": SCHEMA_V10,
             "reference_sweep_semantics": (
                 "BOOLEAN_FREE_ENDPOINT_AND_POSITIVE_FACE_PRISM_COMPOUNDS; "
@@ -76,25 +101,26 @@ def manifest_v10(
     architecture: MountedFourZoneArchitecture,
     datums: TerminalDatumPreloadV4Architecture,
 ) -> dict[str, object]:
-    if datums.source_cell6_head_sha != SOURCE_CELL6_HEAD_SHA:
-        raise TreatmentMountedFourZoneV10Error("cannot manifest stale terminal datum source")
+    if datums.source_cell6_head_sha != GEOMETRY_SOURCE_CELL6_HEAD_SHA:
+        raise TreatmentMountedFourZoneV10Error("cannot manifest stale terminal datum geometry source")
 
     payload = v9.manifest_v9(architecture, datums)
     payload.update(
         {
             "schema": SCHEMA_V10,
             "source_main_sha": SOURCE_MAIN_SHA,
-            "source_cell6_head_sha": SOURCE_CELL6_HEAD_SHA,
+            **_cell6_provenance_fields(),
             "source_failure_evidence_head": SOURCE_FAILURE_EVIDENCE_HEAD,
             "supersedes": v9.SCHEMA_V9,
             "V9_status": (
-                "SUPERSEDED_AS_PROMOTION_CANDIDATE_FOR_STALE_CELL6_HEAD_DECLARATION_AND_"
-                "PRE_TANGENT_FILTER_REFERENCE_SWEEP_WORDING; PHYSICAL_GEOMETRY_REUSED"
+                "SUPERSEDED_AS_PROMOTION_CANDIDATE_FOR_AMBIGUOUS_CELL6_OWNER_VS_GEOMETRY_SOURCE_"
+                "DECLARATION_AND_PRE_TANGENT_FILTER_REFERENCE_SWEEP_WORDING; PHYSICAL_GEOMETRY_REUSED"
             ),
             "verification_revision": (
-                "MANUFACTURED_BREPS_STRICT; SOURCE_CELL6_HEAD_REBOUND_TO_ACTIVE_OWNER; "
-                "BOOLEAN_FREE_TRANSLATION_REFERENCE_WITH_ANALYTIC_ZERO_VOLUME_TANGENT_FACE_FILTER; "
-                "COLLISION_SOLID_PAIR_VOLUMETRIC; NO_COLLISION_OR_VALIDITY_THRESHOLD_WEAKENED"
+                "MANUFACTURED_BREPS_STRICT; PINNED_CELL6_GEOMETRY_SOURCE_EXPLICIT_AND_LIVE_OWNER_"
+                "RECHECK_REQUIRED; BOOLEAN_FREE_TRANSLATION_REFERENCE_WITH_ANALYTIC_ZERO_VOLUME_"
+                "TANGENT_FACE_FILTER; COLLISION_SOLID_PAIR_VOLUMETRIC; "
+                "NO_COLLISION_OR_VALIDITY_THRESHOLD_WEAKENED"
             ),
             "physical_architecture_changed_from_v9": False,
             "physical_validation_eligible": False,
