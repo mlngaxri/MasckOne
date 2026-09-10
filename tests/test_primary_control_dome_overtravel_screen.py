@@ -10,7 +10,8 @@ from studies.primary_control_dome_overtravel_screen import (
 
 def test_direct_standard_dome_is_rejected_even_with_optimistic_travel_bound():
     screen = build_screen()
-    assert screen.rest_gap_mm <= 0.05
+    assert 0.0 <= screen.rest_gap_mm <= 0.05
+    assert screen.rest_gap_mm == 0.01
     assert screen.lower_bound_extra_travel_to_nominal_bottom_mm > 0.50
     assert screen.lower_bound_extra_travel_to_hard_stop_mm > 0.65
     assert screen.direct_f_series_viable is False

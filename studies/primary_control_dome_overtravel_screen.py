@@ -33,10 +33,12 @@ M_SERIES_SOURCE = "https://www.snaptron.com/products/standard-domes/m-series/"
 M_SERIES_DESIGNED_OVERTRAVEL_MM = 0.005 * 25.4
 
 # Existing stack places the dome support plane at the old tactile-rim datum. A 0.36 mm
-# dome therefore leaves only a 0.01 mm nominal rigid-tip gap at rest.
+# dome therefore leaves only a 0.01 mm nominal rigid-tip gap at rest. Gap is defined as
+# fixed dome-top distance from rest minus moving rigid-tip length, so positive means
+# separation and negative would mean physical interference.
 DOME_SUPPORT_FROM_REST_MM = haptic.TACTILE_RIM_FROM_REST_MM
 DIRECT_RIGID_PLUNGER_REST_GAP_MM = (
-    haptic.STEM_LENGTH_MM - (DOME_SUPPORT_FROM_REST_MM - BENCHMARK_HEIGHT_MM)
+    (DOME_SUPPORT_FROM_REST_MM - BENCHMARK_HEIGHT_MM) - haptic.STEM_LENGTH_MM
 )
 
 
