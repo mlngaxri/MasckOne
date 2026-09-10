@@ -23,17 +23,18 @@ it does not heal, approximate, omit, or enlarge swept geometry.
 Collision common is evaluated with OpenCascade's exact BRepAlgoAPI Common operator.
 AABB overlap is followed by exact shape-to-shape distance: pairs with strictly positive
 distance are provably disjoint and never need a Boolean common. Touching/overlapping
-pairs have zero distance and still run the strict Common path. If the compact two-shape
-constructor does not complete, the same solid pair is retried through explicit
-argument/tool lists with parallel execution enabled. No fuzzy value, geometric
-tolerance expansion, sampling approximation, or collision threshold change is
-introduced. Any finite positive common that cannot be healed remains a hard failure.
+pairs have zero distance and still run the strict Common path. If both Common execution
+paths fail on a zero-distance pair, an independent exact BRepAlgoAPI Cut is used as a
+volumetric identity witness: volume(left) - volume(left minus right) is the positive
+common volume. Contact-only pairs therefore return zero while true penetration remains
+positive. No fuzzy value, geometric tolerance expansion, sampling approximation, or
+collision threshold change is introduced.
 """
 
 import math
 
 import cadquery as cq
-from OCP.BRepAlgoAPI import BRepAlgoAPI_Common
+from OCP.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut
 from OCP.BRepPrimAPI import BRepPrimAPI_MakePrism
 from OCP.ShapeFix import ShapeFix_Shape
 from OCP.TopTools import TopTools_ListOfShape
@@ -172,11 +173,7 @@ def translation_reference_compound(
 
 
 def _explicit_list_common(left: cq.Shape, right: cq.Shape) -> cq.Shape:
-    """Run the same exact Common through explicit OCC argument/tool lists.
-
-    This is an execution-path fallback only. It intentionally does not set a fuzzy
-    value or alter either operand. Parallel mode changes scheduling, not geometry.
-    """
+    """Run the same exact Common through explicit OCC argument/tool lists."""
     arguments = TopTools_ListOfShape()
     arguments.Append(left.wrapped)
     tools = TopTools_ListOfShape()
@@ -204,6 +201,62 @@ def _direct_common(left: cq.Shape, right: cq.Shape) -> cq.Shape:
     if not operation.IsDone():
         return _explicit_list_common(left, right)
     return cq.Shape.cast(operation.Shape())
+
+
+def _explicit_list_cut(left: cq.Shape, right: cq.Shape) -> cq.Shape:
+    """Run exact left-minus-right Cut through explicit OCC argument/tool lists."""
+    arguments = TopTools_ListOfShape()
+    arguments.Append(left.wrapped)
+    tools = TopTools_ListOfShape()
+    tools.Append(right.wrapped)
+
+    operation = BRepAlgoAPI_Cut()
+    operation.SetArguments(arguments)
+    operation.SetTools(tools)
+    operation.SetRunParallel(True)
+    operation.Build()
+    if not operation.IsDone():
+        raise TreatmentReferenceGeometryError(
+            "exact cut-volume fallback did not complete: "
+            f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}"
+        )
+    return cq.Shape.cast(operation.Shape())
+
+
+def _direct_cut(left: cq.Shape, right: cq.Shape) -> cq.Shape:
+    try:
+        operation = BRepAlgoAPI_Cut(left.wrapped, right.wrapped)
+        operation.Build()
+    except Exception:
+        return _explicit_list_cut(left, right)
+    if not operation.IsDone():
+        return _explicit_list_cut(left, right)
+    return cq.Shape.cast(operation.Shape())
+
+
+def _exact_cut_removed_volume_mm3(left: cq.Shape, right: cq.Shape) -> float:
+    """Return exact common volume by the volume identity A - (A minus B)."""
+    cut = _direct_cut(left, right)
+    if not cut.isValid():
+        cut = _heal(cut)
+    if not cut.isValid():
+        raise TreatmentReferenceGeometryError(
+            "exact cut-volume fallback produced invalid topology: "
+            f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}"
+        )
+
+    left_volume = float(left.Volume())
+    remaining_volume = sum(max(0.0, float(solid.Volume())) for solid in cut.Solids())
+    removed_volume = left_volume - remaining_volume
+    if not all(math.isfinite(value) for value in (left_volume, remaining_volume, removed_volume)):
+        raise TreatmentReferenceGeometryError("exact cut-volume fallback is nonfinite")
+    if removed_volume < 0.0:
+        raise TreatmentReferenceGeometryError(
+            "exact cut-volume identity returned negative removed volume: "
+            f"removed_mm3={removed_volume:.12g}, left_bbox={_bbox_tuple(left)}, "
+            f"right_bbox={_bbox_tuple(right)}"
+        )
+    return removed_volume
 
 
 def _exact_shape_distance(left: cq.Shape, right: cq.Shape) -> float:
@@ -239,10 +292,9 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
 
     Boundary-only or topologically empty commons contribute zero. After cheap AABB
     rejection, an exact OCC minimum-distance check skips only pairs with strictly
-    positive separation. Touching/overlapping pairs still execute exact Common. Any
-    common with finite positive volume must heal to valid B-rep topology or the check
-    fails. The explicit-list retry is the same Boolean operation on the same operands
-    and does not relax collision criteria.
+    positive separation. Touching/overlapping pairs still execute exact Common. If
+    Common cannot execute, exact Cut volume identity supplies the same volumetric
+    collision witness without altering geometry or collision thresholds.
     """
     total = 0.0
     left_solids = a.Solids()
@@ -267,7 +319,12 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
             if _exact_shape_distance(left, right) > 0.0:
                 continue
 
-            common = _direct_common(left, right)
+            try:
+                common = _direct_common(left, right)
+            except TreatmentReferenceGeometryError:
+                total += _exact_cut_removed_volume_mm3(left, right)
+                continue
+
             raw_solids = common.Solids()
             if not raw_solids:
                 continue
