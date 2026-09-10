@@ -58,6 +58,18 @@ INSTALLED_DIAPHRAGM_INNER_BEAD_Z0_FROM_REST_MM = -0.34
 FREE_TO_INSTALLED_MEMBRANE_COMPRESSION_SEED_MM = (
     v1.DIAPHRAGM_MEMBRANE_THICKNESS_MM - INSTALLED_DIAPHRAGM_MEMBRANE_THICKNESS_MM
 )
+
+# The anti-rotation rib protrudes beyond the cylindrical stem. A continuous inner
+# diaphragm bead therefore cannot share the same lower sector without occupying rigid
+# moving polymer. Keep the bead continuous above the rib and mold a small lower relief
+# window around the key. The window ends at the membrane underside, so the membrane
+# remains continuous and still owns the compliant rest datum.
+DIAPHRAGM_RIB_RELIEF_RADIAL_CLEARANCE_MM = 0.04
+DIAPHRAGM_RIB_RELIEF_TANGENTIAL_CLEARANCE_MM = 0.04
+DIAPHRAGM_RIB_RELIEF_AXIAL_CLEARANCE_MM = 0.02
+DIAPHRAGM_RIB_RELIEF_BOTTOM_FROM_REST_MM = -0.36
+DIAPHRAGM_RIB_RELIEF_TOP_FROM_REST_MM = -0.16
+
 MIN_GROOVE_LIGAMENT_TO_BARREL_OD_MM = 0.45
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
 
@@ -106,6 +118,52 @@ def _cut_diaphragm_reaction_groove(shell: cq.Shape, rest_z: float) -> tuple[cq.S
     return shell, removed
 
 
+def _anti_rotation_rib_relief(rest_z: float) -> cq.Shape:
+    stem_radius = v1.STEM_DIAMETER_MM / 2.0
+    radial_start = stem_radius - DIAPHRAGM_RIB_RELIEF_RADIAL_CLEARANCE_MM
+    radial_end = (
+        stem_radius
+        + v1.ANTI_ROTATION_RIB_RADIAL_MM
+        + DIAPHRAGM_RIB_RELIEF_RADIAL_CLEARANCE_MM
+    )
+    radial_width = radial_end - radial_start
+    tangential_width = (
+        v1.ANTI_ROTATION_RIB_WIDTH_MM
+        + 2.0 * DIAPHRAGM_RIB_RELIEF_TANGENTIAL_CLEARANCE_MM
+    )
+    z0 = rest_z + DIAPHRAGM_RIB_RELIEF_BOTTOM_FROM_REST_MM
+    z1 = rest_z + DIAPHRAGM_RIB_RELIEF_TOP_FROM_REST_MM
+    axial = z1 - z0
+    if radial_width <= 0.0 or tangential_width <= 0.0 or axial <= 0.0:
+        raise PrimaryControlHapticV10Error("anti-rotation rib diaphragm relief is invalid")
+    return v1._box(
+        radial_width,
+        tangential_width,
+        axial,
+        (
+            v1.MOUNT_X_MM + (radial_start + radial_end) / 2.0,
+            v1.MOUNT_Y_MM,
+            (z0 + z1) / 2.0,
+        ),
+    )
+
+
+def _relieve_diaphragm_for_rib(diaphragm: cq.Shape, rest_z: float) -> cq.Shape:
+    before = float(diaphragm.Volume())
+    relieved = diaphragm.cut(_anti_rotation_rib_relief(rest_z)).clean()
+    removed = before - float(relieved.Volume())
+    if (
+        not relieved.isValid()
+        or len(relieved.Solids()) != 1
+        or relieved.Volume() <= 0.0
+        or removed <= 0.0
+    ):
+        raise PrimaryControlHapticV10Error(
+            "anti-rotation rib relief must preserve one connected diaphragm and remove positive bead material"
+        )
+    return relieved
+
+
 def _installed_diaphragm_reference(rest_z: float) -> cq.Shape:
     membrane_z0 = rest_z - 0.16
     membrane = v1._ring(
@@ -127,6 +185,7 @@ def _installed_diaphragm_reference(rest_z: float) -> cq.Shape:
         rest_z + INSTALLED_DIAPHRAGM_INNER_BEAD_Z0_FROM_REST_MM,
     )
     diaphragm = membrane.fuse(outer_bead).fuse(inner_bead).clean()
+    diaphragm = _relieve_diaphragm_for_rib(diaphragm, rest_z)
     if not diaphragm.isValid() or len(diaphragm.Solids()) != 1 or diaphragm.Volume() <= 0.0:
         raise PrimaryControlHapticV10Error("installed diaphragm reference must be one connected solid")
     return diaphragm
@@ -137,10 +196,12 @@ def _replace_material_parts(
     *,
     shell: cq.Shape,
     moving: cq.Shape,
+    free_diaphragm: cq.Shape,
 ) -> tuple[tuple[str, cq.Shape], ...]:
     output: list[tuple[str, cq.Shape]] = []
     saw_shell = False
     saw_moving = False
+    saw_diaphragm = False
     for name, shape in parts:
         if name == "shell_with_primary_control_interface":
             output.append((name, shell))
@@ -148,10 +209,13 @@ def _replace_material_parts(
         elif name == "primary_control_cap_stem":
             output.append((name, moving))
             saw_moving = True
+        elif name == "wet_diaphragm":
+            output.append((name, free_diaphragm))
+            saw_diaphragm = True
         else:
             output.append((name, shape))
-    if not saw_shell or not saw_moving:
-        raise PrimaryControlHapticV10Error("V10 requires donor shell and moving component")
+    if not saw_shell or not saw_moving or not saw_diaphragm:
+        raise PrimaryControlHapticV10Error("V10 requires donor shell, moving component and wet diaphragm")
     return tuple(output)
 
 
@@ -232,6 +296,8 @@ class PrimaryControlHapticArchitectureV10:
             raise PrimaryControlHapticV10Error("diaphragm groove requires positive runout into the existing bore")
         if DIAPHRAGM_GROOVE_ID_MM >= v1.BARREL_BORE_DIAMETER_MM:
             raise PrimaryControlHapticV10Error("diaphragm groove must break through to the existing barrel bore")
+        if DIAPHRAGM_RIB_RELIEF_TOP_FROM_REST_MM > -INSTALLED_DIAPHRAGM_MEMBRANE_THICKNESS_MM:
+            raise PrimaryControlHapticV10Error("rib relief cannot cut into the compliant membrane datum")
         if any(value > _INTERSECTION_TOLERANCE_MM3 for value in self.keepout_intersections_mm3.values()):
             raise PrimaryControlHapticV10Error("V10 primary-control module intersects released package keepout")
         refs = dict(self.reference_parts)
@@ -264,6 +330,15 @@ class PrimaryControlHapticArchitectureV10:
                 "installed_deformed_reference": "wet_diaphragm_installed_return_reference",
                 "outer_bead_shell_reaction_groove_removed_mm3": self.diaphragm_groove_removed_mm3,
                 "groove_bore_radial_runout_mm": DIAPHRAGM_GROOVE_BORE_RADIAL_RUNOUT_MM,
+                "anti_rotation_rib_relief": {
+                    "radial_clearance_mm": DIAPHRAGM_RIB_RELIEF_RADIAL_CLEARANCE_MM,
+                    "tangential_clearance_mm": DIAPHRAGM_RIB_RELIEF_TANGENTIAL_CLEARANCE_MM,
+                    "axial_clearance_mm": DIAPHRAGM_RIB_RELIEF_AXIAL_CLEARANCE_MM,
+                    "bottom_from_rest_mm": DIAPHRAGM_RIB_RELIEF_BOTTOM_FROM_REST_MM,
+                    "top_from_rest_mm": DIAPHRAGM_RIB_RELIEF_TOP_FROM_REST_MM,
+                    "membrane_cut": False,
+                    "applied_to_free_and_installed_geometry": True,
+                },
                 "installed_shell_intersection_mm3": self.installed_diaphragm_shell_intersection_mm3,
                 "installed_moving_intersection_mm3": self.installed_diaphragm_moving_intersection_mm3,
                 "groove_outer_ligament_mm": self.groove_outer_ligament_mm,
@@ -275,7 +350,7 @@ class PrimaryControlHapticArchitectureV10:
             ),
             "cost_rule": (
                 "CAPTURE_FLANGE_IS_INTEGRAL_MOVING_POLYMER; DIAPHRAGM_ALREADY_REQUIRED_FOR_WET_BARRIER; "
-                "ZERO_EXTRA_REST_FASTENER_ZERO_EXTRA_RETURN_SPRING"
+                "MOLDED_RIB_RELIEF_REPLACES_RIGID_INTERFERENCE; ZERO_EXTRA_REST_FASTENER_ZERO_EXTRA_RETURN_SPRING"
             ),
             "tactile_reference_rule": "S_T_DUPONT_LIGNE_2_PRECISION_FEEL_ONLY_NOT_SOUND_OR_MECHANISM_COPY",
             "keepout_intersections_mm3": self.keepout_intersections_mm3,
@@ -311,9 +386,18 @@ def build_primary_control_haptic_architecture_v10(
         material["shell_with_primary_control_interface"],
         base.rest_cap_underside_z_mm,
     )
+    free_diaphragm = _relieve_diaphragm_for_rib(
+        material["wet_diaphragm"],
+        base.rest_cap_underside_z_mm,
+    )
     installed_diaphragm = _installed_diaphragm_reference(base.rest_cap_underside_z_mm)
 
-    material_parts = _replace_material_parts(base.material_parts, shell=shell, moving=moving)
+    material_parts = _replace_material_parts(
+        base.material_parts,
+        shell=shell,
+        moving=moving,
+        free_diaphragm=free_diaphragm,
+    )
     motion = _motion_with_capture_flange(base.motion_sweep, base.rest_cap_underside_z_mm)
     reference_parts = _replace_motion_reference(
         base.reference_parts,
@@ -340,7 +424,7 @@ def build_primary_control_haptic_architecture_v10(
     )
 
     # The new flange sits inside the existing barrel and the diaphragm groove is
-    # subtractive. Re-run module keepouts with the modified moving part anyway.
+    # subtractive. Re-run module keepouts with the modified moving/diaphragm parts.
     keepouts = v9._module_keepouts(model, material_parts, reference_parts)
 
     result = PrimaryControlHapticArchitectureV10(
