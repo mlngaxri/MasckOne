@@ -176,7 +176,14 @@ mass:
   dry_target_status: ENGINEERING_BASELINE
   loaded_absolute_max_g: 255.0
   loaded_absolute_max_status: PROJECT_REQUIREMENT
-  cg_z_max_mm: 30.0
+  # Tightened from 30.0. At the previous value the limit set did not close:
+  # 255 g at 30 mm gives 0.075 N*m against a 0.070 N*m pitch-torque limit, so a
+  # design meeting every individual limit could still exceed the set as a whole.
+  # The torque limit is the wearer-facing requirement and holds; CG is the
+  # design variable, and it carries 8.5x the leverage per unit that mass does
+  # (2.50 mN*m/mm against 0.294 mN*m/g). Enforced by
+  # MASS_BALANCE_LIMIT_SET_DOES_NOT_CLOSE. See docs/MASS_BALANCE.md.
+  cg_z_max_mm: 27.9
   cg_status: ENGINEERING_BASELINE
   pitch_torque_max_Nm: 0.070
   pitch_torque_status: ENGINEERING_BASELINE

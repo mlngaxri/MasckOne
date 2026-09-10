@@ -445,6 +445,31 @@ def _semantic_issues(data: dict[str, Any]) -> list[AuthorityValidationIssue]:
                     {"key": reference_key, "limit_over_flow_squared": reference},
                 )
 
+    # Wearer head load couples the mass, CG and torque limits: tau = m * g * z.
+    # The worst permitted configuration is the heaviest allowed product at the
+    # highest allowed CG. If that corner exceeds the torque limit then a design
+    # can satisfy every individual limit and still violate the set, which makes
+    # the requirement set itself defective. See src/masck_one/mass_balance.py.
+    _G = 9.80665
+    torque_limit = float(_get(data, "mass", "pitch_torque_max_Nm"))
+    cg_limit_mm = float(_get(data, "mass", "cg_z_max_mm"))
+    for mass_key in ("dry_target_max_g", "loaded_absolute_max_g"):
+        mass_g = float(_get(data, "mass", mass_key))
+        torque = (mass_g / 1000.0) * _G * (cg_limit_mm / 1000.0)
+        if torque > torque_limit and not _isclose(torque, torque_limit, abs_tol=1e-12):
+            add(
+                "MASS_BALANCE_LIMIT_SET_DOES_NOT_CLOSE",
+                "mass.cg_z_max_mm",
+                f"Head pitch torque at mass.{mass_key} and the maximum allowed CG height "
+                "exceeds mass.pitch_torque_max_Nm. A design meeting every individual limit "
+                "would still violate the set, so the limits are mutually unsatisfiable.",
+                {"corner": mass_key, "torque_Nm": torque, "cg_z_max_mm": cg_limit_mm},
+                {
+                    "pitch_torque_max_Nm": torque_limit,
+                    "max_cg_z_mm_at_this_mass": torque_limit / (mass_g / 1000.0 * _G) * 1000.0,
+                },
+            )
+
     reservoir_envelope = [float(v) for v in _get(data, "fluid", "water_reservoir", "envelope_mm")]
     reservoir_envelope_mL = (reservoir_envelope[0] * reservoir_envelope[1] * reservoir_envelope[2]) / 1000.0
     if not _isclose(reservoir_envelope_mL, gross_water, abs_tol=1e-9):

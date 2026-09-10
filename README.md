@@ -210,6 +210,8 @@ Read [`docs/COVERAGE_MESH.md`](docs/COVERAGE_MESH.md) before changing facial tar
 
 Read [`docs/COMPLIANT_INTERFACE_TOPOLOGY.md`](docs/COMPLIANT_INTERFACE_TOPOLOGY.md) before changing skin-contact intent, protected openings or broad interface parameter zones.
 
+Read [`docs/MASS_BALANCE.md`](docs/MASS_BALANCE.md) before changing any `mass:` limit or moving mass anteriorly to solve a packaging problem.
+
 Read [`docs/AIRWAY_RESISTANCE.md`](docs/AIRWAY_RESISTANCE.md) before changing `safety.airway` limits, nostril aperture geometry or anything that reduces the deformed nasal opening.
 
 Read [`docs/NASAL_SUBSYSTEM.md`](docs/NASAL_SUBSYSTEM.md) before changing the nose/T-zone functional partition, nasal-lobe thickness application boundary, protected nostril exclusions or philtrum continuity.
