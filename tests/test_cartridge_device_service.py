@@ -1,16 +1,30 @@
 from __future__ import annotations
 
+from hashlib import sha1
+from pathlib import Path
+
 import pytest
 
 from masck_one.cartridge_device_service import (
     BOLT_RETRACTION_MM,
+    CAM_CENTERLINE_TOL_MM,
+    CAM_FOLLOWER_DIAMETER_MM,
+    CAM_RADIAL_CLEARANCE_MM,
+    CAM_SLOT_LENGTH_MM,
+    CAM_SLOT_WIDTH_MM,
+    MAX_CAM_RADIAL_CLEARANCE_MM,
     POPPET_RADIAL_PRELOAD_SEED_MM,
     SCHEMA,
     SHUTTLE_TRAVEL_Y_MM,
     WET_NOSE_RETRACTION_MM,
     build_cartridge_device_service,
+    cam_follower_state,
 )
 from masck_one.realized_waste_cartridge import volume
+import masck_one.waste_cartridge_dfm as released_dfm
+
+
+RELEASED_DFM_BLOB_SHA = "f9788cce30c14600c8a624509153596e46c1e478"
 
 
 @pytest.fixture(scope="module")
@@ -21,14 +35,63 @@ def service():
 def test_device_service_selects_one_coordinated_release(service):
     manifest = service.manifest()
     assert manifest["schema"] == SCHEMA
-    assert manifest["selected_architecture"] == "ONE_GUIDED_SHUTTLE_OPPOSED_BOLTS_FLOATING_WET_NOSE_PASSIVE_POPPET"
+    assert (
+        manifest["selected_architecture"]
+        == "ONE_GUIDED_SHUTTLE_OPPOSED_BOLTS_FLOATING_WET_NOSE_PASSIVE_POPPET"
+    )
     assert manifest["interaction_sequence"] == [
-        "BROAD_OBLIQUE_APPROACH", "FORGIVING_CAPTURE", "SELF_CENTER",
-        "LOW_DRAG_GUIDANCE", "PROGRESSIVE_LOCAL_TAKEUP", "ONE_LOCKED_FINAL_STATE",
+        "BROAD_OBLIQUE_APPROACH",
+        "FORGIVING_CAPTURE",
+        "SELF_CENTER",
+        "LOW_DRAG_GUIDANCE",
+        "PROGRESSIVE_LOCAL_TAKEUP",
+        "ONE_LOCKED_FINAL_STATE",
     ]
     assert manifest["kinematics"]["shuttle_travel_mm"] == SHUTTLE_TRAVEL_Y_MM
     assert manifest["kinematics"]["bolt_retraction_mm_each"] == BOLT_RETRACTION_MM
     assert manifest["kinematics"]["wet_nose_retraction_mm"] == WET_NOSE_RETRACTION_MM
+
+
+def test_cam_slots_are_analytically_coupled_over_complete_stroke_with_bounded_play(service):
+    manifest = service.manifest()
+    cam = manifest["kinematics"]["cam_coupling"]
+
+    assert CAM_SLOT_WIDTH_MM > CAM_FOLLOWER_DIAMETER_MM
+    assert 0.0 < CAM_RADIAL_CLEARANCE_MM <= MAX_CAM_RADIAL_CLEARANCE_MM
+    assert cam["proof"] == "ANALYTIC_STRAIGHT_SLOT_CENTERLINE_OVER_COMPLETE_NORMALIZED_STROKE"
+    assert cam["max_centerline_residual_mm"] <= CAM_CENTERLINE_TOL_MM
+    assert cam["max_slot_center_travel_utilization"] < 1.0
+    assert manifest["digital_claims"]["cam_follower_centerline_coupling_analytic"] is True
+    assert manifest["digital_claims"]["continuous_rigid_collision_proven"] is False
+
+    locked = cam_follower_state(0.0)
+    service_state = cam_follower_state(1.0)
+    assert (
+        service_state["left_bolt"]["follower_world_x_mm"]
+        - locked["left_bolt"]["follower_world_x_mm"]
+    ) == pytest.approx(-BOLT_RETRACTION_MM)
+    assert (
+        service_state["right_bolt"]["follower_world_x_mm"]
+        - locked["right_bolt"]["follower_world_x_mm"]
+    ) == pytest.approx(BOLT_RETRACTION_MM)
+    assert (
+        service_state["wet_nose"]["follower_world_x_mm"]
+        - locked["wet_nose"]["follower_world_x_mm"]
+    ) == pytest.approx(-WET_NOSE_RETRACTION_MM)
+
+    for index in range(41):
+        for channel in cam_follower_state(index / 40.0).values():
+            assert channel["centerline_residual_mm"] <= CAM_CENTERLINE_TOL_MM
+            assert (
+                abs(channel["along_slot_mm"]) + CAM_FOLLOWER_DIAMETER_MM / 2.0
+                <= CAM_SLOT_LENGTH_MM / 2.0
+            )
+
+
+def test_cam_progress_rejects_nonphysical_states():
+    for progress in (-0.001, 1.001, float("nan"), True):
+        with pytest.raises(Exception):
+            cam_follower_state(progress)
 
 
 def test_receiver_and_service_states_are_valid_and_collision_free(service):
@@ -64,6 +127,13 @@ def test_removed_state_wet_closure_is_geometry_only(service):
     assert service.poppet_free.val().isValid()
     assert service.poppet_closed_service.val().isValid()
     assert service.poppet_open_locked.val().isValid()
+
+
+def test_cartridge_lane_preserves_released_dfm_authority_blob():
+    path = Path(released_dfm.__file__)
+    data = path.read_bytes()
+    actual = sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
+    assert actual == RELEASED_DFM_BLOB_SHA
 
 
 def test_local_dependencies_close_without_promoting_frame_or_physics(service):
