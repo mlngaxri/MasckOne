@@ -21,10 +21,13 @@ Disabling that representation rewrite preserves the exact source face and transl
 it does not heal, approximate, omit, or enlarge swept geometry.
 
 Collision common is evaluated with OpenCascade's exact BRepAlgoAPI Common operator.
-If the compact two-shape constructor does not complete, the same solid pair is retried
-through explicit argument/tool lists with parallel execution enabled. No fuzzy value,
-geometric tolerance expansion, sampling approximation, or collision threshold change
-is introduced. Any finite positive common that cannot be healed remains a hard failure.
+AABB overlap is followed by exact shape-to-shape distance: pairs with strictly positive
+distance are provably disjoint and never need a Boolean common. Touching/overlapping
+pairs have zero distance and still run the strict Common path. If the compact two-shape
+constructor does not complete, the same solid pair is retried through explicit
+argument/tool lists with parallel execution enabled. No fuzzy value, geometric
+tolerance expansion, sampling approximation, or collision threshold change is
+introduced. Any finite positive common that cannot be healed remains a hard failure.
 """
 
 import math
@@ -203,6 +206,29 @@ def _direct_common(left: cq.Shape, right: cq.Shape) -> cq.Shape:
     return cq.Shape.cast(operation.Shape())
 
 
+def _exact_shape_distance(left: cq.Shape, right: cq.Shape) -> float:
+    """Return exact OCC minimum distance for a valid solid pair.
+
+    A strictly positive result proves separation and can safely bypass Boolean Common.
+    Zero means touching or overlap and therefore remains on the strict Common path.
+    No epsilon or fuzzy tolerance is applied here.
+    """
+    try:
+        distance = float(left.distance(right))
+    except Exception as exc:
+        raise TreatmentReferenceGeometryError(
+            "exact OCC distance prefilter failed: "
+            f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}"
+        ) from exc
+    if not math.isfinite(distance) or distance < 0.0:
+        raise TreatmentReferenceGeometryError(
+            "exact OCC distance prefilter returned invalid distance: "
+            f"distance_mm={distance}, left_bbox={_bbox_tuple(left)}, "
+            f"right_bbox={_bbox_tuple(right)}"
+        )
+    return distance
+
+
 def _bbox_tuple(shape: cq.Shape) -> tuple[float, float, float, float, float, float]:
     bb = shape.BoundingBox()
     return (bb.xmin, bb.xmax, bb.ymin, bb.ymax, bb.zmin, bb.zmax)
@@ -211,10 +237,12 @@ def _bbox_tuple(shape: cq.Shape) -> tuple[float, float, float, float, float, flo
 def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
     """Return positive common volume using exact OCC solid-to-solid operands.
 
-    Boundary-only or topologically empty commons contribute zero. Any common with
-    finite positive volume must heal to valid B-rep topology or the check fails.
-    The explicit-list retry is the same Boolean operation on the same operands and
-    does not relax collision criteria.
+    Boundary-only or topologically empty commons contribute zero. After cheap AABB
+    rejection, an exact OCC minimum-distance check skips only pairs with strictly
+    positive separation. Touching/overlapping pairs still execute exact Common. Any
+    common with finite positive volume must heal to valid B-rep topology or the check
+    fails. The explicit-list retry is the same Boolean operation on the same operands
+    and does not relax collision criteria.
     """
     total = 0.0
     left_solids = a.Solids()
@@ -234,6 +262,9 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
                 or lb.zmax < rb.zmin
                 or rb.zmax < lb.zmin
             ):
+                continue
+
+            if _exact_shape_distance(left, right) > 0.0:
                 continue
 
             common = _direct_common(left, right)
