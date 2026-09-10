@@ -1,0 +1,48 @@
+name: Cartridge tactile focused verification
+
+on:
+  push:
+    branches: [sol-high/cartridge-service-20260909]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cartridge-tactile-focused-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cartridge-tactile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact cartridge head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile owner-local cartridge sources
+        run: |
+          python -m py_compile \
+            src/masck_one/realized_waste_cartridge.py \
+            src/masck_one/cartridge_service_corridor.py \
+            src/masck_one/cartridge_tactile_service.py \
+            src/masck_one/cartridge_fusion_handoff.py
+      - name: Verify cartridge geometry, service corridor and tactile refinements
+        run: |
+          python -m pytest -q \
+            tests/test_realized_waste_cartridge.py \
+            tests/test_cartridge_service_and_fusion.py \
+            tests/test_cartridge_tactile_service.py
+
+# Branch-level digital mechanism evidence only. Released frame receiver geometry,
+# wet disconnect behavior and all physical service/retention validation remain open.
