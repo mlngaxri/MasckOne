@@ -17,6 +17,7 @@ from .boundary_release import (
 from .brand_identity import build_brand_identity_manifest
 from .component_registry import build_current_component_registry
 from .contact_simulation import build_contact_simulation_framework
+from .airway_resistance import build_airway_resistance_screen
 from .integration_contract import integration_contract_manifest
 from .interface_attachment import build_interface_attachment_architecture
 from .model import MasckOneModel, build_model
@@ -250,6 +251,7 @@ def export_release(
         "build_scope": "DEVELOPMENT_ONLY",
         "release_source_binding": _release_source_binding(),
         "integration_contract": integration_contract_manifest(),
+        "airway_resistance_screen": build_airway_resistance_screen(model.authority).manifest(),
         "checks": check_records,
         "production_readiness": development_readiness(check_records, records),
         "components": records,

@@ -30,7 +30,7 @@ from .water_reservoir import WATER_RESERVOIR_ID
 SCHEMA = "MASCK_ONE_CANONICAL_COMPONENT_REGISTRY_V2"
 SOURCE_MAIN_SHA = "ff76a17fa25276a401fbe57ad02564b771fa1865"
 AUTHORITY_REVISION = "2026-08-30-R1"
-AUTHORITY_BLOB_SHA = "2608dda483b995539de422290371c219668a1527"
+AUTHORITY_BLOB_SHA = "c5428ee9ec0061cfa98ea24e8763ae3ec9099fb6"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 LENGTH_UNIT = "mm"
 
@@ -91,8 +91,8 @@ IDENTITY_WORLD_TRANSFORM = (
 )
 
 SOURCE_GIT_BLOBS = {
-    "config/masck_one_authority.yaml": "2608dda483b995539de422290371c219668a1527",
-    "src/masck_one/model.py": "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894",
+    "config/masck_one_authority.yaml": "c5428ee9ec0061cfa98ea24e8763ae3ec9099fb6",
+    "src/masck_one/model.py": "426afbc192465ed4f5057a25d9531820e3f4f6df",
     "src/masck_one/interface_topology.py": "38b7c932f71a8675d45d098ac65154f98ff8bbb5",
     "src/masck_one/structural_frame.py": "bda5ba87d232c0e6a22e200975a80414a10c9a83",
     "src/masck_one/actuator_frames.py": "4c2013f994bdc9e084fe227eb5e166f973500ebb",
@@ -105,7 +105,7 @@ SOURCE_GIT_BLOBS = {
     "src/masck_one/waste_acquisition.py": "7108fcfbe2baeaa9a343199a6817122ac2aea7ab",
     "src/masck_one/waste_pump_architecture.py": "ace02ee529070465b11832f475771125636312cb",
     "src/masck_one/waste_cartridge.py": "9dc0fe8a0ed92083c68406da3993e57e767e2483",
-    "src/masck_one/waste_cartridge_dfm.py": "f9788cce30c14600c8a624509153596e46c1e478",
+    "src/masck_one/waste_cartridge_dfm.py": "08a2955e0dda92f90f11c7c2e6830a5919f0e362",
     "src/masck_one/realized_waste_backbone.py": "6aa79d9a613e278f32da85b4654c0e35cc09b7ca",
 }
 _REPO_ROOT = Path(__file__).resolve().parents[2]

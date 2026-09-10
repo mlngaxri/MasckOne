@@ -414,6 +414,37 @@ def _semantic_issues(data: dict[str, Any]) -> list[AuthorityValidationIssue]:
             {"maximum": gross_water},
         )
 
+    # Added airway resistance is inertia-dominated: dP = K * rho * V^2 / 2 with
+    # V = Q / (paths * area). For a fixed aperture, K is a property of the
+    # geometry and cannot change with flow, so every flow-specific limit must
+    # satisfy limit / flow^2 = constant. Density, area and path count all cancel,
+    # which makes this a geometry-independent requirement invariant: if it fails,
+    # no aperture can satisfy the whole set and the requirement is defective
+    # rather than merely demanding. See src/masck_one/airway_resistance.py.
+    airway_limits = _get(data, "safety", "airway", "max_added_pressure_drop_pa")
+    ratios: list[tuple[str, float]] = []
+    for key in sorted(airway_limits):
+        if key.startswith("at_") and key.endswith("_lpm"):
+            try:
+                flow = float(key[len("at_") : -len("_lpm")])
+            except ValueError:
+                continue
+            if flow > 0.0:
+                ratios.append((key, float(airway_limits[key]) / (flow * flow)))
+    if len(ratios) >= 2:
+        reference_key, reference = ratios[0]
+        for key, ratio in ratios[1:]:
+            if not _isclose(ratio, reference, abs_tol=1e-12):
+                add(
+                    "AIRWAY_PRESSURE_DROP_REQUIREMENT_INCONSISTENT",
+                    f"safety.airway.max_added_pressure_drop_pa.{key}",
+                    "Added airway pressure drop scales with the square of flow, so a fixed "
+                    "aperture implies one loss coefficient. These limits imply different "
+                    "coefficients at different flows and cannot all be met by one geometry.",
+                    {"key": key, "limit_over_flow_squared": ratio},
+                    {"key": reference_key, "limit_over_flow_squared": reference},
+                )
+
     reservoir_envelope = [float(v) for v in _get(data, "fluid", "water_reservoir", "envelope_mm")]
     reservoir_envelope_mL = (reservoir_envelope[0] * reservoir_envelope[1] * reservoir_envelope[2]) / 1000.0
     if not _isclose(reservoir_envelope_mL, gross_water, abs_tol=1e-9):
