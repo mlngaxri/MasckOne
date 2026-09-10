@@ -2,6 +2,11 @@ from __future__ import annotations
 
 import pytest
 
+from masck_one.dry_side_disconnect_interface import (
+    SOURCE_DONOR_SHA as DISCONNECT_SOURCE_DONOR_SHA,
+    SOURCE_MAIN_SHA as DISCONNECT_SOURCE_MAIN_SHA,
+    build_battery_disconnect_interface,
+)
 from masck_one.dry_side_harness_service import (
     CLIP_CENTERS_WORLD_MM,
     DRY_BAY_BOUNDS_WORLD_MM,
@@ -15,6 +20,7 @@ from masck_one.dry_side_harness_service import (
 )
 
 EXPECTED_RELEASE_SHA = "ac59fcd59f50b019cb972bfc526c2daea784bd17"
+EXPECTED_DISCONNECT_DONOR_SHA = "42fa11818184cde998c6df25d7c46d4fb0e4c3eb"
 
 
 def test_harness_route_is_current_release_bound_and_one_valid_solid() -> None:
@@ -24,6 +30,17 @@ def test_harness_route_is_current_release_bound_and_one_valid_solid() -> None:
     assert solid.isValid()
     assert len(solid.Solids()) == 1
     assert solid.Volume() > 0.0
+
+
+def test_disconnect_preserves_donor_provenance_separately_from_current_release() -> None:
+    manifest = build_battery_disconnect_interface().manifest()
+    assert DISCONNECT_SOURCE_MAIN_SHA == EXPECTED_RELEASE_SHA
+    assert DISCONNECT_SOURCE_DONOR_SHA == EXPECTED_DISCONNECT_DONOR_SHA
+    assert manifest["source_main_sha"] == EXPECTED_RELEASE_SHA
+    assert manifest["source_donor_sha"] == EXPECTED_DISCONNECT_DONOR_SHA
+    assert manifest["source_main_sha"] != manifest["source_donor_sha"]
+    assert manifest["connector_selected"] is False
+    assert manifest["physical_service_validated"] is False
 
 
 def test_harness_route_stays_inside_dry_bay_and_has_both_supports() -> None:
