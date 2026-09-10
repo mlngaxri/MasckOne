@@ -17,6 +17,7 @@ from masck_one.cartridge_device_service import (
     SCHEMA,
     SHUTTLE_TRAVEL_Y_MM,
     WET_NOSE_RETRACTION_MM,
+    CartridgeDeviceServiceError,
     build_cartridge_device_service,
     cam_follower_state,
 )
@@ -90,7 +91,7 @@ def test_cam_slots_are_analytically_coupled_over_complete_stroke_with_bounded_pl
 
 def test_cam_progress_rejects_nonphysical_states():
     for progress in (-0.001, 1.001, float("nan"), True):
-        with pytest.raises(Exception):
+        with pytest.raises(CartridgeDeviceServiceError):
             cam_follower_state(progress)
 
 
