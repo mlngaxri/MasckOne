@@ -31,6 +31,7 @@ DONOR_V2_HEAD_SHA = "5c2b5f030f8d205e108a828fed53d43293f518f4"
 CAP_STEM_ROOT_OVERLAP_MM = 0.08
 RIB_STEM_ROOT_OVERLAP_MM = 0.12
 MIN_CONNECTED_OVERLAP_MM3 = 0.20
+LEGACY_TACTILE_BEAM_ROOT_OVERLAP_MM = 0.10
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
 
 
@@ -87,7 +88,7 @@ class PrimaryControlHapticArchitectureV3:
                 "PLUS_TWO_STAGE_ELASTOMER_LANDING_PLUS_INDEPENDENT_HARD_STOP_PLUS_HALL_SENSING"
             ),
             "tactile_reference_rule": (
-                "S_T_DUPONT_LIGNE_2_CLASS_PRECISION_OBJECT_FEEL_ONLY; REPLICATE CONTROLLED_GUIDANCE_LOW_PLAY_"
+                "S_T_DUPONT_LIGNE_2_CLASS_PRECISION_OBJECT_FEEL_ONLY; REPLICATE_CONTROLLED_GUIDANCE_LOW_PLAY_"
                 "DELIBERATE_RESISTANCE_DECISIVE_STATE_CHANGE_POSITIVE_SEATING_AND_CONTROLLED_RETURN; "
                 "DO_NOT_REPLICATE_SOUND_MECHANISM_MATERIALS_OR_STYLING"
             ),
@@ -95,7 +96,7 @@ class PrimaryControlHapticArchitectureV3:
                 "PREMIUM_PERCEIVED_MECHANICS_BY_GEOMETRY_PRELOAD_CONSTRAINT_DAMPING_AND_SELECTIVE_MATERIAL_"
                 "PLACEMENT; HIDDEN_PARTS_COST_OPTIMIZED; USER_TOUCH_SURFACES_MAY_RECEIVE_PREMIUM_MATERIAL_FINISH"
             ),
-            "sound_rule": "SECONDARY; NO INTENTIONAL LIGHTER_PING; PREVENT RATTLE_CLACK_SCRAPE_TWANG_AND_HOLLOW_SHELL_RESPONSE",
+            "sound_rule": "SECONDARY; NO INTENTIONAL_LIGHTER_PING; PREVENT_RATTLE_CLACK_SCRAPE_TWANG_AND_HOLLOW_SHELL_RESPONSE",
             "moving_part_connectivity": {
                 "cap_stem_root_overlap_mm": CAP_STEM_ROOT_OVERLAP_MM,
                 "rib_stem_root_overlap_mm": RIB_STEM_ROOT_OVERLAP_MM,
@@ -150,6 +151,84 @@ def _positive_overlap(a: cq.Shape, b: cq.Shape, name: str) -> float:
     if not math.isfinite(value) or value < MIN_CONNECTED_OVERLAP_MM3:
         raise PrimaryControlHapticV3Error(f"{name} overlap is insufficient: {value}")
     return value
+
+
+def _legacy_connected_tactile_spring(rim_z: float) -> cq.Shape:
+    """Make the historical V1 spring executable without changing its selected status.
+
+    V1 rotated each beam about the button axis, which also translated its Z datum and
+    left the beam floating between the centre disk and reaction ring. The historical
+    package is rebuilt with the same ring, centre disk, thickness, width and preform
+    rise, but each beam is oriented about its own midpoint and rooted 0.10 mm into both
+    adjacent solids. V9 and later still remove this spring from selected material.
+    """
+    ring = v1._ring(
+        v1.TACTILE_SPRING_OD_MM,
+        v1.TACTILE_RING_ID_MM,
+        v1.TACTILE_SPRING_THICKNESS_MM,
+        rim_z,
+    )
+    center_z = rim_z + v1.TACTILE_PREFORM_RISE_MM
+    center = v1._cylinder(
+        v1.TACTILE_CENTER_DIAMETER_MM,
+        v1.TACTILE_SPRING_THICKNESS_MM,
+        center_z,
+    )
+
+    center_radius = v1.TACTILE_CENTER_DIAMETER_MM / 2.0
+    ring_inner = v1.TACTILE_RING_ID_MM / 2.0
+    beam_inner_x = center_radius - LEGACY_TACTILE_BEAM_ROOT_OVERLAP_MM
+    beam_outer_x = ring_inner + LEGACY_TACTILE_BEAM_ROOT_OVERLAP_MM
+    inner_z = center_z + v1.TACTILE_SPRING_THICKNESS_MM / 2.0
+    outer_z = rim_z + v1.TACTILE_SPRING_THICKNESS_MM / 2.0
+    dx = beam_outer_x - beam_inner_x
+    dz = outer_z - inner_z
+    beam_length = math.hypot(dx, dz)
+    beam_angle = math.degrees(math.atan2(-dz, dx))
+    beam_center_radius = (beam_inner_x + beam_outer_x) / 2.0
+    beam_center_z = (inner_z + outer_z) / 2.0
+
+    beams: list[cq.Shape] = []
+    for azimuth in (0.0, 90.0, 180.0, 270.0):
+        beam = v1._box(
+            beam_length,
+            v1.TACTILE_BEAM_WIDTH_MM,
+            v1.TACTILE_SPRING_THICKNESS_MM,
+            (
+                v1.MOUNT_X_MM + beam_center_radius,
+                v1.MOUNT_Y_MM,
+                beam_center_z,
+            ),
+        )
+        beam = beam.rotate(
+            (
+                v1.MOUNT_X_MM + beam_center_radius,
+                v1.MOUNT_Y_MM,
+                beam_center_z,
+            ),
+            (
+                v1.MOUNT_X_MM + beam_center_radius,
+                v1.MOUNT_Y_MM + 1.0,
+                beam_center_z,
+            ),
+            beam_angle,
+        )
+        beam = beam.rotate(
+            (v1.MOUNT_X_MM, v1.MOUNT_Y_MM, beam_center_z),
+            (v1.MOUNT_X_MM, v1.MOUNT_Y_MM, beam_center_z + 1.0),
+            azimuth,
+        )
+        beams.append(beam)
+
+    result = ring
+    for beam in beams:
+        if v1._intersection_volume(beam, ring) <= 0.0 and v1._intersection_volume(beam, center) <= 0.0:
+            raise PrimaryControlHapticV3Error("historical tactile beam lost both positive roots")
+        result = result.fuse(beam)
+    result = result.fuse(center).clean()
+    if not result.isValid() or len(result.Solids()) != 1 or float(result.Volume()) <= 0.0:
+        raise PrimaryControlHapticV3Error("historical tactile spring execution repair is not one connected solid")
+    return result
 
 
 def build_primary_control_haptic_architecture_v3(
@@ -233,7 +312,7 @@ def build_primary_control_haptic_architecture_v3(
     diaphragm = membrane.fuse(outer_bead).fuse(inner_bead).clean()
 
     spring_rim_z = rest_z - v1.TACTILE_RIM_FROM_REST_MM
-    tactile_spring = v1._formed_tactile_spring(spring_rim_z)
+    tactile_spring = _legacy_connected_tactile_spring(spring_rim_z)
     damping = v1._ring(v1.DAMPING_LAYER_OD_MM, v1.DAMPING_LAYER_ID_MM, v1.DAMPING_LAYER_THICKNESS_MM, spring_rim_z - v1.DAMPING_LAYER_THICKNESS_MM)
     spring_retainer = v1._split_ring(
         v1.SNAP_RETAINER_OD_MM,
