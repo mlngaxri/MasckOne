@@ -7,6 +7,7 @@ from masck_one.dry_side_harness_service import (
     DRY_BAY_BOUNDS_WORLD_MM,
     PCB_HANDOFF_DATUM_WORLD_MM,
     ROUTE_POINTS_WORLD_MM,
+    SERVICE_LOOP_MIN_EXTRA_PATH_MM,
     SOURCE_MAIN_SHA,
     DrySideHarnessError,
     DrySideHarnessService,
@@ -44,7 +45,12 @@ def test_harness_manifest_preserves_service_and_evidence_firewalls() -> None:
     manifest = build_dry_side_harness_service().manifest()
     assert manifest["route_points_world_mm"] == [list(point) for point in ROUTE_POINTS_WORLD_MM]
     assert manifest["pcb_handoff_datum_world_mm"] == list(PCB_HANDOFF_DATUM_WORLD_MM)
-    assert manifest["route_path_length_mm"] >= manifest["service_loop_extra_path_mm"]
+    assert manifest["service_loop_min_extra_path_mm"] == SERVICE_LOOP_MIN_EXTRA_PATH_MM
+    assert manifest["service_loop_extra_path_mm"] == pytest.approx(
+        manifest["route_path_length_mm"] - manifest["direct_endpoint_span_mm"],
+        abs=1e-12,
+    )
+    assert manifest["service_loop_extra_path_mm"] >= manifest["service_loop_min_extra_path_mm"]
     assert manifest["connector_selected"] is False
     assert manifest["conductor_selected"] is False
     assert manifest["electrical_ratings_selected"] is False
@@ -52,6 +58,24 @@ def test_harness_manifest_preserves_service_and_evidence_firewalls() -> None:
     assert manifest["emc_validated"] is False
     assert manifest["bend_life_validated"] is False
     assert manifest["physical_service_validated"] is False
+
+
+def test_hostile_route_with_insufficient_excess_service_slack_is_rejected() -> None:
+    valid = build_dry_side_harness_service()
+    short_points = (
+        ROUTE_POINTS_WORLD_MM[0],
+        (17.0, 4.0, -39.0),
+        (8.0, 4.0, -39.0),
+        (8.0, 11.0, -39.0),
+        ROUTE_POINTS_WORLD_MM[-1],
+    )
+    hostile = DrySideHarnessService(
+        route_envelope=valid.route_envelope,
+        clip_reservations=valid.clip_reservations,
+        route_points_world_mm=short_points,
+    )
+    with pytest.raises(DrySideHarnessError, match="service-loop excess length"):
+        hostile.validate()
 
 
 def test_hostile_disconnected_route_is_rejected() -> None:
