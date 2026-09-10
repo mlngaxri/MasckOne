@@ -111,6 +111,53 @@ def test_exact_cut_volume_fallback_tries_reverse_subtraction_when_first_directio
     assert cut_calls == 2
 
 
+def test_exact_partition_keeps_initial_operand_side_locked_through_recursion(monkeypatch):
+    left = cq.Workplane("XY").box(4.0, 1.0, 1.0).val()
+    right = cq.Workplane("XY").box(8.0, 1.0, 1.0).val()
+    original_common = reference_geometry._direct_common
+    original_partition = reference_geometry._partition_solid_once
+    partition_sources: list[tuple[float, float]] = []
+
+    def fail_common_until_right_piece_is_small(
+        left_operand: cq.Shape,
+        right_operand: cq.Shape,
+    ) -> cq.Shape:
+        right_bounds = right_operand.BoundingBox()
+        right_x_span = right_bounds.xmax - right_bounds.xmin
+        if right_x_span > 1.05:
+            raise TreatmentReferenceGeometryError("forced Common failure until right partition is small")
+        return original_common(left_operand, right_operand)
+
+    def failed_cut(_left: cq.Shape, _right: cq.Shape) -> cq.Shape:
+        raise TreatmentReferenceGeometryError("forced Cut failure")
+
+    def recorded_partition(source: cq.Shape) -> list[cq.Shape]:
+        bounds = source.BoundingBox()
+        partition_sources.append(
+            (
+                bounds.xmax - bounds.xmin,
+                (bounds.xmin + bounds.xmax) / 2.0,
+            )
+        )
+        return original_partition(source)
+
+    monkeypatch.setattr(reference_geometry, "_direct_common", fail_common_until_right_piece_is_small)
+    monkeypatch.setattr(reference_geometry, "_direct_cut", failed_cut)
+    monkeypatch.setattr(reference_geometry, "_partition_solid_once", recorded_partition)
+
+    assert intersection_volume_mm3(left, right) == pytest.approx(4.0, abs=1e-8)
+    assert partition_sources[0][0] == pytest.approx(8.0, abs=1e-9)
+    # Under the old role-flipping recursion, once a right-hand partition became
+    # narrower than the unchanged left operand the algorithm switched sides and
+    # partitioned the original 4 mm left box at center X=0. The selected partition
+    # operand must now stay on the original right side for the entire recursion.
+    assert not any(
+        span == pytest.approx(4.0, abs=1e-9)
+        and center == pytest.approx(0.0, abs=1e-9)
+        for span, center in partition_sources[1:]
+    )
+
+
 def test_translation_reference_is_boolean_free_and_covers_midpath_collision():
     moving = (
         cq.Workplane("XY")
