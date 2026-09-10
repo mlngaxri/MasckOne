@@ -354,6 +354,28 @@ REQUIRED_MASS_COVERAGE: tuple[str, ...] = (
 )
 
 
+def battery_entry(authority: Authority) -> MassEntry:
+    """Battery mass from the named supplier candidate.
+
+    battery_reference names a specific cell (EEMB LP603450HA) and states its
+    mass, so this is datasheet evidence rather than an envelope estimate. The
+    cell itself remains PACKAGING_BENCHMARK_NOT_PRODUCTION_FREEZE: the mass is
+    real for that part, but that part is not a production selection.
+    """
+
+    z_mm = float(authority.get("battery_reference", "envelope_mm")[2]) / 2.0
+    return MassEntry(
+        item_id="battery",
+        mass_g=authority.number("battery_reference", "mass_g"),
+        z_mm=z_mm,
+        evidence=MassEvidence.SUPPLIER_DATASHEET,
+        note=(
+            f"{authority.get('battery_reference', 'candidate')}; "
+            "candidate cell, not a production freeze"
+        ),
+    )
+
+
 def build_mass_balance_ledger(
     authority: Authority,
     entries: tuple[MassEntry, ...] | None = None,
@@ -367,7 +389,11 @@ def build_mass_balance_ledger(
 
     corners, closes = check_limit_closure(dry, loaded, cg_limit, torque_limit)
 
-    supplied = liquid_charge_entries(authority) if entries is None else tuple(entries)
+    supplied = (
+        liquid_charge_entries(authority) + (battery_entry(authority),)
+        if entries is None
+        else tuple(entries)
+    )
     covered = {entry.item_id for entry in supplied}
     # Materialise every uncovered subsystem so the gap is counted, not omitted.
     missing = tuple(

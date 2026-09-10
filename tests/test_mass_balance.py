@@ -280,13 +280,14 @@ def test_default_ledger_is_honest_about_what_it_does_not_cover(ledger) -> None:
 
     assert not ledger.is_complete
     assert "LOWER_BOUND" in ledger.manifest()["evidence_status"]
-    assert ledger.established_mass_g < 0.1 * ledger.dry_limit_g
+    # Most of the dry budget is still unaccounted for.
+    assert ledger.established_mass_g < 0.25 * ledger.dry_limit_g
     # Every required subsystem is present in the ledger, resolved or not.
     assert {e.item_id for e in ledger.entries} >= set(REQUIRED_MASS_COVERAGE)
 
 
 def test_uncovered_subsystems_are_materialised_not_omitted(ledger) -> None:
-    for name in ("structural_frame", "rigid_shell", "battery", "retention_system"):
+    for name in ("structural_frame", "rigid_shell", "actuator_1", "retention_system"):
         assert name in ledger.unresolved_items
 
 
@@ -304,3 +305,19 @@ def test_ledger_becomes_complete_only_when_every_subsystem_is_evidenced(authorit
     # Drop one and it must fall back to a lower bound.
     partial = build_mass_balance_ledger(authority, entries[:-1])
     assert not partial.is_complete
+
+
+def test_battery_mass_is_datasheet_evidence_not_an_envelope_estimate(authority) -> None:
+    from masck_one.mass_balance import battery_entry
+
+    entry = battery_entry(authority)
+    assert entry.evidence is MassEvidence.SUPPLIER_DATASHEET
+    assert entry.is_established
+    assert entry.mass_g == authority.number("battery_reference", "mass_g")
+    # The cell is a candidate, and the entry must say so.
+    assert "not a production freeze" in entry.note
+
+
+def test_battery_is_in_the_default_ledger(ledger) -> None:
+    assert "battery" not in ledger.unresolved_items
+    assert ledger.established_mass_g > 22.0

@@ -110,17 +110,20 @@ and reports its liquid charge as complete is worse than no ledger at all.
 
 | | |
 |---|---|
-| established mass | **7.08 g** (water and cleanser charge) |
+| established mass | **29.08 g** (water + cleanser charge, battery) |
 | dry budget | 215 g |
-| unresolved subsystems | **19 of 21** |
+| unresolved subsystems | **18 of 21** |
 | status | `INCOMPLETE_LEDGER_TOTAL_IS_A_LOWER_BOUND_NOT_PRODUCT_MASS` |
 
-Only the liquid charges are derivable today: the authority fixes the volumes and
-water density is known. Cleanser is carried at water density with the assumption
-recorded on the entry — cleanser formulation density is unresolved.
+Only three entries are evidenced today. The liquid charges are derivable because
+the authority fixes the volumes and water density is known — cleanser is carried
+at water density with the assumption recorded on the entry, since cleanser
+formulation density is unresolved. The battery is datasheet evidence:
+`battery_reference` names a specific cell (EEMB LP603450HA) and states its 22 g
+mass, though that cell remains a candidate rather than a production freeze.
 
 Everything else — shell, frame, four actuators, pumps, manifold, cartridge,
-battery, electronics, retention, thermal — has no mass evidence. The 215 g dry
+electronics, retention, thermal — has no mass evidence. The 215 g dry
 target is therefore **entirely unretired**. Retiring it needs realized geometry
 plus material assignment, or supplier datasheets, per subsystem.
 

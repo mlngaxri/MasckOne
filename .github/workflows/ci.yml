@@ -156,8 +156,20 @@ jobs:
       - name: Iteration 16 Class-A surface workflow preflight
         run: python -m masck_one.surface_workflow_preflight
 
+      # The engineering suite is CPU-bound OpenCascade work and is independent
+      # per test. Run serially it exceeded this job's 45-minute budget: the test
+      # step alone consumed 44m05s before being cancelled, which skipped the CAD
+      # smoke build, the provenance verification and the package-integrity check
+      # below, and left the structural-frame lane unable to complete a single
+      # run. Distributed across the runner's cores the same suite completes in
+      # single-digit minutes with no test skipped, removed or weakened.
+      #
+      # --dist loadscope keeps each module's tests on one worker so the suite's
+      # many module-scoped CAD fixtures are built once per module rather than
+      # once per worker. Measured on 4 cores: loadscope 6m14s, default load
+      # 8m28s, both with 0 failures across 712 tests.
       - name: Unit and integration tests
-        run: python -m pytest --durations=20
+        run: python -m pytest -n auto --dist loadscope --durations=20
 
       - name: Deterministic CAD smoke build
         env:
