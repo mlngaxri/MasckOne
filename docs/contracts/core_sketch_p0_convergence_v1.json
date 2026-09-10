@@ -1,6 +1,22 @@
 {
   "schema_version": 1,
   "status": "CORE_SKETCH_CONCEPT_CONTRACT_NON_ENGINEERING_AUTHORITY",
+  "canonical_backlog_contracts": {
+    "CS-015": "REQUIRED_REGION_COMPLETION",
+    "CS-016": "PREPARED_SESSION_VALIDITY_INTERRUPTION",
+    "CS-017": "PRODUCT_PRESERVATION_DOCK_SESSION_STORAGE",
+    "CS-018": "ALL_CONTACT_SUPPORT_FILM_PRESERVING_TRANSITION"
+  },
+  "authority_snapshot": {
+    "purpose": "CONSTRAINT_RECONCILIATION_ONLY_NOT_A_RELEASE_BINDING",
+    "observed_main": "eb8ba26c57222320210fa7eb15f4d69e1563cf64",
+    "authority_revision_label": "2026-08-30-R1",
+    "dry_target_max_g": 215.0,
+    "loaded_absolute_max_g": 255.0,
+    "cg_z_max_mm": 27.9,
+    "pitch_torque_max_Nm": 0.070,
+    "refresh_before_engineering_action": true
+  },
   "authority_boundary": {
     "may_define_product_logic": true,
     "may_claim_physical_validation": false,
@@ -185,7 +201,7 @@
     "DEMANDING_AM"
   ],
   "shared_contract_writing_owners": {
-    "STAGE_BY_REGION_COMPLETION": "L5",
+    "STAGE_BY_REGION_COMPLETION": "L1",
     "FACE_CONTACT_OCCLUSION_STATE": "L1",
     "PREPARED_SESSION_VALIDITY": "L4",
     "COMPLETE_ROUTINE_RESOURCE_ENVELOPE": "L5",
@@ -198,6 +214,10 @@
     {"id": "CS-012", "lane": "L1", "state": "PROVE", "evidence": "BENCH", "digitally_actionable_now": true},
     {"id": "CS-013", "lane": "L1", "state": "PROVE", "evidence": "BENCH", "digitally_actionable_now": true},
     {"id": "CS-014", "lane": "L1", "state": "EXPLORE", "evidence": "BENCH", "digitally_actionable_now": true},
+    {"id": "CS-015", "lane": "L1", "state": "PROVE", "evidence": "DIGITAL_THEN_APPLICATION_EVIDENCE", "digitally_actionable_now": true},
+    {"id": "CS-016", "lane": "L4", "state": "SELECTED_PROVE", "evidence": "DOC_DIGITAL_BENCH", "digitally_actionable_now": true},
+    {"id": "CS-017", "lane": "L2", "state": "PROVE", "evidence": "BENCH_QUALIFIED_FORMULATION_HYGIENE", "digitally_actionable_now": true},
+    {"id": "CS-018", "lane": "L1", "state": "PROVE", "evidence": "DIGITAL_BENCH_HUMAN", "digitally_actionable_now": true},
     {"id": "CS-020", "lane": "L4", "state": "SELECTED", "evidence": "DOC_DIGITAL", "digitally_actionable_now": true},
     {"id": "CS-050", "lane": "L3", "state": "PROVE", "evidence": "HUMAN", "digitally_actionable_now": true},
     {"id": "CS-053", "lane": "L5", "state": "PROVE", "evidence": "DIGITAL_BENCH", "digitally_actionable_now": true},
@@ -223,6 +243,7 @@
     "SHARED_INTERFACE_HAS_ONE_CANONICAL_WRITING_OWNER",
     "GREEN_SUBSYSTEM_CI_CANNOT_CLOSE_P0_PHYSICAL_PROOF",
     "EMERGENCY_RELEASE_CANNOT_BE_WEAKENED_FOR_FILM_PRESERVATION",
-    "SPF_CLAIM_CANNOT_EXCEED_VALIDATED_FACE_PRODUCT_APPLICATION_ENVELOPE"
+    "SPF_CLAIM_CANNOT_EXCEED_VALIDATED_FACE_PRODUCT_APPLICATION_ENVELOPE",
+    "CURRENT_AUTHORITY_CONSTRAINTS_MUST_BE_REFRESHED_BEFORE_ENGINEERING_ACTION"
   ]
 }
