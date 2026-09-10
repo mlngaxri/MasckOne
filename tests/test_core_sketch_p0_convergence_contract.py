@@ -19,6 +19,30 @@ def test_contract_is_explicitly_non_engineering_authority():
     assert boundary["may_override_protected_anatomy"] is False
 
 
+def test_contract_consumes_existing_backlog_contract_ids_instead_of_competing_with_them():
+    data = load_contract()
+    assert data["canonical_backlog_contracts"] == {
+        "CS-015": "REQUIRED_REGION_COMPLETION",
+        "CS-016": "PREPARED_SESSION_VALIDITY_INTERRUPTION",
+        "CS-017": "PRODUCT_PRESERVATION_DOCK_SESSION_STORAGE",
+        "CS-018": "ALL_CONTACT_SUPPORT_FILM_PRESERVING_TRANSITION",
+    }
+    ids = {item["id"] for item in data["p0_items"]}
+    assert {"CS-015", "CS-016", "CS-017", "CS-018"} <= ids
+
+
+def test_constraint_snapshot_records_current_reconciled_mass_set_but_is_not_release_binding():
+    data = load_contract()
+    snapshot = data["authority_snapshot"]
+    assert snapshot["purpose"] == "CONSTRAINT_RECONCILIATION_ONLY_NOT_A_RELEASE_BINDING"
+    assert snapshot["dry_target_max_g"] == 215.0
+    assert snapshot["loaded_absolute_max_g"] == 255.0
+    assert snapshot["cg_z_max_mm"] == 27.9
+    assert snapshot["pitch_torque_max_Nm"] == 0.070
+    assert snapshot["refresh_before_engineering_action"] is True
+    assert "CURRENT_AUTHORITY_CONSTRAINTS_MUST_BE_REFRESHED_BEFORE_ENGINEERING_ACTION" in data["invariants"]
+
+
 def test_complete_routine_cannot_hide_blocking_region_states():
     data = load_contract()
     blocking = set(data["blocking_completion_states"])
@@ -121,6 +145,9 @@ def test_shared_interfaces_have_one_canonical_writing_owner():
     assert owners
     assert len(owners) == len(set(owners))
     assert all(owner in lanes for owner in owners.values())
+    assert owners["STAGE_BY_REGION_COMPLETION"] == "L1"
+    assert owners["PREPARED_SESSION_VALIDITY"] == "L4"
+    assert owners["COMPLETE_ROUTINE_RESOURCE_ENVELOPE"] == "L5"
     assert "SHARED_INTERFACE_HAS_ONE_CANONICAL_WRITING_OWNER" in data["invariants"]
 
 
