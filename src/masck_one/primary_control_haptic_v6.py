@@ -14,6 +14,7 @@ stress, preload force, friction, wear, fatigue and molding process remain open.
 from dataclasses import dataclass, field
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import cadquery as cq
@@ -28,6 +29,7 @@ LEAF_ROOT_RADIAL_LENGTH_MM = 1.38
 LEAF_ROOT_Y_MM = 0.50
 LEAF_ROOT_Z_MM = 0.36
 LEAF_ROOT_ACTIVE_OVERLAP_MM = 0.12
+LEAF_ACTIVE_BORE_CLEARANCE_MM = 0.02
 MIN_ROOT_OUTER_POLYMER_COVER_MM = 0.35
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
 
@@ -38,7 +40,21 @@ class PrimaryControlHapticV6Error(ValueError):
 
 def _leaf_geometry(rest_z: float, installed: bool = False) -> tuple[cq.Shape, cq.Shape, cq.Shape]:
     active_center_z = rest_z - 2.55
-    active_center_x = v1.MOUNT_X_MM + v1.BARREL_BORE_DIAMETER_MM / 2.0 - 0.18
+
+    # The active tongue is rectangular while the structural guide bore is circular.
+    # V5/V6's earlier X seed treated the bore wall as a flat tangent plane, leaving
+    # the outer installed-preload corner microscopically inside rigid shell material.
+    # Derive the X datum from the full 0.05 mm preload excursion instead so the worst
+    # corner remains genuinely inside the cylindrical bore with positive clearance.
+    bore_radius = v1.BARREL_BORE_DIAMETER_MM / 2.0
+    worst_installed_y_edge = v1.ANTI_ROTATION_SLOT_WIDTH_MM / 2.0
+    usable_radius = bore_radius - LEAF_ACTIVE_BORE_CLEARANCE_MM
+    radial_square = usable_radius * usable_radius - worst_installed_y_edge * worst_installed_y_edge
+    if radial_square <= 0.0:
+        raise PrimaryControlHapticV6Error("active leaf bore-clearance datum is impossible")
+    active_outer_x_from_axis = math.sqrt(radial_square)
+    active_center_x = v1.MOUNT_X_MM + active_outer_x_from_axis - 0.34 / 2.0
+
     active_center_y = (
         v1.MOUNT_Y_MM
         + v1.ANTI_ROTATION_SLOT_WIDTH_MM / 2.0
@@ -177,6 +193,8 @@ class PrimaryControlHapticArchitectureV6:
                 "active_leaf_length_mm": v1.ANTI_ROTATION_LEAF_LENGTH_MM,
                 "active_leaf_thickness_mm": v1.ANTI_ROTATION_LEAF_THICKNESS_MM,
                 "installed_preload_seed_mm": v1.ANTI_ROTATION_LEAF_PRELOAD_SEED_MM,
+                "active_tongue_bore_clearance_seed_mm": LEAF_ACTIVE_BORE_CLEARANCE_MM,
+                "active_tongue_datum_rule": "DERIVE_X_FROM_CIRCULAR_BORE_AND_FULL_INSTALLED_PRELOAD_EXCURSION",
                 "root_radial_length_mm": LEAF_ROOT_RADIAL_LENGTH_MM,
                 "root_y_mm": LEAF_ROOT_Y_MM,
                 "root_z_mm": LEAF_ROOT_Z_MM,
@@ -222,6 +240,9 @@ def build_primary_control_haptic_architecture_v6(
     shell_after = shell_before.cut(root).clean()
     removed = before_volume - float(shell_after.Volume())
     overlap = v1._intersection_volume(shell_after, free_leaf)
+    installed_overlap = v1._intersection_volume(shell_after, installed_leaf)
+    if installed_overlap > _INTERSECTION_TOLERANCE_MM3:
+        raise PrimaryControlHapticV6Error("installed preload reference cannot occupy structural-shell material")
 
     root_bb = root.BoundingBox()
     barrel_outer_x = v1.MOUNT_X_MM + v1.BARREL_OD_MM / 2.0
