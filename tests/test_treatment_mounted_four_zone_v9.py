@@ -5,10 +5,13 @@ import pytest
 from masck_one.structural_frame_actuator_reactions import REACTION_IDS
 from masck_one.treatment_mounted_four_zone_v9 import (
     SCHEMA_V9,
-    SOURCE_CELL6_HEAD_SHA,
+    SOURCE_CELL6_HEAD_SHA as HISTORICAL_V9_CELL6_HEAD_SHA,
     build_mounted_four_zone_architecture_v9,
     fusion_handoff_manifest,
     manifest_v9,
+)
+from masck_one.treatment_mounted_four_zone_v10 import (
+    SOURCE_CELL6_HEAD_SHA as CURRENT_V10_CELL6_HEAD_SHA,
 )
 
 
@@ -17,9 +20,10 @@ def built_v9():
     return build_mounted_four_zone_architecture_v9()
 
 
-def test_v9_builds_all_four_live_source_bound_guided_stations(built_v9):
+def test_v9_geometry_remains_executable_but_source_binding_is_historical(built_v9):
     architecture, datums = built_v9
-    assert datums.source_cell6_head_sha == SOURCE_CELL6_HEAD_SHA
+    assert datums.source_cell6_head_sha == CURRENT_V10_CELL6_HEAD_SHA
+    assert datums.source_cell6_head_sha != HISTORICAL_V9_CELL6_HEAD_SHA
     assert tuple(station.reaction_id for station in architecture.stations) == REACTION_IDS
     assert tuple(station.reaction_id for station in datums.stations) == REACTION_IDS
     for station in architecture.stations:
@@ -53,10 +57,12 @@ def test_v9_preserves_nominal_operational_and_full_service_clearance(built_v9):
         assert len(station.service_sweep.Solids()) > 1
 
 
-def test_v9_manifest_records_kernel_successor_and_fusion_handoff(built_v9):
+def test_v9_manifest_is_historical_and_v10_owns_promotion_source_truth(built_v9):
     architecture, datums = built_v9
     manifest = manifest_v9(architecture, datums)
     assert manifest["schema"] == SCHEMA_V9
+    assert manifest["source_cell6_head_sha"] == HISTORICAL_V9_CELL6_HEAD_SHA
+    assert manifest["source_cell6_head_sha"] != datums.source_cell6_head_sha
     assert "COAXIAL_RIGID_MASTER_PRELOAD_PAIRS" in manifest["selected_buttery_candidate"]
     assert manifest["V8_rejection"].startswith("SUPERSEDED_AS_CURRENT_CANDIDATE")
     assert "BOOLEAN_FREE" in manifest["verification_revision"]
