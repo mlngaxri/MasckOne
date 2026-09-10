@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from masck_one.primary_control_haptic_v10 import (
+    DIAPHRAGM_GROOVE_BORE_RADIAL_RUNOUT_MM,
+    DIAPHRAGM_GROOVE_ID_MM,
     FREE_TO_INSTALLED_MEMBRANE_COMPRESSION_SEED_MM,
     MIN_CAPTURE_HOSTILE_INTERSECTION_MM3,
     MIN_GROOVE_LIGAMENT_TO_BARREL_OD_MM,
@@ -8,6 +10,7 @@ from masck_one.primary_control_haptic_v10 import (
     SOURCE_MAIN_SHA,
     build_primary_control_haptic_architecture_v10,
 )
+from masck_one import primary_control_haptic as v1
 
 
 def test_v10_integral_capture_is_clear_at_rest_but_engages_hostile_overpull():
@@ -25,6 +28,8 @@ def test_v10_installed_diaphragm_has_real_shell_reaction_without_rigid_overlap()
     refs = dict(architecture.reference_parts)
 
     assert architecture.diaphragm_groove_removed_mm3 > 0.0
+    assert DIAPHRAGM_GROOVE_BORE_RADIAL_RUNOUT_MM > 0.0
+    assert DIAPHRAGM_GROOVE_ID_MM < v1.BARREL_BORE_DIAMETER_MM
     assert architecture.installed_diaphragm_shell_intersection_mm3 == 0.0
     assert architecture.installed_diaphragm_moving_intersection_mm3 == 0.0
     assert architecture.groove_outer_ligament_mm >= MIN_GROOVE_LIGAMENT_TO_BARREL_OD_MM
@@ -43,6 +48,7 @@ def test_v10_keeps_free_manufactured_elastomer_separate_from_installed_reference
     assert "wet_diaphragm_installed_return_reference" in refs
     assert manifest["diaphragm"]["manufactured_free_geometry"] == "wet_diaphragm"
     assert manifest["diaphragm"]["installed_deformed_reference"] == "wet_diaphragm_installed_return_reference"
+    assert manifest["diaphragm"]["groove_bore_radial_runout_mm"] == DIAPHRAGM_GROOVE_BORE_RADIAL_RUNOUT_MM
     assert FREE_TO_INSTALLED_MEMBRANE_COMPRESSION_SEED_MM > 0.0
     assert manifest["diaphragm"]["guidance_role"].startswith("NONE_")
 
