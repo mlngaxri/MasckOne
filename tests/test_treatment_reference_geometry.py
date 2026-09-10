@@ -4,6 +4,7 @@ import pytest
 import cadquery as cq
 
 from masck_one.treatment_reference_geometry import (
+    _explicit_list_common,
     intersection_volume_mm3,
     translation_reference_compound,
 )
@@ -23,6 +24,13 @@ def test_pairwise_intersection_distinguishes_gap_touch_and_positive_overlap():
     assert intersection_volume_mm3(base, _box(1.01)) == 0.0
     assert intersection_volume_mm3(base, _box(1.0)) == 0.0
     assert intersection_volume_mm3(base, _box(0.75)) == pytest.approx(0.25, abs=1e-9)
+
+
+def test_explicit_list_common_preserves_exact_positive_common_semantics():
+    common = _explicit_list_common(_box(0.0), _box(0.75))
+    assert common.isValid()
+    assert common.Solids()
+    assert sum(float(solid.Volume()) for solid in common.Solids()) == pytest.approx(0.25, abs=1e-9)
 
 
 def test_translation_reference_is_boolean_free_and_covers_midpath_collision():
