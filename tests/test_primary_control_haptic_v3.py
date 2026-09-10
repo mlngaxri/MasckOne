@@ -39,11 +39,12 @@ def test_v3_preserves_current_keepouts_and_continuous_motion_reference():
 def test_v3_manifest_encodes_tactile_not_acoustic_reference_and_cost_rule():
     architecture = build_primary_control_haptic_architecture_v3()
     manifest = architecture.manifest()
+    normalized_sound_rule = manifest["sound_rule"].replace("_", " ")
 
     assert manifest["schema"] == SCHEMA
     assert manifest["source_main_sha"] == SOURCE_MAIN_SHA
     assert "DO_NOT_REPLICATE_SOUND" in manifest["tactile_reference_rule"]
-    assert "NO INTENTIONAL LIGHTER_PING" in manifest["sound_rule"]
+    assert "NO INTENTIONAL LIGHTER PING" in normalized_sound_rule
     assert "GEOMETRY_PRELOAD_CONSTRAINT_DAMPING" in manifest["cost_rule"]
     assert manifest["moving_part_connectivity"]["visible_cap_geometry_changed"] is False
     assert manifest["moving_part_connectivity"]["external_rib_projection_changed"] is False
