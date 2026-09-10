@@ -13,6 +13,9 @@ from masck_one.treatment_terminal_datum_preload_v4 import (
     SERVICE_REMAINING_RETRACTION_MM,
     SERVICE_UNSEAT_MM,
     SOURCE_CELL6_HEAD_SHA,
+    Z_DATUM_INBOARD_OFFSET_MM,
+    Z_DATUM_TO_BRIDGE_NOMINAL_X_GAP_MM,
+    Z_DATUM_TO_SHOULDER_EDGE_NOMINAL_X_MARGIN_MM,
     build_terminal_datum_preload_v4_architecture,
 )
 
@@ -35,9 +38,39 @@ def test_v4_builds_all_four_live_source_bound_terminal_stations(datum_v4):
         assert station.preload_couple_proxy_Nmm == 0.0
 
 
+def test_v4_relocates_coaxial_z_pair_clear_of_cell6_bridge(datum_v4):
+    manifest = datum_v4.manifest()
+    relocation = manifest["Z_datum_relocation"]
+
+    assert Z_DATUM_INBOARD_OFFSET_MM == pytest.approx(2.4, abs=1e-12)
+    assert Z_DATUM_TO_BRIDGE_NOMINAL_X_GAP_MM == pytest.approx(0.30, abs=1e-12)
+    assert Z_DATUM_TO_SHOULDER_EDGE_NOMINAL_X_MARGIN_MM == pytest.approx(1.0, abs=1e-12)
+    assert relocation["direction"] == "INBOARD_TOWARD_PRODUCT_CENTER_MIRRORED_BY_STATION"
+    assert relocation["master_to_preload_relative_X_offset_mm"] == 0.0
+    assert relocation["nominal_bridge_X_gap_mm"] == Z_DATUM_TO_BRIDGE_NOMINAL_X_GAP_MM
+    assert relocation["nominal_shoulder_edge_X_margin_mm"] == (
+        Z_DATUM_TO_SHOULDER_EDGE_NOMINAL_X_MARGIN_MM
+    )
+    assert relocation["full_cam_travel_preserved"] is True
+    assert relocation["collision_threshold_weakened"] is False
+
+    for station in datum_v4.stations:
+        masters = dict(station.master_parts)
+        preload = dict(station.preload_outer_parts)
+        master_z = masters["rigid_master_z_v3"].BoundingBox()
+        preload_z = preload["preload_z_outer_v3"].BoundingBox()
+        master_center_x = 0.5 * (master_z.xmin + master_z.xmax)
+        preload_center_x = 0.5 * (preload_z.xmin + preload_z.xmax)
+        assert master_center_x == pytest.approx(preload_center_x, abs=1e-9)
+        assert abs(master_center_x - station.center_xy_mm[0]) == pytest.approx(
+            Z_DATUM_INBOARD_OFFSET_MM,
+            abs=1e-9,
+        )
+
+
 def test_v4_keeps_reference_motion_and_physical_validation_firewall(datum_v4):
     manifest = datum_v4.manifest()
-    assert manifest["verification_revision"].startswith("BOOLEAN_FREE")
+    assert "BOOLEAN_FREE_REFERENCE_SWEEPS" in manifest["verification_revision"]
     assert manifest["physical_validation_eligible"] is False
     for station in manifest["stations"]:
         assert station["load_path"].startswith("RIGID_MASTER_DATUMS")
