@@ -24,11 +24,12 @@ Collision common is evaluated with OpenCascade's exact BRepAlgoAPI Common operat
 AABB overlap is followed by exact shape-to-shape distance: pairs with strictly positive
 distance are provably disjoint and never need a Boolean common. Touching/overlapping
 pairs have zero distance and still run the strict Common path. If both Common execution
-paths fail on a zero-distance pair, an independent exact BRepAlgoAPI Cut is used as a
-volumetric identity witness: volume(left) - volume(left minus right) is the positive
-common volume. Contact-only pairs therefore return zero while true penetration remains
-positive. No fuzzy value, geometric tolerance expansion, sampling approximation, or
-collision threshold change is introduced.
+paths fail on a zero-distance pair, exact BRepAlgoAPI Cut volume identities are tried
+in both subtraction directions. A-B and B-A must remove the same positive common
+volume, so either successful direction can distinguish contact-only from penetration.
+No fuzzy value, geometric tolerance expansion, sampling approximation, or collision
+threshold change is introduced; failure of both exact subtraction directions remains
+a hard verification error.
 """
 
 import math
@@ -234,8 +235,8 @@ def _direct_cut(left: cq.Shape, right: cq.Shape) -> cq.Shape:
     return cq.Shape.cast(operation.Shape())
 
 
-def _exact_cut_removed_volume_mm3(left: cq.Shape, right: cq.Shape) -> float:
-    """Return exact common volume by the volume identity A - (A minus B)."""
+def _exact_cut_removed_volume_one_way_mm3(left: cq.Shape, right: cq.Shape) -> float:
+    """Return exact common volume from the one-way identity A - (A minus B)."""
     cut = _direct_cut(left, right)
     if not cut.isValid():
         cut = _heal(cut)
@@ -257,6 +258,21 @@ def _exact_cut_removed_volume_mm3(left: cq.Shape, right: cq.Shape) -> float:
             f"right_bbox={_bbox_tuple(right)}"
         )
     return removed_volume
+
+
+def _exact_cut_removed_volume_mm3(left: cq.Shape, right: cq.Shape) -> float:
+    """Try both exact subtraction directions for the symmetric common volume."""
+    try:
+        return _exact_cut_removed_volume_one_way_mm3(left, right)
+    except TreatmentReferenceGeometryError as first_error:
+        try:
+            return _exact_cut_removed_volume_one_way_mm3(right, left)
+        except TreatmentReferenceGeometryError as second_error:
+            raise TreatmentReferenceGeometryError(
+                "both exact cut-volume directions failed: "
+                f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}; "
+                f"first={first_error}; second={second_error}"
+            ) from second_error
 
 
 def _exact_shape_distance(left: cq.Shape, right: cq.Shape) -> float:
@@ -293,8 +309,9 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
     Boundary-only or topologically empty commons contribute zero. After cheap AABB
     rejection, an exact OCC minimum-distance check skips only pairs with strictly
     positive separation. Touching/overlapping pairs still execute exact Common. If
-    Common cannot execute, exact Cut volume identity supplies the same volumetric
-    collision witness without altering geometry or collision thresholds.
+    Common cannot execute, exact Cut volume identity in either subtraction direction
+    supplies the same volumetric collision witness without altering geometry or
+    collision thresholds.
     """
     total = 0.0
     left_solids = a.Solids()
