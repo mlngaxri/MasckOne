@@ -46,7 +46,8 @@ DIAPHRAGM_GROOVE_Z0_FROM_REST_MM = -0.22
 INSTALLED_DIAPHRAGM_MEMBRANE_THICKNESS_MM = 0.16
 INSTALLED_DIAPHRAGM_OUTER_BEAD_HEIGHT_MM = 0.34
 INSTALLED_DIAPHRAGM_INNER_BEAD_HEIGHT_MM = 0.34
-INSTALLED_DIAPHRAGM_BEAD_Z0_FROM_REST_MM = -0.21
+INSTALLED_DIAPHRAGM_OUTER_BEAD_Z0_FROM_REST_MM = -0.21
+INSTALLED_DIAPHRAGM_INNER_BEAD_Z0_FROM_REST_MM = -0.34
 FREE_TO_INSTALLED_MEMBRANE_COMPRESSION_SEED_MM = (
     v1.DIAPHRAGM_MEMBRANE_THICKNESS_MM - INSTALLED_DIAPHRAGM_MEMBRANE_THICKNESS_MM
 )
@@ -106,18 +107,17 @@ def _installed_diaphragm_reference(rest_z: float) -> cq.Shape:
         INSTALLED_DIAPHRAGM_MEMBRANE_THICKNESS_MM,
         membrane_z0,
     )
-    bead_z0 = rest_z + INSTALLED_DIAPHRAGM_BEAD_Z0_FROM_REST_MM
     outer_bead = v1._ring(
         v1.DIAPHRAGM_OD_MM + 0.28,
         v1.DIAPHRAGM_OD_MM - 0.45,
         INSTALLED_DIAPHRAGM_OUTER_BEAD_HEIGHT_MM,
-        bead_z0,
+        rest_z + INSTALLED_DIAPHRAGM_OUTER_BEAD_Z0_FROM_REST_MM,
     )
     inner_bead = v1._ring(
         v1.DIAPHRAGM_ID_MM + 0.48,
         v1.STEM_DIAMETER_MM,
         INSTALLED_DIAPHRAGM_INNER_BEAD_HEIGHT_MM,
-        bead_z0,
+        rest_z + INSTALLED_DIAPHRAGM_INNER_BEAD_Z0_FROM_REST_MM,
     )
     diaphragm = membrane.fuse(outer_bead).fuse(inner_bead).clean()
     if not diaphragm.isValid() or len(diaphragm.Solids()) != 1 or diaphragm.Volume() <= 0.0:
