@@ -32,6 +32,7 @@ def test_fusion_manifest_has_named_parts_frames_datums_dofs_and_wet_sequence(car
     manifest = fusion_handoff_manifest(cartridge)
     assert manifest["scope"] == "FUSION_360_EDITABLE_DEVELOPMENT_HANDOFF_NOT_PRODUCTION_RELEASE"
     assert manifest["step_coordinate_space"] == "WORLD_MM"
+    assert "MULTI_SOLID_REFERENCE_COMPOUNDS_EXPORT_AS_DETERMINISTIC_ONE_SOLID_STEP_PARTS" in manifest["reference_partition_rule"]
     assert set(manifest["manufacturing_components"]) == {
         "body",
         "closure",
@@ -75,5 +76,20 @@ def test_fusion_handoff_exports_separate_material_and_reference_steps_with_round
         assert (tmp_path / filename).is_file()
         assert row["roundtrip"]["status"] == "PASS"
         assert row["sha256"]
+
+    # The conservative service path has three source pieces. Keep them as three
+    # independently verified one-solid STEP assets so strict round-trip checks never
+    # depend on ambiguous ordering of near-identical compound bounds.
+    assert stored["reference_export_partitions"]["oblique_service_enclosures"] == 3
+    assert stored["reference_export_partitions"]["oblique_service_sweeps"] == 3
+    for group in ("oblique_service_enclosures", "oblique_service_sweeps"):
+        grouped = [
+            row for row in stored["files"].values()
+            if row.get("reference_group") == group
+        ]
+        assert len(grouped) == 3
+        assert sorted(row["source_solid_index"] for row in grouped) == [0, 1, 2]
+        assert all(row["roundtrip"]["solid_count"] == 1 for row in grouped)
+
     assert stored["retained_capacity_mL"] is None
     assert stored["physical_validation_eligible"] is False
