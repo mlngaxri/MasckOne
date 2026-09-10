@@ -1,4 +1,4 @@
-name: Cartridge tactile focused verification
+name: Cartridge device-service focused verification
 
 on:
   push:
@@ -8,13 +8,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: cartridge-tactile-focused-${{ github.ref }}
+  group: cartridge-device-service-focused-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  cartridge-tactile:
+  cartridge-device-service:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     steps:
       - name: Checkout exact cartridge head
         uses: actions/checkout@v4
@@ -36,13 +36,16 @@ jobs:
             src/masck_one/realized_waste_cartridge.py \
             src/masck_one/cartridge_service_corridor.py \
             src/masck_one/cartridge_tactile_service.py \
+            src/masck_one/cartridge_device_service.py \
             src/masck_one/cartridge_fusion_handoff.py
-      - name: Verify cartridge geometry, service corridor and tactile refinements
+      - name: Verify cartridge geometry, service corridor and device receiver
         run: |
           python -m pytest -q \
             tests/test_realized_waste_cartridge.py \
             tests/test_cartridge_service_and_fusion.py \
-            tests/test_cartridge_tactile_service.py
+            tests/test_cartridge_tactile_service.py \
+            tests/test_cartridge_device_service.py
 
-# Branch-level digital mechanism evidence only. Released frame receiver geometry,
-# wet disconnect behavior and all physical service/retention validation remain open.
+# Branch-level digital mechanism evidence only. The receiver closes local key/bolt,
+# wet-disconnect and removed-state closure architecture without promoting the unmerged
+# structural-frame B-rep or any physical force, leakage, life or subjective-feel claim.
