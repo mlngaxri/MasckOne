@@ -25,14 +25,18 @@ HARNESS_ENVELOPE_RADIUS_MM = 1.25
 ROUTE_POINTS_WORLD_MM = (
     (17.0, -3.0, -39.0),
     (17.0, 4.0, -39.0),
-    (8.0, 4.0, -39.0),
+    (4.0, 4.0, -39.0),
+    (4.0, 11.0, -39.0),
     (8.0, 11.0, -39.0),
     (8.0, 11.0, -34.0),
 )
 CLIP_CENTERS_WORLD_MM = ((17.0, 4.0, -39.0), (8.0, 11.0, -39.0))
 CLIP_RESERVATION_MM = (4.0, 4.0, 4.0)
 PCB_HANDOFF_DATUM_WORLD_MM = ROUTE_POINTS_WORLD_MM[-1]
-SERVICE_LOOP_EXTRA_PATH_MM = 16.0
+SERVICE_LOOP_MIN_EXTRA_PATH_MM = 16.0
+# Backward-compatible name for callers that imported the original requirement constant.
+# It is a minimum excess-length requirement, not the realized route excess itself.
+SERVICE_LOOP_EXTRA_PATH_MM = SERVICE_LOOP_MIN_EXTRA_PATH_MM
 
 
 class DrySideHarnessError(ValueError):
@@ -119,6 +123,16 @@ def _path_length(points: tuple[tuple[float, float, float], ...]) -> float:
     return sum(math.dist(first, second) for first, second in pairwise(points))
 
 
+def _direct_endpoint_span(points: tuple[tuple[float, float, float], ...]) -> float:
+    if len(points) < 2:
+        raise DrySideHarnessError("harness route needs at least two points")
+    return math.dist(points[0], points[-1])
+
+
+def _service_loop_excess_path(points: tuple[tuple[float, float, float], ...]) -> float:
+    return _path_length(points) - _direct_endpoint_span(points)
+
+
 def _inside_dry_bay(shape: cq.Workplane) -> bool:
     xmin, xmax, ymin, ymax, zmin, zmax = DRY_BAY_BOUNDS_WORLD_MM
     bb = shape.val().BoundingBox()
@@ -154,12 +168,18 @@ class DrySideHarnessService:
             raise DrySideHarnessError("harness route moved from disconnect-side strain relief")
         if self.route_points_world_mm[-1] != PCB_HANDOFF_DATUM_WORLD_MM:
             raise DrySideHarnessError("harness route moved from PCB handoff datum")
-        if _path_length(self.route_points_world_mm) < SERVICE_LOOP_EXTRA_PATH_MM:
-            raise DrySideHarnessError("harness route lost the minimum digital service-loop allowance")
+        excess_path = _service_loop_excess_path(self.route_points_world_mm)
+        if excess_path < SERVICE_LOOP_MIN_EXTRA_PATH_MM:
+            raise DrySideHarnessError(
+                "harness route lost the minimum digital service-loop excess length"
+            )
         return self
 
     def manifest(self) -> dict[str, object]:
         self.validate()
+        route_length = _path_length(self.route_points_world_mm)
+        direct_span = _direct_endpoint_span(self.route_points_world_mm)
+        excess_path = route_length - direct_span
         payload: dict[str, object] = {
             "schema": SCHEMA,
             "source_main_sha": SOURCE_MAIN_SHA,
@@ -167,8 +187,10 @@ class DrySideHarnessService:
             "source_disconnect_mating_datum_world_mm": list(MATING_DATUM_WORLD_MM),
             "route_points_world_mm": [list(point) for point in self.route_points_world_mm],
             "pcb_handoff_datum_world_mm": list(PCB_HANDOFF_DATUM_WORLD_MM),
-            "service_loop_extra_path_mm": SERVICE_LOOP_EXTRA_PATH_MM,
-            "route_path_length_mm": _path_length(self.route_points_world_mm),
+            "service_loop_min_extra_path_mm": SERVICE_LOOP_MIN_EXTRA_PATH_MM,
+            "service_loop_extra_path_mm": excess_path,
+            "route_path_length_mm": route_length,
+            "direct_endpoint_span_mm": direct_span,
             "geometry": {
                 "harness_route_envelope": _geometry(self.route_envelope),
                 "clip_reservations": [_geometry(clip) for clip in self.clip_reservations],
