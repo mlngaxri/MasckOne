@@ -36,6 +36,8 @@ def test_harness_route_stays_inside_dry_bay_and_has_both_supports() -> None:
     assert bb.zmin >= zmin
     assert bb.zmax <= zmax
     assert len(harness.clip_reservations) == len(CLIP_CENTERS_WORLD_MM) == 2
+    for clip in harness.clip_reservations:
+        assert harness.route_envelope.val().intersect(clip.val()).Volume() > 0.0
 
 
 def test_harness_manifest_preserves_service_and_evidence_firewalls() -> None:
@@ -73,4 +75,16 @@ def test_hostile_route_escaping_dry_bay_is_rejected() -> None:
         route_points_world_mm=valid.route_points_world_mm,
     )
     with pytest.raises(DrySideHarnessError, match="escapes current dry-bay"):
+        hostile.validate()
+
+
+def test_hostile_support_detached_from_route_is_rejected() -> None:
+    valid = build_dry_side_harness_service()
+    detached = valid.clip_reservations[0].translate((-30.0, 0.0, 0.0))
+    hostile = DrySideHarnessService(
+        route_envelope=valid.route_envelope,
+        clip_reservations=(detached, valid.clip_reservations[1]),
+        route_points_world_mm=valid.route_points_world_mm,
+    )
+    with pytest.raises(DrySideHarnessError, match="support reservation"):
         hostile.validate()
