@@ -118,6 +118,16 @@ def _path_length(points: tuple[tuple[float, float, float], ...]) -> float:
     return sum(math.dist(first, second) for first, second in zip(points, points[1:], strict=True))
 
 
+def _inside_dry_bay(shape: cq.Workplane) -> bool:
+    xmin, xmax, ymin, ymax, zmin, zmax = DRY_BAY_BOUNDS_WORLD_MM
+    bb = shape.val().BoundingBox()
+    return (
+        bb.xmin >= xmin - 1e-7 and bb.xmax <= xmax + 1e-7
+        and bb.ymin >= ymin - 1e-7 and bb.ymax <= ymax + 1e-7
+        and bb.zmin >= zmin - 1e-7 and bb.zmax <= zmax + 1e-7
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class DrySideHarnessService:
     route_envelope: cq.Workplane
@@ -131,14 +141,12 @@ class DrySideHarnessService:
             raise DrySideHarnessError("dry-side harness requires both support reservations")
         for clip in self.clip_reservations:
             _geometry(clip)
+            if not _inside_dry_bay(clip):
+                raise DrySideHarnessError("harness support reservation escapes current dry-bay package")
+            if not self.route_envelope.val().intersect(clip.val()).Volume() > 1e-9:
+                raise DrySideHarnessError("harness support reservation must engage the route envelope")
 
-        xmin, xmax, ymin, ymax, zmin, zmax = DRY_BAY_BOUNDS_WORLD_MM
-        bb = self.route_envelope.val().BoundingBox()
-        if (
-            bb.xmin < xmin - 1e-7 or bb.xmax > xmax + 1e-7
-            or bb.ymin < ymin - 1e-7 or bb.ymax > ymax + 1e-7
-            or bb.zmin < zmin - 1e-7 or bb.zmax > zmax + 1e-7
-        ):
+        if not _inside_dry_bay(self.route_envelope):
             raise DrySideHarnessError("harness route escapes current dry-bay package")
 
         if self.route_points_world_mm[0] != ROUTE_POINTS_WORLD_MM[0]:
