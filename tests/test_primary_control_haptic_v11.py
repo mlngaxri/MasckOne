@@ -74,3 +74,7 @@ def test_v11_keeps_physical_validation_and_cost_firewalls():
     assert "SUBJECTIVE_FEEL" in manifest["physical_validation"]
     assert "NO_SENSOR_MOVE" in manifest["cost_rule"]
     assert "PRECISION_FEEL_ONLY" in manifest["tactile_reference_rule"]
+    assert manifest["functional_architecture_eligible"] is False
+    assert manifest["architecture_status"] == "REJECTED_SERIES_FORCE_PATH"
+    assert manifest["force_path_screen"]["reaches_typical_trip_before_bind_or_stop"] is False
+    assert manifest["motion_reference_scope"]["assembly_collision_free"] is False

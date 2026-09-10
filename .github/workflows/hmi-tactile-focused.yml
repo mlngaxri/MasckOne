@@ -41,7 +41,11 @@ jobs:
         run: |
           python -m pytest -q \
             tests/test_primary_control_haptic_v10.py \
-            tests/test_primary_control_haptic_v11.py
+            tests/test_primary_control_haptic_v11.py \
+            tests/test_primary_control_force_path.py \
+            tests/test_primary_control_touch_surface.py \
+            tests/test_primary_control_dome_overtravel_screen.py \
+            tests/test_primary_control_haptic_v3.py
 
 # Focused mechanism evidence only. This gate preserves V10 positive outward capture
 # and diaphragm return while checking the V11 low-slack plunger/spring successor.
