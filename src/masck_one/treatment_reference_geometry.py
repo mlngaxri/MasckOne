@@ -14,6 +14,12 @@ construction. This prevents mathematically zero-volume planar/cylindrical side s
 from being misreported as tiny invalid positive solids by the kernel. Positive swept
 material is never discarded based on its volume.
 
+Trimmed faces are prism-swept with OpenCascade canonicalization disabled. OCP 7.9.3.1
+can otherwise replace a valid trimmed cylindrical sweep with an invalid canonicalized
+solid even though the non-canonical prism is valid and has the same positive volume.
+Disabling that representation rewrite preserves the exact source face and translation;
+it does not heal, approximate, omit, or enlarge swept geometry.
+
 Collision common is evaluated with OpenCascade's direct BRepAlgoAPI operator. Any
 finite positive common that cannot be healed remains a hard failure.
 """
@@ -120,8 +126,17 @@ def translation_reference_compound(
         if _face_translation_is_tangent(face, travel_vector):
             tangent_face_count += 1
             continue
+        # Canonize=False is intentional. On OCP 7.9.3.1, canonicalization of some
+        # valid trimmed cylindrical faces in the fused moving-output linkage creates
+        # invalid positive solids. The non-canonical prism preserves the exact face
+        # trim and translation and remains valid; no geometric gate is relaxed.
         prism = cq.Shape.cast(
-            BRepPrimAPI_MakePrism(face.wrapped, gp_Vec(*travel)).Shape()
+            BRepPrimAPI_MakePrism(
+                face.wrapped,
+                gp_Vec(*travel),
+                False,
+                False,
+            ).Shape()
         )
         positive = _positive_valid_solids(prism)
         if positive:
