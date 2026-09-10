@@ -5,6 +5,7 @@ import cadquery as cq
 
 import masck_one.treatment_reference_geometry as reference_geometry
 from masck_one.treatment_reference_geometry import (
+    TreatmentReferenceGeometryError,
     _explicit_list_common,
     _exact_shape_distance,
     intersection_volume_mm3,
@@ -72,6 +73,19 @@ def test_exact_distance_does_not_hide_touching_or_positive_overlap(monkeypatch):
     monkeypatch.setattr(reference_geometry, "_direct_common", counted_common)
     assert intersection_volume_mm3(base, overlapping) == pytest.approx(0.25, abs=1e-9)
     assert calls > 0
+
+
+def test_exact_cut_volume_fallback_distinguishes_contact_from_penetration(monkeypatch):
+    base = _box(0.0)
+
+    def failed_common(_left: cq.Shape, _right: cq.Shape) -> cq.Shape:
+        raise TreatmentReferenceGeometryError("forced Common failure")
+
+    monkeypatch.setattr(reference_geometry, "_direct_common", failed_common)
+
+    # Exact face contact removes no volume from A, while the 0.25 mm overlap does.
+    assert intersection_volume_mm3(base, _box(1.0)) == 0.0
+    assert intersection_volume_mm3(base, _box(0.75)) == pytest.approx(0.25, abs=1e-9)
 
 
 def test_translation_reference_is_boolean_free_and_covers_midpath_collision():
