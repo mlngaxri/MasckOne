@@ -7,11 +7,15 @@ and service sweeps are reference geometry: they are allowed to be compounds of
 independent positive-volume pieces and must never be Boolean-fused merely to make a
 single review body.
 
-OpenCascade can emit locally invalid solids when a curved face is linearly swept, and
-CadQuery's high-level Boolean wrapper can also expose degenerate common topology at
-coincident/tangent boundaries. Reference pieces are shape-healed before use and
-collision common is evaluated with OpenCascade's direct BRepAlgoAPI operator.
-Any finite positive common that cannot be healed remains a hard failure.
+A rigid translation sweep is represented by the two endpoint solids plus positive
+face-prism contributions. Faces whose translation is analytically tangent to their
+surface do not generate 3-D swept volume and are excluded before OpenCascade prism
+construction. This prevents mathematically zero-volume planar/cylindrical side sweeps
+from being misreported as tiny invalid positive solids by the kernel. Positive swept
+material is never discarded based on its volume.
+
+Collision common is evaluated with OpenCascade's direct BRepAlgoAPI operator. Any
+finite positive common that cannot be healed remains a hard failure.
 """
 
 import math
@@ -21,6 +25,9 @@ from OCP.BRepAlgoAPI import BRepAlgoAPI_Common
 from OCP.BRepPrimAPI import BRepPrimAPI_MakePrism
 from OCP.ShapeFix import ShapeFix_Shape
 from OCP.gp import gp_Vec
+
+
+_GEOMETRIC_DIRECTION_TOL = 1e-12
 
 
 class TreatmentReferenceGeometryError(ValueError):
@@ -52,32 +59,93 @@ def _positive_valid_solids(shape: cq.Shape) -> list[cq.Shape]:
     return out
 
 
+def _unit_alignment(first: cq.Vector, second: cq.Vector) -> float:
+    first_length = float(first.Length)
+    second_length = float(second.Length)
+    if first_length <= 0.0 or second_length <= 0.0:
+        raise TreatmentReferenceGeometryError("direction vectors must be positive length")
+    return abs(float(first.dot(second))) / (first_length * second_length)
+
+
+def _face_translation_is_tangent(
+    face: cq.Face,
+    travel_vector: cq.Vector,
+) -> bool:
+    """Return True only for analytically zero-volume planar/cylindrical sweeps.
+
+    For a planar face, translation in its plane has zero swept volume. For a
+    cylindrical face, translation parallel to the cylinder axis is tangent everywhere
+    and likewise contributes no 3-D prism. The test samples the face center and edge
+    centers and requires every available normal to be orthogonal to travel. Other
+    surface classes are never discarded by this classifier.
+    """
+    if face.geomType() not in {"PLANE", "CYLINDER"}:
+        return False
+
+    sample_points = [face.Center(), *(edge.Center() for edge in face.Edges())]
+    alignments: list[float] = []
+    for point in sample_points:
+        try:
+            normal = face.normalAt(point)
+        except Exception:
+            continue
+        alignments.append(_unit_alignment(normal, travel_vector))
+
+    return bool(alignments) and max(alignments) <= _GEOMETRIC_DIRECTION_TOL
+
+
 def translation_reference_compound(
     shape: cq.Shape,
     travel: tuple[float, float, float],
 ) -> cq.Compound:
-    """Return a conservative Boolean-free envelope for one rigid translation."""
+    """Return a Boolean-free continuous envelope for one rigid translation."""
     if not shape.isValid() or not shape.Solids():
-        raise TreatmentReferenceGeometryError("reference sweep source must be valid positive geometry")
+        raise TreatmentReferenceGeometryError(
+            "reference sweep source must be valid positive geometry"
+        )
     if not all(math.isfinite(float(value)) for value in travel):
         raise TreatmentReferenceGeometryError("reference sweep travel must be finite")
+
+    travel_vector = cq.Vector(*travel)
+    if float(travel_vector.Length) <= 0.0:
+        raise TreatmentReferenceGeometryError("reference sweep travel must be nonzero")
 
     pieces: list[cq.Shape] = []
     for endpoint in (shape, shape.translate(travel)):
         pieces.extend(_positive_valid_solids(endpoint))
+
+    swept_face_count = 0
+    tangent_face_count = 0
     for face in shape.Faces():
-        prism = cq.Shape.cast(BRepPrimAPI_MakePrism(face.wrapped, gp_Vec(*travel)).Shape())
-        pieces.extend(_positive_valid_solids(prism))
+        if _face_translation_is_tangent(face, travel_vector):
+            tangent_face_count += 1
+            continue
+        prism = cq.Shape.cast(
+            BRepPrimAPI_MakePrism(face.wrapped, gp_Vec(*travel)).Shape()
+        )
+        positive = _positive_valid_solids(prism)
+        if positive:
+            swept_face_count += 1
+            pieces.extend(positive)
 
     if not pieces:
         raise TreatmentReferenceGeometryError("reference translation envelope is empty")
+    if swept_face_count == 0 and tangent_face_count == 0:
+        raise TreatmentReferenceGeometryError(
+            "reference translation produced no positive face sweep"
+        )
+
     compound = cq.Compound.makeCompound(pieces)
     if not compound.Solids():
-        raise TreatmentReferenceGeometryError("reference translation envelope has no positive solids")
+        raise TreatmentReferenceGeometryError(
+            "reference translation envelope has no positive solids"
+        )
     for solid in compound.Solids():
         volume = float(solid.Volume())
         if not solid.isValid() or not math.isfinite(volume) or volume <= 0.0:
-            raise TreatmentReferenceGeometryError("reference translation envelope contains invalid material")
+            raise TreatmentReferenceGeometryError(
+                "reference translation envelope contains invalid material"
+            )
     return compound
 
 
@@ -86,7 +154,9 @@ def _direct_common(left: cq.Shape, right: cq.Shape) -> cq.Shape:
         operation = BRepAlgoAPI_Common(left.wrapped, right.wrapped)
         operation.Build()
     except Exception as exc:
-        raise TreatmentReferenceGeometryError("direct OCC common kernel failure") from exc
+        raise TreatmentReferenceGeometryError(
+            "direct OCC common kernel failure"
+        ) from exc
     if not operation.IsDone():
         raise TreatmentReferenceGeometryError("direct OCC common did not complete")
     return cq.Shape.cast(operation.Shape())
@@ -130,13 +200,17 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
             for raw in raw_solids:
                 raw_volume = max(0.0, float(raw.Volume()))
                 if not math.isfinite(raw_volume):
-                    raise TreatmentReferenceGeometryError("intersection volume is nonfinite")
+                    raise TreatmentReferenceGeometryError(
+                        "intersection volume is nonfinite"
+                    )
                 if raw_volume <= 0.0:
                     continue
                 solid = _heal(raw)
                 volume = max(0.0, float(solid.Volume()))
                 if not math.isfinite(volume):
-                    raise TreatmentReferenceGeometryError("healed intersection volume is nonfinite")
+                    raise TreatmentReferenceGeometryError(
+                        "healed intersection volume is nonfinite"
+                    )
                 if volume <= 0.0:
                     continue
                 if not solid.isValid():
@@ -148,5 +222,7 @@ def intersection_volume_mm3(a: cq.Shape, b: cq.Shape) -> float:
                 total += volume
 
     if not math.isfinite(total):
-        raise TreatmentReferenceGeometryError("aggregate intersection volume is nonfinite")
+        raise TreatmentReferenceGeometryError(
+            "aggregate intersection volume is nonfinite"
+        )
     return total
