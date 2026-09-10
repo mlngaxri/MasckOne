@@ -32,6 +32,8 @@ from dataclasses import dataclass
 from enum import Enum
 import math
 
+from . import _contracts
+
 
 class MoldabilityError(ValueError):
     """Raised when a draft screen input or contract is invalid."""
@@ -65,9 +67,7 @@ def required_draft_deg(finish: Finish, texture_depth_mm: float = 0.0) -> float:
 
     if not isinstance(finish, Finish):
         raise MoldabilityError("finish must be a Finish")
-    depth = float(texture_depth_mm)
-    if not math.isfinite(depth) or depth < 0.0:
-        raise MoldabilityError("texture_depth_mm must be finite and non-negative")
+    depth = _contracts.non_negative(texture_depth_mm, "texture_depth_mm", MoldabilityError)
     if finish is Finish.POLISHED:
         return MIN_DRAFT_POLISHED_DEG
     return MIN_DRAFT_POLISHED_DEG + TEXTURE_DRAFT_DEG_PER_MM * depth

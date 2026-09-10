@@ -20,6 +20,8 @@ from __future__ import annotations
 from copy import deepcopy
 import re
 
+from . import _contracts
+
 
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
 
@@ -174,11 +176,13 @@ def _validate(manifest: dict[str, object]) -> None:
                     )
 
         paths = lane.get("implementation_paths")
-        if not isinstance(paths, list) or not paths or any(
-            not isinstance(path, str) or not path for path in paths
-        ):
+        if not isinstance(paths, list) or not paths:
             raise IntegrationContractError(
                 f"integration owner lane {key} has malformed implementation paths"
+            )
+        for path in paths:
+            _contracts.non_empty_text(
+                path, f"lane {key} implementation path", IntegrationContractError
             )
 
         dependency = lane.get("depends_on_lane")

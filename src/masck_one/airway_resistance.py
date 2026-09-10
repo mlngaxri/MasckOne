@@ -41,6 +41,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import math
 
+from . import _contracts
 from .authority import Authority
 
 
@@ -85,10 +86,7 @@ FULLY_ROUGH_REYNOLDS_FLOOR = 1.0e4
 
 
 def _positive(value: float, label: str) -> float:
-    result = float(value)
-    if not math.isfinite(result) or result <= 0.0:
-        raise AirwayResistanceError(f"{label} must be finite and positive, got {value!r}")
-    return result
+    return _contracts.positive(value, label, AirwayResistanceError)
 
 
 def volumetric_flow_m3_s(flow_lpm: float) -> float:

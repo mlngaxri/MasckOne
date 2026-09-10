@@ -31,6 +31,7 @@ from dataclasses import dataclass
 from enum import Enum
 import math
 
+from . import _contracts
 from .authority import Authority
 
 
@@ -71,17 +72,11 @@ _ESTABLISHED_EVIDENCE = frozenset({
 
 
 def _finite(value: float, label: str) -> float:
-    result = float(value)
-    if not math.isfinite(result):
-        raise MassBalanceError(f"{label} must be finite, got {value!r}")
-    return result
+    return _contracts.finite(value, label, MassBalanceError)
 
 
 def _non_negative(value: float, label: str) -> float:
-    result = _finite(value, label)
-    if result < 0.0:
-        raise MassBalanceError(f"{label} must not be negative, got {value!r}")
-    return result
+    return _contracts.non_negative(value, label, MassBalanceError)
 
 
 @dataclass(frozen=True, slots=True)

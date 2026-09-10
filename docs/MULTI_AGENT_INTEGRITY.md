@@ -69,6 +69,29 @@ enlarging the number, per `ENGINEERING_GOVERNANCE.md`.
 
 The diff that changes a pin is the conversation. That is the entire mechanism.
 
+## Shared guards
+
+`src/masck_one/_contracts.py` holds the numeric guards whose behaviour should be
+identical everywhere: `finite`, `positive`, `non_negative`, `positive_int`,
+`non_empty_text`.
+
+They exist because the same three checks had grown a dozen slightly different
+copies across `src/masck_one/` — 13 definitions of `_text`, 11 of `_sha`, plus
+`_finite` / `_real` / `_exact` variants, and 45 bespoke error classes. The copies
+drifted: some rejected `bool`, some accepted `True` as `1.0`; some treated zero
+as valid, some did not. A caller could not tell which behaviour it was getting
+without opening the file.
+
+Each guard takes the caller's error type, so a module keeps its own exception
+class and error vocabulary while sharing the check.
+
+**Migration is incremental by design.** This repository is edited concurrently
+by several lanes with a large backlog of open pull requests, so rewriting twenty
+modules at once would generate the maximum number of conflicts for the minimum
+benefit. New modules use these; existing ones adopt them when their owning lane
+next touches them. `test_contracts.py` guards the modules that have migrated
+against growing their copies back.
+
 ## What this does not do
 
 These guards judge whether the repository's own safeguards are still standing.

@@ -38,6 +38,8 @@ from dataclasses import dataclass
 from enum import Enum
 import math
 
+from . import _contracts
+
 
 class ProcessCapabilityError(ValueError):
     """Raised when a capability query or feasibility input is invalid."""
@@ -75,10 +77,7 @@ COMFORTABLE_RATIO = 0.70
 
 
 def _positive(value: float, label: str) -> float:
-    result = float(value)
-    if not math.isfinite(result) or result <= 0.0:
-        raise ProcessCapabilityError(f"{label} must be finite and positive, got {value!r}")
-    return result
+    return _contracts.positive(value, label, ProcessCapabilityError)
 
 
 def achievable_tolerance_mm(
