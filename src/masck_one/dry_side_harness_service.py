@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from hashlib import sha256
+from itertools import pairwise
 import json
 import math
 
@@ -79,7 +80,7 @@ def _axis_segment(
 def _validate_route_topology(points: tuple[tuple[float, float, float], ...]) -> None:
     if len(points) < 2:
         raise DrySideHarnessError("harness route needs at least two points")
-    for first, second in zip(points, points[1:], strict=True):
+    for first, second in pairwise(points):
         deltas = tuple(b - a for a, b in zip(first, second, strict=True))
         if sum(abs(delta) > 1e-9 for delta in deltas) != 1:
             raise DrySideHarnessError("harness route segments must be orthogonal and nonzero")
@@ -88,7 +89,7 @@ def _validate_route_topology(points: tuple[tuple[float, float, float], ...]) -> 
 def _route_solid(points: tuple[tuple[float, float, float], ...], radius: float) -> cq.Workplane:
     _validate_route_topology(points)
     route = _sphere(points[0], radius)
-    for first, second in zip(points, points[1:], strict=True):
+    for first, second in pairwise(points):
         route = route.union(_axis_segment(first, second, radius)).union(_sphere(second, radius))
     return route
 
@@ -115,7 +116,7 @@ def _geometry(shape: cq.Workplane) -> dict[str, object]:
 
 
 def _path_length(points: tuple[tuple[float, float, float], ...]) -> float:
-    return sum(math.dist(first, second) for first, second in zip(points, points[1:], strict=True))
+    return sum(math.dist(first, second) for first, second in pairwise(points))
 
 
 def _inside_dry_bay(shape: cq.Workplane) -> bool:
