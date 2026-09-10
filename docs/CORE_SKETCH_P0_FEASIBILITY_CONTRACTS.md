@@ -1,30 +1,37 @@
 # MASCK ONE P0 Whole-Routine Feasibility Contracts
 
-Status: **Core Sketch product contract; not engineering authority**  
-Scope: whole-routine completion, facial-region coverage, contact/occlusion, prepared-session validity, complete-routine resource envelope, product preservation and changeover.  
-Evidence boundary: this document defines what future evidence must prove. It does not claim those physical outcomes already exist.
+Status: **Core Sketch execution contract; not engineering authority**  
+Canonical backlog contracts: **CS-015, CS-016, CS-017, CS-018**  
+Companion machine contract: `docs/contracts/core_sketch_p0_convergence_v1.json`  
+Bench program: `docs/CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md`
 
-## 1. Why these contracts exist
+This file does not create a second set of Core Sketch IDs. It makes the existing convergence contracts CS-015 through CS-018 explicit enough for future software, CAD, dock and validation work to consume consistently.
 
-The expanded Masck One promise cannot be proven by a cycle counter, an average coverage percentage, or a collection of individually green subsystems. A supported routine is complete only if the selected routine, selected products, required facial regions, required resources, contact-state transitions and final release all satisfy the same session-specific contract.
+Live engineering authority and accepted evidence always outrank this concept layer on claims of what physically exists or works.
 
-The product-level invariant is:
+## 1. Product-level completion invariant
 
-> A routine may report COMPLETE only when every mandatory stage completed for every facial region required by that routine, no required product or resource is unsupported or invalid, and final release preserves the required end state.
+A supported routine may report `COMPLETE` only when all of the following are simultaneously true:
 
-A locally successful cleanser, massage carrier, thermal store, dock service action or app state cannot override this rule.
+1. every mandatory stage in the exact prepared session completed;
+2. every facial region required by every mandatory stage is complete or was deliberately excluded by a versioned, justified product/claim boundary;
+3. no required region is unresolved, unreachable, unsupported or left uncertain by interruption;
+4. every mandatory product is permitted in the exact application context;
+5. product identity, preparation, carryover/service and resource state remain valid;
+6. every required settle condition completed;
+7. normal release preserved the required final leave-on state.
 
-## 2. Contract A: whole-face routine completion and coverage
+A cycle counter, pump command, aggregate coverage number, green subsystem CI result or app animation cannot substitute for this predicate.
 
-### 2.1 Completion is stage-by-region, not one scalar
+Emergency/unpowered release always outranks skincare-film preservation. An emergency release may yield `INTERRUPTED` or `PARTIAL`; it must never be delayed to preserve a cosmetic layer.
 
-For each prepared routine `R`, define:
+---
 
-- `S(R)`: ordered stages required by that routine;
-- `Z(R,s)`: facial skin regions required for stage `s`;
-- `X(R,s,z)`: completion state of region `z` for stage `s`.
+# 2. CS-015: required-region completion
 
-Allowed conceptual completion states are:
+## 2.1 Stage-by-region model
+
+For routine `R` and mandatory stage `s`, define the stage's required facial region set `Z(R,s)`. Each region has one completion state:
 
 - `PENDING`
 - `IN_PROGRESS`
@@ -35,222 +42,187 @@ Allowed conceptual completion states are:
 - `INTERRUPTED`
 - `UNKNOWN`
 
-`EXCLUDED_WITH_REASON` is allowed only when exclusion is deliberate, versioned, visible to the routine definition and compatible with the public claim. It must never be used to hide a geometry or application failure.
+`EXCLUDED_WITH_REASON` is not a loophole. It is allowed only when the exclusion is intentional, versioned, compatible with the routine's public promise and not created merely because the hardware failed to reach the region.
 
-A mandatory stage may be stage-complete only when every region in `Z(R,s)` is `COMPLETE` or an explicitly allowed `EXCLUDED_WITH_REASON`.
+Any required region in `UNREACHABLE`, `UNSUPPORTED`, `INTERRUPTED` or `UNKNOWN` blocks completion of that mandatory stage.
 
-A supported routine may report `COMPLETE` only when:
+## 2.2 Initial conceptual facial regions
 
-1. every mandatory stage is stage-complete;
-2. no required region is `UNREACHABLE`, `UNSUPPORTED`, `INTERRUPTED` or `UNKNOWN`;
-3. every required product is allowed for that stage under the prepared-session validity contract;
-4. required settling conditions are met;
-5. release completes without invalidating the final leave-on state.
+Until registered 3D anatomy supports a finer map, use stable conceptual regions rather than pretending to have clinical spatial precision:
 
-### 2.2 Conceptual facial-region set
-
-Until registered full 3D facial anatomy is available, use a controlled conceptual region set rather than pretending to have clinical anatomical precision. The region set may later be refined or subdivided, but IDs should remain stable or explicitly versioned.
-
-Initial region classes:
-
-- upper forehead left / center / right;
-- temple left / right where the mask's supported facial claim includes them;
+- forehead left / centre / right;
+- temple left / right when included by the routine claim;
 - upper cheek left / right;
 - mid cheek left / right;
 - lower cheek left / right;
-- nasal sidewall left / right where treatment/application is permitted;
+- nasal sidewall left / right where permitted;
 - perioral skin where permitted;
-- chin;
-- protected eye aperture left / right;
-- protected nostril airway left / right;
-- protected mouth aperture.
+- chin.
 
-Protected apertures are not treated as skin regions that must receive leave-on product. Their exclusion is a product/safety boundary, not a coverage failure.
+Protected eye apertures, nostril airways and mouth aperture are protected domains, not skin regions that must receive a leave-on product.
 
-Periorbital skin, lip-adjacent skin, nasal crease and other high-sensitivity boundaries must remain separately evidence-gated rather than silently grouped into broad cheek coverage.
+Periorbital, nasal-crease and lip-adjacent regions remain separately evidence-gated rather than being silently absorbed into broad cheek labels.
 
-### 2.3 Coverage rules by stage
+## 2.3 Stage rules
 
 **CLEAN**
-- cleaning must reach each routine-required cleanable region;
-- aggregate cleansing percentage cannot hide persistent untouched islands;
-- protected apertures remain protected;
-- if a structural/contact feature blocks a cleanable region, that region requires an alternate cleaning pass or the routine is not complete.
+- legacy aggregate coverage gates remain valid for their original engineering scope;
+- they do not prove complete-routine region coverage;
+- a persistent untouched required patch blocks stage completion.
 
 **RINSE / RECOVER**
-- every region exposed to cleanser must satisfy the rinse/recovery criterion appropriate to that region;
-- cleanser removal and waste recovery must not be inferred solely from pump operation;
-- residual-cleanser acceptance remains a physical-validation question.
+- every cleanser-exposed required region must satisfy the eventual rinse/recovery criterion;
+- waste-pump operation alone does not prove cleanser removal;
+- free-liquid residual, residual cleanser concentration and dilution of the next layer are separate observables.
 
 **TREAT / OPTICAL / THERMAL / MASSAGE**
-- optional modalities define their own target-region sets;
-- a routine can still be complete when an optional treatment is omitted by design;
-- if a treatment is scheduled as mandatory, unavailable target regions block that treatment stage rather than being hidden.
+- optional modalities define explicit target regions;
+- omission of a genuinely optional modality does not invalidate a routine;
+- a treatment explicitly required by the prepared routine cannot be silently skipped and still report that unchanged routine complete.
 
 **LEAVE-ON 1..N / MOISTURISE**
-- every routine-required region must receive its required final application state;
-- distribution must account for regions previously hidden by seals/supports/treatment contacts;
-- product presence alone is insufficient: pooled, visibly discontinuous or wiped-away film remains a failed application until a physical metric is selected.
+- every required region must receive its required application state;
+- previously occluded regions require a later access/application strategy;
+- metered quantity, deposited quantity and spatial film are separate observables.
 
 **FACIAL SPF**
-- SPF is a special claims-quality stage;
-- completion can be asserted only for the validated facial coverage set and the exact supported product/application profile;
-- do not infer protection from dispensed volume alone;
-- never imply coverage of ears, neck, scalp or body;
-- do not use direct aerosol spraying to the face as the default architecture. TGA guidance explicitly warns against spraying aerosol sunscreen directly onto the face due to inhalation risk;
-- label instructions and regulatory evidence remain controlling for the exact sunscreen.
+- SPF is a special claims-quality application stage;
+- dispensed mass or visible film cannot by themselves establish labeled protection;
+- any completion claim is limited to the exact facial regions, product and application method actually validated;
+- ears, neck, scalp and body remain outside the facial-mask coverage claim;
+- direct aerosol spraying onto the face is not a selected default route.
 
 **SETTLE**
-- settle time is driven by the product/application requirement, not a marketing-friendly round number;
-- interrupting a required settle interval prevents the downstream release-ready state.
+- required settling is product/application driven rather than chosen to make a round marketing duration;
+- interrupted required settling blocks downstream release-ready status.
 
 **RELEASE**
-- release is part of routine completion, not an afterthought;
-- a completed leave-on stage can be invalidated if release materially wipes or redistributes the final film;
-- release therefore has both safety and product-preservation criteria.
+- release is part of completion;
+- a leave-on stage can be invalidated if normal removal materially wipes a required region.
 
-## 3. Contract B: contact, occlusion and non-wiping state transition
+---
 
-### 3.1 Core rule
+# 3. CS-018: all-contact support and film-preserving transition
 
-Every face-facing structure is an occlusion participant until proven otherwise.
+## 3.1 Every face-facing object is an occlusion participant
 
-This includes:
+Audit at minimum:
 
 - perimeter seals;
 - support pads;
-- retention reaction interfaces;
+- facial retention/reaction interfaces;
 - treatment/massage islands;
+- stationary treatment annuli;
 - thermal contact surfaces;
-- optical carriers close enough to shadow or block application;
-- fluid distribution interfaces;
-- stationary bridges/ribs/supports near the face;
-- any temporary fit/alignment feature that covers skin required later in the routine.
+- face-adjacent optical carriers;
+- fluid-distribution surfaces;
+- fit/alignment contacts;
+- any bridge, rib or support capable of covering required skin.
 
-Retracting only moving massage islands is not sufficient if another structure still blocks a required leave-on region.
+Retracting massage islands alone does not solve the complete-routine problem if another stationary element still shadows skin that requires a final layer.
 
-### 3.2 Required state declaration
+## 3.2 Phase declaration
 
-For every face-facing contact class, define its state across:
+For every contact class declare its state across:
 
-`PLACEMENT -> CLEAN -> RINSE_RECOVER -> TREAT -> LEAVE_ON -> SETTLE -> RELEASE`.
+`PLACEMENT -> CLEAN -> RINSE_RECOVER -> TREAT -> LEAVE_ON -> SETTLE -> RELEASE`
 
-At each phase, record conceptually:
+Allowed state vocabulary:
 
 - `CONTACTING`
 - `NEAR_SKIN_NONCONTACT`
 - `RETRACTED_OR_CLEARED`
 - `TRANSITIONING`
 - `NOT_PRESENT`
+- `UNKNOWN`
 
-Also record the facial regions that element can occlude.
+Also record which required regions it can occlude and which structural/support function it performs.
 
-### 3.3 Occlusion exit rule
+## 3.3 Occlusion exit rule
 
-If an element occludes a region required for a leave-on stage, one of these must be true:
+If a structure occludes skin required by a downstream leave-on stage, before that stage can complete at least one of these must be demonstrated:
 
-1. the element stops occluding before that stage is allowed to complete; or
-2. that region receives a later secondary application pass after occlusion ends; or
-3. an independently validated application path reaches the region while the element remains present; or
-4. the region is explicitly excluded from that specific product claim for a justified reason.
+1. the structure clears the region;
+2. a secondary application pass treats that region after clearing;
+3. an independently validated application route reaches the region while support remains present;
+4. the region is a justified, explicit product/claim exclusion.
 
-Anything else is a P0 completion failure.
+Persistent unresolved occlusion is a P0 blocker.
 
-### 3.4 Non-wiping rule
+## 3.4 Non-wiping transition
 
-From the point a region receives its final required leave-on layer, subsequent device motion must not drag a broad face-facing surface across that region unless BENCH evidence demonstrates that the motion preserves the required film.
+Once a region has received its final required leave-on film, later normal device motion must not drag a broad face-facing surface across it unless BENCH evidence shows the film remains within the selected acceptance criterion.
 
-The Core Sketch therefore freezes the functional state sequence, not the detailed mechanism:
+The Core Sketch freezes the functional states, not a mechanism:
 
-- `CONTACT / TREATMENT STATE`
-- `APPLICATION-CLEAR STATE`
-- `SETTLE / RELEASE-READY STATE`
-- `NON-WIPING RELEASE STATE`
+- contact/treatment state;
+- application-clear state;
+- settle/release-ready state;
+- non-wiping normal-release state.
 
-The mechanism may later use retraction, segmentation, staged unloading, alternate support transfer, local application after support release, or another architecture. The product requirement is that coverage and film preservation survive the transition.
+Possible engineering mechanisms remain open until evidence selects them.
 
-### 3.5 Emergency release
+---
 
-Emergency/unpowered release always outranks product preservation. A safety release may interrupt or disturb the final skincare film; the session must then report an interrupted/partial state rather than false COMPLETE.
+# 4. CS-016: prepared-session validity and interruption
 
-## 4. Contract C: prepared-session validity and readiness
-
-### 4.1 READY is derived, never cached as truth
+## 4.1 READY is derived, not remembered
 
 `READY` means:
 
-> If the user presses the physical primary control now, the exact prepared routine can safely execute under the locally available validated state.
+> If the user presses the primary physical control now, the exact prepared session is eligible to execute using the locally available validated state.
 
-A prior `READY` flag is invalid after any material state change.
+A previous `READY` flag cannot survive a material state change without re-evaluation.
 
-### 4.2 Prepared-session identity
+## 4.2 Every prepared session binds
 
-Every prepared session must bind at minimum:
-
-- unique prepared-session ID;
-- routine ID and routine version;
-- intended AM/PM/day context when schedule-dependent;
-- ordered mandatory and optional stages;
-- exact assigned product identity per product stage;
-- product market/formulation/version identifier when known;
-- product trust/evidence state;
+- unique session ID;
+- routine ID and version;
+- scheduled context where relevant;
+- deliberate temporary overrides;
+- mandatory and optional stages;
+- exact product identity per required stage;
+- market/formulation/version when known;
+- product evidence state;
 - application-profile version;
-- prepared dose quantity or bounded quantity state;
-- preparation timestamp and freshness/age rule where relevant;
-- source reservoir/slot identity;
-- product-change/changeover state;
-- contamination/service state;
-- water/rinse-resource sufficiency;
-- waste-capacity sufficiency;
+- physical slot/reservoir association;
+- preparation receipt;
+- prepared quantity/state;
+- preparation time and hold-history fields when relevant;
+- product-change/reformulation state;
+- changeover/contamination state;
+- water/rinse sufficiency;
+- waste capacity;
 - battery/energy sufficiency;
-- thermal readiness for scheduled thermal stages;
-- device/dock fault state;
-- local offline copy of the routine and application constraints required to execute it.
+- thermal readiness for required thermal stages;
+- required service/cleaning completion;
+- active fault state;
+- local offline data required to execute safely.
 
-### 4.3 Minimum readiness predicates
+## 4.3 Invalidation events
 
-A session cannot report READY if any mandatory predicate is false or unknown:
+Re-evaluate or invalidate the prepared session on:
 
-- routine definition is internally valid;
-- every mandatory stage has a supported execution path;
-- every required product is permitted for automated execution;
-- prepared dose identity matches expected product identity;
-- prepared dose is not invalidated by age/changeover/state rules;
-- mandatory product quantity is sufficient;
-- water/rinse resource is sufficient;
-- waste capacity is sufficient;
-- energy reserve is sufficient with safety margin defined by engineering later;
-- required thermal subsystem is ready if used;
-- no unresolved service/cleaning fault invalidates the wet path;
-- no product mismatch/reformulation warning requires acknowledgement;
-- the required local control data exists even without network/cloud.
+- routine change affecting the prepared session;
+- required product swap or slot reassignment;
+- wrong-product suspicion;
+- reformulation requiring re-characterisation;
+- prepared-dose age/hold-history limit exceeded;
+- interrupted preparation or required service;
+- contamination/changeover uncertainty;
+- insufficient required water/product quantity;
+- insufficient waste capacity;
+- insufficient energy;
+- required thermal reset not ready;
+- fault affecting a mandatory stage;
+- profile/safety-rule revision that invalidates the old preparation;
+- loss of prepared-dose identity.
 
-### 4.4 Mandatory invalidation events
+Network loss by itself does **not** invalidate an otherwise locally eligible session.
 
-Invalidate the prepared session on:
+## 4.4 Honest degraded states
 
-- saved routine change affecting the prepared routine;
-- mandatory product swap;
-- slot reassignment;
-- suspected wrong-product event;
-- detected/declared reformulation requiring re-characterisation;
-- expiry of an age-sensitive prepared dose;
-- interrupted dock preparation;
-- incomplete wet-path service/changeover;
-- contamination warning;
-- loss of sufficient water or product quantity;
-- waste capacity becoming insufficient;
-- battery/energy becoming insufficient;
-- required thermal reset not completed;
-- device fault affecting a mandatory stage;
-- application profile or safety-rule update that invalidates the old preparation;
-- physical removal/reinstallation of a prepared-dose module when identity cannot be maintained.
-
-Network loss alone must not invalidate an otherwise locally complete prepared session.
-
-### 4.5 Degraded but honest states
-
-Use separate user/system states rather than overloading READY:
+Use distinct concepts:
 
 - `READY`
 - `PREPARING`
@@ -259,185 +231,154 @@ Use separate user/system states rather than overloading READY:
 - `NOT_READY`
 - `SAFETY_HOLD`
 
-A partial routine may be offered only when the user explicitly chooses it and the UI does not call it the originally scheduled complete routine.
+If a user chooses a permissible reduced/changed routine, it becomes a new eligible session. Do not describe it as completion of the unchanged scheduled routine.
 
-## 5. Contract D: complete-routine resource envelope
+For interruption, preserve what is known and what is uncertain. A software command log cannot prove an uncertain physical dose was delivered exactly once.
 
-### 5.1 Purpose
+---
 
-The cleanser-era product cannot be expanded by independently adding serum, moisturiser, SPF, optics and thermal features without a single session-level budget. Every candidate routine must close simultaneously on fluid mass, dry mass, CG, torque, energy, thermal readiness, time, dock capacity and waste.
+# 5. CS-017 and product-integrity contract
 
-### 5.2 Session variables
+Keep five product truths separate:
 
-For a prepared routine define:
+1. `IDENTITY`: what exact product is loaded;
+2. `PHYSICAL_CHARACTERISATION`: how it behaves through the system;
+3. `COMPATIBILITY`: whether product/material/storage interactions are supported;
+4. `CONTAMINATION_STATE`: what unwanted material may be present;
+5. `APPLICATION_VALIDATION`: whether the selected application method has enough evidence for its claimed use.
 
-- `V_water`: fresh water/rinse volume;
-- `V_cleanser`: cleanser dose;
-- `V_leaveon[i]`: each treatment/serum/essence dose;
-- `V_moist`: moisturiser dose;
-- `V_spf`: facial sunscreen dose when used;
-- `V_purge`: session-attributable purge/changeover allowance carried on-head, if any;
-- `V_recovered`: recovered liquid entering waste;
-- `V_residual`: residual liquid remaining in facial/wet paths after the session;
-- `m_session_fluids`: total on-head liquid mass at start;
-- `m_loaded`: dry wearable mass plus all session-carried liquids and any routine-specific modules;
-- `CG_loaded`: loaded centre of gravity;
-- `tau_head`: wearer torque contribution;
-- `E_electrical`: electrical energy required by pumps/control/actuation/optics/etc.;
-- `E_thermal`: thermal-state requirement where WARM/COOL is scheduled;
-- `t_routine`: complete routine duration including required settle periods;
-- `N_bulk_slots`: dock bulk-product slots needed for the ownership model;
-- `V_session_storage`: isolated session-dose storage volume;
-- `V_waste_required`: waste capacity required with margin.
+A product that can be pumped is not automatically compatible or validated.
 
-Historical targets such as dry mass <=215 g, loaded mass <255 g, CG Z <=30 mm and torque <=0.070 N*m remain engineering constraints to verify against live authority; this document does not promote them as physically achieved.
-
-### 5.3 Required planning scenarios
-
-Maintain at least three routine scenarios:
-
-**MINIMUM SUPPORTED**
-- clean;
-- rinse/recover;
-- one supported leave-on/moisturising finish;
-- settle if needed;
-- release.
-
-**NORMAL PM**
-- clean;
-- rinse/recover;
-- optional treatment modality;
-- one treatment/serum;
-- moisturiser;
-- settle;
-- release.
-
-**DEMANDING AM**
-- clean;
-- rinse/recover;
-- optional validated treatment;
-- one or more leave-ons;
-- moisturiser where routine requires it;
-- facial SPF when validated;
-- required settle;
-- release.
-
-For each scenario, unknown numerical values remain variables or bounded research inputs until measured. Do not fabricate clinically correct doses merely to close a spreadsheet.
-
-### 5.4 Budget gates
-
-A routine architecture cannot progress to integrated digital freeze if the demanding supported routine cannot plausibly remain within:
-
-- loaded mass target;
-- CG/torque target;
-- available session-dose volume;
-- waste capacity;
-- electrical energy budget;
-- thermal readiness budget;
-- acceptable ownership-loop preparation time;
-- a routine duration the target customer can plausibly accept.
-
-Failure of one budget is an architecture conflict, not permission to weaken the budget silently.
-
-## 6. Contract E: product preservation, carryover and changeover
-
-### 6.1 Separate five truths
-
-For every third-party skincare product, keep these independent:
-
-1. **IDENTITY**: what exact product is loaded;
-2. **PHYSICAL CHARACTERISATION**: how it behaves in the delivery system;
-3. **COMPATIBILITY**: whether its material/chemical/packaging interaction is supported;
-4. **CONTAMINATION STATE**: what else may be present in its path/reservoir/session dose;
-5. **APPLICATION VALIDATION**: whether Masck has evidence that the selected application profile performs adequately for the claimed use.
-
-A product that can physically flow is not automatically compatible or validated.
-
-### 6.2 Trust ladder
-
-Internal states remain:
+Internal evidence states remain:
 
 - `KNOWN`
 - `CHARACTERISED`
 - `VALIDATED`
 - `RESTRICTED_OR_UNSUPPORTED`
 
-Community data may promote discovery confidence and characterisation evidence, but cannot by itself promote a safety/claims-critical product to `VALIDATED`.
+Community data may accelerate identity discovery and characterisation. It may not automatically promote a safety/claims-critical product to `VALIDATED`.
 
-### 6.3 Carryover boundaries
+Product preservation must consider what the retail package may be doing for the formulation: containment, light exposure, air exposure, compatible contact material and storage history. Dock-side bulk storage does not automatically authorize universal open decanting.
 
-The architecture must separately validate:
+Carryover must be investigated separately across:
 
-- cleanser -> rinse transition;
-- rinse -> first leave-on transition;
-- leave-on A -> leave-on B carryover;
+- cleanser -> rinse;
+- rinse -> first leave-on;
+- leave-on A -> leave-on B;
 - leave-on -> moisturiser;
 - moisturiser -> SPF where both are used;
-- reservoir/product changeover;
-- service/cleaning-fluid residues where applicable.
+- product changeover;
+- dock/service-fluid residues;
+- shared downstream interfaces and returns.
 
-Define carryover metrics before declaring a wet path clean enough. Do not treat an empty line or a purge command as proof of acceptable residual contamination.
+An apparently empty line or executed purge command is not proof of acceptable carryover.
 
-### 6.4 Wrong-product and reformulation handling
+If observed physical behavior strongly contradicts the expected product profile, automated preparation/use should stop and request product confirmation. A similar flow fingerprint does not prove chemical identity.
 
-If a slot is expected to contain Product A but observed physical behaviour strongly contradicts the expected profile, the system must stop automated preparation/use and ask the user to confirm whether the product changed.
+---
 
-A renamed/reformulated product can require re-characterisation even if branding and barcode remain similar. Track SKU/market/formulation-version metadata where practical.
+# 6. Complete-routine resource envelope
 
-### 6.5 Unsupported product behavior
+Lane 5 owns one whole-session ledger. Lane 2, Lane 1, Lane 3 and Lane 4 supply the physical/resource inputs.
 
-An unsupported required product blocks the prepared complete routine. The system may suggest a supported alternative routine only if it is presented honestly as a different routine and the user chooses it.
+Track at minimum:
 
-## 7. Shared-interface writing ownership
+- `V_water`
+- `V_cleanser`
+- `V_leaveon[i]`
+- `V_moist`
+- `V_spf`
+- `V_purge`
+- `V_recovered`
+- `V_residual`
+- total session fluid mass
+- dry wearable mass
+- loaded wearable mass
+- loaded CG
+- wearer pitch torque
+- electrical energy
+- thermal state/energy requirement
+- complete routine duration including required settle time
+- dock bulk-slot demand
+- isolated session-dose storage volume
+- waste-capacity demand
+- fault-releasable fluid inventory.
 
-Each cross-lane contract has exactly one writing owner. Other lanes may consume, review and submit evidence but should not maintain competing versions.
+Required planning cases:
 
-| Shared contract | Writing owner | Required consumers |
+1. `MINIMUM_SUPPORTED`
+2. `NORMAL_PM`
+3. `DEMANDING_AM`
+
+At the current released authority observed on 2026-09-11, the relevant constraints include dry target <=215 g, loaded absolute max 255 g, CG-Z max **27.9 mm**, and pitch torque <=0.070 N*m. The authority explicitly tightened CG-Z from 30.0 mm because 255 g at 30 mm would not close the torque limit. Refresh live authority before any engineering action; these values in a concept document are a dated reconciliation snapshot, not a substitute for authority.
+
+Known cleanser-era quantities such as the 3.2 mL face-water, 0.60 mL cleanser and 0.80 mL post-flush values remain scoped to the released clean-cycle baseline. They are not evidence that an expanded complete routine fits the wearable or that extra leave-on/changeover volume is free.
+
+Unknown serum/moisturiser/SPF doses remain unknown or bounded research inputs until the exact product/application owner supplies evidence. Do not invent convenient values merely to make the budget close.
+
+---
+
+# 7. Shared-interface writing ownership
+
+To prevent competing truths:
+
+| Shared interface | Canonical writing owner | Key consumers |
 | --- | --- | --- |
-| stage-by-region completion | Lane 5 whole-product conductor | Lanes 1, 3, 4 |
-| face-contact/occlusion state table | Lane 1 complete-routine facial delivery | Lanes 3, 5 |
-| prepared-session validity/readiness | Lane 4 Routine OS/product intelligence | Lanes 1, 2, 5 |
-| complete-routine resource envelope | Lane 5 whole-product conductor | Lanes 1, 2, 3, 4 |
-| product identity/preservation/changeover semantics | Lane 4 for identity/evidence semantics; Lane 2 for physical service implementation | Lanes 1, 5 |
-| non-wiping release acceptance | Lane 3 wearable/human factors, consuming Lane 1 film-survival evidence | Lanes 1, 5 |
+| CS-015 required-region completion | Lane 1 | Lanes 4, 5 |
+| CS-018 contact/occlusion requirement map | Lane 1 | Lanes 3, 5 |
+| CS-016 prepared-session validity | Lane 4 | Lanes 1, 2, 5 |
+| complete-routine resource envelope | Lane 5 | Lanes 1, 2, 3, 4 |
+| product identity/evidence semantics | Lane 4 | Lanes 1, 2, 5 |
+| CS-017 physical product preservation/changeover | Lane 2 | Lanes 1, 4, 5 |
+| normal non-wiping release acceptance | Lane 3, consuming Lane 1 film evidence | Lanes 1, 5 |
 
-Where two lanes contribute, only the stated contract owner writes the canonical interface definition; the adjacent lane owns its implementation evidence.
+The consumer may submit evidence or interface-change requests. It should not maintain a second canonical contract.
 
-## 8. Promotion invariants
+---
 
-The following are fail-closed product invariants:
+# 8. Fail-closed invariants
 
-- no required stage reaches COMPLETE with a required facial region `UNREACHABLE`, `UNSUPPORTED`, `INTERRUPTED` or `UNKNOWN`;
-- no prepared session reports READY while any mandatory validity predicate is false/unknown;
-- no unsupported mandatory product can produce routine COMPLETE;
-- no documentation, CAD or simulation alone may promote BENCH/HUMAN/REG/CLAIM/SUPPLIER evidence;
-- no shared interface may have two canonical writing owners;
-- no green subsystem CI result may close a P0 physical proof gate;
-- no emergency-release requirement may be weakened to preserve skincare film;
-- no SPF completion claim may exceed the exact validated facial region/product/application envelope.
+The machine-readable companion contract and tests must preserve these rules:
 
-## 9. Immediate P0 dependency order
+- blocking required-region state prevents stage completion;
+- invalid prepared session prevents READY;
+- unsupported mandatory product prevents routine COMPLETE;
+- unresolved required contact shadow prevents final stage completion;
+- documentation/CAD/simulation cannot promote physical validation;
+- green subsystem CI cannot close a P0 BENCH/HUMAN/REG/CLAIM gate;
+- each shared interface has one canonical writing owner;
+- emergency release cannot be weakened to preserve a cosmetic film;
+- SPF claim cannot exceed the exact validated facial/product/application envelope;
+- engineering work must refresh current authority rather than trusting this dated concept snapshot.
 
-1. Freeze this completion/readiness/contact/resource/product-integrity contract set.
-2. Build the reduced-region CLEAN -> RINSE -> thin leave-on -> thicker leave-on -> final leave-on -> settle -> non-wiping release proof package.
-3. Establish a representative product-family envelope and carryover metrics.
-4. Close a first whole-routine resource spreadsheet/model for minimum, normal PM and demanding AM sessions.
-5. Map every face-facing support/seal/treatment surface to its routine contact/occlusion state and identify uncovered islands.
-6. Only then expand to whole-face application and sizing/fit validation.
-7. Keep facial SPF as a separate higher-rigor application/claims lane until ordinary leave-on success is credible.
+---
 
-## 10. Pivot conditions
+# 9. Immediate P0 execution order
 
-Evidence should force a major product review if any of these persist across credible alternative architectures:
+1. Maintain CS-015 through CS-018 as the canonical shared contracts.
+2. Execute the reduced-region proof package for CLEAN -> RINSE/RECOVER -> thin leave-on -> thicker leave-on -> final leave-on -> SETTLE -> non-wiping release.
+3. Define repeatable coverage, carryover and final-film-survival measurements before counting attractive demonstrations as evidence.
+4. Build the all-contact phase/occlusion map against current treatment, seal, thermal, fluid and retention concepts.
+5. Close the first whole-routine resource ledger for minimum, normal PM and demanding AM scenarios.
+6. Establish a representative third-party product-family envelope and product-preservation/changeover evidence plan.
+7. Expand only successful reduced-region behavior toward whole-face fit/coverage.
+8. Keep facial SPF on its own higher-rigor application and claims path.
 
-- required facial regions cannot be reached after contact/support structures clear;
-- final leave-on film cannot survive safe removal;
-- cleanser/product carryover cannot be reduced to an acceptable physical criterion;
-- normal third-party product families cannot be delivered without impractical product restrictions;
-- complete-routine session resources make wearable mass/CG/torque unacceptable;
-- dock preparation/cleaning becomes so burdensome that the product no longer removes routine friction;
-- supported complete routines become materially slower or more effortful than the manual routines they replace;
-- safe facial SPF deposition cannot support truthful claims, in which case SPF should be postponed rather than faked;
-- whole-routine coverage and fit cannot be achieved across a commercially useful size range without unacceptable complexity.
+---
 
-The first response to a failed proof is architecture refinement. Repeated failure of the core promise under credible alternatives is a reason to reconsider the product, not to relabel an incomplete routine as complete.
+# 10. Pivot conditions
+
+Escalate to explicit product review when repeated credible architectures cannot resolve one or more of:
+
+- required regions hidden by necessary support/contact structures;
+- cleanser-to-leave-on contamination;
+- practical thin-fluid boundary control;
+- thick-product distribution;
+- final-film survival during safe normal release;
+- meaningful third-party product compatibility;
+- complete-routine mass/CG/torque/resource closure;
+- a dock/service burden low enough to preserve the product's time/effort advantage;
+- a commercially useful fit/coverage range;
+- truthful facial-SPF performance.
+
+One failed prototype is a design result, not an automatic kill. Repeated failure of the locked core promise across credible alternatives is grounds to reconsider the concept rather than quietly redefining an incomplete routine as complete.
