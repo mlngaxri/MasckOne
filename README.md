@@ -58,6 +58,12 @@ Read [`docs/BRAND_ARCHITECTURE.md`](docs/BRAND_ARCHITECTURE.md) before changing 
 
 Normal release export now emits `brand_identity.json` beside the engineering manifests. It is product/interaction/CMF intent, not physical performance evidence, production material qualification or trademark clearance.
 
+## Product concept
+
+The repository now carries a deliberately **non-authoritative physical/product concept layer** for the target Masck One experience. Read [`docs/PRODUCT_CONCEPT.md`](docs/PRODUCT_CONCEPT.md) before changing the high-level value proposition, whole-routine requirement, portability definition, adaptive multi-product delivery, dock/session-dose split, scheduled routines, product-identification/database concept, AI role, leave-on application architecture or optional optical-treatment direction.
+
+The current concept target is stronger than the released hardware: Masck One should ultimately execute the user's complete facial skincare routine using the products they already choose, with the dock preparing session doses and the wearable completing the routine without requiring a return to the bathroom for manual facial-skincare steps. This is product intent only. None of the newly described serum, moisturiser, SPF, adaptive product, AI, scheduling or optical capabilities may be treated as implemented or validated until they pass the normal engineering and physical-evidence gates.
+
 ## Digital product vision
 
 The repository also carries a deliberately **non-authoritative** digital product vision for the marketing website, companion app, commercial backend and future connected-device experience. Read [`docs/DIGITAL_PRODUCT_VISION.md`](docs/DIGITAL_PRODUCT_VISION.md) for the target iOS/Android app, usage-session experience, capability-gated wear-state/device controls, Supabase-backed account/reservation architecture, website app showcase and preorder path.
