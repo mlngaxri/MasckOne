@@ -158,17 +158,31 @@ def _intersection(first: cq.Workplane, second: cq.Workplane) -> float:
 
 
 def _rounded_grip() -> cq.Workplane:
-    # YZ rounded-rectangle profile extruded along X. Envelope remains donor-sized.
+    # Extrude the donor-sized YZ rectangle, then fillet only the four edges parallel
+    # to X. This preserves the exact donor X/Y/Z envelope while rounding the touch
+    # corners with CadQuery 2.8's supported 3-D fillet operation.
     grip = (
         cq.Workplane("YZ")
         .rect(GRIP_XYZ_MM[1], GRIP_XYZ_MM[2])
-        .vertices()
-        .fillet2D(GRIP_CORNER_RADIUS_MM)
         .extrude(GRIP_XYZ_MM[0] / 2.0, both=True)
+        .edges("|X")
+        .fillet(GRIP_CORNER_RADIUS_MM)
         .translate((GRIP_CENTER_X_MM, 0.0, LATCH_AXIS_Z_MM))
     )
     if not grip.val().isValid() or len(grip.val().Solids()) != 1 or grip.val().Volume() <= 0.0:
         raise RetentionQuickReleaseTactileError("rounded quick-release grip is invalid")
+    bb = grip.val().BoundingBox()
+    expected = (
+        GRIP_CENTER_X_MM - GRIP_XYZ_MM[0] / 2.0,
+        GRIP_CENTER_X_MM + GRIP_XYZ_MM[0] / 2.0,
+        -GRIP_XYZ_MM[1] / 2.0,
+        GRIP_XYZ_MM[1] / 2.0,
+        LATCH_AXIS_Z_MM - GRIP_XYZ_MM[2] / 2.0,
+        LATCH_AXIS_Z_MM + GRIP_XYZ_MM[2] / 2.0,
+    )
+    actual = (bb.xmin, bb.xmax, bb.ymin, bb.ymax, bb.zmin, bb.zmax)
+    if any(abs(value - target) > 1e-9 for value, target in zip(actual, expected)):
+        raise RetentionQuickReleaseTactileError("rounded grip changed donor package envelope")
     return grip
 
 
