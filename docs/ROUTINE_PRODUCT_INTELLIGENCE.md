@@ -160,7 +160,8 @@ having done so:
 
 ## Tests
 
-`tests/test_routine_product_intelligence.py` (107 tests) is written from the
+`tests/test_routine_product_intelligence.py` (81 test functions, 110 cases
+after parametrisation) is written from the
 attacker's side. The question is never whether the happy path works but whether
 the system can be made to report that a step happened when it did not.
 
