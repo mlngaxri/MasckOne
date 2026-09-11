@@ -4,9 +4,10 @@ on:
     paths:
       - 'src/masck_one/facial_interface_*.py'
       - 'src/masck_one/regional_cleansing.py'
-      - 'src/masck_one/cleansing_fit.py'
+      - 'src/masck_one/cleansing_*.py'
       - 'tests/test_facial_interface_bench.py'
       - 'tests/test_regional_cleansing.py'
+      - 'tests/test_cleansing_*.py'
       - 'docs/contracts/facial_interface_sources.json'
       - '.github/workflows/facial-interface-focused.yml'
 permissions:
@@ -26,7 +27,7 @@ jobs:
           cache: pip
       - run: python -m pip install -e '.[dev]'
       - name: Regional hostile tests and geometry
-        run: python -m pytest tests/test_regional_cleansing.py tests/test_facial_interface_bench.py
+        run: python -m pytest tests/test_regional_cleansing.py tests/test_cleansing_personalization.py tests/test_facial_interface_bench.py
       - name: Unpowered off-face STEP export
         run: python -m masck_one.facial_interface_bench generated/cs018/fixture
       - uses: actions/upload-artifact@v4

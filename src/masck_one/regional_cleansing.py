@@ -12,7 +12,7 @@ import json
 import math
 from typing import Mapping
 
-VERSION = 'MASCK_REGIONAL_CLEANSING_CONTRACT_1'
+VERSION = 'MASCK_REGIONAL_CLEANSING_CONTRACT_2'
 
 class ControlError(ValueError):
     pass
@@ -31,30 +31,8 @@ class Level(str,Enum):
     HIGH='HIGH'
 
 
-# One question per independent decision/confounder, with regional maps where useful.
-# UNKNOWN is always valid and never interpreted as NO, LOW or consent.
-QUESTIONNAIRE = (
- ('usual_oil','Where does your face usually feel oily between washes?','LEVEL',True,'baseline_oil'),
- ('usual_dry','Where does your face usually feel tight or dry between washes?','LEVEL',True,'baseline_dry'),
- ('current_oil','Where does your face feel oily right now?','LEVEL',True,'current_oil_comparison'),
- ('current_dry','Where does your face feel tight or dry right now?','LEVEL',True,'current_dry_comparison'),
- ('flaking_now','Have you noticed flaking today?','YES_NO',True,'dryness_caution_not_diagnosis'),
- ('water_stings','Does water currently sting or feel uncomfortable?','YES_NO',True,'stop_review'),
- ('product_reactivity','Have ordinary products caused discomfort recently?','YES_NO',True,'sensitivity_caution'),
- ('discomfort_now','Is any area uncomfortable before starting?','YES_NO',True,'stop_review'),
- ('recent_cleanse','Have you already cleansed since the last recorded routine?','YES_NO',False,'history_not_zero'),
- ('multiple_cleanses','Have you cleansed more than once in that period?','YES_NO',False,'repeat_burden'),
- ('exfoliation','Have you recently used an exfoliant, scrub or exfoliating tool?','YES_NO',True,'barrier_stress_caution'),
- ('hair_removal','Have you recently shaved or removed hair in these areas?','YES_NO',True,'surface_stress_caution'),
- ('other_stress','Has friction or environmental exposure left any area uncomfortable?','YES_NO',True,'surface_stress_caution'),
- ('product_film','Is any product still on your face?','YES_NO',True,'measurement_confounder'),
- ('changed_product','Have you changed a product since this routine was prepared?','YES_NO',False,'product_binding_review'),
- ('wet_or_sweaty','Is your face currently wet or sweaty?','YES_NO',True,'measurement_confounder'),
- ('environment_changed','Has your environment changed noticeably since answering before?','YES_NO',False,'baseline_context'),
- ('left_right_difference','Do the left and right sides currently feel different?','YES_NO',False,'require_regional_answers'),
- ('hair_obstruction','Does facial hair obstruct contact in any intended region?','YES_NO',True,'placement_review'),
- ('answer_confidence','Are you confident these answers describe the current situation?','YES_NO',False,'evidence_quality'),
-)
+from .cleansing_onboarding import QUESTIONS as ONBOARDING_QUESTIONS
+QUESTIONNAIRE=tuple((q.id,q.prompt,q.answer_family,q.regional,q.variable) for q in ONBOARDING_QUESTIONS)
 QUESTIONS={q[0]:q for q in QUESTIONNAIRE}
 
 
@@ -63,7 +41,12 @@ class Answers:
     global_values: Mapping[str,str]
     regional_values: Mapping[str,Mapping[str,str]]=field(default_factory=dict)
 
+    per_answer_confidence: Mapping[str,str]=field(default_factory=dict)
+
     def validate(self, regions):
+        allowed_keys={key for key in QUESTIONS}|{r+'.'+key for r in regions for key in QUESTIONS}
+        for key,value in self.per_answer_confidence.items():
+            if key not in allowed_keys or value not in ('CERTAIN','UNSURE','UNKNOWN'):raise ControlError('invalid answer confidence')
         for scope, values in [('GLOBAL',self.global_values),*self.regional_values.items()]:
             if scope!='GLOBAL' and scope not in regions:raise ControlError('unknown questionnaire region')
             for key,value in values.items():
@@ -74,7 +57,11 @@ class Answers:
                 if scope!='GLOBAL' and not q[3]:raise ControlError('nonregional question overridden')
 
     def get(self,key,region):
-        return self.regional_values.get(region,{}).get(key,self.global_values.get(key,'UNKNOWN'))
+        value=self.regional_values.get(region,{}).get(key,self.global_values.get(key,'UNKNOWN'))
+        clarity=self.per_answer_confidence.get(region+'.'+key,self.per_answer_confidence.get(key,'CERTAIN'))
+        # Uncertain denial cannot erase a possible caution; a reported concern remains.
+        if QUESTIONS[key][2]=='YES_NO' and value=='NO' and clarity!='CERTAIN':return 'UNKNOWN'
+        return value
 
 
 @dataclass(frozen=True)
@@ -115,63 +102,21 @@ class Profile:
     barrier_stress_risk: str
     recent_burden_risk: str
     version: str=VERSION
+    survey_confidence: str='UNKNOWN'
+    observation_confidence: str='UNKNOWN'
+    dimensions: Mapping=field(default_factory=dict)
+    comparisons: Mapping=field(default_factory=dict)
+    relative_request: Mapping=field(default_factory=dict)
+    followups: tuple=()
+    confounders: tuple=()
+    regional_variation: tuple=()
+    decision: str='UNRESOLVED'
+    user_message: str=''
 
 
-def estimate(regions,answers: Answers,observations=(),*,now=0,accepted_calibrations=frozenset()):
-    if not regions or len(set(regions))!=len(regions):raise ControlError('regions must be nonempty and unique')
-    answers.validate(regions)
-    by_region={r:{} for r in regions}
-    for o in observations:
-        if o.region not in by_region:raise ControlError('unregistered physical region')
-        if o.feature in by_region[o.region]:raise ControlError('ambiguous duplicate physical observation')
-        by_region[o.region][o.feature]=o if o.usable(now,accepted_calibrations) else None
-    result={}
-    for r in regions:
-        get=lambda key:answers.get(key,r)
-        reasons=[];conflicts=[];agreement=0
-        survey_usable=get('answer_confidence')=='YES'
-        context_valid=all(get(k)=='NO' for k in ('product_film','wet_or_sweaty','environment_changed'))
-        sensed={}
-        for feature,key in [('surface_oil_proxy','current_oil'),('hydration_deficit_proxy','current_dry')]:
-            o=by_region[r].get(feature)
-            measured=o.value if o and context_valid else Level.UNKNOWN
-            sensed[feature]=measured
-            reported=Level(get(key))
-            if measured!=Level.UNKNOWN and reported!=Level.UNKNOWN and survey_usable:
-                if measured==reported:agreement+=1
-                else:conflicts.append(key)
-        if conflicts:reasons.extend('CONFLICT_'+k for k in conflicts)
-        risk_keys=('flaking_now','product_reactivity','exfoliation','hair_removal','other_stress',
-                   'recent_cleanse','multiple_cleanses')
-        for k in risk_keys:
-            if get(k)=='YES':reasons.append('CAUTION_'+k)
-        for k in ('current_dry','usual_dry'):
-            if get(k) in ('MODERATE','HIGH'):reasons.append('CAUTION_'+k)
-        if sensed['hydration_deficit_proxy'] in (Level.MODERATE,Level.HIGH):reasons.append('CAUTION_observed_dryness')
-        stop=any(get(k)!='NO' for k in ('water_stings','discomfort_now','changed_product','hair_obstruction'))
-        if stop:reasons.append('REVIEW_BEFORE_CONTACT')
-        unknown_keys=[k for k in QUESTIONS if get(k)=='UNKNOWN']
-        if unknown_keys:reasons.append('MISSING_CONTEXT')
-        if not survey_usable:reasons.append('UNCERTAIN_SURVEY')
-        if not context_valid:reasons.append('OBSERVATION_CONFOUNDED')
-        if get('left_right_difference')=='YES' and r not in answers.regional_values:
-            reasons.append('REGIONAL_DETAIL_MISSING')
-        consistency='DISAGREEMENT' if conflicts else 'AGREEMENT' if agreement==2 else 'INSUFFICIENT'
-        # Confidence describes the observable comparison, never validated skin tolerance.
-        confidence='HIGH_COMPARISON_ONLY' if consistency=='AGREEMENT' and not unknown_keys and survey_usable else 'LOW'
-        restricted=bool(reasons) or consistency!='AGREEMENT'
-        family='BLOCKED_REVIEW' if stop else 'GENTLE_REVIEW' if restricted else 'BASELINE'
-        def risk(keys):
-            values=[get(k) for k in keys]
-            return 'PRESENT' if 'YES' in values else 'UNKNOWN' if 'UNKNOWN' in values else 'NOT_REPORTED'
-        result[r]=Profile(r,Level(get('usual_oil')),Level(get('usual_dry')),
-            sensed['surface_oil_proxy'],sensed['hydration_deficit_proxy'],consistency,confidence,
-            family,tuple(sorted(set(reasons))),restricted or stop,
-            risk(('water_stings','discomfort_now','product_reactivity')),
-            risk(('exfoliation','hair_removal','other_stress')),
-            risk(('recent_cleanse','multiple_cleanses')))
-
-    return result
+def estimate(regions,answers: Answers,observations=(),*,now=0,accepted_calibrations=frozenset(),calibrations=None):
+    from .cleansing_evidence import infer
+    return infer(regions,answers,observations,now=now,accepted_calibrations=accepted_calibrations,calibrations=calibrations or {})
 
 
 @dataclass(frozen=True)
@@ -384,7 +329,7 @@ def shared_channel_permitted(footprint,ledgers):
     return all(ledgers[r].state in ('NOT_STARTED','IN_PROGRESS') and not ledgers[r].faults for r in footprint)
 
 
-def plan(profiles,regions,policies,*,placement,history):
+def plan(profiles,regions,policies,*,placement,history,factor_policy=None):
     check_policy_families(policies)
     if set(profiles)!=set(regions):raise ControlError('profile/required region mismatch')
     result={};seen=set()
@@ -394,7 +339,9 @@ def plan(profiles,regions,policies,*,placement,history):
         if key!=region.region_id:raise ControlError('region identity mismatch')
         profile=profiles[key]
         if profile.region!=key:raise ControlError('profile assigned to wrong region')
-        p=policies.get(profile.family)
+        from .cleansing_prescription import resolve
+        resolved=resolve(profile,policies.get('BASELINE'),factor_policy)
+        p=resolved['envelope']
         ledger=RegionalLedger(region,p,placement_ok=placement.get(key) is True,prior=history.get(key))
         if profile.family=='BLOCKED_REVIEW':ledger.block('PROFILE_REVIEW')
         result[key]=ledger
@@ -432,14 +379,17 @@ class SessionLedger:
     def complete(self):return simulated_cleansing_complete(self.expected,self.ledgers)
 
 
-def prescription(profile,envelope=None):
-    """Explicit bounded fields; null cannot be interpreted as a numeric default."""
+def prescription(profile,envelope=None,*,factor_policy=None):
+    """Compatibility view; use factor_policy for the selected multidimensional path."""
+    if factor_policy is not None:
+        from .cleansing_prescription import resolve
+        return resolve(profile,envelope,factor_policy)
     if envelope is not None and (profile.family=='BLOCKED_REVIEW' or envelope.family!=profile.family):
         raise ControlError('prescription/envelope mismatch')
     return {'region':profile.region,'version':VERSION,'family':profile.family,
         'confidence':profile.confidence,'review_required':profile.review_required,
         'explanations':list(profile.reasons),'human_use_eligible':False,
-        'state':'SIMULATION_ENVELOPE_ONLY' if envelope else 'BLOCKED_UNQUALIFIED_LIMITS',
+        'state':'BLOCKED_UNQUALIFIED_PERSONALIZATION' if envelope else 'BLOCKED_UNQUALIFIED_LIMITS',
         'cleanser_exposure_max_ml':envelope.maximum.cleanser_ml if envelope else None,
         'water_exposure_max_ml':envelope.maximum.water_ml if envelope else None,
         'contact_load_max_N':envelope.max_force_N if envelope else None,
