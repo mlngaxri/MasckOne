@@ -71,6 +71,8 @@ class ShellJointServicePath:
 class StructuralFrameShellJointServiceArchitecture:
     source_shell_joint_architecture_sha256: str
     paths: tuple[ShellJointServicePath, ...]
+    shell_with_service_reliefs: cq.Workplane = field(repr=False, compare=False)
+    shell_service_relief_removed_mm3: float = 0.0
     physical_validation_eligible: bool = False
 
     def __post_init__(self) -> None:
@@ -78,6 +80,9 @@ class StructuralFrameShellJointServiceArchitecture:
             raise StructuralFrameShellJointServiceError("source shell-joint identity must be SHA-256")
         if tuple(p.joint_id for p in self.paths) != JOINT_IDS:
             raise StructuralFrameShellJointServiceError("all four service paths must exist in controlled order")
+        _valid(self.shell_with_service_reliefs, "shell with joint service reliefs")
+        if self.shell_service_relief_removed_mm3 < -_INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameShellJointServiceError("shell service relief cannot add material")
         if self.physical_validation_eligible is not False:
             raise StructuralFrameShellJointServiceError("digital service geometry is not physical evidence")
 
@@ -92,7 +97,9 @@ class StructuralFrameShellJointServiceArchitecture:
             "source_shell_joint_architecture_sha256": self.source_shell_joint_architecture_sha256,
             "coordinate_frame_id": WORLD_FRAME_ID,
             "paths": [p.manifest() for p in self.paths],
-            "service_status": "CONTINUOUS_PIN_WITHDRAWAL_AND_RADIAL_RETAINER_ACCESS_CORRIDORS_REALIZED",
+            "shell_service_relief_removed_mm3": self.shell_service_relief_removed_mm3,
+            "service_status": "CONTINUOUS_PIN_WITHDRAWAL_AND_RADIAL_RETAINER_ACCESS_CORRIDORS_REALIZED_WITH_EXPLICIT_SHELL_RELIEF_BREP",
+            "shell_counterpart_status": "FRAME_OWNED_SERVICE_RELIEF_DERIVED_FROM_CANONICAL_SHELL_JOINT_ARCHITECTURE",
             "physical_validation_eligible": self.physical_validation_eligible,
         }
         if include_sha:
@@ -111,8 +118,11 @@ def _expanded_box(bb: cq.BoundBox, dx: float, dy: float, dz: float) -> cq.Workpl
 
 def build_structural_frame_shell_joint_service(*, joints: StructuralFrameShellJointArchitecture | None = None) -> StructuralFrameShellJointServiceArchitecture:
     joints = build_structural_frame_shell_joints() if joints is None else joints
-    paths: list[ShellJointServicePath] = []
-    shell = joints.modified_shell
+    source_shell = joints.modified_shell
+    source_shell_volume_mm3 = float(source_shell.val().Volume())
+    service_geometry: list[tuple[str, cq.Workplane, cq.Workplane]] = []
+    shell_with_service_reliefs = source_shell
+
     for joint in joints.joints:
         pin_bb = joint.pin.val().BoundingBox()
         clip_bb = joint.retainer_clip.val().BoundingBox()
@@ -125,20 +135,37 @@ def build_structural_frame_shell_joint_service(*, joints: StructuralFrameShellJo
         clip_sweep = _expanded_box(clip_bb, 2.0 * ACCESS_CLEARANCE_MM, CLIP_RADIAL_EXTENSION_MM, 2.0 * ACCESS_CLEARANCE_MM)
         clip_sweep = clip_sweep.translate((0.0, CLIP_RADIAL_EXTENSION_MM / 2.0, 0.0))
 
-        # The seated hardware occupies intentional shell bores. Test only the extension beyond
-        # the nominal hardware bounding box so intended bore occupancy is not mislabeled collision.
+        # The seated hardware occupies intentional shell bores. Keep only the extension beyond
+        # the nominal hardware envelope, then realize that extension as an explicit shell-side
+        # service relief. This changes manufactured counterpart geometry rather than clipping a
+        # collision witness or relaxing the zero-overlap requirement.
         pin_extension = pin_sweep.cut(_expanded_box(pin_bb, 0.0, 2.0 * ACCESS_CLEARANCE_MM, 2.0 * ACCESS_CLEARANCE_MM))
         clip_extension = clip_sweep.cut(_expanded_box(clip_bb, 2.0 * ACCESS_CLEARANCE_MM, 0.0, 2.0 * ACCESS_CLEARANCE_MM))
         _valid(pin_extension, f"{joint.joint_id} pin extension sweep")
         _valid(clip_extension, f"{joint.joint_id} clip extension sweep")
+        service_geometry.append((joint.joint_id, pin_extension, clip_extension))
+        shell_with_service_reliefs = shell_with_service_reliefs.cut(pin_extension).cut(clip_extension)
+
+    _valid(shell_with_service_reliefs, "shell with joint service reliefs")
+    removed_mm3 = max(0.0, source_shell_volume_mm3 - float(shell_with_service_reliefs.val().Volume()))
+
+    paths: list[ShellJointServicePath] = []
+    for joint_id, pin_extension, clip_extension in service_geometry:
         paths.append(ShellJointServicePath(
-            joint.joint_id,
+            joint_id,
             pin_extension,
             clip_extension,
-            round(_intersection(pin_extension, shell), 8),
-            round(_intersection(clip_extension, shell), 8),
+            round(_intersection(pin_extension, shell_with_service_reliefs), 8),
+            round(_intersection(clip_extension, shell_with_service_reliefs), 8),
         ))
-    result = StructuralFrameShellJointServiceArchitecture(joints.architecture_sha256, tuple(paths), False)
+
+    result = StructuralFrameShellJointServiceArchitecture(
+        joints.architecture_sha256,
+        tuple(paths),
+        shell_with_service_reliefs,
+        round(removed_mm3, 8),
+        False,
+    )
     result.__post_init__()
     return result
 
@@ -148,6 +175,10 @@ def export_structural_frame_shell_joint_service(output_dir) -> dict[str, object]
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     architecture = build_structural_frame_shell_joint_service()
+    cq.exporters.export(
+        architecture.shell_with_service_reliefs,
+        str(output_dir / "structural_frame_shell_with_joint_service_reliefs.step"),
+    )
     for path in architecture.paths:
         stem = path.joint_id.lower()
         cq.exporters.export(path.pin_withdraw_sweep, str(output_dir / f"{stem}_pin_withdraw_sweep.step"))
