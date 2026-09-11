@@ -577,7 +577,8 @@ Limited size family (likely 2–3) + passive/adaptive fit.
 ## CS-051 — First-10-seconds placement study
 
 **Priority:** P0  
-**State:** HUMAN
+**State:** PROVE  
+**Evidence:** HUMAN
 
 **Acceptance**
 
@@ -650,7 +651,8 @@ Users can:
 ## CS-056 — Hair / ears / jewelry
 
 **Priority:** P1  
-**State:** HUMAN
+**State:** PROVE  
+**Evidence:** HUMAN
 
 **Acceptance**
 
@@ -674,7 +676,8 @@ Users can:
 ## CS-058 — Speaking / mouth use
 
 **Priority:** P2  
-**State:** HUMAN
+**State:** PROVE  
+**Evidence:** HUMAN
 
 **Acceptance**
 
@@ -1558,7 +1561,8 @@ Internal states:
 ## CS-165 — Post-removal finish
 
 **Priority:** P0  
-**State:** HUMAN
+**State:** PROVE  
+**Evidence:** HUMAN
 
 **Acceptance**
 
@@ -1809,7 +1813,8 @@ Prior HMI work exposed a force-path contradiction between low-force spring/landi
 ## CS-202 — Primary-control accessibility
 
 **Priority:** P1  
-**State:** HUMAN
+**State:** PROVE  
+**Evidence:** HUMAN
 
 **Acceptance**
 
@@ -1980,7 +1985,8 @@ Light state has haptic/text/behavioral redundancy. Loading bays include tactile/
 ## CS-227 — One-handed service study
 
 **Priority:** P2  
-**State:** HUMAN
+**State:** PROVE  
+**Evidence:** HUMAN
 
 Test pickup, start, normal release, return and common refill/service actions.
 
@@ -2053,7 +2059,8 @@ Test pickup, start, normal release, return and common refill/service actions.
 ## CS-241 — First-run fit
 
 **Priority:** P1  
-**State:** HUMAN
+**State:** PROVE  
+**Evidence:** HUMAN
 
 **Acceptance**
 
@@ -2065,7 +2072,8 @@ Test pickup, start, normal release, return and common refill/service actions.
 ## CS-242 — First product load
 
 **Priority:** P1  
-**State:** HUMAN
+**State:** PROVE  
+**Evidence:** HUMAN
 
 **Acceptance**
 

@@ -1,0 +1,3423 @@
+{
+  "schema_version": 1,
+  "classification": "NON_AUTHORITATIVE_CONCEPT_LOGIC_NOT_DEVICE_CONTROL",
+  "hardware_execution_authorized": false,
+  "authority_rule": "Concept contracts never modify released engineering authority. Bind current file content, not revision text alone.",
+  "interfaces": [
+    {
+      "id": "completion",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "contract_paths": [
+        "docs/contracts/core_sketch_convergence.json#/completion"
+      ],
+      "dependencies": [
+        "contact",
+        "preservation"
+      ],
+      "consumer_rule": "One producer per contract fragment. Other lanes submit dependency requests; no competing interface definition."
+    },
+    {
+      "id": "contact",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "contract_paths": [
+        "docs/contracts/core_sketch_convergence.json#/contact"
+      ],
+      "dependencies": [
+        "completion"
+      ],
+      "consumer_rule": "One producer per contract fragment. Other lanes submit dependency requests; no competing interface definition."
+    },
+    {
+      "id": "prepared_session",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "contract_paths": [
+        "docs/contracts/core_sketch_convergence.json#/prepared_session"
+      ],
+      "dependencies": [
+        "resources",
+        "preservation",
+        "completion"
+      ],
+      "consumer_rule": "One producer per contract fragment. Other lanes submit dependency requests; no competing interface definition."
+    },
+    {
+      "id": "resources",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "contract_paths": [
+        "docs/contracts/core_sketch_convergence.json#/resources"
+      ],
+      "dependencies": [
+        "completion",
+        "preservation"
+      ],
+      "consumer_rule": "One producer per contract fragment. Other lanes submit dependency requests; no competing interface definition."
+    },
+    {
+      "id": "preservation",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "contract_paths": [
+        "docs/contracts/core_sketch_convergence.json#/preservation"
+      ],
+      "dependencies": [
+        "completion"
+      ],
+      "consumer_rule": "One producer per contract fragment. Other lanes submit dependency requests; no competing interface definition."
+    }
+  ],
+  "p0_items": [
+    {
+      "id": "CS-000",
+      "title": "Complete-routine hierarchy",
+      "priority": "P0",
+      "state": "LOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Complete-routine hierarchy. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- all new feature PRs describe how they support the complete routine;\n- no subsystem becomes the product identity in public/product copy;\n- hierarchy remains COMPLETE ROUTINE → cleaning/treatment/application/protection;\n- no “automated cleanser plus manual skincare afterward” fallback is silently introduced.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-001",
+      "title": "End-state promise",
+      "priority": "P0",
+      "state": "LOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for End-state promise. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- routine state model ends with non-wiping release;\n- final leave-on layer survives removal;\n- product copy never calls an incomplete routine “complete”;\n- later human testing specifically measures whether users feel any need to manually finish the face.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-002",
+      "title": "Facial-skincare boundary",
+      "priority": "P0",
+      "state": "LOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Facial-skincare boundary. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- V1 whole-routine claim explicitly excludes decorative cosmetics/makeup;\n- no future agent expands scope to waterproof mascara/foundation removal without a new concept decision;\n- sunscreen language remains facial-only and never implies ears/neck/body coverage.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-003",
+      "title": "User-product compatibility principle",
+      "priority": "P0",
+      "state": "LOCKED",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for User-product compatibility principle. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- product does not require MASCK-made cleanser/serum/moisturizer/SPF;\n- compatibility system is designed around third-party consumer skincare;\n- proprietary chemistry may be tested as a reference but cannot become the default lock-in strategy without explicit product review.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-004",
+      "title": "Offline physical independence",
+      "priority": "P0",
+      "state": "LOCKED",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Offline physical independence. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- configured routine can start and complete safely without phone/internet/cloud/account authentication;\n- physical emergency release never depends on software/cloud;\n- external AI outage cannot brick normal device use.\n\n---",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-010",
+      "title": "Reduced full-routine cheek rig",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [
+        "CS-000",
+        "CS-014",
+        "CS-015",
+        "CS-018"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Reduced full-routine cheek rig. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- Before an acceptance run, identify the required region and prohibited analog boundaries, surrogate families, reference application, measurement uncertainty and decision thresholds. Bounds requiring formulation/biological/protection expertise remain BLOCKED until specified by the qualified evidence owner.\n- Separately quantify cleaning-tracer residue, each deposited layer, spatial nonuniformity, pooled/collected/device-resident quantity and final-film loss during release. Do not count commanded volume as deposited volume or visual cleanliness as chemical purity.\n- Include representative curvature, interface edges, repeated trials and declared fit variation; report uncertainty and failures, not only the best demonstration.\n- Close a per-layer quantity balance and compare before/after-release spatial maps. Preserve the existing leakage and protected-region criteria.\n- Treat the result as reduced-region evidence only. It cannot certify whole-face coverage, SPF, skin safety, efficacy or powered on-face operation. CS-018 and qualified later validation remain separate gates.\n- Exploratory off-face measurements may establish unknown inputs; they cannot retrospectively supply a passing acceptance criterion.\n- No optional optical or thermal subsystem is required to answer this first transfer question. No human cosmetic-use procedure is specified by this task.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-011",
+      "title": "Barrier-preservation proof plan",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [
+        "CS-010"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Barrier-preservation proof plan. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- define appropriate manual gentle-cleansing control;\n- choose skin-barrier/hydration measurements with qualified expert input;\n- define stop conditions for irritation/damage;\n- demonstrate that Masck’s cleaning concept can be tuned without obvious barrier penalty before efficacy marketing.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-012",
+      "title": "Leave-on survival through release",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [
+        "CS-010",
+        "CS-015",
+        "CS-018"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Leave-on survival through release. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- quantify/visualize where final leave-on film remains after removal;\n- no broad contact surface drags across the newly coated face during release;\n- repeat across representative face curvature/fit variation;\n- identify zones requiring geometry/application refinement.\n\n\n\n- Use the required-domain map from CS-015 and all-contact map from CS-018, including stationary supports and thermal/fluid surfaces.\n- Report local loss as well as total retained quantity, before and after normal release. A high global retained fraction cannot hide a stripped required region.\n- Emergency release remains independent and takes priority; do not make film preservation a prerequisite for release.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-013",
+      "title": "Multi-product contamination proof",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [
+        "CS-015"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Multi-product contamination proof. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- demonstrate that cleanser/rinse water does not meaningfully contaminate serum/moisturizer delivery;\n- demonstrate that one leave-on product does not unpredictably back-contaminate another stored product;\n- define acceptable carryover metrics before full architecture freeze.\n\n\n\n- Set carryover metrics and uncertainty before the experiment, not after viewing results. Distinguish residual free water, residual cleaning tracer and subsequent layer dilution.\n- Trace contamination through the whole product-contact graph, including shared downstream interfaces, dock returns and stored-product backflow.\n- The legacy 0.90 recovery and 400 µL free-liquid targets remain controlling for their original scope; they do not close residue composition or layered-product compatibility.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-014",
+      "title": "Product family envelope",
+      "priority": "P0",
+      "state": "EXPLORE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [
+        "CS-291"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "SUPPLIER"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": true
+      },
+      "blocker": "No accepted closure record for Product family envelope. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- create representative physical families: watery essence, low-viscosity serum, shear-thinning serum, lotion, cream/emulsion, gel cleanser, cream cleanser, sunscreen families;\n- explicitly identify classes not currently supportable;\n- avoid claiming “all liquids” literally;\n- use this envelope to drive loading/application/service work.\n\n\n\n- Define a representative target-user product/routine cohort jointly with CS-291/293 before selecting only easy families. Preserve difficult thin/thick and sunscreen questions explicitly.\n- Characterisation, formulation preservation and a validated application context are separate gates. Do not promise universal compatibility, dilution, heating or other reformulation to make a product fit the machine.\n- Report both supported individual products and supported complete routines. A collection of compatible products can still fail to cover the user's actual sequence.\n\n---",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-015",
+      "title": "Required-region completion contract",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [
+        "CS-000",
+        "CS-014"
+      ],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Required-region completion contract. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- Define each stage's required facial domain from its intended product/routine use, prohibited anatomy, permitted fit/hardware range and coverage/film acceptance basis before optimizing the mask.\n- Enumerate seams, eye/mouth boundaries, nose/cheek transitions and support-shadow regions. Any required region with no valid delivery/release path is an explicit blocker, not a silently excluded patch.\n- Preserve legacy cleansing coverage gates without treating their aggregate percentage as full-routine completion evidence.\n- Separate metered quantity, deposited quantity, spatial film, validated method and real-time machine observables. Do not invent a sensor to make completion appear observable.\n- An unavailable required stage or unresolved application uncertainty prevents COMPLETE for that selected routine. Facial SPF completion never implies other body coverage or removal of future label obligations.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-016",
+      "title": "Prepared-session validity and interruption contract",
+      "priority": "P0",
+      "state": "SELECTED",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [
+        "CS-015",
+        "CS-017",
+        "CS-080",
+        "CS-094"
+      ],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Prepared-session validity and interruption contract. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- Bind routine revision, temporary overrides, exact product/version and slot association, preparation receipt, physical dose state, storage/hold history, profile/hardware revisions, service result and resource availability.\n- READY is re-evaluated at use. Unknown hold time, incomplete service, changed contents or missing required resource cannot inherit yesterday's READY.\n- Revalidate skip/reorder/substitution independently. A requested product not onboard requires re-preparation; a valid temporary session never overwrites the saved routine.\n- Persist progress and uncertainty across interruption. Do not replay an uncertain physical dose or claim software transaction logs prove exact fluid delivery.\n- Specify local clock/version validity, received revocation handling and unknown remote-update risk without silently adding a network requirement to normal use.\n- Supply deterministic non-hardware examples for changed routine, expired preparation, partial delivery, lost power, missing required SPF and valid optional-stage omission. No safety-critical limits are invented in this concept contract.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-017",
+      "title": "Product preservation across dock and session storage",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [
+        "CS-014",
+        "CS-016"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "SUPPLIER"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": true
+      },
+      "blocker": "No accepted closure record for Product preservation across dock and session storage. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- Identify which retail-package functions must be preserved: containment, light/air exposure control, material contact and intended storage history. Dock bulk storage does not select universal open pouring or unqualified repackaging.\n- Compare original-container interfaces and qualified serviceable reservoirs at architecture level, including changeover, residue traps, assembly/service work and waste.\n- Define product-contact materials and hold-history evidence needed for bulk and prepared doses. No unmeasured shelf life, chemical equivalence, sanitation or preservation claim.\n- Bind changed product/formulation, opened/loaded state, unknown age and interrupted service to CS-016 readiness. Physical flow similarity is not chemical identification.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-018",
+      "title": "All-contact support and film-preserving transition",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [
+        "CS-015"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for All-contact support and film-preserving transition. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- For contact, leave-on, settle and release, classify every moving island, stationary annulus, seal, support and other possible contact surface; include required facial patches hidden beneath them.\n- Show the structural support/reaction path during each state and how every required patch can become accessible without wiping an already finished patch.\n- Consume current authority/world frames and protected envelopes. Require exact forbidden-material collision checks and continuous conservative motion evidence where motion matters; sampled poses alone are insufficient.\n- Keep the emergency-release path independently available. No optical/thermal plate, face contact or cosmetic shell becomes an accidental release stop.\n- An off-face cheek pass cannot close whole-face load transfer, fit, sightlines or film preservation. Record remaining measured-human questions separately.\n\n---",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-020",
+      "title": "Canonical routine state model",
+      "priority": "P0",
+      "state": "SELECTED",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [
+        "CS-015"
+      ],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Canonical routine state model. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- every stage has entry/exit preconditions;\n- optional stages do not create invalid sequence combinations;\n- early removal can report exactly what completed;\n- an unavailable mandatory step prevents false “complete” status;\n- the state model is shared by device/app/dock concepts.\n\n\n\n- Consume CS-015/016. Completion refers to the selected eligible session, not an unchanged saved routine when the user made a deliberate exception.\n- Include incomplete, uncertain-dose and service-incomplete outcomes; none may silently converge to COMPLETE. Emergency release does not wait for state reconciliation.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-030",
+      "title": "Front-face archetype",
+      "priority": "P0",
+      "state": "LOCKED",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Front-face archetype. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- one calm continuous facial volume;\n- no goggle rings/eye bezels;\n- no nose cone;\n- no respirator grille;\n- no fake vents;\n- no visible actuator pods;\n- no arbitrary panelization;\n- eye openings feel carved from the shell rather than attached rings;\n- whole front reads as premium personal care at 3 m distance.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-040",
+      "title": "CMF token preservation",
+      "priority": "P0",
+      "state": "LOCKED",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for CMF token preservation. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- tokens remain product/brand intent until material-qualified;\n- no black-front “tech” variant becomes default;\n- no chrome/fake metal accent introduced as premium shorthand.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-042",
+      "title": "Skin-contact surface family",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN",
+        "SUPPLIER"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": true
+      },
+      "blocker": "No accepted closure record for Skin-contact surface family. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- low tack on clean/damp skin;\n- non-absorptive;\n- inspectable;\n- cleanable;\n- resists representative skincare staining/swelling;\n- no exposed wet textile foam;\n- subjective comfort tested across routine duration.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-050",
+      "title": "Size-family decision",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Size-family decision. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- anthropometric dataset/study defines size boundaries;\n- compare 1-size, 2-size, 3-size coverage and fit burden;\n- choose smallest number that meets fit/coverage/airway/comfort requirements;\n- no custom scan/manufacture required for ordinary ownership unless evidence forces it.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-051",
+      "title": "First-10-seconds placement study",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for First-10-seconds placement study. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Users can:\n\n- identify orientation immediately;\n- place without mirror dependence where practical;\n- achieve secure state without repeated strap adjustments;\n- perceive airway open;\n- avoid hair pinching;\n- avoid localized painful pressure;\n- understand “ready to start.”",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-052",
+      "title": "Retention UX",
+      "priority": "P0",
+      "state": "INTEGRATE",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Retention UX. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- retention force stays inside engineering/comfort evidence limits;\n- secure without “helmet tightening” ritual;\n- quick release ≤ existing requirement;\n- release is discoverable by touch;\n- no uncontrolled snap/slap;\n- existing retention owner lane remains canonical.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-053",
+      "title": "Mass/CG after full-routine expansion",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Mass/CG after full-routine expansion. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- complete session product load included in mass model;\n- optical/thermal/application additions included;\n- dry/loaded mass, CG Z and torque reconciled with current targets;\n- no hidden assumption of rear counterweight solving poor front packaging;\n- comfort evaluated dynamically, not only static CAD mass properties.\n\n\n\n- Lane 5 produces one mass/CG/torque ledger; Lane 3 owns human-factors acceptance. Include prepared, operating, interrupted and retained-waste states, all new isolation hardware and uncertainty.\n- Couple mass and pitch torque using the actual common datum. At 255 g with a 30 mm horizontal lever, gravity gives 0.075021 N m; this conditional example exceeds 0.070 N m and must not be treated as independent budget headroom. It is not a new CG requirement.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-070",
+      "title": "Bulk-slot count study",
+      "priority": "P0",
+      "state": "EXPLORE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Bulk-slot count study. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- derive required slot count from real routines, not arbitrary “4/5 slots”;\n- support common AM/PM routine diversity without turning dock huge;\n- evaluate cleanser, treatment A/B/C, moisturizer, SPF and optional shared products;\n- decide whether some slots are role-agnostic;\n- preserve future expansion without giant V1 dock.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-071",
+      "title": "Load-product user flow",
+      "priority": "P0",
+      "state": "SELECTED",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Load-product user flow. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- no engineering terminology in consumer UI;\n- one clear product/bay association;\n- user can correct a mis-identification before loading;\n- identity and compatibility state remain visible later.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-072",
+      "title": "Physical mistake-proofing",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Physical mistake-proofing. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- tactile orientation for low vision;\n- color not sole discriminator;\n- wrong bay / wrong closure hard to do silently;\n- product cannot easily be poured into waste/service opening;\n- spill cleanup considered.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-080",
+      "title": "Canonical product-profile schema",
+      "priority": "P0",
+      "state": "SELECTED",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Canonical product-profile schema. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- schema versioned;\n- evidence/provenance cannot be omitted;\n- application data separated from medical efficacy claims.\n\n\n\n- Validation context includes formulation/version, delivery method, hardware/fit range, dose and required-region evidence, sequence/layer context, storage history and profile revision. Product validation is not automatic routine validation.\n- Reuse evidence through justified equivalence classes rather than either testing an unbounded Cartesian product or assuming all combinations are equivalent.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-081",
+      "title": "Evidence-state model",
+      "priority": "P0",
+      "state": "LOCKED",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Evidence-state model. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- transitions require explicit evidence rules;\n- community popularity cannot auto-promote to VALIDATED;\n- sunscreen/strong-actives can require stricter gates.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-083",
+      "title": "Reformulation detection workflow",
+      "priority": "P0",
+      "state": "EXPLORE",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Reformulation detection workflow. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- ingredient/packaging/product metadata change can flag possible reformulation;\n- unexpected physical signature can flag mismatch;\n- product falls back to conservative state rather than inheriting old validation silently;\n- user receives simple next action.\n\n\n\n- A matching barcode/flow fingerprint can be consistent with multiple formulations or contents. A mismatch can reject; a match alone cannot establish chemistry, authenticity or continued validity.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-085",
+      "title": "Unknown-product bounded classification",
+      "priority": "P0",
+      "state": "EXPLORE",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Unknown-product bounded classification. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- unknown item can be categorized without arbitrary safety claims;\n- AI confidence/uncertainty retained;\n- user confirmation required when identity unresolved;\n- unsupported products fail safely and politely.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-086",
+      "title": "Physical signature check",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Physical signature check. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- representative product families produce repeatable enough response to detect gross mismatch/clog/wrong refill;\n- temperature and reservoir level effects characterized;\n- signature never treated as proof of brand/product identity on its own.\n\n---",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-090",
+      "title": "Routine object model",
+      "priority": "P0",
+      "state": "SELECTED",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Routine object model. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- routine contains ordered product/treatment stages, dependencies and schedule metadata;\n- device/dock can cache configured routines locally;\n- revision/history prevents silent cloud edits changing an imminent routine.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-094",
+      "title": "Routine compatibility guard",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [
+        "CS-080"
+      ],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Routine compatibility guard. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- deterministic validated rules gate sequence/frequency/temperature constraints;\n- AI suggestions cannot bypass them;\n- user receives reason and safe alternatives only where evidence supports them.\n\n\n\n- Product trust states alone do not validate a layered routine. Check the complete context from CS-080/016 and preserve mandatory-stage, interval and settling constraints.\n- Optional treatment conflicts should remove or defer the optional capability where the selected routine permits it, not silently remove a required facial finish.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-095",
+      "title": "Prepared-routine behavior",
+      "priority": "P0",
+      "state": "EXPLORE",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [
+        "CS-016"
+      ],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Prepared-routine behavior. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- define when dock commits next-session doses;\n- handle user changing tonight’s routine after preparation;\n- handle missed session without wasting/contaminating product unnecessarily;\n- prevent wrong prepared routine from starting silently.\n\n\n\n- Implement the CS-016 physical preparation contract. The last prepared/default routine is executable only while its local contents, history and resources remain eligible; offline is not permission to execute stale preparation.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-096",
+      "title": "No-phone daily operation",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for No-phone daily operation. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- prepared routine start from physical control;\n- user can distinguish ready/not-ready without app;\n- safe abort/release without app;\n- routine completion stored locally and syncs later.\n\n---",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-100",
+      "title": "Dock archetype",
+      "priority": "P0",
+      "state": "EXPLORE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Dock archetype. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- reads as premium personal-care object/skincare organizer;\n- not coffee-machine/lab appliance;\n- not a transparent fluidics showcase;\n- mask is rested/protected intentionally;\n- form works on bathroom vanity and, if acoustic/wet constraints allow, bedroom surface.\n\n\n\n- Do not select a premium silhouette before allocating bulk interfaces, clean/service fluids, waste, thermal rejection and service access. Compare daily and weekly active-attention burden, not only docking elegance.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-101",
+      "title": "Dock footprint study",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Dock footprint study. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- package real bulk-product, waste, charging/service requirements;\n- minimize frontal footprint and perceived mass;\n- compare vertical vs low-horizontal architecture;\n- choose one direction using access, cleaning, stability and visual presence;\n- do not freeze dimensions before this packaging proof.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-104",
+      "title": "Bulk product bay UX",
+      "priority": "P0",
+      "state": "EXPLORE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Bulk product bay UX. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- easy to identify correct bay;\n- fill/open/close feels premium and low-mess;\n- product level/identity inspectable as needed;\n- bays do not make dock visually busy;\n- user can clean accidental spills.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-105",
+      "title": "Waste concealment and service",
+      "priority": "P0",
+      "state": "INTEGRATE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Waste concealment and service. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- waste never mistaken for fresh product;\n- removal/emptying is low-drip and low-odor;\n- service part has resolved tactile seating;\n- existing cartridge owner lineage remains canonical;\n- user does not handle loose wet liner as normal daily routine if avoidable.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-110",
+      "title": "Session-dose quantity model",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Session-dose quantity model. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- derive representative per-routine liquid mass from real products/doses;\n- include cleanser, rinse water/post-flush strategy, leave-ons and sunscreen;\n- define worst-case prepared routine;\n- feed mass/CG study rather than assuming “few mL” is always negligible.\n\n\n\n- Include session products, prime/dead volume, interface losses, service flush demand, remaining waste, uncertainty and fault-releasable inventory. Do not count package volume as usable contents.\n- Preserve existing uncontrolled-release limits while extending the graph to new product chambers. Do not assume the historical six-cycle cartridge service requirement is demonstrated for expanded routines.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-111",
+      "title": "Microdose packaging location",
+      "priority": "P0",
+      "state": "EXPLORE",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Microdose packaging location. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- compare candidate regions by CG, tubing/path burden, service, thermal and ID impact;\n- no heavy forehead/cheek bulge;\n- no visible front cartridge;\n- maintain perceived thinness priorities.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-112",
+      "title": "Multi-product isolation",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [
+        "CS-013"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Multi-product isolation. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- each prepared leave-on product remains chemically separated until intentional application;\n- cross-carryover limits defined;\n- service state prevents old product from invalidating newly loaded product.\n\n\n\n- Isolation extends from bulk storage through dock receivers, valves, wearable channels, applicators and service returns. Separate reservoirs alone do not close downstream carryover. Bind this graph to CS-013/017.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-120",
+      "title": "Cleanse user sensation",
+      "priority": "P0",
+      "state": "INTEGRATE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Cleanse user sensation. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- gentle distributed feel;\n- no scraping/pinching;\n- no aggressive “brush” sensation required for perceived efficacy;\n- comfort across representative cleanser families;\n- existing treatment/carrier engineering reused.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-121",
+      "title": "Rinse completeness",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [
+        "CS-013"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Rinse completeness. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- representative cleanser residue reduced to defined acceptable level before leave-ons;\n- no obvious foaming remains;\n- no pooled water released at stage transition;\n- sensory state communicates “clean face” naturally.\n\n\n\n- Distinguish residual free liquid from cleaning-product concentration and adsorbed/device residue. Preserve the legacy recovery/leakage checks, then evaluate carryover separately under CS-013.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-122",
+      "title": "Recovery cleanliness",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Recovery cleanliness. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- spent fluid directed away from fresh product paths;\n- face/eye/airway external leakage stays inside engineering requirements;\n- no slosh/gurgle that destroys premium perception.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-131",
+      "title": "Massage comfort envelope",
+      "priority": "P0",
+      "state": "INTEGRATE",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Massage comfort envelope. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- reconcile historical motion/force targets with human comfort;\n- no eye/mouth/airway protected-region compromise;\n- no local buzzing hot spots;\n- existing treatment owner lane remains canonical.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-142",
+      "title": "Incidental heat budget",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [
+        "CS-094"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Incidental heat budget. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- skin-adjacent warmth outside WARM remains below a perceptual/safety target;\n- optical/electronics/charging heat cannot masquerade as treatment;\n- comfort measured over longest routine.\n\n\n\n- Use the longest eligible routine and each local store/cheek, not a global energy sum that hides a local deficit. Include previous treatment, prepared storage, fluid state, incidental electronics/actuator heat and dock reset. Optional modality timing follows CS-094/271.\n\n---",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-152",
+      "title": "Optical uniformity",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Optical uniformity. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- whole supported face receives bounded field uniformity;\n- curvature/distance/fit variation studied;\n- hot/cold spots mapped;\n- thermal effect separated from optical treatment.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-153",
+      "title": "Eye-safety experience",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN",
+        "REG_CLAIM"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": true,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Eye-safety experience. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- eye exposure assessed for visible and invisible bands;\n- product behavior remains safe under plausible misfit/eye direction;\n- user instruction for open/closed eyes is explicit;\n- no “amber glasses” or shutter architecture accepted merely from research brainstorming.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-160",
+      "title": "Non-wiping application state",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [
+        "CS-015",
+        "CS-018"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Non-wiping application state. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- application interface no longer behaves like cleansing contact;\n- deposited film is not broadly removed by later device motion;\n- transition is repeatable across fit variation.\n\n\n\n- Consume CS-018. Retraction of massage islands is insufficient if stationary treatment surfaces or support contacts still obstruct required leave-on regions.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-161",
+      "title": "Thin-serum application",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [
+        "CS-015"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Thin-serum application. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- representative watery/low-viscosity serum applied without droplets entering eyes/mouth/nostrils;\n- coverage uniformity threshold defined;\n- no obvious pooling/streaks after removal.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-163",
+      "title": "Moisturizer/lotion application",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [
+        "CS-015"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Moisturizer/lotion application. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- representative lotion and cream/emulsion families applied evenly enough to require no manual spreading;\n- loaded product retains its expected sensory character;\n- no abnormal aeration/separation caused by device handling.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-164",
+      "title": "Multiple leave-on layers",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Multiple leave-on layers. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- Layer A remains substantially present after Layer B application;\n- sequence/settling requirements encoded;\n- incompatible combinations blocked;\n- no unbounded mixing in shared interface.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-165",
+      "title": "Post-removal finish",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Post-removal finish. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- no required manual re-spread;\n- no large wet patches;\n- no unexpected dripping;\n- no visible device imprints;\n- tack/finish comparable to the user’s products when applied appropriately.\n\n---",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-170",
+      "title": "SPF regulatory/claims map",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "REG_CLAIM"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": true,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for SPF regulatory/claims map. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- Australian/TGA and intended launch-market requirements mapped with qualified support;\n- distinguish sunscreen product regulation from device application claims;\n- public wording defined for pre-validation, validation and launch states.\n\n\n\n- Start the AM feasibility/claims/required-region review alongside the first surrogate transfer work. Keep SPF evidence distinct without delaying the AM existential question until later product freeze.\n- An inert deposition proxy does not establish sunscreen protection or authorize human testing. If the intended SPF-containing AM routine cannot be validated, report an explicit AM scope blocker.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-171",
+      "title": "SPF product-family compatibility",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "REG_CLAIM",
+        "SUPPLIER"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": true,
+        "SUPPLIER": true
+      },
+      "blocker": "No accepted closure record for SPF product-family compatibility. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- test representative sunscreen emulsions/fluids/mineral-heavy formulas;\n- identify unsupported families explicitly;\n- no assumption that one transport/application mode covers all SPF products.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-172",
+      "title": "SPF final-film uniformity",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN",
+        "REG_CLAIM"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": true,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for SPF final-film uniformity. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- final facial film measured spatially, not inferred from pump volume;\n- difficult boundaries (nose, around eyes, hairline, mouth) mapped;\n- repeat across fit/face variation;\n- define undercoverage stop criterion.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-173",
+      "title": "SPF application amount",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "REG_CLAIM"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": true,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for SPF application amount. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- application amount tied to validated coverage/claim method;\n- individual face area/coverage handled credibly;\n- no fake “2 mg/cm² achieved” claim without actual method/evidence.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-174",
+      "title": "SPF eye/airway exposure",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN",
+        "REG_CLAIM"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": true,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for SPF eye/airway exposure. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- no direct aerosol-face assumption;\n- product does not deposit unacceptable sunscreen in eyes, nostrils or mouth;\n- misfit/failure states included.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-180",
+      "title": "Non-wiping release path",
+      "priority": "P0",
+      "state": "INTEGRATE",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [
+        "CS-018"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Non-wiping release path. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- leave-on film preserved through actual removal motion;\n- no edge drags across cheeks/nose during realistic user removal;\n- current retention/quick-release owner lineage reused.\n\n\n\n- Lane 3 owns the release geometry and continuous path; Lane 1 owns the required-region/final-film acceptance input. Use one shared contact map from CS-018, not two release architectures.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-181",
+      "title": "Emergency release",
+      "priority": "P0",
+      "state": "INTEGRATE",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Emergency release. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- ≤ existing 2 s target;\n- one-handed/tactile;\n- works without power/app/network;\n- failure-safe;\n- no requirement to preserve skincare film in emergency state over user safety.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-190",
+      "title": "Inspectable facial interface",
+      "priority": "P0",
+      "state": "SELECTED",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Inspectable facial interface. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- user can visually inspect all meaningful skin-contact surfaces;\n- no permanently wet dark cavities at the face boundary;\n- removable/service surfaces have obvious orientation;\n- “looks clean” correlates with actual cleanability plan.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-191",
+      "title": "Routine dock clean/service cycle",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Routine dock clean/service cycle. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- define what is cleaned every return versus periodically;\n- validate removal of representative cleanser/oil/sunscreen residues;\n- no unsupported “self-sanitizing” claim;\n- user intervention only when genuinely needed.\n\n\n\n- Include the intended products' residue families, water/service/waste inventory, inspectability, unknown hold times and changeover burden. A dry-looking or visibly clean part is not proof of hygiene. Qualified service evidence remains required.\n- Preparation receipts must identify incomplete required service, even when quiet-night policy defers further activity.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-192",
+      "title": "Dry-state management",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Dry-state management. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- no stagnant retained water in user-visible/critical zones over normal storage;\n- drying/service time compatible with next scheduled routine;\n- odor/microbial risks reviewed by qualified experts as needed.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-194",
+      "title": "Waste service experience",
+      "priority": "P0",
+      "state": "INTEGRATE",
+      "lane": 2,
+      "writing_owner": "dock-product-service-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Waste service experience. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- premium blind insertion/removal;\n- no leakage/drip/odor in expected handling;\n- fill state understandable;\n- existing cartridge owner lane remains canonical.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-200",
+      "title": "Primary button force-path correction",
+      "priority": "P0",
+      "state": "INTEGRATE",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Primary button force-path correction. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- selected physical topology has a credible force path;\n- no coil bind/actuation contradiction;\n- continuous motion/reference is valid;\n- positive stop/overtravel/return resolved;\n- physical force/travel/wobble/acoustics still validated separately;\n- existing HMI PR/owner lineage reused.\n\n\n\n- The exact-head green HMI gate can correctly reject the selected force path. At the 2026-09-10 review, PR #144 preserves that rejection; do not interpret passing regression tests as a functional button. Let the existing owner correct the topology, not just tune a target force curve.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-201",
+      "title": "Primary button tactile target",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Primary button tactile target. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- near-zero perceptible lateral play;\n- smooth guidance;\n- deliberate progressive resistance;\n- clear event;\n- dense landing;\n- controlled return;\n- no hollow click, metallic ping or rattle;\n- stable across tolerance, contamination and temperature.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-210",
+      "title": "Preflight readiness summary",
+      "priority": "P0",
+      "state": "SELECTED",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [
+        "CS-016"
+      ],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Preflight readiness summary. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Before start, system knows whether:\n\n- required product present;\n- prepared dose/routine matches selection;\n- waste capacity sufficient;\n- battery sufficient;\n- fit/wear state adequate;\n- mandatory subsystem available.\n\nIf not, user is told before fluid application where possible.\n\n\n\n- READY consumes the physical preparation receipt and current eligibility from CS-016. Separate unavailable optional modes from a missing required routine stage; do not require the user to read internal engineering state names.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-212",
+      "title": "Early-removal recovery UX",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Early-removal recovery UX. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- stops safely;\n- tracks completed stages;\n- does not mark complete;\n- gives only evidence-supported next action;\n- prioritizes user safety over preserving the routine.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-213",
+      "title": "Wrong-product event",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Wrong-product event. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- unexpected physical signature halts before face application where possible;\n- app/dock asks user to check refill;\n- no automatic “AI correction” that guesses a new product.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-215",
+      "title": "Offline/cloud failure",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Offline/cloud failure. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- cached validated product/routine continues;\n- cloud-only unknown-product enrichment waits;\n- no unsafe downgrade;\n- sync resolves later without duplicate session state.\n\n---",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-220",
+      "title": "App role discipline",
+      "priority": "P0",
+      "state": "LOCKED",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for App role discipline. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "App is for configuration/history/identification/service, not a mandatory remote control for every session.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-223",
+      "title": "Privacy defaults",
+      "priority": "P0",
+      "state": "LOCKED",
+      "lane": 4,
+      "writing_owner": "routine-os-product-intelligence-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Privacy defaults. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "No default face photos, acne/pore/wrinkle scores, always-on microphone or location tracking.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-233",
+      "title": "Wet-use durability",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "SUPPLIER"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": true
+      },
+      "blocker": "No accepted closure record for Wet-use durability. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- cleaning/service cycles do not degrade seals/contact materials unexpectedly;\n- user-facing wet interfaces survive life-cycle target;\n- no odor/residue accumulation accepted as normal ageing.\n\n---",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-270",
+      "title": "Integrated digital package",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Integrated digital package. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- one current product assembly uses canonical owner outputs;\n- no duplicate cartridge/retention/HMI/treatment/thermal truths;\n- mass/CG includes full-routine additions;\n- protected anatomy/airway checks remain green;\n- all speculative/reference geometry separated from manufactured material;\n- per-component provenance and source binding retained.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-271",
+      "title": "Complete routine digital state/geometry review",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Complete routine digital state/geometry review. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "For every routine phase, show:\n\n- what touches/approaches skin;\n- protected eye/mouth/nostril state;\n- what fluid/product is present;\n- which component moves/retracts at concept level;\n- removal-ready condition;\n- no impossible cross-phase collision/occupancy assumptions.\n\n\n\n- Review all contact shadows and structural support through CLEAN, RECOVER, optional treatment, layered application, SETTLE and normal/emergency release. Reference material identities and routine-state contracts must agree at the same source head.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-272",
+      "title": "Full-system physical alpha",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [
+        "CS-010"
+      ],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Full-system physical alpha. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "- full-face placement/secure/start/routine/release/return demonstrated;\n- selected representative routine completes autonomously;\n- no manual face touch required afterward;\n- airway, leakage, comfort and rapid release satisfy current evidence targets;\n- limitations documented.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-274",
+      "title": "Product truth review",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Product truth review. Intent/definition must remain consistent across the executable contracts and owner consumers.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Before any public/pitch/website claim:\n\n- separate digitally complete from physically validated;\n- separate benchmark target from achieved performance;\n- separate concept intent from released capability;\n- remove simulated metrics from production presentation.\n\n---\n\n# 31. Phase 28 — validation and claims gates",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-280",
+      "title": "Human-factors protocol",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Human-factors protocol. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Cover:\n\n- placement success;\n- first-10-second comfort;\n- routine-duration comfort;\n- vision/use activities;\n- airway perception;\n- release success;\n- post-removal face feel;\n- preference to reuse;\n- service/loading error rate.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-281",
+      "title": "Skin/barrier protocol",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Skin/barrier protocol. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Do not improvise clinical protocol from chat. Use qualified expertise and appropriate oversight.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-283",
+      "title": "SPF validation protocol",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN",
+        "REG_CLAIM"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": true,
+        "REG_CLAIM": true,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for SPF validation protocol. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Validate final application/coverage using appropriate regulatory/claims-quality methods. Volume alone is insufficient.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-284",
+      "title": "Cleaning/hygiene validation",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 1,
+      "writing_owner": "facial-delivery-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Cleaning/hygiene validation. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Demonstrate residue removal/drying/cleanability and appropriate hygiene behavior over repeated real product use.\n\n---\n\n# 32. Phase 29 — product/commercial usability gates",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-291",
+      "title": "Routine value proof",
+      "priority": "P0",
+      "state": "PROVE",
+      "lane": 3,
+      "writing_owner": "wearable-human-factors-owner",
+      "dependencies": [],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "HUMAN"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": true,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Routine value proof. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Measure whether target users value:\n\n- time saved;\n- consistency;\n- portability;\n- not touching/applying products manually;\n- use of existing skincare;\n- premium experience.\n\nDo not assume skincare enthusiasts want automation merely because they buy devices.\n\n\n\n- Evaluate total daily/weekly active attention, including loading, service, product waste, failures, manual starting-state prerequisites and wear inconvenience. Compare actual supported routines, not only the automatic wearing interval. Predeclare the meaningful value criterion before selection.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-293",
+      "title": "Product compatibility coverage target",
+      "priority": "P0",
+      "state": "EXPLORE",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Product compatibility coverage target. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Define launch threshold for number/share of target-market products with validated profiles so “works with your skincare” is credible.\n\n\n\n- This is an early existential feasibility gate, not just later launch marketing. Define a representative target-user product/routine cohort before selecting the easiest compatible formulations.\n- Report unsupported starting states, brands/formulation versions and complete sequences. Material narrowing toward proprietary formulations or recurring manual facial finishing requires explicit concept review.\n\n---\n\n# 33. Phase 30 — production-intent refinement after concept proof\n\nThis backlog intentionally does not deeply prescribe mechanics. Once the existential UX/product proofs above are green, engineering should refine:",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-300",
+      "title": "Material qualification",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "SUPPLIER"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": true
+      },
+      "blocker": "No accepted closure record for Material qualification. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Accepted evidence against this backlog item and its dependency gates.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-301",
+      "title": "Tolerance appearance and tactile robustness",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "SUPPLIER"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": true
+      },
+      "blocker": "No accepted closure record for Tolerance appearance and tactile robustness. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Accepted evidence against this backlog item and its dependency gates.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-302",
+      "title": "DFM/assembly/service strategy",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "SUPPLIER"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": true
+      },
+      "blocker": "No accepted closure record for DFM/assembly/service strategy. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Accepted evidence against this backlog item and its dependency gates.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-303",
+      "title": "Supplier/component validation",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "SUPPLIER"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": true
+      },
+      "blocker": "No accepted closure record for Supplier/component validation. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Accepted evidence against this backlog item and its dependency gates.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-304",
+      "title": "Reliability/lifetime program",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [],
+      "evidence_required": [
+        "BENCH",
+        "DIGITAL",
+        "DOCUMENT",
+        "SUPPLIER"
+      ],
+      "requires": {
+        "BENCH": true,
+        "HUMAN": false,
+        "REG_CLAIM": false,
+        "SUPPLIER": true
+      },
+      "blocker": "No accepted closure record for Reliability/lifetime program. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "Accepted evidence against this backlog item and its dependency gates.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    },
+    {
+      "id": "CS-305",
+      "title": "Regulatory/compliance plan",
+      "priority": "P0",
+      "state": "BLOCKED",
+      "lane": 5,
+      "writing_owner": "whole-product-conductor",
+      "dependencies": [
+        "CS-000",
+        "CS-010",
+        "CS-015",
+        "CS-016",
+        "CS-017",
+        "CS-018",
+        "CS-053",
+        "CS-170",
+        "CS-291"
+      ],
+      "evidence_required": [
+        "DIGITAL",
+        "DOCUMENT",
+        "REG_CLAIM"
+      ],
+      "requires": {
+        "BENCH": false,
+        "HUMAN": false,
+        "REG_CLAIM": true,
+        "SUPPLIER": false
+      },
+      "blocker": "No accepted closure record for Regulatory/compliance plan. Physical evidence listed below is absent; definition or subsystem CI cannot close the item.",
+      "digitally_actionable": true,
+      "digital_action": "Specify/verify the bounded interface and collect source-bound evidence; do not fabricate the outstanding proof.",
+      "physical_validation": "NOT_VALIDATED",
+      "accepted_evidence": [],
+      "promotion_condition": "These are not reasons to postpone concept validation; they are the next layer after the product experience is shown to work.\n\n---\n\n# 34. Master dependency order\n\nSection numbers above group topics; they are not a waterfall implementation schedule. The earlier sequence that placed surface/CMF work before session isolation, final-film proof and SPF feasibility is superseded by this dependency order.\n\n1. \n2. \n3. \n4. \n5. \n6. \n\nOnly after those conflicts are bounded should the broader fit, sensory, interface, optional-modality, service-life and manufacturing work consume major new refinement effort. Their constraints apply now; their detailed polish does not outrank existential proof.\n\n# 35. Immediate top queue\n\n\n\n\n\n\n\n\n\nSee [the convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) for contradictions and explicit kill/pivot conditions, and [the repository map](CORE_SKETCH_REPO_MAPPING.md) for observed owners and failure scopes.\n\n---\n\n# 36. How future agents should use this file\n\nWhen receiving a broad instruction such as “perfect Masck,” “continue,” “work on the next important thing,” or “improve the whole product”:\n\n1. fetch live GitHub state;\n2. read this file and `CORE_SKETCH_V1.md`;\n3. use the G0..G5 dependency order to select a bounded non-DONE item; preserve an existing owner, or reserve exactly one owner artifact for genuinely unowned work;\n4. continue that owner lineage;\n5. perform actual engineering/design/validation work;\n6. commit meaningful checkpoint(s);\n7. update the relevant backlog item status/notes only when evidence warrants it;\n8. do not create a new feature simply because all currently obvious implementation work is inconvenient;\n9. do not mark physical feel, skin response, optical safety, SPF performance or hygiene validated from digital geometry alone;\n10. leave the product more coherent than you found it.\n\nThe backlog is intentionally broader than any single sprint. It is the bridge between the stable product sketch and detailed engineering execution.",
+      "closure_scope": "Whole backlog item; digital definition may advance independently without closing its physical proof."
+    }
+  ],
+  "evidence": [],
+  "completion": {
+    "region_catalog": [
+      {
+        "id": "chin",
+        "kind": "CONCEPTUAL_SKIN",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "eye_protected",
+        "kind": "PROTECTED_ANATOMY",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "forehead",
+        "kind": "CONCEPTUAL_SKIN",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "left_cheek",
+        "kind": "CONCEPTUAL_SKIN",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "left_jaw",
+        "kind": "CONCEPTUAL_SKIN",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "left_temple",
+        "kind": "CONCEPTUAL_SKIN",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "mouth_protected",
+        "kind": "PROTECTED_ANATOMY",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "nose_skin",
+        "kind": "CONCEPTUAL_SKIN",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "nostril_protected",
+        "kind": "PROTECTED_ANATOMY",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "right_cheek",
+        "kind": "CONCEPTUAL_SKIN",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "right_jaw",
+        "kind": "CONCEPTUAL_SKIN",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "right_temple",
+        "kind": "CONCEPTUAL_SKIN",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      },
+      {
+        "id": "upper_lip_surround",
+        "kind": "CONCEPTUAL_SKIN",
+        "registration": "UNKNOWN",
+        "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+      }
+    ],
+    "stage_semantics": {
+      "CLEAN": "Region-specific removal evidence; averages cannot conceal an untouched patch.",
+      "RINSE_RECOVER": "Region-specific carryover and free-liquid disposition; pump run completion is insufficient.",
+      "TREAT": "Only selected treatment and exact context; no substitution of vibration, warmth or light for completion.",
+      "LEAVE_ON": "Each scheduled product has its own region obligations and film evidence.",
+      "MOISTURISE": "Product-specific deposited and preserved film in every required region.",
+      "FACIAL_SPF": "Separate REG_CLAIM evidence for exact product, delivery, amount, coverage and release; serum evidence cannot promote it.",
+      "SETTLE": "Every preceding required film reaches its product-specific supported settling condition; elapsed time alone is not proof.",
+      "RELEASE": "Final film retained in every required region after the entire normal removal path; interrupted/emergency release is not COMPLETE."
+    },
+    "example_unresolved_am_plan": {
+      "scope": "WHOLE_FACE_CONCEPTUAL",
+      "regions": [
+        {
+          "id": "chin",
+          "kind": "CONCEPTUAL_SKIN",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "eye_protected",
+          "kind": "PROTECTED_ANATOMY",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "forehead",
+          "kind": "CONCEPTUAL_SKIN",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "left_cheek",
+          "kind": "CONCEPTUAL_SKIN",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "left_jaw",
+          "kind": "CONCEPTUAL_SKIN",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "left_temple",
+          "kind": "CONCEPTUAL_SKIN",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "mouth_protected",
+          "kind": "PROTECTED_ANATOMY",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "nose_skin",
+          "kind": "CONCEPTUAL_SKIN",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "nostril_protected",
+          "kind": "PROTECTED_ANATOMY",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "right_cheek",
+          "kind": "CONCEPTUAL_SKIN",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "right_jaw",
+          "kind": "CONCEPTUAL_SKIN",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "right_temple",
+          "kind": "CONCEPTUAL_SKIN",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        },
+        {
+          "id": "upper_lip_surround",
+          "kind": "CONCEPTUAL_SKIN",
+          "registration": "UNKNOWN",
+          "note": "Bookkeeping region, not a clinical boundary or authority geometry."
+        }
+      ],
+      "stages": [
+        {
+          "id": "clean",
+          "kind": "CLEAN",
+          "regions": {
+            "chin": {
+              "requirement": "REQUIRED"
+            },
+            "eye_protected": {
+              "requirement": "PROTECTED"
+            },
+            "forehead": {
+              "requirement": "REQUIRED"
+            },
+            "left_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "left_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "left_temple": {
+              "requirement": "REQUIRED"
+            },
+            "mouth_protected": {
+              "requirement": "PROTECTED"
+            },
+            "nose_skin": {
+              "requirement": "REQUIRED"
+            },
+            "nostril_protected": {
+              "requirement": "PROTECTED"
+            },
+            "right_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "right_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "right_temple": {
+              "requirement": "REQUIRED"
+            },
+            "upper_lip_surround": {
+              "requirement": "REQUIRED"
+            }
+          },
+          "product_binding": "clean_unassigned"
+        },
+        {
+          "id": "rinse_recover",
+          "kind": "RINSE_RECOVER",
+          "regions": {
+            "chin": {
+              "requirement": "REQUIRED"
+            },
+            "eye_protected": {
+              "requirement": "PROTECTED"
+            },
+            "forehead": {
+              "requirement": "REQUIRED"
+            },
+            "left_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "left_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "left_temple": {
+              "requirement": "REQUIRED"
+            },
+            "mouth_protected": {
+              "requirement": "PROTECTED"
+            },
+            "nose_skin": {
+              "requirement": "REQUIRED"
+            },
+            "nostril_protected": {
+              "requirement": "PROTECTED"
+            },
+            "right_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "right_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "right_temple": {
+              "requirement": "REQUIRED"
+            },
+            "upper_lip_surround": {
+              "requirement": "REQUIRED"
+            }
+          }
+        },
+        {
+          "id": "leave_on",
+          "kind": "LEAVE_ON",
+          "regions": {
+            "chin": {
+              "requirement": "REQUIRED"
+            },
+            "eye_protected": {
+              "requirement": "PROTECTED"
+            },
+            "forehead": {
+              "requirement": "REQUIRED"
+            },
+            "left_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "left_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "left_temple": {
+              "requirement": "REQUIRED"
+            },
+            "mouth_protected": {
+              "requirement": "PROTECTED"
+            },
+            "nose_skin": {
+              "requirement": "REQUIRED"
+            },
+            "nostril_protected": {
+              "requirement": "PROTECTED"
+            },
+            "right_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "right_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "right_temple": {
+              "requirement": "REQUIRED"
+            },
+            "upper_lip_surround": {
+              "requirement": "REQUIRED"
+            }
+          },
+          "product_binding": "leave_on_unassigned"
+        },
+        {
+          "id": "moisturise",
+          "kind": "MOISTURISE",
+          "regions": {
+            "chin": {
+              "requirement": "REQUIRED"
+            },
+            "eye_protected": {
+              "requirement": "PROTECTED"
+            },
+            "forehead": {
+              "requirement": "REQUIRED"
+            },
+            "left_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "left_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "left_temple": {
+              "requirement": "REQUIRED"
+            },
+            "mouth_protected": {
+              "requirement": "PROTECTED"
+            },
+            "nose_skin": {
+              "requirement": "REQUIRED"
+            },
+            "nostril_protected": {
+              "requirement": "PROTECTED"
+            },
+            "right_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "right_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "right_temple": {
+              "requirement": "REQUIRED"
+            },
+            "upper_lip_surround": {
+              "requirement": "REQUIRED"
+            }
+          },
+          "product_binding": "moisturise_unassigned"
+        },
+        {
+          "id": "facial_spf",
+          "kind": "FACIAL_SPF",
+          "regions": {
+            "chin": {
+              "requirement": "REQUIRED"
+            },
+            "eye_protected": {
+              "requirement": "PROTECTED"
+            },
+            "forehead": {
+              "requirement": "REQUIRED"
+            },
+            "left_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "left_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "left_temple": {
+              "requirement": "REQUIRED"
+            },
+            "mouth_protected": {
+              "requirement": "PROTECTED"
+            },
+            "nose_skin": {
+              "requirement": "REQUIRED"
+            },
+            "nostril_protected": {
+              "requirement": "PROTECTED"
+            },
+            "right_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "right_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "right_temple": {
+              "requirement": "REQUIRED"
+            },
+            "upper_lip_surround": {
+              "requirement": "REQUIRED"
+            }
+          },
+          "product_binding": "facial_spf_unassigned"
+        },
+        {
+          "id": "settle",
+          "kind": "SETTLE",
+          "regions": {
+            "chin": {
+              "requirement": "REQUIRED"
+            },
+            "eye_protected": {
+              "requirement": "PROTECTED"
+            },
+            "forehead": {
+              "requirement": "REQUIRED"
+            },
+            "left_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "left_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "left_temple": {
+              "requirement": "REQUIRED"
+            },
+            "mouth_protected": {
+              "requirement": "PROTECTED"
+            },
+            "nose_skin": {
+              "requirement": "REQUIRED"
+            },
+            "nostril_protected": {
+              "requirement": "PROTECTED"
+            },
+            "right_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "right_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "right_temple": {
+              "requirement": "REQUIRED"
+            },
+            "upper_lip_surround": {
+              "requirement": "REQUIRED"
+            }
+          }
+        },
+        {
+          "id": "release",
+          "kind": "RELEASE",
+          "regions": {
+            "chin": {
+              "requirement": "REQUIRED"
+            },
+            "eye_protected": {
+              "requirement": "PROTECTED"
+            },
+            "forehead": {
+              "requirement": "REQUIRED"
+            },
+            "left_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "left_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "left_temple": {
+              "requirement": "REQUIRED"
+            },
+            "mouth_protected": {
+              "requirement": "PROTECTED"
+            },
+            "nose_skin": {
+              "requirement": "REQUIRED"
+            },
+            "nostril_protected": {
+              "requirement": "PROTECTED"
+            },
+            "right_cheek": {
+              "requirement": "REQUIRED"
+            },
+            "right_jaw": {
+              "requirement": "REQUIRED"
+            },
+            "right_temple": {
+              "requirement": "REQUIRED"
+            },
+            "upper_lip_surround": {
+              "requirement": "REQUIRED"
+            }
+          }
+        }
+      ],
+      "evidence_boundary": "No registered facial coverage or accepted physical evidence currently supplied."
+    },
+    "aggregate_coverage_can_complete": false
+  },
+  "contact": {
+    "classes": [
+      {
+        "id": "fluid_distribution",
+        "presence": "INVENTORY_REQUIRED",
+        "instance_ids": [],
+        "source_binding": {
+          "navigation_only": [
+            "src/masck_one/model.py"
+          ],
+          "accepted_geometry_binding": null
+        },
+        "affected_regions": null,
+        "states": {
+          "PLACEMENT": "UNKNOWN",
+          "CLEAN": "UNKNOWN",
+          "RINSE_RECOVER": "UNKNOWN",
+          "TREAT": "UNKNOWN",
+          "LEAVE_ON": "UNKNOWN",
+          "SETTLE": "UNKNOWN",
+          "RELEASE": "UNKNOWN"
+        },
+        "coverage_strategies": {},
+        "required_answer": "Name every instance and registered footprint; phase handoff must uncover, apply, support and release without wiping. Absence requires exact source-bound proof."
+      },
+      {
+        "id": "massage_islands",
+        "presence": "INVENTORY_REQUIRED",
+        "instance_ids": [],
+        "source_binding": {
+          "navigation_only": [
+            "PR135 owner interface"
+          ],
+          "accepted_geometry_binding": null
+        },
+        "affected_regions": null,
+        "states": {
+          "PLACEMENT": "UNKNOWN",
+          "CLEAN": "UNKNOWN",
+          "RINSE_RECOVER": "UNKNOWN",
+          "TREAT": "UNKNOWN",
+          "LEAVE_ON": "UNKNOWN",
+          "SETTLE": "UNKNOWN",
+          "RELEASE": "UNKNOWN"
+        },
+        "coverage_strategies": {},
+        "required_answer": "Name every instance and registered footprint; phase handoff must uncover, apply, support and release without wiping. Absence requires exact source-bound proof."
+      },
+      {
+        "id": "optical_carriers",
+        "presence": "INVENTORY_REQUIRED",
+        "instance_ids": [],
+        "source_binding": {
+          "navigation_only": [
+            "NEW: Lane5 optical interface not realized"
+          ],
+          "accepted_geometry_binding": null
+        },
+        "affected_regions": null,
+        "states": {
+          "PLACEMENT": "UNKNOWN",
+          "CLEAN": "UNKNOWN",
+          "RINSE_RECOVER": "UNKNOWN",
+          "TREAT": "UNKNOWN",
+          "LEAVE_ON": "UNKNOWN",
+          "SETTLE": "UNKNOWN",
+          "RELEASE": "UNKNOWN"
+        },
+        "coverage_strategies": {},
+        "required_answer": "Name every instance and registered footprint; phase handoff must uncover, apply, support and release without wiping. Absence requires exact source-bound proof."
+      },
+      {
+        "id": "perimeter_contact",
+        "presence": "INVENTORY_REQUIRED",
+        "instance_ids": [],
+        "source_binding": {
+          "navigation_only": [
+            "src/masck_one/model.py"
+          ],
+          "accepted_geometry_binding": null
+        },
+        "affected_regions": null,
+        "states": {
+          "PLACEMENT": "UNKNOWN",
+          "CLEAN": "UNKNOWN",
+          "RINSE_RECOVER": "UNKNOWN",
+          "TREAT": "UNKNOWN",
+          "LEAVE_ON": "UNKNOWN",
+          "SETTLE": "UNKNOWN",
+          "RELEASE": "UNKNOWN"
+        },
+        "coverage_strategies": {},
+        "required_answer": "Name every instance and registered footprint; phase handoff must uncover, apply, support and release without wiping. Absence requires exact source-bound proof."
+      },
+      {
+        "id": "retention_reaction",
+        "presence": "INVENTORY_REQUIRED",
+        "instance_ids": [],
+        "source_binding": {
+          "navigation_only": [
+            "src/masck_one/model.py"
+          ],
+          "accepted_geometry_binding": null
+        },
+        "affected_regions": null,
+        "states": {
+          "PLACEMENT": "UNKNOWN",
+          "CLEAN": "UNKNOWN",
+          "RINSE_RECOVER": "UNKNOWN",
+          "TREAT": "UNKNOWN",
+          "LEAVE_ON": "UNKNOWN",
+          "SETTLE": "UNKNOWN",
+          "RELEASE": "UNKNOWN"
+        },
+        "coverage_strategies": {},
+        "required_answer": "Name every instance and registered footprint; phase handoff must uncover, apply, support and release without wiping. Absence requires exact source-bound proof."
+      },
+      {
+        "id": "skin_seals",
+        "presence": "INVENTORY_REQUIRED",
+        "instance_ids": [],
+        "source_binding": {
+          "navigation_only": [
+            "src/masck_one/model.py"
+          ],
+          "accepted_geometry_binding": null
+        },
+        "affected_regions": null,
+        "states": {
+          "PLACEMENT": "UNKNOWN",
+          "CLEAN": "UNKNOWN",
+          "RINSE_RECOVER": "UNKNOWN",
+          "TREAT": "UNKNOWN",
+          "LEAVE_ON": "UNKNOWN",
+          "SETTLE": "UNKNOWN",
+          "RELEASE": "UNKNOWN"
+        },
+        "coverage_strategies": {},
+        "required_answer": "Name every instance and registered footprint; phase handoff must uncover, apply, support and release without wiping. Absence requires exact source-bound proof."
+      },
+      {
+        "id": "stationary_bridges",
+        "presence": "INVENTORY_REQUIRED",
+        "instance_ids": [],
+        "source_binding": {
+          "navigation_only": [
+            "PR117 owner interface",
+            "src/masck_one/model.py"
+          ],
+          "accepted_geometry_binding": null
+        },
+        "affected_regions": null,
+        "states": {
+          "PLACEMENT": "UNKNOWN",
+          "CLEAN": "UNKNOWN",
+          "RINSE_RECOVER": "UNKNOWN",
+          "TREAT": "UNKNOWN",
+          "LEAVE_ON": "UNKNOWN",
+          "SETTLE": "UNKNOWN",
+          "RELEASE": "UNKNOWN"
+        },
+        "coverage_strategies": {},
+        "required_answer": "Name every instance and registered footprint; phase handoff must uncover, apply, support and release without wiping. Absence requires exact source-bound proof."
+      },
+      {
+        "id": "support_pads",
+        "presence": "INVENTORY_REQUIRED",
+        "instance_ids": [],
+        "source_binding": {
+          "navigation_only": [
+            "src/masck_one/model.py"
+          ],
+          "accepted_geometry_binding": null
+        },
+        "affected_regions": null,
+        "states": {
+          "PLACEMENT": "UNKNOWN",
+          "CLEAN": "UNKNOWN",
+          "RINSE_RECOVER": "UNKNOWN",
+          "TREAT": "UNKNOWN",
+          "LEAVE_ON": "UNKNOWN",
+          "SETTLE": "UNKNOWN",
+          "RELEASE": "UNKNOWN"
+        },
+        "coverage_strategies": {},
+        "required_answer": "Name every instance and registered footprint; phase handoff must uncover, apply, support and release without wiping. Absence requires exact source-bound proof."
+      },
+      {
+        "id": "thermal_surfaces",
+        "presence": "INVENTORY_REQUIRED",
+        "instance_ids": [],
+        "source_binding": {
+          "navigation_only": [
+            "PR143 owner interface"
+          ],
+          "accepted_geometry_binding": null
+        },
+        "affected_regions": null,
+        "states": {
+          "PLACEMENT": "UNKNOWN",
+          "CLEAN": "UNKNOWN",
+          "RINSE_RECOVER": "UNKNOWN",
+          "TREAT": "UNKNOWN",
+          "LEAVE_ON": "UNKNOWN",
+          "SETTLE": "UNKNOWN",
+          "RELEASE": "UNKNOWN"
+        },
+        "coverage_strategies": {},
+        "required_answer": "Name every instance and registered footprint; phase handoff must uncover, apply, support and release without wiping. Absence requires exact source-bound proof."
+      }
+    ],
+    "global_retract_distance_mm": null,
+    "normal_release_separate_from_emergency": true
+  },
+  "prepared_session": {
+    "invalidation_events": [
+      "ASSIGNMENT_CHANGED",
+      "CHANGEOVER_INCOMPLETE",
+      "CLOCK_UNTRUSTED",
+      "DOSE_DISTURBED",
+      "DOSE_EXPIRED",
+      "FAULT",
+      "HARDWARE_CHANGED",
+      "LOCAL_PROFILE_CHANGED",
+      "PARTIAL_DELIVERY",
+      "PRODUCT_CHANGED",
+      "REFORMULATION",
+      "RESOURCE_CHANGED",
+      "ROUTINE_CHANGED",
+      "SCHEDULE_CHANGED",
+      "SERVICE_INTERRUPTED",
+      "THERMAL_STATE_CHANGED"
+    ],
+    "ready_flag_is_cached_authority": false,
+    "normal_execution_cloud_dependency": false,
+    "binding_rule": "Routine, context, hardware, authority, profile, exact products, doses and service receipt must match fresh observed state at start. Recompute, never clear invalidations without a new verified preparation receipt."
+  },
+  "resources": {
+    "scenarios": [
+      {
+        "id": "minimum_pm",
+        "status": "UNVALIDATED_PLANNING_SCENARIO",
+        "products": [
+          {
+            "id": "moisturise_0",
+            "role": "MOISTURISE",
+            "dose_ml": null,
+            "density_g_ml": null,
+            "identity": null,
+            "source": "UNKNOWN: exact product and qualified dose envelope required"
+          }
+        ],
+        "thermal_selected": false,
+        "optical_selected": false,
+        "inputs": {},
+        "note": "Routine-family stress case, not a supported or prescribed routine. No numerical leave-on dose selected."
+      },
+      {
+        "id": "normal_pm",
+        "status": "UNVALIDATED_PLANNING_SCENARIO",
+        "products": [
+          {
+            "id": "leave_on_0",
+            "role": "LEAVE_ON",
+            "dose_ml": null,
+            "density_g_ml": null,
+            "identity": null,
+            "source": "UNKNOWN: exact product and qualified dose envelope required"
+          },
+          {
+            "id": "moisturise_1",
+            "role": "MOISTURISE",
+            "dose_ml": null,
+            "density_g_ml": null,
+            "identity": null,
+            "source": "UNKNOWN: exact product and qualified dose envelope required"
+          }
+        ],
+        "thermal_selected": false,
+        "optical_selected": false,
+        "inputs": {},
+        "note": "Routine-family stress case, not a supported or prescribed routine. No numerical leave-on dose selected."
+      },
+      {
+        "id": "demanding_am",
+        "status": "UNVALIDATED_PLANNING_SCENARIO",
+        "products": [
+          {
+            "id": "leave_on_0",
+            "role": "LEAVE_ON",
+            "dose_ml": null,
+            "density_g_ml": null,
+            "identity": null,
+            "source": "UNKNOWN: exact product and qualified dose envelope required"
+          },
+          {
+            "id": "leave_on_1",
+            "role": "LEAVE_ON",
+            "dose_ml": null,
+            "density_g_ml": null,
+            "identity": null,
+            "source": "UNKNOWN: exact product and qualified dose envelope required"
+          },
+          {
+            "id": "moisturise_2",
+            "role": "MOISTURISE",
+            "dose_ml": null,
+            "density_g_ml": null,
+            "identity": null,
+            "source": "UNKNOWN: exact product and qualified dose envelope required"
+          },
+          {
+            "id": "facial_spf_3",
+            "role": "FACIAL_SPF",
+            "dose_ml": null,
+            "density_g_ml": null,
+            "identity": null,
+            "source": "UNKNOWN: exact product and qualified dose envelope required"
+          }
+        ],
+        "thermal_selected": true,
+        "optical_selected": false,
+        "inputs": {},
+        "note": "Routine-family stress case, not a supported or prescribed routine. No numerical leave-on dose selected."
+      },
+      {
+        "id": "demanding_pm",
+        "status": "UNVALIDATED_PLANNING_SCENARIO",
+        "products": [
+          {
+            "id": "leave_on_0",
+            "role": "LEAVE_ON",
+            "dose_ml": null,
+            "density_g_ml": null,
+            "identity": null,
+            "source": "UNKNOWN: exact product and qualified dose envelope required"
+          },
+          {
+            "id": "leave_on_1",
+            "role": "LEAVE_ON",
+            "dose_ml": null,
+            "density_g_ml": null,
+            "identity": null,
+            "source": "UNKNOWN: exact product and qualified dose envelope required"
+          },
+          {
+            "id": "moisturise_2",
+            "role": "MOISTURISE",
+            "dose_ml": null,
+            "density_g_ml": null,
+            "identity": null,
+            "source": "UNKNOWN: exact product and qualified dose envelope required"
+          }
+        ],
+        "thermal_selected": true,
+        "optical_selected": false,
+        "inputs": {},
+        "note": "Routine-family stress case, not a supported or prescribed routine. No numerical leave-on dose selected."
+      }
+    ],
+    "source": "src/masck_one/mass_balance.py + live validated authority, with explicit concept overlay",
+    "mass_transfer_rule": "Transferred internal fluid is counted once; pre-existing waste is additional inventory."
+  },
+  "preservation": {
+    "independent_axes": [
+      "identity",
+      "behavior",
+      "compatibility",
+      "contamination",
+      "application"
+    ],
+    "community_can_promote_validated": false,
+    "pumpability_is_compatibility": false,
+    "carryover_rule": "Ordered product-pair and path-node evidence; no universal allowable carryover or hold time invented."
+  }
+}
