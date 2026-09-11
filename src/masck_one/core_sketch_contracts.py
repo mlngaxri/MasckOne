@@ -480,6 +480,8 @@ def main() -> None:
             'config/masck_one_authority.yaml', 'docs/contracts/core_sketch_convergence.json',
             'src/masck_one/core_sketch_contracts.py', 'src/masck_one/core_sketch_resources.py',
             'src/masck_one/core_sketch_trial.py', 'src/masck_one/mass_balance.py',
+            'src/masck_one/product_lifecycle.py', 'src/masck_one/dock_preparation.py',
+            'src/masck_one/routine_schedule.py', 'src/masck_one/routine_completion.py',
             'docs/CORE_SKETCH_EXECUTION_BACKLOG.md')}}
     if args.trial:
         report['trial'] = assess_trial(json.loads((root / 'docs/contracts/reduced_region_protocol.json').read_text()),

@@ -8,7 +8,7 @@ from masck_one.cleansing_fit import DIMENSIONS, FitStudy, select_study
 def answers(**changes):
     data={q[0]:('LOW' if q[2]=='LEVEL' else 'NO') for q in QUESTIONNAIRE}
     data['answer_confidence']='YES';data.update(changes)
-    return Answers(data)
+    return Answers(data,acquired_s=0,valid_until_s=10,context_digest='f'*64)
 
 
 def observations(region='A',oil=Level.LOW,dry=Level.LOW):
@@ -24,19 +24,33 @@ def envelope(family='BASELINE'):
     return Envelope('SYNTHETIC_FIXTURE_ONLY','a'*64,family,
         Burden(contact_s=10,load_Ns=10,tangential_mm=10,shear_proxy_Nmm=10,
                cleanser_ml=10,cleanser_residence_s=10,water_ml=10,passes=2),
-        max_force_N=1,max_stroke_mm=1,min_rinse_ml=1,max_sample_gap_s=1)
+        max_force_N=1,max_stroke_mm=1,min_rinse_ml=1,max_sample_gap_s=1,history_window_s=10)
 
 
 def ledger(region='A',cells=frozenset({'a','b'})):
-    return RegionalLedger(Region(region,cells),envelope(),prior=Burden(),placement_ok=True)
+    return RegionalLedger(Region(region,cells),envelope(),prior=Burden(),placement_ok=True,session_id='synthetic_session')
+
+
+def stage_receipt(l,stage,cells=None):
+    return StageEvidence(l.session_id,l.region.region_id,l.region.domain_id,stage,
+        frozenset(l.region.cells if cells is None else cells),l.sequence,l.event_chain,'d'*64)
+
+
+def cover(l,cells=None):
+    cells=l.region.cells if cells is None else cells
+    l.record_cells(cells,evidence=stage_receipt(l,'CLEAN',cells))
+
+
+def rinse(l):
+    l.record_stage(stage_receipt(l,'RINSE'));l.rinsed()
 
 
 def finished(l):
     l.ingest(Tick(1,1,'CLEAN',True,.1,1,.1,1))
-    l.record_cells(l.region.cells);l.cleansed()
-    l.ingest(Tick(2,2,'RINSE',water_ml=1))
+    cover(l);l.cleansed()
+    l.ingest(Tick(2,2,'RINSE',water_ml=1));rinse(l)
     l.ingest(Tick(3,3,'RECOVER'))
-    l.rinsed_recovered(recovery_receipt=RecoveryEvidence(l.region.region_id,l.sequence,'d'*64));l.complete()
+    l.rinsed_recovered(recovery_receipt=stage_receipt(l,'RECOVER'));l.complete()
 
 
 def test_twenty_discriminating_questions_no_ethnicity_or_disease():
@@ -70,14 +84,14 @@ def test_unknown_critical_answer_cannot_relax_known_stop(key):
 def test_uncertain_evidence_and_sensor_expiry():
     assert profile(answers(answer_confidence='UNKNOWN')).family=='GENTLE_REVIEW'
     assert profile(o=[]).family=='GENTLE_REVIEW'
-    assert estimate(['A'],answers(),observations(),now=11,accepted_calibrations={'SYNTHETIC'})['A'].family=='GENTLE_REVIEW'
+    assert estimate(['A'],replace(answers(),valid_until_s=20),observations(),now=11,accepted_calibrations={'SYNTHETIC'})['A'].family=='GENTLE_REVIEW'
     assert profile(answers(product_film='YES')).apparent_oil==Level.UNKNOWN
     assert profile(o=[replace(x,phase='WET') for x in observations()]).confidence=='LOW'
     assert profile(o=[replace(x,calibration_id='UNKNOWN') for x in observations()]).confidence=='LOW'
 
 
 def test_combination_regions_keep_separate_decisions():
-    a=answers();a=Answers(a.global_values,{'B':{'current_dry':'HIGH','usual_dry':'HIGH'}})
+    a=answers();a=replace(a,regional_values={'B':{'current_dry':'HIGH','usual_dry':'HIGH'}})
     p=estimate(['A','B'],a,observations()+observations('B',dry=Level.HIGH),now=1,accepted_calibrations={'SYNTHETIC'})
     assert p['A'].family=='BASELINE' and p['B'].family=='GENTLE_REVIEW'
 
@@ -100,9 +114,9 @@ def test_gentle_ceiling_is_componentwise_and_rinse_preserved():
 
 
 def test_region_hole_rinse_and_recovery_cannot_be_skipped():
-    l=ledger();l.ingest(Tick(1,1,'CLEAN',True,.1,1,.1,1));l.record_cells({'a'})
+    l=ledger();l.ingest(Tick(1,1,'CLEAN',True,.1,1,.1,1));cover(l,{'a'})
     with pytest.raises(ControlError):l.cleansed()
-    l.record_cells({'b'});l.cleansed()
+    cover(l,{'b'});l.cleansed()
     with pytest.raises(ControlError):l.complete()
     with pytest.raises(ControlError):l.rinsed_recovered(recovery_receipt='synthetic')
     l.ingest(Tick(2,2,'RINSE',water_ml=1))
@@ -127,11 +141,11 @@ def test_observed_excess_is_recorded_even_after_stop():
 
 
 def test_residence_accumulates_during_rinse_and_idle_until_recovery():
-    l=ledger();l.ingest(Tick(1,1,'CLEAN',cleanser_ml=1));l.record_cells(l.region.cells);l.cleansed()
-    l.ingest(Tick(2,2,'IDLE'));l.ingest(Tick(3,3,'RINSE',water_ml=1))
+    l=ledger();l.ingest(Tick(1,1,'CLEAN',cleanser_ml=1));cover(l);l.cleansed()
+    l.ingest(Tick(2,2,'IDLE'));l.ingest(Tick(3,3,'RINSE',water_ml=1));rinse(l)
     assert l.total.cleanser_residence_s==3
     l.ingest(Tick(4,4,'RECOVER'))
-    l.rinsed_recovered(recovery_receipt=RecoveryEvidence('A',4,'d'*64));l.complete()
+    l.rinsed_recovered(recovery_receipt=stage_receipt(l,'RECOVER'));l.complete()
     l.ingest(Tick(5,5,'IDLE'))
     assert l.total.cleanser_residence_s==4
 
@@ -190,10 +204,10 @@ def test_unknown_prescription_never_supplies_hidden_defaults():
 
 
 def test_recovery_receipt_cannot_belong_to_another_region_or_sequence():
-    l=ledger();l.ingest(Tick(1,1,'CLEAN'));l.record_cells(l.region.cells);l.cleansed()
-    l.ingest(Tick(2,2,'RINSE',water_ml=1));l.ingest(Tick(3,3,'RECOVER'))
-    for receipt in (RecoveryEvidence('B',3,'d'*64),RecoveryEvidence('A',2,'d'*64),
-                    RecoveryEvidence('A',3,'d'*64,'HUMAN'),True):
+    l=ledger();l.ingest(Tick(1,1,'CLEAN'));cover(l);l.cleansed()
+    l.ingest(Tick(2,2,'RINSE',water_ml=1));rinse(l);l.ingest(Tick(3,3,'RECOVER'))
+    good=stage_receipt(l,'RECOVER')
+    for receipt in (replace(good,region_id='B'),replace(good,sequence=2),replace(good,evidence_class='HUMAN'),True):
         with pytest.raises(ControlError):l.rinsed_recovered(recovery_receipt=receipt)
 
 
