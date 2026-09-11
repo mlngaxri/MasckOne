@@ -195,3 +195,17 @@ def test_recovery_receipt_cannot_belong_to_another_region_or_sequence():
     for receipt in (RecoveryEvidence('B',3,'d'*64),RecoveryEvidence('A',2,'d'*64),
                     RecoveryEvidence('A',3,'d'*64,'HUMAN'),True):
         with pytest.raises(ControlError):l.rinsed_recovered(recovery_receipt=receipt)
+
+
+def test_misbound_profile_policy_and_downgrade_without_baseline_rejected():
+    with pytest.raises(ControlError):prescription(profile(answers(exfoliation='YES')),envelope())
+    with pytest.raises(ControlError):check_policy_families({'GENTLE_REVIEW':envelope('GENTLE_REVIEW')})
+    with pytest.raises(ControlError):plan({'A':replace(profile(),region='B')},{'A':Region('A',frozenset({'a'}))},
+        {'BASELINE':envelope()},placement={'A':True},history={'A':Burden()})
+
+
+def test_event_history_hash_distinguishes_equal_final_burden():
+    a,b=ledger(),ledger()
+    a.ingest(Tick(1,1,'CLEAN',water_ml=1));a.ingest(Tick(2,2,'CLEAN',water_ml=2))
+    b.ingest(Tick(1,1,'CLEAN',water_ml=2));b.ingest(Tick(2,2,'CLEAN',water_ml=1))
+    assert a.total==b.total and a.receipt()['event_chain']!=b.receipt()['event_chain']

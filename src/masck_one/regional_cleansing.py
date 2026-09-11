@@ -216,6 +216,8 @@ class Envelope:
 
 
 def check_policy_families(policies):
+    if 'GENTLE_REVIEW' in policies and 'BASELINE' not in policies:
+        raise ControlError('baseline comparison required for gentle ceiling')
     for key,p in policies.items():
         if key!=p.family:raise ControlError('mislabeled policy')
     if 'GENTLE_REVIEW' in policies and 'BASELINE' in policies:
@@ -283,6 +285,7 @@ class RegionalLedger:
     """
     def __init__(self,region: Region,envelope: Envelope|None,*,start_s=0,prior: Burden|None=None,placement_ok=False):
         self.region=region;self.envelope=envelope;self.at_s=finite(start_s,'start')
+        self.event_chain=sha256(json.dumps({'region':asdict(region),'start_s':start_s,'prior':asdict(prior) if prior else None},sort_keys=True,default=sorted).encode()).hexdigest()
         self.total=prior or Burden();self.sequence=0;self.active=False;self.wet=False
         self.rinse_ml=0.;self.covered=set();self.state='NOT_STARTED';self.faults=[];self.last_action='IDLE'
         if region.classification!='REQUIRED':self.state=region.classification
@@ -307,6 +310,7 @@ class RegionalLedger:
     def ingest(self,tick: Tick):
         if tick.sequence!=self.sequence+1 or tick.at_s<=self.at_s:
             self.block('STALE_OR_REPLAYED_TELEMETRY');raise ControlError('nonmonotonic telemetry')
+        self.event_chain=sha256((self.event_chain+json.dumps(asdict(tick),sort_keys=True,allow_nan=False)).encode()).hexdigest()
         dt=tick.at_s-self.at_s
         was_wet=self.wet
         pass_start=tick.action=='CLEAN' and not self.active
@@ -357,7 +361,7 @@ class RegionalLedger:
 
     def receipt(self):
         payload={'version':VERSION,'region':self.region.region_id,'cells':sorted(self.region.cells),
-            'covered_cells':sorted(self.covered),'state':self.state,'burden':asdict(self.total),
+            'covered_cells':sorted(self.covered),'state':self.state,'event_chain':self.event_chain,'burden':asdict(self.total),
             'faults':self.faults[:],'last_sequence':self.sequence,'at_s':self.at_s,
             'policy_digest':self.envelope.source_digest if self.envelope else None,
             'evidence_class':'DIGITAL_SIMULATION','human_use_eligible':False,
@@ -389,6 +393,7 @@ def plan(profiles,regions,policies,*,placement,history):
         seen.update(region.cells)
         if key!=region.region_id:raise ControlError('region identity mismatch')
         profile=profiles[key]
+        if profile.region!=key:raise ControlError('profile assigned to wrong region')
         p=policies.get(profile.family)
         ledger=RegionalLedger(region,p,placement_ok=placement.get(key) is True,prior=history.get(key))
         if profile.family=='BLOCKED_REVIEW':ledger.block('PROFILE_REVIEW')
@@ -429,6 +434,8 @@ class SessionLedger:
 
 def prescription(profile,envelope=None):
     """Explicit bounded fields; null cannot be interpreted as a numeric default."""
+    if envelope is not None and (profile.family=='BLOCKED_REVIEW' or envelope.family!=profile.family):
+        raise ControlError('prescription/envelope mismatch')
     return {'region':profile.region,'version':VERSION,'family':profile.family,
         'confidence':profile.confidence,'review_required':profile.review_required,
         'explanations':list(profile.reasons),'human_use_eligible':False,
