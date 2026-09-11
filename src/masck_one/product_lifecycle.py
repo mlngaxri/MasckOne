@@ -118,7 +118,7 @@ def derive_state(product: dict, evidence: list[dict], context: str) -> dict:
         text(restriction, "restriction")
         return result([ident + ":" + RESTRICTED], state=RESTRICTED, product_id=ident,
             evidence_status=EVIDENCE_STATUS, restriction=restriction, facets={},
-            applications={}, identity_version=None, promoted_by=None)
+            applications={}, identity_version=None, promoted_by=[])
 
     version = _identity_version(product)
     facets: dict[str, bool] = {}
@@ -187,7 +187,7 @@ def check_transition(before: str, after: str, actor: str) -> dict:
     if actor not in ACTORS:
         raise CoreSketchError("unknown actor")
     blockers: list[str] = []
-    if after == RESTRICTED or before == RESTRICTED and after == before:
+    if after == RESTRICTED:
         pass  # fail-closed direction: anyone may restrict, at any time.
     elif before == RESTRICTED:
         blockers.append("RESTRICTION_LIFTED_WITHOUT_REQUALIFICATION")

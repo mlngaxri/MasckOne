@@ -871,3 +871,19 @@ def test_a_blocked_dose_stays_unknown_inside_the_real_whole_session_ledger():
         assert bound["high"] is None, key
         assert "p.dose_ml" in bound["unknowns"], key
     assert "leave_on_total_ml:UNRESOLVED" in blocked["blockers"]
+
+
+def test_every_derive_state_result_has_the_same_shape():
+    """A restricted product must not return a differently-typed record."""
+    product, evidence = make_product()
+    normal = derive_state(product, evidence, CONTEXT)
+    product["restriction"] = "SUPPLIER_RECALL"
+    restricted = derive_state(product, evidence, CONTEXT)
+    assert set(normal) == set(restricted)
+    for key in ("facets", "applications", "promoted_by"):
+        assert type(normal[key]) is type(restricted[key]), key
+
+
+def test_restricted_stays_restricted_under_its_own_transition():
+    assert check_transition(RESTRICTED, RESTRICTED, "AI")["model_consistent"]
+    assert check_transition(RESTRICTED, RESTRICTED, "AI")["direction"] == "RESTRICT"
