@@ -350,3 +350,48 @@ def assess_flow_fingerprint(expected: dict, observed: dict, tolerance: float) ->
         action="REQUEST_PRODUCT_CONFIRMATION" if contradicted else "CONTINUE_WITHOUT_CONCLUSION",
         confirms_identity=False, evidence_status=EVIDENCE_STATUS,
         interpretation="A similar flow fingerprint does not prove chemical identity.")
+
+
+#: How an application class appears in the whole-session resource ledger. The
+#: cleanser is not here: its quantities come from released authority, not from a
+#: product profile, so routing it through this map would double-count it.
+RESOURCE_ROLES = {"LEAVE_ON": "LEAVE_ON", "MOISTURISE": "MOISTURISE", "FACIAL_SPF": "FACIAL_SPF"}
+
+
+def resource_scenario_products(dose_result: dict, reservoirs: list[dict]) -> dict:
+    """Convert a prepared dose manifest into ``assess_resources`` product rows.
+
+    Lane 5 owns the whole-session ledger; this supplies one of its inputs. The
+    property worth stating is what happens to a blocked product: its ``dose_ml``
+    is ``None``, which ``core_sketch_resources.read`` turns into an unbounded
+    quantity that names its own unknown. The unknown then survives every sum and
+    product in that ledger, so a dose the dock could not prepare cannot quietly
+    shrink the session's water, waste, storage or mass demand.
+    """
+    rows = dose_result.get("doses")
+    if not isinstance(rows, list) or not rows:
+        raise CoreSketchError("dose manifest required")
+    held = {r["product"]: r for r in (_reservoir(x) for x in reservoirs)}
+    products, blockers = [], []
+    for row in rows:
+        ident = text(row.get("product_binding"), "product_binding")
+        application = row.get("application")
+        if application not in APPLICATION_CLASSES:
+            raise CoreSketchError("dose row must name its application class")
+        if application not in RESOURCE_ROLES:
+            continue
+        source = held.get(ident)
+        quantity = row.get("quantity_ml")
+        prepared = row.get("state") == DOSE_PREPARED and quantity is not None
+        density = None if source is None else source.get("density_g_ml")
+        if not prepared:
+            blockers.append(ident + ":DOSE_UNRESOLVED_IN_RESOURCE_LEDGER")
+        if density is None:
+            blockers.append(ident + ":DENSITY_UNKNOWN")
+        products.append({"id": ident, "role": RESOURCE_ROLES[application],
+            "dose_ml": [number(quantity, "quantity_ml")] * 2 if prepared else None,
+            "density_g_ml": None if density is None else [number(density, "density_g_ml")] * 2})
+    if not any(p["role"] == "MOISTURISE" for p in products):
+        blockers.append("NO_MOISTURISE_PRODUCT_IN_SESSION")
+    return result(blockers, products=products, evidence_status=EVIDENCE_STATUS,
+        interpretation="Session product rows only. Cleanser, water and waste come from authority.")

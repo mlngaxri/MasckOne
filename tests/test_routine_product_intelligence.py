@@ -786,3 +786,88 @@ def test_the_manifest_keeps_a_blocked_product_even_though_the_session_cannot():
     assert {row["product_binding"] for row in out["doses"]} == {"p", "q"}
     assert [row["product_binding"] for row in out["prepared_doses"]] == ["p"]
     assert out["blocked_product_bindings"] == ["q"]
+
+
+# ---------------------------------------------------------------------------
+# S0/S1/S2: what this lane hands the whole-session resource ledger
+# ---------------------------------------------------------------------------
+
+def test_prepared_doses_become_resource_ledger_rows():
+    from masck_one.dock_preparation import resource_scenario_products
+
+    doses = derive_session_doses({"p": demand()}, [reservoir()], binding(), now_s=1.0)
+    out = resource_scenario_products(doses, [reservoir()])
+    assert out["model_consistent"]
+    assert out["products"] == [{"id": "p", "role": "MOISTURISE", "dose_ml": [2.0, 2.0],
+                               "density_g_ml": [1.0, 1.0]}]
+
+
+def test_a_blocked_dose_keeps_the_whole_session_ledger_unresolved():
+    """The end of the chain: an unpreparable product cannot shrink the session.
+
+    core_sketch_resources.read turns dose_ml None into a bound that names its
+    own unknown, and Bound arithmetic carries that unknown through every sum --
+    including unknown x 0 -- so no screen can close on a product the dock never
+    prepared.
+    """
+    from masck_one.core_sketch_resources import read, total
+    from masck_one.dock_preparation import resource_scenario_products
+
+    doses = derive_session_doses({"p": demand()}, [], binding(), now_s=1.0)
+    out = resource_scenario_products(doses, [])
+    assert "p:DOSE_UNRESOLVED_IN_RESOURCE_LEDGER" in out["blockers"]
+    assert out["products"][0]["dose_ml"] is None
+
+    carried = total([read(p["dose_ml"], p["id"] + ".dose_ml") for p in out["products"]])
+    assert carried.high is None and carried.unknowns == ("p.dose_ml",)
+
+
+def test_the_cleanser_is_not_routed_through_the_product_ledger():
+    """Its quantities come from released authority; a row here would double-count."""
+    from masck_one.dock_preparation import resource_scenario_products
+
+    doses = derive_session_doses({"p": demand(), "c": demand(application="CLEAN")},
+        [reservoir(), reservoir(slot="b", product="c", sku="SKU-c")], binding(("p", "c")),
+        now_s=1.0)
+    out = resource_scenario_products(doses, [reservoir()])
+    assert [p["id"] for p in out["products"]] == ["p"]
+
+
+def test_a_session_without_a_moisturiser_is_not_a_complete_routine():
+    from masck_one.dock_preparation import resource_scenario_products
+
+    doses = derive_session_doses({"p": demand(application="LEAVE_ON")}, [reservoir()],
+                                 binding(), now_s=1.0)
+    out = resource_scenario_products(doses, [reservoir()])
+    assert "NO_MOISTURISE_PRODUCT_IN_SESSION" in out["blockers"]
+
+
+def test_a_blocked_dose_stays_unknown_inside_the_real_whole_session_ledger():
+    """End of the chain, against ``assess_resources`` itself rather than a stub.
+
+    A product the dock could not prepare must not make the session look cheaper.
+    Its unknown has to reach the ledger's storage and fluid-mass bounds, because
+    those are what the screens close on.
+    """
+    from masck_one.authority import load_authority
+    from masck_one.core_sketch_resources import assess_resources
+    from masck_one.dock_preparation import resource_scenario_products
+
+    authority = load_authority()
+
+    def ledger(reservoirs):
+        doses = derive_session_doses({"p": demand()}, reservoirs, binding(), now_s=1.0)
+        rows = resource_scenario_products(doses, reservoirs)
+        return assess_resources(authority, {"id": "probe", "products": rows["products"],
+            "status": "UNVALIDATED_PLANNING_SCENARIO", "thermal_selected": False, "inputs": {}})
+
+    prepared = ledger([reservoir()])
+    assert prepared["bounds"]["leave_on_total_ml"] == {"low": 2.0, "high": 2.0, "unknowns": []}
+
+    blocked = ledger([])
+    for key in ("leave_on_total_ml", "session_product_storage_ml",
+                "wearable_session_fluid_mass_g"):
+        bound = blocked["bounds"][key]
+        assert bound["high"] is None, key
+        assert "p.dose_ml" in bound["unknowns"], key
+    assert "leave_on_total_ml:UNRESOLVED" in blocked["blockers"]

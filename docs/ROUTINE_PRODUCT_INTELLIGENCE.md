@@ -90,6 +90,18 @@ on `assess_readiness`'s existing `PREPARED_PRODUCT_SET_MISMATCH` refusal.
 `unique(doses, "dose_id")` before its own `not d.get("dose_id")` check, so that
 branch is unreachable. It is harmless defensive redundancy, but it is dead.)
 
+`resource_scenario_products` supplies one of the whole-session resource
+ledger's inputs (Lane 5 owns the ledger itself). The property worth stating is
+what happens to a blocked product: its `dose_ml` is `None`, which
+`core_sketch_resources.read` turns into an unbounded quantity naming its own
+unknown, and that unknown then survives every sum and product in the ledger. A
+test runs the real `assess_resources` and asserts `p.dose_ml` reaches
+`leave_on_total_ml`, `session_product_storage_ml` and
+`wearable_session_fluid_mass_g`, so a dose the dock could not prepare can never
+make the session look cheaper than it is. The cleanser is deliberately not
+routed through these rows: its quantities come from released authority, and a
+row here would double-count it.
+
 `account_inventory` keeps dock bulk and wearable inventory in separate columns
 and never sums them. Bulk in the dock is the reason the wearable can be small;
 adding it to worn mass would misreport the product, and offering it as session
@@ -148,7 +160,7 @@ having done so:
 
 ## Tests
 
-`tests/test_routine_product_intelligence.py` (102 tests) is written from the
+`tests/test_routine_product_intelligence.py` (107 tests) is written from the
 attacker's side. The question is never whether the happy path works but whether
 the system can be made to report that a step happened when it did not.
 
