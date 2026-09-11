@@ -65,7 +65,8 @@ def form_contract(*,history_window_label=None,prepared_cleanser_label=None):
         'future_inputs_cannot_supply_operating_limits':True}
 
 
-def interpret_form(payload, *, regions, history_window_label=None, prepared_cleanser_label=None):
+def interpret_form(payload, *, regions, history_window_label=None, prepared_cleanser_label=None,
+                   acquired_s=None,valid_until_s=None,context_digest=None):
     """Strict UI boundary. Context-free history/product answers are never actionable.
 
     Labels are supplied by the qualified session/history owner, not chosen here.
@@ -85,4 +86,6 @@ def interpret_form(payload, *, regions, history_window_label=None, prepared_clea
             global_values[q['id']]='UNKNOWN'
             for values in local.values():
                 if q['id'] in values:values[q['id']]='UNKNOWN'
-    return Answers(global_values,local,clarity)
+    result=Answers(global_values,local,clarity,acquired_s,valid_until_s,context_digest)
+    result.validate(regions)
+    return result

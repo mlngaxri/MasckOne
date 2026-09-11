@@ -1,7 +1,7 @@
 """Dimensionless synthetic evidence and off-face policies, never human settings."""
 from dataclasses import replace
 import pytest
-from masck_one.regional_cleansing import Answers, ControlError, estimate, prescription, plan, Region, Burden
+from masck_one.regional_cleansing import Answers, ControlError, estimate, prescription, plan, Region, Burden, RecentHistory
 from masck_one.cleansing_onboarding import VERSION, QUESTIONS, form_contract, interpret_form
 from masck_one.cleansing_evidence import Calibration, QuantitativeObservation, Interval, compare
 from masck_one.cleansing_prescription import FactorPolicy, DIMENSIONS, resolve
@@ -21,7 +21,9 @@ def readings(region='A',oil=.8,dry=.1,uncertainty=.02):
 
 
 def infer(a=None,o=None,regions=('A',),now=1):
-    return estimate(regions,a or answers(current_oil='HIGH'),readings() if o is None else o,
+    a=a or answers(current_oil='HIGH')
+    if a.acquired_s is None:a=replace(a,acquired_s=0,valid_until_s=10,context_digest='f'*64)
+    return estimate(regions,a,readings() if o is None else o,
                     now=now,calibrations=calibrations())
 
 
@@ -191,7 +193,7 @@ def test_prescription_has_no_numeric_fallback_and_factors_cannot_amplify():
 def test_plan_cannot_bypass_factor_qualification_or_misbind_region():
     p=infer();regions={'A':Region('A',frozenset({'a'}))}
     assert plan(p,regions,{'BASELINE':envelope()},placement={'A':True},history={'A':Burden()})['A'].state=='BLOCKED'
-    assert plan(p,regions,{'BASELINE':envelope()},placement={'A':True},history={'A':Burden()},factor_policy=factors())['A'].state=='NOT_STARTED'
+    assert plan(p,regions,{'BASELINE':envelope()},placement={'A':True},history={'A':RecentHistory('A',regions['A'].domain_id,-10,0,Burden(),'e'*64,'BOUNDED','SIMULATED_OBSERVED_BOUND')},factor_policy=factors(),session_id='synthetic_session')['A'].state=='NOT_STARTED'
 
 
 def test_quantitative_nonfinite_units_bounds_and_duplicates_are_rejected():
@@ -201,3 +203,36 @@ def test_quantitative_nonfinite_units_bounds_and_duplicates_are_rejected():
     with pytest.raises(ControlError):infer(o=readings()+[readings()[0]])
     with pytest.raises(ControlError):infer(o=readings('UNREGISTERED'))
     with pytest.raises(ControlError):Interval(.8,.1)
+
+
+def test_stale_survey_cannot_be_resurrected_by_fresh_physical_observation():
+    for a in (replace(answers(),valid_until_s=.5),replace(answers(),acquired_s=2),
+              replace(answers(),context_digest=None),Answers(answers().global_values)):
+        p=estimate(['A'],a,readings(),now=1,calibrations=calibrations())['A']
+        assert p.decision=='BLOCKED_REVIEW' and 'SURVEY_CONTEXT_STALE_OR_UNBOUND' in p.reasons
+        assert resolve(p,envelope(),factors())['envelope'] is None
+
+
+def test_explicit_context_fallback_is_not_faked_personalization():
+    p=infer(answers(product_film='YES'))['A']
+    assert resolve(p,envelope(),factors())['envelope'] is None
+    policy=replace(factors(),fallback_contexts=('product_film',))
+    r=resolve(p,envelope(),policy)
+    assert r['execution_mode']=='QUALIFIED_CONTEXT_FALLBACK'
+    assert not r['personalization_confirmed'] and set(r['factors'].values())=={.5}
+    assert r['envelope'] is not None and not r['human_use_eligible']
+    wet=infer(answers(product_film='YES',wet_or_sweaty='YES'))['A']
+    assert resolve(wet,envelope(),policy)['envelope'] is None
+
+
+def test_affine_calibration_span_cannot_overflow_into_false_low_signal():
+    with pytest.raises(ControlError):replace(next(iter(calibrations().values())),raw_zero=-1e308,raw_one=1e308)
+    with pytest.raises(ControlError):estimate(['A'],answers(),[object()],calibrations=calibrations())
+
+
+def test_different_personalization_tables_have_distinct_execution_bindings():
+    p=infer()['A'];one=resolve(p,envelope(),factors())['envelope']
+    policy=replace(factors(),factors=tuple((k,(.4,.7,.9)) for k in DIMENSIONS))
+    two=resolve(p,envelope(),policy)['envelope']
+    assert one.source_digest==two.source_digest and one.personalization_digest!=two.personalization_digest
+    assert two.maximum.within(one.maximum)

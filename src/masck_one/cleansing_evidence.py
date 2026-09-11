@@ -45,6 +45,7 @@ class Calibration:
     def __post_init__(self):
         for key in ('raw_zero','raw_one'):finite(getattr(self,key),key,nonnegative=False)
         for key in ('max_age_s','valid_from_s','valid_until_s'):finite(getattr(self,key),key)
+        finite(self.raw_one-self.raw_zero,'calibration span',False)
         if self.raw_zero==self.raw_one or self.max_age_s<=0 or self.valid_until_s<self.valid_from_s:raise ControlError('invalid calibration span')
         if not all((self.calibration_id,self.sensor_id,self.units)) or self.feature not in FEATURES or not digest_ok(self.source_digest):raise ControlError('incomplete calibration identity')
         if self.scope!='OFF_FACE_SIMULATION':raise ControlError('human observation calibration not qualified by this module')
@@ -85,6 +86,7 @@ class QuantitativeObservation:
 def interpret_observation(observation,now,calibrations,accepted_legacy):
     """Keep raw values even when rejected. No saturation/clamping or fallback calibration."""
     finite(now,'evaluation time')
+    if not isinstance(observation,(Observation,QuantitativeObservation)):raise ControlError('unknown observation type')
     raw=asdict(observation);reasons=[]
     if isinstance(observation,Observation):
         usable=observation.usable(now,accepted_legacy)
@@ -109,7 +111,7 @@ def interpret_observation(observation,now,calibrations,accepted_legacy):
                    (observation.measured_value+observation.uncertainty_bound-c.raw_zero)/(c.raw_one-c.raw_zero)))
     if bounds[0]<0 or bounds[1]>1:reasons.append('OUTSIDE_CALIBRATED_RANGE')
     interval=UNKNOWN if reasons else Interval(*bounds)
-    quality='UNAVAILABLE' if reasons else 'LOW' if observation.quality=='LOW' or interval.width>2/3 else 'SUPPORTED'
+    quality='UNAVAILABLE' if reasons else 'LOW' if observation.quality=='LOW' or interval.width>1/3 else 'SUPPORTED'
     return {'raw':raw,'interval':interval,'quality':quality,'reasons':tuple(sorted(set(reasons))),
             'semantic_point':(observation.measured_value-c.raw_zero)/(c.raw_one-c.raw_zero),
             'calibration_digest':c.source_digest,'kind':'CALIBRATED_INTERVAL'}
@@ -139,15 +141,19 @@ def explanation_level(interval,quality):
 def infer(regions,answers: Answers,observations,*,now,accepted_calibrations,calibrations):
     if not regions or len(set(regions))!=len(regions):raise ControlError('regions must be nonempty and unique')
     answers.validate(regions);finite(now,'evaluation time')
+    survey_current=(answers.acquired_s is not None and answers.valid_until_s is not None and
+        answers.acquired_s<=now<=answers.valid_until_s and digest_ok(answers.context_digest))
     interpreted={r:{} for r in regions}
     for o in observations:
+        if not isinstance(o,(Observation,QuantitativeObservation)):raise ControlError('unknown observation type')
         if o.region not in interpreted:raise ControlError('unregistered physical region')
         if o.feature in interpreted[o.region]:raise ControlError('ambiguous duplicate physical observation')
         interpreted[o.region][o.feature]=interpret_observation(o,now,calibrations,accepted_calibrations)
     result={}
     for r in regions:
-        get=lambda key:answers.get(key,r)
+        get=lambda key:answers.get(key,r) if survey_current else 'UNKNOWN'
         reasons=[];follow=[];confounders=[];survey={};survey_quality={}
+        if not survey_current:reasons.append('SURVEY_CONTEXT_STALE_OR_UNBOUND')
         for key in ('usual_oil','usual_dry','current_oil','current_dry'):
             clarity=answers.per_answer_confidence.get(r+'.'+key,answers.per_answer_confidence.get(key,
                 'CERTAIN' if get('answer_confidence')=='YES' else 'UNSURE'))
@@ -201,7 +207,7 @@ def infer(regions,answers: Answers,observations,*,now,accepted_calibrations,cali
         if blocked:relative={**relative,**{k:0 for k in ('cleanser','mechanical','contact_time','passes')}}
         statuses=[v['status'] for v in comparisons.values()]
         consistency='DISAGREEMENT' if 'MATERIAL_CONTRADICTION' in statuses else 'MINOR_VARIATION' if 'MINOR_VARIATION' in statuses else 'AGREEMENT' if statuses==['COMPATIBLE','COMPATIBLE'] else 'INSUFFICIENT'
-        confidence='HIGH_COMPARISON_ONLY' if consistency=='AGREEMENT' else 'LOW'
+        confidence='SUPPORTED_COMPARISON_ONLY' if consistency=='AGREEMENT' and all(q=='SUPPORTED' for q in survey_quality.values()) else 'LOW'
         decision='BLOCKED_REVIEW' if blocked else 'REPEAT_OBSERVATION' if confounders else 'CONSERVATIVE_REVIEW' if consistency in ('DISAGREEMENT','INSUFFICIENT') or caution else 'PERSONALIZED_WITH_VARIATION' if consistency=='MINOR_VARIATION' else 'PERSONALIZED'
         # Compatibility families remain a restrictive adapter for the previous API.
         family='BLOCKED_REVIEW' if blocked else 'BASELINE' if consistency=='AGREEMENT' and not caution and dryness_ceiling==2 else 'GENTLE_REVIEW'
@@ -210,12 +216,15 @@ def infer(regions,answers: Answers,observations,*,now,accepted_calibrations,cali
                 reasons.append('BASELINE_CURRENT_DIFFERENCE_'+key)
         if blocked:message='Please review the highlighted answers before cleansing.'
         elif confounders:message='Masck needs a new reading because the current conditions do not support this comparison.'
+        elif consistency=='DISAGREEMENT' and comparisons['current_dry']['signed_midpoint_difference']>0:
+            message='The reading suggests more dryness in this area than your answers did. A gentler profile is proposed; review the highlighted answers.'
         elif consistency=='DISAGREEMENT':message='Your answers and readings differ here. A lower-action profile is proposed while the highlighted information is reviewed.'
         elif consistency=='MINOR_VARIATION':message='Your answers and readings are close. Small differences are kept within the conservative profile.'
         elif consistency=='INSUFFICIENT':message='Masck cannot confirm this area yet. Review the highlighted answers or repeat its reading.'
         else:message='Your answers and Masck’s observations broadly agree.'
         dimensions={**{k:{'interval':asdict(v),'answer':get(k),'quality':survey_quality[k]} for k,v in survey.items()},
                     **{k:{**v,'interval':asdict(v['interval'])} for k,v in obs.items()},
+                    'survey_context':{'digest':answers.context_digest,'acquired_s':answers.acquired_s,'valid_until_s':answers.valid_until_s,'valid':survey_current},
                     'oil_demand_lower_bound':oil_lower,'dryness_caution_upper_bound':dry_upper}
         result[r]=Profile(r,Level(get('usual_oil')),Level(get('usual_dry')),
             explanation_level(oil['interval'],oil['quality']),explanation_level(dry['interval'],dry['quality']),
