@@ -1,0 +1,29 @@
+{
+  "scope": "INERT_SURROGATE_OFF_FACE",
+  "revision": 1,
+  "backlog_ids": [
+    "CS-010",
+    "CS-012",
+    "CS-013",
+    "CS-160",
+    "CS-161",
+    "CS-163"
+  ],
+  "required_cells": [
+    "acquisition_edge",
+    "central_open",
+    "support_footprint",
+    "seal_footprint",
+    "release_edge"
+  ],
+  "independent_review_record": null,
+  "limits": {
+    "max_mass_balance_error_g": null,
+    "max_carryover_fraction": null,
+    "min_film_retention_fraction": null,
+    "max_protected_deposit_g": null
+  },
+  "limits_rule": "Unknown limits cannot pass. A qualified reviewer predeclares measurement capability and surrogate acceptance before collecting confirmatory data.",
+  "no_human_use": true,
+  "spf_claim_scope": false
+}
