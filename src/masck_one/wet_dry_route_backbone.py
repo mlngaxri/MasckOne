@@ -102,7 +102,7 @@ class WetDryRouteBackbone:
 def released_backbone() -> WetDryRouteBackbone:
     """Return the topology bound to the current released integration baseline."""
     return WetDryRouteBackbone(
-        source_release_sha="eb8ba26c57222320210fa7eb15f4d69e1563cf64",
+        source_release_sha="46b7334587f60ef8eb6edf9ebb31a6b4fb933c8c",
         interfaces=(
             RouteInterface("WD-FRESH-01", "WATER", "FRESH_STORAGE", "WATER_MANIFOLD", "WET"),
             RouteInterface("WD-CLEANSER-01", "CLEANSER", "CLEANSER_STORAGE", "CLEANSER_MANIFOLD", "WET"),
