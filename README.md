@@ -97,6 +97,14 @@ Read [`docs/BRAND_ARCHITECTURE.md`](docs/BRAND_ARCHITECTURE.md) before changing 
 
 Normal release export now emits `brand_identity.json` beside the engineering manifests. It is product/interaction/CMF intent, not physical performance evidence, production material qualification or trademark clearance.
 
+## Product concept and Core Sketch
+
+The repository carries a deliberately **non-authoritative physical/product concept layer** for the target Masck One experience. Start with [`docs/CORE_SKETCH_START_HERE.md`](docs/CORE_SKETCH_START_HERE.md), then read [`docs/CORE_SKETCH_V1.md`](docs/CORE_SKETCH_V1.md) for the selected stable product-experience sketch and [`docs/CORE_SKETCH_EXECUTION_BACKLOG.md`](docs/CORE_SKETCH_EXECUTION_BACKLOG.md) for the dependency-ordered product-wide work program.
+
+The Core Sketch suite is the default product-work entrypoint for broad instructions such as “continue,” “perfect Masck” or “work on the next important thing.” It records selected and rejected features, decisions, evidence gates, research gaps, owner-lineage mapping, change control and acceptance criteria so future work does not recreate the concept from chat history. Read [`docs/CORE_SKETCH_DOCUMENT_MAP.md`](docs/CORE_SKETCH_DOCUMENT_MAP.md) for the full document stack.
+
+[`docs/PRODUCT_CONCEPT.md`](docs/PRODUCT_CONCEPT.md) records the earlier concept evolution that led into Core Sketch v1. The current concept target is stronger than the released hardware: Masck One should ultimately execute the user's complete facial skincare routine using the products they already choose, with the dock preparing session doses and the wearable completing the routine without requiring a return to the bathroom for manual facial-skincare steps. This is product intent only. None of the described serum, moisturiser, SPF, adaptive product, AI, scheduling or optical capabilities may be treated as implemented or validated until they pass the normal engineering and physical-evidence gates.
+
 ## Digital product vision
 
 The repository also carries a deliberately **non-authoritative** digital product vision for the marketing website, companion app, commercial backend and future connected-device experience. Read [`docs/DIGITAL_PRODUCT_VISION.md`](docs/DIGITAL_PRODUCT_VISION.md) for the target iOS/Android app, usage-session experience, capability-gated wear-state/device controls, Supabase-backed account/reservation architecture, website app showcase and preorder path.
