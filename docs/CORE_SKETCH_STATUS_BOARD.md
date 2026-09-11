@@ -61,3 +61,7 @@ These observations are dated. `CORE_SKETCH_P0_OWNER_TRIAGE.md` owns the interpre
 Whole-product digital/Fusion freeze, full-system physical alpha, human safety/comfort/efficacy, formulation preservation, SPF protection, measured tactile feel and production approval remain BLOCKED by their specific evidence gates. Optional modalities and discretionary CMF refinement do not outrank G0..G5. Their quality constraints still apply to every candidate.
 
 The [convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) records the broad contradictions and kill/pivot conditions. The [P0 feasibility contracts](CORE_SKETCH_P0_FEASIBILITY_CONTRACTS.md) define the execution invariants. The [backlog](CORE_SKETCH_EXECUTION_BACKLOG.md) owns canonical CS IDs and detailed acceptance; this board must not become a competing task registry.
+
+## Lane 1 bounded implementation, 2026-09-11
+
+Draft PR #154 implements an unpowered off-face CS-018 fixture and a deterministic regional cleansing simulation. See `CS018_FACIAL_INTERFACE_CANDIDATE.md` and `REGIONAL_CLEANSING_CONTROLLER.md`. Twelve individual coupon cells have geometric access accounting; actual owner shadows and unresolved reaction paths remain explicit. CS-015/018 remain PROVE/BLOCKED for whole-face physical completion. No human-use operating table or registered human size family is released. Routine OS and prepared-session producers retain their canonical ownership.

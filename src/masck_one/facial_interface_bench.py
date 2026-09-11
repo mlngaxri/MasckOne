@@ -148,11 +148,21 @@ def build(p=Parameters()):
     # No flow, compatibility or film claim follows from this passage geometry.
     head=box(6,72,3,(0,0,5.5))
     for y in (-34,34):head=head.fuse(box(10,6,5,(0,y,5.5)))
-    head=head.cut(box(1,40,5,(0,0,5.5)))
-    head=head.cut(box(3,42,1.8,(0,0,6.6)))
+    # Four addressable rows, each with independent water, cleanser and return
+    # passages. No shared gallery can spread a command to an exhausted row.
+    passages={}
+    for row,y in enumerate((-15,-5,5,15)):
+        for fluid,x in [('FRESH_WATER',-2),('CLEANSER',0),('MIXED_WASTE',2)]:
+            passage=box(.8,8,3,(x,y,5.5))
+            head=head.cut(passage)
+            passages[f'ROW_{row}_{fluid}']=passage
+
     for y in (-34,34):head=head.cut(cylinder(1.5+p.guide_radial_clearance_mm,10,(-5,y,5.5),(1,0,0)))
     head=positive(head.clean(),'independent applicator')
-    cap=box(6,44,.8,(0,0,7.4)).cut(cylinder(1.5,3,(0,0,6)))
+    cap=box(6,44,.8,(0,0,7.4))
+    for y in (-15,-5,5,15):
+        for x in (-2,0,2):cap=cap.cut(cylinder(.4,3,(x,y,6)))
+
     # Two alignment bores and continuous mating lands, separate lid and body.
     for y in (-21,21):
         hole=cylinder(.6,4,(0,y,4))
@@ -191,7 +201,8 @@ def build(p=Parameters()):
     for y in (-34,34):scan=scan.cut(cylinder(1.5+p.guide_radial_clearance_mm,90,(-45,y,5.5),(1,0,0)))
     shutter=translation_bound(tray,(0,p.shutter_travel_mm,0))
     refs={'FILM':film,'NORMAL_LIFT':lift,'DELIVERY_SCAN':scan,'SHUTTER_TRANSLATION':shutter,
-        'DELIVERY_ACCESS':box(2*p.delivery_half_travel_mm+1,40,8,(0,0,0)),**cells}
+        'DELIVERY_ACCESS':box(2*p.delivery_half_travel_mm+1,40,8,(0,0,0)),**cells,
+        **{'FLUID_PASSAGE_'+k:v for k,v in passages.items()}}
     service=box(36,44,76,(0,0,34+p.normal_lift_mm))
     service=service.fuse(box(70,8,54,(0,0,45+p.normal_lift_mm)))
     service=service.cut(target_cylinder.translate((0,0,p.normal_lift_mm)))
@@ -253,6 +264,10 @@ def build(p=Parameters()):
                 checks[state+'/'+a+'/'+b]=common_volume(s.translate(transforms.get(a,(0,0,0))),t.translate(transforms.get(b,(0,0,0))))
     unresolved=[k for k,v in checks.items() if v>1e-7]
     return material,refs,{'schema':'MASCK_CS018_OFF_FACE_BENCH','parameters':asdict(p),'states':states,
+        'fluid_interfaces':{key:{'fluid':key.split('_',2)[2], 'row':int(key.split('_')[1]),
+            'separate_passage_volume_mm3':shape.Volume(),'port_diameter_mm':.8,
+            'external_isolation':'REQUIRED_OFF_FACE_BENCH_SELECTOR_NOT_IMPLEMENTED_ON_WEARABLE',
+            'hydraulic_validation':'UNKNOWN','passive_backflow_owner':'UNCHANGED_EXISTING_MIXED_WASTE_OWNER'} for key,shape in passages.items()},
         'collision_volumes_mm3':checks,'collision_blockers':unresolved,'cell_access_fractions':access,
         'whole_face_complete':False,'human_use_eligible':False,'physical_evidence':'NOT_PERFORMED',
         'selected_scope':'REDUCED_REGION_UNPOWERED_INERT_SURROGATE',
@@ -300,7 +315,19 @@ def export(output: Path,p=Parameters()):
         'parking_pins':'Y insertion; removable bench hardware, not wearable release controls'}
     report['motion_evidence']='CONSERVATIVE_CONTINUOUS_TRANSLATION_BREP; no sampled-pose clearance claim'
     report['normal_wearable_release']='BLOCKED: this fixture does not represent whole-head removal'
+    import subprocess
+    try:
+        report['source_commit']=subprocess.check_output(['git','rev-parse','HEAD'],cwd=Path(__file__).resolve().parents[2],text=True).strip()
+        report['source_worktree_dirty']=bool(subprocess.check_output(['git','status','--porcelain'],cwd=Path(__file__).resolve().parents[2],text=True).strip())
+    except (OSError,subprocess.CalledProcessError):
+        report['source_commit']=None;report['source_worktree_dirty']=None
+    report['producer_dependencies']=json.loads((Path(__file__).resolve().parents[2]/'docs/contracts/facial_interface_sources.json').read_text())
     report['source_sha256']=sha256(Path(__file__).read_bytes()).hexdigest()
+    report['source_files_sha256']={name:sha256((Path(__file__).parent/name).read_bytes()).hexdigest()
+        for name in ('facial_interface_bench.py','facial_interface_occlusion.py','regional_cleansing.py','cleansing_fit.py')}
+    report['runtime']={'cadquery':cq.__version__}
+    report['reproducibility']='Analytic geometry and sorted semantic manifest; STEP export headers may contain runtime timestamps'
+
     report['step_sha256']={f.name:sha256(f.read_bytes()).hexdigest() for f in sorted(output.glob('*.step'))}
     (output/'fusion_handoff.json').write_text(json.dumps(report,indent=2,sort_keys=True)+'\n')
     return report

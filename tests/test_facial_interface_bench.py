@@ -75,3 +75,14 @@ def test_released_bindings_and_analytic_clipping():
     verify_sources(Path(__file__).resolve().parents[1])
     assert rectangle_clip([(0,0),(2,0),(0,2)],(0,1,0,1)) == 1
     assert rectangle_clip([(0,0),(2,0),(0,2)],(3,4,3,4)) == 0
+
+
+def test_regional_fluid_passages_are_independent_and_do_not_count_as_material(specimen):
+    material,refs,report=specimen
+    passage=[(k,v) for k,v in refs.items() if k.startswith('FLUID_PASSAGE_')]
+    assert len(passage)==12
+    assert {p['fluid'] for p in report['fluid_interfaces'].values()}=={'FRESH_WATER','CLEANSER','MIXED_WASTE'}
+    for i,(key,shape) in enumerate(passage):
+        assert key not in material
+        assert common_volume(shape,material['delivery_body'])==0
+        for _,other in passage[i+1:]:assert common_volume(shape,other)==0
