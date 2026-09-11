@@ -228,9 +228,18 @@ def derive_session_doses(demands: dict, reservoirs: list[dict], binding: dict, n
             "quantity_ml": target if prepared else None,
             "application": demand["application"], "blockers": sorted(reasons)})
     demanded = total(volumes)
-    return result(blockers, doses=rows, wearable_session_product_ml=demanded.record(),
+    # Two lists on purpose. `doses` is the audit manifest and keeps every bound
+    # product, blocked ones included, so a missing step can never be read as an
+    # absent one. `prepared_doses` is what a session may actually carry, and a
+    # blocked row is not in it: handing the readiness gate an identity-less dose
+    # would make a step the dock could not prepare look like one it did.
+    prepared = [row for row in rows if row["state"] == DOSE_PREPARED]
+    return result(blockers, doses=rows, prepared_doses=prepared,
+        wearable_session_product_ml=demanded.record(),
         evidence_status=EVIDENCE_STATUS, binding_digest=digest(binding),
-        every_product_accounted=len(rows) == len(expected))
+        every_product_accounted=len(rows) == len(expected),
+        blocked_product_bindings=sorted(r["product_binding"] for r in rows
+                                        if r["state"] != DOSE_PREPARED))
 
 
 def account_inventory(reservoirs: list[dict], doses: list[dict]) -> dict:

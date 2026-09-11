@@ -666,3 +666,123 @@ def test_no_result_in_this_lane_authorises_hardware():
         session_product_records(binding(), [product], evidence, CONTEXT, {"p": "MOISTURISE"}),
     ]
     assert all(r["hardware_execution_authorized"] is False for r in results)
+
+
+# ---------------------------------------------------------------------------
+# integration: the producers in this lane against the gate that consumes them
+# ---------------------------------------------------------------------------
+
+def prepared_session(now_s=1.0, reservoirs=None):
+    """Build a whole prepared session from this lane's producers.
+
+    Nothing below hand-writes a product row or a dose. Everything the readiness
+    gate reads is what ``session_product_records`` and ``derive_session_doses``
+    actually emit, so a drift between producer and consumer fails here.
+    """
+    from pathlib import Path
+    from masck_one.core_sketch_contracts import digest, load_manifest
+
+    root = Path(__file__).resolve().parents[1]
+    plan = deepcopy(load_manifest(root)["completion"]["example_unresolved_am_plan"])
+    plan["scope"] = "REDUCED_REGION_SURROGATE"
+    plan["regions"] = [r for r in plan["regions"] if r["id"] == "left_cheek"]
+    for stage in plan["stages"]:
+        stage["regions"] = {"left_cheek": stage["regions"]["left_cheek"]}
+        if "product_binding" in stage:
+            stage["product_binding"] = "p"
+
+    bound = binding()
+    execution = {"routine_id": "r1", "routine_revision": "1", "schedule_context": "AM:test",
+        "stage_ids": [s["id"] for s in plan["stages"]], "plan_digest": digest(plan),
+        "product_bindings": bound["product_bindings"], "hardware_revision": "test",
+        "profile_revision": "test", "authority_digest": "test-only"}
+
+    product, evidence = make_product()
+    produced = session_product_records(execution, [product], evidence, CONTEXT, {"p": "MOISTURISE"})
+    doses = derive_session_doses({"p": demand()},
+        reservoirs if reservoirs is not None else [reservoir()], execution, now_s=now_s)
+
+    request = {"plan": plan, "binding": execution, "thermal_stage": False,
+        "resources": {"water_ml": 1, "waste_free_ml": 1, "usable_energy_Wh": 1},
+        "dose_requirements": {"p": {"min_ml": 1.0, "max_ml": 3.0}}}
+    current = {"binding": deepcopy(execution), "epoch": 0, "invalidations": [], "faults": [],
+        "wear_state": "CONFIRMED_ELIGIBLE",
+        "stage_eligibility": {s["id"]: "ELIGIBLE_FOR_EXACT_PLAN" for s in plan["stages"]},
+        "local": {k: True for k in ("clock_valid", "profile_cache_verified", "progress_known",
+                                    "controller_available")},
+        "service": {k: "VERIFIED_COMPLETE" for k in ("cleaning", "changeover", "dry_path_service")},
+        "resources": dict(request["resources"]),
+        "products": produced["products"], "doses": doses["prepared_doses"]}
+    receipt = {"epoch": current["epoch"], "binding_digest": digest(execution),
+        "dose_digest": digest(current["doses"]), "request_digest": digest(request),
+        "service_digest": digest(current["service"]), "products_digest": digest(current["products"]),
+        "resources_digest": digest(current["resources"]),
+        "stage_eligibility_digest": digest(current["stage_eligibility"]),
+        "service_receipt_id": "svc-1", "prepared_at_s": 0.0, "expires_at_s": 5_000.0,
+        "observations_expire_at_s": 5_000.0}
+    return request, receipt, current, produced, doses
+
+
+def test_records_this_lane_produces_satisfy_the_existing_readiness_gate():
+    from masck_one.core_sketch_contracts import assess_readiness
+
+    request, receipt, current, produced, doses = prepared_session()
+    assert produced["model_consistent"] and doses["model_consistent"]
+    verdict = assess_readiness(request, receipt, current, now_s=1.0)
+    assert verdict["blockers"] == []
+    assert verdict["prepared_ready"] is True and verdict["start_ready"] is True
+
+
+def test_a_reservoir_swapped_after_preparation_makes_the_gate_refuse():
+    """The whole chain: somebody changes the bottle, and READY goes away.
+
+    This is the failure the lane exists to close. Before the dock could derive
+    an event, every digest in the prepared session still agreed with itself
+    while the fluid behind the slot was a different product entirely.
+    """
+    from masck_one.core_sketch_contracts import assess_readiness
+
+    request, receipt, current, _, _ = prepared_session()
+    assert assess_readiness(request, receipt, current, now_s=1.0)["prepared_ready"] is True
+
+    swapped = apply_observed_events(current, [reservoir()], [reservoir(sku="SKU-impostor")])
+    assert "PRODUCT_CHANGED" in swapped["observation"]["derived_events"]
+
+    verdict = assess_readiness(request, receipt, swapped["session"], now_s=1.0)
+    assert verdict["prepared_ready"] is False
+    assert "PREPARATION_INVALIDATED" in verdict["blockers"]
+
+
+def test_an_ai_promoted_product_cannot_produce_a_ready_session():
+    from masck_one.core_sketch_contracts import assess_readiness, digest
+
+    request, receipt, current, _, _ = prepared_session()
+    product, evidence = make_product(actor="AI")
+    current["products"] = session_product_records(current["binding"], [product], evidence,
+        CONTEXT, {"p": "MOISTURISE"})["products"]
+    receipt["products_digest"] = digest(current["products"])
+    verdict = assess_readiness(request, receipt, current, now_s=1.0)
+    assert verdict["prepared_ready"] is False
+    assert "p:PRODUCT_OR_PROFILE_UNSUPPORTED" in verdict["blockers"]
+
+
+def test_a_blocked_dose_cannot_produce_a_ready_session():
+    from masck_one.core_sketch_contracts import assess_readiness
+
+    request, receipt, current, _, doses = prepared_session(reservoirs=[])
+    assert doses["doses"][0]["state"] == DOSE_BLOCKED
+    assert doses["blocked_product_bindings"] == ["p"]
+    # The manifest still carries the product; the session carries no dose for it.
+    assert doses["prepared_doses"] == [] and current["doses"] == []
+    verdict = assess_readiness(request, receipt, current, now_s=1.0)
+    assert verdict["prepared_ready"] is False
+    assert "PREPARED_PRODUCT_SET_MISMATCH" in verdict["blockers"]
+
+
+def test_the_manifest_keeps_a_blocked_product_even_though_the_session_cannot():
+    """Both properties at once: nothing is hidden, and nothing unprepared ships."""
+    out = derive_session_doses({"p": demand(), "q": demand()}, [reservoir()],
+                               binding(("p", "q")), now_s=1.0)
+    assert {row["product_binding"] for row in out["doses"]} == {"p", "q"}
+    assert [row["product_binding"] for row in out["prepared_doses"]] == ["p"]
+    assert out["blocked_product_bindings"] == ["q"]

@@ -79,6 +79,17 @@ because both of those turn a skipped step into a completed one. Unknown
 quantities flow through `core_sketch_resources.Bound`, where `unknown × 0`
 remains unknown.
 
+It returns two lists, deliberately. `doses` is the audit manifest and keeps every
+bound product, blocked rows included, so a missing step can never be read as an
+absent one. `prepared_doses` is what a session may actually carry, and a blocked
+row is not in it. Handing the readiness gate an identity-less dose would make a
+step the dock could not prepare look like one it did; omitting it instead lands
+on `assess_readiness`'s existing `PREPARED_PRODUCT_SET_MISMATCH` refusal.
+
+(Noted while integrating, not changed here: `assess_readiness` calls
+`unique(doses, "dose_id")` before its own `not d.get("dose_id")` check, so that
+branch is unreachable. It is harmless defensive redundancy, but it is dead.)
+
 `account_inventory` keeps dock bulk and wearable inventory in separate columns
 and never sums them. Bulk in the dock is the reason the wearable can be small;
 adding it to worn mass would misreport the product, and offering it as session
@@ -137,7 +148,7 @@ having done so:
 
 ## Tests
 
-`tests/test_routine_product_intelligence.py` (97 tests) is written from the
+`tests/test_routine_product_intelligence.py` (102 tests) is written from the
 attacker's side. The question is never whether the happy path works but whether
 the system can be made to report that a step happened when it did not.
 
@@ -145,3 +156,10 @@ The guards were mutation-tested: removing the promoter check, the SKU-change
 detection, the unknown-dose protection, the SPF-context rule, the reduced-routine
 honesty, the network exclusion, or the identity-version evidence binding each
 causes exactly the test that claims to defend it to fail.
+
+Four of them are end-to-end: they build a whole prepared session from this
+lane's producers and run the real `assess_readiness` against it, so a drift
+between producer and consumer fails rather than passing on both sides
+separately. One walks the entire chain the lane exists to close — somebody
+swaps the bottle, the dock derives `PRODUCT_CHANGED`, `invalidate` bumps the
+epoch, and READY goes away.
