@@ -1,71 +1,79 @@
-# Deterministic regional cleansing candidate
+# Deterministic regional cleansing intelligence
 
-The current implementation is a **simulation and off-face mechanical candidate**. It cannot issue device commands or select human-use limits. No clinical, cosmetic-effectiveness, human-fit or production qualification is implied. `Envelope` rejects human-use scope, missing limits block, and every receipt identifies DIGITAL_SIMULATION. The published baseline contains no numerical human treatment table.
+The selected Lane 1 path is `interpret_form → estimate → resolve → plan → authorize_footprint / ingest_footprint → record_stage → completion`. It supersedes PR #154's exact-category comparison and combined rinse/recovery gate, while retaining its conservative budget kernel. This continuation changes software and requirements, not the released off-face CAD.
 
-## Decisions that shape both hardware and control
+**Execution remains OFF_FACE_SIMULATION only.** No accepted physical calibration, numeric human-use table, personalized human treatment recipe, diagnosis or efficacy claim ships. Missing limits, history bounds or placement cannot become default permission. A proposed profile is not authorization to use a powered device on a person.
 
-1. Oil tendency, present surface oil and dryness are independent axes. Oily and dry are not logical opposites. Baseline history does not overwrite the current observation.
-2. Independent evidence is compared on matching variables and phase. It is not averaged. A mismatch reduces confidence and selects review. Reported discomfort and recent burden cannot be cancelled by a normal sensor result.
-3. Oily appearance does not itself authorize more force, motion or chemical exposure. A future bounded operating table needs separate evidence; this code does not derive it from appearance.
-4. Every addressed region keeps its own ceiling and completion cells. A shared channel is allowed only if every region it touches permits the next increment. If a completed region remains mechanically coupled to an unfinished one, the hardware cannot implement the requested independent plan.
-5. A gentle/review table must be componentwise no more permissive than baseline. Reducing action cannot silently remove the rinse requirement. Unknown critical answers, placement, prior burden or treatment limits block contact rather than becoming a permissive default.
+## Three separate decisions
 
-The AAD's general cleansing guidance favours gentle non-abrasive washing and cautions against scrubbing. That supports rejecting automatic escalation; it does not validate a powered mask, force, stroke, duration or personalized dose. [AAD, Face washing 101](https://www.aad.org/public/everyday-care/skin-care-basics/care/face-washing-101).
-
-## Questionnaire and estimator
-
-`QUESTIONNAIRE` contains twenty versioned question records, each naming the discriminated variable, answer family and whether regional overrides are allowed. It covers usual/current oil and dryness separately; flaking; current discomfort; water/product discomfort; recent cleansing/repeated cleansing/exfoliation/hair removal/stress; product film/change; wetness; environmental change; asymmetry; obstructing hair; and answer confidence.
-
-This is a decision-oriented question model, not a validated questionnaire. The two temporal pairs distinguish usual tendency from present state. Recent-cleanse and repeated-cleanse questions distinguish an unrecorded event from cumulative repetition. Film/wetness/context qualify observations; they do not add intensity. Left/right differences request regional evidence instead of assigning a face average. Demographic/ethnicity fields are not part of cleansing inference and unrecognized fields are rejected.
-
-UNKNOWN is valid for every answer. It is never NO or consent. Noncritical uncertainty selects GENTLE_REVIEW; critical uncertainty selects BLOCKED_REVIEW. Risk flags are PRESENT, NOT_REPORTED or UNKNOWN, not diagnoses. Confidence refers only to agreement of the observed cosmetic proxies, not validated skin tolerance. No probability is invented. Contradictory answers remain review conditions. Questions require later usability/discrimination studies before onboarding is finalized.
-
-## Physical observations and limitations
-
-| Signal | Candidate role | Required boundary |
+| Layer | Implemented output | Authority boundary |
 | --- | --- | --- |
-| Surface oil proxy before wetting | Independent check of current reported oil | Exact region, known product film, calibration identity, valid interval, quality and no declared confounder required. No accepted calibration ships. |
-| Hydration-deficit proxy before wetting | Independent check of current reported dryness | Cannot substitute for irritation/barrier assessment. Contact method, pressure, ambient conditions and existing products require characterization. |
-| Contact/placement and upper force bound | Execution gating and load integral | Must be region-specific; whole-mask closure is not proof all regions are seated. |
-| Stage displacement / tangential travel | Motion integral and overtravel gating | Commanded stroke alone is not measured displacement. |
-| Metered delivery and recovery observation | Exposure and rinse/recovery accounting | Delivered mass is not residue removal. Recovery confirmation remains externally evidenced. |
+| Personalization | Independent ordinal requests for cleanser, mechanical action, contact time and passes; raw regional dimensions and explanations | No physical operating numbers |
+| Qualified limits | `Envelope` plus `FactorPolicy`, explicit provenance and scope | Caller-supplied simulation inputs only; no built-in treatment table |
+| Execution | Remaining regional/session budgets, exact affected cells, observed stage evidence | No device I/O; independent physical protection remains a hardware requirement |
 
-Oil-strip photometry is a defensible characterization comparator, but entails contact and consumables; it is not selected as twelve wearable cartridges. Its manufacturer describes transparency measurement of a contacted strip. An optical shine sensor cannot simply inherit that calibration or distinguish product film from sebum. [Courage + Khazaka, Sebumeter measurement principle](https://www.courage-khazaka.com/en/scientific-products/occupational-health/occupational-health/151-sebumeter-e).
+Oil, dryness, sensitivity and stress are not one “skin type.” Baseline and current conditions remain separate, including oily baseline/current dryness, dry baseline/current surface oil, left/right differences and oily forehead/dry cheeks. Baseline oil explains change over time; it never overrides a current reading. Baseline dryness and reported sensitivity/stress provide independent caution. A sensor cannot cancel discomfort, recent exfoliation, repeated cleansing or uncertain contact suitability.
 
-The conservative current choice is no wearable skin-type sensor claim. The typed observation interface rejects stale, wet-phase, confounded, duplicate or unaccepted readings. Operational placement/load/displacement/fluid feedback remains necessary independently of cosmetic personalization. Production sensors, signal conditioning and fault cutoffs are unresolved with their hardware owners. No camera, ML, disease classifier or telemetry service was added.
+The AAD's general guidance supports gentle nonabrasive cleansing and avoiding scrubbing. It does **not** establish the force, stroke, chemical exposure, timing or efficacy of an automated mechanism. No powered-treatment threshold is derived from it. [AAD, Face washing 101](https://www.aad.org/public/everyday-care/skin-care-basics/care/face-washing-101).
 
-## Regional execution
+## Onboarding contract and UX
 
-`estimate` -> `prescription` -> `plan` -> `RegionalLedger` / `SessionLedger` -> simulation receipt. Core Sketch routine completion, prepared-session validity and product preservation remain external canonical consumers. A cleansing receipt never reports whole-routine completion.
+`cleansing_onboarding.py` owns the selected 20-question content. Every record includes its latent variable, temporal scope, global/regional scope, purpose, distinction from neighboring questions, plain-language prompt, answer choices and help text. `form_contract()` is renderable UI data, not an app implementation. Wording/discrimination and completion burden remain usability-validation requirements.
 
-The ledger integrates conservative interval observations:
+The sequence covers usual experience, current observations, comfort, recent care, acquisition conditions and regional detail. “Tight or stretched,” “shiny or greasy,” flakes and product discomfort replace skin-type or barrier terminology. The two usual/current pairs discriminate temporary change. Recent-wash/repeated-wash answers cross-check repetition. Product film and wetness qualify observations, rather than increasing action. Facial-hair presence is passed to placement assessment; it is not a cleansing-intensity variable. Ethnicity and other demographic inputs are absent and rejected at the form boundary.
 
-- contact duration;
-- load impulse, upper force multiplied by contact interval;
-- absolute tangential path;
-- upper force multiplied by path as a shear proxy, not biological stress;
-- cleanser volume and residence time;
-- water volume and rinse volume after the latest cleanser dose;
-- pass starts, replay/sequence identity and telemetry age.
+No answer is preselected. Every question permits “I'm not sure”; per-answer uncertainty is retained. Regional values may override a face-wide response. Declared left/right differences require regional current answers rather than silently copying the global answer. Named text regions, optional expansion and non-colour-only presentation support a later accessible UI.
 
-Cleanser residence continues while idle, rinsing and recovering until recovery is confirmed. Stopping a motor does not stop chemical exposure. Actual overrun is retained and faults latch. A missed sample blocks authorization rather than inventing zero burden. Cleanup may still be observed after a stop; the stopped region cannot become COMPLETE. Recent history must supply explicit prior burden. Unknown prior burden is not zero. The upstream history owner must define qualified time windows and preserve records across restart; persistence is not implemented here.
+The history period and prepared-cleanser label must come from their canonical owners and be shown in the form. Missing context makes the associated answer UNKNOWN. Survey acquisition, expiry and context identity are also explicit. A stale/unbound survey cannot be rehabilitated by a fresh sensor reading. Unknown critical responses require targeted review; an uncertain “No” cannot cancel a possible concern. No recovery window or survey lifetime is invented here.
 
-States are NOT_STARTED, IN_PROGRESS, CLEANSED, RINSED_RECOVERED, COMPLETE, with separate PROTECTED, EXCLUDED and BLOCKED. Completion compares exact expected classifications and cells, so relabeling a required region as excluded cannot pass. Geometry/telemetry receipts remain simulation evidence; a software boolean is not a physical coverage measurement.
+## Quantitative observations and comparison
 
-The planner exposes ceilings for water, cleanser, preload, stroke, path, contact time, passes and rinse. These are not recommended treatment targets. Command duration stays null without an evidenced application recipe. Whole-session supply limits constrain the sum across regions.
+`QuantitativeObservation` carries region, feature, measured value, units, absolute uncertainty bound, sensor/calibration identities, acquisition/expiry, acquisition conditions, quality and confounders. `Calibration` supplies the accepted mapping, valid raw span, condition ranges, validity and maximum age. Raw data and rejection reasons remain in the profile. Wrong units/sensor, stale clocks, unaccepted calibration, wet phase, missing conditions and out-of-range values do not get clamped into valid readings.
 
-## Hardware realization and fit
+Only two cosmetic comparison features are currently supported: a pre-wet surface-oil proxy and a pre-wet hydration-deficit proxy. Neither implies a measured barrier state or diagnosis. A tightness answer is not inherently equivalent to a capacitance reading: the mapping itself requires characterization. Optical shine cannot automatically distinguish skincare film from oil. No wearable sensing technology or specification is invented.
 
-The existing off-face source now has four isolated rows, each with separate water, cleanser and mixed-waste passages, traversing three coupon columns. It therefore presents twelve individually accounted observation cells. No common gallery reconnects the fluids or rows. The external selector/pump/valve fixture and leakage isolation are not implemented or qualified. Its columns are scan locations; moving between them with contact or flow still active must account for every swept cell, not just the destination.
+The interval coordinate is a **semantic study scale**, not a biological threshold. LOW/MODERATE/HIGH occupy equal thirds of 0..1. A calibration must independently justify any mapping into that coordinate. No such physical mapping ships. The observed raw value and continuous interval are retained; categorical wording is an explanation only. Legacy ordinal observations remain an explicitly labeled coarse adapter.
 
-A real whole-face implementation still needs region-addressable fluid isolation and a way to unload any completed region from a shared cleansing motion. Existing four-zone massage hardware cannot be assumed to independently control all fifteen conceptual facial regions. The off-face cassette, guides, pin capture and catch shutter establish a reduced-region geometry only. Its stage travel is not a human facial treatment recipe. Existing shell, retention, airway, wet graph and emergency release owners are unchanged.
+For survey interval `S` and observation interval `O`, the evidence distance is `max(0, O.low - S.high, S.low - O.high)`. Overlap/touch is compatible; a positive gap smaller than one answer-bin is minor variation; separation of at least one bin is material contradiction. These are transparent software classification conventions, **not clinically established differences**. An observation spanning more than one answer-bin has insufficient resolution for supported comparison. Low-quality or unavailable evidence is INSUFFICIENT even when broad intervals overlap. Confidence is evidence sufficiency, not an invented probability or assurance of tolerance.
 
-`cleansing_fit.py` selects only explicitly supplied multidimensional study envelopes. Width, length, forehead/cheek/nose/chin/jaw projection, nose width, bilateral asymmetry, local curvature and hair-state support must all match. An empty catalogue rejects all fit claims. No invented human size ranges or scaled protected apertures ship. A small size family plus local passive compliance remains a hypothesis pending registered face data and the retention/interface owners. Synthetic min/max/asymmetric tests validate the predicate only.
+Measurement uncertainty and conformity decisions are distinct subjects in the JCGM guides. This implementation exposes bounded uncertainty and decision rules; it does not claim a GUM-compliant measurement system. [BIPM/JCGM publications](https://www.bipm.org/en/committees/jc/jcgm/publications).
 
-The fixture uses analytic, inspectable parts and relieved guidance; its feel, seal drag and wear are not established. Material classes and density are unqualified. Wearable mass and CG contributions remain unknown. Main authority remains controlling, including joint loaded-mass, CG and torque limits.
+Minor variation can retain a bounded proposal. A material contradiction generates question-specific review and observation-specific reacquisition requests while reducing the relevant request. Reported discomfort, changed/unbound product or unconfirmed contact suitability blocks the proposal. Wetness/product film/context change prevents confirmed personalization. A conservative fallback for a named context is possible only if that context is explicitly included in the externally evidenced factor policy; the default list is empty. It never gets labeled confirmed personalization. This avoids making “wash before the machine can wash” an implicit requirement, without pretending a confounded measurement is valid.
 
-## Remaining evidence and integration
+## Relative prescriptions and monotonicity
 
-DIGITAL: whole-face registered geometry, regional actuation/isolation capability, sensor mounting and independent limit hardware; whole-head release and package/resource integration. BENCH: observation calibration, fluid isolation, distribution, residue removal, force/displacement accuracy, wear and film preservation. HUMAN: supported fit and any cosmetic cleansing tolerance/effectiveness. SUPPLIER: components, materials and manufacturing capability. REG/CLAIM: separate claims assessment, especially SPF.
+The four request levels are MINIMUM, REDUCED and REFERENCE. MINIMUM is a request class, **not zero dose**, and no numeric factors ship. More supported current oil may change chemical exposure need while leaving mechanical action, contact time and passes unchanged. Dryness, sensitivity, surface stress and recent burden cap the dimensions independently. Unknown oil supplies no additional demand; unknown dryness/risk supplies maximum caution. Widening intervals, losing evidence or reducing quality must never increase any request or resolved ceiling.
 
-Future profiles, schedules, community templates and advisory ML may provide context above this contract. They cannot supply a trusted operating envelope, change a local ceiling, erase consumed burden, override placement, or promote simulation evidence to physical validation. This branch does not implement those systems.
+The explicit `FactorPolicy` maps each request to a nondecreasing factor in [0,1]. The factor table is a separate qualification dependency, not a UX preference. Mechanical and time caps also restrict their load integral; force/path caps restrict the shear proxy. Water ceiling and qualified minimum rinse are retained, not discounted. An empty feasible action envelope blocks. An effective-envelope digest binds the full profile, factor table and absolute policy. Old family labels are compatibility explanations only; the new planner rejects legacy family tables rather than silently ignoring them.
+
+The output consists of **ceilings**, not a duration-to-run or cleansing-success prediction. Command targets and the minimum effective application recipe remain unqualified. There is no “keep cleaning until it looks cleaner” loop. Future optimization must minimize burden inside an evidenced outcome envelope, not maximize use of each ceiling.
+
+## Regional execution and completion
+
+Every required domain/region/cell has explicit identity. The kernel integrates contact duration, upper force × contact duration, absolute tangential path, upper force × path as a shear proxy, cleanser volume, cleanser residence, water and pass starts. The shear proxy is not biological stress. Tick values represent observed conservative interval bounds, not motor commands.
+
+Recent history requires an explicit upper bound, complete qualified window, region/domain identity and source. A successful software log or user-reported event alone cannot establish that bound. Unknown is not zero. Prior exposure constrains regional action; only current-session consumption debits current supply. Persistence/restart recovery remains with the history/session owner and cannot erase consumed burden.
+
+Chemical residence continues during idle, rinse and recovery until recovery is evidenced. Overruns remain recorded and faults latch. A missing sample blocks authorization. Cleaning authorization reserves necessary rinse water. Cleanup telemetry can still be recorded after a fault, but faulted regions cannot become COMPLETE. This module does not invent a fault-cleanup treatment: the hardware owner must provide the independently qualified cleanup/release path.
+
+The stage states are NOT_STARTED, IN_PROGRESS, CLEANSED, RINSED, RECOVERED and COMPLETE, with PROTECTED, EXCLUDED and BLOCKED separate. Per-cell status additionally distinguishes action in progress but unproved. `StageEvidence` binds session, domain, region, stage, affected cells, sequence, telemetry chain, observation basis and source digest. Bare cell lists, elapsed time, issued commands and wrong-session receipts cannot advance completion. Rinse requires both measured quantity and all rinse-cell outcomes; recovery requires its own all-cell evidence. Partial rinse/recovery cannot hide behind full cleaning coverage.
+
+An already cleansed cell cannot receive more cleaning just because another cell in its region remains unfinished. A protected/excluded cell cannot be silently relabeled required or vice versa. A required blocked or unproved cell prevents cleansing completion. Even a complete cleansing simulation cannot report whole-routine or physical completion.
+
+## Minimum hardware capabilities
+
+`cleansing_requirements.py` owns the machine-readable capability contract. Independent **accounting and interruption** are required; a dedicated motor, pump or oil sensor per facial cell is not. Chemical delivery must be separable from mechanical action; both must be stoppable for every completed or exhausted footprint. Rinse and recovery need independent outcome observation. Placement, interval force/path/stroke, delivered quantities and complete affected cells must be observable or conservatively bounded.
+
+`ChannelFootprint` binds all continuously affected cells, including travel, rather than just destination cells. Every affected region authorizes its own bounds. Shared telemetry must include all affected regions; any overrun remains recorded and faults the shared action. Common supplies, multiplexed valves or moving applicators are allowed if isolation and complete paths are evidenced. Sharing uses the intersection of ceilings. It cannot prove the more demanding region is finished.
+
+`control_partition()` computes the distinct demand classes for a snapshot. A synthetic test represents 20 cells with four demand classes; that does not prescribe 20 mechanisms, nor prove the current four-zone massage hardware covers a whole face. The minimum installed channel count remains dependent on registered continuous footprints and measured outcomes. The existing 15 Core Sketch conceptual regions must not be collapsed into a face-average score. No new hardware, size family, sensor package or fit claim is produced in this software pass.
+
+## Handoff, checks and remaining evidence
+
+Run `python -m masck_one.cleansing_requirements OUTPUT_DIRECTORY` to emit `cleansing_intelligence.json`: selected questionnaire, typed field lists, capabilities, exact source hashes/Git blobs, authority/Core Sketch identities and source head. Dirty source is explicitly marked. CI exports this at the actual PR head. No numeric human table or accepted physical calibration is embedded.
+
+Focused tests exercise minor/material contradictions, low-confidence asymmetry, interval widening, missing/stale/confounded evidence, regional combinations, critical uncertainty, context fallbacks, local exhaustion, shared action, per-cell holes, history provenance, source/session replay and external-field injection. These verify software invariants, not physical cleansing performance.
+
+BENCH: sensor measurands/calibration, product-film confounding, interval telemetry and stage-outcome observability. HUMAN: question comprehension/discrimination, supported fit, cosmetic tolerance and effectiveness. SUPPLIER: sensing/control components and manufacturability. REG/CLAIM: any external performance or protection claims. Numeric absolute limits, relative factors, observation lifetimes/history windows and effective recipes remain qualification dependencies.
+
+Routine OS, product identity/preservation, prepared-session validity, community templates, saved profiles, advisory ML and logging remain outside the controller. They may supply properly bound context through the narrow interfaces; none may substitute a treatment table, erase burden, bypass a stop or promote DIGITAL_SIMULATION to physical evidence. The existing hardware, protected anatomy, airway, mass/CG and other subsystem owners remain unchanged.
