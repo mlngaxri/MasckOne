@@ -37,7 +37,7 @@ AUTHORITY = ROOT / "config" / "masck_one_authority.yaml"
 # baselines, measured at the commit that introduced this file
 # ---------------------------------------------------------------------------
 
-MIN_TEST_FUNCTIONS = 914
+MIN_TEST_FUNCTIONS = 919
 MAX_SKIP_MARKERS = 2          # the two git-history skips in test_pinned_commits
 MIN_EVIDENCE_MARKERS = 144
 
