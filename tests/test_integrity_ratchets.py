@@ -37,9 +37,9 @@ AUTHORITY = ROOT / "config" / "masck_one_authority.yaml"
 # baselines, measured at the commit that introduced this file
 # ---------------------------------------------------------------------------
 
-MIN_TEST_FUNCTIONS = 875
+MIN_TEST_FUNCTIONS = 914
 MAX_SKIP_MARKERS = 2          # the two git-history skips in test_pinned_commits
-MIN_EVIDENCE_MARKERS = 138
+MIN_EVIDENCE_MARKERS = 144
 
 # Numerical tolerances may shrink, never grow. Loosening one of these is the
 # classic way to make a geometry failure disappear without fixing the geometry.
