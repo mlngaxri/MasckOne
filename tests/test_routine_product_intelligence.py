@@ -887,3 +887,25 @@ def test_every_derive_state_result_has_the_same_shape():
 def test_restricted_stays_restricted_under_its_own_transition():
     assert check_transition(RESTRICTED, RESTRICTED, "AI")["model_consistent"]
     assert check_transition(RESTRICTED, RESTRICTED, "AI")["direction"] == "RESTRICT"
+
+
+def test_the_concept_screen_hashes_every_module_that_feeds_it():
+    """Provenance that omits a module is provenance for a different program.
+
+    The screen reports a source digest set. Half its CS-016/CS-017 inputs now
+    come from this lane, so a set that predates these modules would describe
+    something the screen no longer is.
+    """
+    import ast
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "src/masck_one/core_sketch_contracts.py").read_text()
+    listed = {n.value for n in ast.walk(ast.parse(source))
+              if isinstance(n, ast.Constant) and isinstance(n.value, str)
+              and n.value.startswith(("src/masck_one/", "docs/", "config/"))}
+    for module in ("product_lifecycle", "dock_preparation", "routine_schedule",
+                   "core_sketch_resources", "core_sketch_trial"):
+        assert f"src/masck_one/{module}.py" in listed, module
+    for path in listed:
+        assert (root / path).is_file(), f"screen hashes a path that does not exist: {path}"
