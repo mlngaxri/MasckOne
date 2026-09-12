@@ -1,13 +1,65 @@
 # MASCK ONE Core Sketch status board
 
 Status: **concept-level triage derived from the execution backlog; no physical closure implied**  
-Review: 2026-09-11. Exact current source/owner identity must be reconstructed before acting.
+Review: 2026-09-12. Exact current source/owner identity must be reconstructed before acting.
 
 ## Product decision
 
 **Continue the complete facial-routine hypothesis through bounded proof gates.** The five lanes survive. Full-routine completion, user-product choice, offline use, dock bulk/session wearable, protected anatomy, unpowered release and calm cost-conscious tactile quality remain locked concept intent. These are not achieved-product claims.
 
 The broad convergence review is complete. The program is now in **P0 contract execution / physical feasibility preparation**, not another generic concept-review cycle.
+
+## Binding program deadline
+
+**Production-readiness deadline: 2 April 2027.** This is the fixed program finish line for Masck One. Schedule pressure may change sequencing or scope, but it may not convert missing evidence into a pass, weaken protected-anatomy or safety requirements, or relabel an unresolved physical gate as complete.
+
+**2 November 2026 is the hard integrated proof and digital-completion checkpoint.** By this date the program must have a truthful, integrated physical alpha demonstrating the core routine path with controlled evidence for the critical feasibility gates, plus a feature-complete release-quality website, real companion app, backend/account path and core routine/product/control algorithms. Any unavailable hardware-dependent digital feature must be capability-gated rather than faked.
+
+After 2 November, the dominant program should shift from proving that the architecture can work to engineering validation, reliability, DFM, supplier/tooling closure, production software hardening and pilot manufacturing.
+
+### Strict phase gates
+
+| Deadline | Mandatory outcome |
+|---|---|
+| **20 Sep 2026** | Current-source whole-product architecture reconciled. Major owner PRs have explicit disposition. Prototype BOM, procurement list, bench fixtures and measurement methods are frozen enough to build. Website/app implementation lane is active again in parallel. |
+| **4 Oct 2026** | First integrated physical alpha hardware and reduced-region bench system assembled. Core fluid, treatment, retention/release, electrical/HMI and thermal functions can be exercised on safe off-face/inert rigs. No digital result may stand in for missing bench evidence. |
+| **18 Oct 2026** | Reduced-region clean -> rinse/recover -> leave-on -> non-wiping release sequence has controlled measured runs. Major failure modes have repeatable tests. Full-product alpha revision is built or in final assembly. |
+| **1 Nov 2026** | Integrated alpha rehearsal complete. Core product website and app are feature complete, responsive and testable end-to-end against real backend services or explicitly gated hardware adapters. Core routine scheduling, product/session validity, capability/state and safety algorithms have deterministic tests. |
+| **2 Nov 2026** | **Integrated proof gate.** Physical alpha demonstrates the core Masck One experience with truthful evidence boundaries. Critical G0-G4 feasibility questions have physical or directly source-bound evidence sufficient to decide continuation. Website, app, backend and core algorithms are demo-ready and release-quality in all non-hardware-gated areas. Public claims match actual evidence. |
+| **30 Nov 2026** | EVT1 complete: integrated engineering prototype, measured mass/CG/fluid/power/thermal behavior, fault handling, serviceability and repeatable core routine operation. Highest-risk geometry and electrical/mechanical architecture changes identified. |
+| **20 Dec 2026** | EVT2/design convergence: major architecture changes closed or explicitly escalated. Wearable/dock interface, cartridge, retention, treatment, wet/dry separation, thermal path, electronics and firmware interfaces are source-bound. App/device protocol contract frozen enough for real integration. |
+| **15 Jan 2027** | DVT build complete. Representative materials/processes used where practical. Human factors, fit/placement, comfort, release, leakage, drain/dry, acoustics/vibration, thermal behavior and routine completion have controlled validation plans and active evidence collection. |
+| **12 Feb 2027** | DVT closure target. Product requirements intended for launch are physically validated or removed from launch scope. Reliability, cycle-life, ingress/hygiene/service, battery/runtime and fault tests have quantified results. Website/app/backend are production hardened; real device integration replaces simulated adapters where hardware supports it. |
+| **5 Mar 2027** | PVT/pilot build begins from production-intent CAD/BOM/firmware/software. Supplier, tooling, assembly, CTQ, inspection, calibration, traceability, packaging and service processes are documented. No open architecture-level blocker is acceptable. |
+| **19 Mar 2027** | Pilot units pass production validation at the agreed sample size. Yield/failure data is recorded, corrective actions are bounded, manufacturing instructions and end-of-line tests are executable, and launch digital systems have production deployment/runbooks. |
+| **1 Apr 2027** | Final release-candidate review: no unresolved severity-1 or launch-blocking severity-2 defect, no unowned physical evidence gap, no fake digital capability, BOM/suppliers/tooling/process/test package frozen for controlled production. |
+| **2 Apr 2027** | **PRODUCTION READY.** Masck One may be declared production-ready only if the release-candidate definition below is actually satisfied. Missing evidence makes the gate FAIL, not late-by-definition PASS. |
+
+### Production-ready definition for 2 April 2027
+
+Production ready means ready to enter controlled manufacture of the defined launch configuration, not merely attractive CAD or a working one-off prototype. At minimum:
+
+- production-intent CAD, drawings, BOM, tolerances, materials, finishes and assembly process are frozen;
+- critical suppliers and long-lead components are selected with viable sourcing paths;
+- physical requirements in launch scope have controlled evidence and traceable acceptance results;
+- fit, placement, retention/release, protected anatomy, airway/vision where applicable, fluid containment/recovery, treatment delivery, thermal behavior, electrical safety/fault behavior, battery/runtime, drain/dry/hygiene, service and reliability gates are closed to the level required for the launch scope;
+- manufacturing CTQs, incoming inspection, in-process inspection, end-of-line test, calibration, traceability and failure handling are defined;
+- pilot/PVT units demonstrate the production process rather than hand-built exceptions;
+- firmware and device protocol are versioned and release-candidate quality;
+- website, app, backend, account/commercial flows and core algorithms are production deployed or store-ready as applicable, with hardware-dependent capability gating intact;
+- public claims remain bounded by evidence and any regulatory/claims work required for the chosen launch claims is complete or those claims are removed;
+- no evidence field is silently zero-filled, inferred or promoted from simulation when physical validation is required.
+
+### Deadline discipline
+
+- Dates are hard coordination gates. A missed gate is marked **RED** immediately; the deadline itself is not silently moved.
+- Within 24 hours of a RED gate, the conductor must publish the blocker, owner, recovery action and impact on 2 April 2027.
+- Critical-path work outranks polish. Existential physical proof, safety, source-bound integration, reliability and manufacturability outrank discretionary features and CMF refinement.
+- Parallelize digital work aggressively where it does not consume the same owners or hide hardware uncertainty.
+- Digital completeness cannot create a physical pass. Physical success cannot excuse unfinished production software.
+- Any feature that threatens the 2 April production gate without being required for the launch value proposition should be removed from launch scope rather than allowed to destabilize the core product.
+
+Top-level schedule tracking is anchored in GitHub issue #159.
 
 ## First proof gates
 

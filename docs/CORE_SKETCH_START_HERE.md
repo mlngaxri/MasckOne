@@ -2,20 +2,21 @@
 
 If you are about to work on Masck One, read in this order:
 
-1. `PRODUCT_CONCEPT.md` — highest-level product thesis and boundaries.
-2. `CORE_SKETCH_ONE_PAGE.md` — condensed product identity.
-3. `CORE_SKETCH_V1.md` — selected stable product-experience sketch.
-4. `CORE_SKETCH_CONVERGENCE_REVIEW.md` — whole-product contradictions, surviving architecture, proof gates and kill/pivot conditions.
-5. `CORE_SKETCH_P0_FEASIBILITY_CONTRACTS.md` — executable meaning of CS-015..018: required-region completion, all-contact transitions, prepared-session validity, product integrity and whole-routine resources.
-6. `CORE_SKETCH_CONTACT_OCCLUSION_MATRIX.md` — phase-by-phase map of every face-facing contact class and the shadows it must stop creating before final leave-on completion.
-7. `CORE_SKETCH_ROUTINE_RESOURCE_ENVELOPE.md` — one session-level mass/CG/torque/fluid/waste/energy/time/dock ledger. Unknown inputs stay unknown.
-8. `CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md` — the first P0 BENCH program for CLEAN -> RINSE/RECOVER -> leave-ons -> SETTLE -> non-wiping release.
-9. `CORE_SKETCH_P0_OWNER_TRIAGE.md` — dated live owner/CI triage; keep red/no-receipt work with its canonical subsystem owner.
-10. `CORE_SKETCH_FIVE_LANE_EXECUTION_PLAN.md` — current five top-level missions and routing of older subsystem work.
-11. `CORE_SKETCH_STATUS_BOARD.md` — compact current proof-gate view.
-12. `CORE_SKETCH_EXECUTION_BACKLOG.md` — dependency-ordered product-wide checklist and canonical CS IDs.
-13. `CORE_SKETCH_REPO_MAPPING.md` — mapping to existing source/docs/owner work.
-14. the relevant subsystem engineering docs, live authority, current owner PR/branch and accepted exact-head evidence.
+1. `PROGRAM_TIMELINE_2027.md` — binding cross-product deadlines, 2 November 2026 integrated proof/digital checkpoint and 2 April 2027 production-readiness gate.
+2. `PRODUCT_CONCEPT.md` — highest-level product thesis and boundaries.
+3. `CORE_SKETCH_ONE_PAGE.md` — condensed product identity.
+4. `CORE_SKETCH_V1.md` — selected stable product-experience sketch.
+5. `CORE_SKETCH_CONVERGENCE_REVIEW.md` — whole-product contradictions, surviving architecture, proof gates and kill/pivot conditions.
+6. `CORE_SKETCH_P0_FEASIBILITY_CONTRACTS.md` — executable meaning of CS-015..018: required-region completion, all-contact transitions, prepared-session validity, product integrity and whole-routine resources.
+7. `CORE_SKETCH_CONTACT_OCCLUSION_MATRIX.md` — phase-by-phase map of every face-facing contact class and the shadows it must stop creating before final leave-on completion.
+8. `CORE_SKETCH_ROUTINE_RESOURCE_ENVELOPE.md` — one session-level mass/CG/torque/fluid/waste/energy/time/dock ledger. Unknown inputs stay unknown.
+9. `CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md` — the first P0 BENCH program for CLEAN -> RINSE/RECOVER -> leave-ons -> SETTLE -> non-wiping release.
+10. `CORE_SKETCH_P0_OWNER_TRIAGE.md` — dated live owner/CI triage; keep red/no-receipt work with its canonical subsystem owner.
+11. `CORE_SKETCH_FIVE_LANE_EXECUTION_PLAN.md` — current five top-level missions and routing of older subsystem work.
+12. `CORE_SKETCH_STATUS_BOARD.md` — compact current proof-gate view and binding schedule summary.
+13. `CORE_SKETCH_EXECUTION_BACKLOG.md` — dependency-ordered product-wide checklist and canonical CS IDs.
+14. `CORE_SKETCH_REPO_MAPPING.md` — mapping to existing source/docs/owner work.
+15. the relevant subsystem engineering docs, live authority, current owner PR/branch and accepted exact-head evidence.
 
 The current top-level execution missions are:
 
@@ -31,6 +32,8 @@ The previous treatment, HMI, waste-cartridge, retention and conductor work is no
 
 The Core Sketch has passed the broad coherence review. The next work is **proof and contract execution**, not another generic whole-product brainstorm.
 
+The program now also operates under a fixed **2 April 2027 production-readiness deadline**. The **2 November 2026** checkpoint requires an integrated physical alpha with truthful critical-feasibility evidence plus feature-complete website, companion app, backend and core routine/product/control algorithms. Dates never override physical evidence or safety gates. Missed schedule gates are RED and require recovery action; they are not silently moved.
+
 For broad autonomous work:
 
 1. start from CS-015..018 and the G0..G5 proof gates;
@@ -38,7 +41,9 @@ For broad autonomous work:
 3. use the P0 contract/matrix/resource/proof documents above as the shared product interface;
 4. continue the existing canonical owner branch when an implementation owner already exists;
 5. never convert a green local CI result into BENCH/HUMAN/REG/CLAIM proof;
-6. never set an unknown resource, dose, coverage or state to zero just to make the product close.
+6. never set an unknown resource, dose, coverage or state to zero just to make the product close;
+7. prefer critical-path physical proof, integration, reliability and manufacturability over discretionary polish when schedule pressure exists;
+8. run website/app/backend/algorithm work in parallel when doing so does not consume the same critical physical owner or hide hardware uncertainty.
 
 The immediate P0 order is:
 
