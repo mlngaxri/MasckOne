@@ -1,0 +1,73 @@
+{
+  "algorithm": "DETERMINISTIC_DIFFERENTIAL_MUTATION_ON_RIGID_DISTANCE_BOUND",
+  "evaluations": 108,
+  "global_optimum_claimed": false,
+  "lower_bound_mm": 9.053348488644666,
+  "registration": {
+    "adjustments": {
+      "abstract_target_scale": [
+        1.0,
+        1.0
+      ],
+      "existing_product_adjustments": []
+    },
+    "landmark_residual_acceptance_mm": null,
+    "max_residual_mm": 9.398745434603123,
+    "near_equal_pose_separation_mixed_units": 3.3759312855136105,
+    "optimizer_converged": true,
+    "passive_alignment": "UNKNOWN",
+    "per_landmark_residual_mm": {
+      "EYE_LEFT": 8.961834137980805,
+      "EYE_RIGHT": 9.352112497838354,
+      "MOUTH": 9.398745434603123,
+      "NOSTRIL_LEFT": 4.2895043416424965,
+      "NOSTRIL_RIGHT": 4.575361259879144
+    },
+    "pose": [
+      -2.6524167872916718e-05,
+      4.99999999999995,
+      -0.0,
+      -3.3951735047154865,
+      0.36142934970348894,
+      3.34391737763979e-05
+    ],
+    "pose_limits": {
+      "extrinsic_xyz_each_deg": 4.0,
+      "xy_radius_mm": 5.0,
+      "z_mm": 0.0,
+      "z_status": "OWNER_FIXED_ZERO"
+    },
+    "region_access": "UNKNOWN",
+    "rigid_invariant_bound": {
+      "lower_bound_mm": 9.053348488644666,
+      "pair": [
+        1,
+        4
+      ],
+      "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+    },
+    "seal": "UNKNOWN",
+    "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+    "support": "UNKNOWN",
+    "whole_fit": "UNKNOWN"
+  },
+  "seed": 20260912,
+  "variation": {
+    "asymmetry": 2.783995343636433,
+    "bridge_projection": -0.9892993400494832,
+    "brow_projection": 3.2953434079775947,
+    "cheek_curvature": -1.8806277306494181,
+    "cheek_prominence": 2.6617737678123525,
+    "chin_projection": -4.395637148954553,
+    "eye_spacing": 6.817245626313443,
+    "face_height": 18.0,
+    "face_width": 4.932787367373333,
+    "forehead_curvature": 5.32904186772593,
+    "jaw_width": -5.142049523177789,
+    "local_curvature": 3.189850244144934,
+    "lower_face_projection": -5.490041909951999,
+    "mouth_width": -0.16857311338408554,
+    "mouth_y": -10.0,
+    "nasal_width": -0.6826550460012496
+  }
+}
