@@ -5,6 +5,7 @@ tested rigid shell. This is a conservative projected-domain screen; unresolved
 anatomical depth must not be inferred from that extrusion.
 """
 from hashlib import sha256
+from dataclasses import asdict
 import json
 from pathlib import Path
 import math
@@ -45,9 +46,18 @@ def protected_screen(v=Variation(),pose=(0,0,0,0,0,0),model=None):
             'status':'PROJECTED_PROTECTED_CONFLICT' if amount>1e-7 else 'PROJECTED_PROTECTED_CLEAR',
             'rigid_clearance_mm':z.required_rigid_clearance_mm,'shape_width_mm':width,
             'anatomical_depth':'UNKNOWN','reference_kind':'CONSERVATIVE_PROTECTED_PRISM'}
+    source=source_snapshot()
+    target_cells={}
+    for t in m.coverage_mesh.triangles:
+        if t.is_target:target_cells.setdefault(t.region_id,[]).append(t.triangle_index)
     return {'source_shell':'src/masck_one/model.py:_build_shell','source_role':m.shell.geometry_role.value,
+            'source_main':source['main'],'variation':asdict(v),'frame':'MASCK_ONE_AUTHORITY_WORLD_MM',
+            'analysis_source_sha256':sha256(Path(__file__).read_bytes()).hexdigest(),
             'source_surface_kind':m.facial_surface.descriptor.kind,'source_sha256':source_snapshot()['consumed_files'],
             'runtime_cadquery':cq.__version__,'pose':list(pose),'zones':results,
+            'required_domain':{'source_mesh_sha256':m.coverage_mesh.source_surface_sha256,
+                'required_cells_by_source_region':target_cells,'every_cell_access_status':'UNKNOWN',
+                'reason':'CS015 required routine regions lack measured surface and owner contact registration'},
             'whole_fit':'UNKNOWN','physical_validation':False},shapes,s
 
 

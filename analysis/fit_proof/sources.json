@@ -186,5 +186,72 @@
     "Passive self-alignment constraint/contact geometry",
     "Integrated emergency and normal whole-head removal",
     "CS015 required regions registered to a measured surface"
-  ]
+  ],
+  "read_only_owner_files": [
+    {
+      "pr": 117,
+      "head": "c06bed04f598b9c09a76e0207e0c562b51c70984",
+      "path": "src/masck_one/structural_frame_retention_roots.py",
+      "sha256": "f7250a67f7a1f7bcb41159be8b2675f709ceb0b8c55d85a638f63f7a061fa25b",
+      "git_blob": "1cf6357898d62afc9ebdc28d3f6394c12dd76644",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 117,
+      "head": "c06bed04f598b9c09a76e0207e0c562b51c70984",
+      "path": "src/masck_one/structural_frame_crown_support.py",
+      "sha256": "bdf2efacc5badf8809b2ded5e8c3976fdac2bfa594551210ade5a8a03053d533",
+      "git_blob": "aff317669d115bcd65f21421828a557b00deba5e",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 135,
+      "head": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "path": "src/masck_one/treatment_mounted_four_zone_v10.py",
+      "sha256": "135fd91fe7a156f48ca65c372755cc21ba51a5fcd7af040f57a483928fe4e4dd",
+      "git_blob": "dd03f0637a38c5ac96a71c60c30fe0a3e32235e8",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 135,
+      "head": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "path": "src/masck_one/treatment_cell6_source_binding.py",
+      "sha256": "de95ffba7277f93123c5a27c0ad73b7b2f760b4b445fa3bed33dc6a6303437bb",
+      "git_blob": "7215d1a21e78ee19933216100e9394324a920690",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 141,
+      "head": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+      "path": "src/masck_one/mechanical_interface_graph.py",
+      "sha256": "24a8708557cc5829e0a77c5628c6c620b7cd206ccc1ce2b287f6f7076cee545b",
+      "git_blob": "d4d01703ca5f4c4d57409fb69a8dc9e0b4081b17",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 141,
+      "head": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+      "path": "src/masck_one/retention_quick_release_tactile_v3.py",
+      "sha256": "68763c2888cd27221ced204138633f54b6c84de85866f2570d9dc5aa0c59066a",
+      "git_blob": "278da9ab8b4c08cdc8fa011452866430da95ed8d",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 143,
+      "head": "d2b82e50d5bfbadb4a60588a9119139b4742031a",
+      "path": "src/masck_one/thermal_reset_hardware.py",
+      "sha256": "bdd9371b2b95c33cab3df5c2815afcce39e82c2b4888866f1edbad09c31d73f3",
+      "git_blob": "d0acc062be1b23e1363dfb17642a6591d1429e77",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 70,
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "path": "src/masck_one/exterior_surface.py",
+      "sha256": "39640cd7f912811d08a3257abd7445c6e433ad24679cb44229143518c1ccbe8a",
+      "git_blob": "bb9185ffadc91f11ccac3285bb4c3d4db496e9dd",
+      "registration_to_measured_face": "UNKNOWN"
+    }
+  ],
+  "component_registry_pin_check": "All registry producer blob IDs match this main snapshot; no producer rebind performed"
 }

@@ -1,0 +1,40 @@
+{
+  "eye_only": {
+    "nullspace": [
+      [
+        0.0,
+        0.0,
+        -0.9995920864606948,
+        0.028559773898877,
+        1.0581861962812706e-18,
+        0.0
+      ]
+    ],
+    "physical_datum_selection": "UNKNOWN",
+    "rank": 5,
+    "singular_values": [
+      66.60033930382643,
+      49.517673612559776,
+      44.54772721475249,
+      1.414213562373095,
+      0.9459411267050472,
+      -0.0
+    ],
+    "unconstrained_rigid_modes": 1
+  },
+  "five_landmarks": {
+    "nullspace": [],
+    "physical_datum_selection": "UNKNOWN",
+    "rank": 6,
+    "singular_values": [
+      85.24965362005386,
+      71.15128209068969,
+      46.95742752749559,
+      2.23606797749979,
+      2.2352981145341415,
+      2.2349623824796923
+    ],
+    "unconstrained_rigid_modes": 0
+  },
+  "meaning": "Potential datum strategy requirement, not a new sensor or retention mechanism"
+}

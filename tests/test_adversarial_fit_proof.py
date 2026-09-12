@@ -104,3 +104,38 @@ def test_normal_extension_is_counterfactual_not_current_adjustment():
     r=solve_registration(Variation(bridge_projection=4),extra_z_mm=10,multistart=False)
     assert r['pose_limits']['z_status']=='ABSTRACT_CAPABILITY_ONLY'
     assert r['adjustments']['existing_product_adjustments']==[]
+
+
+@pytest.mark.parametrize('pair',[(0,1),(2,3),(0,4)])
+def test_eye_nasal_mouth_near_capacity_boundary_is_local_not_aggregate(pair):
+    p=np.array(list(nominal_landmarks().values()))[list(pair)]
+    direction=(p[1]-p[0])/np.linalg.norm(p[1]-p[0])
+    just_inside=p.copy();just_outside=p.copy()
+    just_inside[1]+=direction*(6-1e-5);just_outside[1]+=direction*(6+1e-5)
+    assert pair_distance_lower_bound(just_inside,p)['lower_bound_mm']<3
+    assert pair_distance_lower_bound(just_outside,p)['lower_bound_mm']>3
+    # Three millimetres here is a test capacity, not an anatomy/safety bound.
+
+
+def test_asymmetry_can_hide_in_good_landmarks_while_surface_remains_unresolved():
+    from masck_one.adversarial_fit_campaign import surface_demand
+    v=Variation(asymmetry=8);r=solve_registration(v,multistart=False)
+    demand=surface_demand(v,r)
+    assert r['max_residual_mm']<1
+    assert demand['maximum_absolute_z_mm']>3
+    assert demand['seal_support_feasible']=='UNKNOWN'
+
+
+def test_capture_serializes_and_does_not_promote_numerical_endpoint():
+    import json
+    from masck_one.adversarial_fit_campaign import capture_slices
+    result=capture_slices(Variation(),grid=2)
+    json.dumps(result,allow_nan=False)
+    assert result['unknown']==12 and result['robustly_recoverable_proven']==0
+    assert all(r['physically_recoverable'] is None and not r['continuous_path_proved'] for r in result['rows'])
+
+
+def test_source_mesh_and_generated_mesh_are_reference_only():
+    f=face(Variation(),include_mesh=True)
+    assert f['surface']['kind']=='PLANAR_DEVELOPMENT_REFERENCE'
+    assert not f['folded_cells'] and f['mesh_status']=='VALID_SYNTHETIC_REFERENCE_MESH'

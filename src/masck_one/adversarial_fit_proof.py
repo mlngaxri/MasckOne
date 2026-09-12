@@ -251,6 +251,9 @@ def alignment_rank(points):
 def boundary_search(parameter, signed_endpoint, capacity_mm, steps=18):
     """Bisection along one specified ray, not a global minimum morphology claim."""
     lo=0.;hi=number(signed_endpoint);evaluations=[]
+    end=solve_registration(Variation(**{parameter:hi}),multistart=False)
+    if capacity_result(end,capacity_mm)=='CANDIDATE_WITHIN_ASSUMED_CAPACITY':
+        return {'status':'NO_FAILURE_BRACKET','parameter':parameter,'conditional_capacity_mm':capacity_mm}
     for _ in range(steps):
         mid=(lo+hi)/2;v=Variation(**{parameter:mid});r=solve_registration(v,multistart=False)
         status=capacity_result(r,capacity_mm);evaluations.append((mid,status))
