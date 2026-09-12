@@ -1,0 +1,80 @@
+{
+  "conditional_capacity_mm": 3.0,
+  "frame": "MASCK_ONE_AUTHORITY_WORLD_MM",
+  "generator_sha256": "5930e92e770d11ed39603e5e465e083e843d90f1f7b13b6da87ddc0f1c565eb8",
+  "lower_ray_scale": 0.8745481157675385,
+  "minimum_claim": "SMALLEST_ON_PRUNED_EXPLORED_RAY_NOT_GLOBAL",
+  "normalized_perturbation": 0.8745481166988611,
+  "parameters": {
+    "asymmetry": 0.0,
+    "bridge_projection": 0.0,
+    "brow_projection": 0.0,
+    "cheek_curvature": 0.0,
+    "cheek_prominence": 0.0,
+    "chin_projection": 0.0,
+    "eye_spacing": 0.0,
+    "face_height": 15.7418661005795,
+    "face_width": 0.0,
+    "forehead_curvature": 0.0,
+    "jaw_width": 0.0,
+    "local_curvature": 0.0,
+    "lower_face_projection": 0.0,
+    "mouth_width": 0.0,
+    "mouth_y": 0.0,
+    "nasal_width": 0.0
+  },
+  "physical_failure_claimed": false,
+  "proof": "Rigid-distance invariant exceeds assumed local residual capacity",
+  "registration": {
+    "adjustments": {
+      "abstract_target_scale": [
+        1.0,
+        1.0
+      ],
+      "existing_product_adjustments": []
+    },
+    "landmark_residual_acceptance_mm": null,
+    "max_residual_mm": 3.1858538536887053,
+    "near_equal_pose_separation_mixed_units": 1.7636231786498745e-06,
+    "optimizer_converged": true,
+    "passive_alignment": "UNKNOWN",
+    "per_landmark_residual_mm": {
+      "EYE_LEFT": 3.1858538536887053,
+      "EYE_RIGHT": 3.1858538536887053,
+      "MOUTH": 3.1858538536887053,
+      "NOSTRIL_LEFT": 4.672175535347379e-08,
+      "NOSTRIL_RIGHT": 4.672175535347379e-08
+    },
+    "pose": [
+      -4.672175490510155e-08,
+      0.5622095035921247,
+      -0.0,
+      0.0,
+      0.0,
+      -1.2691651840904352e-15
+    ],
+    "pose_limits": {
+      "extrinsic_xyz_each_deg": 4.0,
+      "xy_radius_mm": 5.0,
+      "z_mm": 0.0,
+      "z_status": "OWNER_FIXED_ZERO"
+    },
+    "region_access": "UNKNOWN",
+    "rigid_invariant_bound": {
+      "lower_bound_mm": 3.0000010009470444,
+      "pair": [
+        0,
+        4
+      ],
+      "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+    },
+    "seal": "UNKNOWN",
+    "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+    "support": "UNKNOWN",
+    "whole_fit": "UNKNOWN"
+  },
+  "scale_bracket": 9.313225746154785e-10,
+  "source_main": "17f7d02c6178af8d33e4dfefb5043b497684ddb3",
+  "source_snapshot_digest": "48a640ddb71b324c5da8e61f20be726f8690f338bcec7b06ab7fb4f1a7ace8f5",
+  "upper_ray_scale": 0.8745481166988611
+}

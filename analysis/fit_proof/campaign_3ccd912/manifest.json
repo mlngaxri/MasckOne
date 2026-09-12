@@ -1,0 +1,125 @@
+{
+  "adaptive_evaluations": 108,
+  "artifacts": {
+    "adaptability.json": "0fa06816f5bfa298701776b515bdb10f773a1ade854a69d66e0347bf75f378fd",
+    "adversary_search.json": "2372f9a0e749180fdb2690444781d6255346d2c084ee5e609f18e8dd1b3c51e7",
+    "boundary.json": "282aaee8b3237e324748de0448a29a2dc2b0db3be10715daba218d9b319b5781",
+    "capture.json": "a5a432ccd9d049261c62502993ee77dd2b270c69847229089f9fad2af2036f03",
+    "capture_slices.svg": "ad7dd7ed461fb31cbbc6d4eae061357ebd0f2b9b6402284b15e80531f0f746ee",
+    "case_set.json": "1be8eec0c66588b3ddae33aafcbe74fdbeccca6d47d4648f271c84dee994d700",
+    "false_seat_search.json": "9b58b024cf6db285ecf98c42bec99ac7b74251e9775e7f6c510789170eed4ebf",
+    "false_seat_surface.svg": "2d3268e4be2b0b5f111e1fbeae9bee22c95315e7d16b2cdccbabe57e9959b447",
+    "initial_to_solved.svg": "5ded7d2a6cb1eea37030e66782ba4559c24c8ae91022427e8f99cde259e84b6d",
+    "morphology_comparison.svg": "d6ba150723f1d92808bbe4c40426a6d4c50ba540dac6e22351d3cf068617eced",
+    "nearest_boundary.svg": "d63b3468af935a1521d02598d8af6a4381529113bf4f919ddc98c12f2dc0755b",
+    "numeric_reuse.json": "413b2b2eb18af9729e55976ca8e5e9253bd2233ddaf4e546ee6aa618aaee6feb",
+    "parameter_sensitivity.svg": "1d13b0dbda8edfee50fb406eb3aa36354c3915f491c1926b2795e2aa22b77a50",
+    "projected_screens.json": "593102da3e1c96b04ea50bd784df1482605071b841aa1b547ea2d99df730512d",
+    "residual_demands.svg": "fa7f0c363c8b7cbdd26ef6603f32aedb82fabb39706ef27c55781faf8e020017",
+    "witnesses/adversary.json": "85305439965f2e4769abc3aefd771d9d2e9d89c4aaada1928913791bc7cfc025",
+    "witnesses/asymmetry.json": "83e4d83f569f26cc1fe9b6f8031277b2ba6035a784c3e1969eb8e19b02e2b8e3",
+    "witnesses/eye_spacing_candidate.json": "dadb45b81b9b01b9a9d9d3cc49b6cb018e1c196695e358f4f902f9876b68dcf5",
+    "witnesses/eye_spacing_failure.json": "0008b2f671cc85d56bda9fba836c7cda0b74dedc5262e19a7df2b11b1b003cf9",
+    "witnesses/eyes_hide_mouth.json": "56802936629c218a72e0570bc2bbce3e49fcf5105f557f9976fb3cc719857ed1",
+    "witnesses/false_surface.json": "98f9a3384e893643a12c386bc9c2eb9cffef3b8c61a5b5279d636fd2dd7756d6",
+    "witnesses/initial_to_solved.json": "c1f84c4bc2f085fac8d93dae7f8e30304ffcf1b3c2a07b1d82ccfd6a8ce77a8c",
+    "witnesses/nominal.json": "5fe778c3b841fd785ed7ec8504973093e272733b853f403cc5cfc8c80fa2bcae"
+  },
+  "capacity_bands_are_unqualified": true,
+  "decision": "D_DIGITAL_INDETERMINATE",
+  "initial_pose_cases": 183,
+  "passive_capture_proven": 0,
+  "physical_results": null,
+  "provenance": {
+    "analysis_checkout_head": "401111029ddf99a9a17a6d086c0095275d944e0a",
+    "branch": "proof/adversarial-fit-20260912",
+    "code_hashes": {
+      "adversarial_fit_campaign.py": "abf9e1ea7d112a790fb526d63bc366f536a7b136ee6181dfeb6bc7f72be241ad",
+      "adversarial_fit_geometry.py": "157ac6cdbe86f0841fca401f6de8e634f46bd21debf6055beb33ac226dfdf1fb",
+      "adversarial_fit_proof.py": "90b16ff69176afb2e78a3f2bcd25fd832042bb9f96c17df15d65a738e1aae6bc",
+      "adversarial_fit_study.py": "d8e5581c9daf3d2daf47ecaed8870ea405e3da2e4b6ed87a5d36306c12c87eac"
+    },
+    "coordinate_frame": "X wearer right; Y superior; Z anterior; extrinsic Rz Ry Rx",
+    "evidence": "SYNTHETIC_DIGITAL_ONLY",
+    "geometry_identities": [
+      {
+        "git_blob": "42656ecc57acaed9e866a46b7c3aa14867c44b62",
+        "path": "config/masck_one_authority.yaml",
+        "sha256": "30e1e94cb88ea9b657ec5168c7657892f8109c5ddef3f4773c7849780eca11bf"
+      },
+      {
+        "git_blob": "52c90085c474152e6a2adc9e0459cf665d006618",
+        "path": "config/masck_brand_authority.yaml",
+        "sha256": "5d69bb484b45f0d653bdfd78ded3bfb35faa15d74880c36a3dc2c0a2509ad9b0"
+      },
+      {
+        "git_blob": "764f6f65b83ac7709d959bb0f37f861c90ea2794",
+        "path": "src/masck_one/facial_surface.py",
+        "sha256": "b11c99bc994aa96a974e6d95a06330d1389f10727c4b7de6d689fa4493f2255e"
+      },
+      {
+        "git_blob": "872d1e5be1b9ce9baa5b63cb53462eb7b36f40ab",
+        "path": "src/masck_one/anatomy.py",
+        "sha256": "23ac0e557928e70db2170e23797537667776735614e7dedc22222c3498c70467"
+      },
+      {
+        "git_blob": "299e4ebb5946c2b1ac56b2c64dde2c0a8744abf2",
+        "path": "src/masck_one/reference_surfaces.py",
+        "sha256": "2b5caecd019c0ba65853f840eb893a1d98c7fa8e36710575490c2fdc2c49f068"
+      },
+      {
+        "git_blob": "8c1106b523fef5111009cc56236a53e3bc5ee10e",
+        "path": "src/masck_one/spatial.py",
+        "sha256": "507114d68e312c90fb6da38e094debba72abdba9e25e5f7067fdf2713b2cef48"
+      },
+      {
+        "git_blob": "9d4ed65246fbc92ac577ce38bceb95cd2253607b",
+        "path": "src/masck_one/worn_pose.py",
+        "sha256": "ff904d5df89c3d7115f3aa253acdcf43803489cd3a823929558a199d12f2e727"
+      },
+      {
+        "git_blob": "ab48b3ca47e7ec8ecb7d3ecb31e7fe22b3ebca68",
+        "path": "src/masck_one/model.py",
+        "sha256": "62ca91e2b400197be6212901d64765ec036bd0cf5a46bb2e537b2e3ac7575282"
+      },
+      {
+        "git_blob": "ff2b9b288559f9b268e5d08a1d6c78335f745cf1",
+        "path": "src/masck_one/protected_volumes.py",
+        "sha256": "258bc9f3ee9270287ee8d424c9332ef112ffaa6b77717df402255ceddc82e499"
+      },
+      {
+        "git_blob": "4a8cec4d94db97e63f634a94dd8c90094f3afcb0",
+        "path": "src/masck_one/coverage.py",
+        "sha256": "f96bdaabcb6649cf7aa1eee8285a3ac1119f9dabc816e805c69a240e53974dc3"
+      },
+      {
+        "git_blob": "38b7c932f71a8675d45d098ac65154f98ff8bbb5",
+        "path": "src/masck_one/interface_topology.py",
+        "sha256": "e458a63f4c7e07d43a532c23f1104315b79e3a67544bddaed7c7fbc46e41ecb9"
+      },
+      {
+        "git_blob": "c8ee620ae02f5666b38266d18543ade10f236355",
+        "path": "src/masck_one/component_registry.py",
+        "sha256": "48796f1bab5338f27b36eaf1c5d880c3350df4797781c54aab27a7759cde939f"
+      },
+      {
+        "git_blob": "65ee6ac818f0beebc6456c1e30c31b8e13a459bf",
+        "path": "src/masck_one/cleansing_fit.py",
+        "sha256": "481cfc8058b80ef4b07a1941292d607dc0fa875e09c698e0720118b5e2d4cb41"
+      }
+    ],
+    "main": "3ccd9128810e6a6f4d01d57067be777345aa1484",
+    "original_analyzed_main": "17f7d02c6178af8d33e4dfefb5043b497684ddb3",
+    "pr": 158,
+    "snapshot_digest": "9fdef8ce38549139b24c0f86b233d2e6ab3b139d407f2f0f80b818e97654e8b7"
+  },
+  "schema": "MASCK_FIT_STUDY_2",
+  "source_dependencies": [
+    "Registered facial/headform depth",
+    "Source-bound compliant support/seal travel",
+    "Passive self-alignment constraint/contact geometry",
+    "Integrated emergency and normal whole-head removal",
+    "CS015 required regions registered to a measured surface"
+  ],
+  "synthetic_cases": 50
+}
