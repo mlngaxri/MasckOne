@@ -84,7 +84,12 @@ def source_snapshot(root=ROOT):
     data=json.loads(path.read_text())
     for row in data['consumed_files']:
         p=root/row['path']
-        if not p.is_file() or sha256(p.read_bytes()).hexdigest()!=row['sha256']:
+        allowed={row['sha256']}
+        # Only an explicitly reviewed documentary predecessor can coexist with
+        # current main. Geometry/authority never receives this exception.
+        if row['path'].startswith('docs/') and 'accepted_original_context_sha256' in row:
+            allowed.add(row['accepted_original_context_sha256'])
+        if not p.is_file() or sha256(p.read_bytes()).hexdigest() not in allowed:
             raise FitProofError('missing/stale consumed source: '+row['path'])
     return data
 

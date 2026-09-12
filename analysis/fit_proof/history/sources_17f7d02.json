@@ -1,5 +1,5 @@
 {
-  "main": "3ccd9128810e6a6f4d01d57067be777345aa1484",
+  "main": "17f7d02c6178af8d33e4dfefb5043b497684ddb3",
   "observed_owner_heads": [
     {
       "pr": 157,
@@ -159,9 +159,8 @@
     },
     {
       "path": "docs/CORE_SKETCH_STATUS_BOARD.md",
-      "sha256": "afa0f3416fabc5f6bb4d28ec006f7cadedf0459ad1e36996770b4d1ba1edb44a",
-      "git_blob": "63017d794b83dbf701ab06ab1311584d86b2fb36",
-      "accepted_original_context_sha256": "2638fd7c859af42118c3f74485bdb0cd32f307c61a9eb804fe99236b64d19445"
+      "sha256": "2638fd7c859af42118c3f74485bdb0cd32f307c61a9eb804fe99236b64d19445",
+      "git_blob": "6b3ac61c15c924aa9f270e04cb5d7584075b5000"
     },
     {
       "path": "docs/CORE_SKETCH_PRIORITY_RULES.md",
@@ -254,39 +253,5 @@
       "registration_to_measured_face": "UNKNOWN"
     }
   ],
-  "component_registry_pin_check": "All registry producer blob IDs match this main snapshot; no producer rebind performed",
-  "original_analyzed_main": "17f7d02c6178af8d33e4dfefb5043b497684ddb3",
-  "main_reconciliation": {
-    "changes": [
-      {
-        "path": "docs/CORE_SKETCH_START_HERE.md",
-        "sha256": "9902918c901214a19efa2e2e2feff55bdd3b27b3d7f336f14d25f42eac98055f",
-        "git_blob": "9397faf52f9480ff70898384f6c0760c99a7931c"
-      },
-      {
-        "path": "docs/CORE_SKETCH_STATUS_BOARD.md",
-        "sha256": "afa0f3416fabc5f6bb4d28ec006f7cadedf0459ad1e36996770b4d1ba1edb44a",
-        "git_blob": "63017d794b83dbf701ab06ab1311584d86b2fb36"
-      },
-      {
-        "path": "docs/PROGRAM_TIMELINE_2027.md",
-        "sha256": "58e57c6a6636c6ce5fb2300b6c953744e2503bdeedcdea6bdf8e4ec38f864be4",
-        "git_blob": "dfc8c28ece5c858966505a8a23be4d393773bc90"
-      }
-    ],
-    "geometry_changed": false,
-    "authority_changed": false,
-    "context_only": true,
-    "rebase_required": false,
-    "reason": "Known schedule-only documentary revisions, no geometry change; preserve original analysis and accept both exact context hashes on head and merge checkout. Any other digest is rejected."
-  },
-  "owner_movement": [
-    {
-      "pr": 117,
-      "previous": "c06bed04f598b9c09a76e0207e0c562b51c70984",
-      "current": "5906d63c603d7c52f3f84d554b2a400a21cbf932",
-      "status": "UPSTREAM_MOVED_NOT_REEXECUTED",
-      "effect": "No frame seating conclusion used; source-bound passive support remains UNKNOWN"
-    }
-  ]
+  "component_registry_pin_check": "All registry producer blob IDs match this main snapshot; no producer rebind performed"
 }
