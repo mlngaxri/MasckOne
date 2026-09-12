@@ -17,7 +17,7 @@ def test_actual_void_excludes_fins_floor_lid_and_is_connected():
 
 def test_bench_components_and_full_continuous_withdrawal():
     parts,refs,m=build_thermal_reset_hardware()
-    assert len(parts)==12
+    assert len(parts)==14
     for p in parts.values():assert p.isValid() and len(p.Solids())==1 and p.Volume()>0
     assert all(v==0 for v in m['internal_and_bench_motion_intersections_mm3'].values())
     assert not (set(parts)&set(refs))

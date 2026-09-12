@@ -61,12 +61,19 @@ class CoolHeatRejectionPath:
             "onboard_heat_sink_claimed": self.onboard_heat_sink_claimed,
             "external_dock_sink_performance_validated": self.external_dock_sink_performance_validated,
             "dock_interface": dock,
+            "reservation_status": "HISTORICAL_UNREALIZED_PATH; SEE_THERMAL_RESET_HARDWARE_FOR_CURRENT_OFF_FACE_CANDIDATE",
             "interpretation": "GEOMETRIC_PATH_ONLY_NOT_COOLING_CAPABILITY_CONDENSATION_OR_SKIN_SAFETY_EVIDENCE",
         }
 
 
 def required_external_sink_energy_J(*, heat_to_reject_J: float, transfer_efficiency: float) -> float:
-    """Return sink-side energy requirement from explicit evidence inputs only."""
+    """Legacy capacity-sizing allowance, NOT heat actually transferred.
+
+    Dividing by a utilization factor enlarges the specified sink capacity. It
+    does not create additional heat or close an energy balance. Physical reset
+    energy and heat-flow rates are accounted separately in thermal_reset_physics.
+    Kept for API compatibility with the reservation owner.
+    """
     if type(heat_to_reject_J) not in (int, float) or not math.isfinite(float(heat_to_reject_J)):
         raise WarmCoolPackageError("heat_to_reject_J must be finite numeric evidence")
     if heat_to_reject_J <= 0:

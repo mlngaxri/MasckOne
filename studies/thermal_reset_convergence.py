@@ -2,8 +2,8 @@
 from dataclasses import replace
 import json
 from pathlib import Path
-from masck_one.thermal_reset_hardware import cassette,Parameters
-from masck_one.thermal_reset_physics import Store,FixtureInputs,transient,dock_reset,architecture_trade,dewpoint_screen
+from masck_one.thermal_reset_hardware import cassette,dock,Parameters
+from masck_one.thermal_reset_physics import Store,FixtureInputs,transient,dock_reset,dock_transient,architecture_trade,dewpoint_screen
 
 
 def study():
@@ -62,6 +62,30 @@ def study():
                                   choke_R+pcm_R,charging)
                 reset.append(dict(store_above_ambient_K=delta,contact_h_W_m2K=hcontact,
                                   charging_heat_per_cheek_W=charging,**result))
+    # Full reset network: same finite sink serves both independently tracked
+    # cheeks. Include plate/film/sensor/back energy, not just stored PCM heat.
+    dock_parts=dock(p,g['plate_front_z_mm'])
+    sink_mass_g=dock_parts['dock_receiver_heat_sink'].Volume()*metal_density_g_mm3
+    reset_cases={}
+    nominal=cases['warm_then_cool']['reset_initial_state']
+    for label,ambient,charging,hleft,hright,initial in [
+        ('nominal',-5.,0.,1000.,1000.,{'LEFT':nominal,'RIGHT':nominal}),
+        ('charge_during_reset',-5.,.5,1000.,1000.,{'LEFT':nominal,'RIGHT':nominal}),
+        ('weak_left_contact',-5.,0.,50.,1000.,{'LEFT':nominal,'RIGHT':nominal}),
+        ('warm_room',-2.,0.,1000.,1000.,{'LEFT':nominal,'RIGHT':nominal}),
+        ('warm_room_charging',-2.,.5,1000.,1000.,{'LEFT':nominal,'RIGHT':nominal}),
+        ('ambient_above_solidus',2.,0.,1000.,1000.,{'LEFT':nominal,'RIGHT':nominal}),
+        ('asymmetric_cheeks',-5.,0.,1000.,1000.,{s:r['reset_initial_state'] for s,r in asymmetric.items()}),
+    ]:
+        result=dock_transient({'LEFT':store,'RIGHT':store},initial,
+            contact_W_K={s:h*g['plate_area_mm2']*1e-6 for s,h in [('LEFT',hleft),('RIGHT',hright)]},
+            store_plate_W_K={s:inputs.plate_store_W_K for s in initial},
+            sink_heat_capacity_J_K=sink_mass_g*metal_cp_J_gK,sink_ambient_W_K=sink_area*5.*.8,
+            ambient_delta_K=ambient,plate_back_W_K=inputs.plate_back_W_K,
+            back_ambient_W_K=inputs.back_ambient_W_K,plate_ambient_W_K=inputs.plate_ambient_W_K,
+            charging_heat_W=charging)
+        reset_cases[label]=dict(ambient_delta_K=ambient,charging_W=charging,
+            contact_h_W_m2K={'LEFT':hleft,'RIGHT':hright},**result)
     return dict(schema='MASCK_ONE_THERMAL_RESET_CONVERGENCE',physical_validation=False,
         historical_source='2bcdba02e9ee30e86baa74e7cecc9095e8bf4a71',
         historical_reproduced_global_reserves_J={'post_recovery_0p4mL':345.13461698151923,'full_water_4mL':3.1067485045566627},
@@ -72,11 +96,13 @@ def study():
             planning_capacity_J=store.capacity_J,choke_K_W=choke_R,PCM_internal_screen_K_W=pcm_R,
             plate_store_W_K=inputs.plate_store_W_K,plate_mass_g=plate_mass_g),
         two_cheek_known_mass_DOE_g=2*(store.mass_g+metal_mass_g),
-        unknown_mass='INSULATION_HEATER_SENSORS_ENCAPSULATION_HARNESS_AND_MOUNTS',
-        original_WARM_reservation_depth_mm=2.4,new_passive_fixture_depth_mm=10.6,
+        unknown_mass='INSULATION_HEATER_SENSORS_RETAINER_ENCAPSULATION_HARNESS_AND_MOUNTS',
+        original_WARM_reservation_depth_mm=2.4,new_passive_fixture_depth_mm=p.store_depth_mm+p.choke_length_mm+p.plate_thickness_mm,
         shell_growth_required='UNKNOWN_UNTIL_CURRENT_EXTERIOR_AND_FRAME_CHECK',
         cases=cases,asymmetric_cheeks=asymmetric,cooling_sensitivity=sensitivity,warm_sensitivity=warm_sensitivity,
-        dock_reset=reset,trade=architecture_trade(350.,180.,1.,5.),
+        dock_reset=reset,dock_reset_transient=reset_cases,
+        dock_only_mass_DOE_g={'metal_sink':sink_mass_g,'polymer_cradle':'DENSITY_UNSELECTED'},
+        trade=architecture_trade(350.,180.,1.,5.),
         condensation=[dict(ambient_C=t,RH_percent=rh,**dewpoint_screen(t,rh,t-3.,1.))
                       for t,rh in [(22.,40.),(25.,60.),(28.,80.),(30.,90.)]],
         faults={'heater_stuck_on':'INDEPENDENT_HARDWARE_CUTOFF_REQUIRED; NOT_IMPLEMENTED_ELECTRONICALLY',
