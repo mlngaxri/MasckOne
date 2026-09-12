@@ -172,18 +172,19 @@ def false_seat_search(cases):
 
 
 # Cost vector entries are scenario assumptions, not measured cost or convenience.
-# [added DOFs, independently adjusted elements, user settings upper bound,
-#  extra SKUs, coupled subsystem groups, regional moving interfaces]
+# [added DOFs, independently adjusted elements, manual settings if implemented,
+#  extra SKUs, coupled subsystem groups, regional moving interfaces,
+#  existing pose axes with an expanded unqualified range]
 CAPABILITIES = {
-    'CURRENT': {'cost': [0, 0, 0, 0, 0, 0]},
-    'GLOBAL_Z10': {'z': 10., 'cost': [1, 1, 1, 0, 1, 0]},
-    'XY8': {'xy': 8., 'cost': [2, 1, 2, 0, 1, 0]},
-    'ANGLES6': {'angle': 6., 'cost': [3, 1, 3, 0, 1, 0]},
-    'BILATERAL_Z5': {'bilateral': 5., 'cost': [2, 2, 2, 0, 3, 2]},
-    'LOCAL_NORMAL5': {'local': 5., 'cost': [5, 5, 5, 0, 3, 5]},
-    'SIZES_100_105': {'scales': [1., 1.05], 'cost': [0, 0, 0, 1, 4, 0]},
-    'SIZES_095_100_105': {'scales': [.95, 1., 1.05], 'cost': [0, 0, 0, 2, 4, 0]},
-    'SIZE_AND_LOCAL': {'scales': [1., 1.05], 'local': 5., 'cost': [5, 5, 5, 1, 4, 5]},
+    'CURRENT': {'cost': [0, 0, 0, 0, 0, 0, 0]},
+    'GLOBAL_Z10': {'z': 10., 'cost': [1, 1, 1, 0, 1, 0, 0]},
+    'XY8': {'xy': 8., 'cost': [0, 0, 0, 0, 1, 0, 2]},
+    'ANGLES6': {'angle': 6., 'cost': [0, 0, 0, 0, 1, 0, 3]},
+    'BILATERAL_Z5': {'bilateral': 5., 'cost': [2, 2, 2, 0, 3, 2, 0]},
+    'LOCAL_NORMAL5': {'local': 5., 'cost': [5, 5, 5, 0, 3, 5, 0]},
+    'SIZES_100_105': {'scales': [1., 1.05], 'cost': [0, 0, 0, 1, 4, 0, 0]},
+    'SIZES_095_100_105': {'scales': [.95, 1., 1.05], 'cost': [0, 0, 0, 2, 4, 0, 0]},
+    'SIZE_AND_LOCAL': {'scales': [1., 1.05], 'local': 5., 'cost': [5, 5, 5, 1, 4, 5, 0]},
 }
 
 
@@ -257,7 +258,9 @@ def adaptability(cases):
     return {'recommendation': 'NO_DIGITAL_ADAPTABILITY_CHANGE_JUSTIFIED_YET',
             'reason': 'All are conditional landmark relaxations; none closes source/mechanical unknowns.',
             'same_case_count': len(cases), 'candidates': rows,
-            'cost_axes': ['added_DOF', 'independent_elements', 'user_settings_upper_bound', 'extra_SKUs', 'coupled_groups', 'regional_moving_interfaces'],
+            'cost_axes': ['added_DOF', 'independent_elements', 'manual_settings_if_implemented', 'extra_SKUs', 'coupled_groups', 'regional_moving_interfaces', 'expanded_pose_axes'],
+            'donning_precision_requirement': None,
+            'cost_scope': 'Partial-information Pareto frontier. Range extension is not a new rigid DOF. Coupling counts are scenario groupings, not established part counts.',
             'cost_evidence': 'EXPLICIT_UNQUALIFIED_SCENARIO_VECTOR_NOT_UNIT_COST_OR_USER_RESEARCH',
             'pareto_by_assumed_capacity': {str(t): pareto_front(rows, t) for t in (1., 3., 5.)},
             'capacity_qualification': None,
@@ -298,6 +301,7 @@ def run(output, capabilities=False):
     base = [(name, v, solve_registration(v, multistart=False)) for name, v in build_case_set()]
     witnesses = [make_witness(name, v, registration=r) for name, v, r in base]
     save(output/'case_set.json', witnesses)
+    save(output/'witnesses/nominal.json', witnesses[0])
     adv = adversarial_search(); save(output/'adversary_search.json', adv)
     w = make_witness('ADAPTIVE_RIGID_BOUND', Variation(**adv['variation']), registration=adv['registration'], capacity=3., multistart=True)
     save(output/'witnesses/adversary.json', w)
@@ -384,7 +388,14 @@ if __name__ == '__main__':
     import argparse
     p = argparse.ArgumentParser(description=__doc__); p.add_argument('output', type=Path)
     p.add_argument('--replay', type=Path); p.add_argument('--capabilities', action='store_true'); p.add_argument('--verify', action='store_true')
+    p.add_argument('--projected-screen', action='store_true', help='Read-only B-rep screen of a replayed witness; no anatomical-depth claim')
     a = p.parse_args()
     if a.verify: print(json.dumps(validate_manifest(a.output)['decision']))
-    elif a.replay: save(a.output, replay(json.loads(a.replay.read_text())))
+    elif a.replay:
+        w = replay(json.loads(a.replay.read_text()))
+        if a.projected_screen:
+            from .adversarial_fit_geometry import protected_screen
+            receipt, _, _ = protected_screen(Variation(**w['parameters']), w['solved_transform'])
+            save(a.output, {'witness': w, 'projected_screen': receipt})
+        else: save(a.output, w)
     else: print(json.dumps({k:v for k,v in run(a.output, a.capabilities).items() if k not in ('artifacts','provenance')}))
