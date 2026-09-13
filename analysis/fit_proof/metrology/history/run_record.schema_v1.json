@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:masck:isolated-fit-metrology:record:2",
+  "$id": "urn:masck:isolated-fit-metrology:record:1",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -38,12 +38,11 @@
     "fixture_deflection_mm",
     "environment",
     "missing_data_reasons",
-    "physical_result",
-    "run_receipt"
+    "physical_result"
   ],
   "properties": {
     "schema": {
-      "const": "FIT_METROLOGY_RECORD_2"
+      "const": "FIT_METROLOGY_RECORD_1"
     },
     "record_origin": {
       "enum": [
@@ -74,8 +73,7 @@
       "type": [
         "string",
         "null"
-      ],
-      "pattern": "^[a-f0-9]{40}$"
+      ]
     },
     "surface_witness_id": {
       "type": [
@@ -90,22 +88,10 @@
         "pattern": "^[a-f0-9]{64}$"
       }
     },
-    "coupon_identities": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "string",
-        "pattern": "^[a-f0-9]{64}$"
-      }
-    },
-    "calibration_receipt": {
-      "$ref": "#/$defs/receipt"
-    },
-    "processing_receipt": {
-      "$ref": "#/$defs/receipt"
-    },
-    "criteria_receipt": {
-      "$ref": "#/$defs/receipt"
-    },
+    "coupon_identities": {},
+    "calibration_receipt": {},
+    "processing_receipt": {},
+    "criteria_receipt": {},
     "mode": {
       "enum": [
         "IMPOSED",
@@ -142,60 +128,7 @@
         "$ref": "#/$defs/measurement"
       }
     },
-    "disengagement": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "time_s",
-        "constrained_dofs",
-        "clamps_clear",
-        "jaws_clear",
-        "guard_contact"
-      ],
-      "properties": {
-        "time_s": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-        "constrained_dofs": {
-          "type": [
-            "array",
-            "null"
-          ],
-          "uniqueItems": true,
-          "items": {
-            "enum": [
-              "X",
-              "Y",
-              "Z",
-              "ROLL",
-              "PITCH",
-              "YAW"
-            ]
-          }
-        },
-        "clamps_clear": {
-          "type": [
-            "boolean",
-            "null"
-          ]
-        },
-        "jaws_clear": {
-          "type": [
-            "boolean",
-            "null"
-          ]
-        },
-        "guard_contact": {
-          "type": [
-            "boolean",
-            "null"
-          ]
-        }
-      }
-    },
+    "disengagement": {},
     "trajectory": {},
     "trajectory_max_gap_s": {},
     "contact_sequence": {},
@@ -278,12 +211,7 @@
     },
     "environment": {},
     "missing_data_reasons": {},
-    "physical_result": {
-      "type": "null"
-    },
-    "run_receipt": {
-      "$ref": "#/$defs/receipt"
-    }
+    "physical_result": {}
   },
   "$defs": {
     "measurement": {
@@ -325,32 +253,7 @@
           ]
         }
       }
-    },
-    "receipt": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "sha256"
-          ],
-          "properties": {
-            "id": {
-              "type": "string",
-              "minLength": 1
-            },
-            "sha256": {
-              "type": "string",
-              "pattern": "^[a-f0-9]{64}$"
-            }
-          }
-        }
-      ]
     }
   },
-  "description": "Shape validation only. The analyzer also requires independent source context and exact BENCH_RUN attestation for measured results. No human-use qualification."
+  "description": "Shape validation only. Executable analyzer separately requires qualified evidence, source identity, full-field cells and independent disengagement."
 }

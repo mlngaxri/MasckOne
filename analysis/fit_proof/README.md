@@ -201,3 +201,12 @@ campaign, metrology fabrication manifest and validation receipts are preserved
 at their original identities. Historical metrology receipts do not establish
 current-source CI. PR #157 remains the independent canonical CS-018 owner.
 Physical fit, passive acquisition and human-use suitability remain UNKNOWN.
+
+## Measured-record evidence binding
+
+`metrology/RECORDS.md` defines the revision 2 ingestion contract and its external
+qualification boundary. The record is bound to an independent article context;
+measured results additionally require an exact run-specific BENCH attestation
+and independent scan-file hashing. The templates contain no physical result.
+The successful prior full-CI result is preserved in `ci/fdb8431.json`, with scope
+limited to that exact source head. Later record changes require their own CI.

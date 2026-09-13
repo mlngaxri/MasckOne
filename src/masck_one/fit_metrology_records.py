@@ -11,10 +11,12 @@ from pathlib import Path
 import argparse
 import json
 import math
+import re
 
 STATUSES=('BENCH_CRITERION_PASS','BENCH_CRITERION_FAIL','INCONCLUSIVE','MISSING_REQUIRED_EVIDENCE')
 DOFS=('X','Y','Z','ROLL','PITCH','YAW')
-REVISION='FIT_METROLOGY_RECORD_1'
+REVISION='FIT_METROLOGY_RECORD_2'
+SOURCE_CONTEXT_REVISION='FIT_METROLOGY_SOURCE_CONTEXT_1'
 
 
 def canonical_hash(value):
@@ -22,6 +24,28 @@ def canonical_hash(value):
 
 
 def finite(x):return not isinstance(x,bool) and isinstance(x,(float,int)) and math.isfinite(x)
+
+
+def valid_hash(value,length=64):
+    return isinstance(value,str) and re.fullmatch('[0-9a-f]{'+str(length)+'}',value) is not None
+
+
+def identity_map(value,required=True):
+    return (isinstance(value,dict) and (bool(value) or not required)
+            and all(isinstance(k,str) and bool(k.strip()) and valid_hash(v) for k,v in value.items()))
+
+
+def empty_source_context():
+    """Independent article manifest. Empty fields never qualify a bench record."""
+    return {'schema':SOURCE_CONTEXT_REVISION,'source_main':None,'rig_revision':None,
+            'fixture_revision':None,'surface_witness_id':None,'mode':None,
+            'source_identities':{},'coupon_identities':{}}
+
+
+def run_payload_hash(record,source_context):
+    """Bind every observation and article identity; exclude only the self receipt."""
+    return canonical_hash({'record':{k:v for k,v in record.items() if k!='run_receipt'},
+                           'source_context':source_context})
 
 
 def estimate(value, uncertainty, units='mm'):
@@ -38,18 +62,20 @@ def interval(e,units='mm'):
 
 def qualified(receipt,registry,kind):
     """Registry is supplied independently of the run; run booleans are not trust."""
-    if not isinstance(receipt,dict):return False
+    if (not isinstance(receipt,dict) or not isinstance(registry,dict)
+            or not isinstance(receipt.get('id'),str) or not receipt['id'].strip()
+            or not valid_hash(receipt.get('sha256'))):return False
     known=registry.get(receipt.get('id'))
     return (isinstance(known,dict) and known.get('sha256')==receipt.get('sha256')
             and known.get('evidence_class')=='BENCH' and known.get('kind')==kind
-            and known.get('qualified') is True and len(str(receipt.get('sha256','')))==64)
+            and known.get('qualified') is True)
 
 
 def empty_record():
     return {'schema':REVISION,'record_origin':'NO_PHYSICAL_RESULT','run_id':None,
         'rig_revision':None,'fixture_revision':None,'source_main':None,
         'surface_witness_id':None,'source_identities':{},'coupon_identities':{},
-        'calibration_receipt':None,'processing_receipt':None,'criteria_receipt':None,
+        'calibration_receipt':None,'processing_receipt':None,'criteria_receipt':None,'run_receipt':None,
         'mode':'ACQUISITION','repeat_index':None,'commanded_initial_pose':None,
         'measured_initial_pose':None,'final_pose':None,
         'disengagement':{'time_s':None,'constrained_dofs':None,'clamps_clear':None,'jaws_clear':None,'guard_contact':None},
@@ -63,16 +89,33 @@ def empty_record():
 
 
 def analyze(record,criteria,registry,expected_sources,artifact_hashes=None):
+    """expected_sources is an independently supplied, versioned article context.
+
+    A BENCH_RUN registry receipt must attest the exact record/context payload
+    before any measured-result field can be populated. Registry qualification
+    itself remains an external evidence-authority responsibility.
+    """
     missing=[];ambiguous=[];fail=[];diagnostics={};metrics={}
     def need(ok,reason):
         if not ok:missing.append(reason)
     need(record.get('schema')==REVISION,'record schema')
     need(record.get('record_origin') in ('BENCH_MEASURED','SYNTHETIC_TEST_FIXTURE'),'no physical measurements supplied')
+    need(record.get('physical_result') is None,'input cannot supply its own physical verdict')
     for key in ('run_id','rig_revision','fixture_revision','source_main','surface_witness_id'):
-        need(bool(record.get(key)),key)
+        need(isinstance(record.get(key),str) and bool(record[key].strip()),key)
+    context=expected_sources if isinstance(expected_sources,dict) else {}
+    need(context.get('schema')==SOURCE_CONTEXT_REVISION,'independent source context required')
+    need(valid_hash(context.get('source_main'),40),'invalid expected release commit')
+    for key in ('source_main','rig_revision','fixture_revision','surface_witness_id','mode'):
+        expected=context.get(key)
+        need(isinstance(expected,str) and bool(expected.strip()) and record.get(key)==expected,
+             'source context mismatch: '+key)
     supplied=record.get('source_identities')
-    need(all(isinstance(v,str) and len(v)==64 and all(c in '0123456789abcdef' for c in v) for v in expected_sources.values()),'invalid expected source hashes')
-    need(bool(expected_sources) and supplied==expected_sources,'source identity/hash mismatch or absent')
+    need(identity_map(context.get('source_identities')),'invalid expected source hashes')
+    need(supplied==context.get('source_identities'),'source identity/hash mismatch or absent')
+    coupons=context.get('coupon_identities')
+    need(identity_map(coupons,required=record.get('mode')=='ACQUISITION'),'expected coupon identities absent or invalid')
+    need(record.get('coupon_identities')==coupons,'coupon identity/hash mismatch or absent')
     need(isinstance(record.get('repeat_index'),int) and not isinstance(record.get('repeat_index'),bool) and record['repeat_index']>=0,'repeat index')
     for field,kind in [('calibration_receipt','CALIBRATION'),('processing_receipt','MEASUREMENT_METHOD'),('criteria_receipt','BENCH_CRITERIA')]:
         need(qualified(record.get(field),registry,kind),field+' not independently qualified')
@@ -80,6 +123,12 @@ def analyze(record,criteria,registry,expected_sources,artifact_hashes=None):
     # A receipt must bind the actual criteria, not just a reused identifier.
     expected_criteria_hash=canonical_hash({k:v for k,v in criteria.items() if k!='receipt'})
     need(record.get('criteria_receipt',{}).get('sha256')==expected_criteria_hash if isinstance(record.get('criteria_receipt'),dict) else False,'criteria content hash')
+    attestation=record.get('run_receipt')
+    run_hash=run_payload_hash(record,context)
+    attested=(qualified(attestation,registry,'BENCH_RUN')
+              and attestation.get('sha256')==run_hash)
+    if record.get('record_origin')=='BENCH_MEASURED':
+        need(attested,'measured run not independently attested at exact record/context hash')
     for p in ('measured_initial_pose','final_pose'):
         v=record.get(p)
         try:
@@ -93,7 +142,7 @@ def analyze(record,criteria,registry,expected_sources,artifact_hashes=None):
         need(bool(record.get('coupon_identities')),'source-bound coupons absent')
         need(d.get('constrained_dofs')==[],'stage still constrains tested DOF or constraint state unknown')
         need(d.get('clamps_clear') is True and d.get('jaws_clear') is True,'fixture release unobserved')
-        need(d.get('guard_contact') is not None,'guard contact unobserved')
+        need(isinstance(d.get('guard_contact'),bool),'guard contact unobserved or not boolean')
         if d.get('guard_contact') is True:fail.append('guard/fixture contact invalidates acquisition')
         tr=record.get('trajectory');gap=record.get('trajectory_max_gap_s')
         allowed_gap=criteria.get('trajectory_max_gap_s')
@@ -139,7 +188,8 @@ def analyze(record,criteria,registry,expected_sources,artifact_hashes=None):
     needed_sparse=criteria.get('required_sparse_ids')
     need(isinstance(sparse,dict) and bool(needed_sparse) and set(needed_sparse)<=set(sparse),'missing sparse datums')
     full_file=record.get('full_field_file')
-    need(isinstance(full_file,dict) and len(str(full_file.get('sha256','')))==64 and bool(full_file.get('path')),'full-field scan artifact absent')
+    need(isinstance(full_file,dict) and valid_hash(full_file.get('sha256'))
+         and isinstance(full_file.get('path'),str) and bool(full_file['path'].strip()),'full-field scan artifact absent')
     if record.get('record_origin')=='BENCH_MEASURED':
         need(isinstance(full_file,dict) and bool(artifact_hashes) and artifact_hashes.get(full_file.get('path'))==full_file.get('sha256'),'measured scan bytes not independently hashed')
     for name,values,ids in [('sparse',sparse,needed_sparse),('field',field,required)]:
@@ -172,8 +222,9 @@ def analyze(record,criteria,registry,expected_sources,artifact_hashes=None):
     return {'schema':REVISION,'run_id':record.get('run_id'),'status':status,
             'missing':sorted(set(missing)),'failures':sorted(set(fail)),'inconclusive':sorted(set(ambiguous)),
             'metrics':metrics,'diagnostics':diagnostics,'record_sha256':canonical_hash(record),
-            'criteria_sha256':expected_criteria_hash,
-            'physical_result':status if record.get('record_origin')=='BENCH_MEASURED' else None,
+            'criteria_sha256':expected_criteria_hash,'source_context_sha256':canonical_hash(context),
+            'run_payload_sha256':run_hash,'run_attestation_verified':attested,
+            'physical_result':status if record.get('record_origin')=='BENCH_MEASURED' and attested and not missing else None,
             'scope':'QUALIFIED_OFF_FACE_BENCH_CRITERION_ONLY'}
 
 

@@ -1,5 +1,5 @@
 {
-  "schema": "FIT_METROLOGY_RECORD_2",
+  "schema": "FIT_METROLOGY_RECORD_1",
   "record_origin": "NO_PHYSICAL_RESULT",
   "run_id": null,
   "rig_revision": null,
@@ -11,7 +11,6 @@
   "calibration_receipt": null,
   "processing_receipt": null,
   "criteria_receipt": null,
-  "run_receipt": null,
   "mode": "ACQUISITION",
   "repeat_index": null,
   "commanded_initial_pose": null,
