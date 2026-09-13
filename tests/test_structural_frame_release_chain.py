@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 import cadquery as cq
+import pytest
 
 from masck_one.export import export_release
 from masck_one.structural_frame_release_export import (
@@ -33,8 +34,24 @@ REQUIRED_MECHANICAL_MANIFESTS = (
 )
 
 
-def test_export_release_preserves_current_mechanical_dependency_chain(tmp_path) -> None:
-    report = export_release(tmp_path)
+@pytest.fixture(scope="module")
+def released_cell6_package(tmp_path_factory):
+    """Build the immutable canonical release package once for this contract module.
+
+    export_release() performs the full Cell 6 B-rep realization, STEP emission,
+    STEP round-trip validation and package publication. The tests below are
+    independent read-only assertions over that same deterministic package, so
+    rebuilding it once per assertion only repeats expensive OpenCascade work
+    without increasing coverage.
+    """
+
+    output_dir = tmp_path_factory.mktemp("cell6_release_chain")
+    report = export_release(output_dir)
+    return output_dir, report
+
+
+def test_export_release_preserves_current_mechanical_dependency_chain(released_cell6_package) -> None:
+    output_dir, report = released_cell6_package
 
     exported_steps = set(report["exported_step_files"])
     exported_manifests = set(report["exported_manifest_files"])
@@ -57,7 +74,7 @@ def test_export_release_preserves_current_mechanical_dependency_chain(tmp_path) 
     assert crown["physical_validation_eligible"] is False
 
     for filename in REQUIRED_MECHANICAL_MANIFESTS:
-        payload = json.loads((tmp_path / filename).read_text(encoding="utf-8"))
+        payload = json.loads((output_dir / filename).read_text(encoding="utf-8"))
         assert payload["physical_validation_eligible"] is False
 
     for filename in (
@@ -65,14 +82,16 @@ def test_export_release_preserves_current_mechanical_dependency_chain(tmp_path) 
         "structural_frame_with_bilateral_retention_roots.step",
         "structural_frame_crown_support.step",
     ):
-        imported = cq.importers.importStep(str(tmp_path / filename))
+        imported = cq.importers.importStep(str(output_dir / filename))
         assert imported.val().isValid()
         assert len(imported.val().Solids()) == 1
         assert imported.val().Volume() > 0.0
 
 
-def test_release_report_keeps_solved_mechanical_geometry_out_of_canonical_assembly(tmp_path) -> None:
-    report = export_release(tmp_path)
+def test_release_report_keeps_solved_mechanical_geometry_out_of_canonical_assembly(
+    released_cell6_package,
+) -> None:
+    _output_dir, report = released_cell6_package
     pending = set(report["standalone_physical_geometry_pending_assembly_rebind"])
     assert {
         "STRUCTURAL_FRAME_FOUR_ACTUATOR_REACTION_COUNTERPARTS_V1",
@@ -81,8 +100,8 @@ def test_release_report_keeps_solved_mechanical_geometry_out_of_canonical_assemb
     } <= pending
 
 
-def test_export_release_is_bound_to_complete_cell6_release_bundle(tmp_path) -> None:
-    report = export_release(tmp_path)
+def test_export_release_is_bound_to_complete_cell6_release_bundle(released_cell6_package) -> None:
+    output_dir, report = released_cell6_package
 
     exported_steps = set(report["exported_step_files"])
     exported_manifests = set(report["exported_manifest_files"])
@@ -96,7 +115,7 @@ def test_export_release_is_bound_to_complete_cell6_release_bundle(tmp_path) -> N
     assert topology["structural_frame_dry_package_supports"]["physical_validation_eligible"] is False
     assert topology["structural_frame_shell_joint_service"]["physical_validation_eligible"] is False
 
-    release_manifest_path = tmp_path / "structural_frame_release_export_manifest.json"
+    release_manifest_path = output_dir / "structural_frame_release_export_manifest.json"
     assert release_manifest_path.is_file()
     release_manifest = json.loads(release_manifest_path.read_text(encoding="utf-8"))
     assert release_manifest["exported_step_files"] == list(EXPORTED_STEP_FILES)
