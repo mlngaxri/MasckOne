@@ -11,7 +11,7 @@ HEAD = "a" * 40
 
 def test_producer_exports_geometry_without_inventing_mass_or_energy():
     manifest = build_thermal_resource_producer(owner_head_sha=HEAD)
-    assert manifest["schema"] == "MASCK_ONE_THERMAL_RESOURCE_PRODUCER_V2"
+    assert manifest["schema"] == "MASCK_ONE_THERMAL_RESOURCE_PRODUCER_V3"
     assert manifest["owner"]["pr"] == 143
     assert manifest["physical_validation_complete"] is False
     assert manifest["fluid"]["classification"] == "GEOMETRIC_VOID_NOT_RETAINED_CAPACITY"
@@ -62,7 +62,18 @@ def test_producer_exports_explicit_world_transforms_and_never_zero_fills_unknown
         assert contract[key] is None
 
 
-@pytest.mark.parametrize("bad", ["", "abc", "0" * 39, "0" * 41])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "",
+        "abc",
+        "0" * 39,
+        "0" * 41,
+        "g" * 40,
+        "A" * 40,
+        "z123456789012345678901234567890123456789",
+    ],
+)
 def test_producer_rejects_non_exact_owner_identity(bad):
     with pytest.raises(ValueError):
         build_thermal_resource_producer(owner_head_sha=bad)
