@@ -7,8 +7,11 @@ not new human-use tolerances. Numerical registration is not passive acquisition.
 from dataclasses import dataclass, asdict, fields
 from hashlib import sha256
 from pathlib import Path
+from functools import lru_cache
 import json
 import math
+import re
+import subprocess
 import numpy as np
 from scipy.optimize import minimize
 
@@ -79,19 +82,97 @@ class Variation:
         return math.sqrt(sum((v/max(abs(x) for x in BOUNDS[k]))**2 for k,v in asdict(self).items()))
 
 
+def _source_git(root, *args):
+    result=subprocess.run(['git','--no-replace-objects','--literal-pathspecs',*args],
+                          cwd=root,capture_output=True,check=False)
+    if result.returncode:
+        raise FitProofError('source Git identity unavailable: '+args[0])
+    return result.stdout
+
+
+@lru_cache(maxsize=256)
+def _source_commit(root, commit):
+    if not isinstance(commit,str) or re.fullmatch('[0-9a-f]{40}',commit) is None:
+        raise FitProofError('source commit must be an exact full Git commit ID')
+    if _source_git(root,'cat-file','-t',commit).strip()!=b'commit':
+        raise FitProofError('source identity is not a commit')
+    return commit
+
+
+@lru_cache(maxsize=1024)
+def _source_blob(root, commit, path):
+    # Only immutable Git objects are cached. Manifest and worktree bytes are
+    # rechecked on every call, so local tampering cannot reuse a passing result.
+    _source_commit(root,commit)
+    entry=_source_git(root,'ls-tree','-z',commit,'--',path).split(b'\0')
+    if len(entry)!=2 or not entry[0]:
+        raise FitProofError('source path absent from declared commit: '+path)
+    metadata,actual_path=entry[0].split(b'\t',1)
+    mode,kind,blob=metadata.decode().split()
+    if kind!='blob' or mode not in ('100644','100755') or actual_path.decode()!=path:
+        raise FitProofError('source must be a regular tracked file: '+path)
+    content=_source_git(root,'cat-file','blob',blob)
+    return blob,sha256(content).hexdigest()
+
+
 def source_snapshot(root=ROOT):
-    path=root/'analysis/fit_proof/sources.json'
-    data=json.loads(path.read_text())
-    for row in data['consumed_files']:
-        p=root/row['path']
-        allowed={row['sha256']}
-        # Only an explicitly reviewed documentary predecessor can coexist with
-        # current main. Geometry/authority never receives this exception.
-        if row['path'].startswith('docs/') and 'accepted_original_context_sha256' in row:
-            allowed.add(row['accepted_original_context_sha256'])
-        if not p.is_file() or sha256(p.read_bytes()).hexdigest() not in allowed:
-            raise FitProofError('missing/stale consumed source: '+row['path'])
+    root=Path(root).resolve()
+    data=json.loads((root/'analysis/fit_proof/sources.json').read_text())
+    _source_commit(root,data.get('main'))
+    rows=data.get('consumed_files')
+    if not isinstance(rows,list) or not rows:
+        raise FitProofError('nonempty consumed source manifest required')
+    seen=set()
+    for row in rows:
+        path=row.get('path') if isinstance(row,dict) else None
+        if (not isinstance(path,str) or not path or Path(path).is_absolute()
+                or any(x in ('','..','.') for x in path.split('/')) or '\\' in path
+                or path in seen or not (root/path).resolve().is_relative_to(root)):
+            raise FitProofError('invalid or duplicate consumed source path')
+        seen.add(path)
+        actual_blob,actual_hash=_source_blob(root,row.get('source_commit',data['main']),path)
+        if actual_blob!=row.get('git_blob') or actual_hash!=row.get('sha256'):
+            raise FitProofError('source commit/blob/content mismatch: '+path)
+        allowed={actual_hash}
+        # Historical documentary context requires its own immutable identity;
+        # the old hash-only exception is never sufficient provenance.
+        if 'accepted_original_context_sha256' in row:
+            if not path.startswith('docs/'):
+                raise FitProofError('source context exception is documentary only')
+            _,original_hash=_source_blob(root,data.get('original_analyzed_main'),path)
+            if original_hash!=row['accepted_original_context_sha256']:
+                raise FitProofError('source predecessor context mismatch: '+path)
+            allowed.add(original_hash)
+        p=root/path
+        if p.is_symlink() or not p.is_file() or sha256(p.read_bytes()).hexdigest() not in allowed:
+            raise FitProofError('missing/stale consumed source: '+path)
     return data
+
+
+def registration_pose_limits(authority=None, extra_z_mm=0.):
+    a=authority or load_authority()
+    z=number(extra_z_mm)
+    if z<0:raise FitProofError('invalid abstract Z capability')
+    return {'xy_radius_mm':a.number('geometry','misregistration','translation_radial_max_mm'),
+            'extrinsic_xyz_each_deg':a.number('geometry','misregistration','rotation_max_deg'),
+            'z_mm':z,'z_status':'ABSTRACT_CAPABILITY_ONLY' if z else 'OWNER_FIXED_ZERO'}
+
+
+def validate_owner_pose(pose, authority=None):
+    """Released pose only. Optimizer seeds and abstract capabilities are separate."""
+    try:
+        values=tuple(number(x) for x in pose)
+    except TypeError as exc:
+        raise FitProofError('six finite pose coordinates required') from exc
+    if len(values)!=6:raise FitProofError('six finite pose coordinates required')
+    limits=registration_pose_limits(authority)
+    if math.hypot(*values[:2])>limits['xy_radius_mm']:
+        raise FitProofError('pose exceeds released radial XY limit')
+    if values[2]!=0.:
+        raise FitProofError('pose Z is OWNER_FIXED_ZERO')
+    if any(abs(x)>limits['extrinsic_xyz_each_deg'] for x in values[3:]):
+        raise FitProofError('pose exceeds released rotation limit')
+    return values,{'status':'VALIDATED_RELEASED_OWNER_POSE','limits':limits}
 
 
 def rotation(angles):
@@ -182,9 +263,9 @@ def solve_registration(v, initial=(0.,0.,0.,0.,0.,0.), extra_z_mm=0., target_sca
     """Constrained minimax registration. A found minimum is not a global no-fit proof."""
     a=load_authority();nom=np.array(list(nominal_landmarks(a).values()));p=warp(nom,v,a)
     target=nom*np.array([*target_scale,1.])
-    radius=a.number('geometry','misregistration','translation_radial_max_mm')
-    angle=a.number('geometry','misregistration','rotation_max_deg')
-    if extra_z_mm<0 or not math.isfinite(extra_z_mm):raise FitProofError('invalid abstract Z capability')
+    limits=registration_pose_limits(a,extra_z_mm)
+    radius=limits['xy_radius_mm'];angle=limits['extrinsic_xyz_each_deg']
+    extra_z_mm=limits['z_mm']
     init=np.array([number(x) for x in initial]);
     if init.shape!=(6,):raise FitProofError('six pose coordinates required')
     bounds=[(-radius,radius),(-radius,radius),(-extra_z_mm,extra_z_mm)]+[(-angle,angle)]*3+[(0.,200.)]
@@ -213,8 +294,7 @@ def solve_registration(v, initial=(0.,0.,0.,0.,0.,0.), extra_z_mm=0., target_sca
             'per_landmark_residual_mm':dict(zip(nominal_landmarks(a),residual(np.r_[pose,value]).tolist())),
             'rigid_invariant_bound':lower,'optimizer_converged':converged,
             'near_equal_pose_separation_mixed_units':separation,
-            'pose_limits':{'xy_radius_mm':radius,'extrinsic_xyz_each_deg':angle,
-                           'z_mm':extra_z_mm,'z_status':'ABSTRACT_CAPABILITY_ONLY' if extra_z_mm else 'OWNER_FIXED_ZERO'},
+            'pose_limits':limits,
             'adjustments':{'existing_product_adjustments':[], 'abstract_target_scale':list(target_scale)},
             'landmark_residual_acceptance_mm':None,'whole_fit':'UNKNOWN',
             'support':'UNKNOWN','seal':'UNKNOWN','passive_alignment':'UNKNOWN','region_access':'UNKNOWN'}

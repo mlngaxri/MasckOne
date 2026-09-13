@@ -10,7 +10,8 @@ import json
 from pathlib import Path
 import math
 import cadquery as cq
-from .adversarial_fit_proof import Variation, warp, transform, source_snapshot, FitProofError
+from .adversarial_fit_proof import Variation, warp, transform, source_snapshot, FitProofError, validate_owner_pose
+from .authority import load_authority
 from .model import build_model
 
 
@@ -23,6 +24,11 @@ def common(a,b):
 
 
 def protected_screen(v=Variation(),pose=(0,0,0,0,0,0),model=None):
+    source=source_snapshot()
+    authority=load_authority()
+    pose,pose_validation=validate_owner_pose(pose,authority)
+    if model is not None and model.authority.data!=authority.data:
+        raise FitProofError('screen model differs from source-bound authority')
     m=model or build_model();s=m.shell.solid.val();b=s.BoundingBox()
     if not s.isValid():raise FitProofError('released shell invalid')
     results={};shapes={}
@@ -46,15 +52,14 @@ def protected_screen(v=Variation(),pose=(0,0,0,0,0,0),model=None):
             'status':'PROJECTED_PROTECTED_CONFLICT' if amount>1e-7 else 'PROJECTED_PROTECTED_CLEAR',
             'rigid_clearance_mm':z.required_rigid_clearance_mm,'shape_width_mm':width,
             'anatomical_depth':'UNKNOWN','reference_kind':'CONSERVATIVE_PROTECTED_PRISM'}
-    source=source_snapshot()
     target_cells={}
     for t in m.coverage_mesh.triangles:
         if t.is_target:target_cells.setdefault(t.region_id,[]).append(t.triangle_index)
     return {'source_shell':'src/masck_one/model.py:_build_shell','source_role':m.shell.geometry_role.value,
             'source_main':source['main'],'variation':asdict(v),'frame':'MASCK_ONE_AUTHORITY_WORLD_MM',
             'analysis_source_sha256':sha256(Path(__file__).read_bytes()).hexdigest(),
-            'source_surface_kind':m.facial_surface.descriptor.kind,'source_sha256':source_snapshot()['consumed_files'],
-            'runtime_cadquery':cq.__version__,'pose':list(pose),'zones':results,
+            'source_surface_kind':m.facial_surface.descriptor.kind,'source_sha256':source['consumed_files'],
+            'runtime_cadquery':cq.__version__,'pose':list(pose),'pose_validation':pose_validation,'zones':results,
             'required_domain':{'source_mesh_sha256':m.coverage_mesh.source_surface_sha256,
                 'required_cells_by_source_region':target_cells,'every_cell_access_status':'UNKNOWN',
                 'reason':'CS015 required routine regions lack measured surface and owner contact registration'},

@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from masck_one.adversarial_fit_study import validate_manifest, replay, code_identity, CAPABILITIES
 
-RESULTS=Path(__file__).resolve().parents[1]/'analysis/fit_proof/campaign_3ccd912'
+RESULTS=Path(__file__).resolve().parents[1]/'analysis/fit_proof/campaign_3065148'
 
 
 def read(name):return json.loads((RESULTS/name).read_text())
@@ -66,4 +66,6 @@ def test_projected_receipt_never_claims_actual_anatomical_clearance():
         r=row['receipt'];assert r['whole_fit']=='UNKNOWN' and not r['physical_validation']
         assert r['required_domain']['every_cell_access_status']=='UNKNOWN'
         assert all(z['anatomical_depth']=='UNKNOWN' for z in r['zones'].values())
+        assert r['pose_validation']['status']=='VALIDATED_RELEASED_OWNER_POSE'
+        assert r['pose_validation']['limits']['z_status']=='OWNER_FIXED_ZERO'
         assert any(z['status']=='PROJECTED_PROTECTED_CONFLICT' for z in r['zones'].values())

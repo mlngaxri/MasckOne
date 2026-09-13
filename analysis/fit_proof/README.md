@@ -28,16 +28,16 @@ establishes pressure, comfort or compliance. Folded projected cells are rejected
 
 `adversarial_fit_study.py` is the current campaign entry point. The earlier
 `results/` files are recovered original-main evidence. Current-main results live
-in `campaign_3ccd912/`; they are never substituted for the original snapshot.
+in `campaign_3065148/`. The prior `campaign_3ccd912/` remains historical evidence and supplies the frozen metrology surface witnesses. It is not a current-generator replay receipt.
 The source ancestry was reconciled without a force push or subsystem edits;
 `RECONCILIATION.json` records the exact merge and why the initial context-only
 assessment was insufficient for the repository CI ancestry gate.
 
 ```sh
-python -m masck_one.adversarial_fit_study generated/fit_study --capabilities
-python -m masck_one.adversarial_fit_study analysis/fit_proof/campaign_3ccd912 --verify
-python -m masck_one.adversarial_fit_study generated/replay.json --replay analysis/fit_proof/campaign_3ccd912/witnesses/false_surface.json
-python -m masck_one.adversarial_fit_study generated/projected.json --replay analysis/fit_proof/campaign_3ccd912/witnesses/nominal.json --projected-screen
+PYTHONPATH=src python analysis/fit_proof/reproduce_current.py generated/fit_study
+python -m masck_one.adversarial_fit_study analysis/fit_proof/campaign_3065148 --verify
+python -m masck_one.adversarial_fit_study generated/replay.json --replay analysis/fit_proof/campaign_3065148/witnesses/false_surface.json
+python -m masck_one.adversarial_fit_study generated/projected.json --replay analysis/fit_proof/campaign_3065148/witnesses/nominal.json --projected-screen
 ```
 
 The current case set contains 50 morphologies, 108 adaptive bound evaluations,
@@ -179,3 +179,25 @@ UNKNOWN, even if a geometric landmark candidate exists.
 The single next experiment is specified in [NEXT_EXPERIMENT.md](NEXT_EXPERIMENT.md).
 Read the current campaign manifest and test receipts before reusing results.
 A green tooling test is not a green fit decision.
+
+## Source and pose review repair
+
+The current executable proof is reconciled with released main `3065148`.
+Every consumed path now verifies its exact commit, tree entry, Git blob ID,
+SHA-256 and worktree bytes. Moving refs, missing Git history, substituted
+blobs and unverified documentary predecessor hashes fail closed. Explicit
+per-row source commits are supported and verified. Owner heads recorded in
+the historical snapshot remain documentary context, not current owner receipts.
+
+The protected B-rep screen validates six finite pose coordinates before any
+CAD construction or transform. It shares the registration authority limits,
+rejects radial XY beyond 5 mm, any nonzero Z and any per-axis rotation beyond
+4 degrees. Numerical seed clipping and abstract capability studies cannot
+expand this screen. Receipts include the validated limits. Custom models
+cannot replace the bound authority.
+
+The new campaign is freshly generated with the repaired code; the earlier
+campaign, metrology fabrication manifest and validation receipts are preserved
+at their original identities. Historical metrology receipts do not establish
+current-source CI. PR #157 remains the independent canonical CS-018 owner.
+Physical fit, passive acquisition and human-use suitability remain UNKNOWN.

@@ -1,5 +1,5 @@
 {
-  "main": "3065148005192930c3929bad1131cf60ed5a35b4",
+  "main": "3ccd9128810e6a6f4d01d57067be777345aa1484",
   "observed_owner_heads": [
     {
       "pr": 157,
@@ -288,14 +288,5 @@
       "status": "UPSTREAM_MOVED_NOT_REEXECUTED",
       "effect": "No frame seating conclusion used; source-bound passive support remains UNKNOWN"
     }
-  ],
-  "current_release_reconciliation": {
-    "previous_analyzed_main": "3ccd9128810e6a6f4d01d57067be777345aa1484",
-    "current_release": "3065148005192930c3929bad1131cf60ed5a35b4",
-    "consumed_source_blobs_changed": false,
-    "owner_geometry_changed": false,
-    "observed_owner_heads_scope": "HISTORICAL_READ_ONLY_CONTEXT_NOT_CURRENT_OWNER_STATE",
-    "read_only_owner_files_scope": "HISTORICAL_NOT_EXECUTED_NOT_VERIFIED_BY_CONSUMED_SOURCE_CHECK",
-    "merge_checkpoint": "e763911fde3f96c0e5c9f5d9f26ee228620dc90d"
-  }
+  ]
 }
