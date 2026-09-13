@@ -8,16 +8,18 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from pathlib import Path
 from hashlib import sha1
 
 from .thermal_reset_hardware import build_thermal_reset_hardware
 
-SCHEMA = "MASCK_ONE_THERMAL_RESOURCE_PRODUCER_V2"
+SCHEMA = "MASCK_ONE_THERMAL_RESOURCE_PRODUCER_V3"
 OWNER_PR = 143
 OWNER_BRANCH = "scheduled/warm-cool-package-20260909"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 _REPO_ROOT = Path(__file__).resolve().parents[2]
+_EXACT_GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _IDENTITY_4X4 = [
     [1.0, 0.0, 0.0, 0.0],
     [0.0, 1.0, 0.0, 0.0],
@@ -39,8 +41,8 @@ def _finite3(values: tuple[float, float, float], label: str) -> list[float]:
 
 
 def build_thermal_resource_producer(*, owner_head_sha: str) -> dict[str, object]:
-    if type(owner_head_sha) is not str or len(owner_head_sha) != 40:
-        raise ValueError("exact 40-character owner head SHA required")
+    if type(owner_head_sha) is not str or _EXACT_GIT_SHA_RE.fullmatch(owner_head_sha) is None:
+        raise ValueError("exact lowercase 40-hex owner head SHA required")
     parts, refs, geometry = build_thermal_reset_hardware()
     components: list[dict[str, object]] = []
     for component_id in sorted(parts):
