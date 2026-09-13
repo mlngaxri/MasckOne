@@ -14,7 +14,7 @@ from pathlib import Path
 from .battery_benchmark import build_battery_benchmark_binding
 from .dry_side_harness_service import build_dry_side_harness_service, DRY_BAY_BOUNDS_WORLD_MM
 
-SCHEMA = "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V4"
+SCHEMA = "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V5"
 OWNER_PR = 142
 OWNER_BRANCH = "cell12/compact-dry-side-package-reconstructed-20260909"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
@@ -65,8 +65,6 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
     battery_binding = battery["model_binding"]
     battery_transform = battery_binding.get("transform_to_world_mm")
     battery_cg = battery_binding.get("cg_world_mm")
-    if battery_transform is None:
-        battery_transform = _IDENTITY_WORLD_TRANSFORM
     if battery_cg is not None and (len(battery_cg) != 3 or not _finite([float(v) for v in battery_cg])):
         raise ValueError("finite three-axis battery benchmark CG required when supplied")
 
@@ -95,6 +93,7 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
             "candidate": benchmark["candidate"],
             "envelope_mm": benchmark["envelope_mm"],
             "transform_to_world_mm": battery_transform,
+            "transform_evidence_class": "SOURCE_BOUND_MODEL_TRANSFORM" if battery_transform is not None else "UNKNOWN_NO_SOURCE_BOUND_WORLD_TRANSFORM",
             "cg_world_mm": battery_cg,
             "nominal_voltage_V": benchmark["nominal_voltage_V"],
             "capacity_mAh": benchmark["capacity_mAh"],
@@ -112,10 +111,7 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
             "transform_to_world_mm": _IDENTITY_WORLD_TRANSFORM,
             "evidence": "DIGITAL_ENVELOPE_ONLY_PHYSICAL_SERVICE_UNVALIDATED",
         },
-        "containment": {
-            "dry_bay_bounds_world_mm": bounds,
-            "evidence": "EXACT_DIGITAL_PACKAGE_BOUND",
-        },
+        "containment": {"dry_bay_bounds_world_mm": bounds, "evidence": "EXACT_DIGITAL_PACKAGE_BOUND"},
         "harness": {
             "route_bounds_world_mm": route["bounds_world_mm"],
             "route_volume_mm3": route["volume_mm3"],
@@ -137,11 +133,14 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
             "electrical_ratings": None,
             "battery_benchmark_mass_g": benchmark["mass_g"],
             "battery_benchmark_mass_class": "REFERENCE_ONLY_NOT_AGGREGATABLE_AS_PRODUCTION_MASS",
+            "battery_benchmark_transform_to_world_mm": battery_transform,
+            "battery_benchmark_transform_class": "REFERENCE_ONLY_SOURCE_BOUND" if battery_transform is not None else "UNKNOWN",
             "battery_benchmark_cg_world_mm": battery_cg,
             "battery_benchmark_cg_class": "REFERENCE_ONLY_NOT_AGGREGATABLE_AS_PRODUCTION_CG" if battery_cg is not None else "UNKNOWN",
             "unknown_policy": "NEVER_ZERO_FILL",
         },
         "unresolved_evidence": [
+            "source-bound battery world transform and benchmark CG if not supplied by model authority",
             "qualified production battery PCB connector conductor and harness masses",
             "component mass CG transforms after qualified production masses exist",
             "connector and conductor electrical ratings",
