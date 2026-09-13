@@ -19,7 +19,7 @@ SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_ROOTS_V1"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 SOURCE_OCCIPITAL_PR = 123
 SOURCE_OCCIPITAL_HEAD_SHA = "25686766238b66ecf900009042d721c08e042592"
-SOURCE_OCCIPITAL_BLOB_SHA = "1139b675c4758d8580cf5a18fa7a0b87b2d6ef99"
+SOURCE_OCCIPITAL_BLOB_SHA = "6d35c96bc65bb1e0e877deadc65481bf44954b4e"
 
 ROOT_IDS = (
     "RETENTION_ROOT_WEARER_LEFT",
@@ -115,7 +115,6 @@ def _clip_for_pin(
     full = _cylinder_y(outer, CLEVIS_PIN_GROOVE_WIDTH_MM, (center_x, groove_center_y, center_z))
     hole = _cylinder_y(inner + 0.08, CLEVIS_PIN_GROOVE_WIDTH_MM + 0.2, (center_x, groove_center_y, center_z))
     ring = full.cut(hole)
-    # Remove a radial sector to make the retainer independently radially installable.
     split = _box(
         (outer * 2.5, CLEVIS_PIN_GROOVE_WIDTH_MM + 0.4, outer * 0.9),
         (center_x, groove_center_y, center_z + outer),
@@ -229,6 +228,7 @@ class StructuralFrameRetentionRootArchitecture:
             "source_frame_reaction_architecture_sha256": self.source_frame_reaction_architecture_sha256,
             "source_occipital_pr": SOURCE_OCCIPITAL_PR,
             "source_occipital_head_sha": SOURCE_OCCIPITAL_HEAD_SHA,
+            "source_occipital_blob_sha": SOURCE_OCCIPITAL_BLOB_SHA,
             "root_count": len(self.roots),
             "roots": [root.manifest() for root in self.roots],
             "load_path_status": "BILATERAL_POSITIVE_FRAME_TO_YOKE_ROOT_COUNTERPARTS_REALIZED_CROWN_AND_FULL_RETENTION_LOAD_PATH_OPEN",
@@ -269,11 +269,6 @@ def build_structural_frame_retention_roots(
             for ear_y in ear_centers_y
         ]
 
-        # Close the clevis around the nominal yoke without putting frame material through
-        # the yoke boss. Candidate bridges approach from above and below the root; the
-        # released counterpart deterministically selects a valid, yoke-clear candidate that
-        # positively captures the current source frame. If neither side reaches the frame,
-        # geometry remains blocked rather than being represented by disconnected solids.
         bridge_z_thickness = FRAME_STEM_OVERLAP_MM
         bridge_y_span = 2.0 * ear_offset + CLEVIS_EAR_Y_THICKNESS_MM
         candidates: list[tuple[float, float, cq.Workplane, float]] = []
