@@ -36,6 +36,16 @@ from .realized_waste_backbone_release import (
 )
 from .step_integrity import solid_volume, verify_step_geometry
 from .structural_frame import build_structural_frame_topology
+from .structural_frame_actuator_reactions import build_structural_frame_actuator_reactions
+from .structural_frame_actuator_reactions_export import export_structural_frame_actuator_reactions
+from .structural_frame_retention_roots import (
+    build_structural_frame_retention_roots,
+    export_retention_root_counterparts,
+)
+from .structural_frame_crown_support import (
+    build_structural_frame_crown_support,
+    export_structural_frame_crown_support,
+)
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
 
 
@@ -115,10 +125,6 @@ def _component_record(component, *, included: bool) -> dict:
         "name": component.name,
         "status": component.status,
         "notes": component.notes,
-        # Read the declared role. Inferring it from assembly inclusion silently
-        # promoted envelopes to manufactured material and demoted real parts to
-        # reference geometry -- the exact substitution ENGINEERING_GOVERNANCE
-        # forbids. Inclusion is a separate fact, checked against the role below.
         "geometry_role": component.geometry_role.value,
         "included_in_development_assembly": included,
         "solid_count": len(solids),
@@ -151,7 +157,6 @@ def _source_content_identity() -> dict[str, str]:
 def _realized_waste_backbone_manifest(
     release: Cell4WasteBackboneRelease | None = None,
 ) -> dict[str, object]:
-    """Return the current validated route realization for deterministic release output."""
     release = release or build_current_cell4_waste_backbone_release()
     release_manifest = release.manifest()
     return {
@@ -249,10 +254,50 @@ def export_release(
         model.authority,
         attachment,
     )
+    frame_reactions = build_structural_frame_actuator_reactions(model=model)
+    frame_roots = build_structural_frame_retention_roots(
+        model=model,
+        reactions=frame_reactions,
+    )
+    frame_crown = build_structural_frame_crown_support(
+        model=model,
+        roots=frame_roots,
+    )
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
+
+    frame_step_files = [
+        "structural_frame_with_four_actuator_reaction_counterparts.step",
+        "structural_frame_with_bilateral_retention_roots.step",
+        "retention_root_wearer_left_capture_pin.step",
+        "retention_root_wearer_left_split_retainer.step",
+        "retention_root_wearer_right_capture_pin.step",
+        "retention_root_wearer_right_split_retainer.step",
+        "structural_frame_crown_support.step",
+        "structural_frame_crown_wearer_left_capture_pin.step",
+        "structural_frame_crown_wearer_left_split_retainer.step",
+        "structural_frame_crown_wearer_right_capture_pin.step",
+        "structural_frame_crown_wearer_right_split_retainer.step",
+    ]
+    frame_manifest_files = [
+        "structural_frame_actuator_reactions_manifest.json",
+        "structural_frame_retention_roots_manifest.json",
+        "structural_frame_crown_support_manifest.json",
+    ]
+    pending_frame_assembly_rebind = [
+        "STRUCTURAL_FRAME_FOUR_ACTUATOR_REACTION_COUNTERPARTS_V1",
+        "STRUCTURAL_FRAME_BILATERAL_RETENTION_ROOTS_V1",
+        "STRUCTURAL_FRAME_BILATERAL_CROWN_SUPPORT_V1",
+    ]
 
     registry_manifest = component_registry.manifest()
     brand_identity_manifest = build_brand_identity_manifest()
+    exported_manifest_files = [
+        "component_registry.json",
+        "brand_identity.json",
+        *frame_manifest_files,
+        "build_report.json",
+        "package_manifest.json",
+    ]
     report = {
         "project": "Masck One",
         "parent_brand": "MASCK",
@@ -287,6 +332,9 @@ def export_release(
             ),
             "interface_attachment": attachment.manifest(),
             "structural_frame": structural_frame.manifest(),
+            "structural_frame_actuator_reactions": frame_reactions.manifest(),
+            "structural_frame_retention_roots": frame_roots.manifest(),
+            "structural_frame_crown_support": frame_crown.manifest(),
             "realized_waste_backbone": _realized_waste_backbone_manifest(waste_release),
         },
         "dfm_gates": {
@@ -298,16 +346,14 @@ def export_release(
         "development_assembly_material_components": list(included_names),
         "development_assembly_exclusions": list(development_assembly_exclusions),
         "development_assembly_components": list(included_names),
+        "standalone_physical_geometry_pending_assembly_rebind": pending_frame_assembly_rebind,
         "exported_step_files": [
             f"{component.name}.step" for component in components
         ]
-        + ["masck_one_development_assembly.step"],
-        "exported_manifests": [
-            "component_registry.json",
-            "brand_identity.json",
-            "build_report.json",
-            "package_manifest.json",
-        ],
+        + ["masck_one_development_assembly.step"]
+        + frame_step_files,
+        "exported_manifest_files": exported_manifest_files,
+        "exported_manifests": exported_manifest_files,
         "note": (
             "BLOCKED checks are unresolved evidence gates, not software failures. "
             "The canonical component registry is the sole physical-material membership "
@@ -319,15 +365,12 @@ def export_release(
             "supersedes its dated head snapshot and subsystem owners retain their internals. "
             "The MASCK brand identity manifest is a source-bound product, interaction and "
             "CMF contract only; it does not override engineering authority, protected geometry, "
-            "manufacturing truth or physical-validation gates. The structural frame is currently "
-            "a topology/datum contract without invented cross-section or material; no frame STEP "
-            "member geometry is released by Iteration 15. The realized waste backbone is emitted "
-            "as validated centerline and manifold data, not selected tubing, pump, barrier, "
-            "connector, hydraulic, service or physical-performance evidence. The waste-cartridge "
-            "STEP remains an external package-envelope reference only and is deliberately excluded "
-            "from physical development-assembly material until body, cavity, seal, retention and "
-            "service geometry are realized. Digital topology, manifests and analysis frameworks "
-            "are not physical validation evidence."
+            "manufacturing truth or physical-validation gates. Cell 6 frame reaction, retention-root "
+            "and crown-support geometry is exported as standalone manufactured B-rep evidence, but "
+            "remains explicitly pending canonical development-assembly rebind. The realized waste "
+            "backbone is emitted as validated centerline and manifold data, not selected tubing, pump, "
+            "barrier, connector, hydraulic, service or physical-performance evidence. Digital topology, "
+            "manifests and analysis frameworks are not physical validation evidence."
         ),
     }
     json.dumps(report, allow_nan=False)
@@ -353,6 +396,29 @@ def export_release(
             compound,
             assembly_path,
         )
+
+        export_structural_frame_actuator_reactions(stage)
+        export_retention_root_counterparts(stage)
+        export_structural_frame_crown_support(stage, architecture=frame_crown)
+
+        for filename in frame_step_files:
+            path = stage / filename
+            if not path.is_file():
+                raise ExportValidationError(f"Cell 6 exporter did not emit declared STEP: {filename}")
+            imported = cq.importers.importStep(str(path))
+            value = imported.val()
+            if not value.isValid() or not value.Solids() or float(value.Volume()) <= 0.0:
+                raise ExportValidationError(f"Cell 6 exporter emitted invalid STEP: {filename}")
+
+        for filename in frame_manifest_files:
+            path = stage / filename
+            if not path.is_file():
+                raise ExportValidationError(f"Cell 6 exporter did not emit declared manifest: {filename}")
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if payload.get("physical_validation_eligible") is not False:
+                raise ExportValidationError(
+                    f"Cell 6 manifest must preserve physical evidence firewall: {filename}"
+                )
 
         (stage / "component_registry.json").write_text(
             json.dumps(registry_manifest, indent=2, allow_nan=False) + "\n",
