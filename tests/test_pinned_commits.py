@@ -51,7 +51,18 @@ _ALLOWED_NON_COMMITS = frozenset({"a" * 40, "0" * 40, "f" * 40, "1" * 40})
 #
 # Retiring an entry belongs to the lane that owns the file (see
 # src/masck_one/integration_contract.py). This set is a RATCHET: it may only
-# shrink. New bad pins fail; entries that become reachable must be deleted.
+# shrink. New bad pins fail; entries that reach the RELEASE LINE must be deleted.
+#
+# "Release line", not "HEAD", and the distinction is load-bearing. Reachability
+# from HEAD is branch-relative, so the same frozenset gave opposite verdicts on
+# two branches at once: three of these commits are ancestors of the Cell 6 frame
+# branch but of no released commit. Judged against HEAD, keeping them failed the
+# self-clean check on that branch and removing them failed the orphan check on
+# main -- a deadlock no value of this set could satisfy.
+#
+# Landing on a feature branch does not retire provenance debt anyway. That branch
+# can still be force-pushed or abandoned, which is the exact failure this gate
+# exists to catch. Debt is retired by reaching main, and by nothing else.
 _KNOWN_UNVERIFIABLE_COMMIT_PINS = frozenset({
     "0b5a619c6cea344038b0e8b8cc10a50e3d193390",  # src/masck_one/mechanical_interface_graph.py
     "34273de3bd86294080e51873c212e988b4a966f4",  # src/masck_one/mechanical_interface_graph.py
@@ -98,6 +109,23 @@ def _pinned_hashes() -> dict[str, list[str]]:
                 continue
             found.setdefault(sha, []).append(str(path.relative_to(ROOT)))
     return found
+
+
+def _release_line() -> str:
+    """The released line to judge debt against; HEAD only if nothing else resolves.
+
+    Falling back to HEAD reproduces the historical behaviour exactly, so a clone
+    without a main ref is no worse off than before.
+    """
+
+    for ref in ("refs/remotes/origin/main", "refs/heads/main", "origin/main", "main"):
+        if _git("rev-parse", "--verify", "--quiet", ref + "^{commit}").returncode == 0:
+            return ref
+    return "HEAD"
+
+
+def _reachable_from_release(sha: str) -> bool:
+    return _git("merge-base", "--is-ancestor", sha, _release_line()).returncode == 0
 
 
 def _object_kind(sha: str) -> str:
@@ -149,7 +177,7 @@ def test_no_new_orphaned_commit_pins() -> None:
 @requires_git
 @requires_full_history
 def test_debt_set_self_cleans() -> None:
-    """An entry that became reachable must be deleted from the debt set.
+    """An entry that reached the release line must be deleted from the debt set.
 
     Otherwise the ratchet quietly stops ratcheting: retired debt lingers and
     keeps granting an exemption nobody needs.
@@ -158,8 +186,7 @@ def test_debt_set_self_cleans() -> None:
     now_reachable = [
         sha
         for sha in sorted(_KNOWN_UNVERIFIABLE_COMMIT_PINS)
-        if _object_kind(sha) == "commit"
-        and _git("merge-base", "--is-ancestor", sha, "HEAD").returncode == 0
+        if _object_kind(sha) == "commit" and _reachable_from_release(sha)
     ]
     assert not now_reachable, (
         "these pins are now reachable and must be removed from "
@@ -230,3 +257,59 @@ def test_scan_finds_pins_across_source_and_docs() -> None:
     total = sum(len(v) for v in buckets.values())
     assert total >= 20, f"pinned-hash scan found only {total} references"
     assert buckets["commit_ok"], "no verifiable commit pins found at all"
+
+
+@requires_git
+@requires_full_history
+def test_release_line_prefers_main_over_head() -> None:
+    """The line debt is judged against must be main whenever main resolves.
+
+    HEAD is the fallback of last resort, and only because falling back to it
+    reproduces the historical behaviour exactly rather than inventing a new one.
+    """
+
+    has_main = any(
+        _git("rev-parse", "--verify", "--quiet", ref + "^{commit}").returncode == 0
+        for ref in ("refs/remotes/origin/main", "refs/heads/main")
+    )
+    assert (_release_line() != "HEAD") == has_main
+
+
+@requires_git
+@requires_full_history
+def test_feature_branch_reachability_does_not_retire_debt() -> None:
+    """Debt retires by reaching main, not by appearing on somebody's branch.
+
+    This is the regression for the defect that motivated ``_release_line``. When
+    the self-clean check judged reachability from HEAD, a commit that existed
+    only on an unmerged branch retired its own debt the moment CI ran on that
+    branch -- while the orphan check, running on main, still demanded the
+    exemption. The two gates contradicted each other and no value of the debt set
+    could satisfy both.
+
+    ``_reachable_from_release`` is compared against a direct query on main rather
+    than against itself, so a release line that silently degrades to HEAD is
+    caught by the disagreement instead of passing by construction.
+    """
+
+    refs = _git("for-each-ref", "--format=%(refname)", "refs/remotes", "refs/heads")
+    checked = 0
+    for ref in refs.stdout.split():
+        if ref.endswith(("/main", "/HEAD")):
+            continue
+        tip = _git("rev-parse", "--verify", "--quiet", ref + "^{commit}").stdout.strip()
+        if not tip:
+            continue
+        oracle = _git(
+            "merge-base", "--is-ancestor", tip, "refs/remotes/origin/main"
+        ).returncode == 0
+        assert _reachable_from_release(tip) == oracle, (
+            f"{ref} ({tip}) is judged released={_reachable_from_release(tip)} but "
+            f"main says {oracle}; the release line is not main"
+        )
+        checked += 1
+    # A clone with no branches beyond main cannot exercise the rule, and saying so
+    # is more honest than a pass that examined nothing.
+    assert checked or not _git(
+        "rev-parse", "--verify", "--quiet", "refs/remotes/origin/main^{commit}"
+    ).returncode == 0
