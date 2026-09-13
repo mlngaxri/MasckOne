@@ -73,6 +73,18 @@ def _intersection_volume(a: cq.Workplane, b: cq.Workplane) -> float:
         return 0.0
 
 
+def _escaped_volume(inner: cq.Workplane, envelope: cq.Workplane) -> float:
+    """Volume of ``inner`` lying outside ``envelope``. 0.0 when fully contained."""
+
+    try:
+        remainder = inner.cut(envelope).val()
+    except Exception:
+        return 0.0
+    if remainder is None or not remainder.Solids():
+        return 0.0
+    return max(0.0, float(remainder.Volume()))
+
+
 def _valid_single_solid(shape: cq.Workplane, label: str) -> None:
     value = shape.val()
     if not value.isValid() or len(value.Solids()) != 1 or _volume(shape) <= 0.0:
@@ -301,6 +313,20 @@ def build_structural_frame_shell_joints(
 
         pin_z = frame_top + 0.65 * TENON_SHELL_INSERT_MM
         pin, bore, clip = _pin_geometry(cx, cy, pin_z, TENON_WIDTH_MM / 2.0 + PIN_OVERHANG_MM)
+
+        # The pin must fit the passage made for it. Checking the pin against the
+        # *cut* shell cannot see a lost head relief here: this joint's pin axis
+        # lies below the shell's lower bound, so the head-relief annulus removes
+        # no shell material and a pin head left in a shaft-diameter bore still
+        # reports a clean shell intersection. Containment is a property of the
+        # two manufactured solids and holds wherever they sit.
+        pin_outside_bore = _escaped_volume(pin, bore)
+        if pin_outside_bore > _INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameShellJointError(
+                f"{joint_id} capture pin does not fit the shell-side bore: "
+                f"{pin_outside_bore:.8f} mm3 of pin lies outside the bore envelope, "
+                "so the declared pin-head relief is absent or undersized"
+            )
 
         joint_frame = assembled_frame.union(tenon).cut(bore)
         joint_shell = modified_shell.cut(mortise).cut(bore)
