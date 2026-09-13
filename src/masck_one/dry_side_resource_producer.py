@@ -12,12 +12,18 @@ from pathlib import Path
 
 from .dry_side_harness_service import build_dry_side_harness_service, DRY_BAY_BOUNDS_WORLD_MM
 
-SCHEMA = "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V1"
+SCHEMA = "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V2"
 OWNER_PR = 142
 OWNER_BRANCH = "cell12/compact-dry-side-package-reconstructed-20260909"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _EXACT_GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+_IDENTITY_WORLD_TRANSFORM = [
+    [1.0, 0.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0, 0.0],
+    [0.0, 0.0, 1.0, 0.0],
+    [0.0, 0.0, 0.0, 1.0],
+]
 
 
 def _blob(path: Path) -> str:
@@ -49,13 +55,34 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
         {"path": rel, "git_blob_sha": _blob(_REPO_ROOT / rel), "evidence_class": "SOURCE_BOUND_DIGITAL_PACKAGE"}
         for rel in source_paths
     ]
+    source_by_path = {source["path"]: source for source in sources}
+    harness_source = source_by_path["src/masck_one/dry_side_harness_service.py"]
 
     return {
         "schema": SCHEMA,
         "owner": {"pr": OWNER_PR, "branch": OWNER_BRANCH, "head_sha": owner_head_sha},
         "world_frame_id": WORLD_FRAME_ID,
         "sources": sources,
+        "components": [
+            {
+                "component_id": "DRY_SIDE_HARNESS_ROUTE_ENVELOPE",
+                "source_path": harness_source["path"],
+                "source_git_blob_sha": harness_source["git_blob_sha"],
+                "evidence_class": "SOURCE_BOUND_DIGITAL_ENVELOPE",
+                "transform_to_world_mm": _IDENTITY_WORLD_TRANSFORM,
+                "bounds_world_mm": route["bounds_world_mm"],
+                "volume_mm3": route["volume_mm3"],
+                "mass_g": None,
+                "mass_source": "UNKNOWN_NO_QUALIFIED_CONDUCTOR_OR_INSULATION_MASS",
+            }
+        ],
         "service_state": "DRY_SIDE_INSTALLED_WITH_REALIZED_DIGITAL_SERVICE_LOOP",
+        "service_envelope": {
+            "route_bounds_world_mm": route["bounds_world_mm"],
+            "clip_bounds_world_mm": [clip["bounds_world_mm"] for clip in clips],
+            "transform_to_world_mm": _IDENTITY_WORLD_TRANSFORM,
+            "evidence": "DIGITAL_ENVELOPE_ONLY_PHYSICAL_SERVICE_UNVALIDATED",
+        },
         "containment": {
             "dry_bay_bounds_world_mm": bounds,
             "evidence": "EXACT_DIGITAL_PACKAGE_BOUND",
