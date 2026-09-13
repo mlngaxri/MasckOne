@@ -28,12 +28,14 @@ ROOT_SHOULDER_GAP_MM = 0.15
 ROOT_SHOULDER_THICKNESS_MM = 0.9
 POST_WIDTH_MM = 3.0
 POST_Y_MM = 3.0
-ARM_Y_MM = 3.0
+ARM_Y_MM = 2.0
 ARM_Z_MM = 2.0
 BATTERY_SIDE_CLEARANCE_MM = 0.35
 SIDE_RAIL_THICKNESS_MM = 1.5
-SIDE_RAIL_Y_OVERHANG_MM = 1.8
+SIDE_RAIL_Y_MM = 2.0
 SIDE_RAIL_Z_OVERHANG_MM = 1.2
+SUPPORT_ROUTE_Y_MM = 8.75
+PROTECTED_ROUTE_HOSTILE_SHIFT_MM = 3.0
 STOP_PROBE_MM = 0.50
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
 
@@ -65,6 +67,7 @@ class BatterySupportRail:
     package_intersection_mm3: float
     protected_intersection_mm3: float
     hostile_package_stop_intersection_mm3: float
+    hostile_protected_intersection_mm3: float
     rail: cq.Workplane = field(repr=False, compare=False)
 
     def __post_init__(self) -> None:
@@ -81,6 +84,8 @@ class BatterySupportRail:
             raise StructuralFrameDryPackageSupportError("battery support intersects hard protected geometry")
         if self.hostile_package_stop_intersection_mm3 <= _INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameDryPackageSupportError("battery support lacks a real lateral package stop")
+        if self.hostile_protected_intersection_mm3 <= _INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameDryPackageSupportError("battery support protected-route hostile witness does not collide")
 
     def manifest(self) -> dict[str, object]:
         return {
@@ -89,12 +94,14 @@ class BatterySupportRail:
             "coordinate_frame_id": WORLD_FRAME_ID,
             "root_center_xyz_mm": list(self.root_center_xyz_mm),
             "package_side_x_mm": self.package_side_x_mm,
+            "route_y_mm": SUPPORT_ROUTE_Y_MM,
             "interface_semantics": "POSTERIOR_INSERTABLE_KEYED_FRAME_RAIL_WITH_LATERAL_BATTERY_STOP",
             "measured": {
                 "frame_intersection_mm3": self.frame_intersection_mm3,
                 "package_intersection_mm3": self.package_intersection_mm3,
                 "protected_intersection_mm3": self.protected_intersection_mm3,
                 "hostile_package_stop_intersection_mm3": self.hostile_package_stop_intersection_mm3,
+                "hostile_protected_intersection_mm3": self.hostile_protected_intersection_mm3,
             },
         }
 
@@ -168,18 +175,36 @@ def _rail(side_sign: float, root_x: float, socket_cz: float, boss_back_z: float,
     battery_cz = (battery_box.zmin + battery_box.zmax) / 2.0
     post_height = abs(shoulder_z - battery_cz) + ARM_Z_MM
     post = cq.Workplane("XY").box(POST_WIDTH_MM, POST_Y_MM, post_height, centered=(True, True, True)).translate((root_x, 0.0, (shoulder_z + battery_cz) / 2.0))
+
+    # The battery sits directly behind central protected facial footprints. A
+    # straight arm on Y=0 therefore crosses the bilateral nostril hard keepouts.
+    # Route the frame-owned positive material through the narrow deterministic
+    # corridor between the superior edge of those nostril keepouts and the
+    # inferior edge of the eye keepouts. The root-side jog occurs at |X| near
+    # the frame perimeter, outside every protected footprint, and remains
+    # positively fused to both the posterior post and the lateral arm.
+    route_link = (
+        cq.Workplane("XY")
+        .box(POST_WIDTH_MM, SUPPORT_ROUTE_Y_MM, ARM_Z_MM, centered=(True, True, True))
+        .translate((root_x, SUPPORT_ROUTE_Y_MM / 2.0, battery_cz))
+    )
+
     package_side_x = battery_box.xmax if side_sign > 0.0 else battery_box.xmin
     rail_center_x = package_side_x + side_sign * (BATTERY_SIDE_CLEARANCE_MM + SIDE_RAIL_THICKNESS_MM / 2.0)
     arm_center_x = (root_x + rail_center_x) / 2.0
-    # Span only between the post and side-rail centrelines. Both end solids
-    # positively capture the arm, while avoiding the previous half-post-width
-    # overrun through the rail and into the nominal battery envelope.
     arm_len = abs(root_x - rail_center_x)
-    arm = cq.Workplane("XY").box(arm_len, ARM_Y_MM, ARM_Z_MM, centered=(True, True, True)).translate((arm_center_x, 0.0, battery_cz))
-    rail_y = (battery_box.ymax - battery_box.ymin) + 2.0 * SIDE_RAIL_Y_OVERHANG_MM
+    arm = (
+        cq.Workplane("XY")
+        .box(arm_len, ARM_Y_MM, ARM_Z_MM, centered=(True, True, True))
+        .translate((arm_center_x, SUPPORT_ROUTE_Y_MM, battery_cz))
+    )
     rail_z = (battery_box.zmax - battery_box.zmin) + 2.0 * SIDE_RAIL_Z_OVERHANG_MM
-    side_rail = cq.Workplane("XY").box(SIDE_RAIL_THICKNESS_MM, rail_y, rail_z, centered=(True, True, True)).translate((rail_center_x, (battery_box.ymin + battery_box.ymax) / 2.0, battery_cz))
-    return key.union(shoulder).union(post).union(arm).union(side_rail)
+    side_rail = (
+        cq.Workplane("XY")
+        .box(SIDE_RAIL_THICKNESS_MM, SIDE_RAIL_Y_MM, rail_z, centered=(True, True, True))
+        .translate((rail_center_x, SUPPORT_ROUTE_Y_MM, battery_cz))
+    )
+    return key.union(shoulder).union(post).union(route_link).union(arm).union(side_rail)
 
 
 def build_structural_frame_dry_package_supports(*, model: MasckOneModel | None = None, reactions: StructuralFrameActuatorReactionArchitecture | None = None) -> StructuralFrameDryPackageSupportArchitecture:
@@ -208,11 +233,14 @@ def build_structural_frame_dry_package_supports(*, model: MasckOneModel | None =
         rail = _rail(side_sign, root_x, socket_cz, boss_back_z, battery_box)
         _single(rail, SUPPORT_IDS[index])
         protected = 0.0
+        hostile_protected = 0.0
         rail_box = rail.val().BoundingBox()
+        hostile_protected_rail = rail.translate((0.0, -PROTECTED_ROUTE_HOSTILE_SHIFT_MM, 0.0))
         for item in model.protected_volumes.all:
             zone = item.zone
             keepout = _protected_zone_solid(center_x_mm=zone.center.x, center_y_mm=zone.center.y, envelope_width_mm=zone.envelope_width_mm, envelope_height_mm=zone.envelope_height_mm, angle_deg=zone.angle_deg, z_min_mm=float(rail_box.zmin) - 1.0, z_max_mm=float(rail_box.zmax) + 1.0)
             protected += _ivol(rail, keepout)
+            hostile_protected += _ivol(hostile_protected_rail, keepout)
         hostile = rail.translate((-side_sign * STOP_PROBE_MM, 0.0, 0.0))
         supports.append(BatterySupportRail(
             support_id=SUPPORT_IDS[index],
@@ -223,6 +251,7 @@ def build_structural_frame_dry_package_supports(*, model: MasckOneModel | None =
             package_intersection_mm3=round(_ivol(rail, battery), 8),
             protected_intersection_mm3=round(protected, 8),
             hostile_package_stop_intersection_mm3=round(_ivol(hostile, battery), 8),
+            hostile_protected_intersection_mm3=round(hostile_protected, 8),
             rail=rail,
         ))
     return StructuralFrameDryPackageSupportArchitecture(source_reaction_architecture_sha256=reactions.architecture_sha256, frame_with_support_counterparts=frame, supports=tuple(supports), physical_validation_eligible=False)
