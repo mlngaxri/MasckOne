@@ -10,7 +10,7 @@ HEAD = "b" * 40
 
 def test_dry_side_producer_exports_service_geometry_without_inventing_resources():
     manifest = build_dry_side_resource_producer(owner_head_sha=HEAD)
-    assert manifest["schema"] == "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V1"
+    assert manifest["schema"] == "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V2"
     assert manifest["owner"]["pr"] == 142
     assert manifest["physical_validation_complete"] is False
     assert len(manifest["sources"]) == 3
@@ -24,6 +24,27 @@ def test_dry_side_producer_exports_service_geometry_without_inventing_resources(
     assert len(harness["pcb_handoff_datum_world_mm"]) == 3
     assert len(harness["disconnect_mating_datum_world_mm"]) == 3
     assert len(harness["clip_bounds_world_mm"]) == 2
+
+    component = manifest["components"][0]
+    assert component["component_id"] == "DRY_SIDE_HARNESS_ROUTE_ENVELOPE"
+    assert component["source_git_blob_sha"] == next(
+        source["git_blob_sha"] for source in manifest["sources"]
+        if source["path"] == "src/masck_one/dry_side_harness_service.py"
+    )
+    assert component["transform_to_world_mm"] == [
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ]
+    assert component["bounds_world_mm"] == harness["route_bounds_world_mm"]
+    assert component["mass_g"] is None
+    assert component["mass_source"].startswith("UNKNOWN_")
+
+    service = manifest["service_envelope"]
+    assert service["route_bounds_world_mm"] == harness["route_bounds_world_mm"]
+    assert service["clip_bounds_world_mm"] == harness["clip_bounds_world_mm"]
+    assert service["transform_to_world_mm"] == component["transform_to_world_mm"]
 
     contract = manifest["resource_contract"]
     assert contract["unknown_policy"] == "NEVER_ZERO_FILL"
