@@ -92,17 +92,41 @@ def _validate_manifest(path: Path) -> dict[str, object]:
     return payload
 
 
+def _reject_non_portable(value: object, trail: str = "report") -> None:
+    """Refuse a release report that carries a machine-local path.
+
+    Serialisation would fail on it anyway; naming the key turns an encoder
+    TypeError into a statement about which producer leaked the path.
+    """
+
+    if isinstance(value, Path):
+        raise StructuralFrameReleaseExportError(
+            f"release report carries a filesystem path at {trail}: {value}"
+        )
+    if isinstance(value, dict):
+        for key, item in value.items():
+            _reject_non_portable(item, f"{trail}.{key}")
+    elif isinstance(value, (list, tuple)):
+        for index, item in enumerate(value):
+            _reject_non_portable(item, f"{trail}[{index}]")
+
+
 def export_structural_frame_release_bundle(output_dir: str | Path) -> dict[str, object]:
     """Emit and verify the source-current standalone Cell 6 release bundle."""
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    actuator_manifest = export_structural_frame_actuator_reactions(output_dir)
-    retention_manifest = export_retention_root_counterparts(output_dir)
-    crown_manifest = export_structural_frame_crown_support(output_dir)
-    dry_package_manifest = export_structural_frame_dry_package_supports(output_dir)
-    shell_service_manifest = export_structural_frame_shell_joint_service(output_dir)
+    # These five do not agree on what to return: one yields the paths it wrote,
+    # one a short {architecture_sha256, manifest_file, step_file} summary, and
+    # the rest the manifest itself. The release report is built from the
+    # manifests read back off disk instead, so it describes the artefacts that
+    # actually shipped rather than three different producer conventions.
+    export_structural_frame_actuator_reactions(output_dir)
+    export_retention_root_counterparts(output_dir)
+    export_structural_frame_crown_support(output_dir)
+    export_structural_frame_dry_package_supports(output_dir)
+    export_structural_frame_shell_joint_service(output_dir)
 
     for filename in EXPORTED_STEP_FILES:
         _validate_step(output_dir / filename)
@@ -114,13 +138,17 @@ def export_structural_frame_release_bundle(output_dir: str | Path) -> dict[str, 
 
     if manifest_payloads["structural_frame_retention_roots_manifest.json"].get(
         "source_frame_reaction_architecture_sha256"
-    ) != actuator_manifest.get("architecture_sha256"):
+    ) != manifest_payloads["structural_frame_actuator_reactions_manifest.json"].get(
+        "architecture_sha256"
+    ):
         raise StructuralFrameReleaseExportError(
             "retention-root release manifest is not source-chained to exported frame reactions"
         )
     if manifest_payloads["structural_frame_crown_support_manifest.json"].get(
         "source_retention_root_architecture_sha256"
-    ) != retention_manifest.get("architecture_sha256"):
+    ) != manifest_payloads["structural_frame_retention_roots_manifest.json"].get(
+        "architecture_sha256"
+    ):
         raise StructuralFrameReleaseExportError(
             "crown-support release manifest is not source-chained to exported retention roots"
         )
@@ -133,15 +161,17 @@ def export_structural_frame_release_bundle(output_dir: str | Path) -> dict[str, 
             STANDALONE_PHYSICAL_GEOMETRY_PENDING_ASSEMBLY_REBIND
         ),
         "digital_topology": {
-            "structural_frame_actuator_reactions": actuator_manifest,
-            "structural_frame_retention_roots": retention_manifest,
-            "structural_frame_crown_support": crown_manifest,
-            "structural_frame_dry_package_supports": dry_package_manifest,
-            "structural_frame_shell_joint_service": shell_service_manifest,
+            filename.removesuffix("_manifest.json"): payload
+            for filename, payload in sorted(manifest_payloads.items())
         },
         "physical_validation_eligible": False,
         "evidence_scope": "DIGITAL_BREP_AND_RELEASE_PROVENANCE_ONLY",
     }
+    # A filesystem path in a release report is two defects at once: it is not
+    # JSON, and it names a directory that only existed on the machine that
+    # built it. Fail with the offending key rather than a bare TypeError from
+    # the encoder.
+    _reject_non_portable(report)
     (output_dir / RELEASE_MANIFEST_FILE).write_text(
         json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n",
         encoding="utf-8",
