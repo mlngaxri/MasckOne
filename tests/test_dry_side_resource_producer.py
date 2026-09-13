@@ -10,7 +10,7 @@ HEAD = "b" * 40
 
 def test_dry_side_producer_exports_service_geometry_without_inventing_resources():
     manifest = build_dry_side_resource_producer(owner_head_sha=HEAD)
-    assert manifest["schema"] == "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V3"
+    assert manifest["schema"] == "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V4"
     assert manifest["owner"]["pr"] == 142
     assert manifest["physical_validation_complete"] is False
     assert len(manifest["sources"]) == 3
@@ -59,7 +59,7 @@ def test_dry_side_producer_exports_service_geometry_without_inventing_resources(
         assert contract[key] is None
 
 
-def test_battery_benchmark_is_exported_but_cannot_be_promoted_to_production_mass():
+def test_battery_benchmark_is_exported_but_cannot_be_promoted_to_production_mass_or_cg():
     manifest = build_dry_side_resource_producer(owner_head_sha=HEAD)
     battery = manifest["battery_packaging_benchmark"]
     source = next(
@@ -74,7 +74,17 @@ def test_battery_benchmark_is_exported_but_cannot_be_promoted_to_production_mass
     assert battery["runtime_validated"] is False
     assert manifest["resource_contract"]["battery_benchmark_mass_g"] == battery["mass_g"]
     assert manifest["resource_contract"]["battery_benchmark_mass_class"] == "REFERENCE_ONLY_NOT_AGGREGATABLE_AS_PRODUCTION_MASS"
+    assert manifest["resource_contract"]["battery_benchmark_cg_world_mm"] == battery["cg_world_mm"]
+    if battery["cg_world_mm"] is None:
+        assert battery["cg_evidence_class"] == "UNKNOWN_NO_SOURCE_BOUND_BENCHMARK_CG"
+        assert manifest["resource_contract"]["battery_benchmark_cg_class"] == "UNKNOWN"
+    else:
+        assert len(battery["cg_world_mm"]) == 3
+        assert all(math.isfinite(float(v)) for v in battery["cg_world_mm"])
+        assert battery["cg_evidence_class"] == "AUTHORITY_PACKAGING_BENCHMARK_NOT_PRODUCTION_CG"
+        assert manifest["resource_contract"]["battery_benchmark_cg_class"] == "REFERENCE_ONLY_NOT_AGGREGATABLE_AS_PRODUCTION_CG"
     assert manifest["resource_contract"]["mass_total_g"] is None
+    assert manifest["resource_contract"]["mass_cg_world_mm"] is None
 
 
 def test_dry_side_producer_keeps_route_inside_declared_dry_bay():
