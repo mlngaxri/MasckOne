@@ -1,7 +1,8 @@
 """Source-bound dry-side producer inputs for the whole-routine resource graph.
 
-Only digital package geometry is promoted. Qualified mass, electrical ratings,
-runtime and physical service evidence remain UNKNOWN and are never zero-filled.
+Only digital package geometry and explicitly typed benchmark evidence are promoted.
+Production mass, electrical ratings, runtime and physical service evidence remain
+UNKNOWN and are never zero-filled.
 """
 from __future__ import annotations
 
@@ -10,9 +11,10 @@ import math
 import re
 from pathlib import Path
 
+from .battery_benchmark import build_battery_benchmark_binding
 from .dry_side_harness_service import build_dry_side_harness_service, DRY_BAY_BOUNDS_WORLD_MM
 
-SCHEMA = "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V2"
+SCHEMA = "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V3"
 OWNER_PR = 142
 OWNER_BRANCH = "cell12/compact-dry-side-package-reconstructed-20260909"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
@@ -40,6 +42,7 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
         raise ValueError("exact lowercase 40-hex owner head SHA required")
 
     harness = build_dry_side_harness_service().manifest()
+    battery = build_battery_benchmark_binding().manifest()
     route = harness["geometry"]["harness_route_envelope"]
     clips = harness["geometry"]["clip_reservations"]
     bounds = [float(v) for v in DRY_BAY_BOUNDS_WORLD_MM]
@@ -57,6 +60,8 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
     ]
     source_by_path = {source["path"]: source for source in sources}
     harness_source = source_by_path["src/masck_one/dry_side_harness_service.py"]
+    battery_source = source_by_path["src/masck_one/battery_benchmark.py"]
+    benchmark = battery["benchmark"]
 
     return {
         "schema": SCHEMA,
@@ -76,6 +81,20 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
                 "mass_source": "UNKNOWN_NO_QUALIFIED_CONDUCTOR_OR_INSULATION_MASS",
             }
         ],
+        "battery_packaging_benchmark": {
+            "component_id": battery["model_binding"]["component_id"],
+            "source_path": battery_source["path"],
+            "source_git_blob_sha": battery_source["git_blob_sha"],
+            "candidate": benchmark["candidate"],
+            "envelope_mm": benchmark["envelope_mm"],
+            "nominal_voltage_V": benchmark["nominal_voltage_V"],
+            "capacity_mAh": benchmark["capacity_mAh"],
+            "mass_g": benchmark["mass_g"],
+            "mass_evidence_class": "AUTHORITY_PACKAGING_BENCHMARK_NOT_PRODUCTION_MASS",
+            "production_selected": False,
+            "supplier_document_bound": False,
+            "runtime_validated": False,
+        },
         "service_state": "DRY_SIDE_INSTALLED_WITH_REALIZED_DIGITAL_SERVICE_LOOP",
         "service_envelope": {
             "route_bounds_world_mm": route["bounds_world_mm"],
@@ -106,11 +125,13 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
             "energy_per_cycle_Wh": None,
             "release_reserve": None,
             "electrical_ratings": None,
+            "battery_benchmark_mass_g": benchmark["mass_g"],
+            "battery_benchmark_mass_class": "REFERENCE_ONLY_NOT_AGGREGATABLE_AS_PRODUCTION_MASS",
             "unknown_policy": "NEVER_ZERO_FILL",
         },
         "unresolved_evidence": [
-            "qualified battery PCB connector conductor and harness masses",
-            "component mass CG transforms after qualified masses exist",
+            "qualified production battery PCB connector conductor and harness masses",
+            "component mass CG transforms after qualified production masses exist",
             "connector and conductor electrical ratings",
             "wet dry bulkhead physical ingress performance",
             "battery runtime and release reserve",
