@@ -48,13 +48,16 @@ EXPORTED_STEP_FILES = (
     "frame_shell_joint_inferior_right_clip_install_sweep.step",
 )
 
-EXPORTED_MANIFEST_FILES = (
+CONSTITUENT_MANIFEST_FILES = (
     "structural_frame_actuator_reactions_manifest.json",
     "structural_frame_retention_roots_manifest.json",
     "structural_frame_crown_support_manifest.json",
     "structural_frame_dry_package_supports_manifest.json",
     "structural_frame_shell_joint_service_manifest.json",
 )
+
+RELEASE_MANIFEST_FILE = "structural_frame_release_export_manifest.json"
+EXPORTED_MANIFEST_FILES = (*CONSTITUENT_MANIFEST_FILES, RELEASE_MANIFEST_FILE)
 
 STANDALONE_PHYSICAL_GEOMETRY_PENDING_ASSEMBLY_REBIND = (
     "STRUCTURAL_FRAME_FOUR_ACTUATOR_REACTION_COUNTERPARTS_V1",
@@ -106,7 +109,7 @@ def export_structural_frame_release_bundle(output_dir: str | Path) -> dict[str, 
 
     manifest_payloads = {
         filename: _validate_manifest(output_dir / filename)
-        for filename in EXPORTED_MANIFEST_FILES
+        for filename in CONSTITUENT_MANIFEST_FILES
     }
 
     if manifest_payloads["structural_frame_retention_roots_manifest.json"].get(
@@ -139,7 +142,7 @@ def export_structural_frame_release_bundle(output_dir: str | Path) -> dict[str, 
         "physical_validation_eligible": False,
         "evidence_scope": "DIGITAL_BREP_AND_RELEASE_PROVENANCE_ONLY",
     }
-    (output_dir / "structural_frame_release_export_manifest.json").write_text(
+    (output_dir / RELEASE_MANIFEST_FILE).write_text(
         json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n",
         encoding="utf-8",
     )

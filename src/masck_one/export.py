@@ -37,14 +37,13 @@ from .realized_waste_backbone_release import (
 from .step_integrity import solid_volume, verify_step_geometry
 from .structural_frame import build_structural_frame_topology
 from .structural_frame_actuator_reactions import build_structural_frame_actuator_reactions
-from .structural_frame_actuator_reactions_export import export_structural_frame_actuator_reactions
-from .structural_frame_retention_roots import (
-    build_structural_frame_retention_roots,
-    export_retention_root_counterparts,
-)
-from .structural_frame_crown_support import (
-    build_structural_frame_crown_support,
-    export_structural_frame_crown_support,
+from .structural_frame_retention_roots import build_structural_frame_retention_roots
+from .structural_frame_crown_support import build_structural_frame_crown_support
+from .structural_frame_release_export import (
+    EXPORTED_MANIFEST_FILES as FRAME_EXPORTED_MANIFEST_FILES,
+    EXPORTED_STEP_FILES as FRAME_EXPORTED_STEP_FILES,
+    STANDALONE_PHYSICAL_GEOMETRY_PENDING_ASSEMBLY_REBIND as FRAME_PENDING_ASSEMBLY_REBIND,
+    export_structural_frame_release_bundle,
 )
 from .waste_cartridge_dfm import build_waste_cartridge_dfm_audit
 
@@ -265,29 +264,9 @@ def export_release(
     )
     waste_cartridge_dfm = build_waste_cartridge_dfm_audit(model=model)
 
-    frame_step_files = [
-        "structural_frame_with_four_actuator_reaction_counterparts.step",
-        "structural_frame_with_bilateral_retention_roots.step",
-        "retention_root_wearer_left_capture_pin.step",
-        "retention_root_wearer_left_split_retainer.step",
-        "retention_root_wearer_right_capture_pin.step",
-        "retention_root_wearer_right_split_retainer.step",
-        "structural_frame_crown_support.step",
-        "structural_frame_crown_wearer_left_capture_pin.step",
-        "structural_frame_crown_wearer_left_split_retainer.step",
-        "structural_frame_crown_wearer_right_capture_pin.step",
-        "structural_frame_crown_wearer_right_split_retainer.step",
-    ]
-    frame_manifest_files = [
-        "structural_frame_actuator_reactions_manifest.json",
-        "structural_frame_retention_roots_manifest.json",
-        "structural_frame_crown_support_manifest.json",
-    ]
-    pending_frame_assembly_rebind = [
-        "STRUCTURAL_FRAME_FOUR_ACTUATOR_REACTION_COUNTERPARTS_V1",
-        "STRUCTURAL_FRAME_BILATERAL_RETENTION_ROOTS_V1",
-        "STRUCTURAL_FRAME_BILATERAL_CROWN_SUPPORT_V1",
-    ]
+    frame_step_files = list(FRAME_EXPORTED_STEP_FILES)
+    frame_manifest_files = list(FRAME_EXPORTED_MANIFEST_FILES)
+    pending_frame_assembly_rebind = list(FRAME_PENDING_ASSEMBLY_REBIND)
 
     registry_manifest = component_registry.manifest()
     brand_identity_manifest = build_brand_identity_manifest()
@@ -365,12 +344,13 @@ def export_release(
             "supersedes its dated head snapshot and subsystem owners retain their internals. "
             "The MASCK brand identity manifest is a source-bound product, interaction and "
             "CMF contract only; it does not override engineering authority, protected geometry, "
-            "manufacturing truth or physical-validation gates. Cell 6 frame reaction, retention-root "
-            "and crown-support geometry is exported as standalone manufactured B-rep evidence, but "
-            "remains explicitly pending canonical development-assembly rebind. The realized waste "
-            "backbone is emitted as validated centerline and manifold data, not selected tubing, pump, "
-            "barrier, connector, hydraulic, service or physical-performance evidence. Digital topology, "
-            "manifests and analysis frameworks are not physical validation evidence."
+            "manufacturing truth or physical-validation gates. Cell 6 reaction, retention-root, "
+            "crown-support, dry-package support and shell-service geometry is exported as "
+            "standalone manufactured B-rep evidence, but remains explicitly pending canonical "
+            "development-assembly rebind. The realized waste backbone is emitted as validated "
+            "centerline and manifold data, not selected tubing, pump, barrier, connector, hydraulic, "
+            "service or physical-performance evidence. Digital topology, manifests and analysis "
+            "frameworks are not physical validation evidence."
         ),
     }
     json.dumps(report, allow_nan=False)
@@ -397,9 +377,24 @@ def export_release(
             assembly_path,
         )
 
-        export_structural_frame_actuator_reactions(stage)
-        export_retention_root_counterparts(stage)
-        export_structural_frame_crown_support(stage, architecture=frame_crown)
+        frame_release_report = export_structural_frame_release_bundle(stage)
+        if frame_release_report.get("exported_step_files") != frame_step_files:
+            raise ExportValidationError("Cell 6 release bundle STEP contract drifted from export_release")
+        if frame_release_report.get("exported_manifest_files") != frame_manifest_files:
+            raise ExportValidationError(
+                "Cell 6 release bundle manifest contract drifted from export_release"
+            )
+        if (
+            frame_release_report.get("standalone_physical_geometry_pending_assembly_rebind")
+            != pending_frame_assembly_rebind
+        ):
+            raise ExportValidationError(
+                "Cell 6 pending assembly-rebind contract drifted from export_release"
+            )
+        frame_topology = frame_release_report.get("digital_topology")
+        if not isinstance(frame_topology, dict):
+            raise ExportValidationError("Cell 6 release bundle omitted digital topology")
+        report["digital_topology"].update(frame_topology)
 
         for filename in frame_step_files:
             path = stage / filename
