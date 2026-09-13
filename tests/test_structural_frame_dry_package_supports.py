@@ -5,6 +5,7 @@ import cadquery as cq
 from masck_one.model import build_model
 from masck_one.structural_frame_dry_package_supports import (
     BATTERY_SIDE_CLEARANCE_MM,
+    PROTECTED_ROUTE_HOSTILE_SHIFT_MM,
     STOP_PROBE_MM,
     SUPPORT_IDS,
     _ivol,
@@ -28,6 +29,7 @@ def test_bilateral_dry_package_supports_are_positive_clear_and_source_chained() 
         assert support.package_intersection_mm3 == 0.0
         assert support.protected_intersection_mm3 == 0.0
         assert support.hostile_package_stop_intersection_mm3 > 0.0
+        assert support.hostile_protected_intersection_mm3 > 0.0
 
 
 def test_hostile_lateral_shift_hits_battery_reference_material() -> None:
@@ -38,6 +40,14 @@ def test_hostile_lateral_shift_hits_battery_reference_material() -> None:
     for support in architecture.supports:
         hostile = support.rail.translate((-support.side_sign * STOP_PROBE_MM, 0.0, 0.0))
         assert _ivol(hostile, battery) > 0.0
+
+
+def test_hostile_inferior_route_shift_hits_hard_protected_geometry() -> None:
+    architecture = build_structural_frame_dry_package_supports(model=build_model())
+    assert PROTECTED_ROUTE_HOSTILE_SHIFT_MM > 0.0
+    for support in architecture.supports:
+        assert support.protected_intersection_mm3 == 0.0
+        assert support.hostile_protected_intersection_mm3 > 0.0
 
 
 def test_deterministic_dry_package_support_export_roundtrips(tmp_path) -> None:
