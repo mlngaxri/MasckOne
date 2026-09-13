@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import cadquery as cq
+import pytest
 
 from masck_one.model import build_model
 from masck_one.structural_frame_dry_package_supports import (
@@ -14,9 +15,23 @@ from masck_one.structural_frame_dry_package_supports import (
 )
 
 
-def test_bilateral_dry_package_supports_are_positive_clear_and_source_chained() -> None:
+@pytest.fixture(scope="module")
+def dry_package_architecture():
+    """Build the expensive immutable Cell 6 support state once per module.
+
+    The first three tests are read-only assertions over the same deterministic
+    B-rep architecture. Rebuilding that full reaction/frame/protected-volume
+    chain for every assertion repeated OpenCascade work without adding coverage.
+    The export round-trip test below still performs an independent fresh build.
+    """
+
     model = build_model()
     architecture = build_structural_frame_dry_package_supports(model=model)
+    return model, architecture
+
+
+def test_bilateral_dry_package_supports_are_positive_clear_and_source_chained(dry_package_architecture) -> None:
+    _model, architecture = dry_package_architecture
     assert tuple(s.support_id for s in architecture.supports) == SUPPORT_IDS
     assert len(architecture.source_reaction_architecture_sha256) == 64
     assert architecture.physical_validation_eligible is False
@@ -32,9 +47,8 @@ def test_bilateral_dry_package_supports_are_positive_clear_and_source_chained() 
         assert support.hostile_protected_intersection_mm3 > 0.0
 
 
-def test_hostile_lateral_shift_hits_battery_reference_material() -> None:
-    model = build_model()
-    architecture = build_structural_frame_dry_package_supports(model=model)
+def test_hostile_lateral_shift_hits_battery_reference_material(dry_package_architecture) -> None:
+    model, architecture = dry_package_architecture
     battery = model.battery_reference_envelope.solid
     assert STOP_PROBE_MM > BATTERY_SIDE_CLEARANCE_MM
     for support in architecture.supports:
@@ -42,8 +56,8 @@ def test_hostile_lateral_shift_hits_battery_reference_material() -> None:
         assert _ivol(hostile, battery) > 0.0
 
 
-def test_hostile_inferior_route_shift_hits_hard_protected_geometry() -> None:
-    architecture = build_structural_frame_dry_package_supports(model=build_model())
+def test_hostile_inferior_route_shift_hits_hard_protected_geometry(dry_package_architecture) -> None:
+    _model, architecture = dry_package_architecture
     assert PROTECTED_ROUTE_HOSTILE_SHIFT_MM > 0.0
     for support in architecture.supports:
         assert support.protected_intersection_mm3 == 0.0
