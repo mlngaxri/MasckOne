@@ -22,7 +22,7 @@ from .adversarial_fit_proof import (ROOT, Variation, warp, face, rotation, trans
 from .authority import load_authority
 
 REVISION = 'FIT_METROLOGY_RIG_1'
-OUT = ROOT / 'analysis/fit_proof/metrology/fabrication'
+OUT = ROOT / 'generated/fit_metrology'
 WITNESSES = ROOT / 'analysis/fit_proof/campaign_3ccd912/witnesses'
 FIXTURE_LIMITS = {'xyz_each_mm': 10., 'rotation_each_deg': 6., 'jaw_withdrawal_mm': 55.}
 # Fixture construction values, NOT product tolerances or human-use limits.
@@ -141,7 +141,16 @@ def surface_part(name, variation, nx=31, ny=25):
     slot=box(4.2,7,20,(99,0,-25)).fuse(cylinder(2.1,20,(99,-3.5,-35)),cylinder(2.1,20,(99,3.5,-35)))
     flange=flange.cut(slot)
     solid=loft.fuse(flange).clean()
+    marks={name:point.tolist() for name,point in zip(nominal_landmarks(a),warp(list(nominal_landmarks(a).values()),variation,a))}
+    # Actual machined/printed marks distinguish planar XY-variation witnesses.
+    # These protected-center metrology dimples are not treatment or anatomy.
+    for x,y,z in marks.values():solid=solid.cut(cylinder(.75,.5,(x,y,z-.4)))
     meta=face(variation)
+    meta['fiducial_dimples_xyz']=marks
+    meta['fiducial_diameter_mm']=1.5
+    meta['fiducial_depth_mm']=.4
+    meta['dimple_domains_excluded_from_surface_error']=list(marks)
+
     meta.update({'label':'SYNTHETIC_ADVERSARIAL_BENCH_REFERENCE_NOT_HUMAN',
                  'topology':'closed section loft + integral locating flange',
                  'section_y_mm':np.linspace(-108,108,ny).tolist(),
@@ -311,6 +320,14 @@ def export(output=OUT,pose=(0,0,0,0,0,0),surfaces=True):
         for name,spec in surface_specs().items():
             p=surface_part(name,spec['variation']);row=p.manifest();row['source_witness']={k:v for k,v in spec.items() if k!='variation'}
             cq.exporters.export(p.shape,str(output/(p.id+'.step')));entries.append(row)
+            if name=='NOMINAL':
+                assembly.add(p.world,name=p.id);acquisition.add(p.world,name=p.id)
+    assembly.save(str(output/'ASSEMBLY_IMPOSED.step'))
+    acquisition.save(str(output/'ASSEMBLY_DISENGAGED.step'))
+    calibration_assembly=cq.Assembly(name='CALIBRATION_INSTALLED')
+    for p in parts:calibration_assembly.add(p.world,name=p.id)
+    calibration_assembly.add(cal.world,name=cal.id)
+    calibration_assembly.save(str(output/'ASSEMBLY_CALIBRATION.step'))
     manifest={'revision':REVISION,'source':src,'coordinate_frame':'MASCK_AUTHORITY_X_RIGHT_Y_SUPERIOR_Z_ANTERIOR_MM; BENCH_Z_UP',
               'dimension_origin':'ALL FIXTURE_CONVENIENCE except source synthetic field and authority frame',
               'fixture_limits_not_product_limits':FIXTURE_LIMITS,'parts':entries,
