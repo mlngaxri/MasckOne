@@ -1,4 +1,4 @@
-name: Prompt 18 production journey QA
+name: "Website: use journey QA"
 
 on:
   push:

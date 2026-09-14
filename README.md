@@ -1,208 +1,60 @@
 # Masck One
 
-Masck One is an early-stage consumer technology project developing a hands-free automated facial-cleansing wearable.
+Masck One is an early-stage consumer technology venture developing a hands-free automated facial-skincare wearable and supporting dock. The aim is to complete a supported skincare routine, from cleansing to leave-on application, with less manual work.
 
-The product brings together mechanical design, compliant facial contact, fluid delivery, waste capture, actuation, electronics, controls and product software. The aim is to make a repetitive skincare step more consistent and convenient while keeping safety-critical assumptions explicit and testable.
+Skincare routines can involve several products, repeated application and time at a sink or mirror. The product thesis is that automating one step leaves much of that effort intact. Masck One explores whether an integrated wearable can handle the sequence while keeping preparation, cleaning and maintenance practical. Whether that delivers enough value for people to adopt it remains a customer-validation question.
 
-This repository contains the project's engineering code, parametric CAD, system requirements, validation tooling, development studies and supporting digital product work.
+This repository contains engineering code, parametric CAD, requirements, automated checks and design records. Masck One is **pre-commercialisation: digital development is underway; an integrated, physically validated product has not been demonstrated.**
 
-> **Development status:** pre-commercialisation and pre-production. Digital engineering is advanced, but physical fit, cleansing performance, comfort, durability, safety, manufacturability and production readiness remain subject to physical validation.
+## The product being developed
 
-## Current program position
+The intended experience is to prepare the device at its dock, put it on, run a selected routine and remove it without needing to finish the supported facial routine by hand. Compatibility with a useful range of existing skincare products is a design goal, not an established capability.
 
-**Phase 5: waste acquisition and containment - Iteration 28 complete.**
-
-The authoritative program state is stored in [`config/masck_one_authority.yaml`](config/masck_one_authority.yaml). The development roadmap and repository checks are tied to that source so the documented status cannot silently drift from the engineering state.
-
-The current released baseline includes deterministic development geometry and verification infrastructure for:
-
-- facial reference geometry and protected eye, mouth and airway regions
-- a compliant facial-interface architecture
-- four-zone actuation packaging and motion references
-- fresh-water and cleanser storage and distribution architecture
-- mixed-waste acquisition, pumping and cartridge handling
-- subsystem reservations, source binding and collision checks
-- deterministic STEP export and generated engineering manifests
-
-These are engineering development artifacts, not claims of validated physical performance.
-
-## Product concept
-
-Masck One is being developed as a wearable system that can perform facial-cleansing steps without requiring the user to manually wash and rinse their face throughout the cycle.
-
-The current product architecture is organised around six interacting systems:
-
-| System | Role |
+| System | Intended role |
 | --- | --- |
-| Facial interface | Creates a controlled contact boundary while protecting sensitive regions and openings |
-| Treatment mechanics | Provides controlled local motion across defined facial zones |
-| Fresh-fluid system | Stores, meters and distributes water and cleanser |
-| Waste system | Acquires used fluid and contaminants and transfers them to a removable cartridge |
-| Retention and structure | Supports the wearable, maintains alignment and provides a defined removal path |
-| Controls and electronics | Coordinates user input, actuation, fluid handling and future sensing capabilities |
+| Facial interface and treatment mechanics | Position the device and control where contact occurs |
+| Product storage and delivery | Keep products separate and deliver them in the required sequence |
+| Waste recovery and cartridges | Capture used liquid and support practical servicing |
+| Retention, structure and removal | Support the wearable and allow controlled removal without wiping off the final application |
+| Electronics, controls and software | Coordinate device states, routines and supported product information |
+| Dock and preparation | Support charging, loading, cleaning and session preparation |
 
-The product is intentionally being developed as a whole system. A locally good component is not accepted if it creates a worse fit, service, safety, packaging or user-experience outcome elsewhere.
+The difficult part is making these systems work together. A seal that helps liquid recovery may obstruct application; a support that improves fit may disturb a leave-on layer during removal. Those conflicts shape the architecture. The [product concept](docs/PRODUCT_CONCEPT.md) and [convergence review](docs/CORE_SKETCH_CONVERGENCE_REVIEW.md) record the broader intent and unresolved feasibility questions.
 
-## Engineering approach
+## What exists today
 
-The repository is built around a simple rule: digitally checkable facts and physically validated facts are not the same thing.
+The merged engineering baseline includes parametric facial-reference and interface geometry, protected anatomical regions, structural and actuation references, fresh-water and cleanser paths, waste-handling architecture, and deterministic CAD export. Source code, machine-readable requirements and regression checks make these digital decisions inspectable and reproducible.
 
-Geometry, source provenance, configuration consistency, collision conditions and many interface constraints can be checked deterministically in software. Fit, comfort, tactile quality, leakage, cleansing efficacy, structural durability and human-use performance require physical evidence.
+Its controlled roadmap position is **Phase 5: waste acquisition and containment - Iteration 28 complete.** This describes the engineering baseline in [the authority](config/masck_one_authority.yaml) and [development roadmap](docs/DEVELOPMENT_ROADMAP.md). It does not mean the complete skincare product is built or physically validated. The broader routine concept extends beyond that baseline.
 
-Where physical evidence does not yet exist, the repository records that state explicitly rather than turning an engineering target into an achieved claim.
+Further subsystem work and proof tooling are under review in [open pull requests](https://github.com/mlngaxri/MasckOne/pulls). A candidate branch, a passing software check and a measured physical result are different forms of evidence. The [evidence guide](docs/EVIDENCE_GUIDE.md) explains how to inspect each without confusing their scope.
 
-This approach is reflected in the project's configuration authority, tests, preflight checks and generated reports.
+Physical fit, comfort, liquid containment, application coverage, product compatibility, hygiene, removal behaviour and safety remain validation questions. Digital geometry cannot establish those results. Manufacturing capability, cost and customer demand also remain to be established.
 
-## AI-assisted development
+## Founder role and AI-assisted development
 
-AI tools are used extensively in the development workflow to accelerate engineering analysis, coding, documentation, design iteration and research.
+The founder directs the product and system architecture: defining the intended experience, requirements and constraints; decomposing the work; setting priorities; comparing approaches; and resolving trade-offs across disciplines. That includes rejecting a locally attractive solution when it harms the overall product, and deciding when another digital iteration cannot answer a question that needs measurement.
 
-The project remains founder-directed. Product requirements, system architecture, priorities, user-experience decisions, acceptance criteria, trade-offs and final integration decisions are set and reviewed at the product level. AI is used as a technical multiplier across specialised work rather than as an autonomous source of product authority.
+AI is used extensively for engineering analysis, software, programmatic CAD, research, design exploration, testing and documentation. This is not a claim that every technical detail was manually engineered by the founder. The founder's responsibility is to direct, question and integrate that work, preserve the design intent and judge what the available evidence supports.
 
-That distinction matters for a multidisciplinary hardware project. Individual outputs are useful only if they fit the wider system, preserve the intended user experience and remain consistent with the project's evidence and safety boundaries. Source control, tests and explicit engineering contracts are used to make that review process repeatable.
+Requirements, version control, automated checks and review make the development traceable. AI outputs are not physical evidence. Unknown results stay unknown, reference geometry remains distinct from manufactured material, and tests do not turn targets into achieved performance.
 
-## Repository structure
+## Next milestones
 
-| Path | Purpose |
+The immediate engineering priority is to test the assumptions that determine whether a complete routine is feasible: coverage, separation between stages, preservation of the final application and removal. The [current engineering work queue](docs/CORE_SKETCH_START_HERE.md) links the proof gates, dependencies and integration work.
+
+Alongside that work, the venture needs customer discovery about routine effort, willingness to wear the device and acceptable maintenance; product and manufacturing advice; and a credible cost and commercialisation path. These are upcoming activities, not traction claims. What is learned should determine which features progress and which assumptions need to change. Dates in planning documents are targets, not evidence of readiness.
+
+## Explore the repository
+
+Start with the [documentation index](docs/README.md), use the [evidence guide](docs/EVIDENCE_GUIDE.md) to inspect the work, or follow the [engineering quickstart](docs/ENGINEERING_QUICKSTART.md) to reproduce it with the controlled Python/CadQuery environment.
+
+| Location | Contents |
 | --- | --- |
-| [`config/`](config/) | Engineering and product configuration authorities |
-| [`schemas/`](schemas/) | Machine-readable validation contracts |
-| [`src/masck_one/`](src/masck_one/) | Engineering logic, CAD generation and release tooling |
-| [`tests/`](tests/) | Regression, provenance, geometry and integrity checks |
-| [`studies/`](studies/) | Engineering studies and bounded design investigations |
-| [`docs/`](docs/) | Design rationale, subsystem documentation and development records |
-| [`generated/`](generated/) | Deterministic generated engineering outputs |
-| [`website/`](website/) | Current public-facing digital product work |
-| [`brand/`](brand/) | Product identity and brand assets |
+| [config/](config/) and [schemas/](schemas/) | Engineering authorities and validation contracts |
+| [src/masck_one/](src/masck_one/) and [tests/](tests/) | Engineering logic, CAD generation and automated checks |
+| [generated/](generated/) | Generated engineering outputs, not independent authority |
+| [docs/](docs/) and [studies/](studies/) | Design rationale, development history and bounded investigations |
+| [website/](website/) and [brand/](brand/) | Digital presentation and identity work, not physical-product evidence |
 
-For a guided documentation entry point, see [`docs/README.md`](docs/README.md).
-
-## Engineering authority
-
-The primary machine-readable source is:
-
-```text
-config/masck_one_authority.yaml
-```
-
-Its schema is:
-
-```text
-schemas/masck_one_authority.schema.json
-```
-
-The repository also contains a separate brand and product-identity contract. Brand intent does not override engineering authority or validation state.
-
-Key principles include:
-
-- one controlled source for engineering parameters
-- reproducible CAD generation from source
-- explicit separation between manufactured material and reference geometry
-- protected anatomy treated as a hard design constraint
-- validation-gated requirements remain open until evidence closes them
-- generated STEP files are outputs, not the source of engineering truth
-- source movement and stale provenance fail closed where relevant
-
-## Key technical areas
-
-The codebase covers a broader system than a conventional CAD repository. Representative modules include:
-
-- `spatial.py`: canonical coordinates, points, vectors and rigid transforms
-- `anatomy.py`: semantic facial landmarks and references
-- `protected_volumes.py`: eye, mouth and airway exclusion geometry
-- `worn_pose.py`: misregistration and worn-pose screening
-- `coverage.py`: treatment-region and protected-area accounting
-- `interface_topology.py`: compliant facial-interface topology
-- `nasal_subsystem.py`: dedicated nasal functional partition
-- `contact_simulation.py`: evidence-gated contact-analysis framework
-- `structural_frame.py`: structural datum and subsystem reservation architecture
-- `actuator_frames.py` and related modules: four-zone actuation references
-- `water_reservoir.py`, `cleanser_storage.py` and distribution modules: fresh-fluid architecture
-- `waste_acquisition.py`, `waste_pump_architecture.py`, `waste_cartridge.py` and `waste_routes.py`: mixed-waste architecture
-- `component_registry.py`: canonical component and interface identity
-- `export.py`, `step_integrity.py` and `release_package.py`: deterministic release and STEP verification
-
-See [`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md) for the broader source hierarchy.
-
-## Toolchain
-
-The currently controlled Python engineering environment uses:
-
-- Python 3.13.x
-- CadQuery 2.8.0
-- jsonschema 4.26.0
-- PyYAML 6.0.3
-- pytest 9.0.2
-
-Install the project in an isolated environment:
-
-```bash
-python -m pip install -e ".[dev]"
-```
-
-## Validation and tests
-
-Validate the engineering authority:
-
-```bash
-python -m masck_one.authority
-```
-
-Run repository preflight:
-
-```bash
-python -m masck_one.preflight
-```
-
-Run the complete test suite:
-
-```bash
-python -m compileall -q src tests
-python -m pytest
-```
-
-Generate the current deterministic CAD baseline:
-
-```bash
-python -m masck_one.cli --output generated
-```
-
-The release build produces STEP files and structured manifests used to verify source identity, geometry integrity and development status.
-
-## Documentation
-
-Useful starting points:
-
-- [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md): controlled development sequence
-- [`docs/CORE_SKETCH_START_HERE.md`](docs/CORE_SKETCH_START_HERE.md): current whole-product concept entry point
-- [`docs/ENGINEERING_GOVERNANCE.md`](docs/ENGINEERING_GOVERNANCE.md): engineering change and evidence rules
-- [`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md): source hierarchy and repository organisation
-- [`docs/COORDINATE_SYSTEM.md`](docs/COORDINATE_SYSTEM.md): global and local coordinate conventions
-- [`docs/FACIAL_REFERENCE.md`](docs/FACIAL_REFERENCE.md): facial reference model
-- [`docs/COMPLIANT_INTERFACE_TOPOLOGY.md`](docs/COMPLIANT_INTERFACE_TOPOLOGY.md): facial-interface architecture
-- [`docs/STRUCTURAL_FRAME_TOPOLOGY.md`](docs/STRUCTURAL_FRAME_TOPOLOGY.md): current structural-frame state
-- [`docs/DIGITAL_PRODUCT_VISION.md`](docs/DIGITAL_PRODUCT_VISION.md): companion digital-product direction
-- [`DIGITAL_PRODUCT_HANDOFF_README.md`](DIGITAL_PRODUCT_HANDOFF_README.md): engineering-to-digital handoff rules
-
-## Current limitations
-
-The repository is deliberately conservative about readiness claims. Current digital work does not establish, by itself:
-
-- consumer fit across a representative population
-- comfort or skin-contact pressure in physical use
-- cleansing efficacy
-- leak resistance or retained waste capacity
-- structural strength, fatigue life or drop durability
-- battery runtime or electrical safety
-- thermal safety or performance
-- manufacturing process capability
-- production tolerances
-- regulatory or clinical claims
-
-Those questions require physical prototypes, measurement and, where applicable, qualified external testing.
-
-## Project direction
-
-The immediate objective is to converge the current digital architecture into a coherent physical prototype, validate the assumptions that cannot be resolved in software, and use those results to drive the next engineering and commercial decisions.
-
-Masck One is being developed as a product first, not as a collection of disconnected technical demonstrations. The repository exists to make that development traceable, reproducible and honest about what is known, what is assumed and what still needs to be proven.
+The [repository map](docs/REPOSITORY_STRUCTURE.md) explains source precedence and retained development tooling. Technical collaboration should start from the relevant requirements and evidence gaps; the repository is not a set of instructions for unvalidated human use.

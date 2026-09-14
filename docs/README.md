@@ -8,7 +8,17 @@ The repository deliberately separates three kinds of information:
 2. **Design documentation**: rationale, interfaces, constraints and current subsystem decisions.
 3. **Development evidence**: studies, validation records and bounded investigations that support decisions without being promoted beyond their evidence.
 
-For a first review of the project, the following documents are the best starting points.
+## Choose a reading path
+
+| What you want to understand | Start here |
+| --- | --- |
+| The product, founder role and present stage | [Project overview](../README.md) |
+| What the repository actually demonstrates | [Evidence guide](EVIDENCE_GUIDE.md) |
+| How to run the engineering work | [Engineering quickstart](ENGINEERING_QUICKSTART.md) |
+| Where files belong and which source takes precedence | [Repository map](REPOSITORY_STRUCTURE.md) |
+| What to work on next | [Current engineering work queue](CORE_SKETCH_START_HERE.md) |
+
+The sections below retain the detailed engineering navigation. The controlled iteration roadmap describes the merged engineering baseline; the broader product concept and open subsystem proposals are not a claim of completed hardware.
 
 ## Product and program
 

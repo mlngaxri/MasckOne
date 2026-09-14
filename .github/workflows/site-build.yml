@@ -1,4 +1,4 @@
-name: Build cinematic website
+name: "Website: build presentation"
 
 on:
   workflow_dispatch:

@@ -1,4 +1,4 @@
-name: Prompt 17 rendered QA repair
+name: "Website: repair inspection rendering"
 
 on:
   push:

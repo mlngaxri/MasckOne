@@ -1,4 +1,4 @@
-name: Finalize Prompt 17 product inspection
+name: "Website: generate product inspection"
 
 on:
   push:
