@@ -121,6 +121,21 @@ What matters for scholarship review is not commit volume. The stronger signal is
 
 AI has been used extensively throughout that process to accelerate implementation, research and exploration. The founder remains responsible for product direction, requirements, trade-offs and final decisions. The repository therefore demonstrates initiative through inspectable outputs and decision structure without implying that all implementation was produced manually or that digital progress is equivalent to physical product maturity.
 
+## What evidence would change the venture direction
+
+The next stage is not designed only to confirm the concept. It should also create clear reasons to narrow, redesign or stop a path when the evidence does not support it.
+
+| Evidence result | Consequence for the venture |
+| --- | --- |
+| Structured interviews do not show a repeated, important routine problem | Do not treat general interest in the idea as demand. Narrow the use case, test a different problem or stop the current product path before deeper hardware spend. |
+| Fitting, loading, cleaning or storage burden cancels the time or effort saved | Redesign the workflow or reconsider whether a wearable is the right product form for that use case. |
+| Focused fit or fluid tests expose a core mechanism that cannot meet the selected use case without disproportionate complexity | Change the mechanism, reduce the promised function or reject that use case rather than expanding the system around it. |
+| Hygiene or cleaning requirements make routine ownership impractical | Simplify the wet system, change the servicing model or reject the approach if the maintenance burden cannot be reduced credibly. |
+| Sourced manufacturing-cost assumptions cannot plausibly overlap with demonstrated customer value | Reduce scope, change architecture or reconsider the business model before treating further engineering as venture progress. |
+| A narrow first use case earns customer, physical and commercial support | Only then consider adding functions from the broader wearable-and-dock vision, with each addition required to justify its own complexity. |
+
+These are decision rules, not predictions. Their purpose is to make the project falsifiable: scholarship support, engineering effort and AI-assisted exploration should be used to discover whether the venture deserves to progress, not to protect the original concept from negative evidence.
+
 ## Current decision posture
 
 The venture is far enough developed digitally to support targeted validation, but not far enough validated to justify claims of product readiness or proven demand. The next stage should therefore optimise for learning rate: reduce the largest customer, physical and commercial uncertainties before increasing product breadth.
