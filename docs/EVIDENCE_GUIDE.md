@@ -4,6 +4,8 @@
 
 Masck One has a digital engineering baseline and a broader product concept under development. This guide helps distinguish what is implemented in a particular checkout from what is proposed or still needs measurement.
 
+For scholarship or venture review, the quickest route is the [project README](../README.md), which states the current stage, what was built in the initial two-week sprint, what remains unproven and what should be validated next. This document is for reviewers who want to inspect the evidence more deeply.
+
 ## A short inspection route
 
 | Question | Evidence to inspect | What it does not establish |
