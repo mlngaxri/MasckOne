@@ -1,0 +1,24 @@
+{
+  "schema": "CS018_EXACT_SOURCE_CI_RECEIPT_V1",
+  "source_head_sha": "d79bb0310f7d45ac7b8b535ec1954a3e8b1a4a3a",
+  "source_base_sha": "3065148005192930c3929bad1131cf60ed5a35b4",
+  "source_tree_sha": "17e55e663cf27da7a96bbcab8cebde3b2c4b3ba1",
+  "tested_commit_sha": "190b2873f4661e9cc631051b63cbb3c20ca47ed8",
+  "tested_tree_sha": "17e55e663cf27da7a96bbcab8cebde3b2c4b3ba1",
+  "engineering": {
+    "run_id": 34782369685,
+    "conclusion": "success",
+    "tests_passed": 1468,
+    "subtests_passed": 4,
+    "job_id": 103791593913
+  },
+  "facial_interface": {
+    "run_id": 34782369727,
+    "conclusion": "success",
+    "tests_passed": 114,
+    "job_id": 103791593994
+  },
+  "scope": "Only the stated source and tree; does not validate later extractor changes or moved producers.",
+  "physical_result": null,
+  "human_use_eligible": false
+}
