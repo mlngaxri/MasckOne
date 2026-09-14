@@ -58,6 +58,19 @@ This diagram is assembled from the existing [Core Sketch product story](CORE_SKE
 
 The [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) records the asset version, camera definitions, coordinate frame, source checkpoints, image hashes and explicit claim boundary for these compositions. The manifest classifies the exterior and retention geometry as candidate work rather than released-main physical evidence.
 
+### Provenance at a glance
+
+| Registered field | Manifest record | What a reviewer should infer |
+| --- | --- | --- |
+| Asset version | `v17c` | Both views belong to one registered inspection set rather than unrelated presentation images. |
+| Engineering authority revision | `2026-08-30-R1` | The composition is tied to a named digital authority revision. |
+| Coordinate frame | `MASCK_ONE_AUTHORITY_WORLD_MM` | The contributing geometry is registered in the project authority coordinate frame. |
+| Exterior geometry | Candidate renderer-pass checkpoint, not released-main geometry | The exterior is useful for inspecting candidate packaging direction, but must not be presented as the released engineering baseline. |
+| Retention geometry | Current candidate solid geometry; attachment counterpart unresolved | The retention form is inspectable candidate work, but its complete attachment path is not proven by the render. |
+| Physical validation | Not claimed by the manifest | The images do not establish fit, comfort, safety, serviceability, manufacturability or physical performance. |
+
+This summary is transcribed from the registered manifest so a reviewer can understand the provenance without reading raw JSON. The manifest remains the source of record.
+
 ## 3. Development in three inspectable steps
 
 These are repository milestones, not claims of physical product maturity. The dates are Git commit dates and each step links to the underlying record.
