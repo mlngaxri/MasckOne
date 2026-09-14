@@ -42,6 +42,18 @@ The repository does not currently commit a standalone gallery of engineering CAD
 
 This is a compact progression based on repository milestones rather than a presentation graphic. Each step links to the underlying record a reviewer can inspect.
 
+### Verifiable repository chronology
+
+The dates below are Git commit dates. They show when inspectable work entered the repository, not when physical product capability was proven.
+
+| Date | Inspectable milestone | What it demonstrates |
+| --- | --- | --- |
+| 30 August 2026 | [Authority-contract implementation](https://github.com/mlngaxri/MasckOne/commit/910d4fd1a03164e032847e590331cd7cddf51d8d) followed by the [facial-reference landmark contract](https://github.com/mlngaxri/MasckOne/commit/9c427d5faec3687c1a1422c6bea3edd9394bffb3) | The project moved beyond an idea into controlled requirements, automated checks, reproducible engineering structure and the first semantic facial-reference layer. |
+| 10 September 2026 | [Whole-product Core Sketch convergence](https://github.com/mlngaxri/MasckOne/commit/0044a55885000480a873b5761742341038b24b6a) and [authority reconciliation](https://github.com/mlngaxri/MasckOne/commit/0c0ccb1d1b3356ed0001e5e53f318973a2893e08) | Work expanded from individual digital subsystems to explicit cross-subsystem conflicts, proof gates, mass/resource constraints and unresolved integration questions. |
+| 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | Existing engineering work was reorganised for external review with clearer evidence boundaries, reviewer navigation and separation between digital work, planned validation and claims not yet supported. |
+
+The chronology is deliberately short. It demonstrates founder initiative through inspectable outputs and version history, while avoiding the implication that rapid digital development equals rapid physical validation.
+
 | Milestone | Inspectable record | What changed |
 | --- | --- | --- |
 | Controlled engineering foundation | [Phase 1 engineering log](PHASE_1_LOG.md) and [engineering governance](ENGINEERING_GOVERNANCE.md) | Repository integrity, machine-readable authority, reproducible CAD generation, source controls and continuous integration were established before deeper geometry work. |
