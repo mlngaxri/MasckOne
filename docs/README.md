@@ -1,8 +1,10 @@
 # Masck One documentation
 
-This directory contains the engineering rationale, subsystem specifications, validation rules and development records that sit behind the source code and generated CAD.
+This directory contains the engineering rationale, subsystem specifications, validation rules and development records behind the source code and generated CAD.
 
-The repository deliberately separates three kinds of information:
+If you are reviewing the venture rather than reproducing the engineering work, start with the [project README](../README.md). It summarises the problem, current stage, two-week development work, limitations and next validation steps without requiring you to read the internal engineering record.
+
+The repository separates three kinds of information:
 
 1. **Engineering authority**: machine-readable parameters and contracts that control generation and validation.
 2. **Design documentation**: rationale, interfaces, constraints and current subsystem decisions.
@@ -12,13 +14,13 @@ The repository deliberately separates three kinds of information:
 
 | What you want to understand | Start here |
 | --- | --- |
-| The product, founder role and present stage | [Project overview](../README.md) |
+| The product, founder role, progress and present stage | [Project overview](../README.md) |
 | What the repository actually demonstrates | [Evidence guide](EVIDENCE_GUIDE.md) |
 | How to run the engineering work | [Engineering quickstart](ENGINEERING_QUICKSTART.md) |
 | Where files belong and which source takes precedence | [Repository map](REPOSITORY_STRUCTURE.md) |
 | What to work on next | [Current engineering work queue](CORE_SKETCH_START_HERE.md) |
 
-The sections below retain the detailed engineering navigation. The controlled iteration roadmap describes the merged engineering baseline; the broader product concept and open subsystem proposals are not a claim of completed hardware.
+The controlled iteration roadmap describes the merged engineering baseline. The broader product concept and open subsystem proposals are not claims of completed hardware.
 
 ## Product and program
 
@@ -63,6 +65,6 @@ Where a physical property has not been measured, the documentation should not be
 
 ## Development workflow
 
-The project uses AI-assisted engineering workflows alongside conventional source control, testing and explicit engineering contracts. AI-generated analysis or implementation is not treated as authority by default. Product requirements, system architecture, acceptance criteria, integration decisions and evidence promotion remain subject to project-level review.
+The project uses AI-assisted engineering workflows alongside source control, testing and explicit engineering contracts. AI-generated analysis or implementation is not treated as authority by default. Product requirements, system architecture, acceptance criteria, integration decisions and evidence promotion remain subject to project-level review.
 
 Some internal documents retain workflow-specific terminology because they support reproducibility and source provenance. They should be read as development infrastructure, not as product claims or marketing material.
