@@ -1,4 +1,4 @@
-name: Prompt 17 production visual QA
+name: "Website: inspection visual QA"
 
 on:
   push:

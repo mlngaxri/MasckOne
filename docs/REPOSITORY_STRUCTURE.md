@@ -1,6 +1,23 @@
 # Repository structure
 
-Masck One now carries two deliberately separate source-of-truth layers:
+[Project overview](../README.md) · [Documentation index](README.md)
+
+## Directory map
+
+| Location | Role |
+| --- | --- |
+| `config/`, `schemas/` | Controlled parameters and contracts |
+| `src/masck_one/`, `tests/` | Engineering implementation and verification |
+| `generated/` | Generated outputs retained with their evidence context |
+| `docs/` | Product rationale, subsystem specifications, planning and evidence records |
+| `studies/` | Bounded engineering investigations |
+| `website/`, `brand/` | Presentation source and identity assets |
+| `.github/workflows/` | Engineering checks and website automation |
+| `.site-build/` | Retained website construction scripts and input assets; see its [index](../.site-build/README.md) |
+
+Detailed engineering files retain stable paths because contracts, historical records and active branches refer to them. Public reading order is provided by the documentation index rather than by moving those sources.
+
+Masck One carries two deliberately separate source-of-truth layers:
 
 ## 1. Engineering authority
 
@@ -43,9 +60,9 @@ The repository remains the engineering repository for **Masck One**. It is not b
 
 The broader parent brand is represented so that Masck One does not accidentally hard-code the company identity to its first form factor. Future products should get separate repositories or clearly separated packages only when they actually exist.
 
-## Scheduled builder ownership
+## Development workstream responsibilities
 
-The five scheduled builders should consume the brand contract as follows:
+The five scheduled engineering workstreams consume the brand contract as follows. These labels describe AI-assisted development responsibilities, not employees:
 
 - Mechanical: preserve user-facing tactile quality, package thinness and quiet reaction paths while solving actual mechanics.
 - Exterior: own surface-language, no-goggle enforcement, control placement and visible CMF integration.
@@ -53,4 +70,4 @@ The five scheduled builders should consume the brand contract as follows:
 - Manufacturing: own tactile/visible CTQs, process feasibility, part-count and cost-pressure closure.
 - Integration: own canonical consumption of the brand manifest and reject competing brand/palette/control truths.
 
-This division keeps the brand physically embedded without creating a sixth builder lane that only writes style documents.
+These responsibilities keep product identity connected to engineering decisions. The current whole-product work is routed through the [engineering work queue](CORE_SKETCH_START_HERE.md); this list describes how the brand contract is consumed.

@@ -1,4 +1,4 @@
-name: Capture website screenshots
+name: "Website: capture screenshots"
 
 on:
   push:

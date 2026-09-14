@@ -1,4 +1,4 @@
-name: Finalize Prompt 18 product use journey
+name: "Website: generate product use journey"
 
 on:
   push:
