@@ -43,6 +43,18 @@ The repository does not currently commit a standalone gallery of engineering CAD
 | Where are integration assumptions challenged? | [Contact and occlusion matrix](CORE_SKETCH_CONTACT_OCCLUSION_MATRIX.md) and [routine resource envelope](CORE_SKETCH_ROUTINE_RESOURCE_ENVELOPE.md) | Measured values where inputs remain unknown |
 | What physical proof is required next? | [Reduced-region proof package](CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md) and [status board](CORE_SKETCH_STATUS_BOARD.md) | A completed experiment merely because a protocol exists |
 
+## Engineering discipline in one scan
+
+This is the shortest path for a reviewer assessing whether the repository contains controlled engineering work rather than code volume alone.
+
+| Discipline | Representative evidence | What a reviewer can verify |
+| --- | --- | --- |
+| Parametric engineering geometry | [Engineering source](../src/masck_one/) and [engineering quickstart](ENGINEERING_QUICKSTART.md) | Geometry is generated from inspectable source and can be reproduced digitally; this is not a physical prototype claim. |
+| Controlled requirements and provenance | [Engineering authority](../config/masck_one_authority.yaml), [authority contract tests](../tests/test_authority_contract.py) and [boundary-release tests](../tests/test_boundary_release.py) | Requirements, units, duplicated constraints and source-bound evidence are checked, including guards against presenting digital geometry as physical validation. |
+| Documented trade-offs and unresolved contradictions | [Whole-product convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) | The record does not only present a preferred concept. It documents conflicts such as coverage versus support, mass versus CG/torque, product preservation, waste/service burden and emergency release, and assigns them to engineering or validation work rather than declaring them solved. |
+| Major subsystem coverage | [Product architecture summary](CORE_SKETCH_ONE_PAGE.md), [contact/occlusion matrix](CORE_SKETCH_CONTACT_OCCLUSION_MATRIX.md) and [routine resource envelope](CORE_SKETCH_ROUTINE_RESOURCE_ENVELOPE.md) | Face interface/treatment, fluids and waste, retention/removal, electronics/controls, dock/service and whole-product resource interactions are represented in the digital engineering record. Coverage in documentation does not mean each subsystem is physically qualified. |
+| Explicit unknowns and validation gates | [Status board](CORE_SKETCH_STATUS_BOARD.md) and [reduced-region proof package](CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md) | Missing evidence remains blocked, validation-gated, reference-only or unknown instead of being silently converted into a pass. Planned proof work is distinguishable from completed evidence. |
+
 ## Representative requirements and automated checks
 
 These examples show the pattern used across fit/interface, fluids and waste, retention/release, actuation, electronics/controls and other subsystem work. They are representative, not a readiness score or a substitute for the full engineering record.
