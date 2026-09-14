@@ -6,6 +6,19 @@ Masck One is pre-commercialisation. Engineering geometry exists and digital chec
 
 This page gives a scholarship reviewer a short evidence-based view of what has been done, what remains uncertain and what should happen next.
 
+## How to read the evidence
+
+The repository uses four evidence states so progress is not confused with validation.
+
+| Evidence state | Meaning for a reviewer |
+| --- | --- |
+| Repository-verifiable | A reviewer can inspect the underlying source, test, design record, commit history or generated digital artefact in this repository. This proves that work was produced and recorded, not that a physical product performs as intended. |
+| Founder-reported preliminary evidence | The founder has recorded an observation or early research result, but the underlying method or raw data is not complete enough in the repository for independent assessment. The informal survey belongs in this category. |
+| Planned evidence | A defined next activity intended to replace an important assumption with stronger customer, physical or commercial evidence. It is not treated as completed progress. |
+| Physical validation required | A question that code, CAD, simulation or AI-assisted analysis cannot close by itself, such as comfort, real fluid behaviour, hygiene, durability or production capability. |
+
+Evidence does not move to a stronger state because an AI system generated an analysis, a simulation appears favourable, or a software test passes. Stronger claims require the corresponding stronger evidence.
+
 ## Progress that can be inspected now
 
 | Venture progress | Inspectable repository evidence | What it demonstrates | What it does not prove |
