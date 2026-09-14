@@ -4,6 +4,8 @@ This directory contains the engineering rationale, subsystem specifications, val
 
 **Current stage:** pre-commercialisation. Engineering geometry exists and digital checks and validation frameworks exist, but product-level physical validation has not begun. There is no integrated manufactured product, and the core customer, physical-performance and commercial assumptions remain to be validated.
 
+**Reviewer shortcut:** use the [evidence guide](EVIDENCE_GUIDE.md) for the auditable claim path. Its [engineering-discipline table](EVIDENCE_GUIDE.md#engineering-discipline-in-one-scan) links representative parametric CAD, controlled requirements, automated checks, documented trade-offs, subsystem coverage and explicit unknowns; its [evidence classes](EVIDENCE_GUIDE.md#evidence-classes) and [open limitations](EVIDENCE_GUIDE.md#what-remains-open) show what is planned or still unproven. This keeps the review path shallow without treating digital evidence as physical validation.
+
 If you are reviewing the venture rather than reproducing the engineering work, start with the [project README](../README.md). It summarises the problem, current stage, digital development, limitations and next validation steps without requiring you to read the internal engineering record.
 
 The repository separates three kinds of information:
