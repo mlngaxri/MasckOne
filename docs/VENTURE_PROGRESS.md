@@ -100,6 +100,14 @@ Scholarship support would be most useful when converted into evidence rather tha
 
 AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. Founder judgement owns product direction, requirements, trade-offs and final decisions. Specialist human expertise remains important for hardware, manufacturing, IP, fundraising and market entry, particularly where digital exploration cannot replace practical experience or measurement.
 
+## Founder execution signal
+
+The repository history shows a short, inspectable progression from controlled engineering foundations to whole-product integration work and then to an external-review evidence baseline. The dated milestones are recorded in the [verifiable repository chronology](EVIDENCE_GUIDE.md#verifiable-repository-chronology).
+
+What matters for scholarship review is not commit volume. The stronger signal is the sequence of decisions and outputs: requirements and source authority were established, reproducible engineering source and automated checks were built, cross-subsystem conflicts were made explicit, and the venture record was then reorganised around customer, physical and commercial uncertainty rather than presenting the concept as finished.
+
+AI has been used extensively throughout that process to accelerate implementation, research and exploration. The founder remains responsible for product direction, requirements, trade-offs and final decisions. The repository therefore demonstrates initiative through inspectable outputs and decision structure without implying that all implementation was produced manually or that digital progress is equivalent to physical product maturity.
+
 ## Current decision posture
 
 The venture is far enough developed digitally to support targeted validation, but not far enough validated to justify claims of product readiness or proven demand. The next stage should therefore optimise for learning rate: reduce the largest customer, physical and commercial uncertainties before increasing product breadth.
