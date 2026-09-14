@@ -1,6 +1,6 @@
 # Masck One
 
-Masck One is an early-stage consumer technology venture for people who already follow multi-step skincare routines, exploring whether repetitive facial-skincare steps can be automated hands-free to reduce the active time and effort those routines require.
+Masck One is an early-stage hands-free facial-skincare wearable for people who already follow multi-step routines, exploring whether repetitive skincare steps can be automated to reduce the active time and effort those routines require.
 
 **Current stage:** pre-commercialisation. The repository contains substantial digital engineering work, but there is no integrated manufactured product and the core customer, physical-performance and commercial assumptions remain to be validated.
 
