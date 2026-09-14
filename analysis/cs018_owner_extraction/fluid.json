@@ -1,0 +1,580 @@
+{
+  "capability_blockers": [
+    "REGISTERED_ACTION_FOOTPRINTS_NOT_ESTABLISHED",
+    "FLUID_GRAPH_HAS_NO_REGISTERED_CONTACT_BREP"
+  ],
+  "capability_status": "UNRESOLVED_OWNER_CAPABILITY",
+  "evidence": "DIGITAL",
+  "extractor_sha256": "1959d0a43b68e433067a0c37368cba7e93f7c8003e80a98a009ead518b9550a3",
+  "graph": {
+    "authority_revision": "2026-08-30-R1",
+    "blockers": [
+      "CELL4-BLOCKER-PHYSICAL-REFERENCE-ASSEMBLY-BOUNDARY",
+      "CELL4-BLOCKER-FRESH-PUMP-ROUTE-GEOMETRY",
+      "CELL4-BLOCKER-DRY-SIDE-PACKAGE",
+      "CELL4-BLOCKER-HARNESS-BULKHEAD",
+      "CELL4-BLOCKER-HMI-WARM-THERMAL"
+    ],
+    "canonical_fluid_domains": [
+      "FRESH_WATER",
+      "CLEANSER",
+      "MIXED_WASTE"
+    ],
+    "edges": [
+      {
+        "edge_id": "ROUTE-WATER-RESERVOIR-TO-PUMP",
+        "fluid_domain": "FRESH_WATER",
+        "fluid_identity": "FRESH_WATER",
+        "geometry_state": "INTERFACE_TOPOLOGY_ONLY_CENTERLINES_TUBING_CONNECTORS_AND_SERVICE_UNRESOLVED",
+        "source_node_id": "WATER-PORT-PICKUP",
+        "stage": "SOURCE_TO_PUMP",
+        "target_node_id": "PUMP-STATION-WATER"
+      },
+      {
+        "edge_id": "ROUTE-WATER-PUMP-TO-MANIFOLD-I23",
+        "fluid_domain": "FRESH_WATER",
+        "fluid_identity": "FRESH_WATER",
+        "geometry_state": "INTERFACE_TOPOLOGY_ONLY_CENTERLINES_TUBING_CONNECTORS_AND_SERVICE_UNRESOLVED",
+        "source_node_id": "PUMP-OUTLET-WATER",
+        "stage": "PUMP_TO_MANIFOLD",
+        "target_node_id": "MANIFOLD-INLET-WATER-I23"
+      },
+      {
+        "edge_id": "ROUTE-CLEANSER-STORAGE-TO-PUMP",
+        "fluid_domain": "CLEANSER",
+        "fluid_identity": "CLEANSER",
+        "geometry_state": "INTERFACE_TOPOLOGY_ONLY_CENTERLINES_TUBING_CONNECTORS_AND_SERVICE_UNRESOLVED",
+        "source_node_id": "CLEANSER-PORT-OUTLET",
+        "stage": "SOURCE_TO_PUMP",
+        "target_node_id": "PUMP-STATION-CLEANSER"
+      },
+      {
+        "edge_id": "ROUTE-CLEANSER-PUMP-TO-MANIFOLD-I23",
+        "fluid_domain": "CLEANSER",
+        "fluid_identity": "CLEANSER",
+        "geometry_state": "INTERFACE_TOPOLOGY_ONLY_CENTERLINES_TUBING_CONNECTORS_AND_SERVICE_UNRESOLVED",
+        "source_node_id": "PUMP-OUTLET-CLEANSER",
+        "stage": "PUMP_TO_MANIFOLD",
+        "target_node_id": "MANIFOLD-INLET-CLEANSER-I23"
+      },
+      {
+        "edge_id": "ROUTE-WASTE-ACQUISITION-TO-PUMP-I26",
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "WORLD_CENTERLINE_REALIZED_PACKAGE_COMPONENTS_UNRESOLVED",
+        "source_node_id": "WASTE_PUMP_INLET_ITERATION_26_INTERFACE",
+        "stage": "ACQUISITION_TO_PUMP",
+        "target_node_id": "PUMP-STATION-WASTE-I26"
+      },
+      {
+        "edge_id": "ROUTE-WASTE-PUMP-TO-BACKFLOW-BARRIER-I26",
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "WORLD_CENTERLINE_REALIZED_PACKAGE_COMPONENTS_UNRESOLVED",
+        "source_node_id": "WASTE_PUMP_OUTLET_ITERATION_26_INTERFACE",
+        "stage": "PUMP_TO_PASSIVE_BACKFLOW_BARRIER",
+        "target_node_id": "PASSIVE-BACKFLOW-BARRIER-WASTE-I26"
+      },
+      {
+        "edge_id": "ROUTE-WASTE-BARRIER-TO-CARTRIDGE-I27",
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "WORLD_CENTERLINE_REALIZED_PACKAGE_COMPONENTS_UNRESOLVED",
+        "source_node_id": "WASTE_BACKFLOW_BARRIER_OUTLET_ITERATION_26_INTERFACE",
+        "stage": "PASSIVE_BACKFLOW_BARRIER_TO_CARTRIDGE_HANDOFF",
+        "target_node_id": "WASTE_CARTRIDGE_INLET_ITERATION_27_INTERFACE"
+      }
+    ],
+    "evidence_status": "DIGITAL_WET_ELECTRICAL_INTEGRATION_SOURCE_GRAPH_ONLY_NOT_PACKAGE_SELECTION_HYDRAULIC_ELECTRICAL_THERMAL_HYGIENE_SERVICE_OR_PHYSICAL_EVIDENCE",
+    "first_integration_blocker": "CELL4-BLOCKER-PHYSICAL-REFERENCE-ASSEMBLY-BOUNDARY",
+    "integration_release_ready": false,
+    "manifest_sha256": "98c477e67c418b31b7e88e9a3ed4dfb7a99293e4a9a2dd4e82444cee64101ce6",
+    "manifold_inlet_branch_binding_by_domain": {
+      "CLEANSER": {
+        "branch_id": "MANIFOLD-BRANCH-CLEANSER",
+        "inlet_interface_id": "MANIFOLD-INLET-CLEANSER-I23"
+      },
+      "FRESH_WATER": {
+        "branch_id": "MANIFOLD-BRANCH-FRESH-WATER",
+        "inlet_interface_id": "MANIFOLD-INLET-WATER-I23"
+      }
+    },
+    "material_boundary": {
+      "current_export_manual_exclusions": [
+        "waste_cartridge_envelope"
+      ],
+      "current_export_selected_names": [
+        "rigid_shell",
+        "nasal_lobe_membrane_reference",
+        "actuator_envelope_1",
+        "actuator_envelope_2",
+        "actuator_envelope_3",
+        "actuator_envelope_4",
+        "water_reservoir_envelope",
+        "battery_reference_envelope"
+      ],
+      "illegal_reference_material_names": [
+        "nasal_lobe_membrane_reference",
+        "actuator_envelope_1",
+        "actuator_envelope_2",
+        "actuator_envelope_3",
+        "actuator_envelope_4",
+        "water_reservoir_envelope",
+        "battery_reference_envelope"
+      ],
+      "physical_material_names": [
+        "rigid_shell"
+      ],
+      "reference_review_names": [
+        "nasal_lobe_membrane_reference",
+        "actuator_envelope_1",
+        "actuator_envelope_2",
+        "actuator_envelope_3",
+        "actuator_envelope_4",
+        "water_reservoir_envelope",
+        "waste_cartridge_envelope",
+        "battery_reference_envelope",
+        "visual_eye_left",
+        "visual_eye_right",
+        "visual_mouth",
+        "visual_nostril_left",
+        "visual_nostril_right"
+      ]
+    },
+    "nodes": [
+      {
+        "fluid_domain": "FRESH_WATER",
+        "fluid_identity": "FRESH_WATER",
+        "geometry_state": "PACKAGE_ENVELOPE_PLUS_TOPOLOGY",
+        "material_role": "PACKAGE_REFERENCE",
+        "node_id": "WATER_RESERVOIR",
+        "owner_lane": "CELL9_FRESH_WATER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "FRESH_WATER",
+        "fluid_identity": "FRESH_WATER",
+        "geometry_state": "RELEASED_INTERFACE_TOPOLOGY_ONLY",
+        "material_role": "INTERFACE_TOPOLOGY_ONLY",
+        "node_id": "WATER-PORT-PICKUP",
+        "owner_lane": "CELL9_FRESH_WATER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "FRESH_WATER",
+        "fluid_identity": "FRESH_WATER",
+        "geometry_state": "PACKAGE_AND_CENTERLINES_UNRESOLVED",
+        "material_role": "TOPOLOGY_ONLY",
+        "node_id": "PUMP-STATION-WATER",
+        "owner_lane": "CELL9_FRESH_WATER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "FRESH_WATER",
+        "fluid_identity": "FRESH_WATER",
+        "geometry_state": "RELEASED_INTERFACE_TOPOLOGY_ONLY",
+        "material_role": "INTERFACE_TOPOLOGY_ONLY",
+        "node_id": "PUMP-OUTLET-WATER",
+        "owner_lane": "CELL9_FRESH_WATER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "FRESH_WATER",
+        "fluid_identity": "FRESH_WATER",
+        "geometry_state": "RELEASED_INTERFACE_TOPOLOGY_ONLY",
+        "material_role": "INTERFACE_TOPOLOGY_ONLY",
+        "node_id": "MANIFOLD-INLET-WATER-I23",
+        "owner_lane": "CELL9_FRESH_WATER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "FRESH_WATER",
+        "fluid_identity": "FRESH_WATER",
+        "geometry_state": "RELEASED_TOPOLOGY_OR_REQUIREMENTS_ONLY",
+        "material_role": "TOPOLOGY_ONLY",
+        "node_id": "MANIFOLD-BRANCH-FRESH-WATER",
+        "owner_lane": "CELL9_FRESH_WATER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "CLEANSER",
+        "fluid_identity": "CLEANSER",
+        "geometry_state": "RELEASED_TOPOLOGY_OR_REQUIREMENTS_ONLY",
+        "material_role": "TOPOLOGY_ONLY",
+        "node_id": "CLEANSER_STORAGE",
+        "owner_lane": "CELL10_CLEANSER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "CLEANSER",
+        "fluid_identity": "CLEANSER",
+        "geometry_state": "RELEASED_INTERFACE_TOPOLOGY_ONLY",
+        "material_role": "INTERFACE_TOPOLOGY_ONLY",
+        "node_id": "CLEANSER-PORT-OUTLET",
+        "owner_lane": "CELL10_CLEANSER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "CLEANSER",
+        "fluid_identity": "CLEANSER",
+        "geometry_state": "PACKAGE_AND_CENTERLINES_UNRESOLVED",
+        "material_role": "TOPOLOGY_ONLY",
+        "node_id": "PUMP-STATION-CLEANSER",
+        "owner_lane": "CELL10_CLEANSER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "CLEANSER",
+        "fluid_identity": "CLEANSER",
+        "geometry_state": "RELEASED_INTERFACE_TOPOLOGY_ONLY",
+        "material_role": "INTERFACE_TOPOLOGY_ONLY",
+        "node_id": "PUMP-OUTLET-CLEANSER",
+        "owner_lane": "CELL10_CLEANSER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "CLEANSER",
+        "fluid_identity": "CLEANSER",
+        "geometry_state": "RELEASED_INTERFACE_TOPOLOGY_ONLY",
+        "material_role": "INTERFACE_TOPOLOGY_ONLY",
+        "node_id": "MANIFOLD-INLET-CLEANSER-I23",
+        "owner_lane": "CELL10_CLEANSER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "CLEANSER",
+        "fluid_identity": "CLEANSER",
+        "geometry_state": "RELEASED_TOPOLOGY_OR_REQUIREMENTS_ONLY",
+        "material_role": "TOPOLOGY_ONLY",
+        "node_id": "MANIFOLD-BRANCH-CLEANSER",
+        "owner_lane": "CELL10_CLEANSER",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "ACQUISITION_GEOMETRY_UNRESOLVED",
+        "material_role": "TOPOLOGY_ONLY",
+        "node_id": "WASTE_ACQUISITION",
+        "owner_lane": "CELL11_WASTE",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "RELEASED_INTERFACE_TOPOLOGY_ONLY",
+        "material_role": "INTERFACE_TOPOLOGY_ONLY",
+        "node_id": "WASTE_PUMP_INLET_ITERATION_26_INTERFACE",
+        "owner_lane": "CELL11_WASTE",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "PACKAGE_UNRESOLVED_CENTERLINE_BACKBONE_RELEASED",
+        "material_role": "TOPOLOGY_ONLY",
+        "node_id": "PUMP-STATION-WASTE-I26",
+        "owner_lane": "CELL11_WASTE",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "WORLD_CENTERLINE_HANDOFF_INTERFACE_REALIZED",
+        "material_role": "INTERFACE_TOPOLOGY_ONLY",
+        "node_id": "WASTE_PUMP_OUTLET_ITERATION_26_INTERFACE",
+        "owner_lane": "CELL11_WASTE",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "COMPONENT_UNRESOLVED_CENTERLINE_BACKBONE_RELEASED",
+        "material_role": "TOPOLOGY_ONLY",
+        "node_id": "PASSIVE-BACKFLOW-BARRIER-WASTE-I26",
+        "owner_lane": "CELL11_WASTE",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "WORLD_CENTERLINE_HANDOFF_INTERFACE_REALIZED",
+        "material_role": "INTERFACE_TOPOLOGY_ONLY",
+        "node_id": "WASTE_BACKFLOW_BARRIER_OUTLET_ITERATION_26_INTERFACE",
+        "owner_lane": "CELL11_WASTE",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "WORLD_CENTERLINE_HANDOFF_INTERFACE_REALIZED",
+        "material_role": "INTERFACE_TOPOLOGY_ONLY",
+        "node_id": "WASTE_CARTRIDGE_INLET_ITERATION_27_INTERFACE",
+        "owner_lane": "CELL11_WASTE",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": "MIXED_WASTE",
+        "fluid_identity": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT",
+        "geometry_state": "EXTERNAL_PACKAGE_ENVELOPE_ONLY_DFM_BLOCKED",
+        "material_role": "PACKAGE_REFERENCE",
+        "node_id": "WASTE_CARTRIDGE",
+        "owner_lane": "CELL11_WASTE",
+        "release_state": "RELEASED"
+      },
+      {
+        "fluid_domain": null,
+        "fluid_identity": null,
+        "geometry_state": "PACKAGING_BENCHMARK_ONLY",
+        "material_role": "PACKAGE_REFERENCE",
+        "node_id": "BATTERY_REFERENCE",
+        "owner_lane": "CELL12_DRY_SIDE",
+        "release_state": "RELEASED_REFERENCE_ONLY"
+      },
+      {
+        "fluid_domain": null,
+        "fluid_identity": null,
+        "geometry_state": "UNRESOLVED_NO_RELEASED_PRODUCER",
+        "material_role": "UNRESOLVED",
+        "node_id": "DRY_SIDE_BAY",
+        "owner_lane": "CELL12_DRY_SIDE",
+        "release_state": "ABSENT"
+      },
+      {
+        "fluid_domain": null,
+        "fluid_identity": null,
+        "geometry_state": "UNRESOLVED_NO_RELEASED_PRODUCER",
+        "material_role": "UNRESOLVED",
+        "node_id": "HARNESS_BULKHEAD",
+        "owner_lane": "CELL13_HARNESS",
+        "release_state": "ABSENT"
+      },
+      {
+        "fluid_domain": null,
+        "fluid_identity": null,
+        "geometry_state": "UNRESOLVED_NO_RELEASED_PRODUCER",
+        "material_role": "UNRESOLVED",
+        "node_id": "HMI_WARM_THERMAL",
+        "owner_lane": "CELL14_HMI_WARM",
+        "release_state": "ABSENT"
+      }
+    ],
+    "physical_validation_eligible": false,
+    "released_fluid_identity_by_domain": {
+      "CLEANSER": "CLEANSER",
+      "FRESH_WATER": "FRESH_WATER",
+      "MIXED_WASTE": "MIXED_AIR_LIQUID_FOAM_CONTAMINANT"
+    },
+    "schema": "MASCK_ONE_CELL4_WET_ELECTRICAL_SOURCE_GRAPH_V2",
+    "source_git_blob_identities": [
+      {
+        "git_blob_sha": "2608dda483b995539de422290371c219668a1527",
+        "path": "config/masck_one_authority.yaml"
+      },
+      {
+        "git_blob_sha": "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894",
+        "path": "src/masck_one/model.py"
+      },
+      {
+        "git_blob_sha": "a834333ec153a1bf28bb6713003291db6af7237d",
+        "path": "src/masck_one/export.py"
+      },
+      {
+        "git_blob_sha": "6c14a37d07855550f0bd502e8308ed46682bc19c",
+        "path": "src/masck_one/water_reservoir.py"
+      },
+      {
+        "git_blob_sha": "5e087ca8b05da8352ad4800b2ef8280ea8ddcf29",
+        "path": "src/masck_one/cleanser_storage.py"
+      },
+      {
+        "git_blob_sha": "40cb6fb4c3efbfcf25ed0b7d7a75a4269d90a1b4",
+        "path": "src/masck_one/fresh_pump_packaging.py"
+      },
+      {
+        "git_blob_sha": "8f2a6c784b51734aba4d1f3809015707fc328405",
+        "path": "src/masck_one/distribution_manifold.py"
+      },
+      {
+        "git_blob_sha": "d2dd8b47bb6a2aa1edf57ac0632778228add7997",
+        "path": "src/masck_one/distribution_geometry.py"
+      },
+      {
+        "git_blob_sha": "7108fcfbe2baeaa9a343199a6817122ac2aea7ab",
+        "path": "src/masck_one/waste_acquisition.py"
+      },
+      {
+        "git_blob_sha": "ace02ee529070465b11832f475771125636312cb",
+        "path": "src/masck_one/waste_pump_architecture.py"
+      },
+      {
+        "git_blob_sha": "43587520a8c6cdc9ca8cfe362d2aac9589364fdc",
+        "path": "src/masck_one/waste_pump_packaging.py"
+      },
+      {
+        "git_blob_sha": "6aa79d9a613e278f32da85b4654c0e35cc09b7ca",
+        "path": "src/masck_one/realized_waste_backbone.py"
+      },
+      {
+        "git_blob_sha": "86f2b12d8721ce0fb233d7b026aed3154de9c964",
+        "path": "src/masck_one/realized_waste_backbone_release.py"
+      },
+      {
+        "git_blob_sha": "9dc0fe8a0ed92083c68406da3993e57e767e2483",
+        "path": "src/masck_one/waste_cartridge.py"
+      },
+      {
+        "git_blob_sha": "f9788cce30c14600c8a624509153596e46c1e478",
+        "path": "src/masck_one/waste_cartridge_dfm.py"
+      }
+    ],
+    "source_main_sha": "b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc",
+    "unreleased_realization_paths": [
+      "src/masck_one/realized_cleanser_storage.py",
+      "src/masck_one/realized_fresh_water_pump.py",
+      "src/masck_one/realized_cleanser_pump.py",
+      "src/masck_one/realized_waste_pump.py",
+      "src/masck_one/realized_passive_backflow.py"
+    ],
+    "world_frame_id": "MASCK_ONE_AUTHORITY_WORLD_MM"
+  },
+  "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+  "human_use_eligible": false,
+  "loaded_source_files": {
+    "src/masck_one/__init__.py": {
+      "git_blob": "34f32e9902669f2e604d2d23a891aa872c405a11",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "3dbdf087ef7358d793edcaa246abc64ae2c46f9d74dba22d916389737cd54666"
+    },
+    "src/masck_one/anatomy.py": {
+      "git_blob": "872d1e5be1b9ce9baa5b63cb53462eb7b36f40ab",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "23ac0e557928e70db2170e23797537667776735614e7dedc22222c3498c70467"
+    },
+    "src/masck_one/authority.py": {
+      "git_blob": "6866e3a428dab8b32b5a1d9e58da78b8f5aa1aa2",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "679707957008e8b38801f60751569f7b6d5969187b7e9a3cc62827ebc2d06f2f"
+    },
+    "src/masck_one/boundary_release.py": {
+      "git_blob": "34a49eed2c521d55e48ac187c2dd33dc9e22a3e3",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "ceeedbf4e66be5bfd10857e1b62a4019224ad8dbc5b14c89906bfaddc5a660e3"
+    },
+    "src/masck_one/cleanser_storage.py": {
+      "git_blob": "5e087ca8b05da8352ad4800b2ef8280ea8ddcf29",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "37bc7c9ace00b7841f6ceab06dc90da19d354779ac23456966358ad670e1c149"
+    },
+    "src/masck_one/coverage.py": {
+      "git_blob": "4a8cec4d94db97e63f634a94dd8c90094f3afcb0",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "f96bdaabcb6649cf7aa1eee8285a3ac1119f9dabc816e805c69a240e53974dc3"
+    },
+    "src/masck_one/distribution_geometry.py": {
+      "git_blob": "d2dd8b47bb6a2aa1edf57ac0632778228add7997",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "7a94a06db865d34f606a207ada66478514bea044e00e5fd635ff621861ba46d1"
+    },
+    "src/masck_one/distribution_manifold.py": {
+      "git_blob": "8f2a6c784b51734aba4d1f3809015707fc328405",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "ef232217366533b9c84e82c7396da1abbb3594787855bed4a732a46e955b92b6"
+    },
+    "src/masck_one/facial_surface.py": {
+      "git_blob": "764f6f65b83ac7709d959bb0f37f861c90ea2794",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "b11c99bc994aa96a974e6d95a06330d1389f10727c4b7de6d689fa4493f2255e"
+    },
+    "src/masck_one/fresh_pump_packaging.py": {
+      "git_blob": "40cb6fb4c3efbfcf25ed0b7d7a75a4269d90a1b4",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "b61ad136fa8a4ab1e9535336e17c0f2463f3ab67ccce535e1bee203beaeb6b9a"
+    },
+    "src/masck_one/interface_attachment.py": {
+      "git_blob": "c161f99ddd3473f3b9dde30ec73397a72915191a",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "5fc6a1f2711140bd2d37e0cf3b9b6f0a5804807dbe0e72d88d071182ddf0cc91"
+    },
+    "src/masck_one/interface_boundaries.py": {
+      "git_blob": "496c9b50867ca0bb319175d1d2e47caf4bc4fb64",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "358faf6bfcf99b63507bcdac8478d0b38d4db7293fcd5a93676935f288901323"
+    },
+    "src/masck_one/interface_topology.py": {
+      "git_blob": "38b7c932f71a8675d45d098ac65154f98ff8bbb5",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "e458a63f4c7e07d43a532c23f1104315b79e3a67544bddaed7c7fbc46e41ecb9"
+    },
+    "src/masck_one/iteration25_source_integrity.py": {
+      "git_blob": "023265b0d039575e8df81912971672c18c75ec0a",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "c514fdf6bd70f84912ab18292a93553fe632a4dd2ab6cafbe6e204edb18dfc26"
+    },
+    "src/masck_one/model.py": {
+      "git_blob": "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "4ae9f6f40140612efc9d64f9084f68dd72a492588251386f51820a28f2b09d90"
+    },
+    "src/masck_one/nasal_subsystem.py": {
+      "git_blob": "f1f22b828d0465636579fc31eff0bfb6a6bf2507",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "d006793b83b551884953f19d46e3f32d547829673a445a956ef4341bebe28f6d"
+    },
+    "src/masck_one/protected_volumes.py": {
+      "git_blob": "ff2b9b288559f9b268e5d08a1d6c78335f745cf1",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "258bc9f3ee9270287ee8d424c9332ef112ffaa6b77717df402255ceddc82e499"
+    },
+    "src/masck_one/reference_surfaces.py": {
+      "git_blob": "299e4ebb5946c2b1ac56b2c64dde2c0a8744abf2",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "2b5caecd019c0ba65853f840eb893a1d98c7fa8e36710575490c2fdc2c49f068"
+    },
+    "src/masck_one/spatial.py": {
+      "git_blob": "8c1106b523fef5111009cc56236a53e3bc5ee10e",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "507114d68e312c90fb6da38e094debba72abdba9e25e5f7067fdf2713b2cef48"
+    },
+    "src/masck_one/structural_frame.py": {
+      "git_blob": "bda5ba87d232c0e6a22e200975a80414a10c9a83",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "450c068efa00caf4d01cd3ff159aef5cf18d9951c808536dc3cfdb6a85295c5e"
+    },
+    "src/masck_one/waste_acquisition.py": {
+      "git_blob": "7108fcfbe2baeaa9a343199a6817122ac2aea7ab",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "caa313cf538bfe5ca9b01668e2c86dd2ca9cd52dff945232881ff83fa9590fbb"
+    },
+    "src/masck_one/waste_pump_architecture.py": {
+      "git_blob": "ace02ee529070465b11832f475771125636312cb",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "cfa85b77f3c4c2b372d813695103a0ea2ececdee0c18d39a98bc5fbcb8c2b6bc"
+    },
+    "src/masck_one/water_reservoir.py": {
+      "git_blob": "6c14a37d07855550f0bd502e8308ed46682bc19c",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "dba4f0f4868ace6b6ec5a902cfe7140168a0510afd9eb5bb7f9c252bf554d606"
+    },
+    "src/masck_one/wet_electrical_source_graph.py": {
+      "git_blob": "d963554420b8103cb2669a975313e37cde7f7fc8",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "f8eac3cb8a6936cbe30981eb797399d2c3ea3a6dc72c88be87e039827bcd4300"
+    },
+    "src/masck_one/worn_pose.py": {
+      "git_blob": "9d4ed65246fbc92ac577ce38bceb95cd2253607b",
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "sha256": "ff904d5df89c3d7115f3aa253acdcf43803489cd3a823929558a199d12f2e727"
+    }
+  },
+  "owner": "fluid",
+  "participants": [],
+  "physical_result": null,
+  "runtime": {
+    "cadquery": "2.7.0",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+  },
+  "source_binding_status": "EXACT_CHECKOUT_AND_LOADED_BLOBS_VERIFIED",
+  "source_tree": "38fce15d93bd70cb8a599bdf018b9d76ffe3ae6c",
+  "status": "OWNER_GRAPH_EXTRACTED_GEOMETRY_UNRESOLVED"
+}

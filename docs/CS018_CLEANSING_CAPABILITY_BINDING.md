@@ -87,3 +87,8 @@ The next owner work is to derive registered footprint records from actual
 geometry, including dependencies, stationary contacts, occlusion and incidental
 effects. Producer CI success, registered geometry, support capacity, cleansing,
 deposition, film survival, leakage, fit and comfort remain separate evidence.
+
+The [owner extraction checkpoint](../analysis/cs018_owner_extraction/README.md)
+now supplies exact-source thermal/exterior B-reps and the fluid graph, with
+checkout and loaded-module verification. These readouts retain unknown registered
+capability. The moved frame owner also produces an explicit stale-source refusal.
