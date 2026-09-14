@@ -2,7 +2,7 @@
 
 [Project overview](../README.md) · [Documentation index](README.md)
 
-Masck One has a digital engineering baseline and a broader product concept under development. This guide helps distinguish what is implemented in a particular checkout from what is proposed or still needs measurement.
+Masck One is pre-commercialisation. Engineering geometry exists and digital checks and validation frameworks exist, but product-level physical validation has not begun. This guide helps distinguish implemented digital evidence from planned validation and evidence that has not yet been obtained.
 
 For a first review, the quickest route is the [project README](../README.md), which states the current stage, the digital development work, what remains unproven and what should be validated next. This document is for reviewers who want to inspect the evidence more deeply.
 
@@ -16,7 +16,24 @@ For a first review, the quickest route is the [project README](../README.md), wh
 | Where are integration assumptions challenged? | [Contact and occlusion matrix](CORE_SKETCH_CONTACT_OCCLUSION_MATRIX.md) and [routine resource envelope](CORE_SKETCH_ROUTINE_RESOURCE_ENVELOPE.md) | Measured values where inputs remain unknown |
 | What physical proof is required next? | [Reduced-region proof package](CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md) and [status board](CORE_SKETCH_STATUS_BOARD.md) | A completed experiment merely because a protocol exists |
 
+## Representative requirements and automated checks
+
+These examples show the pattern used across fit/interface, fluids and waste, retention/release, actuation, electronics/controls and other subsystem work. They are representative, not a readiness score or a substitute for the full engineering record.
+
+| Repository evidence | Plain-language meaning | Evidence class |
+| --- | --- | --- |
+| [Authority requirements](../config/masck_one_authority.yaml) define, among other items, minimum nostril opening geometry, quick-release time and wet/unpowered operation requirements, fluid volumes, cartridge capacity, mass limits and pitch-torque limits. Many values are explicitly marked `VALIDATION_GATED`. | The design has controlled numerical requirements and records which ones still need validation instead of treating every design value as proven. | Existing digital engineering evidence; physical validation still required where gated |
+| [Authority contract tests](../tests/test_authority_contract.py) reject inconsistent units/statuses, drift in duplicated airway requirements, an under-capacity cartridge ledger, a frame outside the outer envelope, fluid-ledger mismatch and unsupported commercial-state changes. | Automated checks catch contradictions in the engineering source of truth rather than only checking that code runs. | Existing automated digital evidence |
+| [Boundary-release tests](../tests/test_boundary_release.py) bind generated interface boundaries to registered source geometry and explicitly require the result to remain labelled digital-only, not anatomical or physical validation. | Provenance is checked, and the test itself prevents a geometry result from being misreported as human-fit evidence. | Existing digital engineering evidence only |
+| [Reduced-region proof package](CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md) describes bounded physical proof work required for contact and fit. | A written protocol is a validation plan, not a completed experiment. | Planned validation |
+
 For example, inspection of protected-region geometry can show that a generated part respects a defined digital exclusion volume. It cannot show that the device is comfortable, fits a population or remains safe when worn. Likewise, a fluid-route model can establish connectivity without measuring delivery, leakage or recovery.
+
+## Evidence classes
+
+`Existing digital engineering evidence` means inspectable repository artifacts such as parametric geometry, requirements, source binding, design-decision records and automated checks. `Planned validation` means a protocol, test fixture concept, evidence gate or measurement plan exists but the test has not yet produced qualifying product evidence. `Physical/commercial evidence not yet obtained` covers customer demand, comfort, hygiene and cleaning, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance.
+
+A synthetic test, geometry screen, framework or green CI run stays in the first class unless qualifying measurements exist. It must not be promoted into the third class by wording alone.
 
 ## Main, candidate work and historical records
 
@@ -34,6 +51,6 @@ The [customer discovery notes](CUSTOMER_DISCOVERY.md) record a founder-reported 
 
 ## What remains open
 
-Physical contact, comfort, coverage, carryover between products, liquid containment, hygiene, material compatibility, thermal/electrical behaviour and reliable removal require appropriate measurement and review. Manufacturing, supplier qualification and compliance require their own evidence. Product demand and a viable business model require customer and commercial learning.
+Customer demand, comfort, hygiene and cleaning, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance are not yet proven. Physical contact, coverage, carryover between products, liquid containment, material compatibility, thermal/electrical behaviour and reliable removal also require appropriate measurement and review. Manufacturing, supplier qualification and compliance require their own evidence. Product demand and a viable business model require customer and commercial learning.
 
 `BLOCKED`, `VALIDATION_GATED`, `REFERENCE_ONLY` and unknown values are meaningful limits. A blocked plan may demonstrate that the software rejects an unsupported operation; it does not demonstrate that the operation has become physically possible. Planning deadlines and generated assets do not override those limits.
