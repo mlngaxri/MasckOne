@@ -1,0 +1,107 @@
+{
+  "analyzed_main": "3065148005192930c3929bad1131cf60ed5a35b4",
+  "campaign": "analysis/fit_proof/campaign_3065148",
+  "campaign_manifest_sha256": "c95e7a27302b72bae1e2ccb6c482d9161d632a3fa2b495b00487b4a43c14e967",
+  "historical_evidence_preserved": [
+    "analysis/fit_proof/campaign_3ccd912",
+    "analysis/fit_proof/VALIDATION_RECEIPT.json",
+    "analysis/fit_proof/metrology/VALIDATION.json"
+  ],
+  "numerical_comparison": {
+    "boundary_identical": true,
+    "capability_numeric_results_identical": true,
+    "only_adaptability_difference": "cost_scope explanatory wording emitted by current generator"
+  },
+  "passive_acquisition": "UNKNOWN",
+  "physical_result": null,
+  "prior_proof_head": "29003ef6731f61dd2801fb02c3dcd46e73660f2b",
+  "production_or_human_use_eligible": false,
+  "reconciliation_commit": "e763911fde3f96c0e5c9f5d9f26ee228620dc90d",
+  "repairs": [
+    "EXACT_COMMIT_PATH_BLOB_CONTENT_AND_WORKTREE_PROVENANCE",
+    "RELEASED_OWNER_POSE_VALIDATED_BEFORE_BREP_TRANSFORM"
+  ],
+  "repository_runtime_gate": "PYTHON_3_13_CADQUERY_2_8_EXACT_HEAD_CI_REQUIRED",
+  "runtime": {
+    "cadquery": "2.7.0",
+    "numpy": "2.3.5",
+    "pytest": "9.0.2",
+    "python": "3.12.14",
+    "scipy": "1.17.0"
+  },
+  "schema": "MASCK_FIT_REVIEW_REPAIR_VALIDATION_1",
+  "scope": "ISOLATED_PR158_PROOF_NOT_CANONICAL_CS018_OWNER",
+  "source_sha256": {
+    "src/masck_one/adversarial_fit_campaign.py": "abf9e1ea7d112a790fb526d63bc366f536a7b136ee6181dfeb6bc7f72be241ad",
+    "src/masck_one/adversarial_fit_geometry.py": "e297a820a7476d0a54b0e0966a1c2ab06e9c333e5c9420a4395492a801b83264",
+    "src/masck_one/adversarial_fit_proof.py": "a5d2244487f7946d1b205dcada965a234efef2a8db17c0168d2f72eac2194461",
+    "src/masck_one/adversarial_fit_study.py": "d8e5581c9daf3d2daf47ecaed8870ea405e3da2e4b6ed87a5d36306c12c87eac",
+    "src/masck_one/cleansing_fit.py": "481cfc8058b80ef4b07a1941292d607dc0fa875e09c698e0720118b5e2d4cb41",
+    "src/masck_one/fit_metrology_records.py": "850122a4bf985c12fcc36d460e992df5ad45978fa4953521edbabf4bfa270a0e",
+    "src/masck_one/fit_metrology_rig.py": "387eb6e02dc881fc310b3f63ff83d0d02ca196889243783d59f89cd2819a9e15",
+    "tests/test_adversarial_fit_geometry.py": "19a90085f3b21f45be4b6e1f41699aee693388d6cbc283aa1a7adba4cf509f63",
+    "tests/test_adversarial_fit_proof.py": "9bb25909b6cd9d7e5ff4f083d3182f8123a302d9a1a7f7b008080e0745014301",
+    "tests/test_adversarial_fit_receipts.py": "a71cc6cc4fea015089085c4516320eef380de6ee346cf44c7f82ff7ee8bac59d",
+    "tests/test_adversarial_fit_source_binding.py": "487959cd40d1d7395e22d6d7ec996f0efb5c9002c96a2febe7c999a2f27e32b8",
+    "tests/test_adversarial_fit_study.py": "952abe16cb9110e7d4408aae1acc81cbdd048c649b314f0f27ba8c11a1feb221",
+    "tests/test_fit_metrology_records.py": "f62e2e429be6d17b6fbc79b58ec79501f0bb69113b70b51892e327d2d7b99ca0",
+    "tests/test_fit_metrology_rig.py": "f7d28b2abb4aeb760ca9d717e0afc94e5c895b47d6553a6da71b0089853edf33",
+    "tests/test_integrity_ratchets.py": "89187a0d53984217a26ae65201512ee2f570a0c1268a9f17ca613b965f5a70a1",
+    "tests/test_pinned_commits.py": "ba30837f95e679a08202a9f0ee34766a158a2d07224683a859683b978534bc45",
+    "tests/test_program_position.py": "e4da81575ffc4ac9f2a851f34aeba6d5145ba2c22ae55f7f93bd8fdff319872d"
+  },
+  "suites": [
+    {
+      "accepted_receipt": "sha256:158efbb1bcd452dcf30f51baa81b91bc149d15495ee129b4a63b1968addbda22",
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "278e2a3ceff1db22da791a27961bf3999b6e251b17b650a8714d878906294dec",
+      "skipped": 0,
+      "suite": "source-history-only",
+      "test_log_sha256": "66d5e55a709222fe4f0ceb96f58f24afcde571bc4ef2333999822758318827c0",
+      "tests": 20
+    },
+    {
+      "accepted_receipt": "sha256:5f7d6f9995ff278b422e27ceadc67f4b7ba2c99da23fb4fcb4669230c10932dd",
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "fe2916501034e0b8a5aefa1b2e692c9928dcb43474393c69eecc2ba1dacd045c",
+      "skipped": 0,
+      "suite": "geometry-repair",
+      "test_log_sha256": "c0a05fca6ec1cb6acfa84f0debe0d36b120ee3c15b2759fe8e8c8af75483fdb2",
+      "tests": 24
+    },
+    {
+      "accepted_receipt": "sha256:af12c435fed776bd3c8e99e32c871d9f7ff3d43b18535794b0074ce0910f1929",
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "b6382235dd2b5f8d38708fc7baf1dc0c26011abc7e4ad7380832e11d6183bb66",
+      "skipped": 0,
+      "suite": "proof-methods-and-rig",
+      "test_log_sha256": "33ee86455593ea18357e3a6a832421ed85719cb93ba73e4e7e9715198efb35d1",
+      "tests": 99
+    },
+    {
+      "accepted_receipt": "sha256:51b6f92baea7cb68656cb204b16527d79d1a23a611025b40877cf13bb2049764",
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "0294095bd61f250dde6449d390e2af2355c27d58773418e04c60865a298c1b57",
+      "skipped": 0,
+      "suite": "persisted-campaign",
+      "test_log_sha256": "94bb58736d658397a809fdec548b0952f0a4dde2a324c0b6be104062271f2e9d",
+      "tests": 13
+    },
+    {
+      "accepted_receipt": "sha256:6c62e1fe1f006d504a25d9d2dd51676612cd059cc67e3458a4b74c6ec1372f21",
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "15191aa6b88e7198624320110bed4f2b69d25f4b6327b556d41a9138702189dc",
+      "skipped": 0,
+      "suite": "release-integrity",
+      "test_log_sha256": "953c06046bf63b3e12ec1262a37a7bf6544f44bf7aaadbb65f006bc4ba14e352",
+      "tests": 23
+    }
+  ],
+  "total_tests": 179,
+  "whole_product_fit": "UNKNOWN"
+}

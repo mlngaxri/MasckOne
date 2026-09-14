@@ -1,0 +1,10 @@
+{
+  "schema": "FIT_METROLOGY_SOURCE_CONTEXT_1",
+  "source_main": null,
+  "rig_revision": null,
+  "fixture_revision": null,
+  "surface_witness_id": null,
+  "mode": null,
+  "source_identities": {},
+  "coupon_identities": {}
+}
