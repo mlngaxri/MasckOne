@@ -1,237 +1,208 @@
-# Masck One — deterministic engineering/code-CAD repository
+# Masck One
 
-This repository is the controlled digital-engineering implementation of **Masck One**, the founding hero product of the broader **MASCK** master brand.
+Masck One is an early-stage consumer technology project developing a hands-free automated facial-cleansing wearable.
 
-MASCK is being structured as a premium automated personal-care hardware brand rather than a company permanently limited to one mask form factor. Execution remains deliberately narrow: this repository is for making Masck One exceptional, not for inventing a speculative portfolio.
+The product brings together mechanical design, compliant facial contact, fluid delivery, waste capture, actuation, electronics, controls and product software. The aim is to make a repetitive skincare step more consistent and convenient while keeping safety-critical assumptions explicit and testable.
 
-The project is intentionally strict about the difference between a value that can be encoded or checked digitally today and a physical behavior that has actually been validated. The repository may generate deterministic geometry and analysis infrastructure from the current engineering authority while still reporting physical evidence gates as `BLOCKED` or `VALIDATION_GATED`.
+This repository contains the project's engineering code, parametric CAD, system requirements, validation tooling, development studies and supporting digital product work.
 
-## Current development state
+> **Development status:** pre-commercialisation and pre-production. Digital engineering is advanced, but physical fit, cleansing performance, comfort, durability, safety, manufacturability and production readiness remain subject to physical validation.
 
-**Phase 5: waste acquisition and containment — Iteration 28 complete.**
+## Current program position
 
-Phases 1 to 5 of [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md) are
-complete. `project.development_phase` and `project.completed_iteration` in
-`config/masck_one_authority.yaml` are the single source of truth for this
-position; the roadmap, this README and `build_report.json` are all checked
-against them by `tests/test_program_position.py`, so they cannot drift apart
-silently.
+**Phase 5: waste acquisition and containment - Iteration 28 complete.**
 
-The current code-CAD baseline generates rigid shell development geometry, a
-localized nasal-lobe membrane development reference, nominal protected
-apertures, four actuator packaging references, water-reservoir envelope,
-waste-cartridge envelope, battery packaging reference, per-solid verified STEP
-exports, and structured assertion reports. These are development artifacts. They
-are not claims that fit, cleansing efficacy, airflow, pressure, materials,
-tactile quality or production readiness have been physically validated.
+The authoritative program state is stored in [`config/masck_one_authority.yaml`](config/masck_one_authority.yaml). The development roadmap and repository checks are tied to that source so the documented status cannot silently drift from the engineering state.
 
-Released capability by phase:
+The current released baseline includes deterministic development geometry and verification infrastructure for:
 
-- **Phase 1 — foundations and human reference.** Canonical right-handed global
-  coordinates and rigid transforms (`+X` wearer-right, `+Y` superior, `+Z`
-  anterior); authority-derived eye, nostril and mouth landmarks with unresolved
-  anatomical depth kept explicit; external headform ingestion with units,
-  handedness, provenance, hashes and rigid registration; a neutral facial-surface
-  abstraction whose current planar development implementation is explicitly
-  non-anatomical; conservative eye/mouth/airway protected envelopes; a
-  deterministic 459-state worn-pose regression screen at the authority's 5 mm
-  radial and ±4° rotational limits; and a triangle-level coverage mesh that
-  partitions active targets from protected zones and refuses to treat synthetic
-  geometric success as cleansing-efficacy evidence.
-- **Phase 2 — compliant facial interface.** Contact/T-zone/protected-opening
-  parameter zones with exact area conservation and one connected contact field;
-  a nasal subsystem partitioned into bridge/dorsum, sidewall, lobe and philtrum
-  roles; the authority-backed 0.30 mm nasal-lobe thickness family localized to
-  the lobe role only; perimeter and aperture-edge boundaries; interface-to-frame
-  attachment; and a nonlinear contact-simulation framework with evidence-gated
-  material cards.
-- **Phase 3 — rigid structure and actuation.** Structural-frame datum network
-  and subsystem reservations; Class-A surface workflow and deviation governance;
-  four actuator local frames and development envelopes; coupling, swept volumes
-  and collision assertions; and the actuation parameter/sensitivity framework.
-- **Phase 4 — fresh fluid delivery.** Water-reservoir and cleanser-storage
-  architecture, pump packaging and tubing interfaces, a parametric manifold
-  branching model, and skin-facing distribution grooves with protected-region
-  outlet-direction rules.
-- **Phase 5 — waste acquisition and containment.** Facial waste gutters and
-  regional buffers, mixed-phase waste-pump packaging and fault states, keyed
-  cartridge insertion and service geometry, and complete fresh/waste routing,
-  bend-radius, dead-volume and service-clearance checks.
+- facial reference geometry and protected eye, mouth and airway regions
+- a compliant facial-interface architecture
+- four-zone actuation packaging and motion references
+- fresh-water and cleanser storage and distribution architecture
+- mixed-waste acquisition, pumping and cartridge handling
+- subsystem reservations, source binding and collision checks
+- deterministic STEP export and generated engineering manifests
 
-Known open dependency: the structural frame is still **topology and reservations
-only**. `structural_frame.py` reports
-`load_validation_status="BLOCKED_PENDING_REALIZED_GEOMETRY_MATERIAL_AND_ANALYSIS_PHYSICAL_EVIDENCE"`,
-and no released load-bearing frame B-rep exists. Treatment reaction, retention
-load paths, installed cartridge extraction and dry-side support all stack on
-that gap. See [`docs/STRUCTURAL_FRAME_TOPOLOGY.md`](docs/STRUCTURAL_FRAME_TOPOLOGY.md).
+These are engineering development artifacts, not claims of validated physical performance.
 
-## Repository principles
+## Product concept
 
-- Product name: **Masck One**.
-- Machine ID: `MASCK_ONE`.
-- Parent brand: **MASCK**.
-- `config/masck_one_authority.yaml` is the current machine-readable engineering parameter authority.
-- `schemas/masck_one_authority.schema.json` is its strict structural contract.
-- `config/masck_brand_authority.yaml` is the machine-readable brand/product-identity contract and never overrides engineering authority.
-- `schemas/masck_brand_authority.schema.json` is its strict structural contract.
-- Authority loading also performs deterministic semantic cross-checks before CAD generation is permitted.
-- Duplicate YAML keys are rejected rather than silently overwritten.
-- Generated CAD must be reproducible from source.
-- Validation-gated requirements remain validation-gated until evidence closes them.
-- Missing real-world evidence is represented explicitly rather than fabricated.
-- Generated STEP files are build artifacts and are not source authority.
+Masck One is being developed as a wearable system that can perform facial-cleansing steps without requiring the user to manually wash and rinse their face throughout the cycle.
 
-## Brand and product identity
+The current product architecture is organised around six interacting systems:
 
-The selected brand architecture is intentionally broader than the first product:
+| System | Role |
+| --- | --- |
+| Facial interface | Creates a controlled contact boundary while protecting sensitive regions and openings |
+| Treatment mechanics | Provides controlled local motion across defined facial zones |
+| Fresh-fluid system | Stores, meters and distributes water and cleanser |
+| Waste system | Acquires used fluid and contaminants and transfers them to a removable cartridge |
+| Retention and structure | Supports the wearable, maintains alignment and provides a defined removal path |
+| Controls and electronics | Coordinates user input, actuation, fluid handling and future sensing capabilities |
 
-- **MASCK** is the master company/brand.
-- **M-Cut** is the current provisional standalone master-mark direction.
-- **Masck One** is the founding hero product.
-- **M/1** is a compact product designation, not the company logo.
-- The long-term territory is premium automated personal-care hardware, while near-term execution remains overwhelmingly focused on Masck One.
+The product is intentionally being developed as a whole system. A locally good component is not accepted if it creates a worse fit, service, safety, packaging or user-experience outcome elsewhere.
 
-The primary physical control is intended to become a recurring MASCK interaction: dense, precise, quiet, highly constrained and mechanically satisfying, with the master M-Cut integrated into the surface/optical architecture rather than printed decoration. The current exterior language explicitly rejects goggle eye rings, VR/headset cues, respirator/medical PPE character, tactical panels and fake technical detailing.
+## Engineering approach
 
-Read [`docs/BRAND_ARCHITECTURE.md`](docs/BRAND_ARCHITECTURE.md) before changing product naming, master-mark role, M/1 usage, CMF direction, primary-control brand behavior or the no-goggle exterior language. Read [`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md) for the engineering-versus-brand source hierarchy.
+The repository is built around a simple rule: digitally checkable facts and physically validated facts are not the same thing.
 
-Normal release export now emits `brand_identity.json` beside the engineering manifests. It is product/interaction/CMF intent, not physical performance evidence, production material qualification or trademark clearance.
+Geometry, source provenance, configuration consistency, collision conditions and many interface constraints can be checked deterministically in software. Fit, comfort, tactile quality, leakage, cleansing efficacy, structural durability and human-use performance require physical evidence.
 
-## Product concept and Core Sketch
+Where physical evidence does not yet exist, the repository records that state explicitly rather than turning an engineering target into an achieved claim.
 
-The repository carries a deliberately **non-authoritative physical/product concept layer** for the target Masck One experience. Start with [`docs/CORE_SKETCH_START_HERE.md`](docs/CORE_SKETCH_START_HERE.md), then read [`docs/CORE_SKETCH_V1.md`](docs/CORE_SKETCH_V1.md) for the selected stable product-experience sketch and [`docs/CORE_SKETCH_EXECUTION_BACKLOG.md`](docs/CORE_SKETCH_EXECUTION_BACKLOG.md) for the dependency-ordered product-wide work program.
+This approach is reflected in the project's configuration authority, tests, preflight checks and generated reports.
 
-The Core Sketch suite is the default product-work entrypoint for broad instructions such as “continue,” “perfect Masck” or “work on the next important thing.” It records selected and rejected features, decisions, evidence gates, research gaps, owner-lineage mapping, change control and acceptance criteria so future work does not recreate the concept from chat history. Read [`docs/CORE_SKETCH_DOCUMENT_MAP.md`](docs/CORE_SKETCH_DOCUMENT_MAP.md) for the full document stack.
+## AI-assisted development
 
-[`docs/PRODUCT_CONCEPT.md`](docs/PRODUCT_CONCEPT.md) records the earlier concept evolution that led into Core Sketch v1. The current concept target is stronger than the released hardware: Masck One should ultimately execute the user's complete facial skincare routine using the products they already choose, with the dock preparing session doses and the wearable completing the routine without requiring a return to the bathroom for manual facial-skincare steps. This is product intent only. None of the described serum, moisturiser, SPF, adaptive product, AI, scheduling or optical capabilities may be treated as implemented or validated until they pass the normal engineering and physical-evidence gates.
+AI tools are used extensively in the development workflow to accelerate engineering analysis, coding, documentation, design iteration and research.
 
-## Digital product vision
+The project remains founder-directed. Product requirements, system architecture, priorities, user-experience decisions, acceptance criteria, trade-offs and final integration decisions are set and reviewed at the product level. AI is used as a technical multiplier across specialised work rather than as an autonomous source of product authority.
 
-The repository also carries a deliberately **non-authoritative** digital product vision for the marketing website, companion app, commercial backend and future connected-device experience. Read [`docs/DIGITAL_PRODUCT_VISION.md`](docs/DIGITAL_PRODUCT_VISION.md) for the target iOS/Android app, usage-session experience, capability-gated wear-state/device controls, Supabase-backed account/reservation architecture, website app showcase and preorder path.
+That distinction matters for a multidisciplinary hardware project. Individual outputs are useful only if they fit the wider system, preserve the intended user experience and remain consistent with the project's evidence and safety boundaries. Source control, tests and explicit engineering contracts are used to make that review process repeatable.
 
-That document defines product intent and software architecture only. It does not override `config/masck_one_authority.yaml`, released engineering code/CAD, validation evidence or [`DIGITAL_PRODUCT_HANDOFF_README.md`](DIGITAL_PRODUCT_HANDOFF_README.md). Future BLE, wear detection, session telemetry, device control, measured performance and paid preorder activation remain gated by their physical/commercial dependencies.
+## Repository structure
 
-Key engineering modules:
+| Path | Purpose |
+| --- | --- |
+| [`config/`](config/) | Engineering and product configuration authorities |
+| [`schemas/`](schemas/) | Machine-readable validation contracts |
+| [`src/masck_one/`](src/masck_one/) | Engineering logic, CAD generation and release tooling |
+| [`tests/`](tests/) | Regression, provenance, geometry and integrity checks |
+| [`studies/`](studies/) | Engineering studies and bounded design investigations |
+| [`docs/`](docs/) | Design rationale, subsystem documentation and development records |
+| [`generated/`](generated/) | Deterministic generated engineering outputs |
+| [`website/`](website/) | Current public-facing digital product work |
+| [`brand/`](brand/) | Product identity and brand assets |
 
-- `src/masck_one/spatial.py` — canonical points, vectors, datums and rigid transforms.
-- `src/masck_one/anatomy.py` — semantic facial landmark/reference layer.
-- `src/masck_one/reference_surfaces.py` — external mesh provenance/unit/registration boundary.
-- `src/masck_one/facial_surface.py` — neutral facial-surface abstraction.
-- `src/masck_one/protected_volumes.py` — eye/mouth/airway safety-exclusion topology.
-- `src/masck_one/worn_pose.py` — deterministic misregistration regression engine.
-- `src/masck_one/coverage.py` — facial-region segmentation, target/protected area accounting and coverage metrics.
-- `src/masck_one/interface_topology.py` — main compliant facial-interface contact/protected topology and parameter-zone authority boundary.
-- `src/masck_one/nasal_subsystem.py` — dedicated bridge/dorsum/sidewall/lobe/philtrum functional partition and local lobe-thickness boundary.
-- `src/masck_one/nasal_preflight.py` — nasal source-chain, role, safety-exclusion and thickness-localization CI gate.
-- `src/masck_one/interface_boundaries.py` — perimeter, seal/compliance zones and aperture-edge transitions.
-- `src/masck_one/interface_attachment.py` — interface-to-structural-frame attachment and clamp architecture.
-- `src/masck_one/contact_simulation.py` — nonlinear membrane/contact framework with evidence-gated material cards.
-- `src/masck_one/structural_frame.py` — frame datum network and subsystem reservations (topology only; no released load-bearing B-rep).
-- `src/masck_one/surface_workflow.py` — Class-A exterior surface workflow and deviation governance.
-- `src/masck_one/actuator_frames.py`, `actuator_coupling.py`, `actuation_parameters.py` — four actuator local frames, load paths, swept volumes and sensitivity framework.
-- `src/masck_one/water_reservoir.py`, `cleanser_storage.py`, `distribution_manifold.py`, `distribution_geometry.py` — fresh fluid delivery.
-- `src/masck_one/waste_acquisition.py`, `waste_pump_architecture.py`, `waste_cartridge.py`, `waste_routes.py` — waste acquisition, transport and containment.
-- `src/masck_one/component_registry.py` — canonical component/interface registry and source binding.
-- `src/masck_one/export.py`, `step_integrity.py`, `release_package.py` — deterministic export, per-solid STEP round-trip verification and package integrity.
-- `src/masck_one/integration_contract.py` — edit-ownership map for concurrent sprint lanes (navigation only; live GitHub is authoritative for PR/branch state).
-- `src/masck_one/brand_identity.py` — strict MASCK master-brand / Masck One product-identity loader and deterministic manifest producer.
+For a guided documentation entry point, see [`docs/README.md`](docs/README.md).
 
-The full module set is larger than this list; see `src/masck_one/` and
-[`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md).
+## Engineering authority
 
-## Controlled toolchain
+The primary machine-readable source is:
 
-The currently verified toolchain is:
+```text
+config/masck_one_authority.yaml
+```
+
+Its schema is:
+
+```text
+schemas/masck_one_authority.schema.json
+```
+
+The repository also contains a separate brand and product-identity contract. Brand intent does not override engineering authority or validation state.
+
+Key principles include:
+
+- one controlled source for engineering parameters
+- reproducible CAD generation from source
+- explicit separation between manufactured material and reference geometry
+- protected anatomy treated as a hard design constraint
+- validation-gated requirements remain open until evidence closes them
+- generated STEP files are outputs, not the source of engineering truth
+- source movement and stale provenance fail closed where relevant
+
+## Key technical areas
+
+The codebase covers a broader system than a conventional CAD repository. Representative modules include:
+
+- `spatial.py`: canonical coordinates, points, vectors and rigid transforms
+- `anatomy.py`: semantic facial landmarks and references
+- `protected_volumes.py`: eye, mouth and airway exclusion geometry
+- `worn_pose.py`: misregistration and worn-pose screening
+- `coverage.py`: treatment-region and protected-area accounting
+- `interface_topology.py`: compliant facial-interface topology
+- `nasal_subsystem.py`: dedicated nasal functional partition
+- `contact_simulation.py`: evidence-gated contact-analysis framework
+- `structural_frame.py`: structural datum and subsystem reservation architecture
+- `actuator_frames.py` and related modules: four-zone actuation references
+- `water_reservoir.py`, `cleanser_storage.py` and distribution modules: fresh-fluid architecture
+- `waste_acquisition.py`, `waste_pump_architecture.py`, `waste_cartridge.py` and `waste_routes.py`: mixed-waste architecture
+- `component_registry.py`: canonical component and interface identity
+- `export.py`, `step_integrity.py` and `release_package.py`: deterministic release and STEP verification
+
+See [`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md) for the broader source hierarchy.
+
+## Toolchain
+
+The currently controlled Python engineering environment uses:
 
 - Python 3.13.x
 - CadQuery 2.8.0
 - jsonschema 4.26.0
 - PyYAML 6.0.3
-- pytest 9.0.2 for development/testing
+- pytest 9.0.2
 
-Install in an isolated environment:
+Install the project in an isolated environment:
 
 ```bash
 python -m pip install -e ".[dev]"
 ```
 
-## Validate the engineering authority
+## Validation and tests
+
+Validate the engineering authority:
 
 ```bash
 python -m masck_one.authority
 ```
 
-This performs strict JSON Schema validation followed by deterministic semantic checks. It does not claim physical validation; it establishes that the digital authority is explicit and internally self-consistent.
-
-## Validate the brand/product identity contract
-
-```bash
-python -m masck_one.brand_identity
-# or, after installation:
-masck-brand-check
-```
-
-This validates the parent/product split, M-Cut/M/1 roles, primary-control identity, CMF token structure, no-goggle exterior constraints and the explicit provisional evidence boundary.
-
-## Engineering preflight
+Run repository preflight:
 
 ```bash
 python -m masck_one.preflight
-python -m masck_one.nasal_preflight
-python -m masck_one.boundary_preflight
-python -m masck_one.attachment_preflight
-python -m masck_one.contact_simulation_preflight
-python -m masck_one.structural_frame_preflight
-python -m masck_one.surface_workflow_preflight
 ```
 
-The repository preflight checks the controlled runtime/dependencies and upstream engineering contracts. The nasal preflight additionally checks exact upstream hashes, central target assignment closure, area conservation, bilateral sidewall balance, protected-opening exclusion, lobe-thickness localization, local lobe CAD thickness and evidence status. CI additionally runs the boundary, attachment, contact-simulation, structural-frame and Class-A surface-workflow preflights; see `.github/workflows/ci.yml` for the released gate order.
-
-## Test
+Run the complete test suite:
 
 ```bash
 python -m compileall -q src tests
 python -m pytest
 ```
 
-## Generate the current CAD baseline
+Generate the current deterministic CAD baseline:
 
 ```bash
 python -m masck_one.cli --output generated
 ```
 
-The build emits STEP files, `component_registry.json`, `brand_identity.json` and `build_report.json`. The nasal thickness solid is exported as `nasal_lobe_membrane_reference.step`, deliberately named for the local development role it represents rather than as a whole nasal interface. The build report also records deterministic coverage, compliant-interface, nasal-subsystem and source-bound brand/product identity manifests. Software-verifiable failures fail the command; evidence-gated items remain explicitly `BLOCKED` instead of being reported as fabricated passes.
+The release build produces STEP files and structured manifests used to verify source identity, geometry integrity and development status.
 
-## Engineering governance
+## Documentation
 
-Read [`docs/ENGINEERING_GOVERNANCE.md`](docs/ENGINEERING_GOVERNANCE.md) before changing authoritative parameters or CAD architecture.
+Useful starting points:
 
-Read [`docs/COORDINATE_SYSTEM.md`](docs/COORDINATE_SYSTEM.md) before adding geometry, local datum frames, imported headforms/supplier CAD, fixture coordinates, pose transforms, or render-export transforms.
+- [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md): controlled development sequence
+- [`docs/CORE_SKETCH_START_HERE.md`](docs/CORE_SKETCH_START_HERE.md): current whole-product concept entry point
+- [`docs/ENGINEERING_GOVERNANCE.md`](docs/ENGINEERING_GOVERNANCE.md): engineering change and evidence rules
+- [`docs/REPOSITORY_STRUCTURE.md`](docs/REPOSITORY_STRUCTURE.md): source hierarchy and repository organisation
+- [`docs/COORDINATE_SYSTEM.md`](docs/COORDINATE_SYSTEM.md): global and local coordinate conventions
+- [`docs/FACIAL_REFERENCE.md`](docs/FACIAL_REFERENCE.md): facial reference model
+- [`docs/COMPLIANT_INTERFACE_TOPOLOGY.md`](docs/COMPLIANT_INTERFACE_TOPOLOGY.md): facial-interface architecture
+- [`docs/STRUCTURAL_FRAME_TOPOLOGY.md`](docs/STRUCTURAL_FRAME_TOPOLOGY.md): current structural-frame state
+- [`docs/DIGITAL_PRODUCT_VISION.md`](docs/DIGITAL_PRODUCT_VISION.md): companion digital-product direction
+- [`DIGITAL_PRODUCT_HANDOFF_README.md`](DIGITAL_PRODUCT_HANDOFF_README.md): engineering-to-digital handoff rules
 
-Read [`docs/FACIAL_REFERENCE.md`](docs/FACIAL_REFERENCE.md) before adding or consuming facial landmarks.
+## Current limitations
 
-Read [`docs/REFERENCE_SURFACE_INGESTION.md`](docs/REFERENCE_SURFACE_INGESTION.md) before importing external reference geometry.
+The repository is deliberately conservative about readiness claims. Current digital work does not establish, by itself:
 
-Read [`docs/WORN_POSE.md`](docs/WORN_POSE.md) before adding fit/misregistration regressions.
+- consumer fit across a representative population
+- comfort or skin-contact pressure in physical use
+- cleansing efficacy
+- leak resistance or retained waste capacity
+- structural strength, fatigue life or drop durability
+- battery runtime or electrical safety
+- thermal safety or performance
+- manufacturing process capability
+- production tolerances
+- regulatory or clinical claims
 
-Read [`docs/COVERAGE_MESH.md`](docs/COVERAGE_MESH.md) before changing facial target regions, T-zone segmentation or coverage metrics.
+Those questions require physical prototypes, measurement and, where applicable, qualified external testing.
 
-Read [`docs/COMPLIANT_INTERFACE_TOPOLOGY.md`](docs/COMPLIANT_INTERFACE_TOPOLOGY.md) before changing skin-contact intent, protected openings or broad interface parameter zones.
+## Project direction
 
-Read [`docs/ROUTINE_COMPLETION.md`](docs/ROUTINE_COMPLETION.md) before changing what a routine reports, or adding a signal that looks like it proves a stage finished.
+The immediate objective is to converge the current digital architecture into a coherent physical prototype, validate the assumptions that cannot be resolved in software, and use those results to drive the next engineering and commercial decisions.
 
-Read [`docs/COST_PRESSURE.md`](docs/COST_PRESSURE.md) before adding a tooling action, a tighter tolerance or a part.
-
-Read [`docs/MOLDABILITY.md`](docs/MOLDABILITY.md) before changing aperture geometry, the shell part split or the exterior finish specification.
-
-Read [`docs/PROCESS_CAPABILITY.md`](docs/PROCESS_CAPABILITY.md) before tightening any tolerance or choosing a part split that places a visible seam.
-
-Read [`docs/MULTI_AGENT_INTEGRITY.md`](docs/MULTI_AGENT_INTEGRITY.md) before changing a pinned ratchet value, and before adding a skip, deleting a test or widening a tolerance. Several agents and more than one toolchain edit this repository concurrently; CI rejects silent weakening in about 1.5 seconds.
-
-Read [`docs/MASS_BALANCE.md`](docs/MASS_BALANCE.md) before changing any `mass:` limit or moving mass anteriorly to solve a packaging problem.
-
-Read [`docs/AIRWAY_RESISTANCE.md`](docs/AIRWAY_RESISTANCE.md) before changing `safety.airway` limits, nostril aperture geometry or anything that reduces the deformed nasal opening.
-
-Read [`docs/NASAL_SUBSYSTEM.md`](docs/NASAL_SUBSYSTEM.md) before changing the nose/T-zone functional partition, nasal-lobe thickness application boundary, protected nostril exclusions or philtrum continuity.
-
-The controlled program sequence is in [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md).
+Masck One is being developed as a product first, not as a collection of disconnected technical demonstrations. The repository exists to make that development traceable, reproducible and honest about what is known, what is assumed and what still needs to be proven.

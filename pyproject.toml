@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "masck-one-cad"
 version = "0.1.0"
-description = "Deterministic engineering and product-identity foundation for Masck One within the MASCK personal-care hardware brand"
+description = "Engineering code, parametric CAD and validation tooling for Masck One"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
