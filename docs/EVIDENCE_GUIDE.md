@@ -85,6 +85,19 @@ This is the shortest path for a reviewer assessing whether the repository contai
 | Major subsystem coverage | [Product architecture summary](CORE_SKETCH_ONE_PAGE.md), [contact/occlusion matrix](CORE_SKETCH_CONTACT_OCCLUSION_MATRIX.md) and [routine resource envelope](CORE_SKETCH_ROUTINE_RESOURCE_ENVELOPE.md) | Face interface/treatment, fluids and waste, retention/removal, electronics/controls, dock/service and whole-product resource interactions are represented in the digital engineering record. Coverage in documentation does not mean each subsystem is physically qualified. |
 | Explicit unknowns and validation gates | [Status board](CORE_SKETCH_STATUS_BOARD.md) and [reduced-region proof package](CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md) | Missing evidence remains blocked, validation-gated, reference-only or unknown instead of being silently converted into a pass. Planned proof work is distinguishable from completed evidence. |
 
+### Representative subsystem source trail
+
+These are deliberately representative entry points, not a claim that every subsystem is complete. They let a reviewer move from the architecture summary into concrete engineering source in one click.
+
+| Subsystem area | Representative source | What is inspectable now | Boundary |
+| --- | --- | --- | --- |
+| Whole-product / face-side geometry | [Parametric model](../src/masck_one/model.py) and [model checks](../tests/test_model.py) | Code-generated geometry, controlled material/reference roles and deterministic digital checks. | Does not establish human fit, comfort, sealing, safety or performance. |
+| Structure and integration reservations | [Structural frame](../src/masck_one/structural_frame.py) | Named datums and explicit reservations for actuation, fresh fluid, waste, retention, HMI/electronics and thermal systems, including unresolved geometry states. | Topology and reservation evidence is not structural-strength or manufacturing evidence. |
+| Actuation architecture | [Actuator frames](../src/masck_one/actuator_frames.py) and [actuator-frame checks](../tests/test_actuator_frames.py) | Four controlled actuation zones and fail-closed architecture/source checks. | Does not establish actuator force, lifetime, acoustics, comfort or physical motion quality. |
+| Waste handling | [Realized mixed-waste backbone](../src/masck_one/realized_waste_backbone.py) | Source-bound route stages and provisional world-coordinate digital routing with explicit validation-gated status. | Does not establish hydraulic performance, recovery, leakage, hygiene or service performance. |
+
+The point of these examples is traceability: architecture statements lead to inspectable implementation, while the implementation itself records what remains unproven. Candidate pull requests may contain newer subsystem work, but they are not silently treated as merged evidence.
+
 ## Representative requirements and automated checks
 
 These examples show the pattern used across fit/interface, fluids and waste, retention/release, actuation, electronics/controls and other subsystem work. They are representative, not a readiness score or a substitute for the full engineering record.
