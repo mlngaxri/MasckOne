@@ -12,9 +12,10 @@ import re
 from pathlib import Path
 
 from .battery_benchmark import build_battery_benchmark_binding
+from .dry_side_disconnect_interface import build_battery_disconnect_interface
 from .dry_side_harness_service import build_dry_side_harness_service, DRY_BAY_BOUNDS_WORLD_MM
 
-SCHEMA = "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V5"
+SCHEMA = "MASCK_ONE_DRY_SIDE_RESOURCE_PRODUCER_V6"
 OWNER_PR = 142
 OWNER_BRANCH = "cell12/compact-dry-side-package-reconstructed-20260909"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
@@ -42,9 +43,11 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
         raise ValueError("exact lowercase 40-hex owner head SHA required")
 
     harness = build_dry_side_harness_service().manifest()
+    disconnect = build_battery_disconnect_interface().manifest()
     battery = build_battery_benchmark_binding().manifest()
     route = harness["geometry"]["harness_route_envelope"]
     clips = harness["geometry"]["clip_reservations"]
+    disconnect_geometry = disconnect["geometry"]
     bounds = [float(v) for v in DRY_BAY_BOUNDS_WORLD_MM]
     if len(bounds) != 6 or not _finite(bounds):
         raise ValueError("finite dry-bay bounds required")
@@ -60,6 +63,7 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
     ]
     source_by_path = {source["path"]: source for source in sources}
     harness_source = source_by_path["src/masck_one/dry_side_harness_service.py"]
+    disconnect_source = source_by_path["src/masck_one/dry_side_disconnect_interface.py"]
     battery_source = source_by_path["src/masck_one/battery_benchmark.py"]
     benchmark = battery["benchmark"]
     battery_binding = battery["model_binding"]
@@ -84,7 +88,18 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
                 "volume_mm3": route["volume_mm3"],
                 "mass_g": None,
                 "mass_source": "UNKNOWN_NO_QUALIFIED_CONDUCTOR_OR_INSULATION_MASS",
-            }
+            },
+            {
+                "component_id": "DRY_SIDE_CONNECTOR_RESERVATION",
+                "source_path": disconnect_source["path"],
+                "source_git_blob_sha": disconnect_source["git_blob_sha"],
+                "evidence_class": "SOURCE_BOUND_DIGITAL_RESERVATION_CONNECTOR_UNSELECTED",
+                "transform_to_world_mm": _IDENTITY_WORLD_TRANSFORM,
+                "bounds_world_mm": disconnect_geometry["connector_reservation"]["bounds_world_mm"],
+                "volume_mm3": disconnect_geometry["connector_reservation"]["volume_mm3"],
+                "mass_g": None,
+                "mass_source": "UNKNOWN_CONNECTOR_UNSELECTED",
+            },
         ],
         "battery_packaging_benchmark": {
             "component_id": battery_binding["component_id"],
@@ -104,10 +119,12 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
             "supplier_document_bound": False,
             "runtime_validated": False,
         },
-        "service_state": "DRY_SIDE_INSTALLED_WITH_REALIZED_DIGITAL_SERVICE_LOOP",
+        "service_state": "DRY_SIDE_INSTALLED_WITH_REALIZED_DIGITAL_SERVICE_LOOP_AND_DISCONNECT_SWEEP",
         "service_envelope": {
             "route_bounds_world_mm": route["bounds_world_mm"],
             "clip_bounds_world_mm": [clip["bounds_world_mm"] for clip in clips],
+            "disconnect_sweep_bounds_world_mm": disconnect_geometry["disconnect_service_sweep"]["bounds_world_mm"],
+            "disconnect_travel_mm": disconnect["disconnect_travel_mm"],
             "transform_to_world_mm": _IDENTITY_WORLD_TRANSFORM,
             "evidence": "DIGITAL_ENVELOPE_ONLY_PHYSICAL_SERVICE_UNVALIDATED",
         },
@@ -123,6 +140,17 @@ def build_dry_side_resource_producer(*, owner_head_sha: str) -> dict[str, object
             "disconnect_mating_datum_world_mm": harness["source_disconnect_mating_datum_world_mm"],
             "clip_bounds_world_mm": [clip["bounds_world_mm"] for clip in clips],
             "evidence": "DIGITAL_ENVELOPE_NOT_CONDUCTOR_OR_BEND_LIFE_EVIDENCE",
+        },
+        "disconnect": {
+            "mating_datum_world_mm": disconnect["mating_datum_world_mm"],
+            "mating_axis_world": disconnect["mating_axis_world"],
+            "travel_mm": disconnect["disconnect_travel_mm"],
+            "connector_reservation_bounds_world_mm": disconnect_geometry["connector_reservation"]["bounds_world_mm"],
+            "strain_relief_bounds_world_mm": disconnect_geometry["strain_relief_reservation"]["bounds_world_mm"],
+            "service_sweep_bounds_world_mm": disconnect_geometry["disconnect_service_sweep"]["bounds_world_mm"],
+            "connector_selected": False,
+            "electrical_ratings_selected": False,
+            "evidence": "DIGITAL_MATING_AND_NONTELEPORTING_SERVICE_SWEEP_ONLY",
         },
         "resource_contract": {
             "component_masses_g": None,
