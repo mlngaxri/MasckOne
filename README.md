@@ -121,7 +121,7 @@ The aim would be to reduce uncertainty in sequence: first identify a customer pr
 
 ## Inspect the work
 
-Use the [documentation index](docs/README.md) for a guided reading path, the [evidence guide](docs/EVIDENCE_GUIDE.md) to interpret results, and the [engineering quickstart](docs/ENGINEERING_QUICKSTART.md) to reproduce the work. [Open pull requests](https://github.com/mlngaxri/MasckOne/pulls) contain candidate work, which may differ from the merged baseline.
+Use the [documentation index](docs/README.md) for a guided reading path, the [evidence guide](docs/EVIDENCE_GUIDE.md) to interpret results, and the [engineering quickstart](docs/ENGINEERING_QUICKSTART.md) to reproduce the work. For a direct example of the CAD evidence, inspect the [parametric model source](src/masck_one/model.py) beside its [model checks](tests/test_model.py): the source explicitly separates physical material from references, motion sweeps, keepouts and protected anatomy, while the checks verify generated geometry and preserve digital-only evidence boundaries. These files do not establish physical fit, comfort, safety or performance. [Open pull requests](https://github.com/mlngaxri/MasckOne/pulls) contain candidate work, which may differ from the merged baseline.
 
 ## Repository structure
 
