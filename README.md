@@ -86,6 +86,7 @@ The repository does **not** currently prove:
 - Hygiene, cleaning or maintenance practicality.
 - Real fluid behaviour, delivery, leakage or recovery performance.
 - Product safety.
+- Product-level physical performance.
 - Manufacturing feasibility or production capability.
 - Unit economics or a viable commercial model.
 
