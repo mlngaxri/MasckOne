@@ -22,10 +22,25 @@ This diagram is assembled from the existing [Core Sketch product story](CORE_SKE
 
 ## 2. Representative registered digital compositions
 
-| View | Open image | What it helps inspect | Evidence limit |
-| --- | --- | --- | --- |
-| Front three-quarter | [Open full-resolution view](../website/images/masck-inspection-front-3q-v17c.webp) | Candidate face-side packaging, opening layout and the visible relationship between the facial shell and surrounding structure. | Concept/candidate digital composition only. It does not prove released-main geometry, anatomical fit, comfort, sealing, treatment coverage or physical performance. |
-| Side-rear | [Open full-resolution view](../website/images/masck-inspection-side-rear-v17c.webp) | Candidate depth, rear packaging and the visible relationship between the face-side body and retention structure. | Concept/candidate digital composition only. It does not prove attachment closure, removal behaviour, serviceability, structural strength, manufacturability or safety. |
+### Front three-quarter
+
+![Front three-quarter registered digital review composition of Masck One](../website/images/masck-inspection-front-3q-v17c.webp)
+
+**What this helps inspect:** candidate face-side packaging, opening layout and the visible relationship between the facial shell and surrounding structure.
+
+**Evidence limit:** concept/candidate digital composition only. It does not prove released-main geometry, anatomical fit, comfort, sealing, treatment coverage or physical performance.
+
+[Open full-resolution view](../website/images/masck-inspection-front-3q-v17c.webp)
+
+### Side-rear
+
+![Side-rear registered digital review composition of Masck One](../website/images/masck-inspection-side-rear-v17c.webp)
+
+**What this helps inspect:** candidate depth, rear packaging and the visible relationship between the face-side body and retention structure.
+
+**Evidence limit:** concept/candidate digital composition only. It does not prove attachment closure, removal behaviour, serviceability, structural strength, manufacturability or safety.
+
+[Open full-resolution view](../website/images/masck-inspection-side-rear-v17c.webp)
 
 The [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) records the asset version, camera definitions, coordinate frame, source checkpoints, image hashes and explicit claim boundary for these compositions. The manifest classifies the exterior and retention geometry as candidate work rather than released-main physical evidence.
 
