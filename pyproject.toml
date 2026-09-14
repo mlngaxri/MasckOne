@@ -1,32 +1,28 @@
 [build-system]
-requires = ["setuptools==80.9.0", "wheel==0.45.1"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "masck-one-cad"
+name = "masck-one"
 version = "0.1.0"
 description = "Engineering code, parametric CAD and validation tooling for Masck One"
 readme = "README.md"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.12"
 dependencies = [
   "cadquery==2.8.0",
-  "jsonschema==4.26.0",
-  "PyYAML==6.0.3",
+  "PyYAML>=6.0,<7",
+  "jsonschema>=4.25,<5",
+  "trimesh>=4.8,<5",
+  "numpy>=2.3,<3",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "pytest==9.0.2",
-  # The CAD suite is CPU-bound and independent per test; running it serially
-  # exceeded the CI job budget. See .github/workflows/ci.yml.
-  "pytest-xdist==3.8.0",
+  "pytest>=8.4,<9",
 ]
 
 [project.scripts]
-masck-one-cad = "masck_one.cli:main"
-masck-one-preflight = "masck_one.preflight:main"
-masck-one-authority-check = "masck_one.authority:main"
-masck-brand-check = "masck_one.brand_identity:main"
+masck-one = "masck_one.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -35,6 +31,5 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
 testpaths = ["tests"]
-addopts = "-q --strict-config --strict-markers"
+addopts = "-ra"
