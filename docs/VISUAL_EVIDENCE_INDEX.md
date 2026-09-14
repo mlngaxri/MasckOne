@@ -44,7 +44,19 @@ This diagram is assembled from the existing [Core Sketch product story](CORE_SKE
 
 The [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) records the asset version, camera definitions, coordinate frame, source checkpoints, image hashes and explicit claim boundary for these compositions. The manifest classifies the exterior and retention geometry as candidate work rather than released-main physical evidence.
 
-## 3. Engineering evidence behind the visuals
+## 3. Development in three inspectable steps
+
+These are repository milestones, not claims of physical product maturity. The dates are Git commit dates and each step links to the underlying record.
+
+| Date | Repository milestone | What a reviewer can verify |
+| --- | --- | --- |
+| 30 August 2026 | [Controlled engineering authority](https://github.com/mlngaxri/MasckOne/commit/910d4fd1a03164e032847e590331cd7cddf51d8d) and [facial-reference contract](https://github.com/mlngaxri/MasckOne/commit/9c427d5faec3687c1a1422c6bea3edd9394bffb3) | The project had moved beyond an idea into controlled requirements, automated checks and an inspectable digital engineering structure. |
+| 10 September 2026 | [Whole-product convergence](https://github.com/mlngaxri/MasckOne/commit/0044a55885000480a873b5761742341038b24b6a) | Individual digital workstreams were being considered together, with cross-subsystem conflicts and unresolved proof gates recorded rather than hidden. |
+| 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | The existing engineering record was reorganised so an external reviewer can distinguish digital evidence, planned validation and unsupported claims. |
+
+This progression demonstrates increasing scope and evidence discipline. It does not demonstrate increasing human-use readiness, physical validation or commercial readiness.
+
+## 4. Engineering evidence behind the visuals
 
 The repository does not currently contain a standalone gallery of released-main engineering CAD screenshots. The stronger engineering evidence is source-bound and reproducible rather than presentation imagery.
 
