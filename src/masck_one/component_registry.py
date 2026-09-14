@@ -18,9 +18,9 @@ from .realized_waste_backbone_release import (
 from .structural_frame import (
     RESERVATION_HMI_ELECTRONICS,
     RESERVATION_RETENTION,
-    RESERVATION_THERMAL,
     RESERVATION_WASTE,
 )
+from .warm_cool_package import SCHEMA as WARM_COOL_PACKAGE_SCHEMA
 from .waste_cartridge import CARTRIDGE_ID
 from .waste_cartridge_dfm import CURRENT_HYGIENE_CLASSIFICATION, REQUIREMENT_IDS
 from .waste_pump_architecture import BARRIER_WASTE, STATION_WASTE
@@ -30,7 +30,7 @@ from .water_reservoir import WATER_RESERVOIR_ID
 SCHEMA = "MASCK_ONE_CANONICAL_COMPONENT_REGISTRY_V2"
 SOURCE_MAIN_SHA = "ff76a17fa25276a401fbe57ad02564b771fa1865"
 AUTHORITY_REVISION = "2026-08-30-R1"
-AUTHORITY_BLOB_SHA = "2608dda483b995539de422290371c219668a1527"
+AUTHORITY_BLOB_SHA = "42656ecc57acaed9e866a46b7c3aa14867c44b62"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 LENGTH_UNIT = "mm"
 
@@ -91,8 +91,8 @@ IDENTITY_WORLD_TRANSFORM = (
 )
 
 SOURCE_GIT_BLOBS = {
-    "config/masck_one_authority.yaml": "2608dda483b995539de422290371c219668a1527",
-    "src/masck_one/model.py": "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894",
+    "config/masck_one_authority.yaml": "42656ecc57acaed9e866a46b7c3aa14867c44b62",
+    "src/masck_one/model.py": "ab48b3ca47e7ec8ecb7d3ecb31e7fe22b3ebca68",
     "src/masck_one/interface_topology.py": "38b7c932f71a8675d45d098ac65154f98ff8bbb5",
     "src/masck_one/structural_frame.py": "bda5ba87d232c0e6a22e200975a80414a10c9a83",
     "src/masck_one/actuator_frames.py": "4c2013f994bdc9e084fe227eb5e166f973500ebb",
@@ -105,8 +105,9 @@ SOURCE_GIT_BLOBS = {
     "src/masck_one/waste_acquisition.py": "7108fcfbe2baeaa9a343199a6817122ac2aea7ab",
     "src/masck_one/waste_pump_architecture.py": "ace02ee529070465b11832f475771125636312cb",
     "src/masck_one/waste_cartridge.py": "9dc0fe8a0ed92083c68406da3993e57e767e2483",
-    "src/masck_one/waste_cartridge_dfm.py": "f9788cce30c14600c8a624509153596e46c1e478",
+    "src/masck_one/waste_cartridge_dfm.py": "f5428a430370c4231b7115a09f39ac31d5669b17",
     "src/masck_one/realized_waste_backbone.py": "6aa79d9a613e278f32da85b4654c0e35cc09b7ca",
+    "src/masck_one/warm_cool_package.py": "85a6bfcf25d18d82c7e17f96f045d3c5719e6cf5",
 }
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
@@ -298,7 +299,6 @@ class CanonicalComponentRegistry:
             "MASCK_ONE-COMP-PCB",
             "MASCK_ONE-COMP-QUICK-RELEASE-RIGHT",
             "MASCK_ONE-COMP-RETENTION-HALO",
-            "MASCK_ONE-COMP-WARM",
             "MASCK_ONE-COMP-WASTE-CARTRIDGE-BODY",
             "MASCK_ONE-COMP-WASTE-PUMP",
             "MASCK_ONE-COMP-WATER-PUMP",
@@ -317,6 +317,14 @@ class CanonicalComponentRegistry:
             raise ComponentRegistryError("released mixed-waste routes must consume realized centerlines")
         if by_id["MASCK_ONE-COMP-WASTE-CARTRIDGE-PACKAGE"].geometry_role != ROLE_PACKAGE_REFERENCE:
             raise ComponentRegistryError("waste cartridge package must remain non-material reference geometry")
+
+        warm = by_id["MASCK_ONE-COMP-WARM"]
+        if warm.geometry_role != ROLE_PACKAGE_REFERENCE:
+            raise ComponentRegistryError("released WARM package must remain a non-material package reference")
+        if warm.source_path != "src/masck_one/warm_cool_package.py" or warm.source_object_id != WARM_COOL_PACKAGE_SCHEMA:
+            raise ComponentRegistryError("released WARM package source binding moved")
+        if warm.physical_material_eligible or warm.physical_validation_eligible:
+            raise ComponentRegistryError("released WARM package reference cannot imply material or physical validation")
 
         expected_hygiene = {
             "MASCK_ONE-COMP-WATER-RESERVOIR": "WET_REMOVABLE",
@@ -726,9 +734,9 @@ def build_current_component_registry(
         ),
         _record(
             "MASCK_ONE-COMP-WARM", "WARM thermal package", OWNER_CELL_14,
-            ROLE_UNRESOLVED, "src/masck_one/structural_frame.py", RESERVATION_THERMAL,
-            service_state="HEATER_SENSOR_SPREADER_INSULATION_MOUNT_AND_SERVICE_UNRESOLVED",
-            evidence_status="THERMAL_RESERVATION_ONLY_NO_RELEASED_WARM_PACKAGE_OR_SAFETY_EVIDENCE",
+            ROLE_PACKAGE_REFERENCE, "src/masck_one/warm_cool_package.py", WARM_COOL_PACKAGE_SCHEMA,
+            service_state="PACKAGE_GEOMETRY_RELEASED_HARDWARE_MOUNT_SERVICE_AND_QUALIFICATION_UNRESOLVED",
+            evidence_status="RELEASED_WARM_PACKAGE_REFERENCE_ONLY_NOT_SELECTED_HARDWARE_THERMAL_CAPABILITY_SKIN_SAFETY_OR_PHYSICAL_EVIDENCE",
         ),
         _record(
             "MASCK_ONE-COMP-DRAIN-DRY-PATH", "Drain and dry path", OWNER_CELL_4,

@@ -1,0 +1,194 @@
+{
+  "status": "CS018_READ_ONLY_SOURCE_SNAPSHOT_NOT_ENGINEERING_AUTHORITY",
+  "main": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+  "owners": {
+    "main": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+    "treatment": "b3a224770f724fbc625534ea563fa09c1b910729",
+    "thermal": "d2b82e50d5bfbadb4a60588a9119139b4742031a",
+    "retention": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+    "frame": "b7cdd3e3b2c80ff943a1ceb4702f005769f411d8",
+    "exterior": "152312fe6eced419eef4e1e58c33df09fd0710ea"
+  },
+  "sources": [
+    {
+      "owner": "main",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "path": "config/masck_one_authority.yaml",
+      "git_blob": "42656ecc57acaed9e866a46b7c3aa14867c44b62",
+      "sha256": "30e1e94cb88ea9b657ec5168c7657892f8109c5ddef3f4773c7849780eca11bf",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "main",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "path": "config/masck_brand_authority.yaml",
+      "git_blob": "52c90085c474152e6a2adc9e0459cf665d006618",
+      "sha256": "5d69bb484b45f0d653bdfd78ded3bfb35faa15d74880c36a3dc2c0a2509ad9b0",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "main",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "path": "src/masck_one/model.py",
+      "git_blob": "ab48b3ca47e7ec8ecb7d3ecb31e7fe22b3ebca68",
+      "sha256": "62ca91e2b400197be6212901d64765ec036bd0cf5a46bb2e537b2e3ac7575282",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "main",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "path": "src/masck_one/coverage.py",
+      "git_blob": "4a8cec4d94db97e63f634a94dd8c90094f3afcb0",
+      "sha256": "f96bdaabcb6649cf7aa1eee8285a3ac1119f9dabc816e805c69a240e53974dc3",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "main",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "path": "src/masck_one/interface_topology.py",
+      "git_blob": "38b7c932f71a8675d45d098ac65154f98ff8bbb5",
+      "sha256": "e458a63f4c7e07d43a532c23f1104315b79e3a67544bddaed7c7fbc46e41ecb9",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "main",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "path": "src/masck_one/nasal_subsystem.py",
+      "git_blob": "f1f22b828d0465636579fc31eff0bfb6a6bf2507",
+      "sha256": "d006793b83b551884953f19d46e3f32d547829673a445a956ef4341bebe28f6d",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "main",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "path": "src/masck_one/protected_volumes.py",
+      "git_blob": "ff2b9b288559f9b268e5d08a1d6c78335f745cf1",
+      "sha256": "258bc9f3ee9270287ee8d424c9332ef112ffaa6b77717df402255ceddc82e499",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "main",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "path": "src/masck_one/distribution_manifold.py",
+      "git_blob": "8f2a6c784b51734aba4d1f3809015707fc328405",
+      "sha256": "ef232217366533b9c84e82c7396da1abbb3594787855bed4a732a46e955b92b6",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "thermal",
+      "head": "d2b82e50d5bfbadb4a60588a9119139b4742031a",
+      "path": "src/masck_one/thermal_reset_hardware.py",
+      "git_blob": "d0acc062be1b23e1363dfb17642a6591d1429e77",
+      "sha256": "bdd9371b2b95c33cab3df5c2815afcce39e82c2b4888866f1edbad09c31d73f3",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "treatment",
+      "head": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "path": "src/masck_one/treatment_mounted_four_zone_v10.py",
+      "git_blob": "dd03f0637a38c5ac96a71c60c30fe0a3e32235e8",
+      "sha256": "135fd91fe7a156f48ca65c372755cc21ba51a5fcd7af040f57a483928fe4e4dd",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "treatment",
+      "head": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "path": "src/masck_one/treatment_mounted_four_zone_v9.py",
+      "git_blob": "f41df03532f5373e12c9b628f51d3ba860d86bb3",
+      "sha256": "c4680c7a9f9918972382f84cd0e1c4d646d2930f744519cad49f5d8316923da8",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "retention",
+      "head": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+      "path": "src/masck_one/mechanical_interface_graph.py",
+      "git_blob": "d4d01703ca5f4c4d57409fb69a8dc9e0b4081b17",
+      "sha256": "24a8708557cc5829e0a77c5628c6c620b7cd206ccc1ce2b287f6f7076cee545b",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "frame",
+      "head": "b7cdd3e3b2c80ff943a1ceb4702f005769f411d8",
+      "path": "src/masck_one/structural_frame_crown_support.py",
+      "git_blob": "aff317669d115bcd65f21421828a557b00deba5e",
+      "sha256": "bdf2efacc5badf8809b2ded5e8c3976fdac2bfa594551210ade5a8a03053d533",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "frame",
+      "head": "b7cdd3e3b2c80ff943a1ceb4702f005769f411d8",
+      "path": "src/masck_one/structural_frame_retention_roots.py",
+      "git_blob": "1cf6357898d62afc9ebdc28d3f6394c12dd76644",
+      "sha256": "f7250a67f7a1f7bcb41159be8b2675f709ceb0b8c55d85a638f63f7a061fa25b",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "exterior",
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "path": "src/masck_one/exterior_surface.py",
+      "git_blob": "bb9185ffadc91f11ccac3285bb4c3d4db496e9dd",
+      "sha256": "39640cd7f912811d08a3257abd7445c6e433ad24679cb44229143518c1ccbe8a",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "scope": "READ_ONLY_PRODUCER_BINDING"
+    },
+    {
+      "owner": "main",
+      "path": "src/masck_one/facial_surface.py",
+      "scope": "READ_ONLY_PRODUCER_BINDING",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "git_blob": "764f6f65b83ac7709d959bb0f37f861c90ea2794",
+      "sha256": "b11c99bc994aa96a974e6d95a06330d1389f10727c4b7de6d689fa4493f2255e"
+    },
+    {
+      "owner": "main",
+      "path": "src/masck_one/anatomy.py",
+      "scope": "READ_ONLY_PRODUCER_BINDING",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "git_blob": "872d1e5be1b9ce9baa5b63cb53462eb7b36f40ab",
+      "sha256": "23ac0e557928e70db2170e23797537667776735614e7dedc22222c3498c70467"
+    },
+    {
+      "owner": "main",
+      "path": "src/masck_one/spatial.py",
+      "scope": "READ_ONLY_PRODUCER_BINDING",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "git_blob": "8c1106b523fef5111009cc56236a53e3bc5ee10e",
+      "sha256": "507114d68e312c90fb6da38e094debba72abdba9e25e5f7067fdf2713b2cef48"
+    },
+    {
+      "owner": "main",
+      "path": "src/masck_one/_contracts.py",
+      "scope": "READ_ONLY_PRODUCER_BINDING",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "git_blob": "0cbc463dc38d3f290a2289dbdc6f61451f135622",
+      "sha256": "12b677cdc9a6e190d596c4dc0b5556d2cba517478da33653868096abb290680a"
+    },
+    {
+      "owner": "main",
+      "path": "docs/contracts/core_sketch_p0_convergence_v1.json",
+      "scope": "READ_ONLY_PRODUCER_BINDING",
+      "geometry_execution": "UNRESOLVED_UNLESS_SEPARATELY_RECORDED",
+      "head": "33ef9a574f053aa9bab482bc9f8178fd8e2d8ce7",
+      "git_blob": "d3e59a473bff8ceadbc9ad616b3750ddd2cd2a01",
+      "sha256": "adca94ca410f6167a5df74201737d4f52dd6a5aa537a1c1c4e1e23aa066c7606"
+    }
+  ]
+}

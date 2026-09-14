@@ -24,6 +24,7 @@ from masck_one.component_registry import (
     build_current_component_registry,
 )
 from masck_one.model import build_model
+from masck_one.warm_cool_package import SCHEMA as WARM_COOL_PACKAGE_SCHEMA
 from masck_one.waste_cartridge_dfm import REQUIREMENT_IDS
 
 
@@ -90,6 +91,14 @@ def test_registry_reconciles_released_geometry_roles_without_proxy_promotion(reg
     assert routes.supersedes_geometry_role == ROLE_TOPOLOGY
     assert routes.source_path == "src/masck_one/realized_waste_backbone.py"
 
+    warm = by_id["MASCK_ONE-COMP-WARM"]
+    assert warm.geometry_role == ROLE_PACKAGE_REFERENCE
+    assert warm.source_path == "src/masck_one/warm_cool_package.py"
+    assert warm.source_object_id == WARM_COOL_PACKAGE_SCHEMA
+    assert warm.physical_material_eligible is False
+    assert warm.physical_validation_eligible is False
+    assert "MASCK_ONE-COMP-WARM" not in registry.unresolved_component_ids
+
 
 def test_unresolved_hardware_cannot_gain_material_or_realized_digest(registry):
     by_id = _by_id(registry)
@@ -105,7 +114,6 @@ def test_unresolved_hardware_cannot_gain_material_or_realized_digest(registry):
         "MASCK_ONE-COMP-DRY-BAY",
         "MASCK_ONE-COMP-WET-DRY-BULKHEAD",
         "MASCK_ONE-COMP-HMI",
-        "MASCK_ONE-COMP-WARM",
         "MASCK_ONE-COMP-DRAIN-DRY-PATH",
         "MASCK_ONE-COMP-BATTERY",
         "MASCK_ONE-COMP-WASTE-CARTRIDGE-BODY",
@@ -250,6 +258,7 @@ def test_unresolved_record_rejects_geometry_digest_promotion(registry):
         "src/masck_one/model.py",
         "src/masck_one/actuator_frames.py",
         "src/masck_one/actuator_coupling.py",
+        "src/masck_one/warm_cool_package.py",
         "src/masck_one/waste_cartridge_dfm.py",
     ),
 )

@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "status": "CORE_SKETCH_CONCEPT_CONTRACT_NON_ENGINEERING_AUTHORITY",
+  "canonical_backlog_contracts": {
+    "CS-015": "REQUIRED_REGION_COMPLETION",
+    "CS-016": "PREPARED_SESSION_VALIDITY_INTERRUPTION",
+    "CS-017": "PRODUCT_PRESERVATION_DOCK_SESSION_STORAGE",
+    "CS-018": "ALL_CONTACT_SUPPORT_FILM_PRESERVING_TRANSITION"
+  },
+  "authority_snapshot": {
+    "purpose": "CONSTRAINT_RECONCILIATION_ONLY_NOT_A_RELEASE_BINDING",
+    "observed_main": "eb8ba26c57222320210fa7eb15f4d69e1563cf64",
+    "authority_revision_label": "2026-08-30-R1",
+    "dry_target_max_g": 215.0,
+    "loaded_absolute_max_g": 255.0,
+    "cg_z_max_mm": 27.9,
+    "pitch_torque_max_Nm": 0.070,
+    "refresh_before_engineering_action": true
+  },
+  "authority_boundary": {
+    "may_define_product_logic": true,
+    "may_claim_physical_validation": false,
+    "may_override_engineering_authority": false,
+    "may_override_protected_anatomy": false
+  },
+  "top_level_lanes": {
+    "L1": "COMPLETE_ROUTINE_FACIAL_DELIVERY",
+    "L2": "DOCK_PRODUCT_HANDLING_SERVICE",
+    "L3": "WEARABLE_HUMAN_FACTORS_ID",
+    "L4": "ROUTINE_OS_PRODUCT_INTELLIGENCE",
+    "L5": "TREATMENT_WHOLE_PRODUCT_CONDUCTOR"
+  },
+  "completion_states": [
+    "PENDING",
+    "IN_PROGRESS",
+    "COMPLETE",
+    "EXCLUDED_WITH_REASON",
+    "UNREACHABLE",
+    "UNSUPPORTED",
+    "INTERRUPTED",
+    "UNKNOWN"
+  ],
+  "blocking_completion_states": [
+    "UNREACHABLE",
+    "UNSUPPORTED",
+    "INTERRUPTED",
+    "UNKNOWN"
+  ],
+  "routine_stage_order": [
+    "PREPARED",
+    "PLACED_FIT_CONFIRMED",
+    "CLEAN",
+    "RINSE_RECOVER",
+    "TREAT_OPTIONAL",
+    "LEAVE_ON_1_N",
+    "MOISTURISE",
+    "FACIAL_SPF_CONDITIONAL",
+    "SETTLE_CONDITIONAL",
+    "RELEASE_READY",
+    "NON_WIPING_RELEASE",
+    "COMPLETE",
+    "RETURN_SERVICE"
+  ],
+  "conceptual_skin_regions": [
+    "FOREHEAD_LEFT",
+    "FOREHEAD_CENTER",
+    "FOREHEAD_RIGHT",
+    "TEMPLE_LEFT",
+    "TEMPLE_RIGHT",
+    "UPPER_CHEEK_LEFT",
+    "UPPER_CHEEK_RIGHT",
+    "MID_CHEEK_LEFT",
+    "MID_CHEEK_RIGHT",
+    "LOWER_CHEEK_LEFT",
+    "LOWER_CHEEK_RIGHT",
+    "NASAL_SIDEWALL_LEFT",
+    "NASAL_SIDEWALL_RIGHT",
+    "PERIORAL_SKIN",
+    "CHIN"
+  ],
+  "protected_apertures": [
+    "EYE_APERTURE_LEFT",
+    "EYE_APERTURE_RIGHT",
+    "NOSTRIL_AIRWAY_LEFT",
+    "NOSTRIL_AIRWAY_RIGHT",
+    "MOUTH_APERTURE"
+  ],
+  "face_contact_classes": [
+    "PERIMETER_SEAL",
+    "SUPPORT_PAD",
+    "RETENTION_REACTION_INTERFACE",
+    "TREATMENT_ISLAND",
+    "THERMAL_CONTACT",
+    "OPTICAL_FACE_ADJACENT_CARRIER",
+    "FLUID_DISTRIBUTION_INTERFACE",
+    "OTHER_FACE_FACING_SUPPORT"
+  ],
+  "contact_phase_states": [
+    "CONTACTING",
+    "NEAR_SKIN_NONCONTACT",
+    "RETRACTED_OR_CLEARED",
+    "TRANSITIONING",
+    "NOT_PRESENT"
+  ],
+  "occlusion_rules": {
+    "required_region_occluded_at_leave_on_requires_strategy": true,
+    "allowed_strategies": [
+      "CLEAR_BEFORE_STAGE_COMPLETE",
+      "SECONDARY_APPLICATION_AFTER_CLEAR",
+      "VALIDATED_APPLICATION_WHILE_PRESENT",
+      "EXCLUDED_WITH_JUSTIFIED_CLAIM_BOUNDARY"
+    ],
+    "persistent_unresolved_occlusion_blocks_complete": true,
+    "emergency_release_overrides_film_preservation": true
+  },
+  "prepared_session_required_bindings": [
+    "SESSION_ID",
+    "ROUTINE_ID_VERSION",
+    "SCHEDULE_CONTEXT",
+    "REQUIRED_STAGES",
+    "PRODUCT_IDENTITIES",
+    "PRODUCT_VERSION_WHERE_KNOWN",
+    "PRODUCT_EVIDENCE_STATE",
+    "APPLICATION_PROFILE_VERSION",
+    "PREPARED_DOSE_STATE",
+    "PREPARATION_TIME_AGE_RULE",
+    "SOURCE_RESERVOIR_SLOT",
+    "CHANGEOVER_CONTAMINATION_STATE",
+    "WATER_SUFFICIENCY",
+    "WASTE_CAPACITY",
+    "ENERGY_SUFFICIENCY",
+    "THERMAL_READINESS_IF_REQUIRED",
+    "SERVICE_CLEANING_STATE",
+    "FAULT_STATE",
+    "LOCAL_OFFLINE_EXECUTION_DATA"
+  ],
+  "ready_states": [
+    "READY",
+    "PREPARING",
+    "NEEDS_ATTENTION",
+    "PARTIAL_ROUTINE_AVAILABLE",
+    "NOT_READY",
+    "SAFETY_HOLD"
+  ],
+  "prepared_session_invalidation_events": [
+    "ROUTINE_CHANGE",
+    "MANDATORY_PRODUCT_CHANGE",
+    "SLOT_REASSIGNMENT",
+    "WRONG_PRODUCT_SUSPECTED",
+    "REFORMULATION_REQUIRES_RECHARACTERISATION",
+    "PREPARED_DOSE_AGE_INVALID",
+    "PREPARATION_INTERRUPTED",
+    "SERVICE_CHANGEOVER_INCOMPLETE",
+    "CONTAMINATION_WARNING",
+    "RESOURCE_INSUFFICIENT",
+    "WASTE_CAPACITY_INSUFFICIENT",
+    "ENERGY_INSUFFICIENT",
+    "THERMAL_RESET_INCOMPLETE",
+    "MANDATORY_STAGE_FAULT",
+    "PROFILE_OR_SAFETY_RULE_INVALIDATES_PREPARATION",
+    "SESSION_MODULE_IDENTITY_LOST"
+  ],
+  "network_loss_alone_invalidates_ready": false,
+  "product_truth_dimensions": [
+    "IDENTITY",
+    "PHYSICAL_CHARACTERISATION",
+    "COMPATIBILITY",
+    "CONTAMINATION_STATE",
+    "APPLICATION_VALIDATION"
+  ],
+  "product_evidence_states": [
+    "KNOWN",
+    "CHARACTERISED",
+    "VALIDATED",
+    "RESTRICTED_OR_UNSUPPORTED"
+  ],
+  "community_data_may_auto_promote_to_validated": false,
+  "resource_variables": [
+    "V_WATER",
+    "V_CLEANSER",
+    "V_LEAVEON_I",
+    "V_MOIST",
+    "V_SPF",
+    "V_PURGE",
+    "V_RECOVERED",
+    "V_RESIDUAL",
+    "M_SESSION_FLUIDS",
+    "M_LOADED",
+    "CG_LOADED",
+    "TAU_HEAD",
+    "E_ELECTRICAL",
+    "E_THERMAL",
+    "T_ROUTINE",
+    "N_BULK_SLOTS",
+    "V_SESSION_STORAGE",
+    "V_WASTE_REQUIRED"
+  ],
+  "planning_scenarios": [
+    "MINIMUM_SUPPORTED",
+    "NORMAL_PM",
+    "DEMANDING_AM"
+  ],
+  "shared_contract_writing_owners": {
+    "STAGE_BY_REGION_COMPLETION": "L1",
+    "FACE_CONTACT_OCCLUSION_STATE": "L1",
+    "PREPARED_SESSION_VALIDITY": "L4",
+    "COMPLETE_ROUTINE_RESOURCE_ENVELOPE": "L5",
+    "PRODUCT_IDENTITY_EVIDENCE_SEMANTICS": "L4",
+    "PRODUCT_PHYSICAL_CHANGEOVER_IMPLEMENTATION": "L2",
+    "NON_WIPING_RELEASE_ACCEPTANCE": "L3"
+  },
+  "p0_items": [
+    {"id": "CS-010", "lane": "L1", "state": "PROVE", "evidence": "BENCH", "digitally_actionable_now": true},
+    {"id": "CS-012", "lane": "L1", "state": "PROVE", "evidence": "BENCH", "digitally_actionable_now": true},
+    {"id": "CS-013", "lane": "L1", "state": "PROVE", "evidence": "BENCH", "digitally_actionable_now": true},
+    {"id": "CS-014", "lane": "L1", "state": "EXPLORE", "evidence": "BENCH", "digitally_actionable_now": true},
+    {"id": "CS-015", "lane": "L1", "state": "PROVE", "evidence": "DIGITAL_THEN_APPLICATION_EVIDENCE", "digitally_actionable_now": true},
+    {"id": "CS-016", "lane": "L4", "state": "SELECTED_PROVE", "evidence": "DOC_DIGITAL_BENCH", "digitally_actionable_now": true},
+    {"id": "CS-017", "lane": "L2", "state": "PROVE", "evidence": "BENCH_QUALIFIED_FORMULATION_HYGIENE", "digitally_actionable_now": true},
+    {"id": "CS-018", "lane": "L1", "state": "PROVE", "evidence": "DIGITAL_BENCH_HUMAN", "digitally_actionable_now": true},
+    {"id": "CS-020", "lane": "L4", "state": "SELECTED", "evidence": "DOC_DIGITAL", "digitally_actionable_now": true},
+    {"id": "CS-050", "lane": "L3", "state": "PROVE", "evidence": "HUMAN", "digitally_actionable_now": true},
+    {"id": "CS-053", "lane": "L5", "state": "PROVE", "evidence": "DIGITAL_BENCH", "digitally_actionable_now": true},
+    {"id": "CS-080", "lane": "L4", "state": "SELECTED", "evidence": "DOC_DIGITAL", "digitally_actionable_now": true},
+    {"id": "CS-094", "lane": "L4", "state": "PROVE", "evidence": "DIGITAL_BENCH", "digitally_actionable_now": true},
+    {"id": "CS-110", "lane": "L5", "state": "PROVE", "evidence": "DIGITAL_BENCH", "digitally_actionable_now": true},
+    {"id": "CS-121", "lane": "L1", "state": "PROVE", "evidence": "BENCH", "digitally_actionable_now": true},
+    {"id": "CS-160", "lane": "L1", "state": "PROVE", "evidence": "BENCH", "digitally_actionable_now": true},
+    {"id": "CS-161", "lane": "L1", "state": "PROVE", "evidence": "BENCH", "digitally_actionable_now": true},
+    {"id": "CS-163", "lane": "L1", "state": "PROVE", "evidence": "BENCH", "digitally_actionable_now": true},
+    {"id": "CS-170-174", "lane": "L5", "state": "PROVE_BLOCKED", "evidence": "BENCH_REG_CLAIM", "digitally_actionable_now": true},
+    {"id": "CS-180", "lane": "L3", "state": "INTEGRATE_PROVE", "evidence": "DIGITAL_BENCH_HUMAN", "digitally_actionable_now": true},
+    {"id": "CS-191", "lane": "L2", "state": "PROVE", "evidence": "BENCH", "digitally_actionable_now": true},
+    {"id": "CS-200", "lane": "L3", "state": "INTEGRATE_BLOCKED", "evidence": "DIGITAL_BENCH_HUMAN", "digitally_actionable_now": true},
+    {"id": "CS-270", "lane": "L5", "state": "BLOCKED", "evidence": "DIGITAL", "digitally_actionable_now": false},
+    {"id": "CS-272", "lane": "L5", "state": "BLOCKED", "evidence": "BENCH_HUMAN", "digitally_actionable_now": false}
+  ],
+  "invariants": [
+    "REQUIRED_REGION_BLOCKING_STATE_PREVENTS_STAGE_COMPLETE",
+    "INVALID_PREPARED_SESSION_PREVENTS_READY",
+    "UNSUPPORTED_REQUIRED_PRODUCT_PREVENTS_ROUTINE_COMPLETE",
+    "DOC_OR_DIGITAL_EVIDENCE_CANNOT_PROMOTE_PHYSICAL_VALIDATION",
+    "SHARED_INTERFACE_HAS_ONE_CANONICAL_WRITING_OWNER",
+    "GREEN_SUBSYSTEM_CI_CANNOT_CLOSE_P0_PHYSICAL_PROOF",
+    "EMERGENCY_RELEASE_CANNOT_BE_WEAKENED_FOR_FILM_PRESERVATION",
+    "SPF_CLAIM_CANNOT_EXCEED_VALIDATED_FACE_PRODUCT_APPLICATION_ENVELOPE",
+    "CURRENT_AUTHORITY_CONSTRAINTS_MUST_BE_REFRESHED_BEFORE_ENGINEERING_ACTION"
+  ]
+}

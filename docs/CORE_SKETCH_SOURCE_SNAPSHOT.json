@@ -1,0 +1,1006 @@
+{
+  "schema": "masck.core_sketch.observation.v1",
+  "classification": "DATED_READ_ONLY_OBSERVATION_NOT_ENGINEERING_AUTHORITY",
+  "observed_at_utc": "2026-09-10T12:12:49.398Z",
+  "repository": "mlngaxri/MasckOne",
+  "main": {
+    "head_sha": "2f62835a63764bb3431c5b3b1755acb556862366",
+    "tree_sha": "d30fcb0bf874b77fc9e27a54b788d327b8501d7e",
+    "engineering_run_id": 34461327446,
+    "engineering_conclusion": "success"
+  },
+  "concept_input": {
+    "pr": 148,
+    "branch": "concept/full-routine-platform-20260910",
+    "head_sha": "7eb8f0160da82218287fed120c519a76518f91b5",
+    "tree_sha": "1f8e1c1f8a6bf57965ac3e40420f21481a389fbb",
+    "workflows": [
+      {
+        "run_id": 34473787350,
+        "name": "Masck One engineering CI",
+        "head_sha": "7eb8f0160da82218287fed120c519a76518f91b5",
+        "status": "in_progress",
+        "conclusion": null,
+        "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34473787350",
+        "observed_workflow_updated_at": "2026-09-10T12:04:16Z"
+      }
+    ]
+  },
+  "authority_inputs": [
+    {
+      "path": "config/masck_one_authority.yaml",
+      "git_blob_sha": "2608dda483b995539de422290371c219668a1527",
+      "source_commit": "2f62835a63764bb3431c5b3b1755acb556862366"
+    },
+    {
+      "path": "schemas/masck_one_authority.schema.json",
+      "git_blob_sha": "58accbe48619058cb99ab51a0387cf01874c3717",
+      "source_commit": "2f62835a63764bb3431c5b3b1755acb556862366"
+    },
+    {
+      "path": "config/masck_brand_authority.yaml",
+      "git_blob_sha": "52c90085c474152e6a2adc9e0459cf665d006618",
+      "source_commit": "2f62835a63764bb3431c5b3b1755acb556862366"
+    },
+    {
+      "path": "schemas/masck_brand_authority.schema.json",
+      "git_blob_sha": "97e7e2ddf7e32db77abbd167f853bf29f66293d7",
+      "source_commit": "2f62835a63764bb3431c5b3b1755acb556862366"
+    },
+    {
+      "path": "src/masck_one/component_registry.py",
+      "git_blob_sha": "d6536ec87e724ac3630536fc47f83090e934e9d1",
+      "source_commit": "2f62835a63764bb3431c5b3b1755acb556862366"
+    },
+    {
+      "path": "src/masck_one/warm_cool_package.py",
+      "git_blob_sha": "96bc48a24bc6d1c81afc3540e9930e9e52470ef6",
+      "source_commit": "2f62835a63764bb3431c5b3b1755acb556862366"
+    }
+  ],
+  "concept_inputs": [
+    {
+      "path": "docs/PRODUCT_CONCEPT.md",
+      "git_blob_sha": "da036f3a6e6bb358e59a01f4c93d53a4bfea16b1",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_START_HERE.md",
+      "git_blob_sha": "86f89cbd321e70b5b339384c73b25db63f3a7ecf",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_ONE_PAGE.md",
+      "git_blob_sha": "b336201983968a3d5aba3a4e5dc903b8c639fb5a",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_V1.md",
+      "git_blob_sha": "9b577a38676d1eac9bfa46f10f0d908fa37717b5",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_EXECUTION_BACKLOG.md",
+      "git_blob_sha": "fd1a392cdc780ebb9d23d752b9054effadb96da9",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_REPO_MAPPING.md",
+      "git_blob_sha": "4e5c1870328bc84a2c304a884400195d484452c2",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_STATUS_BOARD.md",
+      "git_blob_sha": "9f16621588c2c4c0275da388a351bd1eb44df435",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_CHANGE_CONTROL.md",
+      "git_blob_sha": "a8e5ec679a3b8cb57dc53dea055af3e3f4097962",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_DECISION_LOG.md",
+      "git_blob_sha": "4666f11684921f185e4b1a5b38965664d308aecd",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_FIVE_LANE_EXECUTION_PLAN.md",
+      "git_blob_sha": "7a79bd4fffc19c8aca665b032cb1f730d1e99aa8",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_DOCUMENT_MAP.md",
+      "git_blob_sha": "53444c20295842dd1f61890f62fa7cc3ee01545a",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_TODO_QUICKREF.md",
+      "git_blob_sha": "126b04509e198a804f8542a8729e6cac9b884d95",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/CORE_SKETCH_PRIORITY_RULES.md",
+      "git_blob_sha": "8865bc8d3ec5109997dc3484c87058c1765cecdb",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    },
+    {
+      "path": "docs/research/CORE_SKETCH_DEEP_RESEARCH_2026-09-10.md",
+      "git_blob_sha": "7565f01f1c3b96491673fbb00b57b9e426bef179",
+      "source_commit": "7eb8f0160da82218287fed120c519a76518f91b5"
+    }
+  ],
+  "reviewed_alternative": {
+    "pr": 147,
+    "head_sha": "33293b3bccec2960589e6f8449bee03aec92fc06",
+    "path": "docs/PRODUCT_CONCEPT.md",
+    "git_blob_sha": "f06a2d1161c37a707c34a046f5763595bff474db",
+    "disposition": "RECONCILE_AS_SUPERSEDED_AFTER_CANONICAL_UPDATE; history retained; no blind merge"
+  },
+  "open_prs": [
+    {
+      "pr": 148,
+      "title": "Core Sketch v1: full-routine product definition and execution system",
+      "branch": "concept/full-routine-platform-20260910",
+      "head_sha": "7eb8f0160da82218287fed120c519a76518f91b5",
+      "base_sha": "2f62835a63764bb3431c5b3b1755acb556862366",
+      "draft": false,
+      "primary_lane": 5,
+      "routing": "canonical concept owner",
+      "ci": [
+        {
+          "run_id": 34473787350,
+          "name": "Masck One engineering CI",
+          "head_sha": "7eb8f0160da82218287fed120c519a76518f91b5",
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34473787350",
+          "observed_workflow_updated_at": "2026-09-10T12:04:16Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 147,
+      "title": "Document full-routine Masck One product concept",
+      "branch": "docs/full-routine-product-concept-20260910",
+      "head_sha": "33293b3bccec2960589e6f8449bee03aec92fc06",
+      "base_sha": "2f62835a63764bb3431c5b3b1755acb556862366",
+      "draft": false,
+      "primary_lane": 5,
+      "routing": "competing concept proposal to reconcile",
+      "ci": [
+        {
+          "run_id": 34465616383,
+          "name": "Masck One engineering CI",
+          "head_sha": "33293b3bccec2960589e6f8449bee03aec92fc06",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34465616383",
+          "observed_workflow_updated_at": "2026-09-10T10:45:38Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 144,
+      "title": "HMI: repair primary-control moving-part connectivity on current main",
+      "branch": "codex/buttery-primary-hmi-20260909",
+      "head_sha": "9fb64aa4753dad03a455aad4802910d8814ef5ce",
+      "base_sha": "ac59fcd59f50b019cb972bfc526c2daea784bd17",
+      "draft": true,
+      "primary_lane": 3,
+      "routing": "current HMI owner",
+      "ci": [
+        {
+          "run_id": 34448194076,
+          "name": "Masck One engineering CI",
+          "head_sha": "9fb64aa4753dad03a455aad4802910d8814ef5ce",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34448194076",
+          "observed_workflow_updated_at": "2026-09-10T07:39:52Z"
+        },
+        {
+          "run_id": 34448189645,
+          "name": "HMI tactile focused verification",
+          "head_sha": "9fb64aa4753dad03a455aad4802910d8814ef5ce",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34448189645",
+          "observed_workflow_updated_at": "2026-09-10T07:06:58Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 143,
+      "title": "Thermal: converge passive cassette and off-face reset dock geometry",
+      "branch": "scheduled/warm-cool-package-20260909",
+      "head_sha": "d2b82e50d5bfbadb4a60588a9119139b4742031a",
+      "base_sha": "ac59fcd59f50b019cb972bfc526c2daea784bd17",
+      "draft": true,
+      "primary_lane": 5,
+      "routing": "current thermal candidate owner",
+      "ci": [
+        {
+          "run_id": 34425183989,
+          "name": "Masck One engineering CI",
+          "head_sha": "d2b82e50d5bfbadb4a60588a9119139b4742031a",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34425183989",
+          "observed_workflow_updated_at": "2026-09-10T01:53:05Z"
+        },
+        {
+          "run_id": 34425180765,
+          "name": "Thermal reset off-face CAD",
+          "head_sha": "d2b82e50d5bfbadb4a60588a9119139b4742031a",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34425180765",
+          "observed_workflow_updated_at": "2026-09-10T01:23:13Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 142,
+      "title": "Reconstruct dry-side disconnect and harness service package",
+      "branch": "cell12/compact-dry-side-package-reconstructed-20260909",
+      "head_sha": "6ee47ecba639a9ce09c3cd076bbfe0408c2d089f",
+      "base_sha": "ac59fcd59f50b019cb972bfc526c2daea784bd17",
+      "draft": true,
+      "primary_lane": 5,
+      "routing": "current dry-side candidate owner",
+      "ci": [
+        {
+          "run_id": 34447995905,
+          "name": "Masck One engineering CI",
+          "head_sha": "6ee47ecba639a9ce09c3cd076bbfe0408c2d089f",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34447995905",
+          "observed_workflow_updated_at": "2026-09-10T07:30:55Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 141,
+      "title": "Retention: consolidate one positive load path",
+      "branch": "sol-high/retention-quick-release-20260909",
+      "head_sha": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+      "base_sha": "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be",
+      "draft": true,
+      "primary_lane": 3,
+      "routing": "current retention owner",
+      "ci": [
+        {
+          "run_id": 34438483203,
+          "name": "Retention tactile focused verification",
+          "head_sha": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34438483203",
+          "observed_workflow_updated_at": "2026-09-10T04:47:29Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 140,
+      "title": "Cell 11: consolidate supported-liner cartridge and Fusion service handoff",
+      "branch": "sol-high/cartridge-service-20260909",
+      "head_sha": "7052bb79dfe75b877bf92f75aeb2289f3d4aab1b",
+      "base_sha": "2f62835a63764bb3431c5b3b1755acb556862366",
+      "draft": true,
+      "primary_lane": 2,
+      "routing": "current cartridge owner",
+      "ci": [
+        {
+          "run_id": 34469594921,
+          "name": "Masck One engineering CI",
+          "head_sha": "7052bb79dfe75b877bf92f75aeb2289f3d4aab1b",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34469594921",
+          "observed_workflow_updated_at": "2026-09-10T11:44:53Z"
+        },
+        {
+          "run_id": 34469590816,
+          "name": "Cartridge device-service focused verification",
+          "head_sha": "7052bb79dfe75b877bf92f75aeb2289f3d4aab1b",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34469590816",
+          "observed_workflow_updated_at": "2026-09-10T11:24:25Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 135,
+      "title": "Treatment: reconcile active-centering station with live Cell 6 mount",
+      "branch": "codex/treatment-live117-reconcile-20260909",
+      "head_sha": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "base_sha": "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be",
+      "draft": true,
+      "primary_lane": 1,
+      "routing": "current treatment geometry owner; Lane 5 integrates modalities",
+      "ci": [
+        {
+          "run_id": 34446926609,
+          "name": "Treatment focused verification",
+          "head_sha": "b3a224770f724fbc625534ea563fa09c1b910729",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34446926609",
+          "observed_workflow_updated_at": "2026-09-10T07:01:30Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 128,
+      "title": "Control: stop Prompt 18 workflow from pushing released main",
+      "branch": "control/release-guard-prompt18",
+      "head_sha": "eb1e23b2376ad1473d93553338ef918d00da89c7",
+      "base_sha": "b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc",
+      "draft": true,
+      "primary_lane": 5,
+      "routing": "release guard package",
+      "ci": [
+        {
+          "run_id": 34029052872,
+          "name": "Masck One engineering CI",
+          "head_sha": "eb1e23b2376ad1473d93553338ef918d00da89c7",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34029052872",
+          "observed_workflow_updated_at": "2026-09-06T11:28:46Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 127,
+      "title": "Cell 7: reject legacy actuator overlap and preserve only safe semantics",
+      "branch": "cell7/legacy-actuator-donor-audit-v1-20260906",
+      "head_sha": "dfdd8468731ae7e58e0aa3f7910662fbbef1ba60",
+      "base_sha": "5c41702f23ffe5a602b8af363e8588867d9af2e0",
+      "draft": true,
+      "primary_lane": 1,
+      "routing": "legacy actuator rejection evidence; donor only",
+      "ci": [
+        {
+          "run_id": 34013551257,
+          "name": "Masck One engineering CI",
+          "head_sha": "dfdd8468731ae7e58e0aa3f7910662fbbef1ba60",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34013551257",
+          "observed_workflow_updated_at": "2026-09-06T05:46:15Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 126,
+      "title": "Cell 17: define whole-product datum hierarchy",
+      "branch": "cell17/whole-product-datum-hierarchy-20260906",
+      "head_sha": "be98db3167551e21ba1a0d6d80932cec53f89ce3",
+      "base_sha": "afe29ff78419b6625dca5594974b6351f6f80e1b",
+      "draft": true,
+      "primary_lane": 5,
+      "routing": "datum producer",
+      "ci": [
+        {
+          "run_id": 34011964858,
+          "name": "Masck One engineering CI",
+          "head_sha": "be98db3167551e21ba1a0d6d80932cec53f89ce3",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34011964858",
+          "observed_workflow_updated_at": "2026-09-06T05:11:13Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 125,
+      "title": "Cell 10: reconcile removable cleanser cassette onto current main",
+      "branch": "cell10/cleanser-cassette-reconcile-20260906",
+      "head_sha": "d774369a644072961050fc874c1baf911b09db35",
+      "base_sha": "a0ea51874d8967c512468932fac627e8bba5f95f",
+      "draft": true,
+      "primary_lane": 2,
+      "routing": "cleanser source/cassette package",
+      "ci": [
+        {
+          "run_id": 34204600473,
+          "name": "Masck One engineering CI",
+          "head_sha": "d774369a644072961050fc874c1baf911b09db35",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34204600473",
+          "observed_workflow_updated_at": "2026-09-08T08:57:17Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 124,
+      "title": "Cell 3: canonicalize mechanical component interfaces and service graph",
+      "branch": "cell3/mechanical-interface-graph-20260906",
+      "head_sha": "83f02ead1ae0d6e7b888cfbbcf1796884e6f6adb",
+      "base_sha": "b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc",
+      "draft": true,
+      "primary_lane": 5,
+      "routing": "mechanical integration graph producer",
+      "ci": [
+        {
+          "run_id": 34019819799,
+          "name": "Masck One engineering CI",
+          "head_sha": "83f02ead1ae0d6e7b888cfbbcf1796884e6f6adb",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34019819799",
+          "observed_workflow_updated_at": "2026-09-06T16:26:09Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 123,
+      "title": "Cell 8: rebind bilateral occipital yokes to current main",
+      "branch": "cell8/occipital-yokes-current-source-20260906",
+      "head_sha": "25686766238b66ecf900009042d721c08e042592",
+      "base_sha": "afe29ff78419b6625dca5594974b6351f6f80e1b",
+      "draft": true,
+      "primary_lane": 3,
+      "routing": "yoke producer consumed by retention",
+      "ci": [
+        {
+          "run_id": 34010829165,
+          "name": "Masck One engineering CI",
+          "head_sha": "25686766238b66ecf900009042d721c08e042592",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34010829165",
+          "observed_workflow_updated_at": "2026-09-06T04:53:05Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 118,
+      "title": "Cell 7: realize source-bound actuator carrier template",
+      "branch": "cell7/inferior-right-actuator-carrier-v1-20260906",
+      "head_sha": "37e03df4b6abbd222422c8bfd4e70b03a4e5ae07",
+      "base_sha": "afe29ff78419b6625dca5594974b6351f6f80e1b",
+      "draft": false,
+      "primary_lane": 1,
+      "routing": "local carrier producer; do not inherit unproved world transforms",
+      "ci": [
+        {
+          "run_id": 34002920410,
+          "name": "Masck One engineering CI",
+          "head_sha": "37e03df4b6abbd222422c8bfd4e70b03a4e5ae07",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34002920410",
+          "observed_workflow_updated_at": "2026-09-06T01:55:51Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 117,
+      "title": "Cell 6: realize source-bound structural reaction loop B-rep",
+      "branch": "cell6/structural-frame-reaction-loop-v1",
+      "head_sha": "fe8e73a2002632633ad1978ca22245eb401d864d",
+      "base_sha": "ac59fcd59f50b019cb972bfc526c2daea784bd17",
+      "draft": true,
+      "primary_lane": 5,
+      "routing": "structural reaction producer; Lane 3 accepts wearable interface",
+      "ci": [
+        {
+          "run_id": 34411088277,
+          "name": "Masck One engineering CI",
+          "head_sha": "fe8e73a2002632633ad1978ca22245eb401d864d",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34411088277",
+          "observed_workflow_updated_at": "2026-09-10T07:17:44Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 114,
+      "title": "Cell 15: bind current part and service-motion inventory",
+      "branch": "cell15/current-part-assembly-service-inventory-20260906",
+      "head_sha": "630cc19497661ae834032eb8ea06e28dfd6100b7",
+      "base_sha": "afe29ff78419b6625dca5594974b6351f6f80e1b",
+      "draft": false,
+      "primary_lane": 5,
+      "routing": "service inventory producer",
+      "ci": [
+        {
+          "run_id": 34003149866,
+          "name": "Masck One engineering CI",
+          "head_sha": "630cc19497661ae834032eb8ea06e28dfd6100b7",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34003149866",
+          "observed_workflow_updated_at": "2026-09-06T02:44:54Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 113,
+      "title": "Cell 13: create canonical interconnect endpoint registry",
+      "branch": "cell13/endpoint-harness-inventory-20260906",
+      "head_sha": "dde7348002d13da77049dc1d540d79d389aac09f",
+      "base_sha": "afe29ff78419b6625dca5594974b6351f6f80e1b",
+      "draft": false,
+      "primary_lane": 5,
+      "routing": "interconnect producer",
+      "ci": [
+        {
+          "run_id": 34010686869,
+          "name": "Masck One engineering CI",
+          "head_sha": "dde7348002d13da77049dc1d540d79d389aac09f",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34010686869",
+          "observed_workflow_updated_at": "2026-09-06T04:49:58Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 112,
+      "title": "Cell 19: rebind whole-product collision matrix to current main",
+      "branch": "cell19/current-main-collision-matrix-v2-20260906",
+      "head_sha": "831619d5dd0386b709f415fb6de2161b282e5d1f",
+      "base_sha": "afe29ff78419b6625dca5594974b6351f6f80e1b",
+      "draft": true,
+      "primary_lane": 5,
+      "routing": "collision matrix producer",
+      "ci": [
+        {
+          "run_id": 34003327605,
+          "name": "Masck One engineering CI",
+          "head_sha": "831619d5dd0386b709f415fb6de2161b282e5d1f",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34003327605",
+          "observed_workflow_updated_at": "2026-09-06T02:51:09Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 111,
+      "title": "Cell 12: realize compact battery and dry-side package",
+      "branch": "cell12/compact-dry-side-package-20260906",
+      "head_sha": "ae33d04749c81209385881aaa09d911de3341ab7",
+      "base_sha": "ff76a17fa25276a401fbe57ad02564b771fa1865",
+      "draft": false,
+      "primary_lane": 5,
+      "routing": "earlier dry-side lineage; reconcile through #142",
+      "ci": [
+        {
+          "run_id": 34280725914,
+          "name": "Masck One engineering CI",
+          "head_sha": "ae33d04749c81209385881aaa09d911de3341ab7",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34280725914",
+          "observed_workflow_updated_at": "2026-09-08T21:27:48Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 110,
+      "title": "Cell 14: bind physical HMI and WARM decision state",
+      "branch": "cell14/hmi-thermal-decision-state-20260906",
+      "head_sha": "7b32c674860cab87cbdd1f7e3303a4ce53515e95",
+      "base_sha": "afe29ff78419b6625dca5594974b6351f6f80e1b",
+      "draft": false,
+      "primary_lane": 5,
+      "routing": "earlier HMI/thermal decisions; #143 and #144 current successors for those packages",
+      "ci": [
+        {
+          "run_id": 34002892866,
+          "name": "Masck One engineering CI",
+          "head_sha": "7b32c674860cab87cbdd1f7e3303a4ce53515e95",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34002892866",
+          "observed_workflow_updated_at": "2026-09-06T02:08:41Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 109,
+      "title": "Cell 8: eliminate guard-yoke installation collisions with exact outboard sweeps",
+      "branch": "cell8/retention-release-guard-20260906",
+      "head_sha": "82087afce9db01d041ca745dc3d464912fb12123",
+      "base_sha": "b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc",
+      "draft": false,
+      "primary_lane": 3,
+      "routing": "guard producer consumed by retention",
+      "ci": [
+        {
+          "run_id": 34163100031,
+          "name": "Masck One engineering CI",
+          "head_sha": "82087afce9db01d041ca745dc3d464912fb12123",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34163100031",
+          "observed_workflow_updated_at": "2026-09-07T21:56:11Z"
+        },
+        {
+          "run_id": 34163097524,
+          "name": "Repair Prompt 17 composition isolation",
+          "head_sha": "82087afce9db01d041ca745dc3d464912fb12123",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34163097524",
+          "observed_workflow_updated_at": "2026-09-07T21:25:51Z"
+        },
+        {
+          "run_id": 34163097589,
+          "name": "Prompt 17 production visual QA",
+          "head_sha": "82087afce9db01d041ca745dc3d464912fb12123",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34163097589",
+          "observed_workflow_updated_at": "2026-09-07T21:26:29Z"
+        },
+        {
+          "run_id": 34163097495,
+          "name": "Prompt 18 production journey QA",
+          "head_sha": "82087afce9db01d041ca745dc3d464912fb12123",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34163097495",
+          "observed_workflow_updated_at": "2026-09-07T21:26:33Z"
+        },
+        {
+          "run_id": 34163097552,
+          "name": "Finalize Prompt 17 product inspection",
+          "head_sha": "82087afce9db01d041ca745dc3d464912fb12123",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34163097552",
+          "observed_workflow_updated_at": "2026-09-07T21:26:39Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 108,
+      "title": "Cell 18: bind current quantitative ledger truth",
+      "branch": "cell18/quantitative-ledger-v1",
+      "head_sha": "0bf6c73028284ba9a5715ef5235bb2be1c298403",
+      "base_sha": "afe29ff78419b6625dca5594974b6351f6f80e1b",
+      "draft": false,
+      "primary_lane": 5,
+      "routing": "quantitative ledger producer",
+      "ci": [
+        {
+          "run_id": 34003052728,
+          "name": "Masck One engineering CI",
+          "head_sha": "0bf6c73028284ba9a5715ef5235bb2be1c298403",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34003052728",
+          "observed_workflow_updated_at": "2026-09-06T02:39:44Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 107,
+      "title": "Cell 9: reconstruct current-main fresh-water source geometry",
+      "branch": "cell9/fresh-water-source-geometry-20260906",
+      "head_sha": "a7533f905be952553af55ec5fcdde7bc5cab5b7e",
+      "base_sha": "d02bce5b5cb43e33febd6e1a40fdc98f3893efca",
+      "draft": false,
+      "primary_lane": 2,
+      "routing": "fresh-water source package",
+      "ci": [
+        {
+          "run_id": 34180275443,
+          "name": "Masck One engineering CI",
+          "head_sha": "a7533f905be952553af55ec5fcdde7bc5cab5b7e",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34180275443",
+          "observed_workflow_updated_at": "2026-09-08T02:53:48Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 106,
+      "title": "Cell 16: bind DFM part families to current producer truth",
+      "branch": "cell16/dfm-family-producer-bindings-20260906",
+      "head_sha": "2b2b4805405e4969d316f0cdbef7631d9da4322c",
+      "base_sha": "afe29ff78419b6625dca5594974b6351f6f80e1b",
+      "draft": false,
+      "primary_lane": 5,
+      "routing": "DFM producer",
+      "ci": [
+        {
+          "run_id": 34003358378,
+          "name": "Masck One engineering CI",
+          "head_sha": "2b2b4805405e4969d316f0cdbef7631d9da4322c",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34003358378",
+          "observed_workflow_updated_at": "2026-09-06T02:14:38Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 104,
+      "title": "Cell 4: canonicalize wet/electrical fluid identities and exact route graph",
+      "branch": "cell4/wet-electrical-source-graph-20260906",
+      "head_sha": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "base_sha": "b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc",
+      "draft": true,
+      "primary_lane": 1,
+      "routing": "canonical wet graph package; Lane 2 consumes source/service side",
+      "ci": [
+        {
+          "run_id": 34019384624,
+          "name": "Masck One engineering CI",
+          "head_sha": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34019384624",
+          "observed_workflow_updated_at": "2026-09-06T08:03:52Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 100,
+      "title": "Cell 4: realize passive mixed-waste backflow package",
+      "branch": "cell4/realized-passive-backflow-package-20260905",
+      "head_sha": "f788284d4a4e9f30d0e35b1ceea6c716e74a5e16",
+      "base_sha": "21cf8c4fb8ca0d20ddb58f90bcee6275bc98ca30",
+      "draft": false,
+      "primary_lane": 1,
+      "routing": "passive mixed-waste barrier producer",
+      "ci": [
+        {
+          "run_id": 33963468723,
+          "name": "Masck One engineering CI",
+          "head_sha": "f788284d4a4e9f30d0e35b1ceea6c716e74a5e16",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/33963468723",
+          "observed_workflow_updated_at": "2026-09-05T11:47:41Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 96,
+      "title": "Cell 4: realize mixed-waste pump package",
+      "branch": "cell4/realized-waste-pump-package-20260905",
+      "head_sha": "2626a4f5c3b971b7caf5b384a44c262489ccf128",
+      "base_sha": "21cf8c4fb8ca0d20ddb58f90bcee6275bc98ca30",
+      "draft": false,
+      "primary_lane": 1,
+      "routing": "waste-pump producer",
+      "ci": [
+        {
+          "run_id": 33962349298,
+          "name": "Masck One engineering CI",
+          "head_sha": "2626a4f5c3b971b7caf5b384a44c262489ccf128",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/33962349298",
+          "observed_workflow_updated_at": "2026-09-05T11:25:30Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 94,
+      "title": "Cell 4: realize distinct cleanser pump package",
+      "branch": "cell4/realized-cleanser-pump-20260905",
+      "head_sha": "1eb826fe859c6d5ee6dc0097aa58a67944bb530b",
+      "base_sha": "21cf8c4fb8ca0d20ddb58f90bcee6275bc98ca30",
+      "draft": false,
+      "primary_lane": 1,
+      "routing": "cleanser-pump producer",
+      "ci": [
+        {
+          "run_id": 33961011961,
+          "name": "Masck One engineering CI",
+          "head_sha": "1eb826fe859c6d5ee6dc0097aa58a67944bb530b",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/33961011961",
+          "observed_workflow_updated_at": "2026-09-05T10:54:43Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 92,
+      "title": "Cell 3: reconcile retention lineage and load-path attachments",
+      "branch": "cell3/retention-load-path-20260905",
+      "head_sha": "88a88bed01fd3b3acfb38ff5f6f3ae3d5bbf54fe",
+      "base_sha": "b3be4c2483f45b2b8dfff6f0c3d9810c2b8511dc",
+      "draft": true,
+      "primary_lane": 3,
+      "routing": "retention integration donor; current user-release through #141",
+      "ci": [
+        {
+          "run_id": 34019746961,
+          "name": "Masck One engineering CI",
+          "head_sha": "88a88bed01fd3b3acfb38ff5f6f3ae3d5bbf54fe",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34019746961",
+          "observed_workflow_updated_at": "2026-09-06T08:13:47Z"
+        }
+      ],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    },
+    {
+      "pr": 70,
+      "title": "Cell 2: converge MVP exterior and facial transitions",
+      "branch": "cell2/exterior-green-baseline-20260905",
+      "head_sha": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "base_sha": "ff76a17fa25276a401fbe57ad02564b771fa1865",
+      "draft": true,
+      "primary_lane": 3,
+      "routing": "exterior owner",
+      "ci": [],
+      "independent_approval": "NOT_INFERRED_FROM_CI",
+      "agent_assignment": "NOT_INFERRED_FROM_BRANCH_NAME"
+    }
+  ],
+  "recent_relevant_closed_prs": [
+    {
+      "pr": 146,
+      "title": "Integration: bind released WARM package into canonical registry",
+      "state": "closed",
+      "merged_at": "2026-09-10T09:33:52Z",
+      "branch": "integration/warm-registry-clean-20260910",
+      "head_sha": "fe697638a0f438938ca1d716d0949c8d03fa5045"
+    },
+    {
+      "pr": 145,
+      "title": "Integration: bind released WARM package into canonical registry",
+      "state": "closed",
+      "merged_at": null,
+      "branch": "sol-high/integration-freeze-20260910",
+      "head_sha": "02c28b67a925d32be0820d60bfe4d4b9299f2331"
+    },
+    {
+      "pr": 138,
+      "title": "Add source-bound WARM and COOL package architecture",
+      "state": "closed",
+      "merged_at": "2026-09-09T15:33:24Z",
+      "branch": "scheduled/warm-cool-package-20260909",
+      "head_sha": "2f0a48ea5d27552b1e48b03a85e116e00049ed72"
+    },
+    {
+      "pr": 139,
+      "title": "Integration: bind exact release provenance and sprint ownership",
+      "state": "closed",
+      "merged_at": "2026-09-09T12:27:57Z",
+      "branch": "sol-high/integration-freeze-20260909",
+      "head_sha": "6b93c7c81976e749197d565987f119adfc1bb164"
+    },
+    {
+      "pr": 115,
+      "title": "Cell 11: realize 35.386 mL supported-liner cartridge and local positive retention",
+      "state": "closed",
+      "merged_at": null,
+      "branch": "cell11/realized-waste-cartridge-v1-20260906",
+      "head_sha": "96397f9e1142224979bfc43717ccf325d07fc21f"
+    },
+    {
+      "pr": 130,
+      "title": "Fix CAD export integrity and report unresolved production closure",
+      "state": "closed",
+      "merged_at": "2026-09-08T19:51:59Z",
+      "branch": "codex/cad-export-integrity-20260907",
+      "head_sha": "2b64b004bbc212317dbeef46525dd77dc79ba4a7"
+    },
+    {
+      "pr": 129,
+      "title": "Control: repair inherited mechanical baseline tests",
+      "state": "closed",
+      "merged_at": "2026-09-07T22:52:36Z",
+      "branch": "control/baseline-mechanical-test-repair",
+      "head_sha": "0021614f4af74a3a376abd3a3b430e45aba7b41e"
+    }
+  ],
+  "bounded_failure_findings": [
+    {
+      "pr": 135,
+      "head_sha": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "job_id": 102773701764,
+      "classification": "EXACT_COLLISION_VERIFICATION_UNRESOLVED",
+      "finding": "OCC common and both cut-volume directions failed after bounded partition depth 6. Not a zero-interference proof and not a measured positive-material collision.",
+      "owner_action": "Repair exact verification or producer geometry with the current treatment owner; do not widen tolerances or waive gate."
+    },
+    {
+      "pr": 140,
+      "head_sha": "7052bb79dfe75b877bf92f75aeb2289f3d4aab1b",
+      "job_id": 102846124058,
+      "classification": "SOURCE_BINDING_GATE_FAILURE",
+      "finding": "WasteCartridgeDfmError: new realization at src/masck_one/realized_waste_cartridge.py; rebind DFM audit. 1 failed, 848 passed, 9 errors, 4 subtests passed.",
+      "owner_action": "Current cartridge producer and DFM/integration consumer reconcile exact source identity; keep geometric and physical claims separate."
+    },
+    {
+      "pr": 142,
+      "head_sha": "6ee47ecba639a9ce09c3cd076bbfe0408c2d089f",
+      "job_id": 102776958746,
+      "classification": "HOSTILE_TEST_ASSERTION_FAILURE",
+      "finding": "Escaped route is rejected for missing clip engagement before expected dry-bay containment message. 1 failed, 842 passed, 4 subtests passed.",
+      "owner_action": "Current dry-side owner proves containment rejection independently; do not weaken the gate by accepting an unrelated failure."
+    },
+    {
+      "pr": 144,
+      "head_sha": "9fb64aa4753dad03a455aad4802910d8814ef5ce",
+      "classification": "GREEN_TESTS_PRESERVE_FUNCTIONAL_REJECTION",
+      "finding": "Force-path infeasibility remains explicitly rejected by source-bound HMI checks; successful workflow is not functional button approval.",
+      "owner_action": "Existing HMI owner corrects the physical force path; no cosmetic force-curve tuning to claim closure."
+    }
+  ],
+  "evidence_boundary": [
+    "No new CAD/physical test was performed for this documentation review.",
+    "Main exact-source CI is observed released evidence; open candidate success is not independent acceptance.",
+    "No absent exact-head run is treated as green; no stale head is promoted.",
+    "Source hashes identify consumed inputs, not a second component or authority registry.",
+    "New Lane 4 and face-side/preservation contracts need explicit owner activation; no autonomous agent assignment was invented."
+  ]
+}

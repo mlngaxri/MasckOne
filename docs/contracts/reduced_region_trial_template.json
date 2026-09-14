@@ -1,0 +1,486 @@
+{
+  "scope": "INERT_SURROGATE_OFF_FACE",
+  "protocol_digest": null,
+  "completed_order": [],
+  "stages": [
+    {
+      "id": "CLEAN",
+      "cells": [
+        {
+          "id": "acquisition_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "central_open",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "support_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "seal_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "release_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        }
+      ],
+      "photograph_records": [],
+      "balance_calibration_record": null,
+      "unknown_or_occluded_cells": null
+    },
+    {
+      "id": "RINSE_RECOVER",
+      "cells": [
+        {
+          "id": "acquisition_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "central_open",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "support_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "seal_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "release_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        }
+      ],
+      "photograph_records": [],
+      "balance_calibration_record": null,
+      "unknown_or_occluded_cells": null
+    },
+    {
+      "id": "THIN_LEAVE_ON",
+      "cells": [
+        {
+          "id": "acquisition_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "central_open",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "support_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "seal_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "release_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        }
+      ],
+      "photograph_records": [],
+      "balance_calibration_record": null,
+      "unknown_or_occluded_cells": null
+    },
+    {
+      "id": "THICK_LEAVE_ON",
+      "cells": [
+        {
+          "id": "acquisition_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "central_open",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "support_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "seal_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "release_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        }
+      ],
+      "photograph_records": [],
+      "balance_calibration_record": null,
+      "unknown_or_occluded_cells": null
+    },
+    {
+      "id": "FINAL_LEAVE_ON",
+      "cells": [
+        {
+          "id": "acquisition_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "central_open",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "support_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "seal_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "release_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        }
+      ],
+      "photograph_records": [],
+      "balance_calibration_record": null,
+      "unknown_or_occluded_cells": null
+    },
+    {
+      "id": "SETTLE",
+      "cells": [
+        {
+          "id": "acquisition_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "central_open",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "support_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "seal_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "release_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        }
+      ],
+      "photograph_records": [],
+      "balance_calibration_record": null,
+      "unknown_or_occluded_cells": null
+    },
+    {
+      "id": "RELEASE",
+      "cells": [
+        {
+          "id": "acquisition_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "central_open",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "support_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "seal_footprint",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        },
+        {
+          "id": "release_edge",
+          "covered": null,
+          "mass_balance_error_g": null,
+          "mass_balance_error_g_uncertainty": null,
+          "carryover_fraction": null,
+          "carryover_fraction_uncertainty": null,
+          "protected_deposit_g": null,
+          "protected_deposit_g_uncertainty": null,
+          "film_retention_fraction": null,
+          "film_retention_fraction_uncertainty": null
+        }
+      ],
+      "photograph_records": [],
+      "balance_calibration_record": null,
+      "unknown_or_occluded_cells": null
+    }
+  ],
+  "specimen_id": null,
+  "material_family": null,
+  "source_bindings": null
+}

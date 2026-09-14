@@ -40,7 +40,7 @@ from .waste_pump_packaging import build_waste_pump_packaging_architecture
 SCHEMA = "MASCK_ONE_CELL5_WASTE_CARTRIDGE_DFM_AUDIT_V1"
 SOURCE_MAIN_SHA = "21cf8c4fb8ca0d20ddb58f90bcee6275bc98ca30"
 AUTHORITY_REVISION = "2026-08-30-R1"
-AUTHORITY_BLOB_SHA = "2608dda483b995539de422290371c219668a1527"
+AUTHORITY_BLOB_SHA = "42656ecc57acaed9e866a46b7c3aa14867c44b62"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 MODEL_ENVELOPE_STATUS = "ENGINEERING_BASELINE_ENVELOPE"
 CURRENT_HYGIENE_CLASSIFICATION = "UNRESOLVED"
@@ -50,8 +50,8 @@ EVIDENCE_STATUS = (
 )
 
 SOURCE_GIT_BLOB_IDENTITIES: tuple[tuple[str, str], ...] = (
-    ("config/masck_one_authority.yaml", "2608dda483b995539de422290371c219668a1527"),
-    ("src/masck_one/model.py", "9e7fa6c71ac28cc45ebb502444bf6c0ea49f7894"),
+    ("config/masck_one_authority.yaml", "42656ecc57acaed9e866a46b7c3aa14867c44b62"),
+    ("src/masck_one/model.py", "ab48b3ca47e7ec8ecb7d3ecb31e7fe22b3ebca68"),
     ("src/masck_one/boundary_release.py", "34a49eed2c521d55e48ac187c2dd33dc9e22a3e3"),
     ("src/masck_one/interface_attachment.py", "c161f99ddd3473f3b9dde30ec73397a72915191a"),
     ("src/masck_one/structural_frame.py", "bda5ba87d232c0e6a22e200975a80414a10c9a83"),
