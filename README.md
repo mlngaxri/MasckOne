@@ -4,7 +4,7 @@ Masck One is an early-stage consumer technology venture for people who already f
 
 **Current stage:** pre-commercialisation. The repository contains substantial digital engineering work, but there is no integrated manufactured product and the core customer, physical-performance and commercial assumptions remain to be validated.
 
-**Fast reviewer path:** [what I built](#what-i-built-in-roughly-two-weeks) → [what is not proven](#limitations-what-is-not-proven-yet) → [what happens next](#next-validation-steps) → [how to inspect the evidence](#inspect-the-work).
+**Fast reviewer path:** [what I built](#what-i-built-in-roughly-two-weeks) → [what is not proven](#limitations-what-is-not-proven-yet) → [what happens next](#next-validation-steps) → [how scholarship support would be used](#how-scholarship-support-would-create-evidence) → [how to inspect the evidence](#inspect-the-work).
 
 The long-term vision spans cleansing and selected leave-on products. The immediate validation goal is narrower: establish whether one clearly defined part of a routine can be automated comfortably and usefully before committing to a broader first product. This is a staged validation approach; it does not mean the complete-routine engineering requirements have been met or waived.
 
@@ -86,6 +86,19 @@ The next work should turn the most important assumptions into evidence:
 | Initial manufacturing-cost model | Could a practical first product support a price and margin consistent with customer value? |
 
 These are planned activities, not completed results. The [customer discovery notes](docs/CUSTOMER_DISCOVERY.md) define the commercial questions, and the [engineering work queue](docs/CORE_SKETCH_START_HERE.md) retains the technical dependencies and acceptance gates. Evidence from both should determine the initial use case and which features justify their complexity.
+
+## How scholarship support would create evidence
+
+Support would be used to move the project from primarily digital exploration towards stronger physical and commercial evidence, rather than towards presentation work.
+
+| Support area | Evidence it would enable |
+| --- | --- |
+| Prototype materials and test equipment | Focused fit, fluid-delivery and cleaning experiments against defined questions rather than an immediate attempt at a complete product. |
+| Manufacturing and cost investigation | Early process, assembly and cost assumptions that can be challenged before committing to production-oriented design decisions. |
+| Structured customer validation | Better evidence about the first use case, routine pain points, willingness to change behaviour and acceptable maintenance burden. |
+| Specialist collaboration | Human expertise in hardware, manufacturing, IP, fundraising and market entry where AI-assisted exploration and founder judgement are not substitutes for domain experience. |
+
+The aim would be to reduce uncertainty in sequence: first identify a customer problem worth solving, then test the smallest physical mechanisms needed for that use case, then determine whether the resulting product can be manufactured and supported at a viable cost. Funding or mentorship would not make the current digital work physically validated; it would help generate the evidence needed to decide what deserves to become a product.
 
 ## Inspect the work
 
