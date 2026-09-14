@@ -31,3 +31,17 @@ The broader vision is automation across a facial routine. The immediate learning
 The existing [product concept](PRODUCT_CONCEPT.md) contains wider whole-routine requirements. Narrowing an initial experiment does not silently remove those requirements or change a completion claim. Any selected product-scope change must be reconciled through [change control](CORE_SKETCH_CHANGE_CONTROL.md) and the relevant engineering authority.
 
 Customer feedback cannot establish physical safety or performance, and passing engineering checks cannot establish customer value. Both lines of evidence are needed before committing to a product or making a readiness claim.
+
+## Decision gates before broadening scope
+
+The next stage should reduce uncertainty before adding product breadth. These are decision gates, not claims that the evidence already exists.
+
+| Gate | Evidence needed | Decision it should inform |
+| --- | --- | --- |
+| Customer problem | Structured interviews show a recurring routine task that people already experience as sufficiently inconvenient or time-consuming to investigate further. | Select or reject a first use case rather than defaulting to the full routine vision. |
+| Net convenience | A focused workflow prototype and customer research show that fitting, loading, cleaning and maintenance do not obviously erase the time or effort saved. | Continue, simplify the workflow, or stop pursuing that use case. |
+| Physical feasibility | Focused fit work, fluid-delivery testing and hygiene investigation produce measurements strong enough to replace key digital assumptions. | Decide whether the selected use case deserves deeper hardware development. |
+| Commercial plausibility | Initial manufacturing-cost modelling and customer pricing research overlap enough to justify more detailed costing. | Continue, reduce product scope, or reconsider the commercial model. |
+| Broader product scope | Customer, physical and cost evidence support adding another routine function without undermining the first use case. | Expand the wearable-and-dock vision only when evidence supports the added complexity. |
+
+A negative result is useful evidence. The purpose of these gates is to prevent repository activity, feature count or digital engineering progress from becoming a substitute for evidence that a product should be built.
