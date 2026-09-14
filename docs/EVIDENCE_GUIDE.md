@@ -33,6 +33,19 @@ The two views below are existing registered digital review compositions already 
 
 The repository does not currently commit a standalone gallery of engineering CAD screenshots. The stronger engineering evidence is therefore the source-bound parametric geometry, requirements, tests and reproducible exports described below, rather than treating presentation imagery as proof.
 
+## Development progression
+
+This is a compact progression based on repository milestones rather than a presentation graphic. Each step links to the underlying record a reviewer can inspect.
+
+| Milestone | Inspectable record | What changed |
+| --- | --- | --- |
+| Controlled engineering foundation | [Phase 1 engineering log](PHASE_1_LOG.md) and [engineering governance](ENGINEERING_GOVERNANCE.md) | Repository integrity, machine-readable authority, reproducible CAD generation, source controls and continuous integration were established before deeper geometry work. |
+| Digital subsystem build-out | [Development roadmap](DEVELOPMENT_ROADMAP.md) and [current authority](../config/masck_one_authority.yaml) | The merged digital baseline expanded across facial/interface geometry, fluid handling, waste, structural and actuation references, controls and reproducible exports. |
+| Whole-product convergence | [Core Sketch convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) and [status board](CORE_SKETCH_STATUS_BOARD.md) | Cross-subsystem conflicts, unknowns and validation gates were made explicit instead of being treated as solved by digital modelling. |
+| Scholarship-review baseline | [Project overview](../README.md) and this evidence guide | The existing engineering record was reorganised into a short public inspection path with concept imagery separated from engineering evidence and planned physical validation. |
+
+This progression shows increasing engineering scope and evidence discipline. It does not show increasing physical product maturity: an integrated manufactured product has not yet been validated.
+
 ## A short inspection route
 
 | Question | Evidence to inspect | What it does not establish |
