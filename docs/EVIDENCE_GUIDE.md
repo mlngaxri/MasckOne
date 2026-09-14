@@ -6,6 +6,19 @@ Masck One is pre-commercialisation. Engineering geometry exists and digital chec
 
 For a first review, the quickest route is the [project README](../README.md), which states the current stage, the digital development work, what remains unproven and what should be validated next. This document is for reviewers who want to inspect the evidence more deeply.
 
+## Reviewer claim audit
+
+This is the shortest claim-to-source path. Each row links a reviewer-facing claim to representative repository evidence and states the boundary that must travel with the claim.
+
+| Claim a reviewer can verify | Representative source / check | Required boundary |
+| --- | --- | --- |
+| Parametric engineering CAD exists | [Parametric model](../src/masck_one/model.py) and [model checks](../tests/test_model.py) | Code-generated geometry is digital engineering evidence, not a manufactured prototype or human-fit result. |
+| System requirements are controlled | [Engineering authority](../config/masck_one_authority.yaml) and [authority contract tests](../tests/test_authority_contract.py) | A requirement or `VALIDATION_GATED` target is not achieved physical performance. |
+| Automated engineering checks enforce consistency | [Authority contract tests](../tests/test_authority_contract.py), [boundary-release tests](../tests/test_boundary_release.py) and [engineering CI](https://github.com/mlngaxri/MasckOne/actions/workflows/ci.yml) | Passing software checks establish digital consistency and provenance only. |
+| Design decisions and trade-offs are documented | [Whole-product convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) | Recorded reasoning does not prove that the selected architecture is physically feasible, safe or optimal. |
+| Major subsystems are represented in the engineering record | [Product architecture summary](CORE_SKETCH_ONE_PAGE.md) and the [representative subsystem source trail](#representative-subsystem-source-trail) below | Digital coverage of a subsystem does not mean that subsystem is built or physically qualified. |
+| The current stage and unknowns are explicit | [Project README](../README.md), [evidence classes](#evidence-classes) and [open limitations](#what-remains-open) | Masck One remains pre-commercialisation; product-level physical validation has not begun. |
+
 ## Visual evidence at a glance
 
 The diagram below is a reviewer-facing summary assembled from the repository's existing [Core Sketch product story](CORE_SKETCH_ONE_PAGE.md) and subsystem documentation. It shows the intended whole-product relationships at a high level. It is a documentation diagram, not evidence that every subsystem is implemented or physically validated.
