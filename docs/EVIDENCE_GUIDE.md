@@ -29,7 +29,12 @@ The two views below are existing registered digital review compositions already 
   <img src="../website/images/masck-inspection-side-rear-v17c.webp" alt="Masck One registered digital review composition, side-rear view" width="48%" />
 </p>
 
-**Visual class:** concept/candidate digital composition. The [render manifest](../website/images/masck-inspection-v17c-manifest.json) records the source checkpoints, authority coordinate frame and explicit claim boundary for these views. They show a coherent candidate packaging direction and reviewable multi-view geometry. They do **not** establish released-main geometry, frame-side attachment closure, human fit, comfort, materials, serviceability, ingress protection, manufacturability, safety or physical performance.
+| View | What a reviewer can inspect | Evidence limit |
+| --- | --- | --- |
+| Front three-quarter | Candidate face-side packaging, opening layout and the overall relationship between the facial shell and surrounding structure. | Concept/candidate digital composition only. It does not prove released-main geometry, anatomical fit, comfort, sealing, treatment coverage or physical performance. |
+| Side-rear | Candidate depth, rear packaging and the visible relationship between the face-side body and retention structure from a second viewpoint. | Concept/candidate digital composition only. It does not prove attachment closure, removal behaviour, serviceability, structural strength, manufacturability or safety. |
+
+**Visual class:** concept/candidate digital composition. The [render manifest](../website/images/masck-inspection-v17c-manifest.json) records the source checkpoints, authority coordinate frame and explicit claim boundary for these views. Together, the two views show a coherent candidate packaging direction and reviewable multi-view geometry. They do **not** establish released-main geometry, frame-side attachment closure, human fit, comfort, materials, serviceability, ingress protection, manufacturability, safety or physical performance.
 
 The repository does not currently commit a standalone gallery of engineering CAD screenshots. The stronger engineering evidence is therefore the source-bound parametric geometry, requirements, tests and reproducible exports described below, rather than treating presentation imagery as proof.
 
