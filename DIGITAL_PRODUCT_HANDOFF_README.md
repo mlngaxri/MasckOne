@@ -1,73 +1,118 @@
-# Masck One Website & App Engineering Handoff
+# Masck One digital product handoff
 
-## Purpose and ownership
+## Purpose
 
-This is the sole maintained engineering-to-human digital handoff. Cell 1 owns edits. Autonomous agents must not implement, redesign, deploy, refactor, test, optimize or otherwise spend engineering cycles on `products/web/`, `products/app/`, Vercel, app-store packaging, marketing pages, launch funnels or unrelated commercialization infrastructure.
+This document connects the released engineering state of Masck One to the website, companion app and other public-facing digital work.
 
-This file is not engineering authority and does not promote physical evidence. Repository authority, released engineering code/CAD, tests, preflights and evidence state remain controlling.
+Its purpose is simple: digital experiences should explain the product clearly without presenting development geometry, engineering targets or future capabilities as validated product performance.
 
-After every materially released engineering iteration, Cell 1 reconciles `DIGITAL_HANDOFF_DELTA` inputs here. Website/app work remains human-owned.
+Engineering authority remains with the released source, configuration, tests, preflight checks and evidence state. This handoff translates that information for digital product work; it does not override it.
 
-## Status vocabulary
+## Source of truth
 
-`MUST_BUILD` means required for digital fidelity. `SHOULD_BUILD` means high value. `OPTIONAL` means useful but nonessential. `BLOCKED` means do not implement as factual/product-connected behavior until the named dependency closes. `FORBIDDEN_CLAIM` means do not present publicly as established fact.
+Before using a technical statement, visual or interaction in the website or app, verify it against the current released `main` branch and the relevant engineering authority.
 
-## Current release baseline
+The primary engineering source is:
 
-Source: Iteration 28, PR #54, released main `518ed10632193f604fcb4b6723d12e8e42cd3f71`, 2026-09-01.
+```text
+config/masck_one_authority.yaml
+```
 
-Physical truth: the controlled operational fluid graph contains 62 segments, 54 fresh and 8 mixed-waste. It establishes digital interface continuity from water/cleanser sources through pumps, manifold, 24 distribution outlets/grooves, five waste regions, waste pump and cartridge handoff. Fluid identities remain controlled. This is topology and evidence-boundary closure, not realized physical route closure.
+The current program position is tracked in:
 
-Realized 3D centerlines, tubing internal cross-sections, supplier bend specifications, bend-radius compliance, geometric dead volume, service/deformation trajectories, orientation extrema, mixed-phase transient-buffer geometry, backflow-device physical selection, drain/dry behavior and instrumented fluid performance remain unresolved. The 0.40 mL maximum initial-prime value remains a validation-gated requirement, not a measured result.
+```text
+docs/DEVELOPMENT_ROADMAP.md
+```
 
-### WEBSITE
+Do not rely on an old screenshot, render, branch or concept document when a newer released source exists.
 
-`MUST_BUILD`: any future technical cutaway or fluid animation must preserve the released source-to-pump-to-distribution-to-acquisition-to-waste-pump-to-cartridge architecture and keep fresh water, cleanser and mixed waste visually distinct.
+## Evidence vocabulary
 
-`BLOCKED`: do not depict hidden tubing centerlines, manifold branch geometry, bend radii, backflow-device geometry, cartridge internals or service trajectories as factual until released realized geometry exists.
+The digital product should preserve the repository's distinction between design intent and validated performance.
 
-`BLOCKED`: do not imply equal flow, verified pressure balance, exact prime/purge behavior, measured dead volume, verified recovery, orientation independence or cleansing efficacy from topology alone.
+| State | Meaning for digital work |
+| --- | --- |
+| `MUST_BUILD` | Required for a faithful digital representation |
+| `SHOULD_BUILD` | High-value product or information architecture |
+| `OPTIONAL` | Useful but nonessential |
+| `BLOCKED` | Do not present as implemented or factual until the named dependency closes |
+| `FORBIDDEN_CLAIM` | Do not present as an achieved product result without supporting evidence |
 
-### APP
+## Current fluid-system representation
 
-No implementation change is authorized by Iteration 28. `SHOULD_BUILD` only as future information architecture: maintenance/troubleshooting may mirror the real fluid-system taxonomy once the human-owned app is developed.
+The released engineering architecture separates fresh water, cleanser and mixed waste as distinct fluid domains. The system includes controlled source, pump, distribution, acquisition, waste-pump and cartridge handoffs.
 
-`BLOCKED`: reservoir level, cleanser level, waste level, prime completion, flow rate, leak detection, cartridge-full sensing, pump-health telemetry and live route visualization unless later released hardware explicitly contains and validates those sensing/telemetry capabilities.
+This supports accurate high-level explanation of the product architecture. It does not, by itself, establish measured pressure balance, leak resistance, cleansing efficacy, exact prime volume, recovery efficiency or orientation-independent operation.
 
-### ASSETS / DATA
+### Website
 
-Future truthful route assets require exact released segment IDs, source/destination/phase identity, released 3D centerlines where available and revision provenance. Mixed waste must remain distinct from fresh water and cleanser. Decorative invented internal routing is not acceptable.
+`MUST_BUILD`: technical cutaways or fluid animations should preserve the released direction of flow and keep fresh water, cleanser and mixed waste visually distinct.
 
-### CLAIMS
+`BLOCKED`: do not depict hidden tubing, branch geometry, cartridge internals, service trajectories or backflow hardware as factual unless the relevant realized geometry has been released.
 
-Allowed now: Masck One has a controlled digital architecture separating fresh-water, cleanser and mixed-waste paths, with explicit distribution, acquisition, pumping and cartridge handoffs.
+`BLOCKED`: do not imply verified equal flow, measured pressure balance, exact prime or purge behaviour, measured dead volume, verified waste recovery or cleansing efficacy from digital topology alone.
 
-`FORBIDDEN_CLAIM`: leak-proof, orientation-independent, universal-cleanser, exact prime volume as measured fact, exact recovery fraction, guaranteed cleansing efficacy, clinically proven performance, measured waste-recovery performance, verified comfort, exact runtime, exact cartridge life, verified thermal safety, or sensors/telemetry not physically implemented and validated.
+### App
 
-### PRIORITY / DEPENDENCIES
+Future maintenance and troubleshooting information may follow the real subsystem taxonomy once corresponding device capabilities exist.
 
-Highest physical dependencies are realized routing geometry and quantitative closure, retention/halo/crown architecture, one-hand wet unpowered quick release, battery/electronics dry bay, physical HMI, wet/dry cavity and hygiene closure, assembly/service/interference, DFM/tolerance/CTQ, whole-system mass/CG/torque/fluid/power/thermal ledgers, and neutral/Fusion-ready exports.
+`BLOCKED`: reservoir level, cleanser level, waste level, prime completion, live flow rate, leak detection, cartridge-full detection, pump-health telemetry and live route visualisation unless released hardware contains and validates the required sensing and telemetry.
 
-## Released subsystem implications retained from Iterations 21 to 27
+### Assets and data
 
-Cleanser storage is a controlled subsystem, but universal cleanser compatibility is forbidden until validated. Water and cleanser pumping remain distinct paths. The manifold reserves 18 water and 6 cleanser outlets. Twenty-four outlet/groove intents target active facial regions while preserving protected-region development clearances. Five waste-acquisition region intents preserve mixed air/liquid/foam/contaminant semantics. Waste transport is treated as mixed-phase rather than clean-water pumping. The waste cartridge is a controlled replaceable/serviceable subsystem, but its external bounding volume is not usable-capacity evidence.
+Technical visualisations should use released geometry and stable subsystem identities wherever possible. Decorative internal routing should not be presented as a literal representation of the device.
 
-For future human-led digital work, refill, distribution, waste containment and cartridge-service explanations should use released geometry when it exists. Do not invent measured flow, pressure, recovery, retained capacity, cycle count, leak performance, sensor states or service cadence.
+Simulated, development or placeholder data must remain distinguishable from measured device telemetry.
 
-## Pending physical lanes, not released digital truth
+## Product claims
 
-PR #59 proposes an industrial-design, CMF and human-factors contract. It is not released. Its future-facing principles include a continuous calm facial field, subordinate side transition, recessive rear/service layer, explicit compliant-versus-rigid material hierarchy, controlled seam architecture and physical CMF sampling. Do not treat its colour, gloss, seam, continuity or tactile targets as production facts before release and physical validation.
+The digital product may accurately state that Masck One is being engineered around separate fresh-water, cleanser and mixed-waste paths, controlled distribution and waste handling.
 
-PR #60 proposes retention load-path and emergency-release architecture. It is not released. Future digital explanation, if released, should show crown load support, occipital stabilization and one mechanical emergency-release action. Basic removal must never depend on the app. Universal fit, pressure-free comfort, measured removal time and accidental-release immunity remain blocked pending physical evidence.
+The following should not be presented as established facts until supported by physical evidence:
 
-PR #61 proposes realized-routing evidence gates and fluid-fixture closure. It is not released. Future route visuals must wait for released centerlines and controlled geometry. Leak-proof, orientation-independent, exact prime/recovery and efficacy claims remain blocked.
+- leak-proof or orientation-independent operation
+- universal cleanser compatibility
+- clinically proven or guaranteed cleansing performance
+- measured waste-recovery efficiency
+- verified comfort or fit across a population
+- exact runtime or cartridge life
+- verified thermal or electrical safety
+- sensing or telemetry capabilities that are not physically implemented
+- production-ready materials, tolerances or manufacturing processes that have not been qualified
 
-All three current physical PR heads have failing engineering CI as of 2026-09-01 and therefore remain non-authoritative. No pending branch is to be promoted from green-looking local logic or descriptive quality alone.
+Engineering targets may be discussed as targets when clearly labelled as such. They should not be converted into achieved claims.
 
-## Cross-cutting physical-to-digital rules
+## Product imagery
 
-Every future product animation must map to released geometry/state truth rather than decorative mechanism invention. Protected eye, mouth and airway regions remain protected visually and verbally. Engineering targets must never be converted into achieved claims. Final product imagery must use current released exterior geometry and physical CMF authority, not stale concepts or digital palette choices. Safety-critical functions must not depend on app availability unless explicitly authorized by engineering authority. Simulated/development data must remain visibly separate from real telemetry.
+Public imagery should follow the current released exterior and product-intent sources rather than stale concept geometry.
 
-## Human builder workflow
+Protected eye, mouth and airway regions must remain protected in both technical visuals and product explanations. Development reference geometry should not be presented as final manufactured material.
 
-Start from the newest released entry here. Verify its referenced engineering source is actually on `main`. Pull exact current geometry, state definitions and assets from released engineering authority where appropriate. Build the website/app manually. Never edit engineering authority merely to make digital implementation easier. If desired digital behavior requires hardware that does not exist, treat it as a product dependency rather than faking the capability in UI.
+Where internal geometry is still unresolved, an abstract explanatory visual is preferable to a realistic-looking but invented mechanism.
+
+## Retention and removal
+
+Any digital explanation of retention or removal should follow the current released mechanical architecture.
+
+Basic product removal must never be presented as dependent on the app. Claims about one-hand removal, wet-use performance, release force, release time, accidental-release immunity or universal fit require physical validation before they are stated as achieved results.
+
+## Companion software
+
+The companion software is intended to support the product rather than create capabilities that the hardware does not possess.
+
+Future software may include setup, routine configuration, maintenance guidance and device status where those states are supported by released hardware and firmware.
+
+Safety-critical behaviour should remain hardware-grounded unless the engineering authority explicitly establishes otherwise.
+
+## Working process
+
+For each significant digital-product update:
+
+1. Confirm the relevant product state against released `main`.
+2. Identify the exact engineering source behind any technical claim or visual.
+3. Separate implemented capability from future product intent.
+4. Use released geometry for literal technical representation.
+5. Keep simulated data visibly separate from measured data.
+6. Treat missing hardware or evidence as a product dependency, not as a reason to invent a UI state.
+
+The goal is a digital experience that is ambitious and visually strong while remaining technically credible.
