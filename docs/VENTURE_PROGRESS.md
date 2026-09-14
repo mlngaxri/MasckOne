@@ -37,7 +37,22 @@ The asymmetry is deliberate: the project currently has much stronger digital-dev
 
 The long-term direction is a wearable-and-dock system that could automate selected parts of a facial-skincare routine. That is a product vision, not a claim that every function belongs in a first product or already works.
 
+The initial target user hypothesis is people who already follow multi-step facial-skincare routines and value reducing the active time and repetitive handling those routines require. This remains a hypothesis to test, not a validated customer segment.
+
 The immediate objective is narrower: identify one routine task where customer value, physical feasibility and plausible economics overlap, then test that use case before expanding scope. The first use case is deliberately not locked until structured customer evidence is stronger.
+
+### How the first use case will be selected
+
+The first use case should earn its way into development rather than being chosen because it is technically interesting. A candidate should meet all four conditions below strongly enough to justify focused physical testing.
+
+| Selection condition | Evidence required before committing |
+| --- | --- |
+| Repeated customer friction | Structured interviews identify the same routine task as a real source of time, effort or inconvenience, rather than only positive reactions to the concept. |
+| Net convenience | The likely benefit is not obviously cancelled by fitting, loading, cleaning, maintenance or storage burden. |
+| Testable physical path | The core fit and fluid questions can be reduced to focused prototypes and measurements without building the full wearable-and-dock system first. |
+| Commercial plausibility | Early cost assumptions and customer-value evidence leave a credible path to a product whose complexity is justified. |
+
+Failure on any condition is a reason to narrow, change or reject the use case. Repository activity and feature count are not substitutes for passing these evidence gates.
 
 ## What happens next
 
