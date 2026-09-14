@@ -6,6 +6,33 @@ Masck One is pre-commercialisation. Engineering geometry exists and digital chec
 
 For a first review, the quickest route is the [project README](../README.md), which states the current stage, the digital development work, what remains unproven and what should be validated next. This document is for reviewers who want to inspect the evidence more deeply.
 
+## Visual evidence at a glance
+
+The diagram below is a reviewer-facing summary assembled from the repository's existing [Core Sketch product story](CORE_SKETCH_ONE_PAGE.md) and subsystem documentation. It shows the intended whole-product relationships at a high level. It is a documentation diagram, not evidence that every subsystem is implemented or physically validated.
+
+```mermaid
+flowchart LR
+    D["Dock and preparation"] --> P["Product storage and delivery"]
+    P --> F["Facial interface and treatment mechanics"]
+    F --> W["Waste recovery and cartridges"]
+    R["Retention, structure and removal"] --> F
+    C["Electronics, controls and software"] --> D
+    C --> P
+    C --> F
+    C --> W
+```
+
+The two views below are existing registered digital review compositions already committed to the repository. They are useful for understanding candidate packaging and exterior direction, but they are not photographs and are not released-main CAD evidence.
+
+<p align="center">
+  <img src="../website/images/masck-inspection-front-3q-v17c.webp" alt="Masck One registered digital review composition, front three-quarter view" width="48%" />
+  <img src="../website/images/masck-inspection-side-rear-v17c.webp" alt="Masck One registered digital review composition, side-rear view" width="48%" />
+</p>
+
+**Visual class:** concept/candidate digital composition. The [render manifest](../website/images/masck-inspection-v17c-manifest.json) records the source checkpoints, authority coordinate frame and explicit claim boundary for these views. They show a coherent candidate packaging direction and reviewable multi-view geometry. They do **not** establish released-main geometry, frame-side attachment closure, human fit, comfort, materials, serviceability, ingress protection, manufacturability, safety or physical performance.
+
+The repository does not currently commit a standalone gallery of engineering CAD screenshots. The stronger engineering evidence is therefore the source-bound parametric geometry, requirements, tests and reproducible exports described below, rather than treating presentation imagery as proof.
+
 ## A short inspection route
 
 | Question | Evidence to inspect | What it does not establish |
