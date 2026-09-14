@@ -16,19 +16,9 @@ These labels are deliberately conservative so presentation imagery is not mistak
 
 ## 1. Whole-product architecture
 
-```mermaid
-flowchart LR
-    D["Dock and preparation"] --> P["Product storage and delivery"]
-    P --> F["Facial interface and treatment mechanics"]
-    F --> W["Waste recovery and cartridges"]
-    R["Retention, structure and removal"] --> F
-    C["Electronics, controls and software"] --> D
-    C --> P
-    C --> F
-    C --> W
-```
+![Masck One documented whole-product architecture](assets/scholarship-system-overview.svg)
 
-This diagram is assembled from the existing [Core Sketch product story](CORE_SKETCH_ONE_PAGE.md) and subsystem documentation. It shows documented subsystem relationships, not proof that every subsystem is implemented or physically validated.
+This diagram is assembled from the existing [Core Sketch product story](CORE_SKETCH_ONE_PAGE.md) and subsystem documentation. It shows documented subsystem relationships, not proof that every subsystem is implemented or physically validated. [Open the diagram directly](assets/scholarship-system-overview.svg).
 
 ## 2. Representative registered digital compositions
 
