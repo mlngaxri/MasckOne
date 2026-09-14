@@ -25,7 +25,7 @@ The long-term vision is a system that can support more of a skincare routine, fr
 
 Masck One is pre-commercialisation. The CAD in this repository is engineering geometry generated and checked in code. It is not a finished industrial design, and there is currently no integrated manufactured Masck One product.
 
-Physical validation has not yet begun. The repository contains analytical and digital engineering checks, but those checks are not substitutes for fit testing, fluid testing, hygiene work, safety review or manufacturing evidence.
+Product-level simulation and physical validation have not yet been completed. The repository includes analytical checks and simulation framework work, but those are not substitutes for fit testing, fluid testing, hygiene work, safety review or manufacturing evidence.
 
 The merged baseline currently covers facial-reference and interface geometry, protected anatomical regions, structural and actuation references, fresh-water and cleanser routing, waste-handling architecture and deterministic CAD export. The [engineering authority](config/masck_one_authority.yaml) and [development roadmap](docs/DEVELOPMENT_ROADMAP.md) define the controlled baseline.
 
@@ -78,12 +78,12 @@ These are open questions, not claims hidden elsewhere in the repository.
 
 The next work should convert the most important assumptions into evidence:
 
-1. Structured customer interviews.
-2. Simulation where it can meaningfully reduce uncertainty.
-3. A focused physical fit prototype.
-4. Core fluid-delivery testing.
-5. Hygiene and cleaning investigation.
-6. An initial manufacturing-cost model.
+- Structured customer interviews.
+- Simulation where it can meaningfully reduce uncertainty.
+- A focused physical fit prototype.
+- Core fluid-delivery testing.
+- Hygiene and cleaning investigation.
+- An initial manufacturing-cost model.
 
 The immediate objective is not to add more features. It is to find out whether the venture is desirable, technically feasible and commercially worth developing further.
 
