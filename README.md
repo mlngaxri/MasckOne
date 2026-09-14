@@ -2,7 +2,7 @@
 
 Masck One is an early-stage hands-free facial-skincare wearable for people who already follow multi-step routines, exploring whether repetitive skincare steps can be automated to reduce the active time and effort those routines require.
 
-**Current stage:** pre-commercialisation. The repository contains substantial digital engineering work, but there is no integrated manufactured product and the core customer, physical-performance and commercial assumptions remain to be validated.
+**Current stage:** pre-commercialisation. Engineering geometry exists and digital checks and validation frameworks exist, but product-level physical validation has not begun. There is no integrated manufactured product, and the core customer, physical-performance and commercial assumptions remain to be validated.
 
 **Fast reviewer path:** [venture snapshot](#venture-snapshot) → [what I built](#what-i-built-in-roughly-two-weeks) → [what is not proven](#limitations-what-is-not-proven-yet) → [what happens next](#next-validation-steps) → [how scholarship support would be used](#how-scholarship-support-would-create-evidence) → [how to inspect the evidence](#inspect-the-work).
 
@@ -26,7 +26,7 @@ The long-term vision spans cleansing and selected leave-on products. The immedia
 | **Early customer learning** | An informal survey of around 20 people reportedly showed strongest interest around time savings and convenience, with concerns around comfort, maintenance and price. This is preliminary and non-conclusive, not evidence of demand or willingness to pay. |
 | **Key uncertainties** | Customer value, comfort and population fit, hygiene and cleaning burden, real fluid behaviour, safety, manufacturability, unit economics and the most defensible first use case. |
 | **Next evidence milestones** | Structured customer interviews, focused analysis, a physical fit prototype, core fluid-delivery testing, hygiene and cleaning investigation, and an initial manufacturing-cost model. |
-| **Current stage** | Pre-commercialisation. Engineering CAD and software exist; an integrated manufactured product does not. |
+| **Current stage** | Pre-commercialisation. Engineering geometry and digital checks/frameworks exist; product-level physical validation has not begun and there is no integrated manufactured product. |
 | **Initial development** | The founder reports building the initial digital foundation over roughly two weeks in September 2026. |
 | **Controlled engineering baseline** | **Phase 5: waste acquisition and containment - Iteration 28 complete.** This is a repository roadmap state, not whole-product readiness. |
 
