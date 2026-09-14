@@ -2,7 +2,7 @@
 
 [Project overview](../README.md) · [Evidence guide](EVIDENCE_GUIDE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md)
 
-Masck One is an actively developed, pre-commercialisation venture. The repository shows substantial digital engineering work, but it does not yet show an integrated manufactured product, validated demand, physical product performance or viable unit economics.
+Masck One is pre-commercialisation. Engineering geometry exists and digital checks and validation frameworks exist, but product-level physical validation has not begun. There is no integrated manufactured product, and customer demand, physical product performance and viable unit economics remain unproven.
 
 This page gives a scholarship reviewer a short evidence-based view of what has been done, what remains uncertain and what should happen next.
 
