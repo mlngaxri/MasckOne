@@ -67,6 +67,19 @@ Failure on any condition is a reason to narrow, change or reject the use case. R
 
 These are planned evidence-generating activities, not completed results.
 
+## Evidence-gated use of scholarship support
+
+Support should be deployed in the order that reduces the largest uncertainty, not spread across every part of the long-term concept at once. No funding amount or outcome is assumed here.
+
+| Support would be used for | When that spend becomes justified | Evidence it should produce | If the evidence is weak |
+| --- | --- | --- | --- |
+| Structured customer validation | Immediately, because the first use case is not yet locked. | Interview records showing whether a recurring routine problem is strong enough to justify focused development. | Narrow, change or reject the use case before spending heavily on hardware. |
+| Prototype materials and test equipment | After a first-use-case hypothesis is strong enough to reduce to specific fit, workflow and fluid questions. | Measured observations from focused fit, delivery, recovery and cleaning tests. | Redesign the mechanism or stop that path rather than treating prototype activity as progress by itself. |
+| Manufacturing and cost investigation | Once a candidate first-use-case architecture is defined well enough for credible process and assembly assumptions. | Sourced process, component and assembly inputs for an initial cost model. | Reduce scope, change the architecture or reconsider whether the product can create enough value for its complexity. |
+| Specialist human collaboration | At decisions where practical expertise can materially challenge founder and AI-assisted assumptions. | External scrutiny of hardware, manufacturing, IP, fundraising and market-entry risks that cannot be resolved through repository work alone. | Record the challenged assumption and update the development path instead of preserving it for consistency with the original concept. |
+
+This sequencing is intended to make scholarship support a force multiplier for evidence. It deliberately avoids treating a more complete-looking prototype, a larger feature set or a more polished presentation as proof of venture progress.
+
 ## How scholarship support would change the evidence base
 
 Scholarship support would be most useful when converted into evidence rather than presentation work. Prototype materials and test equipment could support focused fit, fluid and cleaning experiments. Manufacturing and cost investigation could challenge process, assembly and unit-cost assumptions. Structured customer validation could test the first-use-case hypothesis more rigorously.
