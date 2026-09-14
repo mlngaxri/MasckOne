@@ -67,6 +67,20 @@ Failure on any condition is a reason to narrow, change or reject the use case. R
 
 These are planned evidence-generating activities, not completed results.
 
+## Commercial uncertainty register
+
+The commercial case is not treated as an assumed consequence of technical progress. The next stage should reduce the uncertainties below before the broader product vision is allowed to drive additional complexity.
+
+| Commercial uncertainty | Current evidence | Next evidence | Venture decision |
+| --- | --- | --- | --- |
+| Is there a sufficiently important first problem? | Preliminary founder-reported feedback points most strongly to time and convenience, but the sample is small and non-conclusive. | Structured interviews centred on recent routine behaviour, recurring friction and existing workarounds. | Select, narrow or reject the first use case. |
+| Does the device create net convenience? | Comfort, maintenance and price already appear as concerns; no physical workflow evidence exists. | Fit, preparation, loading, cleaning and storage observations alongside customer interviews. | Continue only if saved effort is not cancelled by ownership burden. |
+| Can the first use case justify its product complexity? | Digital architecture exists, but no first-product scope has earned commercial validation. | Compare the minimum useful feature set with the physical mechanisms and servicing it requires. | Remove functions, simplify the architecture or reject an over-complex use case. |
+| Can plausible manufacturing cost overlap with customer value? | No validated unit economics or willingness-to-pay evidence exists. | Sourced component, process and assembly assumptions plus customer pricing research. | Continue, reduce scope, change architecture or reconsider the business model. |
+| When should the broader wearable-and-dock vision expand? | It remains a long-term direction rather than a validated first-product specification. | Customer, physical and cost evidence showing that another function adds enough value to justify added complexity. | Expand only after the narrower product case has earned support from evidence. |
+
+This register is intentionally qualitative until sourced customer and manufacturing evidence exists. It does not assign invented market size, price, margin, conversion or revenue figures.
+
 ## Evidence-gated use of scholarship support
 
 Support should be deployed in the order that reduces the largest uncertainty, not spread across every part of the long-term concept at once. No funding amount or outcome is assumed here.
