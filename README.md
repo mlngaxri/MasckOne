@@ -4,7 +4,7 @@ Masck One is an early-stage hands-free facial-skincare wearable for people who a
 
 **Current stage:** pre-commercialisation. Engineering geometry exists and digital checks and validation frameworks exist, but product-level physical validation has not begun. There is no integrated manufactured product, and the core customer, physical-performance and commercial assumptions remain to be validated.
 
-**Fast reviewer path:** [venture snapshot](#venture-snapshot) → [what I built](#what-i-built-in-roughly-two-weeks) → [what is not proven](#limitations-what-is-not-proven-yet) → [what happens next](#next-validation-steps) → [how scholarship support would be used](#how-scholarship-support-would-create-evidence) → [how to inspect the evidence](#inspect-the-work).
+**Fast reviewer path:** [visual evidence](docs/EVIDENCE_GUIDE.md#visual-evidence-at-a-glance) → [venture snapshot](#venture-snapshot) → [what I built](#what-i-built-in-roughly-two-weeks) → [what is not proven](#limitations-what-is-not-proven-yet) → [what happens next](#next-validation-steps) → [how scholarship support would be used](#how-scholarship-support-would-create-evidence) → [how to inspect the evidence](#inspect-the-work).
 
 The long-term vision spans cleansing and selected leave-on products. The immediate validation goal is narrower: establish whether one clearly defined part of a routine can be automated comfortably and usefully before committing to a broader first product. This is a staged validation approach; it does not mean the complete-routine engineering requirements have been met or waived.
 
