@@ -44,6 +44,18 @@ This diagram is assembled from the existing [Core Sketch product story](CORE_SKE
 
 [Open full-resolution view](../website/images/masck-inspection-front-3q-v17c.webp)
 
+### Rear three-quarter
+
+![Rear three-quarter registered digital review composition of Masck One](../website/images/masck-inspection-rear-3q-v17c.webp)
+
+**Evidence class:** candidate digital composition.
+
+**What this helps inspect:** candidate rear service-cover placement, occipital retention packaging and the relationship between the rear structure and the face-side body from a view not visible in the front composition.
+
+**Evidence limit:** it does not prove the frame-side retention attachment, normal-release behaviour, fit, comfort, service access, structural performance or manufacturability.
+
+[Open full-resolution view](../website/images/masck-inspection-rear-3q-v17c.webp)
+
 ### Side-rear
 
 ![Side-rear registered digital review composition of Masck One](../website/images/masck-inspection-side-rear-v17c.webp)
@@ -62,7 +74,7 @@ The [registered render manifest](../website/images/masck-inspection-v17c-manifes
 
 | Registered field | Manifest record | What a reviewer should infer |
 | --- | --- | --- |
-| Asset version | `v17c` | Both views belong to one registered inspection set rather than unrelated presentation images. |
+| Asset version | `v17c` | All three views belong to one registered inspection set rather than unrelated presentation images. |
 | Engineering authority revision | `2026-08-30-R1` | The composition is tied to a named digital authority revision. |
 | Coordinate frame | `MASCK_ONE_AUTHORITY_WORLD_MM` | The contributing geometry is registered in the project authority coordinate frame. |
 | Exterior geometry | Candidate renderer-pass checkpoint, not released-main geometry | The exterior is useful for inspecting candidate packaging direction, but must not be presented as the released engineering baseline. |
