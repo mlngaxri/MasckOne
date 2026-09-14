@@ -4,6 +4,16 @@
 
 This page gives a scholarship reviewer the shortest visual inspection path through the existing repository. It does not add new engineering evidence. It only surfaces already committed artefacts and their evidence limits.
 
+## How to read the visuals
+
+| Evidence class | What it means here | What it does not mean |
+| --- | --- | --- |
+| Architecture diagram | A reviewer-friendly summary assembled from documented subsystem relationships. | Proof that every subsystem is implemented or physically validated. |
+| Candidate digital composition | A registered visual composition derived from documented candidate geometry, with source checkpoints recorded in the render manifest. | Released-main CAD, a physical prototype, human fit, safety or performance evidence. |
+| Source-bound engineering evidence | Repository source, authority records and automated checks that can be traced to specific digital engineering inputs and outputs. | Physical validation, manufacturing readiness or human-use readiness. |
+
+These labels are deliberately conservative so presentation imagery is not mistaken for engineering proof.
+
 ## 1. Whole-product architecture
 
 ```mermaid
@@ -26,9 +36,11 @@ This diagram is assembled from the existing [Core Sketch product story](CORE_SKE
 
 ![Front three-quarter registered digital review composition of Masck One](../website/images/masck-inspection-front-3q-v17c.webp)
 
+**Evidence class:** candidate digital composition.
+
 **What this helps inspect:** candidate face-side packaging, opening layout and the visible relationship between the facial shell and surrounding structure.
 
-**Evidence limit:** concept/candidate digital composition only. It does not prove released-main geometry, anatomical fit, comfort, sealing, treatment coverage or physical performance.
+**Evidence limit:** it does not prove released-main geometry, anatomical fit, comfort, sealing, treatment coverage or physical performance.
 
 [Open full-resolution view](../website/images/masck-inspection-front-3q-v17c.webp)
 
@@ -36,9 +48,11 @@ This diagram is assembled from the existing [Core Sketch product story](CORE_SKE
 
 ![Side-rear registered digital review composition of Masck One](../website/images/masck-inspection-side-rear-v17c.webp)
 
+**Evidence class:** candidate digital composition.
+
 **What this helps inspect:** candidate depth, rear packaging and the visible relationship between the face-side body and retention structure.
 
-**Evidence limit:** concept/candidate digital composition only. It does not prove attachment closure, removal behaviour, serviceability, structural strength, manufacturability or safety.
+**Evidence limit:** it does not prove attachment closure, removal behaviour, serviceability, structural strength, manufacturability or safety.
 
 [Open full-resolution view](../website/images/masck-inspection-side-rear-v17c.webp)
 
