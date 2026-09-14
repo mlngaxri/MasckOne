@@ -1,8 +1,10 @@
 # Masck One
 
-**Masck One is an early-stage wearable-and-dock system for people who use skincare routines and want to reduce repetitive manual steps; it explores whether a comfortable hands-free device can automate part of that routine without making preparation, cleaning or maintenance worse.**
+Masck One is an early-stage consumer technology venture exploring hands-free automation of facial skincare through a wearable device and supporting dock.
 
-The long-term vision is a system that can support more of a skincare routine, from cleansing through selected leave-on products. The first use case I need to prove is narrower: whether a comfortable wearable can automate one defined part of skincare reliably enough to justify further development.
+The initial customer hypothesis is people who already follow multi-step skincare routines and would value spending less active time on repetitive steps. The product needs to save enough effort to justify wearing, preparing and maintaining it.
+
+The long-term vision spans cleansing and selected leave-on products. The immediate validation goal is narrower: establish whether one clearly defined part of a routine can be automated comfortably and usefully before committing to a broader first product. This is a staged validation approach; it does not mean the complete-routine engineering requirements have been met or waived.
 
 <p align="center">
   <img src="website/images/masck-inspection-front-3q-v17c.webp" alt="Masck One digital concept render, front three-quarter view" width="48%" />
@@ -11,33 +13,25 @@ The long-term vision is a system that can support more of a skincare routine, fr
 
 *Existing digital concept renders used to communicate product direction. They are not photographs of manufactured hardware and should not be read as proof of physical performance.*
 
-## Reviewer snapshot
+## At a glance
 
-| | |
+| Area | Current position |
 | --- | --- |
 | **Stage** | Pre-commercialisation. Engineering CAD and software exist; an integrated manufactured product does not. |
-| **Development window** | Two-week founder-led engineering sprint to date. |
+| **Initial development** | The founder reports building the initial digital foundation over roughly two weeks in September 2026. |
 | **What is inspectable here** | Code-generated parametric CAD, requirements, automated engineering checks, design records and subsystem exploration. |
 | **Evidence boundary** | Digital work can support design decisions, but it does not prove customer demand, comfort, safety, hygiene, manufacturability or product performance. |
 | **Controlled engineering baseline** | **Phase 5: waste acquisition and containment - Iteration 28 complete.** This is a repository roadmap state, not whole-product readiness. |
 
-## Current stage
+## Digital development
 
-Masck One is pre-commercialisation. The CAD in this repository is engineering geometry generated and checked in code. It is not a finished industrial design, and there is currently no integrated manufactured Masck One product.
+The merged baseline covers facial-reference and interface geometry, protected anatomical regions, structural and actuation references, fresh-water and cleanser routing, waste-handling architecture and deterministic CAD export. The [engineering authority](config/masck_one_authority.yaml) and [development roadmap](docs/DEVELOPMENT_ROADMAP.md) define that baseline.
 
-Product-level simulation and physical validation have not yet been completed. The repository includes analytical checks and simulation framework work, but those are not substitutes for fit testing, fluid testing, hygiene work, safety review or manufacturing evidence.
+The repository also contains system requirements, automated checks, analytical models and simulation frameworks. These support decisions and expose assumptions; integrated physical performance has not been established. Current CAD is code-generated engineering geometry, not a finished manufactured product.
 
-The merged baseline currently covers facial-reference and interface geometry, protected anatomical regions, structural and actuation references, fresh-water and cleanser routing, waste-handling architecture and deterministic CAD export. The [engineering authority](config/masck_one_authority.yaml) and [development roadmap](docs/DEVELOPMENT_ROADMAP.md) define the controlled baseline.
+## Customer learning
 
-## What I built in two weeks
-
-- Code-generated parametric CAD.
-- System requirements and machine-readable engineering constraints.
-- Automated engineering checks and regression tests.
-- Documented design decisions and evidence boundaries.
-- Technical exploration across fit, fluid handling, retention, waste capture, electronics and controls.
-
-The purpose of this work was not to make the project look finished. It was to turn an idea into something structured enough to inspect, challenge and test.
+The founder reports an informal survey of around 20 people. Feedback highlighted time savings and convenience, alongside concerns about comfort, maintenance and price. This is an early qualitative signal, not established demand or willingness to pay. The [customer discovery notes](docs/CUSTOMER_DISCOVERY.md) separate that reported feedback from the structured research still needed.
 
 ## System being explored
 
@@ -56,7 +50,7 @@ The main engineering challenge is integration. A decision that helps one subsyst
 
 I direct the product and system architecture: defining the intended experience, requirements and constraints; breaking the work into problems; setting priorities; comparing approaches; resolving trade-offs; and deciding what the available evidence actually supports.
 
-AI is used extensively for engineering analysis, software, programmatic CAD, research, design exploration, testing and documentation. I do not present every technical detail as manually authored. I use AI as an execution multiplier, then review and integrate the work against product requirements, system constraints and evidence standards. Version control, requirements, automated checks and review make that process inspectable.
+I use AI extensively to generate and iterate code-based CAD, develop software, compare alternatives, organise research, draft checks and identify potential failure modes. I review and integrate that work against product requirements, system constraints and evidence standards. Version control and automated checks make the process inspectable; specialist judgement and physical measurement remain necessary where digital work cannot answer a question.
 
 This is an independently initiated, founder-led project. AI outputs are not treated as physical evidence, unknown results stay unknown, and a passing software check does not turn a target into achieved product performance.
 
@@ -72,34 +66,25 @@ The repository does **not** currently prove:
 - Manufacturing feasibility or production capability.
 - Unit economics or a viable commercial model.
 
-These are open questions, not claims hidden elsewhere in the repository.
+The [evidence guide](docs/EVIDENCE_GUIDE.md) explains which records can support each kind of claim.
 
 ## Next validation steps
 
-The next work should convert the most important assumptions into evidence:
+The next work should turn the most important assumptions into evidence:
 
-- Structured customer interviews.
-- Simulation where it can meaningfully reduce uncertainty.
-- A focused physical fit prototype.
-- Core fluid-delivery testing.
-- Hygiene and cleaning investigation.
-- An initial manufacturing-cost model.
-
-The immediate objective is not to add more features. It is to find out whether the venture is desirable, technically feasible and commercially worth developing further.
-
-## How to assess the work quickly
-
-| Question | Best place to look |
+| Priority | Question to resolve |
 | --- | --- |
-| What is Masck One trying to become? | [Product concept](docs/PRODUCT_CONCEPT.md) |
-| What is actually part of the merged engineering baseline? | [Engineering authority](config/masck_one_authority.yaml) and [roadmap](docs/DEVELOPMENT_ROADMAP.md) |
-| What engineering logic has been implemented? | [`src/masck_one/`](src/masck_one/) |
-| What is checked automatically? | [`tests/`](tests/) and the [CI workflow](.github/workflows/ci.yml) |
-| How should digital evidence be interpreted? | [Evidence guide](docs/EVIDENCE_GUIDE.md) |
-| What candidate work is still being reviewed? | [Open pull requests](https://github.com/mlngaxri/MasckOne/pulls) |
-| How is the repository organised? | [Documentation index](docs/README.md) and [repository map](docs/REPOSITORY_STRUCTURE.md) |
+| Structured customer interviews | Which recurring task is worth automating, and what would make someone change their routine? |
+| Focused analysis and fit prototype | Which geometry and comfort assumptions need measurement and specialist review? |
+| Core fluid-delivery feasibility | Can a selected mechanism perform its intended function under appropriate controlled testing? |
+| Hygiene and maintenance investigation | Would preparation and cleaning erase the convenience benefit? |
+| Initial manufacturing-cost model | Could a practical first product support a price and margin consistent with customer value? |
 
-Candidate branches, green software tests, generated renders and physical measurements are different forms of evidence. The [evidence guide](docs/EVIDENCE_GUIDE.md) explains those boundaries so reviewers do not have to infer them.
+These are planned activities, not completed results. The [customer discovery notes](docs/CUSTOMER_DISCOVERY.md) define the commercial questions, and the [engineering work queue](docs/CORE_SKETCH_START_HERE.md) retains the technical dependencies and acceptance gates. Evidence from both should determine the initial use case and which features justify their complexity.
+
+## Inspect the work
+
+Use the [documentation index](docs/README.md) for a guided reading path, the [evidence guide](docs/EVIDENCE_GUIDE.md) to interpret results, and the [engineering quickstart](docs/ENGINEERING_QUICKSTART.md) to reproduce the work. [Open pull requests](https://github.com/mlngaxri/MasckOne/pulls) contain candidate work, which may differ from the merged baseline.
 
 ## Repository structure
 
@@ -111,4 +96,4 @@ Candidate branches, green software tests, generated renders and physical measure
 | [website/](website/) and [brand/](brand/) | Digital presentation and identity work, not physical-product evidence |
 | [generated/](generated/) | Reproducible generated outputs, not independent authority |
 
-For technical reproduction, use the [engineering quickstart](docs/ENGINEERING_QUICKSTART.md). For a non-technical review, the sections above are intended to be sufficient.
+See the [repository map](docs/REPOSITORY_STRUCTURE.md) for source precedence and retained development tooling.

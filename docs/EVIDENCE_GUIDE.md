@@ -4,7 +4,7 @@
 
 Masck One has a digital engineering baseline and a broader product concept under development. This guide helps distinguish what is implemented in a particular checkout from what is proposed or still needs measurement.
 
-For scholarship or venture review, the quickest route is the [project README](../README.md), which states the current stage, what was built in the initial two-week sprint, what remains unproven and what should be validated next. This document is for reviewers who want to inspect the evidence more deeply.
+For a first review, the quickest route is the [project README](../README.md), which states the current stage, the digital development work, what remains unproven and what should be validated next. This document is for reviewers who want to inspect the evidence more deeply.
 
 ## A short inspection route
 
@@ -27,6 +27,10 @@ Examples of candidate work are [facial-interface contact and proof tooling, PR #
 When assessing a result, match the recorded source commit and inputs to the run being cited. An older green run does not qualify a later change. A PR description or dated status board can lag the current branch; inspect its latest commit and checks before treating it as current. The repository's provenance checks and evidence records are retained for this reason.
 
 Development documents sometimes use `cell`, `lane` or `owner` for a workstream and its responsible development process. These are coordination terms, not employee counts. `Core Sketch` names the whole-product concept series; `CS-` identifiers track its work items. Existing names and paths remain where they are used by contracts, links or historical evidence.
+
+## Customer feedback
+
+The [customer discovery notes](CUSTOMER_DISCOVERY.md) record a founder-reported informal survey and its limitations. Reported interest is distinct from independently inspectable research, purchasing behaviour and validated demand. The next research questions are plans, not completed interviews.
 
 ## What remains open
 

@@ -2,7 +2,7 @@
 
 This directory contains the engineering rationale, subsystem specifications, validation rules and development records behind the source code and generated CAD.
 
-If you are reviewing the venture rather than reproducing the engineering work, start with the [project README](../README.md). It summarises the problem, current stage, two-week development work, limitations and next validation steps without requiring you to read the internal engineering record.
+If you are reviewing the venture rather than reproducing the engineering work, start with the [project README](../README.md). It summarises the problem, current stage, digital development, limitations and next validation steps without requiring you to read the internal engineering record.
 
 The repository separates three kinds of information:
 
@@ -15,6 +15,7 @@ The repository separates three kinds of information:
 | What you want to understand | Start here |
 | --- | --- |
 | The product, founder role, progress and present stage | [Project overview](../README.md) |
+| Initial customer, reported feedback and next research questions | [Customer discovery](CUSTOMER_DISCOVERY.md) |
 | What the repository actually demonstrates | [Evidence guide](EVIDENCE_GUIDE.md) |
 | How to run the engineering work | [Engineering quickstart](ENGINEERING_QUICKSTART.md) |
 | Where files belong and which source takes precedence | [Repository map](REPOSITORY_STRUCTURE.md) |
