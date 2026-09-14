@@ -4,7 +4,7 @@ Masck One is an early-stage hands-free facial-skincare wearable for people who a
 
 **Current stage:** pre-commercialisation. The repository contains substantial digital engineering work, but there is no integrated manufactured product and the core customer, physical-performance and commercial assumptions remain to be validated.
 
-**Fast reviewer path:** [what I built](#what-i-built-in-roughly-two-weeks) → [what is not proven](#limitations-what-is-not-proven-yet) → [what happens next](#next-validation-steps) → [how scholarship support would be used](#how-scholarship-support-would-create-evidence) → [how to inspect the evidence](#inspect-the-work).
+**Fast reviewer path:** [venture snapshot](#venture-snapshot) → [what I built](#what-i-built-in-roughly-two-weeks) → [what is not proven](#limitations-what-is-not-proven-yet) → [what happens next](#next-validation-steps) → [how scholarship support would be used](#how-scholarship-support-would-create-evidence) → [how to inspect the evidence](#inspect-the-work).
 
 The long-term vision spans cleansing and selected leave-on products. The immediate validation goal is narrower: establish whether one clearly defined part of a routine can be automated comfortably and usefully before committing to a broader first product. This is a staged validation approach; it does not mean the complete-routine engineering requirements have been met or waived.
 
@@ -15,14 +15,19 @@ The long-term vision spans cleansing and selected leave-on products. The immedia
 
 *Existing digital concept renders used to communicate product direction. They are not photographs of manufactured hardware and should not be read as proof of physical performance.*
 
-## At a glance
+## Venture snapshot
 
-| Area | Current position |
+| Reviewer question | Current answer |
 | --- | --- |
-| **Stage** | Pre-commercialisation. Engineering CAD and software exist; an integrated manufactured product does not. |
+| **Problem being explored** | Multi-step facial-skincare routines can require repetitive active time, handling and clean-up. Masck One explores whether part of that work can be automated without creating a worse maintenance burden. |
+| **Target user** | People who already follow multi-step facial-skincare routines and value reducing active routine time and effort. |
+| **First use case to validate** | One clearly defined routine step that can be tested for usefulness, fit, fluid handling and maintenance burden before committing to the broader wearable-and-dock vision. The specific first step is not yet locked; structured customer evidence should determine it. |
+| **What has been built** | Code-generated parametric CAD, system requirements, automated engineering checks, design records and linked subsystem exploration across fit, fluid handling, retention, waste capture, electronics and controls. |
+| **Early customer learning** | An informal survey of around 20 people reportedly showed strongest interest around time savings and convenience, with concerns around comfort, maintenance and price. This is preliminary and non-conclusive, not evidence of demand or willingness to pay. |
+| **Key uncertainties** | Customer value, comfort and population fit, hygiene and cleaning burden, real fluid behaviour, safety, manufacturability, unit economics and the most defensible first use case. |
+| **Next evidence milestones** | Structured customer interviews, focused analysis, a physical fit prototype, core fluid-delivery testing, hygiene and cleaning investigation, and an initial manufacturing-cost model. |
+| **Current stage** | Pre-commercialisation. Engineering CAD and software exist; an integrated manufactured product does not. |
 | **Initial development** | The founder reports building the initial digital foundation over roughly two weeks in September 2026. |
-| **What is inspectable here** | Code-generated parametric CAD, requirements, automated engineering checks, design records and subsystem exploration. |
-| **Evidence boundary** | Digital work can support design decisions, but it does not prove customer demand, comfort, safety, hygiene, manufacturability or product performance. |
 | **Controlled engineering baseline** | **Phase 5: waste acquisition and containment - Iteration 28 complete.** This is a repository roadmap state, not whole-product readiness. |
 
 ## What I built in roughly two weeks
