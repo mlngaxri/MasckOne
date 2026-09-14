@@ -18,6 +18,21 @@ This page gives a scholarship reviewer a short evidence-based view of what has b
 
 The short [repository chronology](EVIDENCE_GUIDE.md#verifiable-repository-chronology) shows how this work accumulated through inspectable commits. Rapid digital progress should not be interpreted as rapid physical validation.
 
+## Evidence maturity at a glance
+
+This is a venture-stage map, not a readiness score. It is intended to make the strongest evidence and the largest gaps visible in one scan.
+
+| Evidence area | Current evidence state | Next evidence needed |
+| --- | --- | --- |
+| Customer problem | Preliminary founder-reported feedback only. Time/convenience appears to be the strongest interest signal; comfort, maintenance and price are recurring concerns. | Structured interviews focused on real routine friction, existing alternatives, rejection reasons and willingness to change behaviour. |
+| Digital engineering | Substantial inspectable work exists: requirements, parametric geometry, automated checks, design records and cross-subsystem integration analysis. | Continue only where analysis can reduce uncertainty before hardware testing; digital work should not substitute for measurement. |
+| Fit and wearing workflow | Not physically validated. Current work is digital geometry, requirements and validation planning. | A focused physical fit prototype with measured observations against a narrow first-use-case question. |
+| Fluid delivery, recovery and hygiene | Architectures, routes and test concepts exist digitally; product-level physical behaviour is not established. | Controlled core fluid-delivery and recovery tests, followed by cleaning and hygiene investigation. |
+| Manufacturing and economics | Engineering constraints are being considered, but manufacturing feasibility, production capability and viable unit economics are not proven. | Initial process and assembly assumptions, sourced cost estimates and a first manufacturing-cost model. |
+| Broad wearable-and-dock vision | Product direction only. It should not be read as a committed first-product specification. | Expand scope only after a narrower use case passes customer, physical and commercial evidence gates. |
+
+The asymmetry is deliberate: the project currently has much stronger digital-development evidence than customer, physical or commercial validation. The next stage should close that gap rather than maximise feature count.
+
 ## Product vision versus first validation target
 
 The long-term direction is a wearable-and-dock system that could automate selected parts of a facial-skincare routine. That is a product vision, not a claim that every function belongs in a first product or already works.
