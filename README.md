@@ -1,8 +1,10 @@
 # Masck One
 
-Masck One is an early-stage consumer technology venture exploring hands-free automation of facial skincare through a wearable device and supporting dock.
+Masck One is an early-stage consumer technology venture for people who already follow multi-step skincare routines, exploring whether repetitive facial-skincare steps can be automated hands-free to reduce the active time and effort those routines require.
 
-The initial customer hypothesis is people who already follow multi-step skincare routines and would value spending less active time on repetitive steps. The product needs to save enough effort to justify wearing, preparing and maintaining it.
+**Current stage:** pre-commercialisation. The repository contains substantial digital engineering work, but there is no integrated manufactured product and the core customer, physical-performance and commercial assumptions remain to be validated.
+
+**Fast reviewer path:** [what I built](#what-i-built-in-roughly-two-weeks) → [what is not proven](#limitations-what-is-not-proven-yet) → [what happens next](#next-validation-steps) → [how to inspect the evidence](#inspect-the-work).
 
 The long-term vision spans cleansing and selected leave-on products. The immediate validation goal is narrower: establish whether one clearly defined part of a routine can be automated comfortably and usefully before committing to a broader first product. This is a staged validation approach; it does not mean the complete-routine engineering requirements have been met or waived.
 
@@ -23,11 +25,13 @@ The long-term vision spans cleansing and selected leave-on products. The immedia
 | **Evidence boundary** | Digital work can support design decisions, but it does not prove customer demand, comfort, safety, hygiene, manufacturability or product performance. |
 | **Controlled engineering baseline** | **Phase 5: waste acquisition and containment - Iteration 28 complete.** This is a repository roadmap state, not whole-product readiness. |
 
-## Digital development
+## What I built in roughly two weeks
 
-The merged baseline covers facial-reference and interface geometry, protected anatomical regions, structural and actuation references, fresh-water and cleanser routing, waste-handling architecture and deterministic CAD export. The [engineering authority](config/masck_one_authority.yaml) and [development roadmap](docs/DEVELOPMENT_ROADMAP.md) define that baseline.
+I built the initial digital engineering foundation for Masck One: code-generated parametric CAD, system requirements, automated engineering checks, documented design decisions and linked technical exploration across fit, fluid handling, retention, waste capture, electronics and controls.
 
-The repository also contains system requirements, automated checks, analytical models and simulation frameworks. These support decisions and expose assumptions; integrated physical performance has not been established. Current CAD is code-generated engineering geometry, not a finished manufactured product.
+The merged baseline includes facial-reference and interface geometry, protected anatomical regions, structural and actuation references, fresh-water and cleanser routing, waste-handling architecture and deterministic CAD export. The [engineering authority](config/masck_one_authority.yaml) and [development roadmap](docs/DEVELOPMENT_ROADMAP.md) define that controlled baseline.
+
+The repository also contains analytical models and simulation frameworks used to test assumptions and expose conflicts before physical prototyping. These are engineering tools, not physical validation. Current CAD is code-generated engineering geometry, not a finished manufactured product.
 
 ## Customer learning
 
@@ -50,7 +54,7 @@ The main engineering challenge is integration. A decision that helps one subsyst
 
 I direct the product and system architecture: defining the intended experience, requirements and constraints; breaking the work into problems; setting priorities; comparing approaches; resolving trade-offs; and deciding what the available evidence actually supports.
 
-I use AI extensively to generate and iterate code-based CAD, develop software, compare alternatives, organise research, draft checks and identify potential failure modes. I review and integrate that work against product requirements, system constraints and evidence standards. Version control and automated checks make the process inspectable; specialist judgement and physical measurement remain necessary where digital work cannot answer a question.
+I use AI extensively to accelerate code-based CAD, software development, research, alternative generation and engineering checks. I set the direction, requirements and trade-offs, and make the final system-level decisions. Version control and automated checks make the work inspectable; specialist judgement and physical measurement remain necessary where digital work cannot answer a question.
 
 This is an independently initiated, founder-led project. AI outputs are not treated as physical evidence, unknown results stay unknown, and a passing software check does not turn a target into achieved product performance.
 
@@ -75,9 +79,10 @@ The next work should turn the most important assumptions into evidence:
 | Priority | Question to resolve |
 | --- | --- |
 | Structured customer interviews | Which recurring task is worth automating, and what would make someone change their routine? |
-| Focused analysis and fit prototype | Which geometry and comfort assumptions need measurement and specialist review? |
-| Core fluid-delivery feasibility | Can a selected mechanism perform its intended function under appropriate controlled testing? |
-| Hygiene and maintenance investigation | Would preparation and cleaning erase the convenience benefit? |
+| Simulation and focused analysis | Which high-risk assumptions can be narrowed digitally before hardware is built? |
+| Focused physical fit prototype | Which geometry and comfort assumptions hold when measured on real hardware and people under appropriate supervision? |
+| Core fluid-delivery testing | Can a selected mechanism deliver and recover fluid repeatably under controlled testing? |
+| Hygiene and cleaning investigation | Would preparation and cleaning erase the convenience benefit, and what sanitation requirements follow? |
 | Initial manufacturing-cost model | Could a practical first product support a price and margin consistent with customer value? |
 
 These are planned activities, not completed results. The [customer discovery notes](docs/CUSTOMER_DISCOVERY.md) define the commercial questions, and the [engineering work queue](docs/CORE_SKETCH_START_HERE.md) retains the technical dependencies and acceptance gates. Evidence from both should determine the initial use case and which features justify their complexity.
