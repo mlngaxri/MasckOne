@@ -44,6 +44,18 @@ Customer demand and willingness to pay are not established. Comfort and populati
 
 Synthetic tests, geometry screens, framework readiness, subsystem coverage and green CI, where present, remain digital evidence. None should be promoted into physical validation.
 
+## Verifiable development progression
+
+The dates below are Git commit dates, not retrospective claims about when physical capability was achieved. They provide a short audit trail showing how the venture moved from controlled engineering foundations to whole-product integration and then external-review discipline.
+
+| Date | Inspectable milestone | Venture signal |
+| --- | --- | --- |
+| 30 August 2026 | [Authority-contract implementation](https://github.com/mlngaxri/MasckOne/commit/910d4fd1a03164e032847e590331cd7cddf51d8d) and [facial-reference landmark contract](https://github.com/mlngaxri/MasckOne/commit/9c427d5faec3687c1a1422c6bea3edd9394bffb3) | Requirements, automated checks and a reproducible engineering structure became inspectable repository outputs. |
+| 10 September 2026 | [Whole-product Core Sketch convergence](https://github.com/mlngaxri/MasckOne/commit/0044a55885000480a873b5761742341038b24b6a) and [authority reconciliation](https://github.com/mlngaxri/MasckOne/commit/0c0ccb1d1b3356ed0001e5e53f318973a2893e08) | Development expanded into explicit cross-subsystem conflicts, constraints and evidence gates rather than treating subsystem work as independently complete. |
+| 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | The engineering record was reorganised for external scrutiny with clearer separation between digital work, planned validation and unsupported claims. |
+
+This chronology demonstrates initiative through dated, inspectable outputs. It does not imply that the speed of repository development equals physical product maturity, and it does not hide the extensive use of AI described below.
+
 ## Customer and commercial evidence
 
 A founder-reported informal survey of around 20 people produced a preliminary signal around time and convenience, with concerns around comfort, maintenance and price. The underlying questionnaire, recruitment method and raw response data are not available in the repository, so this does not establish demand, willingness to pay, a validated customer segment or product-market fit. See the [customer discovery record](CUSTOMER_DISCOVERY.md).
