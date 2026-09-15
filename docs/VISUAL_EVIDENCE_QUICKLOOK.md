@@ -8,16 +8,18 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 ![Masck One documented whole-product architecture](assets/scholarship-system-overview.svg)
 
-This diagram summarises documented subsystem relationships. It helps a non-technical reviewer understand the whole-product architecture, but it does not prove that every subsystem is implemented or physically validated.
+**What this shows:** a reviewer-friendly map of the documented whole-product architecture and the intended relationships between the major subsystems.
+
+**What it does not show:** implementation status, physical integration or validation of any subsystem. The diagram summarises existing documentation; it is not a prototype or test result.
 
 ## 2. Representative registered digital work
 
 | Front three-quarter | Rear three-quarter | Side-rear |
 | --- | --- | --- |
 | [![Front three-quarter registered digital composition](../website/images/masck-inspection-front-3q-v17c.webp)](../website/images/masck-inspection-front-3q-v17c.webp) | [![Rear three-quarter registered digital composition](../website/images/masck-inspection-rear-3q-v17c.webp)](../website/images/masck-inspection-rear-3q-v17c.webp) | [![Side-rear registered digital composition](../website/images/masck-inspection-side-rear-v17c.webp)](../website/images/masck-inspection-side-rear-v17c.webp) |
-| Candidate face-side packaging and opening layout. | Candidate rear packaging and retention form. | Candidate depth and relationship between the face-side body and retention structure. |
+| **Shows:** candidate face-side packaging, opening layout and the visible relationship between the facial shell and surrounding structure. **Does not prove:** released engineering geometry, anatomical fit, comfort, sealing or treatment performance. | **Shows:** candidate rear packaging, service-cover placement and retention form. **Does not prove:** retention attachment, release behaviour, fit, serviceability, structural performance or manufacturability. | **Shows:** candidate product depth and the visible relationship between the face-side body and retention structure. **Does not prove:** attachment closure, removal behaviour, structural strength, manufacturability or safety. |
 
-These three images are registered candidate digital compositions, not photographs, released-main CAD or physical-test evidence. They help inspect digital packaging and geometry direction. They do not prove anatomical fit, comfort, sealing, safety, structural performance, serviceability, manufacturability or treatment performance.
+**Evidence class:** registered candidate digital compositions. These are not photographs, released engineering CAD or physical-test evidence. They are included because their digital provenance is recorded, not because they establish product readiness.
 
 The [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) records their source checkpoints, camera definitions, coordinate frame, image hashes and explicit claim boundary.
 
@@ -25,4 +27,4 @@ The [registered render manifest](../website/images/masck-inspection-v17c-manifes
 
 The repository contains substantial inspectable digital engineering, including controlled requirements, code-generated parametric geometry, automated checks and recorded system-integration work. That is evidence of digital development and engineering discipline. It is not evidence of a physically validated product.
 
-Website hero imagery is concept imagery and is intentionally excluded from this quicklook. For source provenance, development milestones and the distinction between concept imagery, candidate compositions and source-bound engineering evidence, use the [full visual evidence index](VISUAL_EVIDENCE_INDEX.md).
+Website hero imagery is **concept imagery** and is intentionally excluded from this quicklook. It communicates product direction and brand intent, not engineering geometry or validation. For source provenance, development milestones and the distinction between concept imagery, candidate compositions and source-bound engineering evidence, use the [full visual evidence index](VISUAL_EVIDENCE_INDEX.md).
