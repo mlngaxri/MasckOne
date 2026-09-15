@@ -8,9 +8,9 @@ As checked on 16 September 2026:
 
 - released `main`: `b4a105ea4483a6285be7d55fd527baea30ce6412`
 - scholarship-review branch: `docs/public-venture-overview`
-- scholarship-review head before this status update: `a8f2a80153eef3276e45b9cbd51594bd8387da0c`
+- scholarship-review head before this status update: `84106e6c8e9f53e6fbb485615ec799b2faeaa36b`
 - active review lineage: PR #171
-- engineering CI for that exact pre-update head: run `35027407524`, still in progress when checked
+- engineering CI for that exact pre-update head: run `35032435098`, still in progress when checked
 
 This status is deliberately revision-specific. A CI result for one commit does not qualify later commits, and CI is digital engineering evidence only. It is not evidence of customer demand, human fit, comfort, hygiene, safety, real fluid behaviour, manufacturability or product-level physical performance.
 
@@ -25,6 +25,14 @@ The venture is still pre-commercialisation. Product-level physical validation ha
 The long-term direction is a wearable-and-dock system that could automate selected parts of a facial-skincare routine. That is a direction for exploration, not a committed first-product specification.
 
 The first use case still has to earn its scope. Structured customer interviews should identify a repeated problem worth solving, then focused analysis, fit work, core fluid testing, hygiene and cleaning investigation, and initial manufacturing-cost modelling should determine whether that narrow use case deserves deeper development.
+
+## Immediate venture milestone
+
+The next venture milestone is not a broader prototype. It is a defensible first-use-case decision based on structured customer evidence. The interview round should record recent routine behaviour, repeated friction, existing workarounds, rejection reasons, maintenance tolerance and purchasing context rather than asking only whether the concept sounds appealing.
+
+That evidence should end in one of three decisions: select one narrow use case for focused physical testing, narrow or change the hypothesis, or stop the current use-case path. Only after a use case earns that decision should scholarship-supported prototype materials, test equipment and specialist input be concentrated on its highest-risk fit, fluid, cleaning and cost assumptions.
+
+This sequencing keeps the long-term wearable-and-dock vision from driving premature hardware scope and makes scholarship support traceable to evidence rather than presentation activity.
 
 ## Founder and AI boundary
 
