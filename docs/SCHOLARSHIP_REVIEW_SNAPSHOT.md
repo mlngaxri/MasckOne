@@ -49,9 +49,9 @@ A useful scholarship outcome would therefore be a better venture decision: conti
 
 ## Current CI boundary
 
-Automated checks are evidence of engineering discipline only when their result is stated accurately. The current scholarship-review head before this documentation-only edit, `59bc6558`, ran engineering CI on 16 September 2026 and failed overall. Source binding, compilation, the engineering-authority contract, product-identity contract, repository preflight and Iteration 11 to 16 preflights passed. Unit and integration tests then failed, so deterministic CAD smoke, exact release-provenance verification, generated-package integrity and CAD review-artifact preservation were skipped. The separate integrity-ratchets job passed repository integrity ratchets but failed pinned-commit provenance.
+Automated checks are evidence of engineering discipline only when their result is stated accurately. The exact scholarship-review head before this documentation-only edit, `1697c2df4b0b0d77cfa8bf96317182d7999fd3a5`, ran engineering CI on 16 September 2026 and failed overall in run `35004150358`. Source binding, compilation, the engineering-authority contract, product-identity contract, repository preflight and Iteration 11 to 16 preflights passed. Unit and integration tests then failed, so deterministic CAD smoke, exact release-provenance verification, generated-package integrity and CAD review-artifact preservation were skipped. The separate integrity-ratchets job passed repository integrity ratchets, failed pinned-commit provenance, and therefore skipped program-position consistency.
 
-Accordingly, this branch is not presented as a green engineering release. Passing preflights demonstrate that specific digital guards executed successfully at that revision; they do not override the failed suite, qualify skipped stages, or constitute physical validation.
+Accordingly, this branch is not presented as a green engineering release. Passing preflights demonstrate that specific digital guards executed successfully at that exact revision; they do not override the failed suite, qualify skipped stages, transfer qualification to this later documentation commit, or constitute physical validation.
 
 ## Current venture boundary
 
