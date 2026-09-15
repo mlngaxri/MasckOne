@@ -67,6 +67,18 @@ A reviewer does not need to infer initiative from repository size or commit coun
 | Customer uncertainty is being treated separately from engineering progress | [Customer discovery record](CUSTOMER_DISCOVERY.md) | Preliminary learning is distinguished from the structured research still required. | Demand, willingness to pay, a validated segment or product-market fit. |
 | External review has been made possible without inflating maturity | [Evidence guide](EVIDENCE_GUIDE.md) and [venture progress](VENTURE_PROGRESS.md) | Reviewers can trace outputs, limitations and next evidence needs directly. | Any upgrade in physical or commercial evidence merely because documentation is clearer. |
 
+### Representative automated checks
+
+The checks are intended to make engineering assumptions fail visibly, not to create a readiness score. Three representative examples from the [authority contract tests](../tests/test_authority_contract.py) are:
+
+| Check | Plain-language meaning | Evidence boundary |
+| --- | --- | --- |
+| Duplicated airway requirements are deliberately changed and the mismatch must be rejected. | Two copies of a safety-relevant geometry requirement cannot silently drift apart. | This verifies digital consistency, not measured breathing performance. |
+| The clean-cycle fluid ledger is deliberately made inconsistent and the mismatch must be rejected. | Required fluid quantities must reconcile inside the controlled source of truth. | This does not measure delivery, leakage, recovery or cleaning performance. |
+| Waste-cartridge capacity is deliberately set below the controlled requirement and must be rejected. | A digitally specified capacity cannot pass when it contradicts the requirement. | This does not prove real usable capacity, absorption, sealing, hygiene or service behaviour. |
+
+Together with the [boundary-release tests](../tests/test_boundary_release.py), these examples show fail-closed digital engineering discipline and source binding. A passing test remains software evidence only; it cannot promote a `VALIDATION_GATED` target into achieved physical performance.
+
 This trail is intended to make progress auditable. The strongest current evidence is digital development and decision discipline; the weakest areas remain customer, physical and commercial validation.
 
 ## What happens next
