@@ -9,7 +9,7 @@ This page is a deliberately short visual check for scholarship review. It surfac
 | Label | Meaning |
 | --- | --- |
 | **Architecture diagram** | A simplified map of documented subsystem relationships. It explains the intended system structure, not implementation or validation status. |
-| **Registered candidate digital composition** | A traceable view assembled from existing candidate digital sources. It supports inspection of digital packaging and geometry direction, but is not released engineering CAD or physical evidence. |
+| **Registered candidate digital composition** | A traceable view assembled from existing candidate digital sources. It supports inspection of digital packaging and geometry direction, but is not released engineering computer-aided design (CAD) or physical evidence. |
 | **Concept imagery** | Brand or product-direction imagery. It is not engineering geometry or validation evidence and is excluded from the evidence views below. |
 
 ## 1. Whole-product architecture
