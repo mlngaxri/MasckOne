@@ -4,6 +4,14 @@
 
 This page gives a scholarship reviewer the shortest visual inspection path through the existing repository. It does not add new engineering evidence. It only surfaces already committed artefacts and their evidence limits.
 
+## 30-second inspection path
+
+1. **Understand the system:** view the [whole-product architecture](#1-whole-product-architecture) to see how the documented subsystems relate.
+2. **Inspect the digital work:** compare the [three registered compositions](#2-representative-registered-digital-compositions), then read the limitation directly beneath each view.
+3. **Verify progression:** scan the [three repository milestones](#3-development-in-three-inspectable-steps) to see how the project moved from controlled requirements to whole-product convergence and external review.
+
+The key distinction is simple: the architecture diagram explains the documented system, the registered compositions show traceable candidate digital work, and neither is evidence of a physically validated product.
+
 ## How to read the visuals
 
 | Evidence class | What it means here | What it does not mean |
