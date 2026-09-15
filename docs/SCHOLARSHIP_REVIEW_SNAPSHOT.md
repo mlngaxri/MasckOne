@@ -16,6 +16,21 @@ What exists today is an inspectable digital engineering foundation: controlled r
 
 The largest uncertainties are therefore customer problem strength, net wearable convenience, physical fit, real fluid behaviour, hygiene and cleaning burden, manufacturing feasibility and cost. The next stage is designed to replace those assumptions with evidence before the broader vision is allowed to drive more scope.
 
+## Reviewer venture scorecard
+
+This is the shortest current-state view of the venture. A tick means the repository contains inspectable work in that area, not that the underlying product hypothesis has been validated.
+
+| Question | Current evidence | Status | Next decision |
+| --- | --- | --- | --- |
+| Is this more than an idea? | Controlled requirements, parametric geometry, automated checks, documented decisions and cross-subsystem work are inspectable. | Yes, as digital venture development. | Convert the digital foundation into focused customer and physical evidence. |
+| Is the customer problem validated? | Founder-reported informal feedback from around 20 people, without raw data or a documented method. | No. Preliminary signal only. | Run structured interviews and select, narrow or reject a first use case. |
+| Is the wearable physically validated? | Digital geometry and analysis frameworks only. | No. | Test fit and workflow with a focused physical prototype. |
+| Does the fluid concept work physically? | Requirements and digital engineering work exist; product-level physical fluid evidence does not. | No. | Run repeatable core fluid-delivery tests before expanding scope. |
+| Is maintenance genuinely convenient? | Comfort, maintenance and price appear as concerns in preliminary feedback; hygiene practicality is unproven. | No. | Investigate cleaning, servicing and contamination risk as part of the value proposition. |
+| Is there a credible commercial path? | Commercial uncertainties and evidence gates are documented; manufacturing feasibility, cost and willingness to pay are not established. | Not yet. | Build an initial sourced manufacturing-cost model and compare it with customer evidence. |
+
+The scorecard is intentionally asymmetric: repository activity is evidence of founder initiative, while customer, physical and commercial readiness must still be earned separately.
+
 ## Scholarship decision brief
 
 The strongest case for supporting Masck One now is not that the product is close to market. It is that substantial inspectable digital work already exists, the largest remaining uncertainties are clearly identified, and the next tranche of work can be structured around decisions rather than additional presentation or feature breadth.
