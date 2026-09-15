@@ -20,6 +20,20 @@ This page is a one-page reviewer summary. It separates what has been built from 
 
 The current venture decision is therefore narrow: determine whether one first use case deserves focused physical development. The long-term wearable-and-dock concept remains a direction to earn, not a specification already validated.
 
+## Proof already earned vs proof still required
+
+This is the central maturity boundary for scholarship review.
+
+| Already inspectable | Still needs evidence |
+| --- | --- |
+| Requirements have been translated into a controlled engineering authority and automated checks. | A specific customer problem and first use case strong enough to justify focused hardware development. |
+| A reproducible code-generated parametric model and documented subsystem work exist. | Human fit, comfort and wearing-workflow evidence from a focused physical prototype. |
+| Whole-product integration conflicts and unresolved technical questions are recorded rather than hidden. | Measured core fluid-delivery and recovery behaviour, plus practical hygiene and cleaning evidence. |
+| Preliminary founder-reported customer feedback identifies time/convenience interest and comfort, maintenance and price concerns. | Structured customer interviews, stronger behavioural evidence and any credible pricing or willingness-to-pay evidence. |
+| The repository contains an evidence-gated next-stage plan and explicit limits on what digital work proves. | Initial manufacturing-cost modelling and enough customer-value evidence to test commercial plausibility. |
+
+The venture has therefore earned evidence of initiative, structured digital development and disciplined uncertainty management. It has not yet earned claims of product readiness, customer demand or commercial viability. Scholarship support would be used to close those specific evidence gaps.
+
 ## Fast reviewer inspection path
 
 A reviewer can test the venture story without relying on presentation claims:
