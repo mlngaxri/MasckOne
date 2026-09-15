@@ -4,6 +4,8 @@ This directory contains the engineering rationale, subsystem specifications, val
 
 **Current stage:** pre-commercialisation. Engineering geometry exists and digital checks and validation frameworks exist, but product-level physical validation has not begun. There is no integrated manufactured product, and the core customer, physical-performance and commercial assumptions remain to be validated.
 
+**Scholarship reviewer entry:** start with the [one-page scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md), then use the [evidence guide](EVIDENCE_GUIDE.md) only where a claim needs deeper inspection. This keeps the path shallow: README → snapshot → representative source/check.
+
 **Reviewer shortcut:** use the [evidence guide](EVIDENCE_GUIDE.md) for the auditable claim path. Its [engineering-discipline table](EVIDENCE_GUIDE.md#engineering-discipline-in-one-scan) links representative parametric CAD, controlled requirements, automated checks, documented trade-offs, subsystem coverage and explicit unknowns; its [evidence classes](EVIDENCE_GUIDE.md#evidence-classes) and [open limitations](EVIDENCE_GUIDE.md#what-remains-open) show what is planned or still unproven. For a concrete source-and-check pair, inspect the [parametric model](../src/masck_one/model.py) beside its [model checks](../tests/test_model.py); for controlled requirements, inspect the [engineering authority](../config/masck_one_authority.yaml) beside its [authority contract tests](../tests/test_authority_contract.py). These are digital engineering evidence, not physical validation.
 
 **Three fast requirement spot-checks:** the authority defines duplicated nostril/airway opening requirements, a clean-cycle fluid ledger and a minimum waste-cartridge capacity; the paired [authority contract tests](../tests/test_authority_contract.py) deliberately perturb each of those inputs and require the repository to reject the resulting mismatch. This demonstrates fail-closed consistency checking, not measured airway, fluid or cartridge performance. Requirements marked `VALIDATION_GATED` remain unproven until qualifying physical evidence exists.
@@ -24,6 +26,7 @@ The repository separates three kinds of information:
 
 | What you want to understand | Start here |
 | --- | --- |
+| Scholarship review: strongest claims, evidence classes and limitations in one page | [Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md) |
 | The product, founder role, progress and present stage | [Project overview](../README.md) |
 | The strongest existing visuals and what they do or do not prove | [Visual evidence index](VISUAL_EVIDENCE_INDEX.md) |
 | Initial customer, reported feedback and next research questions | [Customer discovery](CUSTOMER_DISCOVERY.md) |
