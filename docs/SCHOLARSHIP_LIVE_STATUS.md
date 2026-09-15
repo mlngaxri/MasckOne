@@ -8,9 +8,9 @@ As checked on 16 September 2026:
 
 - released `main`: `b4a105ea4483a6285be7d55fd527baea30ce6412`
 - scholarship-review branch: `docs/public-venture-overview`
-- scholarship-review head before this status update: `84106e6c8e9f53e6fbb485615ec799b2faeaa36b`
+- scholarship-review head before this status update: `3180848a3100bd4b652e8975cd86ebf9df0f2ce6`
 - active review lineage: PR #171
-- engineering CI for that exact pre-update head: run `35032435098`, still in progress when checked
+- engineering CI for that exact pre-update head: run `35037246008`, still in progress when checked
 
 This status is deliberately revision-specific. A CI result for one commit does not qualify later commits, and CI is digital engineering evidence only. It is not evidence of customer demand, human fit, comfort, hygiene, safety, real fluid behaviour, manufacturability or product-level physical performance.
 
@@ -33,6 +33,21 @@ The next venture milestone is not a broader prototype. It is a defensible first-
 That evidence should end in one of three decisions: select one narrow use case for focused physical testing, narrow or change the hypothesis, or stop the current use-case path. Only after a use case earns that decision should scholarship-supported prototype materials, test equipment and specialist input be concentrated on its highest-risk fit, fluid, cleaning and cost assumptions.
 
 This sequencing keeps the long-term wearable-and-dock vision from driving premature hardware scope and makes scholarship support traceable to evidence rather than presentation activity.
+
+## Evidence priority queue
+
+The next stage is ordered by decision value rather than by how impressive an output looks. Each item should leave behind an inspectable record and should be allowed to narrow or stop the relevant product hypothesis.
+
+| Priority | Uncertainty to reduce | Minimum useful evidence output | Decision enabled |
+| --- | --- | --- | --- |
+| 1 | Is there a repeated skincare-routine problem important enough to solve? | Structured interview records covering recent behaviour, friction, workarounds, rejection reasons, maintenance tolerance and purchasing context. | Select, narrow, change or reject the first-use-case hypothesis. |
+| 2 | Can the selected use case survive obvious geometry and system constraints before hardware spend? | Focused simulation or analysis tied to the selected use case, with assumptions and failure conditions recorded. | Decide which physical question is worth testing first. |
+| 3 | Can the narrow wearable workflow fit and be used plausibly? | A focused physical fit prototype with observations recorded against explicit fit and workflow questions. | Continue, redesign or stop the wearable approach for that use case. |
+| 4 | Can the core wet-system behaviour be demonstrated repeatably? | Repeatable fluid-delivery measurements for the narrow test configuration, including failures rather than only preferred runs. | Decide whether deeper fluid-system development is justified. |
+| 5 | Does cleaning and servicing erase the intended convenience benefit? | Documented cleaning, servicing and contamination-risk observations for the tested configuration. | Continue, redesign or reject the maintenance model. |
+| 6 | Is there a plausible cost path for the scope that survives earlier gates? | A sourced first-pass manufacturing-cost model with major assumptions and cost drivers visible. | Decide whether product scope and likely customer value can plausibly coexist. |
+
+This queue is not a claim that any item has been completed. It is a venture-control mechanism: customer evidence comes before broad hardware scope, physical evidence comes before performance claims, and cost work is tied to a scope that has survived earlier tests. Scholarship support can accelerate these evidence outputs through structured customer validation, prototype materials, test equipment, manufacturing investigation and specialist input without being presented as proof in advance.
 
 ## Founder and AI boundary
 
