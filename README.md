@@ -4,7 +4,7 @@ Masck One is an early-stage hands-free facial-skincare wearable for people who a
 
 **Current stage:** pre-commercialisation. Engineering geometry exists and digital checks and validation frameworks exist, but product-level physical validation has not begun. There is no integrated manufactured product, and the core customer, physical-performance and commercial assumptions remain to be validated.
 
-**Fast scholarship-review path:** start with the [visual evidence quicklook](docs/VISUAL_EVIDENCE_QUICKLOOK.md) for one architecture diagram, three representative registered digital compositions and their evidence limits. Then use the [one-page scholarship review snapshot](docs/SCHOLARSHIP_REVIEW_SNAPSHOT.md) for the venture context and the [evidence guide](docs/EVIDENCE_GUIDE.md) only for deeper inspection.
+**Fast scholarship-review path:** start with the [one-page scholarship review snapshot](docs/SCHOLARSHIP_REVIEW_SNAPSHOT.md). It maps the strongest reviewer-facing claims directly to representative source and checks, while stating the evidence boundary beside each claim. Use the [visual evidence quicklook](docs/VISUAL_EVIDENCE_QUICKLOOK.md) for presentation context and the [evidence guide](docs/EVIDENCE_GUIDE.md) only for deeper inspection.
 
 The long-term vision spans cleansing and selected leave-on products. The immediate validation goal is narrower: establish whether one clearly defined part of a routine can be automated comfortably and usefully before committing to a broader first product. This is a staged validation approach; it does not mean the complete-routine engineering requirements have been met or waived.
 
@@ -79,59 +79,10 @@ This is an independently initiated, founder-led project. AI outputs are not trea
 
 ## Limitations: what is not proven yet
 
-The repository does **not** currently prove:
+Masck One has not yet established customer demand, willingness to pay, comfort or population fit, hygiene and cleaning practicality, real fluid delivery/recovery/leakage behaviour, safety, manufacturing feasibility, unit economics or product-level physical performance. Product-level physical validation has not begun.
 
-- Customer demand or willingness to pay.
-- Comfort or population fit.
-- Hygiene, cleaning or maintenance practicality.
-- Real fluid behaviour, delivery, leakage or recovery performance.
-- Product safety.
-- Product-level physical performance.
-- Manufacturing feasibility or production capability.
-- Unit economics or a viable commercial model.
+Synthetic tests, geometry screens, simulation frameworks, source-bound digital checks and green CI, where present, are digital engineering evidence only. They do not become physical validation without qualifying measurements.
 
-The [evidence guide](docs/EVIDENCE_GUIDE.md) explains which records can support each kind of claim.
+## Evidence and validation
 
-## Next validation steps
-
-The next work should turn the most important assumptions into evidence:
-
-| Priority | Question to resolve |
-| --- | --- |
-| Structured customer interviews | Which recurring task is worth automating, and what would make someone change their routine? |
-| Simulation and focused analysis | Which high-risk assumptions can be narrowed digitally before hardware is built? |
-| Focused physical fit prototype | Which geometry and comfort assumptions hold when measured on real hardware and people under appropriate supervision? |
-| Core fluid-delivery testing | Can a selected mechanism deliver and recover fluid repeatably under controlled testing? |
-| Hygiene and cleaning investigation | Would preparation and cleaning erase the convenience benefit, and what sanitation requirements follow? |
-| Initial manufacturing-cost model | Could a practical first product support a price and margin consistent with customer value? |
-
-These are planned activities, not completed results. The [customer discovery notes](docs/CUSTOMER_DISCOVERY.md) define the commercial questions, and the [engineering work queue](docs/CORE_SKETCH_START_HERE.md) retains the technical dependencies and acceptance gates. Evidence from both should determine the initial use case and which features justify their complexity.
-
-## How scholarship support would create evidence
-
-Support would be used to move the project from primarily digital exploration towards stronger physical and commercial evidence, rather than towards presentation work.
-
-| Support area | Evidence it would enable |
-| --- | --- |
-| Prototype materials and test equipment | Focused fit, fluid-delivery and cleaning experiments against defined questions rather than an immediate attempt at a complete product. |
-| Manufacturing and cost investigation | Early process, assembly and cost assumptions that can be challenged before committing to production-oriented design decisions. |
-| Structured customer validation | Better evidence about the first use case, routine pain points, willingness to change behaviour and acceptable maintenance burden. |
-| Specialist collaboration | Human expertise in hardware, manufacturing, IP, fundraising and market entry where AI-assisted exploration and founder judgement are not substitutes for domain experience. |
-
-The aim would be to reduce uncertainty in sequence: first identify a customer problem worth solving, then test the smallest physical mechanisms needed for that use case, then determine whether the resulting product can be manufactured and supported at a viable cost. Funding or mentorship would not make the current digital work physically validated; it would help generate the evidence needed to decide what deserves to become a product.
-
-## Inspect the work
-
-Use the [documentation index](docs/README.md) for a guided reading path, the [evidence guide](docs/EVIDENCE_GUIDE.md) to interpret results, and the [engineering quickstart](docs/ENGINEERING_QUICKSTART.md) to reproduce the work. For a direct example of the CAD evidence, inspect the [parametric model source](src/masck_one/model.py) beside its [model checks](tests/test_model.py): the source explicitly separates physical material from references, motion sweeps, keepouts and protected anatomy, while the checks verify generated geometry and preserve digital-only evidence boundaries. These files do not establish physical fit, comfort, safety or performance. [Open pull requests](https://github.com/mlngaxri/MasckOne/pulls) contain candidate work, which may differ from the merged baseline.
-
-## Repository structure
-
-| Location | Contents |
-| --- | --- |
-| [config/](config/) and [schemas/](schemas/) | Engineering authorities and validation contracts |
-| [src/masck_one/](src/masck_one/) and [tests/](tests/) | Engineering logic, CAD generation and automated checks |
-| [docs/](docs/) and [studies/](studies/) | Design rationale, development history and bounded investigations |
-| [website/](website/) and [brand/](brand/) | Digital presentation and identity work, not physical-product evidence |
-| [generated/](generated/) | Reproducible generated outputs, not independent authority |
-
-See the [repository map](docs/REPOSITORY_STRUCTURE.md) for source precedence and retained development tooling.
+The [scholarship review snapshot](docs/SCHOLARSHIP_REVIEW_SNAPSHOT.md) is the canonical reviewer-facing claim-to-evidence map. The [evidence guide](docs/EVIDENCE_GUIDE.md) provides the deeper engineering trail, and the [next-stage evidence plan](docs/SCHOLARSHIP_NEXT_STAGE.md) identifies the physical and commercial evidence still required.
