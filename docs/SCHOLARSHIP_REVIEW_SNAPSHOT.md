@@ -16,6 +16,19 @@ What exists today is an inspectable digital engineering foundation: controlled r
 
 The largest uncertainties are therefore customer problem strength, net wearable convenience, physical fit, real fluid behaviour, hygiene and cleaning burden, manufacturing feasibility and cost. The next stage is designed to replace those assumptions with evidence before the broader vision is allowed to drive more scope.
 
+## Scholarship decision brief
+
+The strongest case for supporting Masck One now is not that the product is close to market. It is that substantial inspectable digital work already exists, the largest remaining uncertainties are clearly identified, and the next tranche of work can be structured around decisions rather than additional presentation or feature breadth.
+
+| What a reviewer can reasonably conclude now | What support should help determine next |
+| --- | --- |
+| The venture has progressed beyond an idea into controlled requirements, parametric geometry, automated checks, documented trade-offs and cross-subsystem engineering work. | Whether customers experience one routine problem strongly enough to justify a focused first use case. |
+| The founder has created a reproducible engineering record and has made unsupported physical and commercial claims explicit rather than treating digital progress as product validation. | Whether fit, fluid handling and cleaning can create net convenience in focused physical tests. |
+| Preliminary customer feedback provides questions worth testing, but not evidence of demand or willingness to pay. | Whether customer value and an initial manufacturing-cost model overlap enough to justify deeper hardware development. |
+| The broader wearable-and-dock concept is a direction, not a locked first-product specification. | Which functions, if any, earn their way into a first product through customer, physical and cost evidence. |
+
+A useful scholarship outcome would therefore be a better venture decision: continue a narrowly evidenced use case, redesign it, or reject it. Funding or mentorship would not convert the current repository into physical validation; it would help generate the evidence required to decide what deserves further investment.
+
 ## 60-second evidence map
 
 | Claim a reviewer may test | Representative repository evidence | What it establishes | Boundary |
