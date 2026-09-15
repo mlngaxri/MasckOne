@@ -24,6 +24,16 @@ This summary is founder-reported. The underlying questionnaire, recruitment meth
 
 Structured discovery should examine existing behaviour before asking for reactions to the proposed solution. Record the method, sample limitations and contradictory feedback alongside positive comments. Interview participation and reported interest are not customers or sales.
 
+## Structured interview evidence protocol
+
+The next customer-discovery round should leave behind evidence that another reviewer can audit, rather than only a summary of impressions. This is a collection protocol, not evidence that interviews have already occurred.
+
+For each interview, retain an anonymised record containing the interview date, broad participant fit with the target-user hypothesis, current routine behaviour, one recent example of routine friction, existing workaround or alternative, the single task they would most want simplified, objections to wearing/loading/cleaning/storing a device, relevant purchasing context, and any reason they would reject the concept. Record contradictory and negative responses with the same prominence as positive responses.
+
+Keep solution reactions separate from behaviour evidence. A statement that the concept sounds useful is weaker than a concrete account of a repeated problem, an existing workaround, or a purchase already made to solve it. Do not convert stated interest into demand, willingness to pay, conversion or customer counts.
+
+After a consistent set of interviews exists, summarise patterns only where the underlying records support them. The first-use-case decision should identify which evidence supports the choice, which evidence argues against it, what remains uncertain, and why the selected next physical test is proportionate to the customer evidence available.
+
 ## How this affects development
 
 The broader vision is automation across a facial routine. The immediate learning objective is to test a clearly defined part of that experience and use the results to decide what the first product should be. A focused experiment does not validate the complete system.
