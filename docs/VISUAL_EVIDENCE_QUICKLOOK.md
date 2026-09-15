@@ -24,6 +24,8 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 ## 1. Whole-product architecture
 
+**Visual status: DOCUMENTED ARCHITECTURE, NOT IMPLEMENTATION EVIDENCE**
+
 [![Masck One documented whole-product architecture](assets/scholarship-system-overview.svg)](assets/scholarship-system-overview.svg)
 
 [Open the architecture diagram at full size](assets/scholarship-system-overview.svg).
@@ -35,6 +37,8 @@ This page is a deliberately short visual check for scholarship review. It surfac
 **Traceability:** this diagram is a reviewer abstraction of subsystem relationships already documented in the [project overview](../README.md), [product concept](PRODUCT_CONCEPT.md) and [whole-product convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md). Those documents describe intent and integration context; the [engineering authority](../config/masck_one_authority.yaml) remains controlling for engineering truth.
 
 ## 2. Representative registered digital work
+
+**Visual status: CANDIDATE DIGITAL COMPOSITIONS, NOT RELEASED CAD OR PHYSICAL EVIDENCE**
 
 These three images are the strongest concise visual summary currently registered in the repository. They are **candidate digital compositions**, not standalone screenshots of released engineering CAD. Their value is that their contributing digital sources and evidence limits are recorded explicitly.
 
