@@ -43,6 +43,20 @@ The repository shows progression through inspectable outputs rather than present
 
 Rapid digital progress does not imply rapid physical validation. The point of the chronology is to show sustained founder execution, traceable decisions and increasing evidence discipline.
 
+## Reviewer evidence trail
+
+A reviewer does not need to infer initiative from repository size or commit count. The following trail connects venture claims to inspectable outputs and keeps the evidence boundary visible.
+
+| Venture signal | Inspectable output | What it supports | What it does not support |
+| --- | --- | --- | --- |
+| Requirements have been translated into engineering work | [Engineering authority](../config/masck_one_authority.yaml) and [authority contract tests](../tests/test_authority_contract.py) | Requirements are explicit enough to be checked and changed deliberately rather than existing only as presentation claims. | Achievement of those requirements in manufactured hardware. |
+| The concept has progressed into reproducible digital engineering | [Parametric model source](../src/masck_one/model.py) and [model checks](../tests/test_model.py) | A reviewable, code-generated geometry and checking workflow exists. | Human fit, comfort, safety or physical performance. |
+| Cross-system trade-offs are being confronted | [Whole-product convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) | Subsystem conflicts and unresolved integration questions are recorded rather than hidden behind a concept render. | A physically integrated or production-ready product. |
+| Customer uncertainty is being treated separately from engineering progress | [Customer discovery record](CUSTOMER_DISCOVERY.md) | Preliminary learning is distinguished from the structured research still required. | Demand, willingness to pay, a validated segment or product-market fit. |
+| External review has been made possible without inflating maturity | [Evidence guide](EVIDENCE_GUIDE.md) and [venture progress](VENTURE_PROGRESS.md) | Reviewers can trace outputs, limitations and next evidence needs directly. | Any upgrade in physical or commercial evidence merely because documentation is clearer. |
+
+This trail is intended to make progress auditable. The strongest current evidence is digital development and decision discipline; the weakest areas remain customer, physical and commercial validation.
+
 ## What happens next
 
 The next stage should reduce uncertainty in sequence rather than increase feature count.
