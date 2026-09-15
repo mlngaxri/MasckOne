@@ -8,6 +8,8 @@ This directory contains the engineering rationale, subsystem specifications, val
 
 **Three fast requirement spot-checks:** the authority defines duplicated nostril/airway opening requirements, a clean-cycle fluid ledger and a minimum waste-cartridge capacity; the paired [authority contract tests](../tests/test_authority_contract.py) deliberately perturb each of those inputs and require the repository to reject the resulting mismatch. This demonstrates fail-closed consistency checking, not measured airway, fluid or cartridge performance. Requirements marked `VALIDATION_GATED` remain unproven until qualifying physical evidence exists.
 
+**Planned validation is separately inspectable:** the [reduced-region proof package](CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md) and [status board](CORE_SKETCH_STATUS_BOARD.md) show bounded proof work and unresolved gates. A protocol, fixture concept or validation gate is evidence of planning only; it is not a completed experiment and must not be read as physical performance.
+
 If you are reviewing the venture rather than reproducing the engineering work, start with the [project README](../README.md). It summarises the problem, current stage, digital development, limitations and next validation steps without requiring you to read the internal engineering record.
 
 The repository separates three kinds of information:
