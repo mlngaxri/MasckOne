@@ -44,6 +44,8 @@ These three images are the strongest concise visual summary currently registered
 
 **Why these views are shown:** the repository does not currently contain a concise, reviewer-ready gallery of released-main CAD screenshots. Using the registered compositions is more transparent than relabelling presentation imagery or candidate screenshots as released CAD. The source-bound engineering record linked below remains the stronger evidence of controlled digital work.
 
+**Selection rationale:** these three views are retained because together they cover the face side, rear service and retention arrangement, and product depth without repeating near-identical angles. Website hero images are deliberately excluded because they are concept imagery rather than engineering evidence. This is a small evidence set chosen for inspectability, not a gallery of every visual artefact in the repository.
+
 **What to look for:** use the front three-quarter view to inspect the face-side opening layout and overall packaging direction; use the rear three-quarter view to inspect the candidate rear service-cover and retention arrangement; use the side-rear view to inspect product depth and the relationship between the face-side body and rear structure. These are visual inspection cues only. They do not convert the compositions into released CAD or physical evidence.
 
 | Front three-quarter | Rear three-quarter | Side-rear |
