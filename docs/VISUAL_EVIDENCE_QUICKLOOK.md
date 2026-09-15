@@ -14,12 +14,16 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 ## 2. Representative registered digital work
 
+These three images are the strongest concise visual summary currently registered in the repository. They are **candidate digital compositions**, not standalone screenshots of released engineering CAD. Their value is that their contributing digital sources and evidence limits are recorded explicitly.
+
 | Front three-quarter | Rear three-quarter | Side-rear |
 | --- | --- | --- |
 | [![Front three-quarter registered digital composition](../website/images/masck-inspection-front-3q-v17c.webp)](../website/images/masck-inspection-front-3q-v17c.webp) | [![Rear three-quarter registered digital composition](../website/images/masck-inspection-rear-3q-v17c.webp)](../website/images/masck-inspection-rear-3q-v17c.webp) | [![Side-rear registered digital composition](../website/images/masck-inspection-side-rear-v17c.webp)](../website/images/masck-inspection-side-rear-v17c.webp) |
 | **Shows:** candidate face-side packaging, opening layout and the visible relationship between the facial shell and surrounding structure. **Does not prove:** released engineering geometry, anatomical fit, comfort, sealing or treatment performance. | **Shows:** candidate rear packaging, service-cover placement and retention form. **Does not prove:** retention attachment, release behaviour, fit, serviceability, structural performance or manufacturability. | **Shows:** candidate product depth and the visible relationship between the face-side body and retention structure. **Does not prove:** attachment closure, removal behaviour, structural strength, manufacturability or safety. |
 
 **Evidence class:** registered candidate digital compositions. These are not photographs, released engineering CAD or physical-test evidence. They are included because their digital provenance is recorded, not because they establish product readiness.
+
+**Engineering evidence behind the images:** the repository's stronger engineering proof is source-bound rather than photographic. The [parametric model source](../src/masck_one/model.py), [engineering authority](../config/masck_one_authority.yaml) and [automated tests](../tests/) show how geometry, requirements and digital checks are represented and controlled. They still do not establish physical fit, comfort, safety or performance.
 
 **One-click provenance:** the visible exterior contribution traces to candidate renderer-pass checkpoint [`17e7db2`](https://github.com/mlngaxri/MasckOne/commit/17e7db204c693f684855d923fcacd7c95468e599), while the retention contribution traces to candidate checkpoint [`2568676`](https://github.com/mlngaxri/MasckOne/commit/25686766238b66ecf900009042d721c08e042592). These links establish where the contributing digital geometry came from; they do not make either checkpoint released-main CAD or physical evidence.
 
