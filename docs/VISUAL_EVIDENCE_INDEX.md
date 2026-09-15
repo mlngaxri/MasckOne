@@ -11,8 +11,11 @@ This page gives a scholarship reviewer the shortest visual inspection path throu
 | Architecture diagram | A reviewer-friendly summary assembled from documented subsystem relationships. | Proof that every subsystem is implemented or physically validated. |
 | Candidate digital composition | A registered visual composition derived from documented candidate geometry, with source checkpoints recorded in the render manifest. | Released-main CAD, a physical prototype, human fit, safety or performance evidence. |
 | Source-bound engineering evidence | Repository source, authority records and automated checks that can be traced to specific digital engineering inputs and outputs. | Physical validation, manufacturing readiness or human-use readiness. |
+| Concept imagery | Presentation imagery used to communicate product direction or brand intent. | Engineering geometry, implementation evidence or validation of any kind. |
 
 These labels are deliberately conservative so presentation imagery is not mistaken for engineering proof.
+
+> **Concept imagery boundary:** the website hero assets (`masck-hero-caucasian-mask-v1.webp`, `masck-hero-mask-v2.webp` and `masck-hero-sky-ribbons-v1.webp`) are presentation imagery, not engineering evidence. They are deliberately excluded from the inspection set below. The registered `v17c` compositions are shown instead because their source checkpoints and claim boundary are recorded in the repository manifest.
 
 ## 1. Whole-product architecture
 
