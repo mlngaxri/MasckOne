@@ -6,6 +6,21 @@ Masck One is currently much stronger in inspectable digital development than in 
 
 This is an evidence plan, not a claim that the work below has already been completed.
 
+## Evidence readiness at a glance
+
+This table makes the present venture state explicit. A planned test is not counted as evidence, and digital engineering cannot close a physical or commercial gate.
+
+| Gate | Evidence available now | Status | What closes the gap |
+| --- | --- | --- | --- |
+| Problem significance | Founder-reported informal survey of around 20 people, with preliminary interest around time/convenience and concerns around comfort, maintenance and price. Method and raw data are unavailable. | Preliminary only | Structured interviews that establish repeated routine friction, current workarounds and rejection reasons. |
+| First-use-case selection | Multiple product and subsystem directions have been explored digitally, but no first product is locked. | Open | Customer evidence strong enough to select or reject one narrow use-case hypothesis. |
+| Wearable fit/workflow | Digital geometry, requirements and analysis exist. | Physical evidence required | Focused physical fit prototype and recorded wearing/workflow observations. |
+| Fluid behaviour | Digital fluid-system work and requirements exist. | Physical evidence required | Controlled, repeatable core delivery and recovery tests for the selected use case. |
+| Hygiene/cleaning practicality | Risks and cleaning burden are recognised in the venture plan. | Open | Documented cleaning workflow, burden observations and sanitation investigation. |
+| Commercial plausibility | Cost and price are recognised as uncertainties; no viable unit economics are claimed. | Open | Initial sourced manufacturing-cost model considered alongside stronger customer-value evidence. |
+
+The immediate priority is therefore not to make the full concept look complete. It is to move these gates from assumptions to evidence in an order that avoids unnecessary hardware spend.
+
 ## The next six evidence steps
 
 | Step | Question | Minimum useful output | Decision enabled |
