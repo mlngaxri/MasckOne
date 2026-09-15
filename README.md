@@ -8,12 +8,9 @@ Masck One is an early-stage hands-free facial-skincare wearable for people who a
 
 The long-term vision spans cleansing and selected leave-on products. The immediate validation goal is narrower: establish whether one clearly defined part of a routine can be automated comfortably and usefully before committing to a broader first product. This is a staged validation approach; it does not mean the complete-routine engineering requirements have been met or waived.
 
-<p align="center">
-  <img src="website/images/masck-inspection-front-3q-v17c.webp" alt="Masck One registered candidate digital composition, front three-quarter view" width="48%" />
-  <img src="website/images/masck-inspection-rear-3q-v17c.webp" alt="Masck One registered candidate digital composition, rear three-quarter view" width="48%" />
-</p>
+[![Masck One documented whole-product architecture](docs/assets/scholarship-system-overview.svg)](docs/VISUAL_EVIDENCE_QUICKLOOK.md)
 
-*Registered candidate digital compositions with source checkpoints recorded in the repository manifest. They help inspect candidate packaging and geometry direction, but are not photographs, released engineering CAD or physical-test evidence and do not prove fit, comfort, safety or performance. [See the visual evidence index for provenance and evidence limits.](docs/VISUAL_EVIDENCE_INDEX.md)*
+*Documented whole-product architecture. This is a reviewer-friendly map of the intended subsystem relationships, not evidence of implementation or physical validation. Open the [visual evidence quicklook](docs/VISUAL_EVIDENCE_QUICKLOOK.md) for representative registered digital compositions, provenance and explicit evidence limits.*
 
 ## Venture snapshot
 
