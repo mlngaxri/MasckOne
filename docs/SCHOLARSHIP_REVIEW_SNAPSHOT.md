@@ -6,6 +6,17 @@ Masck One is an early-stage, pre-commercialisation venture exploring whether par
 
 This page is a one-page reviewer summary. It separates what has been built from what still needs customer, physical and commercial validation.
 
+## Fast reviewer inspection path
+
+A reviewer can test the venture story without relying on presentation claims:
+
+1. Read the **Venture snapshot** below for the problem, target-user hypothesis, first validation target and current evidence boundary.
+2. Inspect the [engineering authority](../config/masck_one_authority.yaml) and [parametric model source](../src/masck_one/model.py) to confirm that the concept has progressed into controlled, reproducible digital engineering.
+3. Read the [whole-product convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) to see unresolved cross-system conflicts recorded rather than hidden.
+4. Read the [customer discovery record](CUSTOMER_DISCOVERY.md) to see the preliminary survey evidence and its limitations, then the [venture progress page](VENTURE_PROGRESS.md) for the evidence-gated next stage.
+
+The intended conclusion is deliberately bounded: there is substantial inspectable founder-led development, but the venture has not yet earned claims of customer demand, physical product performance or viable unit economics.
+
 ## Venture snapshot
 
 | Reviewer question | Current position |
