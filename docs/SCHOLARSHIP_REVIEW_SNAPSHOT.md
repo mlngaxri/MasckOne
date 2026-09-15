@@ -19,6 +19,18 @@ This page is a one-page reviewer summary. It separates what has been built from 
 | What is not proven | Customer demand, willingness to pay, comfort and population fit, hygiene and cleaning practicality, real fluid behaviour, safety, manufacturability, production capability, unit economics and product-level physical performance. |
 | Current venture decision | Determine whether a narrow first use case deserves focused physical development before expanding the broader concept. |
 
+## Near-term decision sequence
+
+The next stage is organised around three decisions rather than around adding features.
+
+| Decision | Minimum evidence before deciding | If evidence is weak |
+| --- | --- | --- |
+| 1. Which problem is worth solving first? | Structured customer interviews showing a repeated routine friction and how people currently deal with it. | Narrow, change or reject the first-use-case hypothesis before deeper hardware spend. |
+| 2. Can a wearable remove more friction than it creates? | Focused analysis followed by fit, fluid and cleaning evidence for the selected use case. | Simplify the workflow or mechanism, reconsider the wearable form, or stop that path. |
+| 3. Is there a plausible product case? | Initial manufacturing-cost assumptions considered alongside customer-value and pricing evidence. | Reduce scope, change architecture or reconsider the commercial model before expanding the broader vision. |
+
+This sequence is deliberately narrower than the long-term wearable-and-dock concept. A larger feature set is not treated as progress unless the preceding evidence supports it.
+
 ## Evidence of initiative
 
 The repository shows progression through inspectable outputs rather than presentation claims.
