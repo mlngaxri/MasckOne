@@ -21,7 +21,9 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 **Evidence class:** registered candidate digital compositions. These are not photographs, released engineering CAD or physical-test evidence. They are included because their digital provenance is recorded, not because they establish product readiness.
 
-The [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) records their source checkpoints, camera definitions, coordinate frame, image hashes and explicit claim boundary.
+**How these images were assembled:** the registered manifest records a composite of existing candidate digital sources rather than one released whole-product CAD state. The exterior comes from the last checkpoint whose multi-view boundary-representation renderer passed; retention comes from a separate current candidate in the same authority coordinate frame. The primary-control location is capacity-only, and the dry-side internal package is not rendered as visible exterior geometry. This makes the views useful for inspecting candidate packaging relationships, but not evidence that those sources have been integrated, released or physically validated together.
+
+The [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) records the exact source checkpoints, camera definitions, coordinate frame, image hashes and explicit claim boundary.
 
 ## 3. Verifiable development progression
 
