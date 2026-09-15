@@ -28,6 +28,8 @@ These three images are the strongest concise visual summary currently registered
 
 **Why these views are shown:** the repository does not currently contain a concise, reviewer-ready gallery of released-main CAD screenshots. Using the registered compositions is more transparent than relabelling presentation imagery or candidate screenshots as released CAD. The source-bound engineering record linked below remains the stronger evidence of controlled digital work.
 
+**What to look for:** use the front three-quarter view to inspect the face-side opening layout and overall packaging direction; use the rear three-quarter view to inspect the candidate rear service-cover and retention arrangement; use the side-rear view to inspect product depth and the relationship between the face-side body and rear structure. These are visual inspection cues only. They do not convert the compositions into released CAD or physical evidence.
+
 | Front three-quarter | Rear three-quarter | Side-rear |
 | --- | --- | --- |
 | [![Front three-quarter registered digital composition](../website/images/masck-inspection-front-3q-v17c.webp)](../website/images/masck-inspection-front-3q-v17c.webp) | [![Rear three-quarter registered digital composition](../website/images/masck-inspection-rear-3q-v17c.webp)](../website/images/masck-inspection-rear-3q-v17c.webp) | [![Side-rear registered digital composition](../website/images/masck-inspection-side-rear-v17c.webp)](../website/images/masck-inspection-side-rear-v17c.webp) |
