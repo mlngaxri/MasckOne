@@ -18,7 +18,15 @@ This page is the canonical reviewer evidence path. It separates existing digital
 
 ## Representative automated checks
 
-The repository uses checks to detect digital inconsistency, not to substitute software results for measurements. Representative checks include authority-contract tests that reject inconsistent duplicated requirements, model checks that test generated geometry against encoded constraints, and boundary-release tests that reject stale or incorrectly classified evidence. A passing check means the encoded digital contract passed for that source revision. It does not mean a person has worn a safe, comfortable product or that fluid, hygiene, manufacturing or commercial performance has been demonstrated.
+The repository uses checks to detect digital inconsistency, not to substitute software results for measurements. Three examples from the [authority contract tests](../tests/test_authority_contract.py) are deliberately easy to audit:
+
+| Example check | What the test deliberately changes | What rejection demonstrates | What it does not demonstrate |
+| --- | --- | --- | --- |
+| Airway requirement consistency | Changes one duplicated minimum-airway-area value from the controlled requirement. | Conflicting copies of a safety-related requirement are rejected instead of silently drifting apart. | Breathing safety, anatomical clearance or human-use performance. |
+| Clean-cycle fluid ledger | Changes the encoded nominal introduced-liquid total so it no longer reconciles with the controlled cycle ledger. | Internal fluid accounting must remain numerically consistent. | Real flow, priming, leakage, recovery, cleansing or hygiene performance. |
+| Waste-cartridge capacity margin | Reduces the encoded retained-capacity requirement below its controlled ledger margin. | A digital capacity requirement cannot be weakened without the contract failing. | Actual retained liquid capacity, sealing, contamination control or manufacturing capability. |
+
+These are fail-closed digital contract checks for a particular source revision. They are useful because they show that requirements are executable and contradictions can be caught automatically. A passing result remains digital evidence only; it does not mean a person has worn a safe, comfortable product or that fluid, hygiene, manufacturing or commercial performance has been demonstrated.
 
 ## Evidence classes
 
