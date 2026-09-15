@@ -6,6 +6,8 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 > **Reviewer takeaway:** the repository contains substantial, traceable digital engineering work. The architecture diagram explains the documented whole-product system, while the three registered compositions provide a concise visual inspection of candidate packaging and geometry direction. Neither should be read as evidence of a manufactured prototype, human fit, safety or physical performance.
 
+**Evidence hierarchy:** treat the source-bound model, controlled engineering authority and automated checks as the engineering record. Use the architecture diagram to understand that record at whole-product level, and the registered compositions to orient yourself visually. The compositions are supporting inspection aids, not stronger evidence than the underlying sources and checks.
+
 ### 30-second review path
 
 1. Start with the architecture diagram to understand how the documented product subsystems relate.
