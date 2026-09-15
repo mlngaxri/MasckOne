@@ -38,6 +38,20 @@ The first product is deliberately not locked. The long-term direction is a weara
 
 A narrower use case should earn focused physical development only when customer evidence identifies a repeated problem and the required fit, fluid, cleaning and cost questions can be tested without building the complete vision. Weak evidence should narrow or change the concept rather than trigger more features.
 
+## Assumptions that must be retired
+
+The next stage should be judged by how many important assumptions become evidence-backed decisions, not by feature count. These are the venture assumptions currently most capable of invalidating or materially changing the first product.
+
+| Assumption to test | Why it matters | Evidence that would retire it | Possible decision if unsupported |
+| --- | --- | --- | --- |
+| A repeated skincare task creates enough time or handling friction to justify automation | Without a meaningful problem, technical feasibility has little commercial value. | Structured interviews showing recurring recent examples, existing workarounds and reasons the problem matters. | Reject or redefine the first-use-case hypothesis. |
+| A wearable can create net convenience after fitting, loading, removal and cleaning are counted | Automation can fail if servicing burden replaces the effort it removes. | Focused workflow observations alongside fit and cleaning evidence. | Simplify the interaction, change the form factor or stop the wearable path. |
+| Core fluid delivery and recovery can be made practical for the selected use case | The broader concept depends on controlled wet operation, but digital work is not physical proof. | Repeatable physical measurements against a narrow delivery and recovery question. | Redesign or reject the fluid approach before adding functions. |
+| Hygiene and cleaning can be managed without disproportionate user burden | A technically functioning wet system may still be unattractive or impractical to own. | Documented cleaning workflow, burden observations and specialist-informed sanitation investigation. | Change servicing architecture, reduce wet-system scope or stop the path. |
+| Product complexity can plausibly fit the value customers perceive | A desirable concept can still fail if manufacturing and ownership costs are structurally too high. | Sourced initial manufacturing-cost model considered with stronger customer-value and pricing evidence. | Reduce scope, change architecture or reconsider the commercial model. |
+
+This register is deliberately falsifiable. An unsupported assumption is a reason to change direction, not a documentation gap to hide.
+
 ## How scholarship support converts into evidence
 
 Scholarship support would be most useful where it replaces assumptions with reviewable evidence:
