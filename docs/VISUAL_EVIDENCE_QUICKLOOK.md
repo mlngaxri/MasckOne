@@ -14,9 +14,11 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 ## 1. Whole-product architecture
 
-![Masck One documented whole-product architecture](assets/scholarship-system-overview.svg)
+[![Masck One documented whole-product architecture](assets/scholarship-system-overview.svg)](assets/scholarship-system-overview.svg)
 
-**What this shows:** a reviewer-friendly map of the documented whole-product architecture and the intended relationships between the major subsystems.
+[Open the architecture diagram at full size](assets/scholarship-system-overview.svg).
+
+**What this shows:** a reviewer-friendly map of the documented whole-product architecture and the intended relationships between the major subsystems. It gives a non-technical reviewer one place to see the dock and preparation stage, product storage and delivery, facial interface and treatment mechanics, waste recovery, retention and removal, and the supporting electronics, controls and software layer.
 
 **What it does not show:** implementation status, physical integration or validation of any subsystem. The diagram summarises existing documentation; it is not a prototype or test result.
 
