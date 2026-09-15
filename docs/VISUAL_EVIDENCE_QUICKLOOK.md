@@ -21,6 +21,8 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 **Evidence class:** registered candidate digital compositions. These are not photographs, released engineering CAD or physical-test evidence. They are included because their digital provenance is recorded, not because they establish product readiness.
 
+**One-click provenance:** the visible exterior contribution traces to candidate renderer-pass checkpoint [`17e7db2`](https://github.com/mlngaxri/MasckOne/commit/17e7db204c693f684855d923fcacd7c95468e599), while the retention contribution traces to candidate checkpoint [`2568676`](https://github.com/mlngaxri/MasckOne/commit/25686766238b66ecf900009042d721c08e042592). These links establish where the contributing digital geometry came from; they do not make either checkpoint released-main CAD or physical evidence.
+
 **How these images were assembled:** the registered manifest records a composite of existing candidate digital sources rather than one released whole-product CAD state. The exterior comes from the last checkpoint whose multi-view boundary-representation renderer passed; retention comes from a separate current candidate in the same authority coordinate frame. The primary-control location is capacity-only, and the dry-side internal package is not rendered as visible exterior geometry. This makes the views useful for inspecting candidate packaging relationships, but not evidence that those sources have been integrated, released or physically validated together.
 
 The [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) records the exact source checkpoints, camera definitions, coordinate frame, image hashes and explicit claim boundary.
