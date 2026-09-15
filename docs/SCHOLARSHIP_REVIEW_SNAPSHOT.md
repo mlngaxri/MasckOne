@@ -79,6 +79,10 @@ The checks are intended to make engineering assumptions fail visibly, not to cre
 
 Together with the [boundary-release tests](../tests/test_boundary_release.py), these examples show fail-closed digital engineering discipline and source binding. A passing test remains software evidence only; it cannot promote a `VALIDATION_GATED` target into achieved physical performance.
 
+### How to read CI
+
+[Engineering CI](https://github.com/mlngaxri/MasckOne/actions/workflows/ci.yml) is evidence about a specific repository revision, not a product-readiness badge. A reviewer should match a run to the exact commit being inspected. A failed or skipped check remains visible evidence of an unresolved digital gate; an older green run does not qualify a later revision. Even a fully green run would establish only that the defined digital checks passed for that source revision. It would not prove customer demand, comfort, hygiene, fluid behaviour, safety, manufacturing feasibility, unit economics or physical performance.
+
 This trail is intended to make progress auditable. The strongest current evidence is digital development and decision discipline; the weakest areas remain customer, physical and commercial validation.
 
 ## What happens next
