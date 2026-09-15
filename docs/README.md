@@ -2,6 +2,16 @@
 
 This directory contains the engineering rationale, subsystem specifications, validation rules and development records behind the source code and generated CAD.
 
+**Current stage:** pre-commercialisation. Engineering geometry exists and digital checks and validation frameworks exist, but product-level physical validation has not begun. There is no integrated manufactured product, and the core customer, physical-performance and commercial assumptions remain to be validated.
+
+**Scholarship reviewer entry:** start with the [one-page scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md). It is the single reviewer-facing evidence page: its claim trail links directly to representative parametric CAD, controlled requirements, automated checks, documented trade-offs and customer evidence, while keeping planned validation and unproven physical/commercial claims separate. Use the [evidence guide](EVIDENCE_GUIDE.md) only where a claim needs deeper inspection. This keeps the path shallow: README → snapshot → representative source/check.
+
+**Three fast requirement spot-checks:** the authority defines duplicated nostril/airway opening requirements, a clean-cycle fluid ledger and a minimum waste-cartridge capacity; the paired [authority contract tests](../tests/test_authority_contract.py) deliberately perturb each of those inputs and require the repository to reject the resulting mismatch. This demonstrates fail-closed consistency checking, not measured airway, fluid or cartridge performance. Requirements marked `VALIDATION_GATED` remain unproven until qualifying physical evidence exists.
+
+**Planned validation is separately inspectable:** the [reduced-region proof package](CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md) and [status board](CORE_SKETCH_STATUS_BOARD.md) show bounded proof work and unresolved gates. A protocol, fixture concept or validation gate is evidence of planning only; it is not a completed experiment and must not be read as physical performance.
+
+**Reviewer claim guardrail:** the repository supports statements such as “parametric engineering geometry exists”, “requirements are controlled”, “automated digital checks run” and “physical validation is planned”. It does not support statements such as “working product”, “validated fit”, “proven cleansing or fluid performance”, “safe for human use”, “manufacturing-ready” or “commercially validated”. Customer demand, comfort, hygiene/cleaning, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance remain unproven.
+
 If you are reviewing the venture rather than reproducing the engineering work, start with the [project README](../README.md). It summarises the problem, current stage, digital development, limitations and next validation steps without requiring you to read the internal engineering record.
 
 The repository separates three kinds of information:
@@ -14,7 +24,9 @@ The repository separates three kinds of information:
 
 | What you want to understand | Start here |
 | --- | --- |
+| Scholarship review: strongest claims, evidence classes and limitations in one page | [Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md) |
 | The product, founder role, progress and present stage | [Project overview](../README.md) |
+| The strongest existing visuals and what they do or do not prove | [Visual evidence index](VISUAL_EVIDENCE_INDEX.md) |
 | Initial customer, reported feedback and next research questions | [Customer discovery](CUSTOMER_DISCOVERY.md) |
 | What the repository actually demonstrates | [Evidence guide](EVIDENCE_GUIDE.md) |
 | How to run the engineering work | [Engineering quickstart](ENGINEERING_QUICKSTART.md) |
