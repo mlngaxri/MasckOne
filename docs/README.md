@@ -10,6 +10,8 @@ This directory contains the engineering rationale, subsystem specifications, val
 
 **Planned validation is separately inspectable:** the [reduced-region proof package](CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md) and [status board](CORE_SKETCH_STATUS_BOARD.md) show bounded proof work and unresolved gates. A protocol, fixture concept or validation gate is evidence of planning only; it is not a completed experiment and must not be read as physical performance.
 
+**Reviewer claim guardrail:** the repository supports statements such as “parametric engineering geometry exists”, “requirements are controlled”, “automated digital checks run” and “physical validation is planned”. It does not support statements such as “working product”, “validated fit”, “proven cleansing or fluid performance”, “safe for human use”, “manufacturing-ready” or “commercially validated”. Those stronger claims require physical, safety, manufacturing or customer evidence that has not yet been obtained.
+
 If you are reviewing the venture rather than reproducing the engineering work, start with the [project README](../README.md). It summarises the problem, current stage, digital development, limitations and next validation steps without requiring you to read the internal engineering record.
 
 The repository separates three kinds of information:
