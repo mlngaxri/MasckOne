@@ -48,6 +48,20 @@ The [registered render manifest](../website/images/masck-inspection-v17c-manifes
 | Retention geometry | Current candidate solid geometry; attachment counterpart unresolved | The retention form is inspectable candidate work, but its complete attachment path is not proven by the render. |
 | Physical validation | Not claimed by the manifest | The images do not establish fit, comfort, safety, serviceability, manufacturability or physical performance. |
 
+### Exact source checkpoints behind these views
+
+The manifest records the exact repository checkpoints used to assemble the registered compositions. This makes the images traceable without asking a reviewer to inspect raw JSON.
+
+| Visible contribution | Recorded checkpoint | Evidence boundary |
+| --- | --- | --- |
+| Exterior form | [`17e7db2`](https://github.com/mlngaxri/MasckOne/commit/17e7db204c693f684855d923fcacd7c95468e599) | Last exterior checkpoint whose multi-view renderer passed for this composition. It is candidate geometry, not released-main CAD. |
+| Retention form | [`2568676`](https://github.com/mlngaxri/MasckOne/commit/25686766238b66ecf900009042d721c08e042592) | Candidate bilateral retention geometry. The frame-side attachment counterpart remains unresolved. |
+| Rear service cover | Included in the candidate exterior composition | Visible candidate exterior geometry only. Service access, sealing and manufacturability are not established. |
+| Primary control location | [`7b32c67`](https://github.com/mlngaxri/MasckOne/commit/7b32c674860cab87cbdd1f7e3303a4ce53515e95) | Registered capacity/location input only. Final hardware and mapping remain unresolved. |
+| Dry-side package | [`fa017c8`](https://github.com/mlngaxri/MasckOne/commit/fa017c8379dabaefeecf53bf770858bebfde3067) | Internal candidate package input recorded by the manifest; it is not rendered as visible exterior evidence. |
+
+These checkpoint links establish provenance for the composition, not release status. A linked commit may itself be candidate or historical evidence.
+
 This summary is transcribed from the registered manifest so a reviewer can understand the provenance without reading raw JSON. The manifest remains the source of record.
 
 ## 3. Development in three inspectable steps
