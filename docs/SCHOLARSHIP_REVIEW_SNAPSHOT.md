@@ -47,6 +47,12 @@ A useful scholarship outcome would therefore be a better venture decision: conti
 | Planned validation | Structured customer interviews, focused simulation/analysis, focused fit work, core fluid testing, hygiene/cleaning investigation and initial manufacturing-cost modelling are planned evidence activities. Plans and frameworks are not completed results. |
 | Physical/commercial evidence not yet obtained | Customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance remain unproven. |
 
+## Current CI boundary
+
+Automated checks are evidence of engineering discipline only when their result is stated accurately. The current scholarship-review head before this documentation-only edit, `59bc6558`, ran engineering CI on 16 September 2026 and failed overall. Source binding, compilation, the engineering-authority contract, product-identity contract, repository preflight and Iteration 11 to 16 preflights passed. Unit and integration tests then failed, so deterministic CAD smoke, exact release-provenance verification, generated-package integrity and CAD review-artifact preservation were skipped. The separate integrity-ratchets job passed repository integrity ratchets but failed pinned-commit provenance.
+
+Accordingly, this branch is not presented as a green engineering release. Passing preflights demonstrate that specific digital guards executed successfully at that revision; they do not override the failed suite, qualify skipped stages, or constitute physical validation.
+
 ## Current venture boundary
 
 Masck One is pre-commercialisation. The repository demonstrates disciplined digital engineering through source binding, controlled requirements, automated checks, documented trade-offs and explicit UNKNOWN or validation-required states. It does not demonstrate a validated product.
