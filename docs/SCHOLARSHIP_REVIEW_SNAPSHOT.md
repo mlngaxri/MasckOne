@@ -6,6 +6,20 @@ Masck One is an early-stage, pre-commercialisation venture exploring whether par
 
 This page is a one-page reviewer summary. It separates what has been built from what still needs customer, physical and commercial validation.
 
+## Why the next stage matters
+
+The venture is at an evidence inflection point. Enough controlled digital engineering now exists to define focused questions, but the evidence needed to justify a product is still weak in the areas that matter most commercially: customer problem strength, human fit and workflow, real fluid behaviour, hygiene burden and manufacturing economics.
+
+That makes the next stage deliberately different from the work already completed. The priority is not to make the long-term concept more feature-complete. It is to test whether one narrow use case can earn continued development through stronger customer, physical and cost evidence.
+
+| What the repository has made possible | What must happen before broader scope is justified |
+| --- | --- |
+| Requirements, parametric geometry, automated checks and integration records can be inspected and used to define focused tests. | Structured customer evidence must identify a sufficiently important first problem. |
+| Major fit, fluid, cleaning and integration uncertainties are visible rather than hidden behind a concept render. | Focused physical work must show whether the selected use case creates net convenience in practice. |
+| A bounded validation path and evidence rules already exist. | Initial manufacturing-cost evidence must show that the required complexity has a plausible commercial path. |
+
+This is the scholarship leverage point: support can convert an unusually developed digital concept into decision-grade evidence, including evidence that may narrow, redesign or reject parts of the current vision. It is not presented as funding to finish an already-validated product.
+
 ## 60-second venture proof
 
 | Question | Evidence-based answer |
