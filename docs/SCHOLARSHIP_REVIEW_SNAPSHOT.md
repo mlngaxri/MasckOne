@@ -17,6 +17,14 @@ A reviewer can test the venture story without relying on presentation claims:
 
 The intended conclusion is deliberately bounded: there is substantial inspectable founder-led development, but the venture has not yet earned claims of customer demand, physical product performance or viable unit economics.
 
+## Evidence classes at a glance
+
+| Evidence class | What exists now | Reviewer interpretation |
+| --- | --- | --- |
+| Existing digital engineering evidence | [Parametric CAD](../src/masck_one/model.py), [controlled requirements](../config/masck_one_authority.yaml), [automated checks](../tests/test_authority_contract.py), source binding and documented design trade-offs. | Inspectable engineering discipline and digital consistency. It is not physical validation. |
+| Planned validation | Customer interviews, focused fit and fluid tests, hygiene/cleaning investigation and initial manufacturing-cost modelling are defined as next evidence activities. | A plan or protocol shows what will be tested; it does not count as a completed result. |
+| Physical/commercial evidence not yet obtained | Product-level customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, unit economics and physical performance. | These remain open claims and must not be inferred from CAD, simulation, synthetic tests or CI. |
+
 ## Venture snapshot
 
 | Reviewer question | Current position |
@@ -81,27 +89,6 @@ The next stage should reduce uncertainty in sequence rather than increase featur
 | Initial manufacturing-cost modelling | Sourced component, process and assembly assumptions | Test whether plausible product cost can overlap with demonstrated customer value. |
 
 These are planned evidence-generating activities, not completed results.
-
-### Evidence artefacts the next stage should leave behind
-
-Progress should be visible as evidence that another reviewer can inspect, not as a claim that more development occurred.
-
-| Workstream | Minimum reviewable artefact |
-| --- | --- |
-| Customer validation | An anonymised interview log recording method, participant context, recurring problems, contradictory feedback and sample limitations. |
-| Analysis | A dated decision record showing the assumption tested, source inputs, result, limitations and whether hardware testing is still required. |
-| Fit | A focused prototype test record containing the test purpose, participant or fixture context, observations, failures and resulting design decision. |
-| Fluid delivery | A repeatable test method with measured results, failure cases and explicit comparison with the requirement being investigated. |
-| Hygiene and cleaning | A documented cleaning workflow with measured or observed burden, unresolved sanitation questions and specialist input where needed. |
-| Manufacturing and cost | An initial cost model with sourced component and process assumptions, uncertainty ranges and the architecture decisions most sensitive to cost. |
-
-None of these artefacts exists merely because it is listed here. The purpose of defining them now is to make scholarship-supported activity accountable to evidence and decisions rather than feature count or presentation quality.
-
-## How scholarship support would be used
-
-Scholarship support would be most valuable when converted into stronger evidence rather than a more polished presentation. Prototype materials and test equipment could support focused fit, fluid and cleaning experiments. Manufacturing and cost investigation could challenge process, assembly and unit-cost assumptions. Structured customer validation could test whether a first use case is strong enough to justify deeper hardware work.
-
-No funding amount, customer outcome or technical result is assumed here. Weak evidence should narrow, change or stop a development path rather than be treated as a reason to continue it.
 
 ## Founder and AI roles
 
