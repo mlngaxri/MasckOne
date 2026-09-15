@@ -6,6 +6,20 @@ Masck One is an early-stage, pre-commercialisation venture exploring whether par
 
 This page is a one-page reviewer summary. It separates what has been built from what still needs customer, physical and commercial validation.
 
+## 60-second venture proof
+
+| Question | Evidence-based answer |
+| --- | --- |
+| Is this more than an idea? | Yes in digital development: controlled requirements, code-generated parametric CAD, automated checks, design records and whole-product integration work are inspectable in the repository. No integrated manufactured product or product-level physical validation is claimed. |
+| What customer problem is being tested? | Whether people who already follow multi-step skincare routines experience enough time and repetitive-handling friction for automation to create meaningful net convenience. The segment and problem strength remain hypotheses. |
+| What is the first product? | Not yet locked. The immediate goal is to identify one routine task where customer value, physical feasibility and plausible economics overlap before committing to broader hardware scope. |
+| What has customer research shown? | A founder-reported informal survey of around 20 people gave a preliminary signal around time and convenience, with concerns around comfort, maintenance and price. The method and raw data are not available here, so it does not establish demand or willingness to pay. |
+| What happens next? | Structured customer interviews, focused simulation/analysis, a focused physical fit prototype, core fluid-delivery testing, hygiene/cleaning investigation and initial manufacturing-cost modelling. Each is intended to replace a material assumption with stronger evidence. |
+| What would scholarship support change? | It would accelerate evidence generation through customer validation, prototype materials and test equipment, manufacturing/cost investigation and access to specialist human expertise, rather than funding presentation work or an assumed full product build. |
+| How is AI used? | AI accelerates implementation, research, alternative generation and exploration. Founder judgement owns direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise remains important for hardware, manufacturing, IP, fundraising and market entry. |
+
+The current venture decision is therefore narrow: determine whether one first use case deserves focused physical development. The long-term wearable-and-dock concept remains a direction to earn, not a specification already validated.
+
 ## Fast reviewer inspection path
 
 A reviewer can test the venture story without relying on presentation claims:
