@@ -1,10 +1,20 @@
 # Scholarship review snapshot
 
-[Project overview](../README.md) · [Subsystem evidence spot-check](SCHOLARSHIP_SUBSYSTEM_SPOTCHECK.md) · [Evidence guide](EVIDENCE_GUIDE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md)
+[Project overview](../README.md) · [Venture progress](VENTURE_PROGRESS.md) · [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md)
 
 Masck One is an early-stage, pre-commercialisation venture. Engineering geometry exists and digital checks/frameworks exist; product-level physical validation has not begun.
 
 This page is the canonical reviewer evidence path. It separates existing digital engineering evidence, planned validation, and physical/commercial evidence not yet obtained.
+
+## Venture snapshot
+
+Masck One is exploring whether selected repetitive parts of a facial-skincare routine can be automated in a way that creates net convenience rather than replacing one burden with another. The current target-user hypothesis is people who already follow multi-step facial-skincare routines and value reducing active time and repetitive handling. This is a hypothesis, not a validated customer segment.
+
+The long-term direction is a wearable-and-dock system that could automate selected parts of a routine. That broader vision is not a committed first-product specification. The first use case is deliberately not locked: structured customer interviews should first identify one repeated routine problem worth solving, then focused fit, fluid, cleaning and cost evidence should determine whether that narrow use case deserves deeper development.
+
+What exists today is an inspectable digital engineering foundation: controlled requirements, parametric geometry, automated checks, source binding, documented design decisions and cross-subsystem integration work. A founder-reported informal survey of around 20 people provides only a preliminary signal, strongest around time and convenience, with concerns around comfort, maintenance and price. The method and raw data are not available, so it does not establish demand or willingness to pay.
+
+The largest uncertainties are therefore customer problem strength, net wearable convenience, physical fit, real fluid behaviour, hygiene and cleaning burden, manufacturing feasibility and cost. The next stage is designed to replace those assumptions with evidence before the broader vision is allowed to drive more scope.
 
 ## 60-second evidence map
 
@@ -16,24 +26,12 @@ This page is the canonical reviewer evidence path. It separates existing digital
 | Design decisions and unresolved conflicts are documented | [Whole-product convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) | Cross-subsystem conflicts, trade-offs and validation gates are recorded rather than hidden. | A documented decision is not proof the selected architecture works physically or commercially. |
 | Major subsystem work is inspectable | [Subsystem evidence spot-check](SCHOLARSHIP_SUBSYSTEM_SPOTCHECK.md) | Representative face-side geometry, structure, actuation, waste and evidence-control sources can be audited quickly. | Coverage is not subsystem readiness. |
 
-## Representative automated checks
-
-The repository uses checks to detect digital inconsistency, not to substitute software results for measurements. Three examples from the [authority contract tests](../tests/test_authority_contract.py) are deliberately easy to audit:
-
-| Example check | What the test deliberately changes | What rejection demonstrates | What it does not demonstrate |
-| --- | --- | --- | --- |
-| Airway requirement consistency | Changes one duplicated minimum-airway-area value from the controlled requirement. | Conflicting copies of a safety-related requirement are rejected instead of silently drifting apart. | Breathing safety, anatomical clearance or human-use performance. |
-| Clean-cycle fluid ledger | Changes the encoded nominal introduced-liquid total so it no longer reconciles with the controlled cycle ledger. | Internal fluid accounting must remain numerically consistent. | Real flow, priming, leakage, recovery, cleansing or hygiene performance. |
-| Waste-cartridge capacity margin | Reduces the encoded retained-capacity requirement below its controlled ledger margin. | A digital capacity requirement cannot be weakened without the contract failing. | Actual retained liquid capacity, sealing, contamination control or manufacturing capability. |
-
-These are fail-closed digital contract checks for a particular source revision. They are useful because they show that requirements are executable and contradictions can be caught automatically. A passing result remains digital evidence only; it does not mean a person has worn a safe, comfortable product or that fluid, hygiene, manufacturing or commercial performance has been demonstrated.
-
 ## Evidence classes
 
 | Evidence class | Current position |
 | --- | --- |
 | Existing digital engineering evidence | Controlled requirements, parametric CAD, automated checks, source binding, documented design decisions and representative subsystem geometry exist in the repository. |
-| Planned validation | Structured customer interviews, focused fit work, core fluid testing, hygiene/cleaning investigation and initial manufacturing-cost modelling are planned evidence activities. Plans and frameworks are not completed results. |
+| Planned validation | Structured customer interviews, focused simulation/analysis, focused fit work, core fluid testing, hygiene/cleaning investigation and initial manufacturing-cost modelling are planned evidence activities. Plans and frameworks are not completed results. |
 | Physical/commercial evidence not yet obtained | Customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance remain unproven. |
 
 ## Current venture boundary
@@ -60,9 +58,11 @@ This chronology demonstrates initiative through dated, inspectable outputs. It d
 
 A founder-reported informal survey of around 20 people produced a preliminary signal around time and convenience, with concerns around comfort, maintenance and price. The underlying questionnaire, recruitment method and raw response data are not available in the repository, so this does not establish demand, willingness to pay, a validated customer segment or product-market fit. See the [customer discovery record](CUSTOMER_DISCOVERY.md).
 
-## Next evidence stage
+## What happens next
 
-The next stage is deliberately narrower than adding features. Structured customer interviews should identify whether a sufficiently important first problem exists. Focused physical fit, fluid and cleaning work should then test whether a wearable removes more friction than it creates. Initial manufacturing-cost modelling should test whether required complexity has a plausible commercial path. Weak evidence should narrow, redesign or reject the relevant use case rather than be hidden by further digital scope.
+The next stage is deliberately narrower than adding features. Structured customer interviews should identify whether a sufficiently important first problem exists. Focused simulation and analysis should reduce high-risk uncertainty before hardware spend. A focused physical fit prototype and core fluid-delivery testing should then test the narrow wearable workflow and wet-system assumptions. Hygiene and cleaning investigation should test whether maintenance erases the intended convenience benefit. Initial manufacturing-cost modelling should test whether required complexity has a plausible commercial path. Weak evidence should narrow, redesign or reject the relevant use case rather than be hidden by further digital scope.
+
+The detailed evidence gates and minimum useful outputs are recorded in the [next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md).
 
 ## What scholarship support would change
 
