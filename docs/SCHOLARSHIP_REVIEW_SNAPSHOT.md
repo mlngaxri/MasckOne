@@ -50,6 +50,19 @@ The next stage is organised around three decisions rather than around adding fea
 
 This sequence is deliberately narrower than the long-term wearable-and-dock concept. A larger feature set is not treated as progress unless the preceding evidence supports it.
 
+## First evidence sprint
+
+The immediate work should produce decision-grade evidence before broader product development resumes. The sequence is intentionally staged so weak customer evidence can prevent unnecessary hardware spend.
+
+| Stage | Output that should exist at the end | Gate to continue |
+| --- | --- | --- |
+| Customer problem | Structured interview notes and a short synthesis of repeated routine friction, current workarounds and rejection reasons. | A specific problem is repeated strongly enough to define a narrow first-use-case hypothesis. |
+| Risk reduction | Focused simulation or analysis records identifying which fit, fluid and workflow assumptions cannot be resolved digitally. | The remaining physical questions are narrow enough to test without building the full product vision. |
+| Physical evidence | A focused fit prototype record, core fluid-delivery test results and cleaning/hygiene observations for the selected use case. | Evidence suggests the wearable can create net convenience without an obviously disproportionate physical or maintenance burden. |
+| Commercial check | An initial manufacturing-cost model using sourced component, process and assembly assumptions, considered alongside customer-value evidence. | There is enough overlap between plausible product complexity, cost and customer value to justify the next development cycle. |
+
+A failed gate is a useful result. It should cause the use case, mechanism, workflow or commercial model to be narrowed or changed rather than being hidden by additional features. None of these sprint outputs is claimed as completed today.
+
 ## Evidence of initiative
 
 The repository shows progression through inspectable outputs rather than presentation claims.
