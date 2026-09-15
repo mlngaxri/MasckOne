@@ -4,6 +4,12 @@
 
 This page is a deliberately short visual check for scholarship review. It surfaces existing repository artefacts only and does not add engineering evidence.
 
+### 30-second review path
+
+1. Start with the architecture diagram to understand how the documented product subsystems relate.
+2. Scan the three registered candidate compositions to see representative digital packaging and geometry direction.
+3. Read the evidence boundary to distinguish substantial digital engineering from claims that still require physical validation.
+
 ### How to read the visuals
 
 | Label | Meaning |
