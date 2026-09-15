@@ -44,6 +44,20 @@ A founder-reported informal survey of around 20 people produced a preliminary si
 
 The next stage is deliberately narrower than adding features. Structured customer interviews should identify whether a sufficiently important first problem exists. Focused physical fit, fluid and cleaning work should then test whether a wearable removes more friction than it creates. Initial manufacturing-cost modelling should test whether required complexity has a plausible commercial path. Weak evidence should narrow, redesign or reject the relevant use case rather than be hidden by further digital scope.
 
+## What scholarship support would change
+
+Scholarship support would be used to improve the quality of evidence, not to make the venture look more finished than it is.
+
+| Support area | Evidence it should enable | Decision it should improve |
+| --- | --- | --- |
+| Structured customer validation | Consistent interview records focused on routine friction, first-use-case priority, maintenance tolerance and pricing assumptions. | Whether a sufficiently important customer problem exists and which first use case deserves testing. |
+| Prototype materials and test equipment | Focused fit and workflow prototypes plus repeatable core fluid-delivery measurements. | Whether the selected wearable workflow is physically credible enough for deeper development. |
+| Hygiene and cleaning investigation | Documented servicing, cleaning and contamination-risk observations rather than assumed convenience. | Whether maintenance burden undermines the proposed customer value. |
+| Manufacturing and cost investigation | A sourced first-pass manufacturing-cost model and specialist input on practical fabrication choices. | Whether product scope and likely cost can plausibly coexist before further hardware investment. |
+| Specialist collaboration | Review from people with relevant hardware, manufacturing, IP, fundraising and market-entry experience. | Which assumptions require expert challenge before they become expensive commitments. |
+
+No budget or spending commitment is implied by this table. The standard is that support should leave behind inspectable evidence that makes the next venture decision better.
+
 ## Founder and AI roles
 
 AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. Founder judgement owns product direction, requirements, priorities, trade-offs and final decisions. AI-assisted digital work is not presented as independent physical proof, and specialist human expertise remains necessary where practical experience, measurement and regulated or manufacturing judgement matter.
