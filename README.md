@@ -27,12 +27,14 @@ The long-term vision spans cleansing and selected leave-on products. The immedia
 | **Key uncertainties** | Customer value, comfort and population fit, hygiene and cleaning burden, real fluid behaviour, safety, manufacturability, unit economics and the most defensible first use case. |
 | **Next evidence milestones** | Structured customer interviews, focused analysis, a physical fit prototype, core fluid-delivery testing, hygiene and cleaning investigation, and an initial manufacturing-cost model. |
 | **Current stage** | Pre-commercialisation. Engineering geometry and digital checks/frameworks exist; product-level physical validation has not begun and there is no integrated manufactured product. |
-| **Initial development** | The founder reports building the initial digital foundation over roughly two weeks in September 2026. |
+| **Initial development** | The founder reports establishing the initial digital foundation over roughly two weeks in September 2026, using AI extensively to accelerate implementation and exploration. |
 | **Controlled engineering baseline** | **Phase 5: waste acquisition and containment - Iteration 28 complete.** This is a repository roadmap state, not whole-product readiness. |
 
-## What I built in roughly two weeks
+## Initial founder execution
 
-I built the initial digital engineering foundation for Masck One: code-generated parametric CAD, system requirements, automated engineering checks, documented design decisions and linked technical exploration across fit, fluid handling, retention, waste capture, electronics and controls.
+Over roughly two weeks, I established the initial digital engineering foundation for Masck One: defining the intended product direction, requirements, constraints and trade-offs while using AI extensively to accelerate code-generated parametric CAD, software implementation, research, alternative generation and engineering checks.
+
+The resulting repository contains system requirements, automated checks, documented design decisions and linked technical exploration across fit, fluid handling, retention, waste capture, electronics and controls. This chronology demonstrates founder initiative and decision ownership; it does not imply that every implementation artefact was authored manually or independently of AI assistance.
 
 The merged baseline includes facial-reference and interface geometry, protected anatomical regions, structural and actuation references, fresh-water and cleanser routing, waste-handling architecture and deterministic CAD export. The [engineering authority](config/masck_one_authority.yaml) and [development roadmap](docs/DEVELOPMENT_ROADMAP.md) define that controlled baseline.
 
