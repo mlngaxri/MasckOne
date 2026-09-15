@@ -24,6 +24,8 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 These three images are the strongest concise visual summary currently registered in the repository. They are **candidate digital compositions**, not standalone screenshots of released engineering CAD. Their value is that their contributing digital sources and evidence limits are recorded explicitly.
 
+**Why these views are shown:** the repository does not currently contain a concise, reviewer-ready gallery of released-main CAD screenshots. Using the registered compositions is more transparent than relabelling presentation imagery or candidate screenshots as released CAD. The source-bound engineering record linked below remains the stronger evidence of controlled digital work.
+
 | Front three-quarter | Rear three-quarter | Side-rear |
 | --- | --- | --- |
 | [![Front three-quarter registered digital composition](../website/images/masck-inspection-front-3q-v17c.webp)](../website/images/masck-inspection-front-3q-v17c.webp) | [![Rear three-quarter registered digital composition](../website/images/masck-inspection-rear-3q-v17c.webp)](../website/images/masck-inspection-rear-3q-v17c.webp) | [![Side-rear registered digital composition](../website/images/masck-inspection-side-rear-v17c.webp)](../website/images/masck-inspection-side-rear-v17c.webp) |
