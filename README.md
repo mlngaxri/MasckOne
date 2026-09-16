@@ -8,13 +8,6 @@ Masck One is an early-stage hands-free facial-skincare wearable for people who a
 
 The long-term vision spans cleansing and selected leave-on products. The immediate validation goal is narrower: establish whether one clearly defined part of a routine can be automated comfortably and usefully before committing to a broader first product. This is a staged validation approach; it does not mean the complete-routine engineering requirements have been met or waived.
 
-<p align="center">
-  <img src="website/images/masck-inspection-front-3q-v17c.webp" alt="Masck One digital concept render, front three-quarter view" width="48%" />
-  <img src="website/images/masck-inspection-rear-3q-v17c.webp" alt="Masck One digital concept render, rear three-quarter view" width="48%" />
-</p>
-
-*Existing digital concept renders used to communicate product direction. They are not photographs of manufactured hardware and should not be read as proof of physical performance.*
-
 ## At a glance
 
 | Area | Current position |
