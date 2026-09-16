@@ -1,0 +1,58 @@
+{
+  "all_counterfaces_identical": true,
+  "claim": "CONSUMED_SOURCE_IDENTITY_UNCHANGED_BETWEEN_THESE_HEADS",
+  "consumed_counterfaces": {
+    "src/masck_one/structural_frame_actuator_mates.py": {
+      "identical": true,
+      "pinned_head_blob_sha1": "3cedc1a0032b418d9e02592bb4996e29dc9632b7",
+      "verified_head_blob_sha1": "3cedc1a0032b418d9e02592bb4996e29dc9632b7"
+    },
+    "src/masck_one/structural_frame_actuator_reactions.py": {
+      "identical": true,
+      "pinned_head_blob_sha1": "dae953807584b97747cf3f936271e019b6746d4f",
+      "verified_head_blob_sha1": "dae953807584b97747cf3f936271e019b6746d4f"
+    },
+    "src/masck_one/structural_frame_carrier_detent.py": {
+      "identical": true,
+      "pinned_head_blob_sha1": "693d4f6cbbc915ec2e6e6ea8ae069f0f8969cb5d",
+      "verified_head_blob_sha1": "693d4f6cbbc915ec2e6e6ea8ae069f0f8969cb5d"
+    },
+    "src/masck_one/structural_frame_carrier_interfaces.py": {
+      "identical": true,
+      "pinned_head_blob_sha1": "81ecaa0e6b924d128d8c83bcde6a12c868f0f318",
+      "verified_head_blob_sha1": "81ecaa0e6b924d128d8c83bcde6a12c868f0f318"
+    },
+    "src/masck_one/structural_frame_carrier_landing.py": {
+      "identical": true,
+      "pinned_head_blob_sha1": "a7497537b3851883dc3efa2766f395c2f4b070a0",
+      "verified_head_blob_sha1": "a7497537b3851883dc3efa2766f395c2f4b070a0"
+    },
+    "src/masck_one/structural_frame_carrier_preload.py": {
+      "identical": true,
+      "pinned_head_blob_sha1": "83338cceb2adde4855e7e67ba9e96255d32ca00b",
+      "verified_head_blob_sha1": "83338cceb2adde4855e7e67ba9e96255d32ca00b"
+    }
+  },
+  "consumed_protected_zone_builder": {
+    "pinned_head": {
+      "carrier_blob_sha1": "5e626e73cc130dc6cc6570e40183380562cf5b5e",
+      "carrier_path": "src/masck_one/structural_frame_realization.py",
+      "symbol_source_sha256": "0cfb3bf765c91c062694b54d06b2310ab233a24a7aeb3796e70df81910e35d40"
+    },
+    "verified_head": {
+      "carrier_blob_sha1": "5e626e73cc130dc6cc6570e40183380562cf5b5e",
+      "carrier_path": "src/masck_one/_structural_frame_realization_impl.py",
+      "symbol_source_sha256": "0cfb3bf765c91c062694b54d06b2310ab233a24a7aeb3796e70df81910e35d40"
+    }
+  },
+  "not_claimed": [
+    "GEOMETRY_REDERIVED_AGAINST_VERIFIED_HEAD",
+    "VERIFIED_HEAD_IS_CURRENT_LIVE_OWNER_FOREVER",
+    "ANY_PHYSICAL_VALIDATION"
+  ],
+  "pinned_geometry_source_head": "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be",
+  "protected_zone_carrier_path_moved": true,
+  "protected_zone_symbol_identical": true,
+  "schema": "MASCK_ONE_TREATMENT_CELL6_REBINDING_EVIDENCE_V1",
+  "verified_compatible_head": "a248c814d10fb8cd73da83d0b40ace2309a93997"
+}
