@@ -16,6 +16,12 @@ What exists today is an inspectable digital engineering foundation: controlled r
 
 The largest uncertainties are therefore customer problem strength, net wearable convenience, physical fit, real fluid behaviour, hygiene and cleaning burden, manufacturing feasibility and cost. The next stage is designed to replace those assumptions with evidence before the broader vision is allowed to drive more scope.
 
+## How the first use case will be chosen
+
+The first use case should be selected from evidence, not from whichever part of the long-term vision is most technically interesting. A candidate should earn focused development only if structured customer work indicates a repeated problem that matters, the proposed workflow has a credible path to net convenience, the critical physical question can be tested narrowly, cleaning and servicing do not obviously erase the benefit, and an initial cost path is plausible enough to investigate further.
+
+These are selection gates, not claims that any candidate currently passes. If customer evidence is weak, the use case should narrow, change or stop before substantial hardware spend. If it survives customer evidence but fails fit, fluid, hygiene or cost evidence, the broader wearable-and-dock vision does not override that result.
+
 ## Built, planned and still unproven
 
 This distinction is central to the venture's current stage. Repository output demonstrates execution, but planned tests are not results and digital engineering is not physical validation.
