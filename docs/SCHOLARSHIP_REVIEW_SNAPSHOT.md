@@ -65,6 +65,21 @@ Founder judgement owns the venture direction, requirements, priorities, trade-of
 
 The next stage also requires expertise beyond AI-assisted implementation. Hardware design, manufacturing, IP, fundraising and market entry benefit from specialist human review and collaboration. The aim is to use those inputs to challenge assumptions and improve decisions, while keeping accountability for the venture direction with the founder.
 
+## Venture evidence maturity
+
+The venture is deliberately not described with one blanket readiness label. Different questions sit at different evidence levels, and each must progress independently.
+
+| Evidence level | Current position | What would move it forward |
+| --- | --- | --- |
+| Founder execution | Strongest current evidence. Dated requirements, code, geometry, checks and decision records are inspectable. | Continue producing traceable outputs tied to explicit decisions rather than activity volume. |
+| Customer problem | Preliminary only. The informal survey suggests questions worth testing but is not conclusive. | Structured behaviour-first interviews with comparable records and contradictory cases retained. |
+| First use case | Not selected. The long-term system vision has not earned the right to define the first product. | Advance, narrow/change or reject a candidate using customer evidence and explicit selection criteria. |
+| Physical feasibility | Unproven at product level. Digital engineering and analysis frameworks exist. | Focused fit/workflow prototype evidence, then repeatable core fluid testing if the use case survives. |
+| Operational convenience | Unproven. Cleaning, hygiene and servicing may erase the intended time benefit. | Observe preparation, use, cleaning and servicing burden as part of the same value proposition. |
+| Commercial feasibility | Unproven. Manufacturing cost, willingness to pay and unit economics are not established. | Initial sourced manufacturing-cost modelling compared with customer value evidence. |
+
+This ladder makes the intended progression explicit: repository output already demonstrates initiative, but it cannot substitute for customer, physical or commercial evidence. The next stage should move the weakest decision-critical evidence upward, not simply add more digital scope.
+
 ## 60-second evidence map
 
 | Claim a reviewer may test | Representative repository evidence | What it establishes | Boundary |
