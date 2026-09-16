@@ -1,6 +1,6 @@
 # Scholarship subsystem spot-check
 
-[Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md) · [Evidence guide](EVIDENCE_GUIDE.md) · [Project overview](../README.md)
+[Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md) · [Evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md) · [Evidence guide](EVIDENCE_GUIDE.md) · [Project overview](../README.md)
 
 Masck One is pre-commercialisation. Engineering geometry exists and digital checks/frameworks exist, but product-level physical validation has not begun. This page is a compact source spot-check for reviewers, not a subsystem-readiness claim.
 
@@ -15,7 +15,7 @@ Masck One is pre-commercialisation. Engineering geometry exists and digital chec
 
 ## Current CI boundary
 
-The scholarship-review branch is not presented as a green engineering release. At exact head `6b952a4bebad86aeb22b7703a6da9c7897c5419a`, [engineering CI run 35016409144](https://github.com/mlngaxri/MasckOne/actions/runs/35016409144) failed overall on 16 September 2026. Repository integrity ratchets passed but pinned-commit provenance failed, so program-position consistency was skipped. The engineering job passed tested-source binding, installation, compilation, engineering-authority and product-identity validation, repository preflight, and Iterations 11 through 16 preflights, then failed the unit/integration suite. Deterministic CAD smoke, exact release-provenance verification, generated-package integrity and CAD review-artifact preservation were skipped. This status is digital branch evidence only, not a physical-performance result, and it must not be generalized to this later documentation head without a new exact-head run.
+This spot-check does not carry its own CI qualification claim. CI is revision-specific and changes independently of this compact subsystem map, so reviewers should use the [canonical evidence matrix CI boundary](SCHOLARSHIP_EVIDENCE_MATRIX.md#branch-and-ci-boundary) for the exact tested revision, run result, passed checks, failed checks and skipped stages. A later documentation commit does not inherit qualification from an earlier run, and no CI result constitutes physical validation.
 
 The purpose of this spot-check is traceability, not completeness or a readiness score. Major subsystem statements lead to concrete source/check evidence, while planned fit, fluid, cleaning and manufacturing work remains planned validation until measurements exist.
 
