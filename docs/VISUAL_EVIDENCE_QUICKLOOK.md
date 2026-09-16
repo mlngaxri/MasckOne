@@ -10,9 +10,11 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 ### 30-second review path
 
-1. Start with the architecture diagram to understand how the documented product subsystems relate.
-2. Scan the three registered candidate compositions to see representative digital packaging and geometry direction.
-3. Read the evidence boundary to distinguish substantial digital engineering from claims that still require physical validation.
+1. [Open the architecture diagram](assets/scholarship-system-overview.svg) to understand how the documented product subsystems relate.
+2. Scan the three registered candidate compositions below to see representative digital packaging and geometry direction.
+3. Verify the underlying digital record directly in the [parametric model source](../src/masck_one/model.py), [controlled engineering authority](../config/masck_one_authority.yaml) and [automated tests](../tests/), then read the evidence boundary below before drawing conclusions about physical maturity.
+
+This path deliberately separates visual orientation from engineering evidence: the diagram and compositions make the work legible, while the linked source, authority and checks are the inspectable digital record.
 
 ### How to read the visuals
 
