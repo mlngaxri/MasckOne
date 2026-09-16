@@ -10,7 +10,7 @@ The long-term vision spans cleansing and selected leave-on products. The immedia
 
 [![Masck One documented whole-product architecture](docs/assets/scholarship-system-overview.svg)](docs/VISUAL_EVIDENCE_QUICKLOOK.md)
 
-*Documented whole-product architecture. This is a reviewer-friendly map of the intended subsystem relationships, not evidence of implementation or physical validation. Open the [visual evidence quicklook](docs/VISUAL_EVIDENCE_QUICKLOOK.md) for representative registered digital compositions, provenance and explicit evidence limits.*
+*Documentation map of whole-product architecture. It summarises subsystem relationships already documented in the repository so a reviewer can understand the system quickly. It does not show implementation status, validated material or control flow, an integrated prototype, or physical validation. Open the [visual evidence quicklook](docs/VISUAL_EVIDENCE_QUICKLOOK.md) for representative registered digital compositions, provenance and explicit evidence limits.*
 
 ## Venture snapshot
 
