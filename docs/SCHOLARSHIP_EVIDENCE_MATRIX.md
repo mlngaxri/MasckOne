@@ -18,6 +18,10 @@ This page is maintained on the scholarship-review branch, not on released `main`
 
 The latest completed engineering CI associated with this review lineage is [run 35068027419](https://github.com/mlngaxri/MasckOne/actions/runs/35068027419) on exact head `6f54a6934842d1acb7e609a555d1f71170029559`, and it failed overall. Source binding, installation, compilation, authority/product-identity contracts, repository preflight and Iteration 11 to 16 preflights passed before unit/integration tests failed. CAD smoke and later release-evidence stages were skipped. The separate integrity job passed repository ratchets but failed pinned-commit provenance. No later documentation commit inherits qualification from that run.
 
+## How to verify a claim
+
+Use the evidence links below as a chain, not as interchangeable proof. A controlled requirement shows what the design is intended to satisfy. Source-bound CAD or subsystem documentation shows what exists digitally. An automated check shows only what that check tested on its exact revision. A planned test describes future validation. Only measured physical or commercial evidence can support physical or commercial claims. If a result is absent, skipped, synthetic, framework-only, `UNKNOWN` or validation-gated, treat the corresponding real-world claim as unproven.
+
 ## Representative requirements and checks
 
 These examples show how the repository distinguishes a controlled engineering target from evidence that the target has actually been achieved. They are examples, not a dump of the full authority schema.
