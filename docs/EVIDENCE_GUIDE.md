@@ -6,6 +6,19 @@ Masck One is pre-commercialisation. Engineering geometry exists and digital chec
 
 For a first review, the quickest route is the [project README](../README.md), which states the current stage, the digital development work, what remains unproven and what should be validated next. This document is for reviewers who want to inspect the evidence more deeply.
 
+## Reviewer claim audit
+
+This is the shortest claim-to-source path. Each row links a reviewer-facing claim to representative repository evidence and states the boundary that must travel with the claim.
+
+| Claim a reviewer can verify | Representative source / check | Required boundary |
+| --- | --- | --- |
+| Parametric engineering CAD exists | [Parametric model](../src/masck_one/model.py) and [model checks](../tests/test_model.py) | Code-generated geometry is digital engineering evidence, not a manufactured prototype or human-fit result. |
+| System requirements are controlled | [Engineering authority](../config/masck_one_authority.yaml) and [authority contract tests](../tests/test_authority_contract.py) | A requirement or `VALIDATION_GATED` target is not achieved physical performance. |
+| Automated engineering checks enforce consistency | [Authority contract tests](../tests/test_authority_contract.py), [boundary-release tests](../tests/test_boundary_release.py) and [engineering CI](https://github.com/mlngaxri/MasckOne/actions/workflows/ci.yml) | Passing software checks establish digital consistency and provenance only. |
+| Design decisions and trade-offs are documented | [Whole-product convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) | Recorded reasoning does not prove that the selected architecture is physically feasible, safe or optimal. |
+| Major subsystems are represented in the engineering record | [Product architecture summary](CORE_SKETCH_ONE_PAGE.md) and the [representative subsystem source trail](#representative-subsystem-source-trail) below | Digital coverage of a subsystem does not mean that subsystem is built or physically qualified. |
+| The current stage and unknowns are explicit | [Project README](../README.md), [evidence classes](#evidence-classes) and [open limitations](#what-remains-open) | Masck One remains pre-commercialisation; product-level physical validation has not begun. |
+
 ## Visual evidence at a glance
 
 The diagram below is a reviewer-facing summary assembled from the repository's existing [Core Sketch product story](CORE_SKETCH_ONE_PAGE.md) and subsystem documentation. It shows the intended whole-product relationships at a high level. It is a documentation diagram, not evidence that every subsystem is implemented or physically validated.
@@ -29,9 +42,39 @@ The two views below are existing registered digital review compositions already 
   <img src="../website/images/masck-inspection-side-rear-v17c.webp" alt="Masck One registered digital review composition, side-rear view" width="48%" />
 </p>
 
-**Visual class:** concept/candidate digital composition. The [render manifest](../website/images/masck-inspection-v17c-manifest.json) records the source checkpoints, authority coordinate frame and explicit claim boundary for these views. They show a coherent candidate packaging direction and reviewable multi-view geometry. They do **not** establish released-main geometry, frame-side attachment closure, human fit, comfort, materials, serviceability, ingress protection, manufacturability, safety or physical performance.
+| View | What a reviewer can inspect | Evidence limit |
+| --- | --- | --- |
+| Front three-quarter | Candidate face-side packaging, opening layout and the overall relationship between the facial shell and surrounding structure. | Concept/candidate digital composition only. It does not prove released-main geometry, anatomical fit, comfort, sealing, treatment coverage or physical performance. |
+| Side-rear | Candidate depth, rear packaging and the visible relationship between the face-side body and retention structure from a second viewpoint. | Concept/candidate digital composition only. It does not prove attachment closure, removal behaviour, serviceability, structural strength, manufacturability or safety. |
+
+**Visual class:** concept/candidate digital composition. The [render manifest](../website/images/masck-inspection-v17c-manifest.json) records the source checkpoints, authority coordinate frame and explicit claim boundary for these views. Together, the two views show a coherent candidate packaging direction and reviewable multi-view geometry. They do **not** establish released-main geometry, frame-side attachment closure, human fit, comfort, materials, serviceability, ingress protection, manufacturability, safety or physical performance.
 
 The repository does not currently commit a standalone gallery of engineering CAD screenshots. The stronger engineering evidence is therefore the source-bound parametric geometry, requirements, tests and reproducible exports described below, rather than treating presentation imagery as proof.
+
+## Development progression
+
+This is a compact progression based on repository milestones rather than a presentation graphic. Each step links to the underlying record a reviewer can inspect.
+
+### Verifiable repository chronology
+
+The dates below are Git commit dates. They show when inspectable work entered the repository, not when physical product capability was proven.
+
+| Date | Inspectable milestone | What it demonstrates |
+| --- | --- | --- |
+| 30 August 2026 | [Authority-contract implementation](https://github.com/mlngaxri/MasckOne/commit/910d4fd1a03164e032847e590331cd7cddf51d8d) followed by the [facial-reference landmark contract](https://github.com/mlngaxri/MasckOne/commit/9c427d5faec3687c1a1422c6bea3edd9394bffb3) | The project moved beyond an idea into controlled requirements, automated checks, reproducible engineering structure and the first semantic facial-reference layer. |
+| 10 September 2026 | [Whole-product Core Sketch convergence](https://github.com/mlngaxri/MasckOne/commit/0044a55885000480a873b5761742341038b24b6a) and [authority reconciliation](https://github.com/mlngaxri/MasckOne/commit/0c0ccb1d1b3356ed0001e5e53f318973a2893e08) | Work expanded from individual digital subsystems to explicit cross-subsystem conflicts, proof gates, mass/resource constraints and unresolved integration questions. |
+| 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | Existing engineering work was reorganised for external review with clearer evidence boundaries, reviewer navigation and separation between digital work, planned validation and claims not yet supported. |
+
+The chronology is deliberately short. It demonstrates founder initiative through inspectable outputs and version history, while avoiding the implication that rapid digital development equals rapid physical validation.
+
+| Milestone | Inspectable record | What changed |
+| --- | --- | --- |
+| Controlled engineering foundation | [Phase 1 engineering log](PHASE_1_LOG.md) and [engineering governance](ENGINEERING_GOVERNANCE.md) | Repository integrity, machine-readable authority, reproducible CAD generation, source controls and continuous integration were established before deeper geometry work. |
+| Digital subsystem build-out | [Development roadmap](DEVELOPMENT_ROADMAP.md) and [current authority](../config/masck_one_authority.yaml) | The merged digital baseline expanded across facial/interface geometry, fluid handling, waste, structural and actuation references, controls and reproducible exports. |
+| Whole-product convergence | [Core Sketch convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) and [status board](CORE_SKETCH_STATUS_BOARD.md) | Cross-subsystem conflicts, unknowns and validation gates were made explicit instead of being treated as solved by digital modelling. |
+| Scholarship-review baseline | [Project overview](../README.md) and this evidence guide | The existing engineering record was reorganised into a short public inspection path with concept imagery separated from engineering evidence and planned physical validation. |
+
+This progression shows increasing engineering scope and evidence discipline. It does not show increasing physical product maturity: an integrated manufactured product has not yet been validated.
 
 ## A short inspection route
 
@@ -51,9 +94,23 @@ This is the shortest path for a reviewer assessing whether the repository contai
 | --- | --- | --- |
 | Parametric engineering geometry | [Engineering source](../src/masck_one/) and [engineering quickstart](ENGINEERING_QUICKSTART.md) | Geometry is generated from inspectable source and can be reproduced digitally; this is not a physical prototype claim. |
 | Controlled requirements and provenance | [Engineering authority](../config/masck_one_authority.yaml), [authority contract tests](../tests/test_authority_contract.py) and [boundary-release tests](../tests/test_boundary_release.py) | Requirements, units, duplicated constraints and source-bound evidence are checked, including guards against presenting digital geometry as physical validation. |
+| Source binding and stale-evidence rejection | [Boundary-release tests](../tests/test_boundary_release.py) | Generated interface evidence records the registered source revision and mesh identity, rejects changed registered geometry even when the source asset identifier is unchanged, and requires the resulting source chain to remain labelled digital-only rather than anatomical or physical validation. |
 | Documented trade-offs and unresolved contradictions | [Whole-product convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) | The record does not only present a preferred concept. It documents conflicts such as coverage versus support, mass versus CG/torque, product preservation, waste/service burden and emergency release, and assigns them to engineering or validation work rather than declaring them solved. |
 | Major subsystem coverage | [Product architecture summary](CORE_SKETCH_ONE_PAGE.md), [contact/occlusion matrix](CORE_SKETCH_CONTACT_OCCLUSION_MATRIX.md) and [routine resource envelope](CORE_SKETCH_ROUTINE_RESOURCE_ENVELOPE.md) | Face interface/treatment, fluids and waste, retention/removal, electronics/controls, dock/service and whole-product resource interactions are represented in the digital engineering record. Coverage in documentation does not mean each subsystem is physically qualified. |
 | Explicit unknowns and validation gates | [Status board](CORE_SKETCH_STATUS_BOARD.md) and [reduced-region proof package](CORE_SKETCH_REDUCED_REGION_PROOF_PACKAGE.md) | Missing evidence remains blocked, validation-gated, reference-only or unknown instead of being silently converted into a pass. Planned proof work is distinguishable from completed evidence. |
+
+### Representative subsystem source trail
+
+These are deliberately representative entry points, not a claim that every subsystem is complete. They let a reviewer move from the architecture summary into concrete engineering source in one click.
+
+| Subsystem area | Representative source | What is inspectable now | Boundary |
+| --- | --- | --- | --- |
+| Whole-product / face-side geometry | [Parametric model](../src/masck_one/model.py) and [model checks](../tests/test_model.py) | Code-generated geometry, controlled material/reference roles and deterministic digital checks. | Does not establish human fit, comfort, sealing, safety or performance. |
+| Structure and integration reservations | [Structural frame](../src/masck_one/structural_frame.py) | Named datums and explicit reservations for actuation, fresh fluid, waste, retention, HMI/electronics and thermal systems, including unresolved geometry states. | Topology and reservation evidence is not structural-strength or manufacturing evidence. |
+| Actuation architecture | [Actuator frames](../src/masck_one/actuator_frames.py) and [actuator-frame checks](../tests/test_actuator_frames.py) | Four controlled actuation zones and fail-closed architecture/source checks. | Does not establish actuator force, lifetime, acoustics, comfort or physical motion quality. |
+| Waste handling | [Realized mixed-waste backbone](../src/masck_one/realized_waste_backbone.py) | Source-bound route stages and provisional world-coordinate digital routing with explicit validation-gated status. | Does not establish hydraulic performance, recovery, leakage, hygiene or service performance. |
+
+The point of these examples is traceability: architecture statements lead to inspectable implementation, while the implementation itself records what remains unproven. Candidate pull requests may contain newer subsystem work, but they are not silently treated as merged evidence.
 
 ## Representative requirements and automated checks
 
