@@ -4,6 +4,8 @@ This page gives a dated, reviewer-facing checkpoint of what Masck One can suppor
 
 ## Current position, 17 September 2026
 
+Masck One is pre-commercialisation. Engineering geometry exists and digital checks/frameworks exist; product-level physical validation has not begun.
+
 The live engineering baseline is `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`, committed on 16 September 2026. The scholarship-review branch contains later documentation work, but those commits are evidence organisation rather than a newer engineering release.
 
 Masck One has progressed beyond an idea in one specific sense: the repository contains inspectable requirements, parametric geometry, automated checks, source-binding controls, design decisions and cross-subsystem integration work. That is evidence of founder initiative and organised digital development. It is not evidence that a wearable product works physically or that a commercial market has been established.
@@ -23,6 +25,8 @@ The strongest current evidence is therefore execution evidence: dated repository
 ## Decision-critical gaps
 
 The next decisions depend on evidence for customer problem strength, net convenience, physical fit and workflow, real fluid behaviour, hygiene and cleaning burden, and manufacturing cost. A negative result should narrow, change or reject the relevant use case rather than be treated as a reason to add more features.
+
+Customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance remain unproven. Digital geometry, synthetic tests, validation frameworks and subsystem coverage must not be read as physical validation.
 
 ## What happens next
 
