@@ -12,6 +12,19 @@ Masck One has progressed beyond an idea through inspectable digital engineering,
 | Service, cartridge and cleaning risks documented across the system | Does maintenance erase the intended convenience benefit? | Hygiene and cleaning investigation with an explicit servicing workflow and burden observations. | Simplify servicing, change architecture or reject an impractical ownership model. |
 | Cross-subsystem integration and explicit cost pressure in design decisions | Can the minimum useful product plausibly be manufactured for a cost consistent with demonstrated customer value? | Initial sourced component, process and assembly cost model, considered alongside stronger customer evidence. | Continue, reduce scope, change architecture or reconsider the commercial model. |
 
+## Near-term proof package
+
+The next useful milestone is not a more complete-looking product. It is a compact evidence package that allows a reviewer, mentor or founder to make a better venture decision. The package should contain:
+
+1. a structured customer-interview record showing the problems tested, recurring behaviours and reasons people would reject the concept;
+2. a written first-use-case decision explaining why one narrow routine problem was selected, changed or rejected;
+3. focused analysis identifying the physical assumptions that deserve hardware testing before broader prototyping;
+4. a documented fit and workflow prototype with observations and limitations, rather than a presentation prototype;
+5. repeatable core fluid-test records plus a hygiene and servicing investigation; and
+6. an initial sourced manufacturing-cost model that can be compared with customer value and willingness-to-pay evidence.
+
+No predetermined positive outcome is required. A credible result may be to narrow the use case, remove functions, change architecture or stop a path. Scholarship support would be valuable if it helps produce these decision-quality records through customer validation, prototype materials, test equipment, manufacturing investigation and relevant specialist input.
+
 ## What this progression demonstrates
 
 The repository shows founder initiative through outputs that make later tests possible: requirements were formalised, geometry and engineering logic were made reproducible, subsystem conflicts were surfaced, and uncertainty is now being converted into explicit evidence gates. That is venture progress, but it is not product validation.
