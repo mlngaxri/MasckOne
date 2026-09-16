@@ -202,3 +202,96 @@ def test_translation_reference_skips_zero_volume_axial_cylinder_side_sweep():
         .val()
     )
     assert intersection_volume_mm3(sweep, midpath_obstacle) > 0.0
+
+def _solid(dx: float, dy: float, dz: float, at: tuple[float, float, float]) -> cq.Shape:
+    return cq.Workplane("XY").box(dx, dy, dz, centered=False).translate(at).val()
+
+
+def test_kernel_common_reaching_outside_the_operand_overlap_is_refused() -> None:
+    """A common must lie inside both operands; anything else is not an intersection."""
+    left = _solid(2.0, 2.0, 2.0, (0.0, 0.0, 0.0))
+    right = _solid(2.0, 2.0, 2.0, (1.0, 0.0, 0.0))
+    escaped = _solid(2.0, 2.0, 2.0, (50.0, 50.0, 50.0))
+    with pytest.raises(TreatmentReferenceGeometryError, match="lies outside the operand overlap"):
+        reference_geometry._common_positive_volume_mm3(escaped, left, right)
+
+
+def test_observed_ocp_signature_returning_the_whole_opposite_operand_is_refused() -> None:
+    """Measured on OCP 7.9.3.1: Common(sliver, slab) returned the entire slab.
+
+    The sliver holds 0.000135 mm3 inside a 15x33x9 mm box; Common reported IsDone()
+    and returned a 121799 mm3 invalid shape, about 9e8 times any possible
+    intersection. The overlap screen catches it on extent alone.
+    """
+    sliver = _solid(15.1, 32.8, 8.9, (-47.2, 69.7, -4.9))
+    slab = _solid(200.0, 300.0, 2.03, (-100.0, -150.0, 2.0))
+    with pytest.raises(TreatmentReferenceGeometryError, match="lies outside the operand overlap"):
+        reference_geometry._common_positive_volume_mm3(slab, sliver, slab)
+
+
+def test_kernel_common_exceeding_the_overlap_volume_is_refused() -> None:
+    """Double-counted material stays inside the overlap box but cannot be a common."""
+    left = _solid(2.0, 2.0, 2.0, (0.0, 0.0, 0.0))
+    right = _solid(2.0, 2.0, 2.0, (0.0, 0.0, 0.0))
+    doubled = cq.Compound.makeCompound([left.Solids()[0], right.Solids()[0]])
+    assert float(doubled.Volume()) == pytest.approx(16.0)
+    with pytest.raises(TreatmentReferenceGeometryError, match="exceeds the operand overlap volume"):
+        reference_geometry._common_positive_volume_mm3(doubled, left, right)
+
+
+def test_legitimate_overlapping_common_is_still_counted() -> None:
+    """The guard screens impossible results only; a real intersection is unaffected."""
+    left = _solid(2.0, 2.0, 2.0, (0.0, 0.0, 0.0))
+    right = _solid(2.0, 2.0, 2.0, (1.0, 0.0, 0.0))
+    common = _explicit_list_common(left, right)
+    assert reference_geometry._common_positive_volume_mm3(common, left, right) == pytest.approx(4.0)
+    assert intersection_volume_mm3(left, right) == pytest.approx(4.0)
+
+
+def test_empty_common_remains_zero_without_tripping_the_guard() -> None:
+    left = _solid(1.0, 1.0, 1.0, (0.0, 0.0, 0.0))
+    right = _solid(1.0, 1.0, 1.0, (10.0, 0.0, 0.0))
+    empty = _explicit_list_common(left, right)
+    assert reference_geometry._common_positive_volume_mm3(empty, left, right) == 0.0
+
+
+def test_guard_refuses_a_common_for_provably_separated_operands() -> None:
+    left = _solid(1.0, 1.0, 1.0, (0.0, 0.0, 0.0))
+    right = _solid(1.0, 1.0, 1.0, (10.0, 0.0, 0.0))
+    bogus = _solid(1.0, 1.0, 1.0, (0.0, 0.0, 0.0))
+    with pytest.raises(TreatmentReferenceGeometryError, match="bounding boxes do not overlap"):
+        reference_geometry._common_positive_volume_mm3(bogus, left, right)
+
+
+# left x[0,2] y[0,2] z[0,2] and right x[1,3] y[0,2] z[0,2] overlap in x[1,2] y[0,2] z[0,2],
+# so the overlap ceiling is 4 mm3. Each escape below stays under that ceiling, so only the
+# containment screen for that one axis and side can reject it.
+_GUARD_LEFT = (2.0, 2.0, 2.0, (0.0, 0.0, 0.0))
+_GUARD_RIGHT = (2.0, 2.0, 2.0, (1.0, 0.0, 0.0))
+
+
+@pytest.mark.parametrize(
+    "axis_and_side, escape",
+    [
+        ("x-min", (1.0, 2.0, 1.0, (0.5, 0.0, 0.0))),
+        ("x-max", (1.0, 1.0, 1.0, (1.5, 0.0, 0.0))),
+        ("y-min", (1.0, 1.0, 1.0, (1.0, -0.5, 0.0))),
+        ("y-max", (1.0, 1.0, 1.0, (1.0, 1.5, 0.0))),
+        ("z-min", (1.0, 1.0, 1.0, (1.0, 0.0, -0.5))),
+        ("z-max", (1.0, 1.0, 1.0, (1.0, 0.0, 1.5))),
+    ],
+)
+def test_containment_screen_rejects_each_axis_and_side_independently(axis_and_side, escape) -> None:
+    left = _solid(*_GUARD_LEFT)
+    right = _solid(*_GUARD_RIGHT)
+    bogus = _solid(*escape)
+    assert float(bogus.Volume()) <= 4.0, axis_and_side
+    with pytest.raises(TreatmentReferenceGeometryError, match="lies outside the operand overlap"):
+        reference_geometry._common_positive_volume_mm3(bogus, left, right)
+
+
+def test_containment_screen_accepts_a_common_inside_the_overlap() -> None:
+    left = _solid(*_GUARD_LEFT)
+    right = _solid(*_GUARD_RIGHT)
+    inside = _solid(1.0, 1.0, 1.0, (1.0, 0.0, 0.0))
+    assert reference_geometry._common_positive_volume_mm3(inside, left, right) == pytest.approx(1.0)

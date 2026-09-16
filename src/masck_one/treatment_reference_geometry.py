@@ -50,6 +50,8 @@ _PARTITION_MAX_DEPTH = 6
 _PARTITION_MARGIN_MM = 1.0
 _PARTITION_VOLUME_ABS_TOL_MM3 = 1e-6
 _PARTITION_VOLUME_REL_TOL = 1e-10
+_COMMON_CONTAINMENT_MARGIN_MM = 1e-6
+_COMMON_CONTAINMENT_VOLUME_REL_TOL = 1e-6
 
 
 class TreatmentReferenceGeometryError(ValueError):
@@ -425,7 +427,73 @@ def _partition_solid_once(source: cq.Shape) -> list[cq.Shape]:
     return pieces
 
 
+def _overlap_box(left: cq.Shape, right: cq.Shape) -> tuple[float, float, float, float, float, float]:
+    """Axis-aligned region that must contain every point common to both operands."""
+    lb = left.BoundingBox()
+    rb = right.BoundingBox()
+    return (
+        max(lb.xmin, rb.xmin), min(lb.xmax, rb.xmax),
+        max(lb.ymin, rb.ymin), min(lb.ymax, rb.ymax),
+        max(lb.zmin, rb.zmin), min(lb.zmax, rb.zmax),
+    )
+
+
+def _reject_impossible_common(common: cq.Shape, left: cq.Shape, right: cq.Shape) -> None:
+    """Refuse a kernel result that cannot be the intersection of its own operands.
+
+    BRepAlgoAPI can report ``IsDone()`` and still return a shape that is not the
+    common. Observed on OCP 7.9.3.1 for a near-degenerate swept operand of
+    0.000135 mm3 inside a 15x33x9 mm box: Common returned the whole opposite
+    operand, about 9e8 times the correct volume, flagged invalid, with no error
+    raised. Nothing downstream could tell that from a real intersection, and
+    ``_heal`` would have promoted it to counted collision material had ShapeFix
+    succeeded on it.
+
+    Both screens below are upper bounds that any true intersection satisfies by
+    construction, not tolerances: common material lies inside both operands, so it
+    lies inside the overlap of their bounding boxes, and its volume cannot exceed
+    that box. Neither consults ``Volume()`` of the operands, which is precisely
+    what a degenerate solid reports unreliably. No collision criterion is relaxed
+    and no positive common material is discarded here; a violation is refused, not
+    silently reduced.
+    """
+    if not common.Solids():
+        return
+    x0, x1, y0, y1, z0, z1 = _overlap_box(left, right)
+    if x1 < x0 or y1 < y0 or z1 < z0:
+        raise TreatmentReferenceGeometryError(
+            "kernel returned a common for operands whose bounding boxes do not overlap: "
+            f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}"
+        )
+
+    m = _COMMON_CONTAINMENT_MARGIN_MM
+    cb = common.BoundingBox()
+    if (
+        cb.xmin < x0 - m or cb.xmax > x1 + m
+        or cb.ymin < y0 - m or cb.ymax > y1 + m
+        or cb.zmin < z0 - m or cb.zmax > z1 + m
+    ):
+        raise TreatmentReferenceGeometryError(
+            "kernel common lies outside the operand overlap and is not an intersection: "
+            f"common_bbox={_bbox_tuple(common)}, overlap_box=({x0:.12g}, {x1:.12g}, "
+            f"{y0:.12g}, {y1:.12g}, {z0:.12g}, {z1:.12g}), "
+            f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}"
+        )
+
+    ceiling = (x1 - x0) * (y1 - y0) * (z1 - z0)
+    volume = float(common.Volume())
+    if not math.isfinite(volume):
+        raise TreatmentReferenceGeometryError("kernel common volume is nonfinite")
+    if volume > ceiling * (1.0 + _COMMON_CONTAINMENT_VOLUME_REL_TOL) + _PARTITION_VOLUME_ABS_TOL_MM3:
+        raise TreatmentReferenceGeometryError(
+            "kernel common exceeds the operand overlap volume and is not an intersection: "
+            f"common_mm3={volume:.12g}, overlap_box_mm3={ceiling:.12g}, "
+            f"left_bbox={_bbox_tuple(left)}, right_bbox={_bbox_tuple(right)}"
+        )
+
+
 def _common_positive_volume_mm3(common: cq.Shape, left: cq.Shape, right: cq.Shape) -> float:
+    _reject_impossible_common(common, left, right)
     total = 0.0
     raw_solids = common.Solids()
     if not raw_solids:
