@@ -12,6 +12,16 @@ Masck One is pre-commercialisation. Engineering geometry exists and digital chec
 | Planned validation | Customer interviews, focused analysis, fit prototyping, fluid testing, hygiene/cleaning investigation and manufacturing/cost work that is specified but not yet completed. | There is a defined route to stronger evidence, not a completed result. |
 | Physical/commercial evidence not yet obtained | Customer demand, comfort, hygiene/cleaning, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance. | These claims remain unproven and must not be inferred from geometry, synthetic tests, frameworks or CI. |
 
+## Representative requirements and checks
+
+These examples show how the repository distinguishes a controlled engineering target from evidence that the target has actually been achieved. They are examples, not a dump of the full authority schema.
+
+| Example | Repository state | What the digital checks can verify | What remains unproven |
+| --- | --- | --- | --- |
+| Eye and mouth rigid dynamic keep-out clearances | Stored in the [engineering authority](../config/masck_one_authority.yaml) as `VALIDATION_GATED_BASELINE`. | The source and tests can verify that controlled geometry and requirements use the registered values consistently. | Human fit, comfort and safe clearance across real users. |
+| Nostril opening and airway requirements | Minimum opening geometry is controlled; pressure-drop and related performance requirements remain validation-gated in the [engineering authority](../config/masck_one_authority.yaml). | Contract and boundary checks can detect missing, inconsistent or improperly promoted requirement states. | Real breathing resistance, deformation, no-collapse behaviour and product safety. |
+| Source-bound digital evidence | [Boundary-release tests](../tests/test_boundary_release.py) bind evidence to registered source identity and reject stale or improperly promoted digital evidence. | The checks can verify provenance and preserve the digital-only evidence class when registered geometry changes. | Anatomical validity, physical fit, manufacturing accuracy or measured product performance. |
+
 | Reviewer question | Evidence available now | Where to inspect it | Important boundary |
 | --- | --- | --- | --- |
 | Is this more than an idea? | Controlled requirements, code-generated parametric engineering, automated checks, design records and whole-product integration work exist in the repository. | [Engineering authority](../config/masck_one_authority.yaml), [parametric model](../src/masck_one/model.py), [model checks](../tests/test_model.py), [authority checks](../tests/test_authority_contract.py) and [convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) | Digital development does not prove physical performance, safety, comfort or manufacturability. |
