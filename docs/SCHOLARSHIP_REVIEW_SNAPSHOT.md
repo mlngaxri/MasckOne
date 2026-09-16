@@ -57,6 +57,14 @@ Support is useful only where it closes a named uncertainty. No budget is implied
 
 This is deliberately an evidence-conversion path rather than a promise to build a more polished prototype. Spending should follow the decision sequence: customer problem first, then focused analysis and physical questions, then servicing and cost. A negative result is still useful if it prevents investment in a weak use case.
 
+## Founder, AI and collaboration
+
+AI is used extensively to accelerate implementation and exploration across the project. It can help generate, compare and refine technical approaches, documentation and code quickly, but that speed is not treated as evidence that the resulting product assumptions are correct.
+
+Founder judgement owns the venture direction, requirements, priorities, trade-offs and final system-level decisions. The repository is therefore presented as evidence of founder-led decision-making and organised execution with substantial AI assistance, not as evidence of unaided authorship.
+
+The next stage also requires expertise beyond AI-assisted implementation. Hardware design, manufacturing, IP, fundraising and market entry benefit from specialist human review and collaboration. The aim is to use those inputs to challenge assumptions and improve decisions, while keeping accountability for the venture direction with the founder.
+
 ## 60-second evidence map
 
 | Claim a reviewer may test | Representative repository evidence | What it establishes | Boundary |
@@ -99,7 +107,7 @@ The dates below are Git commit dates, not retrospective claims about when physic
 | 10 September 2026 | [Whole-product Core Sketch convergence](https://github.com/mlngaxri/MasckOne/commit/0044a55885000480a873b5761742341038b24b6a) and [authority reconciliation](https://github.com/mlngaxri/MasckOne/commit/0c0ccb1d1b3356ed0001e5e53f318973a2893e08) | Development expanded into explicit cross-subsystem conflicts, constraints and evidence gates rather than treating subsystem work as independently complete. |
 | 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | The engineering record was reorganised for external scrutiny with clearer separation between digital work, planned validation and unsupported claims. |
 
-This chronology demonstrates initiative through dated, inspectable outputs. It does not imply that the speed of repository development equals physical product maturity, and it does not hide the extensive use of AI described below.
+This chronology demonstrates initiative through dated, inspectable outputs. It does not imply that the speed of repository development equals physical product maturity, and it does not hide the extensive use of AI described above.
 
 ## Customer and commercial evidence
 
