@@ -8,11 +8,10 @@ As checked on 16 September 2026:
 
 - released `main`: `b4a105ea4483a6285be7d55fd527baea30ce6412`
 - scholarship-review branch: `docs/public-venture-overview`
-- scholarship-review head before this status update: `130122f15f901a765885193dc2accd3be1d02584`
+- scholarship-review head before this status update: `743179b13ef665fe83cbcf5c5dfda7ba7db3ea75`
 - active review lineage: PR #171
-- engineering CI for that exact pre-update head: run `35049171230`, still in progress when checked
 
-This status is deliberately revision-specific. A CI result for one commit does not qualify later commits, and CI is digital engineering evidence only. It is not evidence of customer demand, human fit, comfort, hygiene, safety, real fluid behaviour, manufacturability or product-level physical performance.
+This status is deliberately revision-specific. CI is digital engineering evidence only. It is not evidence of customer demand, human fit, comfort, hygiene, safety, real fluid behaviour, manufacturability or product-level physical performance.
 
 ## What progress is inspectable now
 
@@ -55,6 +54,19 @@ This ledger gives a reviewer one place to distinguish work already produced from
 | Is there a plausible commercial path? | Cost and manufacturing uncertainty are explicitly tracked as decision gates. | Sourced manufacturing-cost assumptions, major cost drivers, customer value evidence and willingness-to-pay evidence. | Not established. |
 
 The ledger is designed to become stricter as evidence arrives. New interview, fit, fluid, hygiene or cost evidence should be linked to the relevant question rather than converted into a broad claim that the product is validated.
+
+## Verifiable development chronology
+
+This short chronology uses repository history rather than retrospective claims. It is evidence of sustained execution and increasing control of the development process, not evidence that the product works physically.
+
+| Date | Inspectable milestone | What it shows |
+| --- | --- | --- |
+| 30 August 2026 | Repository created and early evidence-bounded subsystem architecture committed, including waste-cartridge work and adversarial tests. | The concept was being translated into explicit engineering artefacts from the start. |
+| 10 September 2026 | Repository-level integrity ratchets were added to reject silent weakening of tests, evidence gates and selected constraints across contributors and AI-assisted workflows. | Verification and evidence discipline were being made persistent rather than left inside individual development sessions. |
+| 11 September 2026 | Regional cleansing-interface work was integrated with expanded tests and evidence markers. | Development had progressed into cross-subsystem integration while retaining explicit validation boundaries. |
+| 14 September 2026 | Public scholarship-review work was merged to `main`, consolidating reviewer navigation, evidence boundaries and presentation without changing engineering claims. | Venture communication was separated from engineering evidence and made inspectable for a non-technical reviewer. |
+
+The chronology deliberately avoids treating commit count, development speed or AI-assisted output volume as proof of product readiness. AI has materially accelerated implementation and exploration throughout the project; founder judgement remains responsible for direction, requirements, priorities, trade-offs and final decisions.
 
 ## Founder decisions already visible
 
