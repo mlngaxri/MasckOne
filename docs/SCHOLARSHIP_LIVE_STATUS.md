@@ -8,9 +8,9 @@ As checked on 16 September 2026:
 
 - released `main`: `b4a105ea4483a6285be7d55fd527baea30ce6412`
 - scholarship-review branch: `docs/public-venture-overview`
-- scholarship-review head before this status update: `d0b9d718779a0c79f7168017660862f317a1bf99`
+- scholarship-review head before this status update: `130122f15f901a765885193dc2accd3be1d02584`
 - active review lineage: PR #171
-- engineering CI for that exact pre-update head: run `35045406845`, still in progress when checked
+- engineering CI for that exact pre-update head: run `35049171230`, still in progress when checked
 
 This status is deliberately revision-specific. A CI result for one commit does not qualify later commits, and CI is digital engineering evidence only. It is not evidence of customer demand, human fit, comfort, hygiene, safety, real fluid behaviour, manufacturability or product-level physical performance.
 
@@ -25,6 +25,21 @@ The venture is still pre-commercialisation. Product-level physical validation ha
 The long-term direction is a wearable-and-dock system that could automate selected parts of a facial-skincare routine. That is a direction for exploration, not a committed first-product specification.
 
 The first use case still has to earn its scope. Structured customer interviews should identify a repeated problem worth solving, then focused analysis, fit work, core fluid testing, hygiene and cleaning investigation, and initial manufacturing-cost modelling should determine whether that narrow use case deserves deeper development.
+
+## Reviewer decision chain
+
+A scholarship reviewer should be able to follow one simple chain from work already completed to the next investable decision. The repository currently supports the first step strongly and records the remaining steps as evidence gates rather than achievements.
+
+| Decision | Evidence available now | Evidence required next | Stop or narrow condition |
+| --- | --- | --- | --- |
+| Has the founder moved beyond an idea? | Yes as digital venture development: controlled requirements, parametric geometry, automated checks, documented decisions and integration work are inspectable. | No additional claim is needed. The next value comes from testing assumptions outside the repository. | Do not confuse repository volume or development speed with product validation. |
+| Is there one customer problem worth solving first? | Preliminary founder-reported feedback only. | Structured interviews centred on recent behaviour, repeated friction, workarounds, maintenance tolerance, rejection reasons and purchasing context. | If no repeated problem is strong enough, narrow, change or stop the use-case hypothesis. |
+| Is the narrow wearable workflow physically credible? | Digital geometry and analysis frameworks only. | Focused analysis followed by a physical fit and workflow prototype tied to explicit questions. | If fit, comfort or workflow burden defeats the intended convenience, redesign or stop the wearable approach for that use case. |
+| Can the core wet-system assumption survive physical testing? | Requirements and digital wet-system engineering work only. | Repeatable fluid-delivery testing with conditions and failed runs retained. | If repeatability or containment is inadequate, redesign before adding product scope. |
+| Does servicing preserve the customer value? | Maintenance is an identified concern, not a validated solution. | Cleaning, hygiene and servicing observations on the tested configuration. | If maintenance replaces the time saved with comparable burden, change the servicing model or reject the use case. |
+| Is deeper hardware investment commercially justified? | Manufacturing and cost uncertainty are documented. | Sourced first-pass manufacturing-cost modelling compared with customer evidence and the scope that survived earlier gates. | If plausible cost and customer value do not overlap, reduce scope, change architecture or stop deeper investment. |
+
+This chain is deliberately falsifiable. Scholarship support would be useful because it can accelerate the evidence needed to make these decisions through customer validation, materials, test equipment, manufacturing investigation and specialist input. It should not be treated as endorsement of the current product concept.
 
 ## Evidence ledger
 
