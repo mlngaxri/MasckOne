@@ -44,6 +44,19 @@ The strongest case for supporting Masck One now is not that the product is close
 
 A useful scholarship outcome would therefore be a better venture decision: continue a narrowly evidenced use case, redesign it, or reject it. Funding or mentorship would not convert the current repository into physical validation; it would help generate the evidence required to decide what deserves further investment.
 
+## How scholarship support converts into evidence
+
+Support is useful only where it closes a named uncertainty. No budget is implied here; amounts and purchases should be based on the use case and test design that survive earlier evidence gates.
+
+| Support area | Evidence it should enable | Decision it should improve |
+| --- | --- | --- |
+| Structured customer validation | Comparable interview records covering recent behaviour, workarounds, repeated friction, rejection conditions and contradictory cases. | Select, narrow, change or reject the first use case before broad hardware spend. |
+| Prototype materials and test equipment | Focused fit/workflow observations and repeatable core fluid-test records, including failed runs and test conditions. | Decide whether the narrow wearable and wet-system assumptions deserve deeper development. |
+| Manufacturing and cost investigation | Sourced first-pass assumptions for manufacturing approach, major cost drivers and likely cost sensitivity. | Test whether the surviving scope has a plausible commercial path. |
+| Specialist human input | Review where hardware, manufacturing, IP, fundraising or market-entry judgement exceeds the founder's current expertise. | Expose weak assumptions earlier and improve the quality of high-consequence decisions. |
+
+This is deliberately an evidence-conversion path rather than a promise to build a more polished prototype. Spending should follow the decision sequence: customer problem first, then focused analysis and physical questions, then servicing and cost. A negative result is still useful if it prevents investment in a weak use case.
+
 ## 60-second evidence map
 
 | Claim a reviewer may test | Representative repository evidence | What it establishes | Boundary |
