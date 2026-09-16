@@ -8,9 +8,9 @@ As checked on 16 September 2026:
 
 - released `main`: `b4a105ea4483a6285be7d55fd527baea30ce6412`
 - scholarship-review branch: `docs/public-venture-overview`
-- scholarship-review head before this status update: `3180848a3100bd4b652e8975cd86ebf9df0f2ce6`
+- scholarship-review head before this status update: `43c7e2eb450da988c99e3cd2edefd8e66f131f3f`
 - active review lineage: PR #171
-- engineering CI for that exact pre-update head: run `35037246008`, still in progress when checked
+- engineering CI for that exact pre-update head: run `35041360980`, still in progress when checked
 
 This status is deliberately revision-specific. A CI result for one commit does not qualify later commits, and CI is digital engineering evidence only. It is not evidence of customer demand, human fit, comfort, hygiene, safety, real fluid behaviour, manufacturability or product-level physical performance.
 
@@ -25,6 +25,18 @@ The venture is still pre-commercialisation. Product-level physical validation ha
 The long-term direction is a wearable-and-dock system that could automate selected parts of a facial-skincare routine. That is a direction for exploration, not a committed first-product specification.
 
 The first use case still has to earn its scope. Structured customer interviews should identify a repeated problem worth solving, then focused analysis, fit work, core fluid testing, hygiene and cleaning investigation, and initial manufacturing-cost modelling should determine whether that narrow use case deserves deeper development.
+
+## Founder decisions already visible
+
+The repository is useful venture evidence because it records decisions and constraints, not only concept imagery. Three behaviours are already inspectable:
+
+| Founder behaviour | Repository output | What it demonstrates | What it does not prove |
+| --- | --- | --- | --- |
+| Turning an idea into controlled requirements | Engineering authority, contract tests and parametric model sources | Product direction has been translated into explicit constraints that can be reviewed and changed deliberately. | That the requirements are correct or physically achieved. |
+| Exposing cross-subsystem conflicts instead of hiding them | Whole-product convergence reviews and documented validation gates | Trade-offs and unresolved dependencies are being treated as venture decisions rather than presentation problems. | That the selected architecture is physically viable. |
+| Narrowing the next stage around evidence | Customer-discovery protocol, scholarship evidence plan and first-use-case decision gates | Development is being sequenced around customer, fit, fluid, cleaning and cost uncertainty rather than feature accumulation. | Customer demand, willingness to pay or commercial readiness. |
+
+AI is used extensively to accelerate implementation and exploration behind these outputs. The founder remains responsible for direction, requirements, priorities, trade-offs and final decisions. The value of the record is therefore not a claim of independent manual authorship; it is that the venture's reasoning, assumptions and next decisions are increasingly inspectable.
 
 ## Immediate venture milestone
 
