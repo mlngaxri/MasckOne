@@ -1,6 +1,6 @@
 # Scholarship review snapshot
 
-[Project overview](../README.md) · [Evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md) · [Venture progress](VENTURE_PROGRESS.md) · [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md)
+[Project overview](../README.md) · [Visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md) · [Evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md) · [Venture progress](VENTURE_PROGRESS.md) · [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md)
 
 Masck One is an early-stage, pre-commercialisation venture. Engineering geometry exists and digital checks/frameworks exist; product-level physical validation has not begun.
 
