@@ -12,6 +12,12 @@ Masck One is pre-commercialisation. Engineering geometry exists and digital chec
 | Planned validation | Customer interviews, focused analysis, fit prototyping, fluid testing, hygiene/cleaning investigation and manufacturing/cost work that is specified but not yet completed. | There is a defined route to stronger evidence, not a completed result. |
 | Physical/commercial evidence not yet obtained | Customer demand, comfort, hygiene/cleaning, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance. | These claims remain unproven and must not be inferred from geometry, synthetic tests, frameworks or CI. |
 
+## Branch and CI boundary
+
+This page is maintained on the scholarship-review branch, not on released `main`. Live `main` is the engineering baseline; this branch reorganises existing evidence for external review and must not be treated as a newer engineering release. Where `main` and this branch differ, engineering claims should be checked against live `main` and source-bound evidence, while reviewer-facing wording should be read from this branch.
+
+The latest completed engineering CI associated with this review lineage is [run 35068027419](https://github.com/mlngaxri/MasckOne/actions/runs/35068027419) on exact head `6f54a6934842d1acb7e609a555d1f71170029559`, and it failed overall. Source binding, installation, compilation, authority/product-identity contracts, repository preflight and Iteration 11 to 16 preflights passed before unit/integration tests failed. CAD smoke and later release-evidence stages were skipped. The separate integrity job passed repository ratchets but failed pinned-commit provenance. No later documentation commit inherits qualification from that run.
+
 ## Representative requirements and checks
 
 These examples show how the repository distinguishes a controlled engineering target from evidence that the target has actually been achieved. They are examples, not a dump of the full authority schema.
