@@ -44,6 +44,8 @@ This path deliberately separates visual orientation from engineering evidence: t
 
 These three images are the strongest concise visual summary currently registered in the repository. They are **candidate digital compositions**, not standalone screenshots of released engineering CAD. Their value is that their contributing digital sources and evidence limits are recorded explicitly.
 
+**Source status at a glance:** all three views use the same registered composition. The visible exterior comes from renderer-pass checkpoint `17e7db2`; retention comes from separate candidate checkpoint `2568676` in the same authority coordinate frame. They are shown together for inspection, but the repository does not claim that those sources form a released integrated CAD state.
+
 **Why these views are shown:** the repository does not currently contain a concise, reviewer-ready gallery of released-main CAD screenshots. Using the registered compositions is more transparent than relabelling presentation imagery or candidate screenshots as released CAD. The source-bound engineering record linked below remains the stronger evidence of controlled digital work.
 
 **Selection rationale:** these three views are retained because together they cover the face side, rear service and retention arrangement, and product depth without repeating near-identical angles. Website hero images are deliberately excluded because they are concept imagery rather than engineering evidence. This is a small evidence set chosen for inspectability, not a gallery of every visual artefact in the repository.
