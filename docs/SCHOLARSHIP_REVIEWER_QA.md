@@ -32,6 +32,10 @@ The largest uncertainties are whether the customer problem is important enough, 
 
 The next stage is evidence-gated rather than feature-led: structured customer interviews, focused simulation and analysis, a focused physical fit prototype, core fluid-delivery testing, hygiene and cleaning investigation, and initial manufacturing-cost modelling. Weak evidence should narrow, redesign or reject the relevant use case rather than be hidden by more digital scope.
 
+## What would make the venture narrow, change or stop this use case?
+
+Progression is conditional. The first use case should be narrowed, changed or rejected if structured interviews do not show a repeated problem worth solving; if wearing, setup, removal or cleaning erase the intended convenience; if focused fit or fluid tests expose constraints that cannot be resolved credibly; or if an initial manufacturing-cost model cannot plausibly overlap with customer value. A negative result is useful evidence because it prevents further investment in an unsupported assumption. The long-term wearable-and-dock vision does not override these gates.
+
 ## What would scholarship support change?
 
 Support would help convert assumptions into inspectable evidence. Relevant uses include structured customer validation, prototype materials and test equipment, manufacturing and cost investigation, and access to specialist human expertise. No budget or spending commitment is implied. The intended outcome is a better venture decision, not a more polished appearance of readiness.
