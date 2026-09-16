@@ -12,6 +12,21 @@ Masck One has progressed beyond an idea through inspectable digital engineering,
 | Service, cartridge and cleaning risks documented across the system | Does maintenance erase the intended convenience benefit? | Hygiene and cleaning investigation with an explicit servicing workflow and burden observations. | Simplify servicing, change architecture or reject an impractical ownership model. |
 | Cross-subsystem integration and explicit cost pressure in design decisions | Can the minimum useful product plausibly be manufactured for a cost consistent with demonstrated customer value? | Initial sourced component, process and assembly cost model, considered alongside stronger customer evidence. | Continue, reduce scope, change architecture or reconsider the commercial model. |
 
+## First-use-case selection gate
+
+The long-term wearable-and-dock direction should not determine the first product by default. Before broader physical development, one narrow use-case hypothesis should pass a written selection gate based on evidence rather than feature ambition.
+
+A candidate first use case should only advance when the available evidence can answer four questions clearly:
+
+1. **Repeated problem:** do structured interviews show a recurring routine burden or workaround that people already experience, rather than interest in the concept alone?
+2. **Net convenience:** is there a plausible path for time or handling saved to outweigh fitting, loading, cleaning and maintenance burden?
+3. **Testability:** can the most important physical assumptions be tested with focused fit, fluid and cleaning work without first building the complete long-term system?
+4. **Commercial plausibility:** is the minimum useful scope simple enough to justify initial manufacturing-cost investigation alongside willingness-to-pay research?
+
+The output should be a short decision record: **advance**, **narrow/change**, or **reject** the candidate use case, with the evidence and unresolved assumptions stated beside the decision. No candidate is currently recorded here as having passed this gate. The founder-reported informal survey is useful for forming interview questions, but is not sufficient to select a first product.
+
+This gate prevents the breadth of existing digital engineering from being mistaken for evidence that the broadest product vision should be built first.
+
 ## Near-term proof package
 
 The next useful milestone is not a more complete-looking product. It is a compact evidence package that allows a reviewer, mentor or founder to make a better venture decision. The package should contain:
