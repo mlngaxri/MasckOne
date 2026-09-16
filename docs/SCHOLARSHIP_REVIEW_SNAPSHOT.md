@@ -16,6 +16,21 @@ What exists today is an inspectable digital engineering foundation: controlled r
 
 The largest uncertainties are therefore customer problem strength, net wearable convenience, physical fit, real fluid behaviour, hygiene and cleaning burden, manufacturing feasibility and cost. The next stage is designed to replace those assumptions with evidence before the broader vision is allowed to drive more scope.
 
+## Built, planned and still unproven
+
+This distinction is central to the venture's current stage. Repository output demonstrates execution, but planned tests are not results and digital engineering is not physical validation.
+
+| Already built or recorded | Next evidence activity | Still unproven |
+| --- | --- | --- |
+| Controlled engineering requirements and machine-checkable authority | Structured behaviour-first customer interviews | A sufficiently strong customer problem and willingness to pay |
+| Parametric product geometry and representative subsystem geometry | Focused simulation and analysis tied to a selected use case | Population fit, comfort and physical feasibility |
+| Automated checks, source binding and explicit evidence boundaries | Focused physical fit and workflow prototype | Whether wearing, setup and removal create net convenience |
+| Cross-subsystem decision records and unresolved-risk tracking | Repeatable core fluid-delivery testing | Real delivery, recovery, leakage and wet-system behaviour |
+| Preliminary founder-reported feedback from around 20 people | Hygiene, cleaning and servicing investigation | Practical maintenance burden and hygiene performance |
+| A documented evidence-gated next-stage plan | Initial sourced manufacturing-cost modelling | Manufacturing feasibility, unit economics and commercial viability |
+
+The long-term wearable-and-dock concept therefore remains a direction to test, not a claim about what the first product will be. The first use case must earn progression through customer evidence, then focused physical and commercial evidence.
+
 ## Reviewer venture scorecard
 
 This is the shortest current-state view of the venture. A tick means the repository contains inspectable work in that area, not that the underlying product hypothesis has been validated.
