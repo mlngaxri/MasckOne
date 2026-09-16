@@ -10,6 +10,19 @@ The live engineering baseline is `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`, com
 
 Masck One has progressed beyond an idea in one specific sense: the repository contains inspectable requirements, parametric geometry, automated checks, source-binding controls, design decisions and cross-subsystem integration work. That is evidence of founder initiative and organised digital development. It is not evidence that a wearable product works physically or that a commercial market has been established.
 
+## Verifiable progress chronology
+
+The dates below come from repository history. They show inspectable development outputs, not physical capability or customer validation.
+
+| Date | Repository milestone | What it demonstrates |
+| --- | --- | --- |
+| 30 August 2026 | Authority-contract implementation and facial-reference landmark contract were committed. | Requirements and repeatable digital checks had become inspectable project outputs. |
+| 10 September 2026 | Whole-product Core Sketch convergence and authority reconciliation were committed. | Work had moved into explicit cross-subsystem constraints, conflicts and evidence gates. |
+| 14 September 2026 | The public scholarship-review baseline was committed. | The project record was reorganised for external scrutiny, with clearer separation between digital work, planned validation and unsupported claims. |
+| 16 September 2026 | Live `main` advanced to `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`. | This is the current engineering baseline used by the scholarship-review lane. Later scholarship commits are documentation-only evidence organisation. |
+
+This chronology is intentionally modest. It demonstrates sustained founder-led execution through dated outputs while keeping customer, physical and commercial maturity as separate questions that still require evidence.
+
 ## What the venture is testing
 
 The problem being explored is whether selected repetitive parts of a facial-skincare routine can be automated while creating net convenience for people who already follow multi-step routines. The target user and problem strength remain hypotheses.
