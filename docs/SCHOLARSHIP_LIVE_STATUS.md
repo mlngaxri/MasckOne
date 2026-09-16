@@ -8,9 +8,9 @@ As checked on 16 September 2026:
 
 - released `main`: `b4a105ea4483a6285be7d55fd527baea30ce6412`
 - scholarship-review branch: `docs/public-venture-overview`
-- scholarship-review head before this status update: `43c7e2eb450da988c99e3cd2edefd8e66f131f3f`
+- scholarship-review head before this status update: `d0b9d718779a0c79f7168017660862f317a1bf99`
 - active review lineage: PR #171
-- engineering CI for that exact pre-update head: run `35041360980`, still in progress when checked
+- engineering CI for that exact pre-update head: run `35045406845`, still in progress when checked
 
 This status is deliberately revision-specific. A CI result for one commit does not qualify later commits, and CI is digital engineering evidence only. It is not evidence of customer demand, human fit, comfort, hygiene, safety, real fluid behaviour, manufacturability or product-level physical performance.
 
@@ -25,6 +25,21 @@ The venture is still pre-commercialisation. Product-level physical validation ha
 The long-term direction is a wearable-and-dock system that could automate selected parts of a facial-skincare routine. That is a direction for exploration, not a committed first-product specification.
 
 The first use case still has to earn its scope. Structured customer interviews should identify a repeated problem worth solving, then focused analysis, fit work, core fluid testing, hygiene and cleaning investigation, and initial manufacturing-cost modelling should determine whether that narrow use case deserves deeper development.
+
+## Evidence ledger
+
+This ledger gives a reviewer one place to distinguish work already produced from evidence that still has to be generated. It is intentionally conservative: a repository output is counted only for the question it can actually answer.
+
+| Venture question | Evidence already inspectable | Evidence still missing | Current judgement |
+| --- | --- | --- | --- |
+| Has the concept progressed beyond an idea? | Controlled requirements, parametric geometry, automated checks, source binding, documented decisions and cross-subsystem integration work. | Physical execution against those requirements. | Yes as an actively developed digital venture, not as a validated product. |
+| Is there a customer problem worth solving? | Founder-reported informal feedback from around 20 people, with strongest reported interest around time and convenience and concerns around comfort, maintenance and price. | Structured interview records, recruitment/method detail, contradictory evidence and a defensible first-use-case decision. | Preliminary signal only. |
+| Is the wearable approach physically credible? | Digital geometry, constraints and analysis frameworks. | Focused physical fit and workflow observations. | Unknown physically. |
+| Can the core fluid concept work repeatably? | Requirements and digital wet-system engineering work. | Repeatable physical delivery measurements, including failed runs and test conditions. | Unknown physically. |
+| Will cleaning and servicing preserve convenience? | Maintenance is already identified as a customer concern and an engineering uncertainty. | Observed cleaning, servicing and contamination-risk burden for a tested configuration. | Unknown. |
+| Is there a plausible commercial path? | Cost and manufacturing uncertainty are explicitly tracked as decision gates. | Sourced manufacturing-cost assumptions, major cost drivers, customer value evidence and willingness-to-pay evidence. | Not established. |
+
+The ledger is designed to become stricter as evidence arrives. New interview, fit, fluid, hygiene or cost evidence should be linked to the relevant question rather than converted into a broad claim that the product is validated.
 
 ## Founder decisions already visible
 
