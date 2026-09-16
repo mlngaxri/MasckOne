@@ -71,13 +71,14 @@ The [registered render manifest](../website/images/masck-inspection-v17c-manifes
 
 ## 3. Verifiable development progression
 
-This is a short repository timeline, not a product-readiness timeline. Each milestone links to the underlying commit so a reviewer can inspect the record directly.
+This is a short repository timeline, not a product-readiness timeline. Each milestone links to the underlying commit so a reviewer can inspect the record directly. The final row is included because evidence curation is itself visible in version history: obsolete presentation imagery was removed from the live README rather than left where it could be mistaken for current product evidence.
 
 | Date | Inspectable milestone | Evidence boundary |
 | --- | --- | --- |
 | 30 August 2026 | [Controlled engineering authority and requirements structure](https://github.com/mlngaxri/MasckOne/commit/910d4fd1a03164e032847e590331cd7cddf51d8d) | Shows controlled digital requirements and checks, not physical validation. |
 | 10 September 2026 | [Whole-product convergence record](https://github.com/mlngaxri/MasckOne/commit/0044a55885000480a873b5761742341038b24b6a) | Shows subsystem work being considered together with unresolved proof gates recorded, not a validated integrated prototype. |
 | 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | Shows the existing evidence reorganised for external inspection, not an increase in physical or commercial maturity. |
+| 16 September 2026 | [Obsolete concept renders removed from the live README](https://github.com/mlngaxri/MasckOne/commit/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22) | Shows active evidence hygiene: superseded presentation imagery was removed from the primary reviewer path. It does not add engineering or physical evidence. |
 
 ## 4. Evidence boundary
 
