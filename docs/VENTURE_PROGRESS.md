@@ -139,3 +139,11 @@ These are decision rules, not predictions. Their purpose is to make the project 
 ## Current decision posture
 
 The venture is far enough developed digitally to support targeted validation, but not far enough validated to justify claims of product readiness or proven demand. The next stage should therefore optimise for learning rate: reduce the largest customer, physical and commercial uncertainties before increasing product breadth.
+
+## Evidence before expansion
+
+The long-term vision should not expand merely because more functions can be designed digitally. A new function should enter first-product scope only after the narrower use case has produced evidence across three linked questions: customers repeatedly experience the problem, the physical workflow creates net convenience, and the likely manufacturing burden remains proportionate to the value being created.
+
+This creates a simple scope rule for the venture: customer evidence earns the right to test hardware; focused physical evidence earns the right to investigate a product architecture; customer value and sourced cost evidence together earn the right to consider broader scope. Failure at any stage should reduce scope or redirect the venture rather than trigger more feature development.
+
+For a scholarship reviewer, this is the key distinction between activity and progress. Repository output demonstrates initiative and technical exploration. Expansion of the product concept must be justified separately by stronger customer, physical and commercial evidence.
