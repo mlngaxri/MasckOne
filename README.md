@@ -4,6 +4,8 @@ Masck One is an early-stage hands-free facial-skincare wearable for people who a
 
 **Current stage:** pre-commercialisation. Engineering geometry exists and digital checks and validation frameworks exist, but product-level physical validation has not begun. There is no integrated manufactured product, and the core customer, physical-performance and commercial assumptions remain to be validated.
 
+**Reviewer baseline:** the live engineering baseline is `main` at `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22` (16 September 2026). This scholarship-review branch organises public evidence and venture context around that engineering record; later documentation commits on this branch are not newer engineering releases and do not inherit physical or CI qualification from earlier revisions.
+
 **Fast scholarship-review path:** start with the [one-page scholarship review snapshot](docs/SCHOLARSHIP_REVIEW_SNAPSHOT.md). It is the canonical reviewer-facing evidence path and maps the strongest claims directly to representative source and checks while stating the evidence boundary beside each claim. Use the [scholarship evidence matrix](docs/SCHOLARSHIP_EVIDENCE_MATRIX.md) for a compact claim-to-source audit, the [visual evidence quicklook](docs/VISUAL_EVIDENCE_QUICKLOOK.md) for presentation context, and the [evidence guide](docs/EVIDENCE_GUIDE.md) only for deeper engineering inspection.
 
 The long-term vision spans cleansing and selected leave-on products. The immediate validation goal is narrower: establish whether one clearly defined part of a routine can be automated comfortably and usefully before committing to a broader first product. This is a staged validation approach; it does not mean the complete-routine engineering requirements have been met or waived.
