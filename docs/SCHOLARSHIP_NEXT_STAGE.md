@@ -21,6 +21,20 @@ This table makes the present venture state explicit. A planned test is not count
 
 The immediate priority is therefore not to make the full concept look complete. It is to move these gates from assumptions to evidence in an order that avoids unnecessary hardware spend.
 
+## Evidence sequencing gate
+
+The six activities below are not a checklist that must all be completed regardless of what is learned. Each stage should earn the next one.
+
+| Before committing more effort to | Minimum evidence required | Stop or redirect when |
+| --- | --- | --- |
+| A specific first use case | Structured interviews show a repeated problem, current workarounds and a credible reason to change behaviour. | The problem is occasional, weak, already solved adequately or outweighed by objections. |
+| Focused physical prototyping | One narrow use case survives customer review and the remaining question genuinely requires physical evidence rather than more analysis. | The use case remains ambiguous or can be rejected more cheaply through customer or digital evidence. |
+| Broader wet-system development | Focused fit/workflow evidence remains credible and a core fluid question has a repeatable test definition. | Wearing, loading, removal or cleaning burden already defeats the intended convenience benefit. |
+| Deeper product architecture | Core fluid and hygiene evidence does not reveal a fundamental practicality blocker. | Delivery, recovery, contamination or servicing evidence makes the selected path unattractive. |
+| Material commercial investment | A sourced first-pass manufacturing-cost model overlaps plausibly with stronger customer-value evidence. | Complexity and likely cost materially exceed the value customers appear to place on the problem. |
+
+This sequencing makes the next stage capital-disciplined. Scholarship support should accelerate evidence generation, not subsidise feature breadth after an earlier gate has failed. A stopped path is a useful outcome when it prevents larger spending on an unsupported assumption.
+
 ## The next six evidence steps
 
 | Step | Question | Minimum useful output | Decision enabled |
