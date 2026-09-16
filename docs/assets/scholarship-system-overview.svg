@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="500" viewBox="0 0 960 500" role="img" aria-labelledby="title desc">
   <title id="title">Masck One documented whole-product architecture</title>
-  <desc id="desc">Reviewer-facing documentation diagram separating the off-face dock from the wearable device. It is a simplified major-subsystem map, not an exhaustive bill of materials or implementation-status diagram. The wearable contains the documented product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, plus a supporting electronics, controls and software layer. A visible documentation map, not test evidence badge identifies the evidence class before the diagram is interpreted. Solid lines show documented product relationships; dashed lines show documented supporting relationships. Lines are deliberately non-directional because the diagram does not establish validated material or control flow. The diagram summarises documented subsystem relationships only and does not prove implementation or physical validation.</desc>
+  <desc id="desc">Reviewer-facing documentation diagram separating the off-face dock from the wearable device. It is a simplified major-subsystem map, not an exhaustive bill of materials or implementation-status diagram. The wearable contains the documented product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, plus a supporting electronics, controls and software layer. A visible documentation map, not test evidence badge identifies the evidence class before the diagram is interpreted. Solid lines show documented product relationships; dashed lines show documented supporting relationships. Lines are deliberately non-directional because the diagram does not establish validated material or control flow. The boxes identify documented subsystem areas, not completed hardware. The diagram summarises documented subsystem relationships only and does not prove implementation or physical validation.</desc>
   <defs>
     <style>
       .title { font: 700 28px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #111827; }
@@ -74,5 +74,5 @@
   <text x="480" y="422" class="boundary-note">Lines show relationships only. They do not assert direction or validated material or control flow.</text>
 
   <rect x="125" y="436" width="710" height="44" rx="14" fill="#f3f4f6" stroke="#d1d5db"/>
-  <text x="480" y="463" class="footer">Documentation overview only. It does not prove every subsystem is implemented or physically validated.</text>
+  <text x="480" y="463" class="footer">Architecture documentation only. Boxes identify subsystem areas, not completed hardware.</text>
 </svg>
