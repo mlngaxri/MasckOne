@@ -46,6 +46,10 @@ These examples show how the repository distinguishes a controlled engineering ta
 | Would scholarship support change the evidence base? | Support is framed around customer validation, prototype materials and test equipment, manufacturing and cost investigation, and specialist human collaboration. | [Venture progress](VENTURE_PROGRESS.md#evidence-gated-use-of-scholarship-support) | No funding amount, technical outcome or customer outcome is assumed. |
 | How is AI used? | AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. Founder judgement owns direction, requirements, priorities, trade-offs and final decisions. | [Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md#founder-and-ai-roles) | AI-assisted analysis is not treated as independent physical evidence. Specialist human expertise remains important for hardware, manufacturing, IP, fundraising and market entry. |
 
+## Reviewer stop conditions
+
+Do not infer a stronger claim when the evidence chain stops. A requirement without a qualifying result is a target, not achieved performance. A passing digital check is evidence only for the condition it checks on that exact source revision. A skipped check supplies no result. A synthetic or framework result is not a physical result. A geometry screen is not evidence of human comfort or safety. A planned customer interview is not demand evidence. Until measured evidence exists, customer demand, comfort, hygiene/cleaning, fluid behaviour, safety, manufacturing feasibility, unit economics and physical performance remain unproven.
+
 ## The venture case in one sentence
 
 Masck One has substantial inspectable digital development and a disciplined evidence trail, while the customer problem, first use case, physical performance and commercial case still need to earn validation before the broader product vision expands.
