@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="500" viewBox="0 0 960 500" role="img" aria-labelledby="title desc">
   <title id="title">Masck One documented whole-product architecture</title>
-  <desc id="desc">Reviewer-facing documentation diagram showing the off-face dock and preparation area separately from the documented wearable subsystems: product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, and electronics controls and software. A visible documentation map, not test evidence badge identifies the evidence class before the diagram is interpreted. Solid arrows show documented product relationships; dashed arrows show supporting controls relationships. Arrows show documented relationships, not validated material or control flow. The diagram summarises documented subsystem relationships only and does not prove implementation or physical validation.</desc>
+  <desc id="desc">Reviewer-facing documentation diagram showing the off-face dock and preparation area separately from the documented wearable subsystems: product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, and a supporting electronics, controls and software layer. A visible documentation map, not test evidence badge identifies the evidence class before the diagram is interpreted. Solid arrows show documented product relationships; dashed arrows show documented supporting relationships. Arrows show documented relationships, not validated material or control flow. The diagram summarises documented subsystem relationships only and does not prove implementation or physical validation.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
@@ -62,7 +62,8 @@
   <path d="M580 300 V260" class="arrow"/>
 
   <rect x="270" y="100" width="410" height="49" class="support"/>
-  <text x="475" y="129" class="node-title">Electronics, controls and software</text>
+  <text x="475" y="120" class="node-title">Electronics, controls and software</text>
+  <text x="475" y="140" class="node-sub">documented supporting layer</text>
 
   <path d="M330 149 C290 158 220 160 170 168" class="control-arrow"/>
   <path d="M405 149 C390 158 375 162 360 168" class="control-arrow"/>
@@ -72,7 +73,7 @@
   <line x1="285" y1="400" x2="325" y2="400" class="legend-solid"/>
   <text x="335" y="404" class="legend">documented product relationship</text>
   <line x1="515" y1="400" x2="555" y2="400" class="legend-dashed"/>
-  <text x="565" y="404" class="legend">supporting controls relationship</text>
+  <text x="565" y="404" class="legend">documented supporting relationship</text>
   <text x="480" y="422" class="boundary-note">Arrows show documented relationships, not validated material or control flow.</text>
 
   <rect x="125" y="436" width="710" height="44" rx="14" fill="#f3f4f6" stroke="#d1d5db"/>
