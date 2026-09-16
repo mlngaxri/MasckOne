@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="500" viewBox="0 0 960 500" role="img" aria-labelledby="title desc">
   <title id="title">Masck One documented whole-product architecture</title>
-  <desc id="desc">Reviewer-facing documentation diagram showing dock and preparation, product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, and electronics controls and software. Solid arrows show the main documented sequence; dashed arrows show supporting controls relationships. The diagram summarises documented subsystem relationships only and does not prove implementation or physical validation.</desc>
+  <desc id="desc">Reviewer-facing documentation diagram showing dock and preparation, product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, and electronics controls and software. Solid arrows show the main documented sequence; dashed arrows show supporting controls relationships. Arrows show documented relationships, not validated material or control flow. The diagram summarises documented subsystem relationships only and does not prove implementation or physical validation.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"/>
@@ -11,6 +11,7 @@
       .node-title { font: 650 16px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #111827; text-anchor: middle; }
       .node-sub { font: 400 13px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #4b5563; text-anchor: middle; }
       .legend { font: 400 12px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #4b5563; }
+      .boundary-note { font: 500 12px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #4b5563; text-anchor: middle; }
       .footer { font: 600 14px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #374151; text-anchor: middle; }
       .box { fill: #ffffff; stroke: #9ca3af; stroke-width: 1.5; rx: 16; }
       .support { fill: #f9fafb; stroke: #9ca3af; stroke-width: 1.5; rx: 16; }
@@ -62,7 +63,8 @@
   <text x="335" y="404" class="legend">main documented sequence</text>
   <line x1="515" y1="400" x2="555" y2="400" class="legend-dashed"/>
   <text x="565" y="404" class="legend">supporting controls relationship</text>
+  <text x="480" y="422" class="boundary-note">Arrows show documented relationships, not validated material or control flow.</text>
 
-  <rect x="125" y="420" width="710" height="48" rx="14" fill="#f3f4f6" stroke="#d1d5db"/>
-  <text x="480" y="449" class="footer">Documentation overview only. It does not prove every subsystem is implemented or physically validated.</text>
+  <rect x="125" y="436" width="710" height="44" rx="14" fill="#f3f4f6" stroke="#d1d5db"/>
+  <text x="480" y="463" class="footer">Documentation overview only. It does not prove every subsystem is implemented or physically validated.</text>
 </svg>
