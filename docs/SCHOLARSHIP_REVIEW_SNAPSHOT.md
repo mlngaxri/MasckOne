@@ -64,9 +64,9 @@ A useful scholarship outcome would therefore be a better venture decision: conti
 
 ## Current CI boundary
 
-Automated checks are evidence of engineering discipline only when their result is stated accurately. The latest exact scholarship-review head with a completed CI result before this documentation-only edit, `42717553bdb2e69d91988641fec1dd3ad70d955c`, ran engineering CI on 16 September 2026 and failed overall in run `35046145046`. Source binding, installation, compilation, the engineering-authority contract, product-identity contract, repository preflight and Iteration 11 to 16 preflights passed. Unit and integration tests then failed, so deterministic CAD smoke, exact release-provenance verification, generated-package integrity and CAD review-artifact preservation were skipped. The separate integrity-ratchets job passed repository integrity ratchets, failed pinned-commit provenance, and therefore skipped program-position consistency.
+Automated checks are evidence of engineering discipline only when their result is stated accurately. The latest exact scholarship-review head with a completed CI result before this documentation-only edit, `40fc0ebfa5da875508fedca3deecbcabd2f2f9b9`, ran [engineering CI](https://github.com/mlngaxri/MasckOne/actions/runs/35053805253) on 16 September 2026 and failed overall. Source binding, installation, compilation, the engineering-authority contract, product-identity contract, repository preflight and Iteration 11 to 16 preflights passed. Unit and integration tests then failed, so deterministic CAD smoke, exact release-provenance verification, generated-package integrity and CAD review-artifact preservation were skipped. The separate integrity-ratchets job passed repository integrity ratchets, failed pinned-commit provenance, and therefore skipped program-position consistency.
 
-Accordingly, this branch is not presented as a green engineering release. Passing preflights demonstrate that specific digital guards executed successfully at that exact revision; they do not override the failed suite, qualify skipped stages, transfer qualification to this later documentation commit, or constitute physical validation.
+Accordingly, this branch is not presented as a green engineering release. Passing preflights demonstrate that specific digital guards executed successfully at that exact revision; they do not override the failed suite, qualify skipped stages, transfer qualification to this later documentation commit, or constitute physical validation. A reviewer can follow the linked run directly rather than relying on a summary detached from its tested revision.
 
 ## Current venture boundary
 
@@ -97,21 +97,3 @@ A founder-reported informal survey of around 20 people produced a preliminary si
 The next stage is deliberately narrower than adding features. Structured customer interviews should identify whether a sufficiently important first problem exists. Focused simulation and analysis should reduce high-risk uncertainty before hardware spend. A focused physical fit prototype and core fluid-delivery testing should then test the narrow wearable workflow and wet-system assumptions. Hygiene and cleaning investigation should test whether maintenance erases the intended convenience benefit. Initial manufacturing-cost modelling should test whether required complexity has a plausible commercial path. Weak evidence should narrow, redesign or reject the relevant use case rather than be hidden by further digital scope.
 
 The detailed evidence gates and minimum useful outputs are recorded in the [next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md).
-
-## What scholarship support would change
-
-Scholarship support would be used to improve the quality of evidence, not to make the venture look more finished than it is.
-
-| Support area | Evidence it should enable | Decision it should improve |
-| --- | --- | --- |
-| Structured customer validation | Consistent interview records focused on routine friction, first-use-case priority, maintenance tolerance and pricing assumptions. | Whether a sufficiently important customer problem exists and which first use case deserves testing. |
-| Prototype materials and test equipment | Focused fit and workflow prototypes plus repeatable core fluid-delivery measurements. | Whether the selected wearable workflow is physically credible enough for deeper development. |
-| Hygiene and cleaning investigation | Documented servicing, cleaning and contamination-risk observations rather than assumed convenience. | Whether maintenance burden undermines the proposed customer value. |
-| Manufacturing and cost investigation | A sourced first-pass manufacturing-cost model and specialist input on practical fabrication choices. | Whether product scope and likely cost can plausibly coexist before further hardware investment. |
-| Specialist collaboration | Review from people with relevant hardware, manufacturing, IP, fundraising and market-entry experience. | Which assumptions require expert challenge before they become expensive commitments. |
-
-No budget or spending commitment is implied by this table. The standard is that support should leave behind inspectable evidence that makes the next venture decision better.
-
-## Founder and AI roles
-
-AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. Founder judgement owns product direction, requirements, priorities, trade-offs and final decisions. AI-assisted digital work is not presented as independent physical proof, and specialist human expertise remains necessary where practical experience, measurement and regulated or manufacturing judgement matter.
