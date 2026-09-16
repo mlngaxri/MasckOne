@@ -14,9 +14,9 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 1. [Open the architecture diagram](assets/scholarship-system-overview.svg) to understand how the documented product subsystems relate.
 2. Scan the three registered candidate compositions below to see representative digital packaging and geometry direction.
-3. Verify the underlying digital record directly in the [parametric model source](../src/masck_one/model.py), [controlled engineering authority](../config/masck_one_authority.yaml) and [automated tests](../tests/), then read the evidence boundary below before drawing conclusions about physical maturity.
+3. Open the [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) for image provenance, then use the [scholarship evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md) if you want the underlying engineering record without navigating source code.
 
-This path deliberately separates visual orientation from engineering evidence: the diagram and compositions make the work legible, while the linked source, authority and checks are the inspectable digital record.
+This path deliberately separates visual orientation from engineering evidence: the diagram and compositions make the work legible, while the manifest and evidence matrix expose provenance and evidence boundaries without requiring a reviewer to inspect source code.
 
 ### How to read the visuals
 
