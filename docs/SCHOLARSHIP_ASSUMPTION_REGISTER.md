@@ -23,6 +23,14 @@ The assumptions are intentionally ordered. Customer evidence should first identi
 
 A negative result is useful evidence. It can prevent time and scholarship support being spent on a feature or use case that has not earned further development.
 
+## Minimum decision record
+
+Each evidence stage should leave a short, inspectable record rather than only a claim that work occurred. The record should state the question tested, method used, evidence collected, contradictory or failed observations, limitations, and the resulting decision: advance, narrow/change, reject, or remain inconclusive.
+
+For customer work, this means comparable interview records rather than a positive-response count. For fit and workflow work, it means observations and test conditions rather than a polished prototype image. For fluid work, it means repeatable runs including failures rather than a best-case demonstration. For hygiene and servicing, it means the full preparation, use and cleaning burden. For cost work, it means sourced assumptions and major sensitivity drivers rather than an unsupported unit-cost target.
+
+This creates a simple audit trail from uncertainty to evidence to decision. It also makes progress legible even when the correct result is to remove a feature or stop a weak use case.
+
 ## Founder, AI and specialist input
 
 AI is used extensively to accelerate implementation and exploration. Founder judgement owns venture direction, requirements, priorities, trade-offs and final decisions. This register is therefore a decision-control tool, not a claim of unaided authorship.
