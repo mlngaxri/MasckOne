@@ -4,6 +4,12 @@
 
 This page gives a non-technical reviewer a short, verifiable chronology of Masck One's development. Dates below are Git commit dates and links point to inspectable repository outputs. They demonstrate founder-led execution and project progression, not customer traction, physical validation or product readiness.
 
+## Progress at a glance
+
+In roughly the first two and a half weeks of the public repository, Masck One progressed from controlled requirements and facial-reference geometry, to cross-subsystem convergence work, to an externally reviewable evidence structure. That progression is visible in dated repository outputs below rather than asserted through a founder biography or application claim.
+
+The important boundary is equally visible: this is substantial digital development, not proof that a product works on people or that a market exists. The next stage must therefore shift the centre of gravity from adding digital scope to earning customer, physical and commercial evidence.
+
 ## Verifiable progression
 
 | Date | Inspectable output | What changed at venture level | What it does not prove |
