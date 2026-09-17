@@ -12,6 +12,8 @@ This page is a deliberately short visual check for scholarship review. It surfac
 
 ### 30-second review path
 
+**If you open only one visual:** use the [whole-product architecture diagram](assets/scholarship-system-overview.svg). It is the fastest orientation to the documented system; it is a schematic documentation map, not evidence that the hardware has been built or validated.
+
 1. [Open the architecture diagram](assets/scholarship-system-overview.svg) to understand how the documented product subsystems relate.
 2. Scan the three registered candidate compositions below to see representative digital packaging and geometry direction.
 3. Open the [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) for image provenance, then use the [scholarship evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md) if you want the underlying engineering record without navigating source code.
