@@ -20,11 +20,13 @@ This path deliberately separates visual orientation from engineering evidence: t
 
 ### How to read the visuals
 
-| Label | Meaning |
-| --- | --- |
-| **Architecture diagram** | A simplified map of documented subsystem relationships. It explains the intended system structure, not implementation or validation status. |
-| **Registered candidate digital composition** | A traceable view assembled from existing candidate digital sources. In plain language, it is a computer-generated inspection view assembled from tracked candidate geometry, not a photograph. It supports inspection of digital packaging and geometry direction, but is not released engineering computer-aided design (CAD) or physical evidence. |
-| **Concept imagery** | Brand or product-direction imagery. It is not engineering geometry or validation evidence and is excluded from the evidence views below. |
+| Label | Reviewer evidence level | Meaning |
+| --- | --- | --- |
+| **Architecture diagram** | **Orientation** | A simplified map of documented subsystem relationships. It explains the intended system structure, not implementation or validation status. |
+| **Registered candidate digital composition** | **Supporting digital evidence** | A traceable view assembled from existing candidate digital sources. In plain language, it is a computer-generated inspection view assembled from tracked candidate geometry, not a photograph. It supports inspection of digital packaging and geometry direction, but is not released engineering computer-aided design (CAD) or physical evidence. |
+| **Concept imagery** | **Presentation only** | Brand or product-direction imagery. It is not engineering geometry or validation evidence and is excluded from the evidence views below. |
+
+The strongest engineering evidence is the controlled source, authority and automated checks referenced through the [scholarship evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md). No visual on this page is physical-validation evidence.
 
 ## 1. Whole-product architecture
 
