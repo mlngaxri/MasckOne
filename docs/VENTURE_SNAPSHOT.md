@@ -2,6 +2,18 @@
 
 Masck One is a pre-commercialisation venture exploring whether selected parts of a facial-skincare routine can be made less hands-on through a wearable device and supporting dock. This page is the shortest non-technical view of the venture case. It separates existing work from the evidence still needed before a first product should be defined.
 
+## Current venture maturity
+
+Masck One has moved beyond an idea into structured, inspectable digital development, but it has not yet earned product or market validation. The repository supports three different maturity statements that should not be collapsed into one:
+
+| Stage | Current status | Basis |
+| --- | --- | --- |
+| Venture definition | Established enough to test | A problem hypothesis, target-user hypothesis, long-term product direction, controlled requirements and an evidence-gated development path are documented. |
+| Digital engineering development | Substantial and inspectable | Code-based CAD, engineering geometry, automated checks, subsystem records, integration reviews and dated repository history exist. |
+| Customer, physical and commercial validation | Early / not established | The informal survey is preliminary; structured customer interviews, focused physical testing, hygiene investigation and manufacturing-cost modelling remain next-stage work. |
+
+This distinction is the central scholarship-review point: the venture has evidence of initiative and development, while the evidence needed to justify a first product remains deliberately open.
+
 ## The venture in one page
 
 | Question | Current position | Evidence boundary / next decision |
