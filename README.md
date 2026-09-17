@@ -10,9 +10,9 @@ Masck One is an early-stage hands-free facial-skincare wearable for people who a
 
 The long-term vision spans cleansing and selected leave-on products. The immediate validation goal is narrower: establish whether one clearly defined part of a routine can be automated comfortably and usefully before committing to a broader first product. This is a staged validation approach; it does not mean the complete-routine engineering requirements have been met or waived.
 
-[![Masck One documented whole-product architecture](docs/assets/scholarship-system-overview.svg)](docs/VISUAL_EVIDENCE_QUICKLOOK.md)
+[![Masck One documented whole-product architecture](docs/assets/scholarship-system-overview.svg)](docs/assets/scholarship-system-overview.svg)
 
-*Documentation map of whole-product architecture. It summarises subsystem relationships already documented in the repository so a reviewer can understand the system quickly. It does not show implementation status, validated material or control flow, an integrated prototype, or physical validation. Open the [visual evidence quicklook](docs/VISUAL_EVIDENCE_QUICKLOOK.md) for representative registered digital compositions, provenance and explicit evidence limits.*
+*Documentation map of whole-product architecture. It summarises subsystem relationships already documented in the repository so a reviewer can understand the system quickly. It does not show implementation status, validated material or control flow, an integrated prototype, or physical validation. Click the diagram to inspect it at full size, then open the [visual evidence quicklook](docs/VISUAL_EVIDENCE_QUICKLOOK.md) for representative registered digital compositions, provenance and explicit evidence limits.*
 
 ## Venture snapshot
 
@@ -77,13 +77,3 @@ I direct the product and system architecture: defining the intended experience, 
 I use AI extensively to accelerate code-based CAD, software development, research, alternative generation and engineering checks. I set the direction, requirements and trade-offs, and make the final system-level decisions. Version control and automated checks make the work inspectable; specialist judgement and physical measurement remain necessary where digital work cannot answer a question.
 
 This is an independently initiated, founder-led project. AI outputs are not treated as physical evidence, unknown results stay unknown, and a passing software check does not turn a target into achieved product performance.
-
-## Limitations: what is not proven yet
-
-Masck One has not yet established customer demand, willingness to pay, comfort or population fit, hygiene and cleaning practicality, real fluid delivery/recovery/leakage behaviour, safety, manufacturing feasibility, unit economics or product-level physical performance. Product-level physical validation has not begun.
-
-Synthetic tests, geometry screens, simulation frameworks, source-bound digital checks and green CI, where present, are digital engineering evidence only. They do not become physical validation without qualifying measurements.
-
-## Evidence and validation
-
-The [scholarship review snapshot](docs/SCHOLARSHIP_REVIEW_SNAPSHOT.md) is the canonical reviewer-facing claim-to-evidence map. The [scholarship evidence matrix](docs/SCHOLARSHIP_EVIDENCE_MATRIX.md) provides a compact claim-to-source audit with representative requirements and checks, the [evidence guide](docs/EVIDENCE_GUIDE.md) provides the deeper engineering trail, and the [next-stage evidence plan](docs/SCHOLARSHIP_NEXT_STAGE.md) identifies the physical and commercial evidence still required.
