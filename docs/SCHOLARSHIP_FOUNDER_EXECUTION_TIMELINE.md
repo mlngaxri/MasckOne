@@ -13,6 +13,10 @@ This page gives a non-technical reviewer a short, verifiable chronology of Masck
 | 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | The engineering record was reorganised for external scrutiny, with clearer separation between existing digital work, planned validation and unsupported claims. | Customer demand, willingness to pay, physical performance or market readiness. |
 | 16 September 2026 | [`main` engineering baseline](https://github.com/mlngaxri/MasckOne/commit/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22) | The public engineering baseline continued to be curated as the project evolved; obsolete concept renders were removed rather than retained as if they represented current product evidence. | A newer physical prototype, green whole-product qualification or validated product appearance. |
 
+## How to read this evidence
+
+The chronology contains existing digital engineering evidence only. Requirements are controlled targets, automated checks show what was tested on a particular source revision, and decision records show how trade-offs were handled. Planned customer, fit, fluid, hygiene and cost work is planned validation, not a completed result. Customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance remain physical or commercial evidence not yet obtained.
+
 ## What the chronology shows
 
 The useful signal is not the number of commits. It is the progression from controlled requirements and reproducible geometry, to cross-subsystem decision-making, to an evidence-gated public review path. The repository therefore provides inspectable evidence that the venture is being actively developed and that unsupported claims are being separated from what has actually been built or recorded.
