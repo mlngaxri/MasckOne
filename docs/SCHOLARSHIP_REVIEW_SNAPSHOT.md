@@ -66,6 +66,10 @@ These examples show how the repository turns product intent into auditable engin
 
 The automated checks above verify things such as schema/source consistency, dependent-value consistency, revision binding and digital geometry integrity. They are useful because they can expose internal contradictions early. They do not verify customer demand, wearer comfort, hygiene, real fluid behaviour, safety, manufacturing capability, cost or physical performance.
 
+### Current CI boundary
+
+The repository contains automated engineering checks, but no pull-request-triggered GitHub Actions workflow run is associated with exact engineering revision `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22` as of 18 September 2026. The existence of test source therefore demonstrates an inspectable checking framework, not that current `main` has a recorded CI pass. Any workflow result from another revision must remain evidence for that tested revision only.
+
 ## Evidence boundary
 
 The repository demonstrates active venture development through inspectable outputs. It does not currently prove customer demand or willingness to pay; comfort or population fit; hygiene, cleaning or maintenance practicality; real fluid delivery, leakage or recovery behaviour; product safety; manufacturing feasibility; viable unit economics; or product-level physical performance.
