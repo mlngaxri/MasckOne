@@ -8,6 +8,8 @@ This is the short reviewer path. It separates what has been built from what stil
 
 Engineering-source links below are pinned to live engineering `main` revision `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`, verified on 18 September 2026. Scholarship documentation may advance independently and must not be read as a newer engineering release.
 
+**Reviewer audit rule:** the cited engineering-owner source at the pinned revision controls the claim. Scholarship prose can explain or narrow that evidence, but it cannot upgrade a target, framework, synthetic result, geometry screen or planned test into achieved physical or commercial evidence.
+
 ## How to read the evidence
 
 | Evidence class | What belongs here | What a reviewer may conclude |
