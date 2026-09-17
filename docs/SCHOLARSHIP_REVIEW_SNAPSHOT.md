@@ -1,10 +1,10 @@
 # Scholarship review snapshot
 
-[Project overview](../README.md) · [Venture progress](VENTURE_PROGRESS.md) · [Founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md) · [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md)
+[Project overview](../README.md) · [Venture progress](VENTURE_PROGRESS.md) · [Claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md) · [Founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md) · [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md)
 
 Masck One is a pre-commercialisation venture exploring whether selected parts of a facial-skincare routine can be made less hands-on through a wearable device and supporting dock. Engineering geometry, requirements, code-based CAD, automated checks and design records exist. Product-level physical validation has not begun.
 
-This is the short reviewer path. It separates what has been built from what still needs customer, physical and commercial evidence. For a dated, commit-linked record of execution, see the [founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md).
+This is the short reviewer path. It separates what has been built from what still needs customer, physical and commercial evidence. For a dated, commit-linked record of execution, see the [founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md). For a question-by-question boundary between supported claims, hypotheses and unproven outcomes, see the [claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md).
 
 Engineering-source links below are pinned to live engineering `main` revision `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`, verified on 17 September 2026. Scholarship documentation may advance independently and must not be read as a newer engineering release.
 
