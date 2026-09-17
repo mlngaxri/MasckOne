@@ -14,6 +14,19 @@ Masck One has moved beyond an idea into structured, inspectable digital developm
 
 This distinction is the central scholarship-review point: the venture has evidence of initiative and development, while the evidence needed to justify a first product remains deliberately open.
 
+## Progress in dates
+
+A reviewer does not need to infer initiative from commit volume. Four dated repository milestones show the development progression:
+
+| Date | Verifiable milestone | Venture-level significance |
+| --- | --- | --- |
+| 30 August 2026 | [Controlled requirements and facial-reference geometry](https://github.com/mlngaxri/MasckOne/commit/910d4fd1a03164e032847e590331cd7cddf51d8d) | Product intent began becoming inspectable engineering artefacts rather than remaining only a concept. |
+| 10 September 2026 | [Whole-product convergence work](https://github.com/mlngaxri/MasckOne/commit/0044a55885000480a873b5761742341038b24b6a) | Work progressed into explicit cross-subsystem conflicts, trade-offs and evidence gates. |
+| 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | Existing work, planned validation and unsupported claims were separated for external scrutiny. |
+| 16 September 2026 | [Current engineering baseline](https://github.com/mlngaxri/MasckOne/commit/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22) | The public engineering record continued to be curated, including removal of obsolete concept renders rather than presenting them as current evidence. |
+
+This chronology demonstrates sustained digital execution over the public repository's first weeks. It does not demonstrate customer traction, physical validation, revenue, partnerships or product readiness. The [full founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md) provides the claim boundaries and next evidence handoff behind these milestones.
+
 ## The venture in one page
 
 | Question | Current position | Evidence boundary / next decision |
