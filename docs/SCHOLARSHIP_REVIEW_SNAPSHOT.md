@@ -16,31 +16,6 @@ Engineering-source links below are pinned to live engineering `main` revision `8
 | Planned validation | Customer interviews, focused analysis, fit prototyping, fluid testing, hygiene/cleaning investigation and manufacturing-cost work that is defined but not yet completed. | The project has explicit next evidence gates, not that those gates have passed. |
 | Physical/commercial evidence not yet obtained | Qualifying evidence for customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance. | These claims remain unproven and must not be inferred from digital work, synthetic tests or validation frameworks. |
 
-## Venture snapshot
-
-| Question | Current position |
-| --- | --- |
-| Problem being explored | Whether routine skincare can require less active time and repetitive handling without creating greater fitting, cleaning, maintenance or ownership burden. |
-| Target user hypothesis | People who already follow multi-step facial-skincare routines and value reducing active routine time. This is not yet a validated segment. |
-| Long-term direction | A wearable-and-dock system that could automate selected routine steps. This is a direction, not a committed first-product specification. |
-| First testable use case | Deliberately not locked. Structured customer evidence should identify one repeated routine problem worth solving before broader hardware scope is justified. |
-| What has been built | Controlled requirements, parametric engineering geometry, automated checks, documented design decisions and cross-subsystem integration work that can be inspected in the repository. |
-| Early customer research | A founder-reported informal survey of around 20 people is preliminary and non-conclusive. The strongest reported interest was time/convenience; concerns included comfort, maintenance and price. It does not establish demand or willingness to pay. |
-| Key uncertainties | Customer value, fit and comfort, real fluid behaviour, hygiene and cleaning burden, safety, manufacturing feasibility and unit economics remain unproven. |
-| What happens next | Structured customer interviews, focused simulation/analysis, a focused physical fit prototype, core fluid-delivery testing, hygiene/cleaning investigation and initial manufacturing-cost modelling. |
-
-## The next three venture decisions
-
-The next stage is organised around decisions rather than feature completion. Each decision has an evidence threshold and a legitimate stop or redirect outcome.
-
-| Decision | Evidence needed | If evidence supports it | If evidence does not support it |
-| --- | --- | --- | --- |
-| 1. Which problem deserves a first use case? | Structured interviews showing a repeated routine burden, the alternatives people already use, and why the problem matters enough to change behaviour. | Select one narrow use case for focused physical investigation. | Narrow, change or reject the use case before deeper hardware spend. |
-| 2. Does the proposed workflow create net convenience? | Focused fit, fluid-delivery, recovery, cleaning and servicing observations for that use case. | Continue into a more integrated candidate architecture. | Redesign the workflow or mechanism, or reject the wearable approach for that use case. |
-| 3. Can the useful scope be commercially plausible? | Sourced manufacturing/process assumptions, an initial cost model and stronger customer-value evidence. | Define a tighter product scope and investigate manufacturing with specialist input. | Reduce complexity, change architecture or reconsider the product/business model. |
-
-The broader wearable-and-dock vision does not automatically pass through these gates. It expands only if the narrower case earns customer, physical and commercial support.
-
 ## 60-second engineering evidence map
 
 | Claim a reviewer may test | Representative evidence | What it establishes | Boundary |
@@ -64,7 +39,18 @@ These examples show how the repository turns product intent into auditable engin
 | Quick release | no more than 2 s; one-hand, wet and unpowered operation required | frozen safety requirement; force remains validation-gated | Emergency removal behaviour is specified before testing, not claimed as demonstrated. |
 | Loaded mass | no more than 255 g | project requirement | The product has a controlled mass ceiling; this does not establish comfort or a manufactured mass result. |
 
-The automated checks above verify things such as schema/source consistency, dependent-value consistency, revision binding and digital geometry integrity. They are useful because they can expose internal contradictions early. They do not verify customer demand, wearer comfort, hygiene, real fluid behaviour, safety, manufacturing capability, cost or physical performance.
+### Representative automated checks
+
+The pinned [authority contract tests](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/tests/test_authority_contract.py) deliberately introduce controlled inconsistencies and require the validator to reject them. Representative examples are intentionally small enough to audit quickly:
+
+| Check | Deliberate inconsistency | What rejection demonstrates | What it does not demonstrate |
+| --- | --- | --- | --- |
+| Airway duplication check | Changes one copy of the minimum airway area from 120 to 121 mm² | Duplicated controlled requirements cannot silently drift apart. | That 120 mm² is physiologically safe or physically achieved. |
+| Clean-cycle ledger check | Changes the nominal introduced-liquid total to an inconsistent value | Dependent fluid-budget values must reconcile with their source quantities. | Real delivery accuracy, leakage, recovery or cleaning performance. |
+| Cartridge-capacity check | Reduces retained capacity below the controlled ledger requirement | The digital authority rejects an internally under-capacity cartridge specification. | Manufactured cartridge capacity, sealing or waste behaviour. |
+| Protected-classification check | Promotes an actuation architecture to an engineering baseline where the authority forbids that status | Evidence classifications cannot be silently promoted beyond their controlled state. | Physical readiness or validation of the actuation architecture. |
+
+These checks demonstrate fail-closed consistency checking and evidence-state discipline. They can expose contradictions in the digital engineering record. They do not verify customer demand, wearer comfort, hygiene, real fluid behaviour, safety, manufacturing capability, cost or physical performance.
 
 ### Current CI boundary
 
