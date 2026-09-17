@@ -8,6 +8,21 @@ This is the canonical reviewer evidence path. It separates existing digital engi
 
 Engineering-source links below are deliberately bound to live `main`, which is the engineering authority. Scholarship documentation may advance independently and must not be read as a newer engineering release.
 
+## Venture snapshot
+
+| Reviewer question | Current position |
+| --- | --- |
+| Problem being explored | Multi-step facial-skincare routines can require repetitive active time, handling and clean-up. Masck One explores whether part of that work can be automated without creating a worse preparation or maintenance burden. |
+| Target user hypothesis | People who already follow multi-step facial-skincare routines and value reducing active routine time and effort. This is not yet a validated segment. |
+| Long-term direction | A wearable-and-dock system capable of automating selected parts of a broader facial-skincare routine. This is a product direction, not a committed or physically validated specification. |
+| First use case | Not yet locked. The next customer work should identify one recurring routine task worth testing before broader product scope is earned. |
+| What has been built | Controlled requirements, code-generated parametric CAD, automated engineering checks, design records and linked subsystem exploration across fit, fluid handling, retention, waste capture, electronics and controls. |
+| Early customer learning | A founder-reported informal survey of around 20 people indicated strongest interest around time savings and convenience, with concerns around comfort, maintenance and price. The underlying survey evidence is not in the repository, so this is preliminary and non-conclusive. |
+| Key uncertainties | Customer value, acceptable workflow and comfort, population fit, hygiene and cleaning burden, real fluid behaviour, safety, manufacturability, unit economics and the most defensible first use case. |
+| What happens next | Structured customer interviews, focused simulation/analysis, a focused physical fit prototype, core fluid-delivery testing, hygiene/cleaning investigation and initial manufacturing-cost modelling. These are planned evidence steps, not completed results. |
+
+The commercial discipline is deliberate: customer evidence should earn the right to spend on focused hardware; physical evidence should earn the right to deepen the architecture; customer value and sourced cost evidence should earn the right to broaden product scope. A weak result should narrow, redirect or stop the relevant use case rather than be hidden by more feature development.
+
 ## 60-second evidence map
 
 | Claim a reviewer may test | Representative evidence | What it establishes | Boundary |
@@ -34,7 +49,7 @@ The strongest current evidence is disciplined digital engineering rather than co
 
 The repository contains linked exploration across facial interface and treatment mechanics, product storage and delivery, waste recovery, retention and structure, actuation, electronics and controls, and dock/preparation concepts. This is evidence of system-level exploration and integration work, not proof that those subsystems are complete or physically compatible.
 
-AI is used extensively to accelerate implementation, exploration, documentation and code-based CAD. Founder judgement owns venture direction, requirements, priorities, trade-offs and final system-level decisions. AI output, synthetic tests and passing software checks are not treated as physical evidence.
+AI is used extensively to accelerate implementation, exploration, documentation and code-based CAD. Founder judgement owns venture direction, requirements, priorities, trade-offs and final system-level decisions. AI output, synthetic tests and passing software checks are not treated as physical evidence. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
 
 ## Current venture boundary
 
@@ -53,5 +68,7 @@ That run is historical digital evidence for its exact tested revision only. It d
 ## Next evidence gates
 
 The next stage should reduce uncertainty rather than add feature breadth. Structured customer interviews should determine whether one repeated routine problem is strong enough to justify a focused first use case. If it survives that gate, focused fit/workflow work and repeatable core fluid testing should test the narrow physical assumptions. Hygiene and cleaning investigation should test whether maintenance erases the intended convenience benefit. Initial sourced manufacturing-cost modelling should test whether the surviving scope has a plausible commercial path.
+
+Scholarship support would be directed at evidence generation rather than presentation: prototype materials and test equipment for focused fit, fluid and cleaning work; manufacturing and cost investigation; and structured customer validation. No budget is asserted here because no repository-supported budget has been established.
 
 Weak evidence should narrow, redesign or reject the relevant use case rather than be hidden by further digital development. The detailed sequence is in the [next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md), while the [evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md) provides a deeper claim-to-source audit.
