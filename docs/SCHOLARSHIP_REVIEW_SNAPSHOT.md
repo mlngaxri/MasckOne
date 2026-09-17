@@ -1,10 +1,12 @@
 # Scholarship review snapshot
 
-[Project overview](../README.md) · [Visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md) · [Venture progress](VENTURE_PROGRESS.md) · [Claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md) · [Founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md) · [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md)
+[Venture snapshot](VENTURE_SNAPSHOT.md) · [Project overview](../README.md) · [Visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md) · [Venture progress](VENTURE_PROGRESS.md) · [Claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md) · [Founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md) · [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md)
 
 Masck One is a pre-commercialisation venture exploring whether selected parts of a facial-skincare routine can be made less hands-on through a wearable device and supporting dock. Engineering geometry, requirements, code-based CAD, automated checks and design records exist. Product-level physical validation has not begun.
 
-This is the short reviewer path. It separates what has been built from what still needs customer, physical and commercial evidence. For the fastest visual inspection of the documented architecture and representative traceable digital work, use the [visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md). For a dated, commit-linked record of execution, see the [founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md). For a question-by-question boundary between supported claims, hypotheses and unproven outcomes, see the [claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md).
+For a non-technical scholarship reviewer, start with the [one-page venture snapshot](VENTURE_SNAPSHOT.md). It covers the problem and target-user hypotheses, the deliberately unlocked first use case, what has been built, preliminary customer research, current uncertainties, dated progress and the next evidence milestones. This page then provides the shorter audit path into the underlying engineering evidence.
+
+This review path separates what has been built from what still needs customer, physical and commercial evidence. For the fastest visual inspection of the documented architecture and representative traceable digital work, use the [visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md). For a dated, commit-linked record of execution, see the [founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md). For a question-by-question boundary between supported claims, hypotheses and unproven outcomes, see the [claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md).
 
 Engineering-source links below are pinned to live engineering `main` revision `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`, verified on 18 September 2026. Scholarship documentation may advance independently and must not be read as a newer engineering release.
 
