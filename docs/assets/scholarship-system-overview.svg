@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="500" viewBox="0 0 960 500" role="img" aria-labelledby="title desc">
   <title id="title">Masck One documented whole-product architecture</title>
-  <desc id="desc">Reviewer-facing documentation diagram separating the documented off-face dock area from the wearable system area. It is a simplified major-subsystem map, not an exhaustive bill of materials or implementation-status diagram. The wearable system area contains the documented product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, plus a supporting electronics, controls and software layer. A visible documentation map, not test evidence badge identifies the evidence class before the diagram is interpreted. Solid lines show documented product relationships; dashed lines show documented supporting relationships. Lines are deliberately non-directional because the diagram does not establish validated material or control flow. Diagram position and spacing are schematic and do not represent physical placement, size or scale. The boxes identify documented subsystem areas, not completed hardware. The diagram summarises documented subsystem relationships only and does not prove implementation or physical validation.</desc>
+  <desc id="desc">Reviewer-facing documentation diagram separating the documented off-face dock area from the wearable system area. It is a simplified, non-exhaustive major-subsystem map, not a bill of materials or implementation-status diagram. The wearable system area contains the documented product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, plus a supporting electronics, controls and software layer. A visible documentation map, not test evidence badge identifies the evidence class before the diagram is interpreted. Solid lines show documented product relationships; dashed lines show documented supporting relationships. Lines are deliberately non-directional because the diagram does not establish validated material or control flow. Diagram position and spacing are schematic and do not represent physical placement, size or scale. The boxes identify documented subsystem areas, not completed hardware. The diagram summarises documented subsystem relationships only and does not prove implementation or physical validation.</desc>
   <defs>
     <style>
       .title { font: 700 28px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #111827; }
@@ -26,7 +26,7 @@
   <rect x="24" y="22" width="210" height="26" rx="13" fill="#f3f4f6" stroke="#d1d5db"/>
   <text x="129" y="39" class="badge">DOCUMENTATION MAP · NOT TEST EVIDENCE</text>
   <text x="480" y="44" class="title" text-anchor="middle">Masck One documented system architecture</text>
-  <text x="480" y="70" class="subtitle" text-anchor="middle">Simplified major-subsystem map · documented relationships, not build status</text>
+  <text x="480" y="70" class="subtitle" text-anchor="middle">Simplified, non-exhaustive subsystem map · documented relationships, not build status</text>
 
   <rect x="42" y="153" width="206" height="118" class="zone-box"/>
   <text x="145" y="148" class="zone">OFF-FACE DOCK AREA</text>
