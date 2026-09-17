@@ -14,6 +14,14 @@ Masck One is a pre-commercialisation venture exploring whether selected parts of
 | What are the largest uncertainties? | Whether a sufficiently important first problem exists; whether fitting, loading, cleaning and storage still create net convenience; whether core fit and fluid behaviour work physically; whether hygiene is practical; and whether manufacturing cost can overlap with customer value. | These questions remain open. Digital engineering or AI-assisted analysis cannot close the physical and commercial ones by itself. |
 | What happens next? | Structured customer interviews; focused simulation and analysis; a focused physical fit prototype; core fluid-delivery testing; hygiene and cleaning investigation; and initial manufacturing-cost modelling. | Each activity should produce evidence that can advance, narrow, redesign or reject the relevant path. They are planned activities, not completed results. |
 
+## What a reviewer can verify now
+
+The venture is not presented as idea-only because its development history is inspectable. At engineering `main` revision [`8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`](https://github.com/mlngaxri/MasckOne/tree/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22), a reviewer can inspect the [controlled engineering authority](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/config/masck_one_authority.yaml), [code-based parametric model](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/src/masck_one/model.py), [automated authority-contract checks](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/tests/test_authority_contract.py) and [whole-product convergence review](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/docs/CORE_SKETCH_CONVERGENCE_REVIEW.md).
+
+The [founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md) links dated repository milestones to commits so progress can be checked through outputs and chronology rather than accepted as a founder claim. The [claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md) separately marks what those outputs do and do not establish.
+
+This verification path is intentionally narrow. It demonstrates sustained, structured digital development. It does not convert repository activity into evidence of customer demand, physical validation, revenue, partnerships or technical performance.
+
 ## Long-term vision versus first validation target
 
 The long-term direction is a wearable-and-dock system that could automate selected parts of a facial-skincare routine. It should not determine the first-product scope simply because more functions can be designed digitally.
