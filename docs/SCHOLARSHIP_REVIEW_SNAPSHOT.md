@@ -8,6 +8,14 @@ This is the short reviewer path. It separates what has been built from what stil
 
 Engineering-source links below are pinned to live engineering `main` revision `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`, verified on 17 September 2026. Scholarship documentation may advance independently and must not be read as a newer engineering release.
 
+## How to read the evidence
+
+| Evidence class | What belongs here | What a reviewer may conclude |
+| --- | --- | --- |
+| Existing digital engineering evidence | Parametric CAD, controlled requirements, automated checks, source-bound records and documented design decisions already present in the repository. | The engineering work exists and can be inspected at the cited revision. |
+| Planned validation | Customer interviews, focused analysis, fit prototyping, fluid testing, hygiene/cleaning investigation and manufacturing-cost work that is defined but not yet completed. | The project has explicit next evidence gates, not that those gates have passed. |
+| Physical/commercial evidence not yet obtained | Qualifying evidence for customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance. | These claims remain unproven and must not be inferred from digital work, synthetic tests or validation frameworks. |
+
 ## Venture snapshot
 
 | Question | Current position |
