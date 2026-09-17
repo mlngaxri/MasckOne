@@ -61,9 +61,11 @@ A founder-reported informal survey of around 20 people is preliminary only. The 
 
 ## Current CI boundary
 
-The current scholarship-review documentation head has no associated pull-request workflow run. The latest completed engineering CI cited in this reviewer path is [run 35068027419](https://github.com/mlngaxri/MasckOne/actions/runs/35068027419), which tested exact revision `6f54a6934842d1acb7e609a555d1f71170029559` on 16 September 2026 and failed overall. Several preflight and contract checks passed, but unit and integration tests failed and later stages were skipped.
+Live engineering `main` is currently `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`. No pull-request workflow run is associated with that exact revision, and the current scholarship-review documentation head likewise has no associated pull-request workflow run. Therefore neither current head is presented as CI-qualified.
 
-That run is historical digital evidence for its exact tested revision only. It does not qualify this documentation branch, later revisions, skipped stages or physical performance. The branch is not presented as a green engineering release.
+The latest completed engineering CI cited in this reviewer path is [run 35068027419](https://github.com/mlngaxri/MasckOne/actions/runs/35068027419), which tested exact revision `6f54a6934842d1acb7e609a555d1f71170029559` on 16 September 2026 and failed overall. Several preflight and contract checks passed, but unit and integration tests failed and later stages were skipped.
+
+That run is historical digital evidence for its exact tested revision only. It does not qualify live `main`, this documentation branch, later revisions, skipped stages or physical performance. The repository is not presented here as a current green engineering release.
 
 ## Next evidence gates
 
