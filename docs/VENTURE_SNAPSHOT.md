@@ -55,6 +55,20 @@ The long-term direction is a wearable-and-dock system that could automate select
 
 The immediate objective is to identify one use case that repeatedly matters to customers, can create net convenience after fitting and maintenance are considered, can be reduced to focused physical tests, and has a plausible path to manufacturing economics. Weak evidence should narrow, change or reject the use case rather than trigger more feature development.
 
+## How the first use case will be chosen
+
+The first use case should be earned by evidence rather than selected from the breadth of the long-term concept. Before scope is locked, a candidate should pass five linked questions:
+
+| Decision question | Evidence needed | If evidence is weak |
+| --- | --- | --- |
+| Does the problem matter often enough? | Repeated patterns from structured interviews with the target-user hypothesis. | Narrow the segment, change the problem or stop pursuing that use case. |
+| Does the device create net convenience? | Customer workflow evidence that accounts for fitting, loading, cleaning and storage, not just active treatment time. | Simplify the workflow or reject the use case. |
+| Can the core interaction be tested physically? | A focused fit prototype and core fluid-delivery tests that isolate the relevant physical questions. | Redesign or reduce scope before broader prototyping. |
+| Can hygiene and maintenance be acceptable? | Cleaning and hygiene investigation tied to the actual first-use workflow. | Change the architecture or reject the workflow. |
+| Is there a plausible commercial path? | Initial sourced manufacturing-cost modelling considered alongside customer value and price sensitivity. | Reduce cost or scope before treating the concept as a product candidate. |
+
+No candidate currently passes all five gates. This is a selection framework for the next evidence stage, not a claim that a first product has been chosen or validated.
+
 ## How support would become evidence
 
 Scholarship support would be most useful when converted into structured customer validation, prototype materials and test equipment for focused fit, fluid and cleaning questions, and manufacturing and cost investigation. No funding amount, technical result or commercial outcome is assumed.
