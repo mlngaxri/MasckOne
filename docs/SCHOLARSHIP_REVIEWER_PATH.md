@@ -6,6 +6,8 @@ This page is a short inspection route for a non-technical scholarship reviewer. 
 
 Masck One is a pre-commercialisation venture exploring whether selected parts of a facial-skincare routine can be made less hands-on through a wearable device and supporting dock.
 
+**Current stage:** pre-commercialisation. Engineering geometry exists and digital checks/frameworks exist; product-level physical validation has not begun.
+
 The long-term wearable-and-dock direction is not a committed first-product specification. The first use case remains deliberately unlocked until stronger customer evidence identifies a routine problem where customer value, physical feasibility and plausible economics overlap.
 
 Start with [Venture snapshot](VENTURE_SNAPSHOT.md) for the problem hypothesis, target-user hypothesis, current maturity, preliminary customer research, key uncertainties and next milestones.
@@ -14,7 +16,7 @@ Start with [Venture snapshot](VENTURE_SNAPSHOT.md) for the problem hypothesis, t
 
 The repository contains controlled requirements, engineering geometry, code-based CAD, automated-check source, subsystem records and whole-product integration work. The [Founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md) links dated milestones to repository history so initiative can be inspected through outputs and chronology rather than accepted as a claim.
 
-This evidence demonstrates sustained digital development. It does not prove customer demand, comfort, safety, physical performance, manufacturability, viable unit economics, revenue or partnerships.
+This evidence demonstrates sustained digital development. It does not prove customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, viable unit economics or product-level physical performance.
 
 ## 3. Customer evidence so far
 
