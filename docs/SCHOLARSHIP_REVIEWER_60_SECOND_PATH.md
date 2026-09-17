@@ -14,7 +14,13 @@ It has not been earned yet. The long-term wearable-and-dock concept is a directi
 
 The first use case should be selected only if structured customer interviews identify a repeated problem worth solving. It must then survive focused fit, fluid, hygiene and cost evidence before broader product scope is justified.
 
-## 3. What shows initiative already?
+## 3. What can I inspect visually?
+
+[Open the visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md) for the shortest visual inspection path. It contains one documented whole-product architecture diagram and three traceable candidate digital compositions.
+
+The architecture diagram is an orientation map of documented subsystem relationships, not evidence that the system has been built. The three product views are registered candidate digital compositions, not photographs or released engineering computer-aided design. Their captions state what each view supports and what it does not prove. Website hero imagery is treated separately as concept imagery and is not used as engineering evidence.
+
+## 4. What shows initiative already?
 
 The repository contains inspectable digital engineering outputs including controlled requirements, parametric geometry, automated checks, documented design decisions, risk tracking and cross-subsystem integration work. Repository history provides a dated record of that progression.
 
@@ -22,13 +28,13 @@ This demonstrates sustained execution and an organised development process. It d
 
 For the commit-linked chronology, see [Founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md).
 
-## 4. What customer evidence exists?
+## 5. What customer evidence exists?
 
 The repository records a founder-reported informal survey of around 20 people. It is preliminary and non-conclusive: the strongest interest was around time and convenience, while comfort, maintenance and price appeared as concerns. The repository does not contain the survey method or raw data, so this is not evidence of demand, willingness to pay or product-market fit.
 
 The next customer step is structured, behaviour-first interviewing with contradictory evidence retained. See [Customer interview plan](SCHOLARSHIP_CUSTOMER_INTERVIEW_PLAN.md) and [Customer evidence synthesis](SCHOLARSHIP_CUSTOMER_EVIDENCE_SYNTHESIS.md).
 
-## 5. What happens next?
+## 6. What happens next?
 
 1. Structured customer interviews and an explicit first-use-case decision.
 2. Focused simulation and analysis to reduce high-risk uncertainty before hardware spend.
@@ -39,7 +45,7 @@ The next customer step is structured, behaviour-first interviewing with contradi
 
 Scholarship support would translate into evidence generation through prototype materials and test equipment, manufacturing and cost investigation, structured customer validation and access to specialist expertise. No unsupported budget is implied.
 
-## 6. Who is doing the work?
+## 7. Who is doing the work?
 
 AI is used extensively to accelerate implementation and exploration. Founder judgement owns direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
 
