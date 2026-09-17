@@ -23,7 +23,7 @@ This path deliberately separates visual orientation from engineering evidence: t
 | Label | Meaning |
 | --- | --- |
 | **Architecture diagram** | A simplified map of documented subsystem relationships. It explains the intended system structure, not implementation or validation status. |
-| **Registered candidate digital composition** | A traceable view assembled from existing candidate digital sources. It supports inspection of digital packaging and geometry direction, but is not released engineering computer-aided design (CAD) or physical evidence. |
+| **Registered candidate digital composition** | A traceable view assembled from existing candidate digital sources. In plain language, it is a computer-generated inspection view assembled from tracked candidate geometry, not a photograph. It supports inspection of digital packaging and geometry direction, but is not released engineering computer-aided design (CAD) or physical evidence. |
 | **Concept imagery** | Brand or product-direction imagery. It is not engineering geometry or validation evidence and is excluded from the evidence views below. |
 
 ## 1. Whole-product architecture
@@ -46,7 +46,7 @@ This path deliberately separates visual orientation from engineering evidence: t
 
 > **Provenance before appearance:** these are assembled review views from two separately traceable candidate digital checkpoints, not photographs and not one released whole-product CAD assembly. The exterior contribution traces to `17e7db2`; the retention contribution traces to `2568676`. Their coexistence in these images supports visual inspection only, not a claim that the two candidates were released or validated together.
 
-These three images are the strongest concise visual summary currently registered in the repository. They are **candidate digital compositions**, not standalone screenshots of released engineering CAD. Their value is that their contributing digital sources and evidence limits are recorded explicitly.
+These three images are the strongest concise visual summary currently registered in the repository. They are **candidate digital compositions**, not standalone screenshots of released engineering CAD. In plain language, they are computer-generated inspection views assembled from tracked candidate geometry, not photographs of a built device. Their value is that their contributing digital sources and evidence limits are recorded explicitly.
 
 **Source status at a glance:** all three views use the same registered composition. The visible exterior comes from solid-model renderer checkpoint `17e7db2`; retention comes from separate candidate checkpoint `2568676` in the same authority coordinate frame. The manifest records the camera definitions and image hashes for each view. They are shown together for inspection, but the repository does not claim that those sources form a released integrated CAD state.
 
