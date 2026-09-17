@@ -23,6 +23,12 @@ Engineering-source links below are deliberately bound to live `main`, which is t
 
 The commercial discipline is deliberate: customer evidence should earn the right to spend on focused hardware; physical evidence should earn the right to deepen the architecture; customer value and sourced cost evidence should earn the right to broaden product scope. A weak result should narrow, redirect or stop the relevant use case rather than be hidden by more feature development.
 
+## First-use-case selection gate
+
+The first use case should be selected from evidence rather than from the breadth of the long-term concept. Structured interviews should identify candidate routine tasks, then compare them on the same questions: is the task repeated often enough to matter; does it create meaningful active-time, handling or clean-up burden; would reducing that burden create clear user value; can the workflow be tested without building the full wearable-and-dock vision; do comfort, hygiene or maintenance requirements risk cancelling the convenience benefit; and is there a plausible path to a manufacturable scope at a cost users may accept?
+
+No candidate currently passes this gate. The output of customer discovery should therefore be a decision: advance one narrow use case into focused physical testing, narrow or change the proposition, reject the current candidates, or remain inconclusive and gather more evidence. This prevents existing engineering work from becoming a reason to commit to a product customers have not validated.
+
 ## 60-second evidence map
 
 | Claim a reviewer may test | Representative evidence | What it establishes | Boundary |
