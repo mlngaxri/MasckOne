@@ -52,6 +52,20 @@ The broader wearable-and-dock vision does not automatically pass through these g
 | Major subsystems have inspectable digital coverage | [Whole-product convergence review](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/docs/CORE_SKETCH_CONVERGENCE_REVIEW.md) and [compliant interface topology](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/docs/COMPLIANT_INTERFACE_TOPOLOGY.md) | Facial interface, structure/retention, actuation and fluid/waste interactions are represented in system-level digital engineering records rather than isolated feature claims. | Coverage means the subsystem interactions are documented and reviewable, not that any subsystem has passed physical verification. |
 | Missing evidence remains explicit | [Core Sketch status board](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/docs/CORE_SKETCH_STATUS_BOARD.md) | Proof gates remain marked `PROVE`, `BLOCKED`, validation-gated or otherwise unresolved until the required evidence exists; unknown inputs are not silently zero-filled. | A defined gate, protocol or deadline is planned validation, not evidence that the gate has passed. |
 
+### Representative controlled requirements
+
+These examples show how the repository turns product intent into auditable engineering targets without presenting the targets as achieved performance. All are inspectable in the pinned [engineering authority](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/config/masck_one_authority.yaml).
+
+| Example | Controlled value | Repository status | Plain-language meaning |
+| --- | --- | --- | --- |
+| Nostrils / airway opening | at least 120 mm² each and 8 mm local opening | engineering baseline for opening geometry; pressure-drop and collapse evidence remains gated | The digital design reserves a minimum opening. It does not prove breathing safety on a wearer. |
+| External liquid leakage | no more than 50 µL per cycle | engineering baseline | The repository defines a leakage limit. No physical cycle has demonstrated it. |
+| Waste recovery | at least 90% recovery and no more than 400 µL residual free liquid | validation-gated | Recovery has a measurable pass/fail target, but qualifying fluid testing has not occurred. |
+| Quick release | no more than 2 s; one-hand, wet and unpowered operation required | frozen safety requirement; force remains validation-gated | Emergency removal behaviour is specified before testing, not claimed as demonstrated. |
+| Loaded mass | no more than 255 g | project requirement | The product has a controlled mass ceiling; this does not establish comfort or a manufactured mass result. |
+
+The automated checks above verify things such as schema/source consistency, dependent-value consistency, revision binding and digital geometry integrity. They are useful because they can expose internal contradictions early. They do not verify customer demand, wearer comfort, hygiene, real fluid behaviour, safety, manufacturing capability, cost or physical performance.
+
 ## Evidence boundary
 
 The repository demonstrates active venture development through inspectable outputs. It does not currently prove customer demand or willingness to pay; comfort or population fit; hygiene, cleaning or maintenance practicality; real fluid delivery, leakage or recovery behaviour; product safety; manufacturing feasibility; viable unit economics; or product-level physical performance.
