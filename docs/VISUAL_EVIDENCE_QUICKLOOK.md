@@ -20,6 +20,8 @@ This page is a deliberately short visual check for scholarship review. It surfac
 2. Scan the three registered candidate compositions below to see representative digital packaging and geometry direction.
 3. Open the [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) for image provenance, then use the [scholarship evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md) if you want the underlying engineering record without navigating source code.
 
+For progression rather than geometry, jump directly to the [four-milestone repository timeline](#3-verifiable-development-progression). It is deliberately text-based and commit-linked, so it shows verifiable development history without introducing a decorative progression graphic.
+
 This path deliberately separates visual orientation from engineering evidence: the diagram and compositions make the work legible, while the manifest and evidence matrix expose provenance and evidence boundaries without requiring a reviewer to inspect source code.
 
 ### How to read the visuals
