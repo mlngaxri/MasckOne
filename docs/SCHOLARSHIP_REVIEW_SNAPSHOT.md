@@ -21,6 +21,18 @@ Engineering-source links below are pinned to live engineering `main` revision `8
 | Key uncertainties | Customer value, fit and comfort, real fluid behaviour, hygiene and cleaning burden, safety, manufacturing feasibility and unit economics remain unproven. |
 | What happens next | Structured customer interviews, focused simulation/analysis, a focused physical fit prototype, core fluid-delivery testing, hygiene/cleaning investigation and initial manufacturing-cost modelling. |
 
+## The next three venture decisions
+
+The next stage is organised around decisions rather than feature completion. Each decision has an evidence threshold and a legitimate stop or redirect outcome.
+
+| Decision | Evidence needed | If evidence supports it | If evidence does not support it |
+| --- | --- | --- | --- |
+| 1. Which problem deserves a first use case? | Structured interviews showing a repeated routine burden, the alternatives people already use, and why the problem matters enough to change behaviour. | Select one narrow use case for focused physical investigation. | Narrow, change or reject the use case before deeper hardware spend. |
+| 2. Does the proposed workflow create net convenience? | Focused fit, fluid-delivery, recovery, cleaning and servicing observations for that use case. | Continue into a more integrated candidate architecture. | Redesign the workflow or mechanism, or reject the wearable approach for that use case. |
+| 3. Can the useful scope be commercially plausible? | Sourced manufacturing/process assumptions, an initial cost model and stronger customer-value evidence. | Define a tighter product scope and investigate manufacturing with specialist input. | Reduce complexity, change architecture or reconsider the product/business model. |
+
+The broader wearable-and-dock vision does not automatically pass through these gates. It expands only if the narrower case earns customer, physical and commercial support.
+
 ## 60-second engineering evidence map
 
 | Claim a reviewer may test | Representative evidence | What it establishes | Boundary |
