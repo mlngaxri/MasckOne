@@ -42,7 +42,7 @@ The strongest engineering evidence is the controlled source, authority and autom
 
 **What it does not show:** implementation status, physical integration or validation of any subsystem. The diagram summarises existing documentation; it is not a prototype or test result.
 
-**Traceability:** this diagram is a reviewer abstraction of subsystem relationships already documented in the [project overview](../README.md), [product concept](PRODUCT_CONCEPT.md) and [whole-product convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md). Those documents describe intent and integration context; the [engineering authority](../config/masck_one_authority.yaml) remains controlling for engineering truth.
+**Traceability:** this diagram is a reviewer abstraction of subsystem relationships already documented in the [project overview](../README.md), [product concept](PRODUCT_CONCEPT.md) and [whole-product convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md). Those documents describe intent and integration context; the [engineering authority](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/config/masck_one_authority.yaml) remains controlling for engineering truth at the live engineering baseline inspected for this review.
 
 ## 2. Representative registered digital work
 
@@ -69,7 +69,7 @@ These three images are the strongest concise visual summary currently registered
 
 **Evidence class:** registered candidate digital compositions. These are not photographs, released engineering CAD or physical-test evidence. They are included because their digital provenance is recorded, not because they establish product readiness.
 
-**Engineering evidence behind the images:** the repository's stronger engineering proof is source-bound rather than photographic. The [parametric model source](../src/masck_one/model.py), [engineering authority](../config/masck_one_authority.yaml) and [automated tests](../tests/) show how geometry, requirements and digital checks are represented and controlled. They still do not establish physical fit, comfort, safety or performance.
+**Engineering evidence behind the images:** the repository's stronger engineering proof is source-bound rather than photographic. For the live engineering baseline inspected for this review (`8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`), see the pinned [parametric model source](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/src/masck_one/model.py), [engineering authority](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/config/masck_one_authority.yaml) and [automated tests](https://github.com/mlngaxri/MasckOne/tree/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/tests). Pinning these links prevents later documentation-branch movement from silently changing the engineering record a reviewer is inspecting. These digital sources and checks still do not establish physical fit, comfort, safety or performance.
 
 **One-click provenance:** the visible exterior contribution traces to candidate renderer-pass checkpoint [`17e7db2`](https://github.com/mlngaxri/MasckOne/commit/17e7db204c693f684855d923fcacd7c95468e599), while the retention contribution traces to candidate checkpoint [`2568676`](https://github.com/mlngaxri/MasckOne/commit/25686766238b66ecf900009042d721c08e042592). These links establish where the contributing digital geometry came from; they do not make either checkpoint released-main CAD or physical evidence.
 
