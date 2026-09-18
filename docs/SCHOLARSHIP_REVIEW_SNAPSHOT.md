@@ -14,11 +14,11 @@ Engineering-source links below are pinned to live engineering `main` revision `b
 
 ## How to read the evidence
 
-| Evidence class | What belongs here | What a reviewer may conclude |
-| --- | --- | --- |
-| Existing digital engineering evidence | Parametric CAD, controlled requirements, automated checks, source-bound records and documented design decisions already present in the repository. | The engineering work exists and can be inspected at the cited revision. |
-| Planned validation | Customer interviews, focused analysis, fit prototyping, fluid testing, hygiene/cleaning investigation and manufacturing-cost work that I have defined but not yet completed. | I have explicit next evidence gates, not evidence that those gates have passed. |
-| Physical/commercial evidence not yet obtained | Qualifying evidence for customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance. | These claims remain unproven and must not be inferred from digital work, synthetic tests or validation frameworks. |
+| Evidence class | What belongs here | What a reviewer may conclude | What would justify promotion |
+| --- | --- | --- | --- |
+| Existing digital engineering evidence | Parametric CAD, controlled requirements, automated checks, source-bound records and documented design decisions already present in the repository. | The engineering work exists and can be inspected at the cited revision. | Promotion requires evidence appropriate to the claim, such as qualifying physical measurement for physical performance or structured customer evidence for demand. A digital check alone cannot promote the claim. |
+| Planned validation | Customer interviews, focused analysis, fit prototyping, fluid testing, hygiene/cleaning investigation and manufacturing-cost work that I have defined but not yet completed. | I have explicit next evidence gates, not evidence that those gates have passed. | I only move a result out of this class when the planned work has actually produced inspectable evidence against the stated question or gate. |
+| Physical/commercial evidence not yet obtained | Qualifying evidence for customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, unit economics and product-level physical performance. | These claims remain unproven and must not be inferred from digital work, synthetic tests or validation frameworks. | Each claim stays here until evidence directly relevant to that claim exists. Evidence for one category does not qualify another. |
 
 ## 60-second engineering evidence map
 
