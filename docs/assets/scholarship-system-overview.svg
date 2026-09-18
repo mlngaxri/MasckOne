@@ -5,7 +5,7 @@
     <style>
       .title { font: 700 28px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #111827; }
       .subtitle { font: 400 15px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #4b5563; }
-      .badge { font: 700 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #374151; text-anchor: middle; letter-spacing: 0.6px; }
+      .badge { font: 700 9px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #374151; text-anchor: middle; letter-spacing: 0.45px; }
       .zone { font: 700 11px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #6b7280; text-anchor: middle; letter-spacing: 1px; }
       .node-title { font: 650 16px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #111827; text-anchor: middle; }
       .node-sub { font: 400 13px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #4b5563; text-anchor: middle; }
@@ -24,10 +24,10 @@
   </defs>
 
   <rect width="960" height="520" fill="#ffffff"/>
-  <rect x="24" y="22" width="280" height="26" rx="13" fill="#f3f4f6" stroke="#d1d5db"/>
-  <text x="164" y="39" class="badge">ORIENTATION ONLY · DOCUMENTATION MAP · NOT TEST EVIDENCE</text>
   <text x="480" y="44" class="title" text-anchor="middle">How the documented Masck One system fits together</text>
   <text x="480" y="70" class="subtitle" text-anchor="middle">Major documented relationships only; not what has been built or physically validated</text>
+  <rect x="42" y="101" width="206" height="24" rx="12" fill="#f3f4f6" stroke="#d1d5db"/>
+  <text x="145" y="117" class="badge">ORIENTATION ONLY · DOCUMENTATION MAP · NOT TEST EVIDENCE</text>
 
   <rect x="42" y="153" width="206" height="118" class="zone-box"/>
   <text x="145" y="148" class="zone">SEPARATE DOCK / PREPARATION</text>
