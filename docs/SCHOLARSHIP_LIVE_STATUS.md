@@ -21,7 +21,7 @@ Masck One is exploring whether selected repetitive parts of a facial-skincare ro
 
 The long-term direction is a wearable-and-dock system that could automate selected parts of a routine. It is not a committed first-product specification. The first use case should be selected from structured customer evidence, then earn further development through focused physical and commercial evidence.
 
-What exists today is an inspectable digital engineering foundation: controlled requirements, parametric geometry, automated checks, source binding, documented design decisions and cross-subsystem integration work. A founder-reported informal survey of around 20 people provides only a preliminary, non-conclusive signal. Reported interest was strongest around time and convenience, while comfort, maintenance and price were concerns. The repository does not contain the survey method or raw responses, so this does not establish demand, willingness to pay or a validated customer segment.
+What exists today is an inspectable digital engineering foundation: controlled requirements, parametric geometry, automated checks, source binding, documented design decisions and cross-subsystem integration work. An informal survey I conducted of around 20 people provides only a preliminary, non-conclusive signal. Reported interest was strongest around time and convenience, while comfort, maintenance and price were concerns. The repository does not contain the survey method or raw responses, so this does not establish demand, willingness to pay or a validated customer segment.
 
 The main unresolved questions are customer problem strength, net wearable convenience, physical fit, real fluid behaviour, hygiene and cleaning burden, manufacturing feasibility and cost.
 
@@ -38,11 +38,11 @@ The next evidence path is deliberately narrower than adding features:
 
 Scholarship support would be most useful where it converts these uncertainties into evidence through customer validation, prototype materials, test equipment, manufacturing and cost investigation, and specialist input. It should not be treated as endorsement or as a reason to build a more polished concept before the evidence supports it.
 
-## Founder and AI boundary
+## My role and AI boundary
 
-AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. Founder judgement owns direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
+AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. I retain responsibility for direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
 
-The repository should therefore be read as evidence of founder initiative, decision-making and an increasingly inspectable development process, not as a claim of independent manual authorship or completed product validation.
+The repository should therefore be read as evidence of my initiative, decision-making and an increasingly inspectable development process, not as a claim of independent manual authorship or completed product validation.
 
 ## Evidence boundary
 
