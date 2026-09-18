@@ -62,7 +62,7 @@ Exact engineering revision `becf782bf809543ba4b83ecab689204b2458de7d` has a comp
 
 ## Evidence boundary
 
-The repository demonstrates active venture development through inspectable outputs. It does not currently prove customer demand or willingness to pay; comfort or population fit; hygiene, cleaning or maintenance practicality; real fluid delivery, leakage or recovery behaviour; product safety; manufacturing feasibility; viable unit economics; or product-level physical performance.
+I have not yet obtained qualifying evidence for customer demand or willingness to pay; comfort or population fit; hygiene, cleaning or maintenance practicality; real fluid delivery, leakage or recovery behaviour; product safety; manufacturing feasibility; viable unit economics; or product-level physical performance. I treat each of these as unproven, rather than inferring them from the digital engineering record.
 
 Synthetic tests, geometry screens, simulation frameworks and software checks remain digital evidence unless qualifying physical measurements exist. Rapid digital progress should not be interpreted as rapid physical validation.
 
