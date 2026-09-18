@@ -26,11 +26,11 @@ The repository contains inspectable digital engineering outputs including contro
 
 This demonstrates sustained execution and an organised development process. It does not demonstrate customer traction or product-level physical validation.
 
-For the commit-linked chronology, see [Founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md).
+For the commit-linked chronology, see [Execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md).
 
 ## 5. What customer evidence exists?
 
-The repository records a founder-reported informal survey of around 20 people. It is preliminary and non-conclusive: the strongest interest was around time and convenience, while comfort, maintenance and price appeared as concerns. The repository does not contain the survey method or raw data, so this is not evidence of demand, willingness to pay or product-market fit.
+The repository records an informal survey I conducted of around 20 people. It is preliminary and non-conclusive: the strongest interest was around time and convenience, while comfort, maintenance and price appeared as concerns. The repository does not contain the survey method or raw data, so this is not evidence of demand, willingness to pay or product-market fit.
 
 The next customer step is structured, behaviour-first interviewing with contradictory evidence retained. See [Customer interview plan](SCHOLARSHIP_CUSTOMER_INTERVIEW_PLAN.md) and [Customer evidence synthesis](SCHOLARSHIP_CUSTOMER_EVIDENCE_SYNTHESIS.md).
 
@@ -47,7 +47,7 @@ Scholarship support would translate into evidence generation through prototype m
 
 ## 7. Who is doing the work?
 
-AI is used extensively to accelerate implementation and exploration. Founder judgement owns direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
+AI is used extensively to accelerate implementation and exploration. I retain responsibility for direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
 
 ## Evidence boundary
 
