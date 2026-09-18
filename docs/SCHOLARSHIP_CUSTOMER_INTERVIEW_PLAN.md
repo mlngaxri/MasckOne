@@ -2,7 +2,7 @@
 
 [Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md) · [Progress to evidence](SCHOLARSHIP_PROGRESS_TO_EVIDENCE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md) · [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md)
 
-Masck One needs stronger customer evidence before a first product is selected. The founder-reported informal survey of around 20 people is useful for forming questions, but its method and raw data are unavailable and it does not establish demand, willingness to pay or a validated customer segment.
+Masck One needs stronger customer evidence before a first product is selected. The informal survey I conducted of around 20 people is useful for forming questions, but its method and raw data are unavailable and it does not establish demand, willingness to pay or a validated customer segment.
 
 This plan defines the next customer-discovery output without assuming that interviews will support the concept.
 
@@ -46,7 +46,7 @@ Record what the participant finds useful, confusing or unacceptable, what they b
 
 ## Evidence to capture
 
-For each interview, retain a consistent de-identified record of the participant context relevant to the routine, recent examples, frequency of the problem, current workaround, consequence of the problem, rejection conditions and any solution reaction. Separate direct observations from founder interpretation.
+For each interview, retain a consistent de-identified record of the participant context relevant to the routine, recent examples, frequency of the problem, current workaround, consequence of the problem, rejection conditions and any solution reaction. Separate direct observations from my interpretation.
 
 The synthesis should report recurring behaviours and objections, contradictory evidence and cases where no meaningful problem exists. It should not convert interview count or positive reactions into a traction claim.
 
@@ -64,4 +64,4 @@ A positive decision still does not establish product-market fit, willingness to 
 
 Structured customer validation can improve the quality of the first-use-case decision before more hardware spend. The purpose is not to produce favourable quotes or marketing material. It is to expose whether the problem is important enough, and whether comfort, maintenance, price or another constraint invalidates the proposed path early.
 
-AI can assist with organising notes, comparing themes and testing alternative interpretations. Founder judgement remains responsible for interview design, evidence interpretation, product direction and the final advance, change or reject decision. Specialist human input is valuable where research design, market interpretation or later commercial decisions exceed the founder's current expertise.
+AI can assist with organising notes, comparing themes and testing alternative interpretations. my judgement remains responsible for interview design, evidence interpretation, product direction and the final advance, change or reject decision. Specialist human input is valuable where research design, market interpretation or later commercial decisions exceed my current expertise.
