@@ -65,7 +65,7 @@ The dates below are Git commit dates. They show when inspectable work entered th
 | 10 September 2026 | [Whole-product Core Sketch convergence](https://github.com/mlngaxri/MasckOne/commit/0044a55885000480a873b5761742341038b24b6a) and [authority reconciliation](https://github.com/mlngaxri/MasckOne/commit/0c0ccb1d1b3356ed0001e5e53f318973a2893e08) | Work expanded from individual digital subsystems to explicit cross-subsystem conflicts, proof gates, mass/resource constraints and unresolved integration questions. |
 | 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | Existing engineering work was reorganised for external review with clearer evidence boundaries, reviewer navigation and separation between digital work, planned validation and claims not yet supported. |
 
-The chronology is deliberately short. It demonstrates founder initiative through inspectable outputs and version history, while avoiding the implication that rapid digital development equals rapid physical validation.
+The chronology is deliberately short. It demonstrates my initiative through inspectable outputs and version history, while avoiding the implication that rapid digital development equals rapid physical validation.
 
 | Milestone | Inspectable record | What changed |
 | --- | --- | --- |
@@ -143,7 +143,7 @@ Development documents sometimes use `cell`, `lane` or `owner` for a workstream a
 
 ## Customer feedback
 
-The [customer discovery notes](CUSTOMER_DISCOVERY.md) record a founder-reported informal survey and its limitations. Reported interest is distinct from independently inspectable research, purchasing behaviour and validated demand. The next research questions are plans, not completed interviews.
+The [customer discovery notes](CUSTOMER_DISCOVERY.md) record an informal survey I conducted and its limitations. Reported interest is distinct from independently inspectable research, purchasing behaviour and validated demand. The next research questions are plans, not completed interviews.
 
 ## What remains open
 
