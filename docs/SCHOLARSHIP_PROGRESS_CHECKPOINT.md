@@ -8,7 +8,7 @@ Masck One is pre-commercialisation. Engineering geometry exists and digital chec
 
 The live engineering baseline is `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`, committed on 16 September 2026. The scholarship-review branch contains later documentation work, but those commits are evidence organisation rather than a newer engineering release.
 
-Masck One has progressed beyond an idea in one specific sense: the repository contains inspectable requirements, parametric geometry, automated checks, source-binding controls, design decisions and cross-subsystem integration work. That is evidence of founder initiative and organised digital development. It is not evidence that a wearable product works physically or that a commercial market has been established.
+Masck One has progressed beyond an idea in one specific sense: the repository contains inspectable requirements, parametric geometry, automated checks, source-binding controls, design decisions and cross-subsystem integration work. That is evidence of my initiative and organised digital development. It is not evidence that a wearable product works physically or that a commercial market has been established.
 
 ## Verifiable progress chronology
 
@@ -21,7 +21,7 @@ The dates below come from repository history. They show inspectable development 
 | 14 September 2026 | The public scholarship-review baseline was committed. | The project record was reorganised for external scrutiny, with clearer separation between digital work, planned validation and unsupported claims. |
 | 16 September 2026 | Live `main` advanced to `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`. | This is the current engineering baseline used by the scholarship-review lane. Later scholarship commits are documentation-only evidence organisation. |
 
-This chronology is intentionally modest. It demonstrates sustained founder-led execution through dated outputs while keeping customer, physical and commercial maturity as separate questions that still require evidence.
+This chronology is intentionally modest. It demonstrates sustained my execution through dated outputs while keeping customer, physical and commercial maturity as separate questions that still require evidence.
 
 ## What the venture is testing
 
@@ -31,7 +31,7 @@ The long-term direction is a wearable-and-dock system that could automate select
 
 ## Evidence available now
 
-A founder-reported informal survey of around 20 people provides a preliminary, non-conclusive signal. Interest was strongest around time and convenience; concerns included comfort, maintenance and price. The repository does not contain the underlying raw data or a sufficiently documented method, so this evidence does not establish demand, willingness to pay or a validated customer segment.
+An informal survey I conducted of around 20 people provides a preliminary, non-conclusive signal. Interest was strongest around time and convenience; concerns included comfort, maintenance and price. The repository does not contain the underlying raw data or a sufficiently documented method, so this evidence does not establish demand, willingness to pay or a validated customer segment.
 
 The strongest current evidence is therefore execution evidence: dated repository outputs, controlled engineering information and explicit records of unresolved questions. Product-level physical validation, customer traction, revenue, partnerships, manufacturing feasibility and unit economics are not established.
 
@@ -54,8 +54,8 @@ The intended sequence is:
 
 Scholarship support should accelerate evidence generation rather than presentation. Appropriate uses include prototype materials and test equipment, manufacturing and cost investigation, structured customer validation, and specialist human input where hardware, manufacturing, IP, fundraising or market-entry judgement is required. No budget or purchase commitment is implied here.
 
-## Founder and AI boundary
+## My role and AI boundary
 
-AI is used extensively to accelerate implementation and exploration. Founder judgement owns direction, requirements, priorities, trade-offs and final system-level decisions. The repository is presented as founder-led work with substantial AI assistance, not as unaided authorship. Specialist human expertise and collaboration remain important for the next hardware, manufacturing, IP, fundraising and market-entry decisions.
+AI is used extensively to accelerate implementation and exploration. I retain responsibility for direction, requirements, priorities, trade-offs and final system-level decisions. The repository is presented as my work with substantial AI assistance, not as unaided authorship. Specialist human expertise and collaboration remain important for the next hardware, manufacturing, IP, fundraising and market-entry decisions.
 
 For the fuller evidence trail, see [Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md), [Evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md), [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md) and [Customer discovery](CUSTOMER_DISCOVERY.md).
