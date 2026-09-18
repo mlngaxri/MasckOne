@@ -29,7 +29,7 @@ The repository separates three kinds of information:
 | What you want to understand | Start here |
 | --- | --- |
 | Scholarship review: strongest claims, evidence classes and limitations in one page | [Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md) |
-| The product, founder role, progress and present stage | [Project overview](../README.md) |
+| The product, my role, progress and present stage | [Project overview](../README.md) |
 | The strongest existing visuals and what they do or do not prove | [Visual evidence index](VISUAL_EVIDENCE_INDEX.md) |
 | Initial customer, reported feedback and next research questions | [Customer discovery](CUSTOMER_DISCOVERY.md) |
 | What the repository actually demonstrates | [Evidence guide](EVIDENCE_GUIDE.md) |
