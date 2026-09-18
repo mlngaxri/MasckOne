@@ -86,7 +86,7 @@ Development documents sometimes use `cell`, `lane` or `owner` for a workstream a
 
 ## Customer feedback
 
-The [customer discovery notes](CUSTOMER_DISCOVERY.md) record a founder-reported informal survey and its limitations. Reported interest is distinct from independently inspectable research, purchasing behaviour and validated demand. The next research questions are plans, not completed interviews.
+The [customer discovery notes](CUSTOMER_DISCOVERY.md) record my informal survey and its limitations. Reported interest is distinct from independently inspectable research, purchasing behaviour and validated demand. The next research questions are plans, not completed interviews.
 
 ## What remains open
 
