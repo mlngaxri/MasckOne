@@ -14,7 +14,7 @@ The repository separates three kinds of information:
 
 | What you want to understand | Start here |
 | --- | --- |
-| The product, founder role, progress and present stage | [Project overview](../README.md) |
+| The product, my role, progress and present stage | [Project overview](../README.md) |
 | Initial customer, reported feedback and next research questions | [Customer discovery](CUSTOMER_DISCOVERY.md) |
 | What the repository actually demonstrates | [Evidence guide](EVIDENCE_GUIDE.md) |
 | How to run the engineering work | [Engineering quickstart](ENGINEERING_QUICKSTART.md) |
