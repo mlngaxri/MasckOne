@@ -58,7 +58,7 @@ These checks demonstrate fail-closed consistency checking and evidence-state dis
 
 ### Current CI boundary
 
-The repository contains automated engineering checks, but no pull-request-triggered GitHub Actions workflow run is associated with exact engineering revision `becf782bf809543ba4b83ecab689204b2458de7d` as of 18 September 2026. The existence of test source therefore demonstrates an inspectable checking framework, not that current `main` has a recorded CI pass. Any workflow result from another revision must remain evidence for that tested revision only.
+Exact engineering revision `becf782bf809543ba4b83ecab689204b2458de7d` has a completed successful `Masck One engineering CI` GitHub Actions run from the `main` push on 18 September 2026 ([run 1858](https://github.com/mlngaxri/MasckOne/actions/runs/35293789374)). This records that the workflow passed for that exact digital revision. It does not convert software checks, synthetic tests, geometry screens or validation frameworks into physical validation, and it does not qualify later revisions automatically.
 
 ## Evidence boundary
 
