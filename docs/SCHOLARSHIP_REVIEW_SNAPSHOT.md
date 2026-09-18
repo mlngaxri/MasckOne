@@ -76,6 +76,8 @@ Weak evidence should narrow, change or reject a use case rather than be hidden b
 
 Scholarship support would be most useful when directed to structured customer validation, prototype materials and test equipment for focused fit/fluid/cleaning questions, and manufacturing and cost investigation. No funding amount or outcome is assumed. The purpose is to replace important assumptions with evidence, not to make the concept look more complete.
 
+## My role, AI and collaboration
+
 AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. I retain responsibility for venture direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
 
 See [Venture progress](VENTURE_PROGRESS.md) for the fuller reviewer-facing progression and [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md) for the evidence gates.
