@@ -34,6 +34,21 @@ What this demonstrates: I have made digital consistency, provenance and unresolv
 
 What it does not demonstrate: customer demand, willingness to pay, product-level physical performance or qualification of later revisions.
 
+## From proof of work to proof of venture
+
+The repository already shows that I can turn the concept into structured, inspectable engineering work. The next question is whether the venture deserves continued development. I will treat that as a sequence of decisions rather than as a promise to build the full vision.
+
+| Evidence I need next | Decision it should inform |
+| --- | --- |
+| Structured customer interviews | Select, narrow or reject the first use case based on a recurring problem people actually value solving. |
+| Focused simulation and analysis | Decide which assumptions are sufficiently bounded to justify physical testing and which need redesign first. |
+| Focused physical fit prototype | Decide whether the wearable geometry and interaction are credible enough to continue, revise or stop that path. |
+| Core fluid-delivery testing | Decide whether the selected delivery and recovery approach deserves further integration work. |
+| Hygiene and cleaning investigation | Decide whether preparation and cleaning burden preserves or defeats the convenience proposition. |
+| Initial manufacturing-cost modelling | Decide whether plausible manufacturing economics can overlap with customer value before committing to broader product scope. |
+
+Scholarship support would help me turn these unknowns into evidence through prototyping materials and test equipment, manufacturing and cost investigation, and structured customer validation. I do not treat funding itself, expenditure or a more polished presentation as evidence that any gate has passed.
+
 ## What these three points mean together
 
 The strongest current evidence for Masck One is not that I have a validated product. It is that I have already converted an early venture concept into a substantial, inspectable digital engineering programme while keeping the missing customer, physical and commercial evidence explicit.
