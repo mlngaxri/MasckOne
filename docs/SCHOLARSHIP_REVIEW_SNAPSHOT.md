@@ -10,7 +10,7 @@ I use this review path to separate what I have built from what still needs custo
 
 Engineering-source links below are pinned to live engineering `main` revision `becf782bf809543ba4b83ecab689204b2458de7d`, verified on 18 September 2026. Scholarship documentation may advance independently and must not be read as a newer engineering release.
 
-**Reviewer audit rule:** the cited engineering-owner source at the pinned revision controls the claim. My scholarship prose can explain or narrow that evidence, but it cannot upgrade a target, framework, synthetic result, geometry screen or planned test into achieved physical or commercial evidence.
+**Reviewer audit rule:** the cited engineering source at the pinned revision controls each claim. If my scholarship prose and that source differ, the source wins. My scholarship prose can explain or narrow evidence, but it cannot upgrade a target, framework, synthetic result, geometry screen or planned test into achieved physical or commercial evidence.
 
 ## How to read the evidence
 
