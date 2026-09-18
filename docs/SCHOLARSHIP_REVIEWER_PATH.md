@@ -18,13 +18,13 @@ For the fastest visual inspection, open the [whole-product architecture diagram]
 
 The architecture view is a documentation map of major subsystem relationships, not evidence that the system has been built. The representative product views are traceable digital compositions used to inspect documented geometry and packaging direction; they are not photographs, human-fit evidence, released production CAD or proof of safety or performance. Website hero imagery is concept imagery and should not be read as engineering evidence.
 
-The repository contains controlled requirements, engineering geometry, code-based CAD, automated-check source, subsystem records and whole-product integration work. The [Founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md) links dated milestones to repository history so initiative can be inspected through outputs and chronology rather than accepted as a claim.
+The repository contains controlled requirements, engineering geometry, code-based CAD, automated-check source, subsystem records and whole-product integration work. The [Execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md) links dated milestones to repository history so initiative can be inspected through outputs and chronology rather than accepted as a claim.
 
 This evidence demonstrates sustained digital development. It does not prove customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, viable unit economics or product-level physical performance.
 
 ## 3. Customer evidence so far
 
-The [Customer discovery record](CUSTOMER_DISCOVERY.md) records a founder-reported informal survey of around 20 people. It is preliminary and non-conclusive. The strongest reported interest was around time and convenience; recurring concerns included comfort, maintenance and price. The underlying method and response data are not complete enough in the repository for independent assessment.
+The [Customer discovery record](CUSTOMER_DISCOVERY.md) records an informal survey I conducted of around 20 people. It is preliminary and non-conclusive. The strongest reported interest was around time and convenience; recurring concerns included comfort, maintenance and price. The underlying method and response data are not complete enough in the repository for independent assessment.
 
 Structured customer interviews are therefore a next-stage activity, not a box already checked.
 
@@ -45,7 +45,7 @@ The [Next evidence deliverables](SCHOLARSHIP_NEXT_EVIDENCE_DELIVERABLES.md) defi
 
 Support would be most useful when converted into evidence: structured customer validation, prototype materials and test equipment for focused fit, fluid and cleaning questions, and manufacturing and cost investigation. No funding amount, technical result or commercial outcome is assumed.
 
-AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. Founder judgement owns venture direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
+AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. I retain responsibility for venture direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
 
 ## Evidence boundary
 
