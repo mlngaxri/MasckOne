@@ -68,6 +68,19 @@ I want the first use case to be earned by evidence rather than selected from the
 
 I do not currently have a candidate that passes all five gates. This is my selection framework for the next evidence stage, not a claim that I have chosen or validated a first product.
 
+## Commercial questions I need to earn answers to
+
+I do not yet have evidence for a price, unit economics or a viable business model, so I do not present invented commercial numbers. Instead, I have reduced commercial uncertainty to a sequence of decisions that can be tested alongside the first use case:
+
+| Commercial question | Evidence I need | Decision it informs |
+| --- | --- | --- |
+| Is the problem valuable enough to pay to solve? | Structured interviews that probe current alternatives, inconvenience and price sensitivity without treating stated interest as a purchase commitment. | Whether a first-use-case candidate deserves further development. |
+| What does the minimum useful product actually need? | Customer workflow evidence combined with focused physical results. | Which functions belong in the first scope and which should remain part of the longer-term vision. |
+| What is likely to drive cost? | Sourced manufacturing assumptions for the narrowed architecture, materials, components, assembly and consumable or maintenance requirements where relevant. | Whether I should simplify architecture, change scope or continue cost investigation. |
+| Can likely cost and customer value plausibly overlap? | Early cost modelling considered against customer evidence, including price sensitivity. | Whether there is enough commercial plausibility to justify broader product development. |
+
+This keeps commercial thinking connected to evidence rather than to a speculative valuation, launch price or margin. If the likely cost structure cannot support the value customers describe, I should change the product before treating it as commercially viable.
+
 ## Decisions the next evidence should unlock
 
 I want the next stage to change decisions, not simply create more documents or features. I will use each evidence stream to answer a specific venture question:
