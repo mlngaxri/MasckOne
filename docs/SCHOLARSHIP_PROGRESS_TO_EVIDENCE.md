@@ -23,7 +23,7 @@ A candidate first use case should only advance when the available evidence can a
 3. **Testability:** can the most important physical assumptions be tested with focused fit, fluid and cleaning work without first building the complete long-term system?
 4. **Commercial plausibility:** is the minimum useful scope simple enough to justify initial manufacturing-cost investigation alongside willingness-to-pay research?
 
-The output should be a short decision record: **advance**, **narrow/change**, or **reject** the candidate use case, with the evidence and unresolved assumptions stated beside the decision. No candidate is currently recorded here as having passed this gate. The founder-reported informal survey is useful for forming interview questions, but is not sufficient to select a first product.
+The output should be a short decision record: **advance**, **narrow/change**, or **reject** the candidate use case, with the evidence and unresolved assumptions stated beside the decision. No candidate is currently recorded here as having passed this gate. The informal survey I conducted is useful for forming interview questions, but is not sufficient to select a first product.
 
 This gate prevents the breadth of existing digital engineering from being mistaken for evidence that the broadest product vision should be built first.
 
@@ -42,18 +42,18 @@ No predetermined positive outcome is required. A credible result may be to narro
 
 ## What this progression demonstrates
 
-The repository shows founder initiative through outputs that make later tests possible: requirements were formalised, geometry and engineering logic were made reproducible, subsystem conflicts were surfaced, and uncertainty is now being converted into explicit evidence gates. That is venture progress, but it is not product validation.
+The repository shows my initiative through outputs that make later tests possible: requirements were formalised, geometry and engineering logic were made reproducible, subsystem conflicts were surfaced, and uncertainty is now being converted into explicit evidence gates. That is venture progress, but it is not product validation.
 
-The founder-reported informal survey of around 20 people remains preliminary and non-conclusive. Its strongest reported signal was around time and convenience, with concerns around comfort, maintenance and price. The underlying method and raw data are not available in the repository, so it does not establish demand, willingness to pay or a validated customer segment.
+The informal survey I conducted of around 20 people remains preliminary and non-conclusive. Its strongest reported signal was around time and convenience, with concerns around comfort, maintenance and price. The underlying method and raw data are not available in the repository, so it does not establish demand, willingness to pay or a validated customer segment.
 
 The broader wearable-and-dock system remains a long-term direction. The first product is not locked. A narrower use case should earn deeper development only after customer evidence identifies a repeated problem and focused physical and cost evidence supports a credible path.
 
 ## How scholarship support changes the evidence base
 
-Scholarship support is most useful when it shortens the path from digital progress to decision-quality evidence. Structured customer validation can test the first-use-case hypothesis. Prototype materials and test equipment can support focused fit, fluid and cleaning measurements. Manufacturing and cost investigation can challenge process and assembly assumptions. Specialist human input can challenge founder and AI-assisted assumptions in hardware, manufacturing, IP, fundraising and market entry.
+Scholarship support is most useful when it shortens the path from digital progress to decision-quality evidence. Structured customer validation can test the first-use-case hypothesis. Prototype materials and test equipment can support focused fit, fluid and cleaning measurements. Manufacturing and cost investigation can challenge process and assembly assumptions. Specialist human input can challenge my assumptions and AI-assisted assumptions in hardware, manufacturing, IP, fundraising and market entry.
 
 No funding amount, customer outcome, physical result or commercial performance is assumed. A more complete-looking prototype or presentation is not treated as evidence by itself.
 
-## Founder and AI boundary
+## My role and AI boundary
 
-AI is used extensively to accelerate implementation, research, alternative generation and exploration. Founder judgement owns product direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and physical measurement remain necessary where software, CAD, simulation or AI cannot close the evidence gap.
+AI is used extensively to accelerate implementation, research, alternative generation and exploration. I retain responsibility for product direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and physical measurement remain necessary where software, CAD, simulation or AI cannot close the evidence gap.
