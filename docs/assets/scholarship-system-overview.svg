@@ -36,7 +36,7 @@
 
   <rect x="55" y="170" width="180" height="84" class="box"/>
   <text x="145" y="203" class="node-title">Dock and preparation</text>
-  <text x="145" y="226" class="node-sub">prepare before wearing</text>
+  <text x="145" y="226" class="node-sub">charge, load and prepare</text>
 
   <rect x="270" y="170" width="180" height="84" class="box"/>
   <text x="360" y="203" class="node-title">Skincare products</text>
@@ -61,7 +61,7 @@
 
   <rect x="270" y="100" width="410" height="49" class="support"/>
   <text x="475" y="120" class="node-title">Electronics, controls and software</text>
-  <text x="475" y="140" class="node-sub">documented supporting layer</text>
+  <text x="475" y="140" class="node-sub">coordinate states and routines</text>
 
   <path d="M330 149 C290 158 220 160 170 170" class="support-relationship"/>
   <path d="M405 149 C390 158 375 162 360 170" class="support-relationship"/>
