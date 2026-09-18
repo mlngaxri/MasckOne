@@ -6,7 +6,7 @@ This page is a short inspection route for a non-technical scholarship reviewer. 
 
 Masck One is a pre-commercialisation venture exploring whether selected parts of a facial-skincare routine can be made less hands-on through a wearable device and supporting dock.
 
-**Current stage:** pre-commercialisation. I have developed engineering geometry and digital checks/frameworks; product-level physical validation has not begun.
+**Current stage:** pre-commercialisation; engineering geometry exists; digital checks/frameworks exist; product-level physical validation has not begun.
 
 I have deliberately kept the first use case unlocked rather than treating the long-term wearable-and-dock direction as a committed first-product specification. I want stronger customer evidence to identify a routine problem where customer value, physical feasibility and plausible economics overlap.
 
