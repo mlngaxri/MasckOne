@@ -39,7 +39,7 @@ The broader product vision does not override a failed evidence gate.
 
 Support would be directed towards evidence generation, not presentation: prototype materials and test equipment, manufacturing and cost investigation, structured customer validation, and access to specialist human expertise. No budget is implied until the earlier evidence gates determine what should actually be tested or purchased.
 
-## Founder, AI and collaboration
+## My role, AI and collaboration
 
 AI is used extensively to accelerate implementation and exploration. I retain responsibility for direction, requirements, priorities, trade-offs and final decisions. The repository is evidence of my execution with substantial AI assistance, not unaided authorship.
 
