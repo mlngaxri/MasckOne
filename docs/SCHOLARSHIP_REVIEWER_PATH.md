@@ -14,6 +14,21 @@ This page is a short inspection route for a non-technical scholarship reviewer. 
 | What happens next? | Structured customer interviews, focused simulation/analysis, a focused physical fit prototype, core fluid-delivery testing, hygiene/cleaning investigation and initial manufacturing-cost modelling. |
 | What would scholarship support change? | It would let me obtain evidence faster through structured customer validation, prototype materials and test equipment, and manufacturing/cost investigation. It would not make an unvalidated claim true. |
 
+## Evidence maturity at a glance
+
+I use different evidence standards for different parts of the venture. This prevents the depth of my digital work from being mistaken for customer, physical or commercial validation.
+
+| Evidence area | Status now | What would move it forward |
+| --- | --- | --- |
+| Problem and target user | Hypothesis defined | Structured interviews showing a repeatable, important problem in a sufficiently clear user group. |
+| Customer interest | Preliminary only | Structured qualitative evidence, followed by appropriate demand and willingness-to-pay testing for the selected use case. |
+| Digital engineering | Substantial and inspectable | Continued analysis only where it reduces uncertainty before physical testing. |
+| Fit and physical interaction | Not validated | A focused fit prototype with direct observations against the selected use case. |
+| Fluid delivery, recovery and cleaning | Not validated | Core fluid tests plus hygiene and cleaning investigation using physical evidence. |
+| Manufacturing and economics | Not established | Initial sourced manufacturing-cost modelling compared with customer value and price sensitivity. |
+
+I do not average these categories into a single readiness score. Strong digital development cannot compensate for missing customer or physical evidence. My next stage is designed to close the weakest evidence areas before I broaden product scope.
+
 ## 1. Venture position
 
 Masck One is a pre-commercialisation venture exploring whether selected parts of a facial-skincare routine can be made less hands-on through a wearable device and supporting dock.
