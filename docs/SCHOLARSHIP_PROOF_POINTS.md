@@ -6,6 +6,8 @@ Engineering links are pinned to live `main` revision `becf782bf809543ba4b83ecab6
 
 Current stage: pre-commercialisation; engineering geometry exists; digital checks/frameworks exist; product-level physical validation has not begun.
 
+Evidence classes on this page are deliberately separate: proof points 1 to 3 are existing digital engineering evidence; the next-evidence table is planned validation; customer, physical and commercial outcomes remain evidence not yet obtained. I do not use progress in one class to imply progress in another.
+
 ## 1. I turned the concept into controlled engineering work
 
 I moved beyond presentation-level product intent by defining controlled requirements and connecting them to checks that can detect internal drift.
