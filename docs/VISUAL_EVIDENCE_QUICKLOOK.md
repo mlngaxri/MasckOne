@@ -20,7 +20,7 @@ I use this page as a deliberately short visual check for scholarship review. I s
 2. Scan the three registered candidate compositions below to see representative digital packaging and geometry direction.
 3. Open the [registered render manifest](../website/images/masck-inspection-v17c-manifest.json) for image provenance, then use the [scholarship evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md) if you want the underlying engineering record without navigating source code.
 
-For progression rather than geometry, jump directly to the [four-milestone repository timeline](#3-verifiable-development-progression). It is deliberately text-based and commit-linked, so it shows verifiable development history without introducing a decorative progression graphic.
+For progression rather than geometry, jump directly to the [five-milestone repository timeline](#3-verifiable-development-progression). It is deliberately text-based and commit-linked, so it shows verifiable development history without introducing a decorative progression graphic.
 
 This path deliberately separates visual orientation from engineering evidence: the diagram and compositions make my work legible, while the manifest and evidence matrix expose provenance and evidence boundaries without requiring you to inspect source code.
 
@@ -85,7 +85,7 @@ The [registered render manifest](../website/images/masck-inspection-v17c-manifes
 
 ## 3. Verifiable development progression
 
-This is a short repository timeline, not a product-readiness timeline. Each milestone links to the underlying commit so you can inspect the record directly. I include the final row because evidence curation is itself visible in version history: I removed obsolete presentation imagery from the live README rather than leaving it where it could be mistaken for current product evidence.
+This is a short repository timeline, not a product-readiness timeline. Each milestone links to the underlying commit so you can inspect the record directly. I include the evidence-curation milestones because they are visible in version history and show how I separated presentation material from inspectable engineering evidence rather than allowing the two to blur together.
 
 | Date | Inspectable milestone | Evidence boundary |
 | --- | --- | --- |
@@ -93,6 +93,7 @@ This is a short repository timeline, not a product-readiness timeline. Each mile
 | 10 September 2026 | [Whole-product convergence record](https://github.com/mlngaxri/MasckOne/commit/0044a55885000480a873b5761742341038b24b6a) | Shows subsystem work being considered together with unresolved proof gates recorded, not a validated integrated prototype. |
 | 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | Shows the existing evidence reorganised for external inspection, not an increase in physical or commercial maturity. |
 | 16 September 2026 | [Obsolete concept renders removed from the live README](https://github.com/mlngaxri/MasckOne/commit/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22) | Shows active evidence hygiene: I removed superseded presentation imagery from the primary reviewer path. It does not add engineering or physical evidence. |
+| 18 September 2026 | [Current live engineering baseline](https://github.com/mlngaxri/MasckOne/commit/becf782bf809543ba4b83ecab689204b2458de7d) | Pins the engineering record used by this reviewer path. It establishes which digital source revision is being inspected; it does not establish physical validation or product readiness. |
 
 ## 4. Evidence boundary
 
