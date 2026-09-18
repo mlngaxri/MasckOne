@@ -68,7 +68,7 @@ A positive reaction is not recorded as demand, willingness to pay or traction.
 
 Record specific behaviours, examples, objections and comparisons stated during the interview. Use short paraphrases unless exact wording is necessary.
 
-### Founder interpretation
+### My interpretation
 
 Record the interpretation separately from the observations above.
 
@@ -98,4 +98,4 @@ After a set of interviews, summarise repeated behaviours, problem frequency, exi
 
 The first-use-case decision should remain one of `advance`, `narrow or change`, or `reject`. An advance decision only earns focused analysis and physical testing. It does not establish product-market fit, physical feasibility or commercial viability.
 
-AI may assist with organising de-identified notes and comparing themes. Founder judgement remains responsible for the evidence standard, interpretation and final venture decision. Specialist human input should be used where research design or market interpretation requires expertise beyond the founder's current capability.
+AI may assist with organising de-identified notes and comparing themes. my judgement remains responsible for the evidence standard, interpretation and final venture decision. Specialist human input should be used where research design or market interpretation requires expertise beyond my current capability.
