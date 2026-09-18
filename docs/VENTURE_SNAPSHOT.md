@@ -69,6 +69,18 @@ The first use case should be earned by evidence rather than selected from the br
 
 No candidate currently passes all five gates. This is a selection framework for the next evidence stage, not a claim that a first product has been chosen or validated.
 
+## Next milestone sequence
+
+The next stage is deliberately sequenced so later spending depends on earlier evidence rather than on the breadth of the long-term concept.
+
+| Milestone | Work | Evidence required before progressing |
+| --- | --- | --- |
+| 1. Establish the customer problem | Structured interviews with the target-user hypothesis, focused on current routines, time burden, fitting/loading/cleaning trade-offs and price sensitivity. | A repeatable problem and workflow pattern strong enough to nominate one first-use-case candidate. If it does not emerge, narrow or change the use case before physical work expands. |
+| 2. Test the minimum physical case | Focused simulation/analysis, a physical fit prototype, core fluid-delivery testing, and hygiene/cleaning investigation for the nominated use case. | Direct observations that identify whether the core interaction is feasible enough to continue and what must change. These tests are not product-level validation. |
+| 3. Test whether the case could become a product | Initial manufacturing-cost modelling using sourced assumptions, considered alongside customer value and price sensitivity. | A first evidence-based view of whether scope, likely cost and customer value can plausibly overlap. If they cannot, reduce scope, redesign or stop before broader product development. |
+
+Scholarship support would therefore accelerate an evidence sequence rather than a feature roadmap: customer validation first, focused physical evidence second, and commercial feasibility third. The detailed outputs expected from each activity are defined in [Next evidence deliverables](SCHOLARSHIP_NEXT_EVIDENCE_DELIVERABLES.md).
+
 ## How support would become evidence
 
 Scholarship support would be most useful when converted into structured customer validation, prototype materials and test equipment for focused fit, fluid and cleaning questions, and manufacturing and cost investigation. No funding amount, technical result or commercial outcome is assumed.
