@@ -16,6 +16,8 @@ Start with [Venture snapshot](VENTURE_SNAPSHOT.md) for the problem hypothesis, t
 
 For the fastest visual inspection, I recommend opening the [whole-product architecture diagram](assets/scholarship-system-overview.svg) first, then the [Visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md). I have kept this path deliberately small: one system-orientation view plus three representative product views, rather than a gallery dump.
 
+**Direct visual route:** [architecture](assets/scholarship-system-overview.svg) | [front three-quarter](../website/images/masck-inspection-front-3q-v17c.webp) | [rear three-quarter](../website/images/masck-inspection-rear-3q-v17c.webp) | [side-rear](../website/images/masck-inspection-side-rear-v17c.webp). I provide these direct links for fast inspection; the [Visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md) records provenance and the evidence boundary for every view.
+
 **What I intend each visual to establish:** the architecture diagram makes the documented subsystem relationships legible at a glance. The three registered digital compositions make candidate packaging and geometry direction inspectable from complementary angles. I do not present either as evidence that Masck One has been manufactured or physically validated.
 
 The architecture view is a documentation map, not evidence that I have built the system. The representative product views are traceable digital compositions I use to inspect documented geometry and packaging direction; they are not photographs, human-fit evidence, released production computer-aided design (CAD), or proof of safety or performance. Website hero imagery is concept imagery and is not engineering evidence.
