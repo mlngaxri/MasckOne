@@ -8,7 +8,7 @@ This page gives a non-technical reviewer a compact view of what Masck One can cu
 
 | Venture question | Evidence currently available | Status | Next evidence that matters |
 | --- | --- | --- | --- |
-| Is there an identifiable problem worth investigating? | Founder-reported informal survey of around 20 people, with strongest reported interest around time/convenience and concerns around comfort, maintenance and price. The underlying questionnaire and response data are not attached. | Preliminary only | Structured interviews centred on existing routine behaviour, recent friction, current alternatives and reasons to reject the concept. |
+| Is there an identifiable problem worth investigating? | reported by me informal survey of around 20 people, with strongest reported interest around time/convenience and concerns around comfort, maintenance and price. The underlying questionnaire and response data are not attached. | Preliminary only | Structured interviews centred on existing routine behaviour, recent friction, current alternatives and reasons to reject the concept. |
 | Who is the first target user? | Current hypothesis is people who already follow multi-step facial-skincare routines and value reducing active routine time. | Hypothesis, not validated segment | Comparable interview records showing whether the same repeated problem occurs within a useful customer group. |
 | What should the first product do? | The repository contains a broader wearable-and-dock direction and substantial digital engineering work, but no customer evidence strong enough to lock the first use case. | Deliberately unresolved | Select one narrow use case only if customer evidence shows a recurring problem worth changing behaviour for. |
 | Can a wearable workflow create net convenience? | Digital geometry, requirements, architecture records and validation frameworks exist. Product-level physical validation has not begun. | Unproven | Focused fit prototype, core fluid-delivery testing and hygiene/cleaning investigation for the selected use case. |
@@ -26,7 +26,7 @@ Customer evidence should earn a focused first-use-case test. Focused physical ev
 
 Scholarship support would be most useful where it converts assumptions into inspectable evidence: structured customer validation; prototype materials and test equipment for fit, fluid and cleaning questions; and manufacturing and cost investigation. No funding amount, technical outcome or commercial result is assumed.
 
-AI is used extensively to accelerate implementation, research and exploration. Founder judgement owns direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
+AI is used extensively to accelerate implementation, research and exploration. I retain responsibility for direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
 
 ## Evidence boundary
 
