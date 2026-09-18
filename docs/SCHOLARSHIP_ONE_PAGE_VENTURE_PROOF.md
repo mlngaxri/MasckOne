@@ -18,7 +18,7 @@ The first use case is intentionally not locked. It should be selected only after
 
 The repository contains inspectable digital engineering work: controlled requirements, parametric geometry, automated checks, source binding, documented design decisions, unresolved-risk tracking and cross-subsystem integration work. This demonstrates active development and an organised engineering process. It does **not** demonstrate product-level physical validation.
 
-A founder-reported informal survey of around 20 people provides a preliminary, non-conclusive signal. Interest was strongest around time and convenience, while comfort, maintenance and price appeared as concerns. The repository does not contain the method or raw data, so this is not evidence of demand, willingness to pay or product-market fit.
+An informal survey I conducted of around 20 people provides a preliminary, non-conclusive signal. Interest was strongest around time and convenience, while comfort, maintenance and price appeared as concerns. The repository does not contain the method or raw data, so this is not evidence of demand, willingness to pay or product-market fit.
 
 ## What remains uncertain
 
@@ -41,7 +41,7 @@ Support would be directed towards evidence generation, not presentation: prototy
 
 ## Founder, AI and collaboration
 
-AI is used extensively to accelerate implementation and exploration. Founder judgement owns direction, requirements, priorities, trade-offs and final decisions. The repository is evidence of founder-led execution with substantial AI assistance, not unaided authorship.
+AI is used extensively to accelerate implementation and exploration. I retain responsibility for direction, requirements, priorities, trade-offs and final decisions. The repository is evidence of my execution with substantial AI assistance, not unaided authorship.
 
 Specialist human expertise remains important for hardware, manufacturing, IP, fundraising and market entry. The next stage should use that expertise to challenge assumptions and improve high-consequence decisions.
 
