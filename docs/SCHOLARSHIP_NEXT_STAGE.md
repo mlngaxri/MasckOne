@@ -12,7 +12,7 @@ This table makes the present venture state explicit. A planned test is not count
 
 | Gate | Evidence available now | Status | What closes the gap |
 | --- | --- | --- | --- |
-| Problem significance | Founder-reported informal survey of around 20 people, with preliminary interest around time/convenience and concerns around comfort, maintenance and price. Method and raw data are unavailable. | Preliminary only | Structured interviews that establish repeated routine friction, current workarounds and rejection reasons. |
+| Problem significance | reported by me informal survey of around 20 people, with preliminary interest around time/convenience and concerns around comfort, maintenance and price. Method and raw data are unavailable. | Preliminary only | Structured interviews that establish repeated routine friction, current workarounds and rejection reasons. |
 | First-use-case selection | Multiple product and subsystem directions have been explored digitally, but no first product is locked. | Open | Customer evidence strong enough to select or reject one narrow use-case hypothesis. |
 | Wearable fit/workflow | Digital geometry, requirements and analysis exist. | Physical evidence required | Focused physical fit prototype and recorded wearing/workflow observations. |
 | Fluid behaviour | Digital fluid-system work and requirements exist. | Physical evidence required | Controlled, repeatable core delivery and recovery tests for the selected use case. |
@@ -75,17 +75,17 @@ Scholarship support would be most useful where it replaces assumptions with revi
 | Customer-validation support | Structured interview records and a stronger basis for choosing the first use case. |
 | Prototype materials and test equipment | Focused fit, fluid and cleaning measurements against defined questions. |
 | Manufacturing and cost investigation | Sourced process, component and assembly assumptions for an initial cost model. |
-| Specialist human collaboration | Practical challenge to founder and AI-assisted assumptions in hardware, manufacturing, IP, fundraising and market entry. |
+| Specialist human collaboration | Practical challenge to my assumptions and AI-assisted assumptions in hardware, manufacturing, IP, fundraising and market entry. |
 
 No funding amount, physical result or commercial outcome is assumed. A more polished presentation or a more complete-looking prototype is not treated as evidence by itself.
 
 ## Current customer evidence boundary
 
-The repository records a founder-reported informal survey of around 20 people. The strongest reported interest was around time and convenience, while comfort, maintenance and price were concerns. The underlying questionnaire, recruitment method and raw response data are not available in the repository, so this is preliminary and non-conclusive. It does not establish demand, willingness to pay or a validated customer segment.
+The repository records an informal survey I conducted of around 20 people. The strongest reported interest was around time and convenience, while comfort, maintenance and price were concerns. The underlying questionnaire, recruitment method and raw response data are not available in the repository, so this is preliminary and non-conclusive. It does not establish demand, willingness to pay or a validated customer segment.
 
-## Founder and AI responsibility
+## My role and AI responsibility
 
-AI is used extensively to accelerate implementation, research, alternative generation and exploration. Founder judgement owns product direction, requirements, priorities, trade-offs and final decisions.
+AI is used extensively to accelerate implementation, research, alternative generation and exploration. I retain responsibility for product direction, requirements, priorities, trade-offs and final decisions.
 
 The next stage also requires specialist human expertise and collaboration where digital work is insufficient, particularly in hardware, manufacturing, IP, fundraising and market entry. AI output, favourable analysis or a passing software check cannot upgrade a claim to physical or commercial validation.
 
