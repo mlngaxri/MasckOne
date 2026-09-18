@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="500" viewBox="0 0 960 500" role="img" aria-labelledby="title desc">
   <title id="title">How the documented Masck One system fits together</title>
-  <desc id="desc">Reviewer-facing orientation diagram separating the documented dock and preparation area, which is separate from the wearable, from the wearable system area. It is a simplified, non-exhaustive major-subsystem map, not a bill of materials, build-status diagram or physical-validation result. The wearable system area contains the documented skincare product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, plus a supporting electronics, controls and software layer. A visible orientation only, documentation map, not test evidence badge identifies the evidence class before the diagram is interpreted. Solid lines show documented product relationships; dashed lines show documented supporting relationships. Lines are deliberately non-directional because the diagram does not establish validated fluid, skincare-product or control flow. Diagram position and spacing are schematic and do not represent physical placement, size or scale. The boxes identify documented subsystem areas, not completed hardware. The diagram verifies documented system scope and relationships only; it does not verify hardware, physical integration or performance.</desc>
+  <desc id="desc">Reviewer-facing orientation diagram separating the documented dock and preparation area, which is separate from the wearable, from the wearable system area. It is a simplified, non-exhaustive major-subsystem map, not a bill of materials, build-status diagram or physical-validation result. The wearable system area contains the documented skincare product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, plus a supporting electronics, controls and software layer. Plain-language subtitles explain each subsystem for non-technical review without changing the documented architecture. A visible orientation only, documentation map, not test evidence badge identifies the evidence class before the diagram is interpreted. Solid lines show documented product relationships; dashed lines show documented supporting relationships. Lines are deliberately non-directional because the diagram does not establish validated fluid, skincare-product or control flow. Diagram position and spacing are schematic and do not represent physical placement, size or scale. The boxes identify documented subsystem areas, not completed hardware. The diagram verifies documented system scope and relationships only; it does not verify hardware, physical integration or performance.</desc>
   <defs>
     <style>
       .title { font: 700 28px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #111827; }
@@ -35,27 +35,27 @@
 
   <rect x="55" y="170" width="180" height="84" class="box"/>
   <text x="145" y="203" class="node-title">Dock and preparation</text>
-  <text x="145" y="226" class="node-sub">separate from wearable</text>
+  <text x="145" y="226" class="node-sub">prepare before wearing</text>
 
   <rect x="270" y="170" width="180" height="84" class="box"/>
-  <text x="360" y="203" class="node-title">Skincare product</text>
-  <text x="360" y="226" class="node-sub">storage and delivery</text>
+  <text x="360" y="203" class="node-title">Skincare products</text>
+  <text x="360" y="226" class="node-sub">store and deliver</text>
 
   <rect x="485" y="170" width="190" height="84" class="box"/>
   <text x="580" y="203" class="node-title">Facial interface</text>
-  <text x="580" y="226" class="node-sub">and treatment mechanics</text>
+  <text x="580" y="226" class="node-sub">face contact and treatment</text>
 
   <rect x="710" y="170" width="195" height="84" class="box"/>
   <text x="807.5" y="203" class="node-title">Waste recovery</text>
-  <text x="807.5" y="226" class="node-sub">and cartridges</text>
+  <text x="807.5" y="226" class="node-sub">collect used liquid</text>
 
   <path d="M235 212 H270" class="relationship"/>
   <path d="M450 212 H485" class="relationship"/>
   <path d="M675 212 H710" class="relationship"/>
 
   <rect x="485" y="300" width="190" height="82" class="support"/>
-  <text x="580" y="332" class="node-title">Retention, structure</text>
-  <text x="580" y="355" class="node-sub">and removal</text>
+  <text x="580" y="332" class="node-title">Retention and structure</text>
+  <text x="580" y="355" class="node-sub">hold on face and remove</text>
   <path d="M580 300 V254" class="relationship"/>
 
   <rect x="270" y="100" width="410" height="49" class="support"/>
