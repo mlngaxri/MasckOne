@@ -2,15 +2,15 @@
 
 [Project overview](../README.md) · [Documentation index](README.md)
 
-This note records the founder's current customer hypothesis and the questions that should shape the first product. It does not change engineering authority or establish market demand.
+This note records my current customer hypothesis and the questions that should shape the first product. It does not change engineering authority or establish market demand.
 
 ## Initial customer and feedback
 
 The initial target is people who already follow multi-step facial-skincare routines and would value spending less active time on repetitive steps. This is a customer hypothesis to investigate, not a validated market segment.
 
-In the founder's September 2026 project account, an informal survey of around 20 people highlighted time savings and convenience, including being able to do another activity while a routine runs. Reported concerns were comfort, maintenance and price.
+In September 2026, I ran an informal survey of around 20 people highlighted time savings and convenience, including being able to do another activity while a routine runs. Reported concerns were comfort, maintenance and price.
 
-This summary is founder-reported. The underlying questionnaire, recruitment method and response data are not attached to this note, so the feedback cannot be independently assessed here. There are no conversion rates, pricing conclusions or representative-demand claims to infer from it. No respondent identities or invented quotations are published.
+I have not attached the underlying questionnaire, recruitment method or response data to this note, so the feedback cannot be independently assessed here. There are no conversion rates, pricing conclusions or representative-demand claims to infer from it. No respondent identities or invented quotations are published.
 
 ## Next research questions
 
