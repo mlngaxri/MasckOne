@@ -13,7 +13,7 @@ The long-term vision spans cleansing and selected leave-on products. The immedia
 | Area | Current position |
 | --- | --- |
 | **Stage** | Pre-commercialisation. Engineering CAD and software exist; an integrated manufactured product does not. |
-| **Initial development** | The founder reports building the initial digital foundation over roughly two weeks in September 2026. |
+| **Initial development** | I built the initial digital foundation over roughly two weeks in September 2026. |
 | **What is inspectable here** | Code-generated parametric CAD, requirements, automated engineering checks, design records and subsystem exploration. |
 | **Evidence boundary** | Digital work can support design decisions, but it does not prove customer demand, comfort, safety, hygiene, manufacturability or product performance. |
 | **Controlled engineering baseline** | **Phase 5: waste acquisition and containment - Iteration 28 complete.** This is a repository roadmap state, not whole-product readiness. |
@@ -28,7 +28,7 @@ The repository also contains analytical models and simulation frameworks used to
 
 ## Customer learning
 
-The founder reports an informal survey of around 20 people. Feedback highlighted time savings and convenience, alongside concerns about comfort, maintenance and price. This is an early qualitative signal, not established demand or willingness to pay. The [customer discovery notes](docs/CUSTOMER_DISCOVERY.md) separate that reported feedback from the structured research still needed.
+I ran an informal survey of around 20 people. Feedback highlighted time savings and convenience, alongside concerns about comfort, maintenance and price. This is an early qualitative signal, not established demand or willingness to pay. The [customer discovery notes](docs/CUSTOMER_DISCOVERY.md) separate that reported feedback from the structured research still needed.
 
 ## System being explored
 
@@ -43,13 +43,13 @@ The founder reports an informal survey of around 20 people. Feedback highlighted
 
 The main engineering challenge is integration. A decision that helps one subsystem can create a problem elsewhere, so the architecture is treated as a whole product rather than a collection of independent features. The broader intent and unresolved conflicts are documented in the [product concept](docs/PRODUCT_CONCEPT.md) and [convergence review](docs/CORE_SKETCH_CONVERGENCE_REVIEW.md).
 
-## Founder role and AI-assisted development
+## My role and AI-assisted development
 
 I direct the product and system architecture: defining the intended experience, requirements and constraints; breaking the work into problems; setting priorities; comparing approaches; resolving trade-offs; and deciding what the available evidence actually supports.
 
 I use AI extensively to accelerate code-based CAD, software development, research, alternative generation and engineering checks. I set the direction, requirements and trade-offs, and make the final system-level decisions. Version control and automated checks make the work inspectable; specialist judgement and physical measurement remain necessary where digital work cannot answer a question.
 
-This is an independently initiated, founder-led project. AI outputs are not treated as physical evidence, unknown results stay unknown, and a passing software check does not turn a target into achieved product performance.
+I independently initiated and lead this project. AI outputs are not treated as physical evidence, unknown results stay unknown, and a passing software check does not turn a target into achieved product performance.
 
 ## Limitations: what is not proven yet
 
@@ -89,7 +89,7 @@ Support would be used to move the project from primarily digital exploration tow
 | Prototype materials and test equipment | Focused fit, fluid-delivery and cleaning experiments against defined questions rather than an immediate attempt at a complete product. |
 | Manufacturing and cost investigation | Early process, assembly and cost assumptions that can be challenged before committing to production-oriented design decisions. |
 | Structured customer validation | Better evidence about the first use case, routine pain points, willingness to change behaviour and acceptable maintenance burden. |
-| Specialist collaboration | Human expertise in hardware, manufacturing, IP, fundraising and market entry where AI-assisted exploration and founder judgement are not substitutes for domain experience. |
+| Specialist collaboration | Human expertise in hardware, manufacturing, IP, fundraising and market entry where AI-assisted exploration and my judgement are not substitutes for domain experience. |
 
 The aim would be to reduce uncertainty in sequence: first identify a customer problem worth solving, then test the smallest physical mechanisms needed for that use case, then determine whether the resulting product can be manufactured and supported at a viable cost. Funding or mentorship would not make the current digital work physically validated; it would help generate the evidence needed to decide what deserves to become a product.
 
