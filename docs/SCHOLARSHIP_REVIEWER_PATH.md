@@ -20,6 +20,8 @@ For the fastest visual inspection, I recommend opening the [whole-product archit
 
 The architecture view is a documentation map, not evidence that I have built the system. The representative product views are traceable digital compositions I use to inspect documented geometry and packaging direction; they are not photographs, human-fit evidence, released production computer-aided design (CAD), or proof of safety or performance. Website hero imagery is concept imagery and is not engineering evidence.
 
+For direct verification, the [Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md) is my canonical evidence page. It links representative claims straight to pinned engineering sources and checks, and states the boundary on each claim. A reviewer can move from this page to the evidence map and then to a representative source or check without navigating the wider repository.
+
 I have also kept the stronger engineering record inspectable behind those visuals. The progression matters more than commit count:
 
 | Inspectable output | What it shows about my progress | What it does not prove |
