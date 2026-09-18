@@ -68,6 +68,21 @@ I want the first use case to be earned by evidence rather than selected from the
 
 I do not currently have a candidate that passes all five gates. This is my selection framework for the next evidence stage, not a claim that I have chosen or validated a first product.
 
+## Decisions the next evidence should unlock
+
+I want the next stage to change decisions, not simply create more documents or features. I will use each evidence stream to answer a specific venture question:
+
+| Evidence I plan to obtain | Decision it should let me make |
+| --- | --- |
+| Structured customer interviews | Decide whether the time/convenience problem is important and repeated enough to justify a first-use-case candidate, and which routine task deserves focus. |
+| Focused simulation and analysis | Decide which assumptions are worth carrying into physical testing and which should be rejected or narrowed before spending on prototypes. |
+| Focused physical fit prototype | Decide whether the basic wearable interaction is credible enough to continue, or whether fit, access or comfort constraints require architectural change. |
+| Core fluid-delivery testing | Decide whether the minimum fluid interaction for the selected use case is physically credible enough for further development. |
+| Hygiene and cleaning investigation | Decide whether the proposed workflow can remain convenient once cleaning and maintenance are included, or whether the architecture needs to change. |
+| Initial manufacturing-cost modelling | Decide whether likely product scope and cost can plausibly overlap with customer value and price sensitivity before broader development. |
+
+I will treat a negative result as useful evidence. If a core assumption fails, my next step should be to narrow, redesign or stop that path rather than use scholarship support to make the concept appear more complete.
+
 ## Next milestone sequence
 
 I am deliberately sequencing the next stage so later spending depends on earlier evidence rather than on the breadth of the long-term concept.
