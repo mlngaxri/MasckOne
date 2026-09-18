@@ -16,4 +16,4 @@ Receiving support would not establish customer demand, product safety, comfort, 
 
 The intended sequence is evidence-led: customer work should earn focused physical testing; focused physical evidence should earn deeper architecture work; customer value plus sourced manufacturing-cost evidence should earn broader product scope. A weak result should narrow, redirect or stop the relevant use case rather than trigger more feature development.
 
-AI is used extensively to accelerate implementation, exploration, documentation and code-based CAD. Founder judgement owns venture direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
+AI is used extensively to accelerate implementation, exploration, documentation and code-based CAD. I retain responsibility for venture direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
