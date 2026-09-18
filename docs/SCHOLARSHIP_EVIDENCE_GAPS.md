@@ -14,6 +14,20 @@ This page shows the main evidence I still need before I should treat Masck One a
 
 `Open` means I have not yet collected enough evidence to make the decision in the final column. I will only change a status when the corresponding record exists and supports a decision. Completing an activity, spending scholarship funds or producing a polished artefact does not by itself close an evidence gap.
 
+## Evidence sequence and stop rules
+
+I do not plan to attack all five gaps at once. I will use the cheapest useful evidence first so later hardware and cost work depends on a problem that has survived earlier scrutiny.
+
+| Order | Evidence step | Progress rule |
+| --- | --- | --- |
+| 1 | Structured customer interviews | I should not select a first use case until the records show a repeated problem worth testing. If they do not, I will narrow or reject the problem before expanding physical work. |
+| 2 | Focused simulation and analysis | I will use this to remove weak assumptions and define the smallest physical question worth testing, not to claim physical performance. |
+| 3 | Focused fit prototype and core fluid testing | I will test only the interactions needed for the selected use case. A material failure should trigger redesign, scope reduction or rejection before broader prototyping. |
+| 4 | Hygiene and cleaning investigation | I will include preparation, cleaning, drying and storage in the convenience judgement. If that burden defeats the customer benefit, I should change the workflow or architecture. |
+| 5 | Initial manufacturing-cost modelling | I will deepen costing only around a narrowed use case and architecture. If plausible cost cannot overlap with the value customers describe, I should simplify, redesign or stop before treating it as a product candidate. |
+
+This sequence is not a claim that later work must wait for perfect certainty. It is a spending and decision rule: I want each larger commitment of time or money to be justified by stronger evidence than the one before it.
+
 ## Why I keep these gaps visible
 
 The repository demonstrates that I have moved beyond an idea into structured digital development, but digital execution does not close the most important venture questions above. I do not treat commit volume, polished renders, AI output, software checks or scholarship expenditure as substitutes for customer or physical evidence.
