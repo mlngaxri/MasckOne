@@ -80,6 +80,19 @@ I am deliberately sequencing the next stage so later spending depends on earlier
 
 Scholarship support would therefore help me accelerate an evidence sequence rather than a feature roadmap: customer validation first, focused physical evidence second, and commercial feasibility third. The detailed outputs expected from each activity are defined in [Next evidence deliverables](SCHOLARSHIP_NEXT_EVIDENCE_DELIVERABLES.md).
 
+## Where I need specialist collaboration
+
+I use AI extensively to accelerate implementation, research, alternative generation and engineering exploration, but I do not treat AI output or my own digital work as a substitute for specialist judgement where the evidence depends on real hardware, commercial practice or regulated professional advice.
+
+| Area | My role | Specialist contribution I expect to need |
+| --- | --- | --- |
+| Hardware and physical testing | I set the product questions, requirements, test intent and trade-offs. | Appropriate mechanical, materials and testing expertise to challenge assumptions and help turn digital hypotheses into defensible physical evidence. |
+| Manufacturing and cost | I define the use case and cost questions that matter to the venture. | Manufacturing and supplier expertise to test process assumptions, sourcing constraints, tolerances and realistic cost drivers. |
+| IP | I decide what technical and commercial directions I want to pursue. | Qualified IP advice before I make decisions that depend on patentability, freedom to operate or protection strategy. |
+| Fundraising and market entry | I own the venture direction and the evidence I choose to present. | Experienced commercial guidance on financing, go-to-market choices and the standard of evidence expected at later stages. |
+
+I see collaboration as part of the next evidence stage, not as a way to borrow credibility. My responsibility remains to decide what Masck One should test, make the trade-offs, and change direction when evidence does not support the current path.
+
 ## How I would turn support into evidence
 
 I would use scholarship support to accelerate structured customer validation, obtain prototype materials and test equipment for focused fit, fluid and cleaning questions, and investigate manufacturing and cost. I am not assuming any funding amount, technical result or commercial outcome.
