@@ -14,6 +14,19 @@ This page shows the main evidence I still need before I should treat Masck One a
 
 `Open` means I have not yet collected enough evidence to make the decision in the final column. I will only change a status when the corresponding record exists and supports a decision. Completing an activity, spending scholarship funds or producing a polished artefact does not by itself close an evidence gap.
 
+## Evidence acceptance standard
+
+I do not want an `Open` label to disappear merely because I completed the planned activity. Before I close any gap, I will check the evidence against four questions:
+
+| Check | What I require |
+| --- | --- |
+| Traceability | I can point from the conclusion back to the interview record, test conditions, observations, measurements or sourced cost assumptions that support it. |
+| Counter-evidence | I preserve failures, objections, contradictory responses and inconvenient results rather than reporting only evidence that supports the current concept. |
+| Decision relevance | The evidence is strong enough to change a real venture decision: continue, narrow, redesign, reject or investigate a specific uncertainty further. |
+| Claim discipline | The conclusion stays within what the evidence actually tested. Customer feedback does not become demand, simulation does not become physical validation, a limited prototype does not become product validation, and an early cost model does not become proven unit economics. |
+
+If one of these checks is missing, I will keep the gap open or mark the result as partial rather than presenting it as resolved. I am deliberately not inventing numerical pass thresholds before the first use case and test method are defined. Where a later engineering or commercial decision needs a quantitative threshold, I will define and record that threshold before interpreting the corresponding result.
+
 ## Evidence sequence and stop rules
 
 I do not plan to attack all five gaps at once. I will use the cheapest useful evidence first so later hardware and cost work depends on a problem that has survived earlier scrutiny.
