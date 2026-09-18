@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="500" viewBox="0 0 960 500" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" role="img" aria-labelledby="title desc">
   <title id="title">How the documented Masck One system fits together</title>
-  <desc id="desc">Reviewer-facing orientation diagram separating the documented dock and preparation area, which is separate from the wearable, from the wearable system area. It is a simplified, non-exhaustive major-subsystem map, not a bill of materials, build-status diagram or physical-validation result. The wearable system area contains the documented skincare product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, plus a supporting electronics, controls and software layer. Plain-language subtitles explain each subsystem for non-technical review without changing the documented architecture. A visible orientation only, documentation map, not test evidence badge identifies the evidence class before the diagram is interpreted. Solid lines show documented product relationships; dashed lines show documented supporting relationships. Lines are deliberately non-directional because the diagram does not establish validated fluid, skincare-product or control flow. Diagram position and spacing are schematic and do not represent physical placement, size or scale. The boxes identify documented subsystem areas, not completed hardware. The diagram verifies documented system scope and relationships only; it does not verify hardware, physical integration or performance.</desc>
+  <desc id="desc">Reviewer-facing orientation diagram separating the documented dock and preparation area, which is separate from the wearable, from the wearable system area. It is a simplified, non-exhaustive major-subsystem map, not a bill of materials, build-status diagram or physical-validation result. The wearable system area contains the documented skincare product storage and delivery, facial interface and treatment mechanics, waste recovery and cartridges, retention structure and removal, plus a supporting electronics, controls and software layer. Plain-language subtitles explain each subsystem for non-technical review without changing the documented architecture. A visible orientation only, documentation map, not test evidence badge identifies the evidence class before the diagram is interpreted. Solid lines show documented product relationships; dashed lines show documented supporting relationships. Lines are deliberately non-directional because the diagram does not establish validated fluid, skincare-product or control flow. Diagram position and spacing are schematic and do not represent physical placement, size or scale. The boxes identify documented subsystem areas, not completed hardware. The diagram is bound for review to live main engineering baseline becf782bf809543ba4b83ecab689204b2458de7d, verified 18 September 2026. It verifies documented system scope and relationships only; it does not verify hardware, physical integration or performance.</desc>
   <defs>
     <style>
       .title { font: 700 28px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #111827; }
@@ -12,6 +12,7 @@
       .legend { font: 400 12px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #4b5563; }
       .boundary-note { font: 500 12px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #4b5563; text-anchor: middle; }
       .footer { font: 600 14px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #374151; text-anchor: middle; }
+      .source { font: 500 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #6b7280; text-anchor: middle; }
       .box { fill: #ffffff; stroke: #9ca3af; stroke-width: 1.5; rx: 16; }
       .support { fill: #f9fafb; stroke: #9ca3af; stroke-width: 1.5; rx: 16; }
       .zone-box { fill: none; stroke: #d1d5db; stroke-width: 1; stroke-dasharray: 4 5; rx: 18; }
@@ -22,7 +23,7 @@
     </style>
   </defs>
 
-  <rect width="960" height="500" fill="#ffffff"/>
+  <rect width="960" height="520" fill="#ffffff"/>
   <rect x="24" y="22" width="280" height="26" rx="13" fill="#f3f4f6" stroke="#d1d5db"/>
   <text x="164" y="39" class="badge">ORIENTATION ONLY · DOCUMENTATION MAP · NOT TEST EVIDENCE</text>
   <text x="480" y="44" class="title" text-anchor="middle">How the documented Masck One system fits together</text>
@@ -76,4 +77,5 @@
 
   <rect x="105" y="448" width="750" height="36" rx="14" fill="#f3f4f6" stroke="#d1d5db"/>
   <text x="480" y="471" class="footer">Verifies documented system scope and relationships only. Does not verify hardware, integration or performance.</text>
+  <text x="480" y="505" class="source">Review source basis: live main becf782bf809543ba4b83ecab689204b2458de7d · verified 18 Sep 2026</text>
 </svg>
