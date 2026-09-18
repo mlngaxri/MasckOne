@@ -2,7 +2,7 @@
 
 [Venture snapshot](VENTURE_SNAPSHOT.md) · [Project overview](../README.md) · [Visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md) · [Venture progress](VENTURE_PROGRESS.md) · [Claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md) · [Execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md) · [Customer discovery](CUSTOMER_DISCOVERY.md) · [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md)
 
-I am developing Masck One as a pre-commercialisation venture exploring whether selected parts of a facial-skincare routine can be made less hands-on through a wearable device and supporting dock. I have developed engineering geometry, requirements, code-based CAD, automated checks and design records. I have not begun product-level physical validation.
+Current stage: pre-commercialisation; engineering geometry exists; digital checks/frameworks exist; product-level physical validation has not begun. I have also developed controlled requirements, code-based CAD and design records within that digital engineering stage.
 
 For a non-technical scholarship reviewer, I recommend starting with the [one-page venture snapshot](VENTURE_SNAPSHOT.md). It covers my problem and target-user hypotheses, the deliberately unlocked first use case, what I have built, my preliminary customer research, current uncertainties, dated progress and next evidence milestones. This page then provides the shorter audit path into the underlying engineering evidence.
 
