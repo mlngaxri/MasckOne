@@ -7,7 +7,7 @@ This page is a short inspection route for a non-technical scholarship reviewer. 
 | Reviewer question | My current answer |
 | --- | --- |
 | Is this more than an idea? | Yes at the digital-development level. I have created controlled requirements, code-based CAD, engineering geometry, automated-check source, subsystem records and whole-product integration work that can be inspected in this repository. |
-| Is the product validated? | No. I have not established customer demand, physical performance, comfort, safety, manufacturability or viable unit economics. |
+| Is the product validated? | No. I have not established customer demand or willingness to pay, comfort or population fit, hygiene/cleaning practicality, real fluid behaviour, product safety, manufacturing feasibility, viable unit economics or product-level physical performance. |
 | Who am I initially exploring this for? | People who already follow multi-step facial-skincare routines and value reducing active time and repetitive handling. This is my target-user hypothesis, not a validated segment. |
 | What is the first product? | I have deliberately not locked it. The wearable-and-dock system is my long-term direction; I want customer, physical and cost evidence to earn a narrower first use case. |
 | What customer evidence exists? | I conducted an informal survey of around 20 people. It is preliminary and non-conclusive: time/convenience produced the strongest reported interest, while comfort, maintenance and price were recurring concerns. |
