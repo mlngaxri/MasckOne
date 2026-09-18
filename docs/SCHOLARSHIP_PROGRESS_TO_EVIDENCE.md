@@ -29,7 +29,7 @@ This gate prevents the breadth of existing digital engineering from being mistak
 
 ## Near-term proof package
 
-The next useful milestone is not a more complete-looking product. It is a compact evidence package that allows a reviewer, mentor or founder to make a better venture decision. The package should contain:
+The next useful milestone is not a more complete-looking product. It is a compact evidence package that allows me, a reviewer or a mentor to make a better venture decision. The package should contain:
 
 1. a structured customer-interview record showing the problems tested, recurring behaviours and reasons people would reject the concept;
 2. a written first-use-case decision explaining why one narrow routine problem was selected, changed or rejected;
