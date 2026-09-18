@@ -22,7 +22,7 @@ The repository contains a substantial digital engineering foundation: controlled
 
 ## What customer evidence exists?
 
-A founder-reported informal survey of around 20 people provides a preliminary signal, strongest around time and convenience, with concerns around comfort, maintenance and price. The questionnaire, recruitment method and raw response data are not available in the repository. The result is therefore non-conclusive and does not establish demand, willingness to pay, a validated customer segment or product-market fit.
+An informal survey I conducted of around 20 people provides a preliminary signal, strongest around time and convenience, with concerns around comfort, maintenance and price. The questionnaire, recruitment method and raw response data are not available in the repository. The result is therefore non-conclusive and does not establish demand, willingness to pay, a validated customer segment or product-market fit.
 
 ## What are the biggest unresolved risks?
 
@@ -40,9 +40,9 @@ Progression is conditional. The first use case should be narrowed, changed or re
 
 Support would help convert assumptions into inspectable evidence. Relevant uses include structured customer validation, prototype materials and test equipment, manufacturing and cost investigation, and access to specialist human expertise. No budget or spending commitment is implied. The intended outcome is a better venture decision, not a more polished appearance of readiness.
 
-## What is the founder's role if AI is used extensively?
+## What is my role if AI is used extensively?
 
-AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. Founder judgement owns product direction, requirements, priorities, trade-offs and final decisions. The repository does not present AI-assisted digital work as independent physical proof. Specialist human expertise remains important for hardware, manufacturing, IP, fundraising and market entry.
+AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. I retain responsibility for product direction, requirements, priorities, trade-offs and final decisions. The repository does not present AI-assisted digital work as independent physical proof. Specialist human expertise remains important for hardware, manufacturing, IP, fundraising and market entry.
 
 ## Why is this more than an idea?
 
