@@ -14,7 +14,7 @@ Start with [Venture snapshot](VENTURE_SNAPSHOT.md) for the problem hypothesis, t
 
 ## 2. Evidence that work has happened
 
-For the fastest visual inspection, open the [Visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md). It keeps the path deliberately small: one whole-product architecture view plus a few representative digital product views, with captions separating what each artefact demonstrates from what remains unvalidated.
+For the fastest visual inspection, open the [whole-product architecture diagram](assets/scholarship-system-overview.svg) first, then the [Visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md) for three representative registered digital compositions and their provenance. This keeps the visual path deliberately small: one system-orientation view plus three product views, rather than a gallery dump.
 
 The architecture view is a documentation map of major subsystem relationships, not evidence that the system has been built. The representative product views are traceable digital compositions used to inspect documented geometry and packaging direction; they are not photographs, human-fit evidence, released production CAD or proof of safety or performance. Website hero imagery is concept imagery and should not be read as engineering evidence.
 
