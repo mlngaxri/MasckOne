@@ -52,6 +52,28 @@ I will show or describe the Masck One direction only after the behaviour questio
 
 The output I need from this round is not a favourable response rate. I need enough consistent, traceable evidence to nominate, narrow or reject one first-use-case candidate and to identify the smallest physical test justified by that customer evidence. If no recurring problem survives this process, I should not broaden the product simply because the digital engineering exists.
 
+## Interview record template
+
+I will use one record per interview so later summaries can be traced back to consistent source notes without publishing personal information. Blank fields mean evidence has not been collected; they are not assumptions to fill from memory.
+
+| Field | Record |
+| --- | --- |
+| Interview ID | Anonymous code only |
+| Date | YYYY-MM-DD |
+| Target-user fit | Brief factual description of relevant routine behaviour |
+| Last routine described | Steps the participant reports actually completing |
+| Recent friction example | Specific recent event, not a general preference |
+| Existing workaround | What they currently skip, combine, substitute or tolerate |
+| Highest-priority task | One routine task they would most value simplifying, with reason |
+| Workflow objections | Fit, loading, cleaning, drying, storage or other burdens raised |
+| Actual purchase context | Relevant devices, tools or recurring products they have bought |
+| Rejection reason | What would make them not use or buy the concept |
+| Concept reaction | Recorded only after behaviour questions; kept separate from behaviour evidence |
+| Evidence against my current hypothesis | Contradictory or negative evidence stated plainly |
+| Follow-up uncertainty | Important point I still cannot infer from this interview |
+
+I will not record names in the reviewer-facing evidence set. When I later summarise interviews, I will distinguish observed patterns from isolated comments, report meaningful disagreement, state the sample and recruitment limitations, and link any first-use-case recommendation back to the interview IDs that support and challenge it. This template creates a method for future evidence; its presence does not mean any structured interviews have occurred.
+
 ## How this affects development
 
 The broader vision is automation across a facial routine. The immediate learning objective is to test a clearly defined part of that experience and use the results to decide what the first product should be. A focused experiment does not validate the complete system.
