@@ -17,6 +17,7 @@ A planned test is not evidence, and digital engineering cannot close a physical 
 | Wearable fit/workflow | I have digital geometry, requirements and analysis. | Physical evidence required | A focused physical fit prototype and recorded wearing/workflow observations. |
 | Fluid behaviour | I have digital fluid-system work and requirements. | Physical evidence required | Controlled, repeatable core delivery and recovery tests for the selected use case. |
 | Hygiene/cleaning practicality | I recognise cleaning burden and hygiene as unresolved risks. | Open | A documented cleaning workflow, burden observations and sanitation investigation. |
+| Safety | I have safety-related requirements and digital evidence boundaries, but no product-level physical safety evidence. | Physical evidence required | Hazard-specific validation and appropriate specialist review against the narrowed physical configuration. I will not infer safety from requirements, CAD, simulation or passing software checks. |
 | Commercial plausibility | I recognise cost and price as uncertainties and do not claim viable unit economics. | Open | An initial sourced manufacturing-cost model considered alongside stronger customer-value evidence. |
 
 The immediate priority is not to make the full concept look complete. It is to move these gates from assumptions to evidence in an order that avoids unnecessary hardware spend.
