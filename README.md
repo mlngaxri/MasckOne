@@ -26,14 +26,14 @@ The long-term vision spans cleansing and selected leave-on products. The immedia
 | **Key uncertainties** | Customer value, comfort and population fit, hygiene and cleaning burden, real fluid behaviour, safety, manufacturability, unit economics and the most defensible first use case. |
 | **Next evidence milestones** | Structured customer interviews, focused analysis, a physical fit prototype, core fluid-delivery testing, hygiene and cleaning investigation, and an initial manufacturing-cost model. |
 | **Current stage** | Pre-commercialisation. Engineering geometry and digital checks/frameworks exist; product-level physical validation has not begun and there is no integrated manufactured product. |
-| **Initial development** | The founder reports establishing the initial digital foundation over roughly two weeks in September 2026, using AI extensively to accelerate implementation and exploration. |
+| **Initial development** | I established the initial digital foundation over roughly two weeks in September 2026, using AI extensively to accelerate implementation and exploration. |
 | **Controlled engineering baseline** | **Phase 5: waste acquisition and containment - Iteration 28 complete.** This is a repository roadmap state, not whole-product readiness. |
 
-## Initial founder execution
+## Initial execution
 
 Over roughly two weeks, I established the initial digital engineering foundation for Masck One: defining the intended product direction, requirements, constraints and trade-offs while using AI extensively to accelerate code-generated parametric CAD, software implementation, research, alternative generation and engineering checks.
 
-The resulting repository contains system requirements, automated engineering check source, documented design decisions and linked technical exploration across fit, fluid handling, retention, waste capture, electronics and controls. The check source demonstrates an inspectable checking framework; it does not establish a recorded CI pass for the current engineering revision. This chronology demonstrates founder initiative and decision ownership; it does not imply that every implementation artefact was authored manually or independently of AI assistance.
+The resulting repository contains system requirements, automated engineering check source, documented design decisions and linked technical exploration across fit, fluid handling, retention, waste capture, electronics and controls. The check source demonstrates an inspectable checking framework; it does not establish a recorded CI pass for the current engineering revision. This chronology demonstrates my initiative and decision ownership; it does not imply that every implementation artefact was authored manually or independently of AI assistance.
 
 The merged baseline includes facial-reference and interface geometry, protected anatomical regions, structural and actuation references, fresh-water and cleanser routing, waste-handling architecture and deterministic CAD export. The [engineering authority](config/masck_one_authority.yaml) and [development roadmap](docs/DEVELOPMENT_ROADMAP.md) define that controlled baseline.
 
@@ -41,7 +41,7 @@ The repository also contains analytical models and simulation frameworks used to
 
 ## Customer learning
 
-The founder reports an informal survey of around 20 people. Feedback highlighted time savings and convenience, alongside concerns about comfort, maintenance and price. This is an early qualitative signal, not established demand or willingness to pay. The [customer discovery notes](docs/CUSTOMER_DISCOVERY.md) separate that reported feedback from the structured research still needed.
+I ran an informal survey of around 20 people. Feedback highlighted time savings and convenience, alongside concerns about comfort, maintenance and price. This is an early qualitative signal, not established demand or willingness to pay. The [customer discovery notes](docs/CUSTOMER_DISCOVERY.md) separate that reported feedback from the structured research still needed.
 
 ## Commercial questions being tested
 
@@ -70,10 +70,10 @@ No answer in this table is treated as resolved. The near-term goal is to identif
 
 The main engineering challenge is integration. A decision that helps one subsystem can create a problem elsewhere, so the architecture is treated as a whole product rather than a collection of independent features. The broader intent and unresolved conflicts are documented in the [product concept](docs/PRODUCT_CONCEPT.md) and [convergence review](docs/CORE_SKETCH_CONVERGENCE_REVIEW.md).
 
-## Founder role and AI-assisted development
+## My role and AI-assisted development
 
 I direct the product and system architecture: defining the intended experience, requirements and constraints; breaking the work into problems; setting priorities; comparing approaches; resolving trade-offs; and deciding what the available evidence actually supports.
 
 I use AI extensively to accelerate code-based CAD, software development, research, alternative generation and engineering checks. I set the direction, requirements and trade-offs, and make the final system-level decisions. Version control and automated checks make the work inspectable; specialist judgement and physical measurement remain necessary where digital work cannot answer a question.
 
-This is an independently initiated, founder-led project. AI outputs are not treated as physical evidence, unknown results stay unknown, and a passing software check does not turn a target into achieved product performance.
+I independently initiated and lead this project. AI outputs are not treated as physical evidence, unknown results stay unknown, and a passing software check does not turn a target into achieved product performance.
