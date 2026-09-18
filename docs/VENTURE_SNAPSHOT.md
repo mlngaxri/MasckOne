@@ -25,7 +25,7 @@ A reviewer does not need to infer initiative from commit volume. Four dated repo
 | 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | Existing work, planned validation and unsupported claims were separated for external scrutiny. |
 | 16 September 2026 | [Current engineering baseline](https://github.com/mlngaxri/MasckOne/commit/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22) | The public engineering record continued to be curated, including removal of obsolete concept renders rather than presenting them as current evidence. |
 
-This chronology demonstrates sustained digital execution over the public repository's first weeks. It does not demonstrate customer traction, physical validation, revenue, partnerships or product readiness. The [full founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md) provides the claim boundaries and next evidence handoff behind these milestones.
+This chronology demonstrates sustained digital execution over the public repository's first weeks. It does not demonstrate customer traction, physical validation, revenue, partnerships or product readiness. The [full execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md) provides the claim boundaries and next evidence handoff behind these milestones.
 
 ## The venture in one page
 
@@ -35,7 +35,7 @@ This chronology demonstrates sustained digital execution over the public reposit
 | Who is the target user? | The initial hypothesis is people who already follow multi-step facial-skincare routines and value reducing active time and repetitive handling. | This is a target-user hypothesis, not a validated segment. |
 | What is the first product use case? | Not yet locked. The broader wearable-and-dock concept is a long-term direction, not a committed first-product specification. | Structured customer evidence should identify one routine task where customer value, physical feasibility and plausible economics overlap. |
 | What has been built? | Inspectable requirements, engineering geometry, code-based CAD, automated-check source, subsystem records and whole-product integration work exist in the repository. | This demonstrates active digital development, not customer demand, physical performance, comfort, safety, manufacturability or product readiness. |
-| What customer evidence exists? | A founder-reported informal survey of around 20 people provides a preliminary, non-conclusive signal. Time/convenience was the strongest reported interest; comfort, maintenance and price were recurring concerns. | The underlying questionnaire, recruitment method and response data are not complete enough in the repository for independent assessment. Structured interviews are the next step. |
+| What customer evidence exists? | An informal survey I conducted of around 20 people provides a preliminary, non-conclusive signal. Time/convenience was the strongest reported interest; comfort, maintenance and price were recurring concerns. | The underlying questionnaire, recruitment method and response data are not complete enough in the repository for independent assessment. Structured interviews are the next step. |
 | What are the largest uncertainties? | Whether a sufficiently important first problem exists; whether fitting, loading, cleaning and storage still create net convenience; whether core fit and fluid behaviour work physically; whether hygiene is practical; and whether manufacturing cost can overlap with customer value. | These questions remain open. Digital engineering or AI-assisted analysis cannot close the physical and commercial ones by itself. |
 | What happens next? | Structured customer interviews; focused simulation and analysis; a focused physical fit prototype; core fluid-delivery testing; hygiene and cleaning investigation; and initial manufacturing-cost modelling. | Each activity should produce evidence that can advance, narrow, redesign or reject the relevant path. They are planned activities, not completed results. |
 
@@ -45,7 +45,7 @@ The venture is not presented as idea-only because its development history is ins
 
 No pull-request-triggered workflow run is recorded for that exact engineering revision. The linked automated-check source is therefore inspectable framework evidence, not evidence that current `main` has a recorded CI pass.
 
-The [founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md) links dated repository milestones to commits so progress can be checked through outputs and chronology rather than accepted as a founder claim. The [claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md) separately marks what those outputs do and do not establish.
+The [execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md) links dated repository milestones to commits so progress can be checked through outputs and chronology rather than accepted as a my claim. The [claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md) separately marks what those outputs do and do not establish.
 
 This verification path is intentionally narrow. It demonstrates sustained, structured digital development. It does not convert repository activity into evidence of customer demand, physical validation, revenue, partnerships or technical performance.
 
@@ -85,10 +85,10 @@ Scholarship support would therefore accelerate an evidence sequence rather than 
 
 Scholarship support would be most useful when converted into structured customer validation, prototype materials and test equipment for focused fit, fluid and cleaning questions, and manufacturing and cost investigation. No funding amount, technical result or commercial outcome is assumed.
 
-AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. Founder judgement owns venture direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
+AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. I retain responsibility for venture direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
 
 ## Current evidence boundary
 
 Masck One has substantial inspectable digital-development evidence. It does not currently prove customer demand or willingness to pay, comfort or population fit, hygiene and cleaning practicality, real fluid behaviour, product safety, manufacturing feasibility, viable unit economics or product-level physical performance.
 
-For the supporting evidence, see [Venture progress](VENTURE_PROGRESS.md), [Customer discovery](CUSTOMER_DISCOVERY.md), [Founder execution timeline](SCHOLARSHIP_FOUNDER_EXECUTION_TIMELINE.md), [Claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md) and [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md).
+For the supporting evidence, see [Venture progress](VENTURE_PROGRESS.md), [Customer discovery](CUSTOMER_DISCOVERY.md), [Execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md), [Claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md) and [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md).
