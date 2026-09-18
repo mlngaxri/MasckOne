@@ -12,7 +12,7 @@ Masck One is pre-commercialisation. The repository shows substantial digital dev
 | What should the first use case be? | Not yet determined. The long-term wearable-and-dock direction should not automatically become the first product scope. | Evidence that one routine task combines customer value, physical testability, hygiene practicality and plausible economics. |
 | Can it be made at a viable cost? | Unknown. | An initial sourced manufacturing-cost model for the narrowed first-use architecture, considered alongside customer value and price sensitivity. |
 
-The founder-reported informal survey of around 20 people is only preliminary and non-conclusive. It supports treating time/convenience as a question worth investigating and comfort, maintenance and price as questions worth testing. It does not establish demand, market size or willingness to pay. See [Customer discovery](CUSTOMER_DISCOVERY.md) for the evidence boundary.
+The informal survey I conducted of around 20 people is only preliminary and non-conclusive. It supports treating time/convenience as a question worth investigating and comfort, maintenance and price as questions worth testing. It does not establish demand, market size or willingness to pay. See [Customer discovery](CUSTOMER_DISCOVERY.md) for the evidence boundary.
 
 ## Decision rule
 
@@ -24,6 +24,6 @@ Weak evidence is useful evidence. It should cause the venture to narrow, redesig
 
 Support would accelerate evidence generation through structured customer validation, prototype materials and test equipment, and manufacturing and cost investigation. It would not itself demonstrate traction or product viability.
 
-AI is used extensively to accelerate research, implementation and exploration. Founder judgement owns direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
+AI is used extensively to accelerate research, implementation and exploration. I retain responsibility for direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
 
 For the broader reviewer path, see [Venture snapshot](VENTURE_SNAPSHOT.md), [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md) and [Next evidence deliverables](SCHOLARSHIP_NEXT_EVIDENCE_DELIVERABLES.md).
