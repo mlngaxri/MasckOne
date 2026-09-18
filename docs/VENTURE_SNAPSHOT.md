@@ -16,7 +16,7 @@ This distinction is central to how I present Masck One for scholarship review: I
 
 ## Progress in dates
 
-I do not rely on commit volume as evidence of initiative. Four dated repository milestones show how my work has progressed:
+I do not rely on commit volume as evidence of initiative. Five dated repository milestones show how my work has progressed:
 
 | Date | Verifiable milestone | Venture-level significance |
 | --- | --- | --- |
@@ -24,6 +24,7 @@ I do not rely on commit volume as evidence of initiative. Four dated repository 
 | 10 September 2026 | [Whole-product convergence work](https://github.com/mlngaxri/MasckOne/commit/0044a55885000480a873b5761742341038b24b6a) | I progressed into explicit cross-subsystem conflicts, trade-offs and evidence gates. |
 | 14 September 2026 | [Public scholarship-review baseline](https://github.com/mlngaxri/MasckOne/commit/b4a105ea4483a6285be7d55fd527baea30ce6412) | I separated existing work, planned validation and unsupported claims for external scrutiny. |
 | 16 September 2026 | [Engineering baseline](https://github.com/mlngaxri/MasckOne/commit/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22) | I continued curating the public engineering record, including removing obsolete concept renders rather than presenting them as current evidence. |
+| 18 September 2026 | [Current engineering baseline](https://github.com/mlngaxri/MasckOne/commit/becf782bf809543ba4b83ecab689204b2458de7d) | I continued tightening the public documentation and evidence trail while keeping physical and commercial uncertainties explicit. |
 
 This chronology shows sustained digital execution over the public repository's first weeks. I do not treat it as evidence of customer traction, physical validation, revenue, partnerships or product readiness. The [full execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md) provides the claim boundaries and next evidence handoff behind these milestones.
 
@@ -41,9 +42,7 @@ This chronology shows sustained digital execution over the public repository's f
 
 ## What a reviewer can verify now
 
-I do not present Masck One as idea-only because my development history is inspectable. At engineering `main` revision [`8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`](https://github.com/mlngaxri/MasckOne/tree/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22), a reviewer can inspect the [controlled engineering authority](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/config/masck_one_authority.yaml), [code-based parametric model](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/src/masck_one/model.py), [automated authority-contract checks](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/tests/test_authority_contract.py) and [whole-product convergence review](https://github.com/mlngaxri/MasckOne/blob/8d37bc322b5ebe42179685a1a0559f2fcb1b5f22/docs/CORE_SKETCH_CONVERGENCE_REVIEW.md).
-
-No pull-request-triggered workflow run is recorded for that exact engineering revision. I therefore present the linked automated-check source as inspectable framework evidence, not evidence that this revision has a recorded CI pass.
+I do not present Masck One as idea-only because my development history is inspectable. At live engineering `main` revision [`becf782bf809543ba4b83ecab689204b2458de7d`](https://github.com/mlngaxri/MasckOne/tree/becf782bf809543ba4b83ecab689204b2458de7d), a reviewer can inspect the [controlled engineering authority](https://github.com/mlngaxri/MasckOne/blob/becf782bf809543ba4b83ecab689204b2458de7d/config/masck_one_authority.yaml), [code-based parametric model](https://github.com/mlngaxri/MasckOne/blob/becf782bf809543ba4b83ecab689204b2458de7d/src/masck_one/model.py), [automated authority-contract checks](https://github.com/mlngaxri/MasckOne/blob/becf782bf809543ba4b83ecab689204b2458de7d/tests/test_authority_contract.py) and [whole-product convergence review](https://github.com/mlngaxri/MasckOne/blob/becf782bf809543ba4b83ecab689204b2458de7d/docs/CORE_SKETCH_CONVERGENCE_REVIEW.md).
 
 The [execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md) links dated repository milestones to commits so my progress can be checked through outputs and chronology rather than accepted as a claim from me. The [claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md) separately marks what those outputs do and do not establish.
 
