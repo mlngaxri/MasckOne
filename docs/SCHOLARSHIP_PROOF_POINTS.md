@@ -2,7 +2,9 @@
 
 This page gives a scholarship reviewer the shortest evidence-backed route to the work I have already done. It is deliberately limited to three proof points. Each one links to inspectable engineering evidence and states what that evidence does not prove.
 
-Engineering links are pinned to live `main` revision `becf782bf809543ba4b83ecab689204b2458de7d`, verified on 18 September 2026. Later scholarship-documentation commits are not newer engineering releases.
+Engineering links are pinned to live `main` revision `becf782bf809543ba4b83ecab689204b2458de7d`, verified on 19 September 2026. Later scholarship-documentation commits are not newer engineering releases.
+
+Current stage: pre-commercialisation; engineering geometry exists; digital checks/frameworks exist; product-level physical validation has not begun.
 
 ## 1. I turned the concept into controlled engineering work
 
@@ -27,6 +29,8 @@ What it does not demonstrate: human fit, comfort, real fluid behaviour, manufact
 ## 3. I built evidence discipline into the development process
 
 I use automated checks and explicit unresolved proof gates so that rapid digital development does not silently become a physical or commercial claim. The exact pinned engineering revision has a completed successful `Masck One engineering CI` run.
+
+One representative source-binding check is deliberately easy to audit: the boundary-release tests record the registered facial-mesh hash and boundary-edge identities, reject a case where the same source asset is paired with altered registered geometry, and require the resulting evidence state to remain `DIGITAL_REGISTERED_MESH_BINDING_ONLY_NOT_ANATOMICAL_OR_PHYSICAL_VALIDATION`. In plain language, I can check that downstream geometry is tied to the exact digital reference it came from without claiming that the reference is anatomically validated or that the geometry works on a person.
 
 Inspect: [boundary-release tests](https://github.com/mlngaxri/MasckOne/blob/becf782bf809543ba4b83ecab689204b2458de7d/tests/test_boundary_release.py), [Core Sketch status board](https://github.com/mlngaxri/MasckOne/blob/becf782bf809543ba4b83ecab689204b2458de7d/docs/CORE_SKETCH_STATUS_BOARD.md), [CI workflow](https://github.com/mlngaxri/MasckOne/blob/becf782bf809543ba4b83ecab689204b2458de7d/.github/workflows/ci.yml) and [successful run 1858](https://github.com/mlngaxri/MasckOne/actions/runs/35293789374).
 
