@@ -53,7 +53,10 @@ The repository already shows that I can turn the concept into structured, inspec
 | Focused physical fit prototype | Decide whether the wearable geometry and interaction are credible enough to continue, revise or stop that path. |
 | Core fluid-delivery testing | Decide whether the selected delivery and recovery approach deserves further integration work. |
 | Hygiene and cleaning investigation | Decide whether preparation and cleaning burden preserves or defeats the convenience proposition. |
+| Safety hazard review and claim-specific validation planning | Identify safety-critical claims and the physical evidence and specialist review each would require before I treat the product as safe. |
 | Initial manufacturing-cost modelling | Decide whether plausible manufacturing economics can overlap with customer value before committing to broader product scope. |
+
+Safety remains an evidence gate, not an inference from requirements, CAD, simulation or passing software checks. I will not present product safety as established until claim-specific physical evidence and appropriate specialist review support it.
 
 Scholarship support would help me turn these unknowns into evidence through prototyping materials and test equipment, manufacturing and cost investigation, and structured customer validation. I do not treat funding itself, expenditure or a more polished presentation as evidence that any gate has passed.
 
@@ -61,7 +64,7 @@ Scholarship support would help me turn these unknowns into evidence through prot
 
 The strongest current evidence for Masck One is not that I have a validated product. It is that I have already converted an early venture concept into a substantial, inspectable digital engineering programme while keeping the missing customer, physical and commercial evidence explicit.
 
-My next stage is therefore not broader feature development. I need structured customer interviews to narrow or reject a first use case, focused simulation and analysis, a physical fit prototype, core fluid-delivery testing, hygiene and cleaning investigation, and initial manufacturing-cost modelling. The longer-term wearable-and-dock direction remains a vision to test, not a committed first-product specification.
+My next stage is therefore not broader feature development. I need structured customer interviews to narrow or reject a first use case, focused simulation and analysis, a physical fit prototype, core fluid-delivery testing, hygiene and cleaning investigation, safety hazard review and claim-specific validation planning, and initial manufacturing-cost modelling. The longer-term wearable-and-dock direction remains a vision to test, not a committed first-product specification.
 
 I use AI extensively to accelerate implementation, research, alternative generation and engineering exploration. I own the direction, requirements, priorities, trade-offs and final decisions. I also expect specialist human expertise and collaboration to matter for hardware, manufacturing, IP, fundraising and market entry.
 
