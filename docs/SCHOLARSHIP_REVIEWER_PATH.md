@@ -20,7 +20,17 @@ For the fastest visual inspection, I recommend opening the [whole-product archit
 
 The architecture view is a documentation map, not evidence that I have built the system. The representative product views are traceable digital compositions I use to inspect documented geometry and packaging direction; they are not photographs, human-fit evidence, released production computer-aided design (CAD), or proof of safety or performance. Website hero imagery is concept imagery and is not engineering evidence.
 
-I have also kept the stronger engineering record inspectable behind those visuals: controlled requirements, engineering geometry, code-based CAD, automated-check source, subsystem records and whole-product integration work. The [Execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md) links dated milestones to repository history so my progress can be inspected through outputs and chronology rather than accepted as a claim.
+I have also kept the stronger engineering record inspectable behind those visuals. The progression matters more than commit count:
+
+| Inspectable output | What it shows about my progress | What it does not prove |
+| --- | --- | --- |
+| Controlled requirements and engineering authority | I translated product intent into explicit constraints and a source of engineering truth. | That the requirements are physically achieved or commercially correct. |
+| Code-based CAD and engineering geometry | I developed the concept into inspectable, revisable geometry rather than leaving it as presentation imagery. | Fit, comfort, safety, manufacturability or physical performance. |
+| Automated checks and subsystem records | I built repeatable ways to catch digital inconsistencies and preserve design decisions, assumptions and unresolved evidence. | Physical validation merely because a digital check passes. |
+| Whole-product integration and convergence reviews | I progressed from isolated ideas into cross-subsystem conflicts, trade-offs and evidence gates. | That the integrated product has been built or is ready for production. |
+| Customer-discovery and next-evidence records | I have started separating customer, physical and commercial questions from engineering activity and defined how I intend to test them. | Demand, willingness to pay or validated unit economics. |
+
+The [Execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md) links dated milestones to repository history so my progress can be inspected through outputs and chronology rather than accepted as a claim.
 
 This evidence demonstrates sustained digital development. I do not claim that it proves customer demand, comfort, hygiene/cleaning practicality, real fluid behaviour, safety, manufacturing feasibility, viable unit economics or product-level physical performance.
 
