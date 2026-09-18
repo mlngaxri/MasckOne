@@ -58,7 +58,9 @@ I use these checks for fail-closed consistency checking and evidence-state disci
 
 ### Current CI boundary
 
-Exact engineering revision `becf782bf809543ba4b83ecab689204b2458de7d` has a completed successful `Masck One engineering CI` GitHub Actions run from the `main` push on 18 September 2026 ([run 1858](https://github.com/mlngaxri/MasckOne/actions/runs/35293789374)). This records that the workflow passed for that exact digital revision. I do not treat it as converting software checks, synthetic tests, geometry screens or validation frameworks into physical validation, and it does not qualify later revisions automatically.
+Exact engineering revision `becf782bf809543ba4b83ecab689204b2458de7d` has a completed successful `Masck One engineering CI` GitHub Actions run from the `main` push on 18 September 2026 ([run 1858](https://github.com/mlngaxri/MasckOne/actions/runs/35293789374)). The pinned [CI workflow source](https://github.com/mlngaxri/MasckOne/blob/becf782bf809543ba4b83ecab689204b2458de7d/.github/workflows/ci.yml) shows what that result actually covers: repository integrity ratchets, pinned-source provenance, authority and preflight validation, unit/integration tests, a deterministic CAD smoke build, exact release-source provenance and generated-package integrity. In plain language, the successful run shows that these digital checks completed for this exact source revision. It does not show that the engineering targets are physically correct or achieved.
+
+I do not treat the successful workflow as converting software checks, synthetic tests, geometry screens or validation frameworks into physical validation, and it does not qualify later revisions automatically.
 
 ## Evidence boundary
 
