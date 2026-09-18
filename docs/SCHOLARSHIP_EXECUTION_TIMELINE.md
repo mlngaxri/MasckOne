@@ -1,6 +1,6 @@
 # Execution timeline
 
-[Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md) · [Venture progress](VENTURE_PROGRESS.md) · [Evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md)
+[Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md) · [Visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md) · [Venture progress](VENTURE_PROGRESS.md) · [Evidence matrix](SCHOLARSHIP_EVIDENCE_MATRIX.md)
 
 This page gives a non-technical reviewer a short, verifiable chronology of Masck One's development. Dates below are Git commit dates and links point to inspectable repository outputs. They demonstrate my execution and project progression, not customer traction, physical validation or product readiness.
 
