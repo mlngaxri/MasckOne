@@ -23,12 +23,12 @@ A weak result is still useful evidence. It should narrow, redirect or stop a pat
 
 ## Preliminary customer evidence boundary
 
-The repository records a founder-reported informal survey of around 20 people. The strongest reported interest was around time and convenience, while concerns included comfort, maintenance and price. This is preliminary and non-conclusive because the repository does not contain enough underlying method and response data for independent assessment. It does not establish demand or willingness to pay.
+The repository records an informal survey I conducted of around 20 people. The strongest reported interest was around time and convenience, while concerns included comfort, maintenance and price. This is preliminary and non-conclusive because the repository does not contain enough underlying method and response data for independent assessment. It does not establish demand or willingness to pay.
 
 ## Scholarship support to evidence
 
 Scholarship support would be most useful where it helps produce the deliverables above: structured customer validation; prototype materials and test equipment for focused fit, fluid and cleaning questions; and manufacturing and cost investigation. No funding amount, supplier relationship or validation outcome is assumed.
 
-AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. Founder judgement owns venture direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
+AI is used extensively to accelerate implementation, research, alternative generation and engineering exploration. I retain responsibility for venture direction, requirements, priorities, trade-offs and final decisions. Specialist human expertise and collaboration remain important for hardware, manufacturing, IP, fundraising and market entry.
 
 The standard for progress is therefore not a more complete-looking concept. It is a better-supported decision about whether Masck One should advance, narrow, change or stop.
