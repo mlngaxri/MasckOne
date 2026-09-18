@@ -25,7 +25,7 @@
 
   <rect width="960" height="520" fill="#ffffff"/>
   <text x="480" y="44" class="title" text-anchor="middle">How the documented Masck One system fits together</text>
-  <text x="480" y="70" class="subtitle" text-anchor="middle">Major documented relationships only; not what has been built or physically validated</text>
+  <text x="480" y="70" class="subtitle" text-anchor="middle">System map only; not build status or physical validation</text>
   <rect x="42" y="101" width="206" height="24" rx="12" fill="#f3f4f6" stroke="#d1d5db"/>
   <text x="145" y="117" class="badge">ORIENTATION ONLY · DOCUMENTATION MAP · NOT TEST EVIDENCE</text>
 
