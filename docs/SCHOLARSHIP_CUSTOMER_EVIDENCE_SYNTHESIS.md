@@ -6,7 +6,7 @@ This page defines how future structured customer interviews should be combined i
 
 ## Why this exists
 
-Masck One currently has only preliminary, founder-reported feedback from an informal survey of around 20 people. That signal suggests interest around time and convenience and concerns around comfort, maintenance and price, but the underlying method and raw data are not available in the repository. It therefore does not establish demand, willingness to pay or a validated customer segment.
+Masck One currently has only preliminary, reported by me feedback from an informal survey of around 20 people. That signal suggests interest around time and convenience and concerns around comfort, maintenance and price, but the underlying method and raw data are not available in the repository. It therefore does not establish demand, willingness to pay or a validated customer segment.
 
 The next customer-research step should make contradictory evidence as visible as positive evidence and should decide whether one narrow routine problem deserves further development before broader hardware scope is justified.
 
