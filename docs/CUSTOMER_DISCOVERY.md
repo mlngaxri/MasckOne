@@ -74,6 +74,29 @@ I will use one record per interview so later summaries can be traced back to con
 
 I will not record names in the reviewer-facing evidence set. When I later summarise interviews, I will distinguish observed patterns from isolated comments, report meaningful disagreement, state the sample and recruitment limitations, and link any first-use-case recommendation back to the interview IDs that support and challenge it. This template creates a method for future evidence; its presence does not mean any structured interviews have occurred.
 
+## Customer evidence synthesis record
+
+When structured interviews exist, I will add one dated synthesis record rather than replacing raw uncertainty with a polished narrative. This is the minimum reviewer-facing record I intend to preserve before using customer discovery to justify a first-use-case decision.
+
+| Field | What I will record |
+| --- | --- |
+| Interview set | Anonymous interview IDs included in the synthesis and the date range covered |
+| Recruitment boundary | How participants were recruited, who was deliberately sought, and obvious sample limitations |
+| Repeated behaviour | Routine behaviours or friction that recur across source records, with supporting interview IDs |
+| Counter-evidence | Interview IDs that contradict or weaken each important pattern |
+| Existing alternatives | What participants already do or buy instead of the proposed solution |
+| Candidate first use case | The narrow routine task most justified by the available behaviour evidence, if any |
+| Why not the broader vision | Evidence showing why I am not treating whole-routine automation as the default first product |
+| Workflow risks | Fit, loading, cleaning, drying, storage or maintenance burdens that could erase the convenience benefit |
+| Commercial uncertainty | What the interviews do and do not establish about purchase behaviour, price and alternatives |
+| Decision | Nominate, narrow or reject a first-use-case candidate, with the source interview IDs behind that decision |
+| Next smallest test | The least ambitious analysis or physical experiment justified by the customer evidence |
+| Still unknown | Questions I cannot resolve from this interview set |
+
+I will not set a favourable-response threshold and then recruit until I reach it. I will preserve the recruitment boundary and negative evidence so a reviewer can see how strong or weak the synthesis actually is. If the records do not support a first use case, the synthesis should say that directly rather than convert ambiguity into apparent traction.
+
+This synthesis is still customer evidence only. It cannot validate comfort, fluid performance, hygiene, safety, manufacturing feasibility or unit economics, and it does not turn interview participants into customers.
+
 ## How this affects development
 
 The broader vision is automation across a facial routine. The immediate learning objective is to test a clearly defined part of that experience and use the results to decide what the first product should be. A focused experiment does not validate the complete system.
