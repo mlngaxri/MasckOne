@@ -2,9 +2,11 @@
 
 [Scholarship review snapshot](SCHOLARSHIP_REVIEW_SNAPSHOT.md) · [Venture progress](VENTURE_PROGRESS.md) · [Customer discovery](CUSTOMER_DISCOVERY.md) · [Next-stage evidence plan](SCHOLARSHIP_NEXT_STAGE.md)
 
+Current stage: pre-commercialisation; engineering geometry exists; digital checks/frameworks exist; product-level physical validation has not begun.
+
 This ledger gives a non-technical reviewer a fast way to distinguish inspectable project evidence from hypotheses and future validation. It is intentionally conservative. A documented requirement, model, plan or test framework is not treated as proof that a physical product works or that customers want it.
 
-Engineering references should be read against live engineering `main` revision `8d37bc322b5ebe42179685a1a0559f2fcb1b5f22`, verified on 17 September 2026. Scholarship documentation may advance independently and is not a newer engineering release.
+Engineering references should be read against live engineering `main` revision `becf782bf809543ba4b83ecab689204b2458de7d`, verified on 18 September 2026. Scholarship documentation may advance independently and is not a newer engineering release.
 
 ## What can be said today
 
