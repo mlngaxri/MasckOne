@@ -8,7 +8,7 @@ For a non-technical scholarship reviewer, I recommend starting with the [one-pag
 
 I use this review path to separate what I have built from what still needs customer, physical and commercial evidence. For the fastest visual inspection of the documented architecture and representative traceable digital work, see the [visual evidence quicklook](VISUAL_EVIDENCE_QUICKLOOK.md). For a dated, commit-linked record of execution, see the [execution timeline](SCHOLARSHIP_EXECUTION_TIMELINE.md). For a question-by-question boundary between supported claims, hypotheses and unproven outcomes, see the [claim ledger](SCHOLARSHIP_CLAIM_LEDGER.md).
 
-Engineering-source links below are pinned to live engineering `main` revision `becf782bf809543ba4b83ecab689204b2458de7d`, verified on 18 September 2026. Scholarship documentation may advance independently and must not be read as a newer engineering release.
+Engineering-source links below are pinned to live engineering `main` revision `becf782bf809543ba4b83ecab689204b2458de7d`, verified on 19 September 2026. Scholarship documentation may advance independently and must not be read as a newer engineering release.
 
 **Reviewer audit rule:** the cited engineering source at the pinned revision controls each claim. If my scholarship prose and that source differ, the source wins. My scholarship prose can explain or narrow evidence, but it cannot upgrade a target, framework, synthetic result, geometry screen or planned test into achieved physical or commercial evidence.
 
