@@ -2,7 +2,7 @@
 
 Masck One is an early-stage hands-free facial-skincare wearable for people who already follow multi-step routines, exploring whether repetitive skincare steps can be automated to reduce the active time and effort those routines require.
 
-**Current stage:** pre-commercialisation. Engineering geometry exists and digital checks and validation frameworks exist, but product-level physical validation has not begun. There is no integrated manufactured product, and the core customer, physical-performance and commercial assumptions remain to be validated.
+**Current stage:** pre-commercialisation; engineering geometry exists; digital checks/frameworks exist; product-level physical validation has not begun. There is no integrated manufactured product, and the core customer, physical-performance and commercial assumptions remain to be validated.
 
 **Reviewer baseline:** the live engineering baseline is `main` at `becf782bf809543ba4b83ecab689204b2458de7d` (18 September 2026). This scholarship-review branch organises public evidence and venture context around that engineering record; later documentation commits on this branch are not newer engineering releases and do not inherit physical or CI qualification from earlier revisions.
 
