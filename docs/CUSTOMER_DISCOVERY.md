@@ -8,7 +8,7 @@ This note records my current customer hypothesis and the questions that should s
 
 The initial target is people who already follow multi-step facial-skincare routines and would value spending less active time on repetitive steps. This is a customer hypothesis to investigate, not a validated market segment.
 
-In September 2026, I ran an informal survey of around 20 people highlighted time savings and convenience, including being able to do another activity while a routine runs. Reported concerns were comfort, maintenance and price.
+In September 2026, I ran an informal survey of around 20 people. The responses highlighted time savings and convenience, including being able to do another activity while a routine runs. Reported concerns were comfort, maintenance and price.
 
 I have not attached the underlying questionnaire, recruitment method or response data to this note, so the feedback cannot be independently assessed here. There are no conversion rates, pricing conclusions or representative-demand claims to infer from it. No respondent identities or invented quotations are published.
 
@@ -33,6 +33,24 @@ For each interview, retain an anonymised record containing the interview date, b
 Keep solution reactions separate from behaviour evidence. A statement that the concept sounds useful is weaker than a concrete account of a repeated problem, an existing workaround, or a purchase already made to solve it. Do not convert stated interest into demand, willingness to pay, conversion or customer counts.
 
 After a consistent set of interviews exists, summarise patterns only where the underlying records support them. The first-use-case decision should identify which evidence supports the choice, which evidence argues against it, what remains uncertain, and why the selected next physical test is proportionate to the customer evidence available.
+
+## Interview guide for the next round
+
+I will use the same core sequence across interviews so I can compare behaviour without turning the conversation into a product pitch. I will ask follow-up questions where useful, but I will not lead participants towards Masck One as the answer.
+
+| Sequence | Core question | What I am testing |
+| --- | --- | --- |
+| 1. Current routine | Walk me through the last time you completed your normal facial-skincare routine. What did you actually do? | Real behaviour rather than an idealised routine. |
+| 2. Friction | Which part required the most active time, effort or attention? Tell me about the most recent time that bothered you. | Whether a repeated problem exists and how important it is. |
+| 3. Workarounds | Do you skip, shorten, combine or replace any steps when you are busy? What do you do instead? | Existing alternatives and the cost of the problem today. |
+| 4. Priority | If one part of the routine could require much less active handling, which part would matter most and why? | A candidate first use case without assuming the full routine should be automated. |
+| 5. Workflow cost | What would make a wearable solution too annoying to use, including fitting, loading, cleaning, drying or storing it? | Whether maintenance could erase the convenience benefit. |
+| 6. Purchase context | What skincare devices, tools or recurring products have you actually paid for, if any, and what made them worth buying? | Real purchasing behaviour and relevant alternatives. |
+| 7. Rejection | What would make you reject this kind of product even if it saved time? | Negative evidence, adoption barriers and kill criteria. |
+
+I will show or describe the Masck One direction only after the behaviour questions. Any reaction to the concept will be recorded separately from evidence about existing behaviour. I will not infer willingness to pay from a hypothetical price question alone.
+
+The output I need from this round is not a favourable response rate. I need enough consistent, traceable evidence to nominate, narrow or reject one first-use-case candidate and to identify the smallest physical test justified by that customer evidence. If no recurring problem survives this process, I should not broaden the product simply because the digital engineering exists.
 
 ## How this affects development
 
