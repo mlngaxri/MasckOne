@@ -32,7 +32,7 @@ Inspect: [boundary-release tests](https://github.com/mlngaxri/MasckOne/blob/becf
 
 What this demonstrates: I have made digital consistency, provenance and unresolved evidence inspectable instead of relying on claims about progress.
 
-What it does not demonstrate: customer demand, willingness to pay, product-level physical performance or qualification of later revisions.
+What it does not demonstrate: customer demand or willingness to pay; comfort or population fit; hygiene, cleaning or maintenance practicality; real fluid behaviour; product safety; manufacturing feasibility; viable unit economics; or product-level physical performance. I keep all of these unproven until evidence directly relevant to each claim exists.
 
 ## From proof of work to proof of venture
 
