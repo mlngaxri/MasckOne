@@ -2,7 +2,10 @@ from dataclasses import replace
 
 import pytest
 
+from masck_one.model import build_model
+from masck_one.structural_frame_retention_roots import build_structural_frame_retention_roots
 from masck_one.structural_frame_retention_verification_v5 import verify_structural_frame_retention_roots_v5
+import masck_one.structural_frame_retention_verification_v6 as v6_module
 from masck_one.structural_frame_retention_verification_v6 import (
     CAPTURE_VOLUME_RELATIVE_NUMERICAL_TOLERANCE,
     StructuralFrameRetentionVerificationV6,
@@ -24,6 +27,24 @@ def test_nominal_v6_source_capture_is_physically_bounded():
     assert manifest["physical_validation_eligible"] is False
     assert manifest["capture_volume_relative_numerical_tolerance"] == CAPTURE_VOLUME_RELATIVE_NUMERICAL_TOLERANCE
     assert all(root["source_frame_capture_fraction"] <= 1.0 + CAPTURE_VOLUME_RELATIVE_NUMERICAL_TOLERANCE for root in manifest["roots"])
+
+
+def test_v6_prerequisite_measurements_use_supplied_geometry(monkeypatch):
+    model = build_model()
+    architecture = build_structural_frame_retention_roots(model=model)
+    original = v6_module.verify_structural_frame_retention_roots_v2
+    observed = {}
+
+    def recording_v2(*, model=None, architecture=None):
+        observed["model"] = model
+        observed["architecture"] = architecture
+        return original(model=model, architecture=architecture)
+
+    monkeypatch.setattr(v6_module, "verify_structural_frame_retention_roots_v2", recording_v2)
+    result = verify_structural_frame_retention_roots_v6(model=model, architecture=architecture)
+    assert observed["model"] is model
+    assert observed["architecture"] is architecture
+    assert result.v5.v4.v3.v2.validate() is result.v5.v4.v3.v2
 
 
 def test_v6_rejects_capture_larger_than_counterpart_body():
