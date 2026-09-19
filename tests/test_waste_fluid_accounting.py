@@ -29,6 +29,7 @@ def test_service_profile_tracks_prime_events_separately_from_cycles():
     assert single_prime.prime_liquid_mL == pytest.approx(0.4)
     assert single_prime.maximum_cartridge_inflow_mL == pytest.approx(28.0)
     assert single_prime.requirement_margin_mL == pytest.approx(7.0)
+    assert single_prime.capacity_satisfied is True
 
     every_cycle_reprime = budget.service_capacity_screen(cycles=6, prime_events=6)
     assert every_cycle_reprime.maximum_cartridge_inflow_mL == pytest.approx(30.0)
@@ -44,21 +45,47 @@ def test_each_additional_prime_consumes_exact_prime_allowance():
     assert one.requirement_margin_mL - three.requirement_margin_mL == pytest.approx(0.8)
 
 
-def test_service_profile_rejects_impossible_prime_count():
+def test_reprime_events_can_exceed_cycle_count_and_fail_at_capacity_boundary():
     budget = build_authority_waste_fluid_budget()
-    with pytest.raises(WasteFluidAccountingError, match="cannot exceed cycles"):
-        budget.service_capacity_screen(cycles=2, prime_events=3)
+    # Six nominal cycles consume 27.6 mL, leaving 7.4 mL. At 0.4 mL per
+    # full-size prime event, 18 events fit and the 19th exceeds 35 mL.
+    assert budget.maximum_prime_events_that_fit(cycles=6) == 18
+    eighteen = budget.service_capacity_screen(cycles=6, prime_events=18)
+    nineteen = budget.service_capacity_screen(cycles=6, prime_events=19)
+    assert eighteen.maximum_cartridge_inflow_mL == pytest.approx(34.8)
+    assert eighteen.requirement_margin_mL == pytest.approx(0.2)
+    assert eighteen.capacity_satisfied is True
+    assert nineteen.maximum_cartridge_inflow_mL == pytest.approx(35.2)
+    assert nineteen.requirement_margin_mL == pytest.approx(-0.2)
+    assert nineteen.capacity_satisfied is False
+
+
+def test_service_profile_rejects_invalid_prime_count_but_not_multiple_reprimes():
+    budget = build_authority_waste_fluid_budget()
+    assert budget.service_capacity_screen(cycles=2, prime_events=3).prime_events == 3
     with pytest.raises(WasteFluidAccountingError, match="nonnegative integer"):
         budget.service_capacity_screen(cycles=2, prime_events=True)
 
 
-def test_manifest_exposes_single_prime_diagnostic_without_weakening_gate():
+def test_zero_prime_allowance_reports_unbounded_prime_count_in_capacity_model():
+    budget = replace(build_authority_waste_fluid_budget(), maximum_initial_prime_mL_per_cycle=0.0)
+    assert budget.maximum_prime_events_that_fit(cycles=6) is None
+
+
+def test_nominal_service_alone_can_fail_prime_capacity_query():
+    budget = build_authority_waste_fluid_budget()
+    with pytest.raises(WasteFluidAccountingError, match="nominal service liquid alone"):
+        budget.maximum_prime_events_that_fit(cycles=8)
+
+
+def test_manifest_exposes_prime_capacity_boundary_without_weakening_gate():
     budget = build_authority_waste_fluid_budget()
     manifest = budget.manifest()
     assert manifest["single_initial_prime_service_inflow_mL"] == pytest.approx(28.0)
     assert manifest["single_initial_prime_service_margin_mL"] == pytest.approx(7.0)
     assert manifest["maximum_cartridge_inflow_screen_mL"] == pytest.approx(30.0)
     assert manifest["cartridge_requirement_margin_mL"] == pytest.approx(5.0)
+    assert manifest["maximum_prime_events_that_fit_baseline_service"] == 18
 
 
 def test_unrecovered_fluid_closure_exposes_cross_requirement_threshold():
