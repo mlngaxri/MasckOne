@@ -55,7 +55,9 @@ class RetentionRootVerificationV2:
     pin_bore_capture_mm3: float
     split_retainer_pin_intersection_mm3: float
     split_retainer_yoke_intersection_mm3: float
-    protected_intersection_mm3: float
+    frame_protected_intersection_mm3: float
+    pin_protected_intersection_mm3: float
+    split_retainer_protected_intersection_mm3: float
 
     def validate(self) -> "RetentionRootVerificationV2":
         if self.root_id not in EXPECTED_ROOT_IDS:
@@ -69,7 +71,9 @@ class RetentionRootVerificationV2:
             self.pin_bore_capture_mm3,
             self.split_retainer_pin_intersection_mm3,
             self.split_retainer_yoke_intersection_mm3,
-            self.protected_intersection_mm3,
+            self.frame_protected_intersection_mm3,
+            self.pin_protected_intersection_mm3,
+            self.split_retainer_protected_intersection_mm3,
         ):
             if not math.isfinite(value) or value < 0.0:
                 raise StructuralFrameRetentionVerificationV2Error(
@@ -99,9 +103,17 @@ class RetentionRootVerificationV2:
             raise StructuralFrameRetentionVerificationV2Error(
                 f"{self.root_id} split retainer intersects yoke material"
             )
-        if self.protected_intersection_mm3 > INTERSECTION_TOLERANCE_MM3:
+        if self.frame_protected_intersection_mm3 > INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameRetentionVerificationV2Error(
                 f"{self.root_id} frame counterpart intersects a protected volume"
+            )
+        if self.pin_protected_intersection_mm3 > INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameRetentionVerificationV2Error(
+                f"{self.root_id} capture pin intersects a protected volume"
+            )
+        if self.split_retainer_protected_intersection_mm3 > INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameRetentionVerificationV2Error(
+                f"{self.root_id} split retainer intersects a protected volume"
             )
         return self
 
@@ -133,7 +145,7 @@ class StructuralFrameRetentionVerificationV2:
         self.validate()
         return {
             "schema": SCHEMA,
-            "verification_semantics": "FAIL_CLOSED_INDEPENDENT_BREP_COLLISION_SOURCE_CAPTURE_AND_PIN_ASSEMBLY_RECHECK",
+            "verification_semantics": "FAIL_CLOSED_INDEPENDENT_BREP_COLLISION_SOURCE_CAPTURE_PIN_ASSEMBLY_AND_PROTECTED_ZONE_RECHECK",
             "roots": [
                 {
                     "root_id": root.root_id,
@@ -143,7 +155,9 @@ class StructuralFrameRetentionVerificationV2:
                     "pin_bore_capture_mm3": root.pin_bore_capture_mm3,
                     "split_retainer_pin_intersection_mm3": root.split_retainer_pin_intersection_mm3,
                     "split_retainer_yoke_intersection_mm3": root.split_retainer_yoke_intersection_mm3,
-                    "protected_intersection_mm3": root.protected_intersection_mm3,
+                    "frame_protected_intersection_mm3": root.frame_protected_intersection_mm3,
+                    "pin_protected_intersection_mm3": root.pin_protected_intersection_mm3,
+                    "split_retainer_protected_intersection_mm3": root.split_retainer_protected_intersection_mm3,
                 }
                 for root in self.roots
             ],
@@ -185,12 +199,11 @@ def verify_structural_frame_retention_roots_v2(
     z_min = min(z_min, float(frame_bb.zmin) - 2.0)
     z_max = max(z_max, float(frame_bb.zmax) + 2.0)
 
-    results: list[RetentionRootVerificationV2] = []
-    for root in architecture.roots:
-        protected_overlap = 0.0
-        for protected in model.protected_volumes.all:
-            zone = protected.zone
-            keepout = _protected_zone_solid(
+    protected_keepouts: list[cq.Workplane] = []
+    for protected in model.protected_volumes.all:
+        zone = protected.zone
+        protected_keepouts.append(
+            _protected_zone_solid(
                 center_x_mm=zone.center.x,
                 center_y_mm=zone.center.y,
                 envelope_width_mm=zone.envelope_width_mm,
@@ -199,7 +212,17 @@ def verify_structural_frame_retention_roots_v2(
                 z_min_mm=z_min,
                 z_max_mm=z_max,
             )
-            protected_overlap += _strict_intersection_volume(root.frame_counterpart, keepout)
+        )
+
+    results: list[RetentionRootVerificationV2] = []
+    for root in architecture.roots:
+        frame_protected_overlap = 0.0
+        pin_protected_overlap = 0.0
+        split_retainer_protected_overlap = 0.0
+        for keepout in protected_keepouts:
+            frame_protected_overlap += _strict_intersection_volume(root.frame_counterpart, keepout)
+            pin_protected_overlap += _strict_intersection_volume(root.capture_pin, keepout)
+            split_retainer_protected_overlap += _strict_intersection_volume(root.split_retainer, keepout)
 
         results.append(
             RetentionRootVerificationV2(
@@ -210,7 +233,9 @@ def verify_structural_frame_retention_roots_v2(
                 pin_bore_capture_mm3=_strict_intersection_volume(root.capture_pin, root.yoke_bore_reference),
                 split_retainer_pin_intersection_mm3=_strict_intersection_volume(root.split_retainer, root.capture_pin),
                 split_retainer_yoke_intersection_mm3=_strict_intersection_volume(root.split_retainer, root.yoke_root_reference),
-                protected_intersection_mm3=protected_overlap,
+                frame_protected_intersection_mm3=frame_protected_overlap,
+                pin_protected_intersection_mm3=pin_protected_overlap,
+                split_retainer_protected_intersection_mm3=split_retainer_protected_overlap,
             ).validate()
         )
 
