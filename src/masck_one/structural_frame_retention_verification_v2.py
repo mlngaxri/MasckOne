@@ -51,6 +51,9 @@ class RetentionRootVerificationV2:
     source_frame_capture_mm3: float
     yoke_material_intersection_mm3: float
     pin_yoke_material_intersection_mm3: float
+    pin_bore_capture_mm3: float
+    split_retainer_pin_intersection_mm3: float
+    split_retainer_yoke_intersection_mm3: float
     protected_intersection_mm3: float
 
     def validate(self) -> "RetentionRootVerificationV2":
@@ -58,6 +61,9 @@ class RetentionRootVerificationV2:
             self.source_frame_capture_mm3,
             self.yoke_material_intersection_mm3,
             self.pin_yoke_material_intersection_mm3,
+            self.pin_bore_capture_mm3,
+            self.split_retainer_pin_intersection_mm3,
+            self.split_retainer_yoke_intersection_mm3,
             self.protected_intersection_mm3,
         ):
             if not math.isfinite(value) or value < 0.0:
@@ -75,6 +81,18 @@ class RetentionRootVerificationV2:
         if self.pin_yoke_material_intersection_mm3 > INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameRetentionVerificationV2Error(
                 f"{self.root_id} capture pin intersects yoke material"
+            )
+        if self.pin_bore_capture_mm3 <= INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameRetentionVerificationV2Error(
+                f"{self.root_id} capture pin does not positively traverse the yoke bore"
+            )
+        if self.split_retainer_pin_intersection_mm3 > INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameRetentionVerificationV2Error(
+                f"{self.root_id} split retainer interferes with capture pin"
+            )
+        if self.split_retainer_yoke_intersection_mm3 > INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameRetentionVerificationV2Error(
+                f"{self.root_id} split retainer intersects yoke material"
             )
         if self.protected_intersection_mm3 > INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameRetentionVerificationV2Error(
@@ -105,13 +123,16 @@ class StructuralFrameRetentionVerificationV2:
         self.validate()
         return {
             "schema": SCHEMA,
-            "verification_semantics": "FAIL_CLOSED_INDEPENDENT_BREP_COLLISION_AND_SOURCE_CAPTURE_RECHECK",
+            "verification_semantics": "FAIL_CLOSED_INDEPENDENT_BREP_COLLISION_SOURCE_CAPTURE_AND_PIN_ASSEMBLY_RECHECK",
             "roots": [
                 {
                     "root_id": root.root_id,
                     "source_frame_capture_mm3": root.source_frame_capture_mm3,
                     "yoke_material_intersection_mm3": root.yoke_material_intersection_mm3,
                     "pin_yoke_material_intersection_mm3": root.pin_yoke_material_intersection_mm3,
+                    "pin_bore_capture_mm3": root.pin_bore_capture_mm3,
+                    "split_retainer_pin_intersection_mm3": root.split_retainer_pin_intersection_mm3,
+                    "split_retainer_yoke_intersection_mm3": root.split_retainer_yoke_intersection_mm3,
                     "protected_intersection_mm3": root.protected_intersection_mm3,
                 }
                 for root in self.roots
@@ -176,6 +197,15 @@ def verify_structural_frame_retention_roots_v2(
                 ),
                 pin_yoke_material_intersection_mm3=_strict_intersection_volume(
                     root.capture_pin, root.yoke_root_reference
+                ),
+                pin_bore_capture_mm3=_strict_intersection_volume(
+                    root.capture_pin, root.yoke_bore_reference
+                ),
+                split_retainer_pin_intersection_mm3=_strict_intersection_volume(
+                    root.split_retainer, root.capture_pin
+                ),
+                split_retainer_yoke_intersection_mm3=_strict_intersection_volume(
+                    root.split_retainer, root.yoke_root_reference
                 ),
                 protected_intersection_mm3=protected_overlap,
             ).validate()
