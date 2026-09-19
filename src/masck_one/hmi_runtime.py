@@ -37,7 +37,8 @@ class DebouncedInput:
     No wall clock is read, making the behaviour deterministic in firmware simulation
     and unit tests. A stale stream faults rather than preserving a potentially unsafe
     held command. Once faulted, an explicit reset and debounced release are required
-    before a new press can be accepted.
+    before a new press can be accepted. Sample and watchdog calls share one monotonic
+    time contract so neither path can silently move the runtime clock backwards.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -58,6 +59,7 @@ class DebouncedInput:
         self._candidate = False
         self._candidate_since: float | None = None
         self._last_sample_at: float | None = None
+        self._last_observed_at: float | None = None
         self._fault: str | None = None
         self._require_release = require_release
 
@@ -73,12 +75,11 @@ class DebouncedInput:
         now = float(now_s)
         if self._fault is not None:
             return InputEvent(False, Edge.NONE, True, self._fault)
-        if self._last_sample_at is not None:
-            delta = now - self._last_sample_at
-            if delta < 0.0:
-                return self._trip("input time moved backwards")
-            if delta > self.stale_after_s:
-                return self._trip("input stream became stale")
+        if self._last_observed_at is not None and now < self._last_observed_at:
+            return self._trip("input time moved backwards")
+        if self._last_sample_at is not None and now - self._last_sample_at > self.stale_after_s:
+            return self._trip("input stream became stale")
+        self._last_observed_at = now
         self._last_sample_at = now
 
         if self._require_release:
@@ -118,11 +119,13 @@ class DebouncedInput:
             return self._trip("watchdog time must be finite")
         if self._fault is not None:
             return InputEvent(False, Edge.NONE, True, self._fault)
+        now = float(now_s)
+        if self._last_observed_at is not None and now < self._last_observed_at:
+            return self._trip("watchdog time moved backwards")
+        self._last_observed_at = now
         if self._last_sample_at is None:
             return InputEvent(False, Edge.NONE)
-        if float(now_s) < self._last_sample_at:
-            return self._trip("watchdog time moved backwards")
-        if float(now_s) - self._last_sample_at > self.stale_after_s:
+        if now - self._last_sample_at > self.stale_after_s:
             return self._trip("input stream became stale")
         return InputEvent(self._stable, Edge.NONE)
 
