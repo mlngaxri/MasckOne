@@ -44,9 +44,11 @@ class DebouncedInput:
     also advance the clock anchor before the fault is latched, so recovery cannot
     rewind behind the observation that caused the fault. The first fault cause remains
     latched until reset so later bad inputs cannot erase the diagnostic that caused the
-    control to fail closed. Firmware may call ``arm`` at input-supervision startup so
-    the no-sample timeout is measured from a known boot point rather than from the
-    first later watchdog service. Repeated arm calls cannot postpone that deadline.
+    control to fail closed. A reset request while healthy is deliberately a no-op so an
+    unconditional firmware recovery call cannot erase a valid held state or debounce
+    candidate. Firmware may call ``arm`` at input-supervision startup so the no-sample
+    timeout is measured from a known boot point rather than from the first later
+    watchdog service. Repeated arm calls cannot postpone that deadline.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -61,10 +63,13 @@ class DebouncedInput:
     def reset(self) -> None:
         """Clear a latched fault while preserving the monotonic clock contract.
 
-        Recovery still requires a debounced release before another press. Preserving
-        the latest observed time prevents reset from turning a caller clock regression
-        into an apparently valid new timeline.
+        Calling reset while healthy is a no-op. Fault recovery still requires a
+        debounced release before another press. Preserving the latest observed time
+        prevents reset from turning a caller clock regression into an apparently valid
+        new timeline.
         """
+        if self._fault is None:
+            return
         self._reset_state(require_release=True, preserve_clock=True)
 
     def _reset_state(self, *, require_release: bool, preserve_clock: bool) -> None:
