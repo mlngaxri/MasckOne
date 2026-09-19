@@ -1,0 +1,53 @@
+name: HMI tactile focused verification
+
+on:
+  push:
+    branches: [codex/buttery-primary-hmi-20260909]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hmi-tactile-focused-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  primary-control-tactile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact HMI head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile selected tactile stack
+        run: |
+          python -m py_compile \
+            src/masck_one/primary_control_haptic_v8.py \
+            src/masck_one/primary_control_haptic_v9.py \
+            src/masck_one/primary_control_haptic_v10.py \
+            src/masck_one/primary_control_haptic_v11.py
+      - name: Verify capture return and low-slack tactile successor
+        run: |
+          python -m pytest -q \
+            tests/test_primary_control_haptic_v10.py \
+            tests/test_primary_control_haptic_v11.py \
+            tests/test_primary_control_force_path.py \
+            tests/test_primary_control_touch_surface.py \
+            tests/test_primary_control_dome_overtravel_screen.py \
+            tests/test_primary_control_haptic_v3.py
+
+# Focused mechanism evidence only. This gate preserves V10 positive outward capture
+# and diaphragm return while checking the V11 low-slack plunger/spring successor.
+# Full engineering CI, supplier spring/dome selection and physical tactile validation
+# remain separate promotion requirements.
