@@ -1,0 +1,71 @@
+import pytest
+
+from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
+from masck_one.waste_fluid_profile import screen_service_profile
+
+
+def test_future_prime_reserve_closes_zero_reprime_projection_blind_spot():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(
+        budget,
+        prime_events_by_cycle=(1,),
+        target_cycles=6,
+        future_prime_events_per_remaining_cycle=1,
+    )
+
+    first = profile.final
+    assert profile.future_prime_events_per_remaining_cycle == 1
+    assert first.reserved_future_prime_events == 5
+    assert first.reserved_future_prime_mL == pytest.approx(2.0)
+    assert first.minimum_projected_service_end_inflow_mL == pytest.approx(30.0)
+    assert first.projected_service_end_margin_mL == pytest.approx(5.0)
+    assert first.service_target_feasible is True
+
+
+def test_future_prime_reserve_can_expose_lost_service_life_early():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(
+        budget,
+        prime_events_by_cycle=(1,),
+        target_cycles=6,
+        future_prime_events_per_remaining_cycle=4,
+    )
+
+    first = profile.final
+    assert first.reserved_future_prime_events == 20
+    assert first.reserved_future_prime_mL == pytest.approx(8.0)
+    assert first.minimum_projected_service_end_inflow_mL == pytest.approx(36.0)
+    assert first.projected_service_end_margin_mL == pytest.approx(-1.0)
+    assert first.service_target_feasible is False
+    assert profile.first_target_infeasible_cycle == 1
+    assert profile.first_overflow_cycle is None
+
+
+def test_future_prime_reserve_is_only_applied_to_unprofiled_cycles():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(
+        budget,
+        prime_events_by_cycle=(1, 1, 1, 1, 1, 1),
+        target_cycles=6,
+        future_prime_events_per_remaining_cycle=100,
+    )
+
+    assert profile.final.reserved_future_prime_events == 0
+    assert profile.final.reserved_future_prime_mL == pytest.approx(0.0)
+    assert profile.final.minimum_projected_service_end_inflow_mL == pytest.approx(30.0)
+
+
+def test_future_prime_reserve_rejects_invalid_counts():
+    budget = build_authority_waste_fluid_budget()
+    with pytest.raises(WasteFluidAccountingError, match="nonnegative integer"):
+        screen_service_profile(
+            budget,
+            prime_events_by_cycle=(0,),
+            future_prime_events_per_remaining_cycle=-1,
+        )
+    with pytest.raises(WasteFluidAccountingError, match="nonnegative integer"):
+        screen_service_profile(
+            budget,
+            prime_events_by_cycle=(0,),
+            future_prime_events_per_remaining_cycle=True,
+        )
