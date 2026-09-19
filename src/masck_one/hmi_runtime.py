@@ -38,7 +38,9 @@ class DebouncedInput:
     and unit tests. A stale stream faults rather than preserving a potentially unsafe
     held command. Once faulted, an explicit reset and debounced release are required
     before a new press can be accepted. Sample and watchdog calls share one monotonic
-    time contract so neither path can silently move the runtime clock backwards.
+    time contract so neither path can silently move the runtime clock backwards. The
+    first fault cause remains latched until reset so later bad inputs cannot erase the
+    diagnostic that caused the control to fail closed.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -68,13 +70,13 @@ class DebouncedInput:
         return self._fault is not None
 
     def sample(self, *, pressed: bool, now_s: float) -> InputEvent:
+        if self._fault is not None:
+            return InputEvent(False, Edge.NONE, True, self._fault)
         if type(pressed) is not bool:
             return self._trip("pressed must be an exact bool")
         if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
             return self._trip("now_s must be finite")
         now = float(now_s)
-        if self._fault is not None:
-            return InputEvent(False, Edge.NONE, True, self._fault)
         if self._last_observed_at is not None and now < self._last_observed_at:
             return self._trip("input time moved backwards")
         if self._last_sample_at is not None and now - self._last_sample_at > self.stale_after_s:
@@ -115,10 +117,10 @@ class DebouncedInput:
 
     def watchdog(self, *, now_s: float) -> InputEvent:
         """Fail closed when sampling stops, without synthesising an input edge."""
-        if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
-            return self._trip("watchdog time must be finite")
         if self._fault is not None:
             return InputEvent(False, Edge.NONE, True, self._fault)
+        if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
+            return self._trip("watchdog time must be finite")
         now = float(now_s)
         if self._last_observed_at is not None and now < self._last_observed_at:
             return self._trip("watchdog time moved backwards")
