@@ -1,0 +1,46 @@
+import pytest
+
+import masck_one.hmi_fault_wire as wire
+from masck_one.hmi_runtime import FaultCode
+
+
+@pytest.mark.parametrize(
+    "bad_identifier",
+    [
+        None,
+        7,
+        True,
+        "",
+        "Input_Stream_Stale",
+        "input stream stale",
+        "input__stream_stale",
+        "input_stream_stalé",
+        "input-stream-stale",
+    ],
+)
+def test_contract_validation_rejects_malformed_identifiers_predictably(monkeypatch, bad_identifier):
+    malformed = dict(wire._WIRE_IDS)
+    malformed[FaultCode.INPUT_STREAM_STALE] = bad_identifier
+    monkeypatch.setattr(wire, "_WIRE_IDS", malformed)
+
+    with pytest.raises(wire.HmiFaultWireError, match="fault wire contract mismatch"):
+        wire.assert_fault_wire_contract_complete()
+
+
+def test_contract_validation_rejects_duplicate_non_string_values_without_type_error(monkeypatch):
+    malformed = dict(wire._WIRE_IDS)
+    malformed[FaultCode.INPUT_STREAM_STALE] = 7
+    malformed[FaultCode.INPUT_STREAM_NOT_STARTED] = 7
+    monkeypatch.setattr(wire, "_WIRE_IDS", malformed)
+
+    with pytest.raises(wire.HmiFaultWireError, match="duplicates=.*7.*invalid=.*7"):
+        wire.assert_fault_wire_contract_complete()
+
+
+def test_contract_validation_rejects_duplicate_valid_identifiers(monkeypatch):
+    malformed = dict(wire._WIRE_IDS)
+    malformed[FaultCode.INPUT_STREAM_NOT_STARTED] = malformed[FaultCode.INPUT_STREAM_STALE]
+    monkeypatch.setattr(wire, "_WIRE_IDS", malformed)
+
+    with pytest.raises(wire.HmiFaultWireError, match="duplicates=.*input_stream_stale"):
+        wire.assert_fault_wire_contract_complete()
