@@ -54,10 +54,23 @@ def test_recovery_sample_inside_window_enters_normal_stale_supervision():
     assert stale.fault_code is FaultCode.INPUT_STREAM_STALE
 
 
-def test_fault_without_trusted_timestamp_still_waits_for_first_watchdog_anchor():
+def test_malformed_level_preserves_valid_timestamp_for_recovery_supervision():
     control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
-    fault = control.sample(pressed=1, now_s=0.0)
+    fault = control.sample(pressed=1, now_s=100.0)
     assert fault.fault_code is FaultCode.PRESSED_NOT_BOOL
+    control.reset()
+
+    assert control.watchdog(now_s=100.25).faulted is False
+    late = control.watchdog(now_s=100.251)
+
+    assert late.faulted is True
+    assert late.fault_code is FaultCode.INPUT_STREAM_NOT_STARTED
+
+
+def test_invalid_sample_time_does_not_create_a_recovery_clock_anchor():
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    fault = control.sample(pressed=False, now_s=float("nan"))
+    assert fault.fault_code is FaultCode.SAMPLE_TIME_INVALID
     control.reset()
 
     assert control.watchdog(now_s=100.0).faulted is False
