@@ -17,6 +17,33 @@ def test_press_and_release_require_continuous_debounce_interval():
     assert event.stable_pressed is False
 
 
+def test_healthy_reset_does_not_drop_a_stable_held_input():
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    control.sample(pressed=True, now_s=0.0)
+    pressed = control.sample(pressed=True, now_s=0.03)
+    assert pressed.edge is Edge.PRESSED
+    assert pressed.stable_pressed is True
+
+    control.reset()
+    event = control.watchdog(now_s=0.04)
+
+    assert event.faulted is False
+    assert event.stable_pressed is True
+    assert event.edge is Edge.NONE
+
+
+def test_healthy_reset_does_not_restart_an_inflight_debounce_candidate():
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    assert control.sample(pressed=True, now_s=1.0).edge is Edge.NONE
+
+    control.reset()
+    event = control.sample(pressed=True, now_s=1.03)
+
+    assert event.faulted is False
+    assert event.edge is Edge.PRESSED
+    assert event.stable_pressed is True
+
+
 def test_bounce_restarts_candidate_interval_and_never_emits_false_press():
     control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
     assert control.sample(pressed=True, now_s=0.000).edge is Edge.NONE
