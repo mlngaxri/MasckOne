@@ -89,14 +89,19 @@ def build_guided_preload_spring_v5_architecture(**terminal_kwargs) -> GuidedPrel
 
     # Count-only validation can admit a duplicated station while silently omitting
     # another reaction zone. Require the exact structural reaction identity and order
-    # before any spring cassette is generated. Validate each generated capture screen
-    # immediately so mistyped, NaN/Inf, or missing probe evidence cannot survive into
-    # a mounted architecture, then recheck the generated four-zone identity before
-    # returning.
+    # before any spring cassette is generated. Validate each generated station's
+    # concrete engineering type and capture screen immediately so a duck-typed proxy,
+    # mistyped value, NaN/Inf, or missing probe cannot survive into a mounted
+    # architecture. Recheck the generated four-zone identity before returning.
     _require_exact_station_identity(terminal.stations, stage="terminal input")
     generated: list[GuidedPreloadSpringStation] = []
     for terminal_station in terminal.stations:
         station = build_guided_preload_spring_station(terminal_station)
+        if not isinstance(station, GuidedPreloadSpringStation):
+            raise ValueError(
+                "guided spring V5 generator returned invalid station type: "
+                f"expected GuidedPreloadSpringStation, got {type(station).__name__}"
+            )
         if station.reaction_id != terminal_station.reaction_id:
             raise ValueError(
                 "guided spring V5 generated station identity drifted: "
