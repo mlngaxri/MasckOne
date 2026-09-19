@@ -23,6 +23,7 @@ from .structural_frame_retention_roots import (
 
 SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_VERIFICATION_V2"
 INTERSECTION_TOLERANCE_MM3 = 1e-7
+EXPECTED_ROOT_IDS = frozenset({"RETENTION_ROOT_WEARER_LEFT", "RETENTION_ROOT_WEARER_RIGHT"})
 
 
 class StructuralFrameRetentionVerificationV2Error(ValueError):
@@ -57,6 +58,10 @@ class RetentionRootVerificationV2:
     protected_intersection_mm3: float
 
     def validate(self) -> "RetentionRootVerificationV2":
+        if self.root_id not in EXPECTED_ROOT_IDS:
+            raise StructuralFrameRetentionVerificationV2Error(
+                f"unexpected retention root identity: {self.root_id!r}"
+            )
         for value in (
             self.source_frame_capture_mm3,
             self.yoke_material_intersection_mm3,
@@ -111,6 +116,11 @@ class StructuralFrameRetentionVerificationV2:
             raise StructuralFrameRetentionVerificationV2Error(
                 "fail-closed verification requires both retention roots"
             )
+        root_ids = {root.root_id for root in self.roots}
+        if root_ids != EXPECTED_ROOT_IDS:
+            raise StructuralFrameRetentionVerificationV2Error(
+                "fail-closed verification requires exactly one wearer-left and one wearer-right retention root"
+            )
         for root in self.roots:
             root.validate()
         if self.physical_validation_eligible is not False:
@@ -156,6 +166,11 @@ def verify_structural_frame_retention_roots_v2(
         raise StructuralFrameRetentionVerificationV2Error(
             "exact model and retention-root architecture types are required"
         )
+    architecture_root_ids = {root.root_id for root in architecture.roots}
+    if len(architecture.roots) != 2 or architecture_root_ids != EXPECTED_ROOT_IDS:
+        raise StructuralFrameRetentionVerificationV2Error(
+            "retention architecture must contain exactly one wearer-left and one wearer-right root"
+        )
 
     source_reactions = build_structural_frame_actuator_reactions(model=model)
     if architecture.source_frame_reaction_architecture_sha256 != source_reactions.architecture_sha256:
@@ -189,24 +204,12 @@ def verify_structural_frame_retention_roots_v2(
         results.append(
             RetentionRootVerificationV2(
                 root_id=root.root_id,
-                source_frame_capture_mm3=_strict_intersection_volume(
-                    root.frame_counterpart, source_frame
-                ),
-                yoke_material_intersection_mm3=_strict_intersection_volume(
-                    root.frame_counterpart, root.yoke_root_reference
-                ),
-                pin_yoke_material_intersection_mm3=_strict_intersection_volume(
-                    root.capture_pin, root.yoke_root_reference
-                ),
-                pin_bore_capture_mm3=_strict_intersection_volume(
-                    root.capture_pin, root.yoke_bore_reference
-                ),
-                split_retainer_pin_intersection_mm3=_strict_intersection_volume(
-                    root.split_retainer, root.capture_pin
-                ),
-                split_retainer_yoke_intersection_mm3=_strict_intersection_volume(
-                    root.split_retainer, root.yoke_root_reference
-                ),
+                source_frame_capture_mm3=_strict_intersection_volume(root.frame_counterpart, source_frame),
+                yoke_material_intersection_mm3=_strict_intersection_volume(root.frame_counterpart, root.yoke_root_reference),
+                pin_yoke_material_intersection_mm3=_strict_intersection_volume(root.capture_pin, root.yoke_root_reference),
+                pin_bore_capture_mm3=_strict_intersection_volume(root.capture_pin, root.yoke_bore_reference),
+                split_retainer_pin_intersection_mm3=_strict_intersection_volume(root.split_retainer, root.capture_pin),
+                split_retainer_yoke_intersection_mm3=_strict_intersection_volume(root.split_retainer, root.yoke_root_reference),
                 protected_intersection_mm3=protected_overlap,
             ).validate()
         )
