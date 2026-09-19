@@ -67,18 +67,28 @@ def _require_exact_architecture(architecture: object, *, context: str) -> Termin
     return architecture
 
 
+def _require_source_binding(architecture: TerminalDatumPreloadV5Architecture, *, context: str) -> None:
+    """Require the accepted Cell 6 lineage at every V5 certification boundary."""
+    if architecture.source_cell6_head_sha != SOURCE_CELL6_HEAD_SHA:
+        raise TreatmentTerminalDatumPreloadV5Error(
+            f"terminal datum V5 source binding drifted before {context}"
+        )
+
+
 def build_terminal_datum_preload_v5_architecture(**kwargs) -> TerminalDatumPreloadV5Architecture:
     """Build unchanged V4 material geometry under fail-closed collision kernel V2."""
     with _v2_collision_verification():
         architecture = v4.build_terminal_datum_preload_v4_architecture(**kwargs)
     architecture = _require_exact_architecture(architecture, context="builder")
-    if architecture.source_cell6_head_sha != SOURCE_CELL6_HEAD_SHA:
-        raise TreatmentTerminalDatumPreloadV5Error("terminal datum V5 source binding drifted")
+    _require_source_binding(architecture, context="builder return")
     return architecture
 
 
 def manifest_v5(architecture: TerminalDatumPreloadV5Architecture) -> dict[str, object]:
     architecture = _require_exact_architecture(architecture, context="manifest")
+    # The V4 dataclass is mutable. Recheck source lineage immediately before
+    # certification so a post-build mutation cannot receive a valid promoted digest.
+    _require_source_binding(architecture, context="manifest certification")
     payload = architecture.manifest()
     # The inherited V4 digest certifies the V4 payload, not this promoted evidence.
     # Remove it before promotion, then bind a fresh digest to the complete V5 payload.
