@@ -16,10 +16,12 @@ from .structural_frame_retention_roots import (
     StructuralFrameRetentionRootArchitecture,
     build_structural_frame_retention_roots,
 )
+from .structural_frame_retention_verification_v2 import verify_structural_frame_retention_roots_v2
+from .structural_frame_retention_verification_v3 import StructuralFrameRetentionVerificationV3
+from .structural_frame_retention_verification_v4 import StructuralFrameRetentionVerificationV4
 from .structural_frame_retention_verification_v5 import (
     StructuralFrameRetentionVerificationV5,
     StructuralFrameRetentionVerificationV5Error,
-    verify_structural_frame_retention_roots_v5,
 )
 
 SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_VERIFICATION_V6"
@@ -117,7 +119,15 @@ def verify_structural_frame_retention_roots_v6(
             )
         capacities.append((root.root_id, volume))
 
+    # Keep every prerequisite measurement on the exact model/architecture pair whose
+    # counterpart capacities are bounded below. Calling the convenience V5 verifier
+    # here would silently rebuild default geometry and could mix two CAD states.
+    v2 = verify_structural_frame_retention_roots_v2(model=model, architecture=architecture)
+    v3 = StructuralFrameRetentionVerificationV3(v2=v2).validate()
+    v4 = StructuralFrameRetentionVerificationV4(v3=v3).validate()
+    v5 = StructuralFrameRetentionVerificationV5(v4=v4).validate()
+
     return StructuralFrameRetentionVerificationV6(
-        v5=verify_structural_frame_retention_roots_v5(),
+        v5=v5,
         frame_counterpart_volumes_mm3=tuple(capacities),
     ).validate()
