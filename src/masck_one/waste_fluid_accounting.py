@@ -109,6 +109,24 @@ class WasteFluidBudget:
             return None
         return math.floor((baseline.requirement_margin_mL + 1e-12) / self.maximum_initial_prime_mL_per_cycle)
 
+    def maximum_service_cycles_that_fit(self, *, prime_events: int) -> int | None:
+        """Return service-cycle capacity after reserving explicit reprime volume.
+
+        Prime loading is charged first at the full authority allowance. Remaining
+        retained capacity is then divided by the nominal per-cycle liquid budget.
+        No recovery, residual, or leakage credit is taken in this fail-conservative
+        packaging screen.
+        """
+        if type(prime_events) is not int or prime_events < 0:
+            raise WasteFluidAccountingError("prime_events must be a nonnegative integer")
+        prime = prime_events * self.maximum_initial_prime_mL_per_cycle
+        remaining = self.cartridge_retained_capacity_requirement_mL - prime
+        if remaining < -1e-12:
+            raise WasteFluidAccountingError("prime liquid alone exceeds cartridge requirement")
+        if self.nominal_introduced_mL_per_cycle == 0.0:
+            return None
+        return max(0, math.floor((remaining + 1e-12) / self.nominal_introduced_mL_per_cycle))
+
     @property
     def conservative_service_screen(self) -> ServiceCapacityScreen:
         return self.service_capacity_screen(cycles=self.service_cycles, prime_events=self.service_cycles)
@@ -174,6 +192,8 @@ class WasteFluidBudget:
             "maximum_cartridge_inflow_screen_mL": self.maximum_cartridge_inflow_screen_mL,
             "conservative_occupancy_uncertainty_mL": conservative.occupancy_uncertainty_mL,
             "maximum_prime_events_that_fit_baseline_service": self.maximum_prime_events_that_fit(cycles=self.service_cycles),
+            "maximum_service_cycles_with_single_initial_prime": self.maximum_service_cycles_that_fit(prime_events=1),
+            "maximum_service_cycles_with_baseline_reprimes": self.maximum_service_cycles_that_fit(prime_events=self.service_cycles),
             "single_initial_prime_service_inflow_mL": single_prime.maximum_cartridge_inflow_mL,
             "single_initial_prime_service_margin_mL": single_prime.requirement_margin_mL,
             "cartridge_retained_capacity_requirement_mL": self.cartridge_retained_capacity_requirement_mL,
