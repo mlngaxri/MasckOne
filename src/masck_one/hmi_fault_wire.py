@@ -53,22 +53,31 @@ def fault_code_from_wire_id(wire_id: str) -> FaultCode:
     return matches[0]
 
 
+def _canonical_wire_identifier(value: object) -> bool:
+    """Return whether a value is an exact lower-ASCII snake-case wire identifier."""
+    if type(value) is not str or not value or not value.isascii():
+        return False
+    parts = value.split("_")
+    return all(part and part.isalnum() and part == part.lower() for part in parts)
+
+
 def assert_fault_wire_contract_complete() -> None:
-    """Fail if runtime coverage or wire identifier uniqueness is incomplete."""
+    """Fail closed if runtime coverage or wire identifiers are malformed or ambiguous."""
     missing = set(FaultCode) - set(_WIRE_IDS)
     extra = set(_WIRE_IDS) - set(FaultCode)
     identifiers = tuple(_WIRE_IDS.values())
-    duplicates = sorted({identifier for identifier in identifiers if identifiers.count(identifier) > 1})
-    invalid = sorted(
-        repr(identifier)
-        for identifier in identifiers
-        if type(identifier) is not str or not identifier or identifier.strip() != identifier
+
+    duplicate_reprs = sorted(
+        {repr(identifier) for identifier in identifiers if identifiers.count(identifier) > 1}
     )
-    if missing or extra or duplicates or invalid:
+    invalid_reprs = sorted(
+        repr(identifier) for identifier in identifiers if not _canonical_wire_identifier(identifier)
+    )
+    if missing or extra or duplicate_reprs or invalid_reprs:
         missing_names = sorted(code.name for code in missing)
         extra_names = sorted(code.name for code in extra)
         raise HmiFaultWireError(
             "fault wire contract mismatch: "
             f"missing={missing_names}, extra={extra_names}, "
-            f"duplicates={duplicates}, invalid={invalid}"
+            f"duplicates={duplicate_reprs}, invalid={invalid_reprs}"
         )
