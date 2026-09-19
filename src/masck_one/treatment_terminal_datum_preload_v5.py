@@ -48,26 +48,35 @@ def _v2_collision_verification() -> Iterator[None]:
             v4.intersection_volume_mm3 = original
 
 
+def _require_exact_architecture(architecture: object, *, context: str) -> TerminalDatumPreloadV5Architecture:
+    """Reject proxies and subclasses at the promoted V5 qualification boundary.
+
+    The V5 type is intentionally an alias of the concrete V4 dataclass because V5
+    changes verification rather than manufactured geometry. ``isinstance`` would
+    nevertheless admit arbitrary subclasses that can override attributes or
+    ``manifest()`` after construction. Exact type identity keeps qualification tied
+    to the builder-owned V4 representation.
+    """
+    if type(architecture) is not TerminalDatumPreloadV5Architecture:
+        raise TreatmentTerminalDatumPreloadV5Error(
+            f"terminal datum V5 {context} requires exact architecture type "
+            f"{TerminalDatumPreloadV5Architecture.__name__}; got {type(architecture).__name__}"
+        )
+    return architecture
+
+
 def build_terminal_datum_preload_v5_architecture(**kwargs) -> TerminalDatumPreloadV5Architecture:
     """Build unchanged V4 material geometry under fail-closed collision kernel V2."""
     with _v2_collision_verification():
         architecture = v4.build_terminal_datum_preload_v4_architecture(**kwargs)
-    if not isinstance(architecture, TerminalDatumPreloadV5Architecture):
-        raise TreatmentTerminalDatumPreloadV5Error(
-            "terminal datum V5 builder returned invalid architecture type: "
-            f"expected {TerminalDatumPreloadV5Architecture.__name__}, "
-            f"got {type(architecture).__name__}"
-        )
+    architecture = _require_exact_architecture(architecture, context="builder")
     if architecture.source_cell6_head_sha != SOURCE_CELL6_HEAD_SHA:
         raise TreatmentTerminalDatumPreloadV5Error("terminal datum V5 source binding drifted")
     return architecture
 
 
 def manifest_v5(architecture: TerminalDatumPreloadV5Architecture) -> dict[str, object]:
-    if not isinstance(architecture, TerminalDatumPreloadV5Architecture):
-        raise TreatmentTerminalDatumPreloadV5Error(
-            "terminal datum V5 manifest requires a verified architecture"
-        )
+    architecture = _require_exact_architecture(architecture, context="manifest")
     payload = architecture.manifest()
     payload.update(
         {
