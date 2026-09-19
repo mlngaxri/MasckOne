@@ -10,6 +10,7 @@ spring cassettes are generated from them.
 
 from dataclasses import dataclass
 
+from .structural_frame_actuator_reactions import REACTION_IDS
 from .treatment_guided_preload_spring import (
     GuidedPreloadSpringStation,
     build_guided_preload_spring_station,
@@ -40,12 +41,27 @@ class GuidedPreloadSpringV5Architecture:
         }
 
 
+def _require_exact_station_identity(stations, *, stage: str) -> None:
+    """Reject missing, duplicate, unexpected, or reordered four-zone station sets."""
+    actual = tuple(station.reaction_id for station in stations)
+    expected = tuple(REACTION_IDS)
+    if actual != expected:
+        raise ValueError(
+            f"guided spring V5 {stage} station identity drifted: "
+            f"expected {expected!r}, got {actual!r}"
+        )
+
+
 def build_guided_preload_spring_v5_architecture(**terminal_kwargs) -> GuidedPreloadSpringV5Architecture:
     """Build all guided cassettes from terminal stations qualified by kernel V2."""
     terminal = build_terminal_datum_preload_v5_architecture(**terminal_kwargs)
     if terminal.source_cell6_head_sha != SOURCE_CELL6_HEAD_SHA:
         raise ValueError("guided spring V5 source binding drifted")
+
+    # Count-only validation can admit a duplicated station while silently omitting
+    # another reaction zone. Require the exact structural reaction identity and order
+    # before any spring cassette is generated, then recheck the generated outputs.
+    _require_exact_station_identity(terminal.stations, stage="terminal input")
     stations = tuple(build_guided_preload_spring_station(station) for station in terminal.stations)
-    if len(stations) != len(terminal.stations):
-        raise ValueError("guided spring V5 station count drifted")
+    _require_exact_station_identity(stations, stage="generated output")
     return GuidedPreloadSpringV5Architecture(stations, terminal.source_cell6_head_sha)
