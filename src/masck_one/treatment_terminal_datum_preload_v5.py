@@ -25,22 +25,12 @@ COLLISION_KERNEL = "TREATMENT_COLLISION_KERNEL_V2"
 TreatmentTerminalDatumPreloadV5Error = v4.TreatmentTerminalDatumPreloadV4Error
 TerminalDatumPreloadV5Architecture = v4.TerminalDatumPreloadV4Architecture
 
-# V5 temporarily rebinds process-global V4 module state. Serialize that mutation so
-# overlapping V5 callers cannot capture another build's V2 hook as their "original"
-# and subsequently restore V4 to the promoted kernel. RLock preserves nested use in
-# the same thread without weakening failure restoration.
 _COLLISION_HOOK_LOCK = RLock()
 
 
 @contextmanager
 def _v2_collision_verification() -> Iterator[None]:
-    """Bind V4's verification hook to V2 only for this synchronous build.
-
-    V4 imports the collision function into its module namespace. Rebinding that hook
-    here avoids copying geometry code while keeping legacy V4 behaviour unchanged for
-    historical reproduction. The original hook is restored even if verification
-    fails. The mutation window is serialized because the hook is process-global.
-    """
+    """Bind V4's verification hook to V2 only for this synchronous build."""
     with _COLLISION_HOOK_LOCK:
         original = v4.intersection_volume_mm3
         v4.intersection_volume_mm3 = collision_v2.intersection_volume_mm3
@@ -51,14 +41,7 @@ def _v2_collision_verification() -> Iterator[None]:
 
 
 def _require_exact_architecture(architecture: object, *, context: str) -> TerminalDatumPreloadV5Architecture:
-    """Reject proxies and subclasses at the promoted V5 qualification boundary.
-
-    The V5 type is intentionally an alias of the concrete V4 dataclass because V5
-    changes verification rather than manufactured geometry. ``isinstance`` would
-    nevertheless admit arbitrary subclasses that can override attributes or
-    ``manifest()`` after construction. Exact type identity keeps qualification tied
-    to the builder-owned V4 representation.
-    """
+    """Reject proxies and subclasses at the promoted V5 qualification boundary."""
     if type(architecture) is not TerminalDatumPreloadV5Architecture:
         raise TreatmentTerminalDatumPreloadV5Error(
             f"terminal datum V5 {context} requires exact architecture type "
@@ -86,14 +69,17 @@ def build_terminal_datum_preload_v5_architecture(**kwargs) -> TerminalDatumPrelo
 
 def manifest_v5(architecture: TerminalDatumPreloadV5Architecture) -> dict[str, object]:
     architecture = _require_exact_architecture(architecture, context="manifest")
-    # The V4 dataclass is mutable. Recheck source lineage immediately before
-    # certification so a post-build mutation cannot receive a valid promoted digest.
     _require_source_binding(architecture, context="manifest certification")
     payload = architecture.manifest()
-    # The inherited V4 digest certifies the V4 payload, not this promoted evidence.
-    # Remove it before promotion, then bind a fresh digest to the complete V5 payload.
-    # This prevents a V5 manifest from carrying a valid-looking hash that omits the
-    # collision-kernel identity and V5 evidence-firewall fields.
+    # The V4 architecture is mutable and manifest construction is not atomic with the
+    # pre-check above. Revalidate after materialising the payload and require the
+    # payload itself to carry the accepted lineage. This closes a concurrent-mutation
+    # window in which a stale/hostile source could otherwise receive a promoted digest.
+    _require_source_binding(architecture, context="manifest payload materialization")
+    if payload.get("source_cell6_head_sha") != SOURCE_CELL6_HEAD_SHA:
+        raise TreatmentTerminalDatumPreloadV5Error(
+            "terminal datum V5 manifest payload source binding drifted before certification"
+        )
     payload.pop("architecture_sha256", None)
     payload.update(
         {
