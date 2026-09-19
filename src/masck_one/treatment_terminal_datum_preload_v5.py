@@ -58,6 +58,22 @@ def _require_source_binding(architecture: TerminalDatumPreloadV5Architecture, *,
         )
 
 
+def _require_manifest_payload(payload: object) -> dict[str, object]:
+    """Accept only the concrete V4 manifest container before promotion.
+
+    V5 mutates the materialised payload while promoting it. Rejecting arbitrary
+    mappings, sequences and proxies keeps malformed or hostile manifest results from
+    leaking incidental AttributeError/TypeError exceptions across the engineering
+    qualification boundary.
+    """
+    if type(payload) is not dict:
+        raise TreatmentTerminalDatumPreloadV5Error(
+            "terminal datum V5 manifest materialization requires exact dict payload; "
+            f"got {type(payload).__name__}"
+        )
+    return payload
+
+
 def build_terminal_datum_preload_v5_architecture(**kwargs) -> TerminalDatumPreloadV5Architecture:
     """Build unchanged V4 material geometry under fail-closed collision kernel V2."""
     with _v2_collision_verification():
@@ -70,7 +86,7 @@ def build_terminal_datum_preload_v5_architecture(**kwargs) -> TerminalDatumPrelo
 def manifest_v5(architecture: TerminalDatumPreloadV5Architecture) -> dict[str, object]:
     architecture = _require_exact_architecture(architecture, context="manifest")
     _require_source_binding(architecture, context="manifest certification")
-    payload = architecture.manifest()
+    payload = _require_manifest_payload(architecture.manifest())
     # The V4 architecture is mutable and manifest construction is not atomic with the
     # pre-check above. Revalidate after materialising the payload and require the
     # payload itself to carry the accepted lineage. This closes a concurrent-mutation
