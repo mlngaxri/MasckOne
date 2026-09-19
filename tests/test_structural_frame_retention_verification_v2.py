@@ -30,9 +30,11 @@ def test_nominal_bilateral_retention_roots_pass_independent_fail_closed_recheck(
         assert root.pin_bore_capture_mm3 > INTERSECTION_TOLERANCE_MM3
         assert root.split_retainer_pin_intersection_mm3 <= INTERSECTION_TOLERANCE_MM3
         assert root.split_retainer_yoke_intersection_mm3 <= INTERSECTION_TOLERANCE_MM3
-        assert root.protected_intersection_mm3 <= INTERSECTION_TOLERANCE_MM3
+        assert root.frame_protected_intersection_mm3 <= INTERSECTION_TOLERANCE_MM3
+        assert root.pin_protected_intersection_mm3 <= INTERSECTION_TOLERANCE_MM3
+        assert root.split_retainer_protected_intersection_mm3 <= INTERSECTION_TOLERANCE_MM3
     manifest = result.manifest()
-    assert manifest["verification_semantics"] == "FAIL_CLOSED_INDEPENDENT_BREP_COLLISION_SOURCE_CAPTURE_AND_PIN_ASSEMBLY_RECHECK"
+    assert manifest["verification_semantics"] == "FAIL_CLOSED_INDEPENDENT_BREP_COLLISION_SOURCE_CAPTURE_PIN_ASSEMBLY_AND_PROTECTED_ZONE_RECHECK"
     assert manifest["physical_validation_eligible"] is False
 
 
@@ -57,7 +59,9 @@ def _nominal_metric(root_id: str = "RETENTION_ROOT_WEARER_LEFT", **changes: floa
         "pin_bore_capture_mm3": 1.0,
         "split_retainer_pin_intersection_mm3": 0.0,
         "split_retainer_yoke_intersection_mm3": 0.0,
-        "protected_intersection_mm3": 0.0,
+        "frame_protected_intersection_mm3": 0.0,
+        "pin_protected_intersection_mm3": 0.0,
+        "split_retainer_protected_intersection_mm3": 0.0,
     }
     values.update(changes)
     return RetentionRootVerificationV2(root_id=root_id, **values)
@@ -81,6 +85,16 @@ def test_root_metric_rejects_split_retainer_pin_interference() -> None:
 def test_root_metric_rejects_split_retainer_yoke_interference() -> None:
     with pytest.raises(StructuralFrameRetentionVerificationV2Error, match="split retainer intersects yoke material"):
         _nominal_metric(split_retainer_yoke_intersection_mm3=1.0).validate()
+
+
+def test_root_metric_rejects_capture_pin_protected_zone_interference() -> None:
+    with pytest.raises(StructuralFrameRetentionVerificationV2Error, match="capture pin intersects a protected volume"):
+        _nominal_metric(pin_protected_intersection_mm3=1.0).validate()
+
+
+def test_root_metric_rejects_split_retainer_protected_zone_interference() -> None:
+    with pytest.raises(StructuralFrameRetentionVerificationV2Error, match="split retainer intersects a protected volume"):
+        _nominal_metric(split_retainer_protected_intersection_mm3=1.0).validate()
 
 
 def test_root_metric_rejects_unknown_side_identity() -> None:
