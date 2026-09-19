@@ -48,51 +48,64 @@ def test_service_routing_closure_exposes_prime_liquid_without_destination_contra
     assert closure.nominal_unclassified_nonrecovery_mL == pytest.approx(0.060)
     assert closure.total_prime_liquid_mL == pytest.approx(2.400)
     assert closure.minimum_prime_liquid_routed_to_cartridge_mL == pytest.approx(0.0)
+    assert closure.maximum_prime_residual_mL == pytest.approx(0.0)
+    assert closure.maximum_prime_external_leakage_mL == pytest.approx(0.0)
     assert closure.prime_liquid_without_routing_contract_mL == pytest.approx(2.400)
     assert closure.total_liquid_without_routing_contract_mL == pytest.approx(2.460)
     assert closure.routing_contract_complete is False
 
 
 def test_prime_recovery_contract_routes_only_its_explicit_fraction():
-    budget = build_authority_waste_fluid_budget()
     closure = screen_service_routing_closure(
-        budget,
-        cycles=6,
-        prime_events=6,
-        prime_recovery_ratio_contract=0.90,
+        build_authority_waste_fluid_budget(), cycles=6, prime_events=6, prime_recovery_ratio_contract=0.90
     )
-    assert closure.total_prime_liquid_mL == pytest.approx(2.400)
     assert closure.minimum_prime_liquid_routed_to_cartridge_mL == pytest.approx(2.160)
     assert closure.prime_liquid_without_routing_contract_mL == pytest.approx(0.240)
     assert closure.total_liquid_without_routing_contract_mL == pytest.approx(0.300)
-    assert closure.routing_contract_complete is False
 
 
-def test_full_prime_contract_still_exposes_nominal_requirement_gap():
-    budget = build_authority_waste_fluid_budget()
+def test_prime_nonrecovery_can_be_classified_without_double_counting():
     closure = screen_service_routing_closure(
-        budget,
+        build_authority_waste_fluid_budget(),
         cycles=6,
         prime_events=6,
-        prime_recovery_ratio_contract=1.0,
+        prime_recovery_ratio_contract=0.90,
+        prime_residual_ratio_contract=0.08,
+        prime_external_leakage_ratio_contract=0.02,
     )
-    assert closure.minimum_prime_liquid_routed_to_cartridge_mL == pytest.approx(2.400)
-    assert closure.prime_liquid_without_routing_contract_mL == pytest.approx(0.0)
+    assert closure.minimum_prime_liquid_routed_to_cartridge_mL == pytest.approx(2.160)
+    assert closure.maximum_prime_residual_mL == pytest.approx(0.192)
+    assert closure.maximum_prime_external_leakage_mL == pytest.approx(0.048)
+    assert closure.prime_liquid_without_routing_contract_mL == pytest.approx(0.0, abs=1e-12)
     assert closure.total_liquid_without_routing_contract_mL == pytest.approx(0.060)
     assert closure.routing_contract_complete is False
 
 
-def test_service_routing_closure_can_close_when_nominal_gap_and_prime_volume_are_closed():
+def test_complete_prime_and_nominal_sink_contract_closes_service_routing():
     base = build_authority_waste_fluid_budget()
     budget = replace(base, recovery_ratio_min=base.recovery_ratio_for_residual_leakage_closure)
     closure = screen_service_routing_closure(
         budget,
         cycles=6,
         prime_events=6,
-        prime_recovery_ratio_contract=1.0,
+        prime_recovery_ratio_contract=0.90,
+        prime_residual_ratio_contract=0.08,
+        prime_external_leakage_ratio_contract=0.02,
     )
     assert closure.total_liquid_without_routing_contract_mL == pytest.approx(0.0, abs=1e-12)
     assert closure.routing_contract_complete is True
+
+
+def test_prime_sink_contract_rejects_overallocated_mass_balance():
+    with pytest.raises(WasteFluidAccountingError, match="must not sum above one"):
+        screen_service_routing_closure(
+            build_authority_waste_fluid_budget(),
+            cycles=1,
+            prime_events=1,
+            prime_recovery_ratio_contract=0.90,
+            prime_residual_ratio_contract=0.08,
+            prime_external_leakage_ratio_contract=0.03,
+        )
 
 
 def test_service_routing_closure_rejects_invalid_counts_and_prime_contracts():
@@ -101,11 +114,13 @@ def test_service_routing_closure_rejects_invalid_counts_and_prime_contracts():
         screen_service_routing_closure(budget, cycles=True, prime_events=0)
     with pytest.raises(WasteFluidAccountingError, match="nonnegative integer"):
         screen_service_routing_closure(budget, cycles=1, prime_events=-1)
-    for invalid in (-0.01, 1.01, float("nan"), True):
-        with pytest.raises(WasteFluidAccountingError, match="finite and between zero and one"):
-            screen_service_routing_closure(
-                budget,
-                cycles=1,
-                prime_events=1,
-                prime_recovery_ratio_contract=invalid,
-            )
+    for field in (
+        "prime_recovery_ratio_contract",
+        "prime_residual_ratio_contract",
+        "prime_external_leakage_ratio_contract",
+    ):
+        for invalid in (-0.01, 1.01, float("nan"), True):
+            with pytest.raises(WasteFluidAccountingError, match="finite and between zero and one"):
+                screen_service_routing_closure(
+                    budget, cycles=1, prime_events=1, **{field: invalid}
+                )
