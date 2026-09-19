@@ -48,7 +48,9 @@ class DebouncedInput:
     unconditional firmware recovery call cannot erase a valid held state or debounce
     candidate. Firmware may call ``arm`` at input-supervision startup so the no-sample
     timeout is measured from a known boot point rather than from the first later
-    watchdog service. Repeated arm calls cannot postpone that deadline.
+    watchdog service. Repeated arm calls cannot postpone that deadline. Timing gates
+    compare absolute deadlines rather than subtracting floating timestamps, avoiding
+    false one-sample delays at an exact debounce or stale-stream boundary.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -106,7 +108,7 @@ class DebouncedInput:
             return InputEvent(self._stable, Edge.NONE)
         if self._watchdog_started_at is None:
             self._watchdog_started_at = now
-        if now - self._watchdog_started_at > self.stale_after_s:
+        if now > self._watchdog_started_at + self.stale_after_s:
             return self._trip("input stream did not start")
         return InputEvent(False, Edge.NONE)
 
@@ -121,10 +123,10 @@ class DebouncedInput:
         if self._last_observed_at is not None and now < self._last_observed_at:
             return self._trip("input time moved backwards")
         self._last_observed_at = now
-        if self._last_sample_at is not None and now - self._last_sample_at > self.stale_after_s:
+        if self._last_sample_at is not None and now > self._last_sample_at + self.stale_after_s:
             return self._trip("input stream became stale")
         if self._last_sample_at is None and self._watchdog_started_at is not None:
-            if now - self._watchdog_started_at > self.stale_after_s:
+            if now > self._watchdog_started_at + self.stale_after_s:
                 return self._trip("input stream did not start")
         self._last_sample_at = now
         self._watchdog_started_at = None
@@ -136,7 +138,7 @@ class DebouncedInput:
             if self._candidate_since is None:
                 self._candidate_since = now
                 return InputEvent(False, Edge.NONE)
-            if now - self._candidate_since < self.debounce_s:
+            if now < self._candidate_since + self.debounce_s:
                 return InputEvent(False, Edge.NONE)
             self._require_release = False
             self._candidate = False
@@ -153,7 +155,7 @@ class DebouncedInput:
             self._candidate_since = now
             return InputEvent(self._stable, Edge.NONE)
 
-        if now - self._candidate_since < self.debounce_s:
+        if now < self._candidate_since + self.debounce_s:
             return InputEvent(self._stable, Edge.NONE)
 
         self._stable = self._candidate
@@ -174,10 +176,10 @@ class DebouncedInput:
             if self._watchdog_started_at is None:
                 self._watchdog_started_at = now
                 return InputEvent(False, Edge.NONE)
-            if now - self._watchdog_started_at > self.stale_after_s:
+            if now > self._watchdog_started_at + self.stale_after_s:
                 return self._trip("input stream did not start")
             return InputEvent(False, Edge.NONE)
-        if now - self._last_sample_at > self.stale_after_s:
+        if now > self._last_sample_at + self.stale_after_s:
             return self._trip("input stream became stale")
         return InputEvent(self._stable, Edge.NONE)
 
