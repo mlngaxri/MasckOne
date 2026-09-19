@@ -2,6 +2,7 @@ import pytest
 
 from masck_one.waste_fluid_accounting import (
     WasteFluidAccountingError,
+    WasteFluidBudget,
     build_authority_waste_fluid_budget,
 )
 from masck_one.waste_fluid_profile import screen_service_profile
@@ -13,17 +14,63 @@ def test_profile_reconciles_to_aggregate_capacity_screen():
     aggregate = budget.service_capacity_screen(cycles=6, prime_events=6)
 
     assert profile.capacity_satisfied is True
+    assert profile.mandatory_recovery_capacity_satisfied is True
     assert profile.service_target_feasible is True
     assert profile.first_overflow_cycle is None
+    assert profile.first_mandatory_recovery_overflow_cycle is None
     assert profile.first_target_infeasible_cycle is None
     assert profile.target_cycles == 6
     assert profile.final.cumulative_prime_events == 6
+    assert profile.final.minimum_recovered_nominal_mL == pytest.approx(
+        aggregate.minimum_recovered_nominal_mL
+    )
     assert profile.final.maximum_cartridge_inflow_mL == pytest.approx(
         aggregate.maximum_cartridge_inflow_mL
+    )
+    assert profile.final.occupancy_uncertainty_mL == pytest.approx(
+        aggregate.occupancy_uncertainty_mL
     )
     assert profile.final.minimum_projected_service_end_inflow_mL == pytest.approx(30.0)
     assert profile.final.projected_service_end_margin_mL == pytest.approx(5.0)
     assert profile.final.requirement_margin_mL == pytest.approx(5.0)
+
+
+def test_profile_exposes_authority_occupancy_interval_by_cycle():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1, 1, 1, 1, 1, 1))
+
+    first = profile.cycles[0]
+    final = profile.final
+    assert first.minimum_recovered_nominal_mL == pytest.approx(4.14)
+    assert first.maximum_cartridge_inflow_mL == pytest.approx(5.0)
+    assert first.occupancy_uncertainty_mL == pytest.approx(0.86)
+    assert final.minimum_recovered_nominal_mL == pytest.approx(24.84)
+    assert final.maximum_cartridge_inflow_mL == pytest.approx(30.0)
+    assert final.occupancy_uncertainty_mL == pytest.approx(5.16)
+
+
+def test_profile_detects_when_required_recovery_alone_exceeds_capacity():
+    budget = WasteFluidBudget(
+        service_cycles=2,
+        nominal_introduced_mL_per_cycle=5.0,
+        maximum_initial_prime_mL_per_cycle=0.0,
+        recovery_ratio_min=1.0,
+        residual_free_liquid_max_mL=0.0,
+        external_leakage_max_mL_per_cycle=0.0,
+        cartridge_retained_capacity_requirement_mL=10.0,
+    )
+    budget.validate()
+    profile = screen_service_profile(
+        budget,
+        prime_events_by_cycle=(0, 0, 0),
+        target_cycles=3,
+    )
+
+    assert profile.cycles[1].minimum_recovery_capacity_satisfied is True
+    assert profile.final.minimum_recovered_nominal_mL == pytest.approx(15.0)
+    assert profile.final.minimum_recovery_capacity_satisfied is False
+    assert profile.first_mandatory_recovery_overflow_cycle == 3
+    assert profile.mandatory_recovery_capacity_satisfied is False
 
 
 def test_profile_exposes_cycle_where_reprime_burst_first_overflows():
@@ -43,11 +90,7 @@ def test_profile_exposes_cycle_where_reprime_burst_first_overflows():
 
 def test_profile_flags_lost_service_life_before_cartridge_overflows():
     budget = build_authority_waste_fluid_budget()
-    profile = screen_service_profile(
-        budget,
-        prime_events_by_cycle=(19,),
-        target_cycles=6,
-    )
+    profile = screen_service_profile(budget, prime_events_by_cycle=(19,), target_cycles=6)
 
     first = profile.cycles[0]
     assert first.maximum_cartridge_inflow_mL == pytest.approx(12.2)
@@ -63,11 +106,7 @@ def test_profile_flags_lost_service_life_before_cartridge_overflows():
 
 def test_profile_preserves_service_target_boundary_at_eighteen_primes():
     budget = build_authority_waste_fluid_budget()
-    profile = screen_service_profile(
-        budget,
-        prime_events_by_cycle=(18,),
-        target_cycles=6,
-    )
+    profile = screen_service_profile(budget, prime_events_by_cycle=(18,), target_cycles=6)
 
     first = profile.cycles[0]
     assert first.minimum_projected_service_end_inflow_mL == pytest.approx(34.8)
