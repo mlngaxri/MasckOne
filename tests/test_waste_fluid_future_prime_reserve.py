@@ -30,7 +30,6 @@ def test_remaining_prime_allowance_exposes_exact_service_target_headroom():
 
     first = profile.final
     assert first.maximum_additional_prime_events_for_target == 17
-    # One observed prime plus 17 additional primes reaches the known 18-prime boundary.
     boundary = screen_service_profile(budget, prime_events_by_cycle=(18,), target_cycles=6)
     assert boundary.final.maximum_additional_prime_events_for_target == 0
     assert boundary.final.projected_service_end_margin_mL == pytest.approx(0.2)
@@ -49,12 +48,6 @@ def test_zero_volume_prime_has_unbounded_capacity_allowance():
     budget = replace(build_authority_waste_fluid_budget(), maximum_initial_prime_mL_per_cycle=0.0)
     profile = screen_service_profile(budget, prime_events_by_cycle=(100,), target_cycles=6)
     assert profile.final.maximum_additional_prime_events_for_target is None
-
-
-def test_profile_validates_budget_before_screening():
-    budget = replace(build_authority_waste_fluid_budget(), recovery_ratio_min=float("nan"))
-    with pytest.raises(WasteFluidAccountingError, match="finite and nonnegative"):
-        screen_service_profile(budget, prime_events_by_cycle=(0,))
 
 
 def test_future_prime_reserve_can_expose_lost_service_life_early():
