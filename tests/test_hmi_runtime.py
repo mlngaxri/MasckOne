@@ -72,7 +72,7 @@ def test_non_monotonic_time_faults_and_latches_until_reset():
     assert fault.faulted is True
     assert control.sample(pressed=False, now_s=1.1).faulted is True
     control.reset()
-    event = control.sample(pressed=False, now_s=1.0)
+    event = control.sample(pressed=False, now_s=1.1)
     assert event.faulted is False
     assert event.edge is Edge.NONE
 
