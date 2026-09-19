@@ -22,6 +22,45 @@ def test_authority_budget_reconciles_cycle_and_capacity_screen():
     assert budget.manifest()["physical_validation_eligible"] is False
 
 
+def test_service_profile_tracks_prime_events_separately_from_cycles():
+    budget = build_authority_waste_fluid_budget()
+    single_prime = budget.service_capacity_screen(cycles=6, prime_events=1)
+    assert single_prime.nominal_liquid_mL == pytest.approx(27.6)
+    assert single_prime.prime_liquid_mL == pytest.approx(0.4)
+    assert single_prime.maximum_cartridge_inflow_mL == pytest.approx(28.0)
+    assert single_prime.requirement_margin_mL == pytest.approx(7.0)
+
+    every_cycle_reprime = budget.service_capacity_screen(cycles=6, prime_events=6)
+    assert every_cycle_reprime.maximum_cartridge_inflow_mL == pytest.approx(30.0)
+    assert every_cycle_reprime.requirement_margin_mL == pytest.approx(5.0)
+    assert budget.maximum_cartridge_inflow_screen_mL == every_cycle_reprime.maximum_cartridge_inflow_mL
+
+
+def test_each_additional_prime_consumes_exact_prime_allowance():
+    budget = build_authority_waste_fluid_budget()
+    one = budget.service_capacity_screen(cycles=6, prime_events=1)
+    three = budget.service_capacity_screen(cycles=6, prime_events=3)
+    assert three.maximum_cartridge_inflow_mL - one.maximum_cartridge_inflow_mL == pytest.approx(0.8)
+    assert one.requirement_margin_mL - three.requirement_margin_mL == pytest.approx(0.8)
+
+
+def test_service_profile_rejects_impossible_prime_count():
+    budget = build_authority_waste_fluid_budget()
+    with pytest.raises(WasteFluidAccountingError, match="cannot exceed cycles"):
+        budget.service_capacity_screen(cycles=2, prime_events=3)
+    with pytest.raises(WasteFluidAccountingError, match="nonnegative integer"):
+        budget.service_capacity_screen(cycles=2, prime_events=True)
+
+
+def test_manifest_exposes_single_prime_diagnostic_without_weakening_gate():
+    budget = build_authority_waste_fluid_budget()
+    manifest = budget.manifest()
+    assert manifest["single_initial_prime_service_inflow_mL"] == pytest.approx(28.0)
+    assert manifest["single_initial_prime_service_margin_mL"] == pytest.approx(7.0)
+    assert manifest["maximum_cartridge_inflow_screen_mL"] == pytest.approx(30.0)
+    assert manifest["cartridge_requirement_margin_mL"] == pytest.approx(5.0)
+
+
 def test_unrecovered_fluid_closure_exposes_cross_requirement_threshold():
     budget = build_authority_waste_fluid_budget()
     assert budget.maximum_unrecovered_nominal_mL_per_cycle == pytest.approx(0.460)
