@@ -43,6 +43,7 @@ class ServiceRoutingClosure:
     service_external_leakage_ceiling_mL: float
     prime_residual_ceiling_margin_mL: float
     prime_external_leakage_ceiling_margin_mL: float
+    shared_sink_unclassified_nonrecovery_mL: float
     prime_liquid_without_routing_contract_mL: float
     total_liquid_without_routing_contract_mL: float
     routing_contract_complete: bool
@@ -89,12 +90,13 @@ def screen_service_routing_closure(
     contracts. Recovery routes liquid to the cartridge; residual and external-
     leakage contracts classify nonrecovered prime liquid. Their sum may not exceed
     unity, which prevents double-counting one prime volume into multiple sinks.
-    Prime sink contracts must also fit inside the aggregate residual and leakage
-    ceilings for the requested service cycles. This check deliberately gives prime
-    liquid the entire ceiling and therefore cannot hide a conflict with nominal
-    liquid that may also consume those ceilings. Missing fractions remain unresolved.
-    These are digital interface contracts, not measured recovery, residual or
-    leakage performance.
+
+    Residual and leakage ceilings are shared by nominal and prime liquid. Prime sink
+    allocations therefore reduce the classified capacity available to nominal
+    nonrecovery before the service-level closure gap is calculated. This prevents a
+    prime contract from silently spending ceiling capacity already needed to close
+    the nominal recovery requirement. These are digital interface contracts, not
+    measured recovery, residual or leakage performance.
     """
     budget.validate()
     if type(cycles) is not int or cycles <= 0:
@@ -111,7 +113,6 @@ def screen_service_routing_closure(
     if contracted_fraction > 1.0 + 1e-12:
         raise WasteFluidAccountingError("prime routing contract fractions must not sum above one")
 
-    nominal = screen_nonrecovery_closure(budget).unclassified_nonrecovery_allowance_mL * cycles
     total_prime = budget.maximum_initial_prime_mL_per_cycle * prime_events
     routed_prime = total_prime * (recovery or 0.0)
     residual_prime = total_prime * (residual or 0.0)
@@ -125,12 +126,16 @@ def screen_service_routing_closure(
     if leakage_margin < -1e-12:
         raise WasteFluidAccountingError("prime external leakage contract exceeds aggregate service leakage ceiling")
 
+    nominal_unrecovered = budget.maximum_unrecovered_nominal_mL_per_cycle * cycles
+    remaining_classified_sink_capacity = max(0.0, residual_margin) + max(0.0, leakage_margin)
+    shared_sink_gap = max(0.0, nominal_unrecovered - remaining_classified_sink_capacity)
+    baseline_nominal_gap = screen_nonrecovery_closure(budget).unclassified_nonrecovery_allowance_mL * cycles
     unresolved_prime = max(0.0, total_prime * (1.0 - contracted_fraction))
-    total_unresolved = nominal + unresolved_prime
+    total_unresolved = shared_sink_gap + unresolved_prime
     return ServiceRoutingClosure(
         cycles=cycles,
         prime_events=prime_events,
-        nominal_unclassified_nonrecovery_mL=nominal,
+        nominal_unclassified_nonrecovery_mL=baseline_nominal_gap,
         total_prime_liquid_mL=total_prime,
         prime_recovery_ratio_contract=recovery,
         prime_residual_ratio_contract=residual,
@@ -142,6 +147,7 @@ def screen_service_routing_closure(
         service_external_leakage_ceiling_mL=service_leakage_ceiling,
         prime_residual_ceiling_margin_mL=max(0.0, residual_margin),
         prime_external_leakage_ceiling_margin_mL=max(0.0, leakage_margin),
+        shared_sink_unclassified_nonrecovery_mL=shared_sink_gap,
         prime_liquid_without_routing_contract_mL=unresolved_prime,
         total_liquid_without_routing_contract_mL=total_unresolved,
         routing_contract_complete=total_unresolved <= 1e-12,
