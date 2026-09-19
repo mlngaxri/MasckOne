@@ -5,6 +5,7 @@ from __future__ import annotations
 V2 proves that each pin intersects its intended yoke bore. V3 additionally requires
 that the intersection covers essentially the full nominal bore span, preventing a
 barely engaged or axially shifted pin from passing on a microscopic positive overlap.
+The authority floor is fail-closed: callers may strengthen it, but cannot lower it.
 This remains digital geometry evidence only.
 """
 
@@ -44,6 +45,10 @@ class StructuralFrameRetentionVerificationV3:
             raise StructuralFrameRetentionVerificationV3Error("V2 prerequisite verification failed") from exc
         if not math.isfinite(self.minimum_pin_bore_capture_mm3) or self.minimum_pin_bore_capture_mm3 <= 0.0:
             raise StructuralFrameRetentionVerificationV3Error("minimum bore capture must be finite and positive")
+        if self.minimum_pin_bore_capture_mm3 < MIN_PIN_BORE_CAPTURE_MM3:
+            raise StructuralFrameRetentionVerificationV3Error(
+                "minimum bore capture cannot weaken the authority floor"
+            )
         for root in self.v2.roots:
             if root.pin_bore_capture_mm3 < self.minimum_pin_bore_capture_mm3:
                 raise StructuralFrameRetentionVerificationV3Error(
@@ -62,7 +67,8 @@ class StructuralFrameRetentionVerificationV3:
             "verification_semantics": "FAIL_CLOSED_V2_PLUS_MINIMUM_AXIAL_PIN_BORE_CAPTURE_COVERAGE",
             "nominal_pin_bore_capture_mm3": NOMINAL_PIN_BORE_CAPTURE_MM3,
             "minimum_pin_bore_capture_fraction": MIN_PIN_BORE_CAPTURE_FRACTION,
-            "minimum_pin_bore_capture_mm3": self.minimum_pin_bore_capture_mm3,
+            "authority_minimum_pin_bore_capture_mm3": MIN_PIN_BORE_CAPTURE_MM3,
+            "enforced_minimum_pin_bore_capture_mm3": self.minimum_pin_bore_capture_mm3,
             "measured_pin_bore_capture_mm3": {
                 root.root_id: root.pin_bore_capture_mm3 for root in self.v2.roots
             },
