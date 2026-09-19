@@ -23,21 +23,47 @@ class Edge(Enum):
     RELEASED = auto()
 
 
+class FaultCode(Enum):
+    """Stable machine-readable causes for a latched fail-closed HMI state."""
+
+    PRESSED_NOT_BOOL = auto()
+    SAMPLE_TIME_INVALID = auto()
+    SAMPLE_TIME_REGRESSION = auto()
+    ARM_TIME_INVALID = auto()
+    ARM_TIME_REGRESSION = auto()
+    WATCHDOG_TIME_INVALID = auto()
+    WATCHDOG_TIME_REGRESSION = auto()
+    INPUT_STREAM_NOT_STARTED = auto()
+    INPUT_STREAM_STALE = auto()
+
+
 @dataclass(frozen=True, slots=True)
 class InputEvent:
     stable_pressed: bool
     edge: Edge
     faulted: bool = False
     fault: str | None = None
+    fault_code: FaultCode | None = None
 
 
 class DebouncedInput:
     """Debounce one active-high input using caller-supplied monotonic time.
 
-    No wall clock is read, making the behaviour deterministic in firmware simulation
-    and unit tests. A stale stream faults rather than preserving a potentially unsafe
-    held command. Once faulted, an explicit reset and debounced release are required
-    before a new press can be accepted.
+    No wall clock is read, making behaviour deterministic in firmware simulation and
+    unit tests. A stale stream faults rather than preserving a potentially unsafe held
+    command. Once faulted, an explicit reset and debounced release are required before
+    a new press can be accepted. Sample, arm, watchdog and timed reset calls share one
+    monotonic time contract so no path can silently move the runtime clock backwards.
+    That clock contract survives fault reset. While a fault is latched, valid monotonic
+    timestamps supplied to sample, arm or watchdog continue to advance the shared clock
+    floor without replacing the first fault. Firmware may pass ``now_s`` to ``reset``
+    so recovery no-sample supervision begins at the actual reset request rather than at
+    an older observation. A timed healthy reset is otherwise non-destructive but still
+    advances the shared clock observation. Legacy untimed reset remains supported and
+    starts its recovery window at the next arm, sample or watchdog observation. Valid
+    sample timestamps are clock observations even when the electrical level is
+    malformed. The first fault cause remains latched until reset. Timing gates compare
+    absolute deadlines rather than subtracting floating timestamps.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -47,39 +73,106 @@ class DebouncedInput:
             raise HmiInputError("stale_after_s must be finite and greater than debounce_s")
         self.debounce_s = float(debounce_s)
         self.stale_after_s = float(stale_after_s)
-        self._reset_state(require_release=False)
+        self._reset_state(require_release=False, preserve_clock=False)
 
-    def reset(self) -> None:
-        """Clear a latched fault but require debounced release before another press."""
-        self._reset_state(require_release=True)
+    def reset(self, *, now_s: float | None = None) -> None:
+        """Clear a latched fault, optionally anchoring supervision at reset time."""
+        reset_at: float | None = None
+        if now_s is not None:
+            if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
+                raise HmiInputError("reset time must be finite")
+            reset_at = float(now_s)
+            if self._last_observed_at is not None and reset_at < self._last_observed_at:
+                raise HmiInputError("reset time moved backwards")
+        if self._fault is None:
+            if reset_at is not None:
+                self._last_observed_at = reset_at
+            return
+        self._reset_state(
+            require_release=True,
+            preserve_clock=True,
+            recovery_started_at=reset_at,
+        )
 
-    def _reset_state(self, *, require_release: bool) -> None:
+    def _reset_state(
+        self,
+        *,
+        require_release: bool,
+        preserve_clock: bool,
+        recovery_started_at: float | None = None,
+    ) -> None:
+        last_observed_at = getattr(self, "_last_observed_at", None) if preserve_clock else None
+        if recovery_started_at is not None:
+            last_observed_at = recovery_started_at
         self._stable = False
         self._candidate = False
         self._candidate_since: float | None = None
         self._last_sample_at: float | None = None
+        self._last_observed_at: float | None = last_observed_at
+        self._watchdog_started_at: float | None = recovery_started_at
         self._fault: str | None = None
+        self._fault_code: FaultCode | None = None
         self._require_release = require_release
 
     @property
     def faulted(self) -> bool:
         return self._fault is not None
 
-    def sample(self, *, pressed: bool, now_s: float) -> InputEvent:
-        if type(pressed) is not bool:
-            return self._trip("pressed must be an exact bool")
+    def _fault_event(self) -> InputEvent:
+        return InputEvent(False, Edge.NONE, True, self._fault, self._fault_code)
+
+    def _observe_time_while_faulted(self, now_s: object) -> None:
+        """Advance the clock floor from a valid post-fault service observation.
+
+        Invalid or regressed values are ignored while faulted so the first diagnostic
+        remains authoritative. A valid later timestamp is still meaningful to recovery:
+        reset must not be able to establish a new epoch earlier than firmware time that
+        this runtime has already observed.
+        """
         if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
-            return self._trip("now_s must be finite")
+            return
         now = float(now_s)
+        if self._last_observed_at is None or now >= self._last_observed_at:
+            self._last_observed_at = now
+
+    def arm(self, *, now_s: float) -> InputEvent:
+        """Start no-sample supervision from an explicit firmware lifecycle point."""
         if self._fault is not None:
-            return InputEvent(False, Edge.NONE, True, self._fault)
+            self._observe_time_while_faulted(now_s)
+            return self._fault_event()
+        if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
+            return self._trip(FaultCode.ARM_TIME_INVALID, "arm time must be finite")
+        now = float(now_s)
+        if self._last_observed_at is not None and now < self._last_observed_at:
+            return self._trip(FaultCode.ARM_TIME_REGRESSION, "arm time moved backwards")
+        self._last_observed_at = now
         if self._last_sample_at is not None:
-            delta = now - self._last_sample_at
-            if delta < 0.0:
-                return self._trip("input time moved backwards")
-            if delta > self.stale_after_s:
-                return self._trip("input stream became stale")
+            return InputEvent(self._stable, Edge.NONE)
+        if self._watchdog_started_at is None:
+            self._watchdog_started_at = now
+        if now > self._watchdog_started_at + self.stale_after_s:
+            return self._trip(FaultCode.INPUT_STREAM_NOT_STARTED, "input stream did not start")
+        return InputEvent(False, Edge.NONE)
+
+    def sample(self, *, pressed: bool, now_s: float) -> InputEvent:
+        if self._fault is not None:
+            self._observe_time_while_faulted(now_s)
+            return self._fault_event()
+        if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
+            return self._trip(FaultCode.SAMPLE_TIME_INVALID, "now_s must be finite")
+        now = float(now_s)
+        if self._last_observed_at is not None and now < self._last_observed_at:
+            return self._trip(FaultCode.SAMPLE_TIME_REGRESSION, "input time moved backwards")
+        self._last_observed_at = now
+        if type(pressed) is not bool:
+            return self._trip(FaultCode.PRESSED_NOT_BOOL, "pressed must be an exact bool")
+        if self._last_sample_at is not None and now > self._last_sample_at + self.stale_after_s:
+            return self._trip(FaultCode.INPUT_STREAM_STALE, "input stream became stale")
+        if self._last_sample_at is None and self._watchdog_started_at is not None:
+            if now > self._watchdog_started_at + self.stale_after_s:
+                return self._trip(FaultCode.INPUT_STREAM_NOT_STARTED, "input stream did not start")
         self._last_sample_at = now
+        self._watchdog_started_at = None
 
         if self._require_release:
             if pressed:
@@ -88,7 +181,7 @@ class DebouncedInput:
             if self._candidate_since is None:
                 self._candidate_since = now
                 return InputEvent(False, Edge.NONE)
-            if now - self._candidate_since < self.debounce_s:
+            if now < self._candidate_since + self.debounce_s:
                 return InputEvent(False, Edge.NONE)
             self._require_release = False
             self._candidate = False
@@ -105,7 +198,7 @@ class DebouncedInput:
             self._candidate_since = now
             return InputEvent(self._stable, Edge.NONE)
 
-        if now - self._candidate_since < self.debounce_s:
+        if now < self._candidate_since + self.debounce_s:
             return InputEvent(self._stable, Edge.NONE)
 
         self._stable = self._candidate
@@ -113,26 +206,35 @@ class DebouncedInput:
         return InputEvent(self._stable, Edge.PRESSED if self._stable else Edge.RELEASED)
 
     def watchdog(self, *, now_s: float) -> InputEvent:
-        """Fail closed when sampling stops, without synthesising an input edge."""
-        if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
-            return self._trip("watchdog time must be finite")
+        """Fail closed when sampling stops or never starts, without synthesising an edge."""
         if self._fault is not None:
-            return InputEvent(False, Edge.NONE, True, self._fault)
+            self._observe_time_while_faulted(now_s)
+            return self._fault_event()
+        if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
+            return self._trip(FaultCode.WATCHDOG_TIME_INVALID, "watchdog time must be finite")
+        now = float(now_s)
+        if self._last_observed_at is not None and now < self._last_observed_at:
+            return self._trip(FaultCode.WATCHDOG_TIME_REGRESSION, "watchdog time moved backwards")
+        self._last_observed_at = now
         if self._last_sample_at is None:
+            if self._watchdog_started_at is None:
+                self._watchdog_started_at = now
+                return InputEvent(False, Edge.NONE)
+            if now > self._watchdog_started_at + self.stale_after_s:
+                return self._trip(FaultCode.INPUT_STREAM_NOT_STARTED, "input stream did not start")
             return InputEvent(False, Edge.NONE)
-        if float(now_s) < self._last_sample_at:
-            return self._trip("watchdog time moved backwards")
-        if float(now_s) - self._last_sample_at > self.stale_after_s:
-            return self._trip("input stream became stale")
+        if now > self._last_sample_at + self.stale_after_s:
+            return self._trip(FaultCode.INPUT_STREAM_STALE, "input stream became stale")
         return InputEvent(self._stable, Edge.NONE)
 
-    def _trip(self, reason: str) -> InputEvent:
+    def _trip(self, code: FaultCode, reason: str) -> InputEvent:
         self._fault = reason
+        self._fault_code = code
         self._stable = False
         self._candidate = False
         self._candidate_since = None
         self._require_release = True
-        return InputEvent(False, Edge.NONE, True, reason)
+        return self._fault_event()
 
 
 def _positive_finite(value: object) -> bool:
