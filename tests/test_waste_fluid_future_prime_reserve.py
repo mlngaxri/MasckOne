@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import pytest
 
 from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
@@ -20,6 +22,39 @@ def test_future_prime_reserve_closes_zero_reprime_projection_blind_spot():
     assert first.minimum_projected_service_end_inflow_mL == pytest.approx(30.0)
     assert first.projected_service_end_margin_mL == pytest.approx(5.0)
     assert first.service_target_feasible is True
+
+
+def test_remaining_prime_allowance_exposes_exact_service_target_headroom():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1,), target_cycles=6)
+
+    first = profile.final
+    assert first.maximum_additional_prime_events_for_target == 17
+    # One observed prime plus 17 additional primes reaches the known 18-prime boundary.
+    boundary = screen_service_profile(budget, prime_events_by_cycle=(18,), target_cycles=6)
+    assert boundary.final.maximum_additional_prime_events_for_target == 0
+    assert boundary.final.projected_service_end_margin_mL == pytest.approx(0.2)
+
+
+def test_remaining_prime_allowance_decrements_with_observed_reprime_loading():
+    budget = build_authority_waste_fluid_budget()
+    one_prime = screen_service_profile(budget, prime_events_by_cycle=(1,), target_cycles=6).final
+    two_primes = screen_service_profile(budget, prime_events_by_cycle=(2,), target_cycles=6).final
+
+    assert one_prime.maximum_additional_prime_events_for_target == 17
+    assert two_primes.maximum_additional_prime_events_for_target == 16
+
+
+def test_zero_volume_prime_has_unbounded_capacity_allowance():
+    budget = replace(build_authority_waste_fluid_budget(), maximum_initial_prime_mL_per_cycle=0.0)
+    profile = screen_service_profile(budget, prime_events_by_cycle=(100,), target_cycles=6)
+    assert profile.final.maximum_additional_prime_events_for_target is None
+
+
+def test_profile_validates_budget_before_screening():
+    budget = replace(build_authority_waste_fluid_budget(), recovery_ratio_min=float("nan"))
+    with pytest.raises(WasteFluidAccountingError, match="finite and nonnegative"):
+        screen_service_profile(budget, prime_events_by_cycle=(0,))
 
 
 def test_future_prime_reserve_can_expose_lost_service_life_early():
