@@ -41,6 +41,7 @@ jobs:
             src/masck_one/retention_quick_release_tactile_v5.py \
             src/masck_one/retention_quick_release_tactile_v6.py \
             src/masck_one/retention_quick_release_tactile_v7.py \
+            src/masck_one/retention_quick_release_tactile_v8.py \
             src/masck_one/structural_frame_retention_roots.py
       - name: Verify positive retention graph and selected tactile successor
         run: |
@@ -50,12 +51,15 @@ jobs:
             tests/test_retention_quick_release_tactile_v4.py \
             tests/test_retention_quick_release_tactile_v5.py \
             tests/test_retention_quick_release_tactile_v6.py \
-            tests/test_retention_quick_release_tactile_v7.py
+            tests/test_retention_quick_release_tactile_v7.py \
+            tests/test_retention_quick_release_tactile_v8.py
 
 # Branch-level mechanism verification only. V1 and V2 remain explicit superseded
 # evidence. V3 repairs the rib/bumper conflict, V4 screens the full nominal release
 # travel, V5 adds a bounded single-axis clearance/travel grid, V6 adds a Y/Z grid,
-# and V7 corrects that grid to respect the spool rail's radial clearance instead of
-# treating diagonal square-grid corners as valid radial poses. Parent Cell 6 and
-# complete-repo CI remain separate release gates. No manufactured tolerance, force,
-# wet-use, wear, contamination or tactile-performance claim is promoted here.
+# V7 corrects that grid to respect the spool rail's radial clearance, and V8 adds
+# deterministic polar rings plus explicit radial/side-boundary intersections so the
+# constrained clearance boundary is exercised rather than inferred from sparse interior
+# samples. Parent Cell 6 and complete-repo CI remain separate release gates. No continuous
+# clearance proof, manufactured tolerance, force, wet-use, wear, contamination or
+# tactile-performance claim is promoted here.
