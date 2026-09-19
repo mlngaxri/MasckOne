@@ -30,12 +30,12 @@ def test_malformed_watchdog_cannot_replace_latched_fault_cause():
     assert repeated.fault == original.fault
 
 
-def test_reset_allows_new_fault_cause_to_latch():
+def test_reset_allows_new_fault_cause_to_latch_without_rewinding_clock():
     control = DebouncedInput()
     control.sample(pressed=False, now_s=1.0)
     assert control.sample(pressed=False, now_s=0.9).fault == "input time moved backwards"
 
     control.reset()
-    new_fault = control.sample(pressed="bad", now_s=0.0)
+    new_fault = control.sample(pressed="bad", now_s=1.0)
     assert new_fault.faulted is True
     assert new_fault.fault == "pressed must be an exact bool"
