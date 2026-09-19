@@ -86,6 +86,47 @@ def test_timed_reset_rejects_malformed_time_without_clearing_fault():
     assert control.faulted is True
 
 
+def test_healthy_timed_reset_rejects_malformed_time_without_mutating_state():
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    control.sample(pressed=True, now_s=1.0)
+    pressed = control.sample(pressed=True, now_s=1.03)
+    assert pressed.stable_pressed is True
+
+    with pytest.raises(HmiInputError, match="reset time must be finite"):
+        control.reset(now_s=float("nan"))
+
+    still_pressed = control.sample(pressed=True, now_s=1.04)
+    assert still_pressed.stable_pressed is True
+    assert still_pressed.faulted is False
+
+
+def test_healthy_timed_reset_rejects_clock_regression_without_mutating_state():
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    control.sample(pressed=True, now_s=2.0)
+    pressed = control.sample(pressed=True, now_s=2.03)
+    assert pressed.stable_pressed is True
+
+    with pytest.raises(HmiInputError, match="reset time moved backwards"):
+        control.reset(now_s=2.02)
+
+    still_pressed = control.sample(pressed=True, now_s=2.04)
+    assert still_pressed.stable_pressed is True
+    assert still_pressed.faulted is False
+
+
+def test_valid_healthy_timed_reset_remains_non_destructive():
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    control.sample(pressed=True, now_s=3.0)
+    pressed = control.sample(pressed=True, now_s=3.03)
+    assert pressed.stable_pressed is True
+
+    control.reset(now_s=3.04)
+
+    still_pressed = control.sample(pressed=True, now_s=3.05)
+    assert still_pressed.stable_pressed is True
+    assert still_pressed.faulted is False
+
+
 def test_malformed_level_timestamp_can_bound_timed_recovery_supervision():
     control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
     fault = control.sample(pressed=1, now_s=100.0)
