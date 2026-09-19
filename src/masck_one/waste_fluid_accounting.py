@@ -16,6 +16,18 @@ class WasteFluidAccountingError(ValueError):
 
 
 @dataclass(frozen=True)
+class ServiceCapacityScreen:
+    """Cumulative cartridge loading for a specified digital service profile."""
+
+    cycles: int
+    prime_events: int
+    nominal_liquid_mL: float
+    prime_liquid_mL: float
+    maximum_cartridge_inflow_mL: float
+    requirement_margin_mL: float
+
+
+@dataclass(frozen=True)
 class WasteFluidBudget:
     service_cycles: int
     nominal_introduced_mL_per_cycle: float
@@ -61,16 +73,47 @@ class WasteFluidBudget:
     def recovery_ratio_closure_delta(self) -> float:
         return self.recovery_ratio_for_residual_leakage_closure - self.recovery_ratio_min
 
+    def service_capacity_screen(self, *, cycles: int, prime_events: int) -> ServiceCapacityScreen:
+        """Screen cumulative cartridge inflow for explicit cycle and prime counts.
+
+        Every prime event is charged at the authority maximum. No residual or leakage
+        credit is taken. ``prime_events`` is explicit so loss of prime or service
+        interruptions cannot disappear inside a per-cycle average.
+        """
+        if type(cycles) is not int or cycles <= 0:
+            raise WasteFluidAccountingError("cycles must be a positive integer")
+        if type(prime_events) is not int or prime_events < 0:
+            raise WasteFluidAccountingError("prime_events must be a nonnegative integer")
+        if prime_events > cycles:
+            raise WasteFluidAccountingError("prime_events cannot exceed cycles in this service screen")
+        nominal = cycles * self.nominal_introduced_mL_per_cycle
+        prime = prime_events * self.maximum_initial_prime_mL_per_cycle
+        inflow = nominal + prime
+        return ServiceCapacityScreen(
+            cycles=cycles,
+            prime_events=prime_events,
+            nominal_liquid_mL=nominal,
+            prime_liquid_mL=prime,
+            maximum_cartridge_inflow_mL=inflow,
+            requirement_margin_mL=self.cartridge_retained_capacity_requirement_mL - inflow,
+        )
+
     @property
     def maximum_cartridge_inflow_screen_mL(self) -> float:
-        # Deliberately conservative: credit no residual or external leakage and assume
-        # the maximum prime can occur on every cycle. This is a packaging screen, not
-        # a prediction of retained liquid.
-        return self.service_cycles * self.maximum_liquid_presented_to_recovery_mL_per_cycle
+        # Fail-conservative gate: assume a maximum prime before every service cycle.
+        return self.service_capacity_screen(
+            cycles=self.service_cycles,
+            prime_events=self.service_cycles,
+        ).maximum_cartridge_inflow_mL
 
     @property
     def cartridge_requirement_margin_mL(self) -> float:
         return self.cartridge_retained_capacity_requirement_mL - self.maximum_cartridge_inflow_screen_mL
+
+    @property
+    def single_initial_prime_service_screen(self) -> ServiceCapacityScreen:
+        """Diagnostic profile with one initial prime; not the capacity acceptance gate."""
+        return self.service_capacity_screen(cycles=self.service_cycles, prime_events=1)
 
     def validate(self) -> None:
         numeric = (
@@ -94,6 +137,7 @@ class WasteFluidBudget:
 
     def manifest(self) -> dict[str, object]:
         self.validate()
+        single_prime = self.single_initial_prime_service_screen
         return {
             "scope": "DIGITAL_CONSERVATION_AND_CAPACITY_SCREEN_ONLY",
             "service_cycles": self.service_cycles,
@@ -109,6 +153,8 @@ class WasteFluidBudget:
             "residual_free_liquid_max_mL": self.residual_free_liquid_max_mL,
             "external_leakage_max_mL_per_cycle": self.external_leakage_max_mL_per_cycle,
             "maximum_cartridge_inflow_screen_mL": self.maximum_cartridge_inflow_screen_mL,
+            "single_initial_prime_service_inflow_mL": single_prime.maximum_cartridge_inflow_mL,
+            "single_initial_prime_service_margin_mL": single_prime.requirement_margin_mL,
             "cartridge_retained_capacity_requirement_mL": self.cartridge_retained_capacity_requirement_mL,
             "cartridge_requirement_margin_mL": self.cartridge_requirement_margin_mL,
             "physical_validation_eligible": False,
