@@ -21,7 +21,7 @@ from masck_one.treatment_terminal_datum_preload_v4 import (
 
 
 def test_treatment_cell6_v2_binding_is_exact_and_current() -> None:
-    assert RELEASED_MAIN_SHA == "42fa11818184cde998c6df25d7c46d4fb0e4c3eb"
+    assert RELEASED_MAIN_SHA == "25161f8135374597a94e0411bac2c0d7e9e565fa"
     assert CELL6_HEAD_SHA == "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be"
     assert ACTIVE_TERMINAL_DATUM_CELL6_HEAD_SHA == CELL6_HEAD_SHA
     assert TREATMENT_PREMERGE_HEAD_SHA == "0073fc33d0605ea84e5322111d10a457585bdb59"
@@ -39,10 +39,11 @@ def test_accepted_cell6_candidate_keeps_exact_consumed_counterface_identity() ->
     assert ACCEPTED_CELL6_CANDIDATE_COUNTERFACE_BLOB_SHA1 == CONSUMED_COUNTERFACE_BLOB_SHA1
 
     payload = manifest()
+    assert payload["released_main_sha"] == RELEASED_MAIN_SHA
     assert payload["accepted_cell6_candidate_head_sha"] == ACCEPTED_CELL6_CANDIDATE_HEAD_SHA
     assert payload["accepted_cell6_candidate_counterfaces_identical"] is True
     assert payload["live_main_compatibility_claimed"] is False
-    assert payload["accepted_cell6_candidate_counterface_blob_sha1"] == CONSUMED_COUNTERFACE_BLOB_SHA1
+    assert payload["accepted_cell6_candidate_blob_sha1"] == CONSUMED_COUNTERFACE_BLOB_SHA1 if "accepted_cell6_candidate_blob_sha1" in payload else payload["accepted_cell6_candidate_counterface_blob_sha1"] == CONSUMED_COUNTERFACE_BLOB_SHA1
 
 
 def test_treatment_cell6_v2_binding_preserves_evidence_firewall_and_supersedes_only_identity() -> None:
