@@ -39,6 +39,7 @@ jobs:
             src/masck_one/retention_quick_release_tactile_v3.py \
             src/masck_one/retention_quick_release_tactile_v4.py \
             src/masck_one/retention_quick_release_tactile_v5.py \
+            src/masck_one/retention_quick_release_tactile_v6.py \
             src/masck_one/structural_frame_retention_roots.py
       - name: Verify positive retention graph and selected tactile successor
         run: |
@@ -46,10 +47,12 @@ jobs:
             tests/test_mechanical_interface_graph.py \
             tests/test_retention_quick_release_tactile_v3.py \
             tests/test_retention_quick_release_tactile_v4.py \
-            tests/test_retention_quick_release_tactile_v5.py
+            tests/test_retention_quick_release_tactile_v5.py \
+            tests/test_retention_quick_release_tactile_v6.py
 
 # Branch-level mechanism verification only. V1 and V2 remain explicit superseded
 # evidence. V3 repairs the rib/bumper conflict, V4 screens the full nominal release
-# travel, and V5 adds a bounded lateral-clearance/travel grid. Parent Cell 6 and
-# complete-repo CI remain separate release gates. No manufactured tolerance, force,
-# wet-use, wear, contamination or tactile-performance claim is promoted here.
+# travel, V5 adds a bounded single-axis clearance/travel grid, and V6 closes the
+# orthogonal gap with a bounded Y/Z clearance grid. Parent Cell 6 and complete-repo
+# CI remain separate release gates. No manufactured tolerance, force, wet-use, wear,
+# contamination or tactile-performance claim is promoted here.
