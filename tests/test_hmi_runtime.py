@@ -48,6 +48,28 @@ def test_non_monotonic_time_faults_and_latches_until_reset():
     assert control.sample(pressed=False, now_s=0.0).faulted is False
 
 
+def test_watchdog_clock_regression_faults_and_latches():
+    control = DebouncedInput()
+    control.sample(pressed=False, now_s=1.0)
+    assert control.watchdog(now_s=1.1).faulted is False
+    fault = control.watchdog(now_s=1.05)
+    assert fault.faulted is True
+    assert fault.stable_pressed is False
+    assert fault.edge is Edge.NONE
+    assert "backwards" in fault.fault
+
+
+def test_sample_cannot_move_clock_backwards_after_watchdog():
+    control = DebouncedInput()
+    control.sample(pressed=False, now_s=1.0)
+    assert control.watchdog(now_s=1.1).faulted is False
+    fault = control.sample(pressed=True, now_s=1.05)
+    assert fault.faulted is True
+    assert fault.stable_pressed is False
+    assert fault.edge is Edge.NONE
+    assert "backwards" in fault.fault
+
+
 def test_reset_cannot_reassert_a_command_while_control_remains_held():
     control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
     control.sample(pressed=True, now_s=0.00)
