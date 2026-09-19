@@ -1,4 +1,4 @@
-name: Treatment guided V5 verification
+name: Treatment promoted integration verification
 
 on:
   push:
@@ -10,13 +10,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: treatment-guided-v5-${{ github.ref }}
+  group: treatment-promoted-integration-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  guided-spring-v5:
+  promoted-treatment-stack:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 18
     steps:
       - name: Checkout exact treatment head
         uses: actions/checkout@v4
@@ -37,6 +37,16 @@ jobs:
           python -m py_compile \
             src/masck_one/treatment_collision_kernel_v2.py \
             src/masck_one/treatment_terminal_datum_preload_v5.py \
-            src/masck_one/treatment_guided_preload_spring_v5.py
-      - name: Verify terminal V5 and guided spring V5
-        run: python -m pytest -q tests/test_treatment_terminal_datum_preload_v5.py tests/test_treatment_guided_preload_spring_v5.py
+            src/masck_one/treatment_guided_preload_spring_v5.py \
+            src/masck_one/treatment_mounted_four_zone_v11.py
+      - name: Verify promoted collision, terminal, guided spring and mounted stack
+        run: |
+          python -m pytest -q \
+            tests/test_treatment_collision_kernel_v2.py \
+            tests/test_treatment_terminal_datum_preload_v5.py \
+            tests/test_treatment_guided_preload_spring_v5.py \
+            tests/test_treatment_mounted_four_zone_v11.py
+
+# This workflow is the exact-head qualification path for the promoted treatment
+# integration stack. Historical V4/V9/V10 regressions remain evidence, but they
+# do not substitute for exercising the selected V11 mounted implementation.
