@@ -1,7 +1,9 @@
+from copy import deepcopy
 from dataclasses import replace
 
 import pytest
 
+from masck_one.authority import Authority, load_authority
 from masck_one.waste_fluid_accounting import (
     WasteFluidAccountingError,
     build_authority_waste_fluid_budget,
@@ -53,3 +55,16 @@ def test_boolean_cycle_count_is_rejected():
     budget = replace(build_authority_waste_fluid_budget(), service_cycles=True)
     with pytest.raises(WasteFluidAccountingError, match="positive integer"):
         budget.validate()
+
+
+def test_fractional_authority_cycle_count_is_not_silently_truncated():
+    base = load_authority()
+    data = deepcopy(base.data)
+    data["fluid"]["cartridge"]["service_cycles_baseline"] = 6.5
+    mutated = Authority(
+        data=data,
+        source=base.source,
+        validation_report=base.validation_report,
+    )
+    with pytest.raises(WasteFluidAccountingError, match="service_cycles_baseline"):
+        build_authority_waste_fluid_budget(mutated)
