@@ -74,6 +74,19 @@ def test_v5_manifest_digest_covers_promoted_evidence():
     assert hostile_digest != promoted_digest
 
 
+def test_v5_manifest_rejects_post_build_source_binding_mutation():
+    architecture = build_terminal_datum_preload_v5_architecture()
+    architecture.source_cell6_head_sha = "hostile-post-build-source"
+
+    try:
+        manifest_v5(architecture)
+    except TreatmentTerminalDatumPreloadV5Error as exc:
+        assert "source binding drifted" in str(exc)
+        assert "manifest certification" in str(exc)
+    else:
+        raise AssertionError("mutated source lineage must not receive V5 certification")
+
+
 def test_v5_restores_v4_collision_hook_when_build_fails(monkeypatch):
     original = v4.intersection_volume_mm3
 
