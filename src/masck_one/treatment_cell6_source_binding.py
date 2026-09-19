@@ -13,7 +13,7 @@ from pathlib import Path
 
 SCHEMA = "MASCK_ONE_TREATMENT_CELL6_SOURCE_BINDING_V2"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
-RELEASED_MAIN_SHA = "42fa11818184cde998c6df25d7c46d4fb0e4c3eb"
+RELEASED_MAIN_SHA = "25161f8135374597a94e0411bac2c0d7e9e565fa"
 CELL6_HEAD_SHA = "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be"
 ACCEPTED_CELL6_CANDIDATE_HEAD_SHA = "a248c814d10fb8cd73da83d0b40ace2309a93997"
 ACCEPTED_CELL6_CANDIDATE_STATUS = "ACCEPTED_EXACT_HEAD_DIGITAL_RECEIPT_NOT_CURRENT_RELEASE_LINE"
@@ -30,11 +30,6 @@ CONSUMED_COUNTERFACE_BLOB_SHA1 = {
     "src/masck_one/structural_frame_carrier_detent.py": "693d4f6cbbc915ec2e6e6ea8ae069f0f8969cb5d",
 }
 
-# These exact blobs were independently re-observed on the accepted Cell 6
-# candidate head above. This proves that the treatment-consumed counterface
-# source files did not move between the historical treatment bind and that
-# accepted frame candidate. It does not claim compatibility with live main,
-# which currently does not contain the Cell 6 implementation.
 ACCEPTED_CELL6_CANDIDATE_COUNTERFACE_BLOB_SHA1 = dict(CONSUMED_COUNTERFACE_BLOB_SHA1)
 
 HISTORICAL_STALE_BINDINGS = {
