@@ -40,11 +40,13 @@ class DebouncedInput:
     before a new press can be accepted. Sample, arm and watchdog calls share one
     monotonic time contract so no path can silently move the runtime clock backwards.
     That clock contract survives fault reset, preventing recovery from accepting an
-    older firmware timestamp as a new epoch. The first fault cause remains latched
-    until reset so later bad inputs cannot erase the diagnostic that caused the control
-    to fail closed. Firmware may call ``arm`` at input-supervision startup so the
-    no-sample timeout is measured from a known boot point rather than from the first
-    later watchdog service. Repeated arm calls cannot postpone that deadline.
+    older firmware timestamp as a new epoch. Valid timestamps that expose a timeout
+    also advance the clock anchor before the fault is latched, so recovery cannot
+    rewind behind the observation that caused the fault. The first fault cause remains
+    latched until reset so later bad inputs cannot erase the diagnostic that caused the
+    control to fail closed. Firmware may call ``arm`` at input-supervision startup so
+    the no-sample timeout is measured from a known boot point rather than from the
+    first later watchdog service. Repeated arm calls cannot postpone that deadline.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -113,12 +115,12 @@ class DebouncedInput:
         now = float(now_s)
         if self._last_observed_at is not None and now < self._last_observed_at:
             return self._trip("input time moved backwards")
+        self._last_observed_at = now
         if self._last_sample_at is not None and now - self._last_sample_at > self.stale_after_s:
             return self._trip("input stream became stale")
         if self._last_sample_at is None and self._watchdog_started_at is not None:
             if now - self._watchdog_started_at > self.stale_after_s:
                 return self._trip("input stream did not start")
-        self._last_observed_at = now
         self._last_sample_at = now
         self._watchdog_started_at = None
 
