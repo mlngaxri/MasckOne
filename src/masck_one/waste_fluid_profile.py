@@ -104,7 +104,6 @@ def screen_service_profile(
     future-prime contingency for remaining target cycles. These are digital bounds,
     not retained-volume or recovery predictions.
     """
-    budget.validate()
     if not prime_events_by_cycle:
         raise WasteFluidAccountingError("service profile must contain at least one cycle")
     if target_cycles is None:
