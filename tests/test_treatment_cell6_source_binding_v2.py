@@ -3,6 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from masck_one.treatment_cell6_source_binding import (
+    ACCEPTED_CELL6_CANDIDATE_COUNTERFACE_BLOB_SHA1,
+    ACCEPTED_CELL6_CANDIDATE_HEAD_SHA,
+    ACCEPTED_CELL6_CANDIDATE_STATUS,
     CELL6_HEAD_SHA,
     CONSUMED_COUNTERFACE_BLOB_SHA1,
     PHYSICAL_VALIDATION_ELIGIBLE,
@@ -28,6 +31,18 @@ def test_treatment_cell6_v2_binding_is_exact_and_current() -> None:
 
     repo_root = Path(__file__).resolve().parents[1]
     assert verify_consumed_counterface_blobs(repo_root) == CONSUMED_COUNTERFACE_BLOB_SHA1
+
+
+def test_accepted_cell6_candidate_keeps_exact_consumed_counterface_identity() -> None:
+    assert ACCEPTED_CELL6_CANDIDATE_HEAD_SHA == "a248c814d10fb8cd73da83d0b40ace2309a93997"
+    assert ACCEPTED_CELL6_CANDIDATE_STATUS == "ACCEPTED_EXACT_HEAD_DIGITAL_RECEIPT_NOT_CURRENT_RELEASE_LINE"
+    assert ACCEPTED_CELL6_CANDIDATE_COUNTERFACE_BLOB_SHA1 == CONSUMED_COUNTERFACE_BLOB_SHA1
+
+    payload = manifest()
+    assert payload["accepted_cell6_candidate_head_sha"] == ACCEPTED_CELL6_CANDIDATE_HEAD_SHA
+    assert payload["accepted_cell6_candidate_counterfaces_identical"] is True
+    assert payload["live_main_compatibility_claimed"] is False
+    assert payload["accepted_cell6_candidate_counterface_blob_sha1"] == CONSUMED_COUNTERFACE_BLOB_SHA1
 
 
 def test_treatment_cell6_v2_binding_preserves_evidence_firewall_and_supersedes_only_identity() -> None:
