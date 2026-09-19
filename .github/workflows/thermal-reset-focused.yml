@@ -1,0 +1,38 @@
+name: Thermal reset off-face CAD
+on:
+  push:
+    branches: [scheduled/warm-cool-package-20260909]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  thermal-fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - run: python -m pip install -e '.[dev]'
+      - name: Thermal mechanics and evidence firewalls
+        run: python -m pytest -q tests/test_warm_cool_package.py tests/test_thermal_heat_rejection.py tests/test_thermal_reset.py tests/test_thermal_reset_network.py
+      - name: Energy and spreading study
+        run: |
+          python studies/thermal_reset_convergence.py
+          python studies/thermal_plate_spreading.py
+      - name: Exact source passive CAD export and STEP readback
+        env:
+          THERMAL_SOURCE_SHA: ${{ github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$THERMAL_SOURCE_SHA"
+          python scripts/export_thermal_reset.py --output /tmp/masck-thermal-reset --source-head "$THERMAL_SOURCE_SHA"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: passive-thermal-bench-${{ github.sha }}
+          path: |
+            /tmp/masck-thermal-reset/
+            studies/thermal_reset_convergence_results.json
+            studies/thermal_plate_spreading_results.json
+          if-no-files-found: error
