@@ -23,9 +23,15 @@ class ServiceCapacityScreen:
     prime_events: int
     nominal_liquid_mL: float
     prime_liquid_mL: float
+    minimum_recovered_nominal_mL: float
     maximum_cartridge_inflow_mL: float
     requirement_margin_mL: float
     capacity_satisfied: bool
+
+    @property
+    def occupancy_uncertainty_mL(self) -> float:
+        """Gap between guaranteed nominal recovery and fail-conservative inflow."""
+        return self.maximum_cartridge_inflow_mL - self.minimum_recovered_nominal_mL
 
 
 @dataclass(frozen=True)
@@ -48,38 +54,32 @@ class WasteFluidBudget:
 
     @property
     def maximum_unrecovered_nominal_mL_per_cycle(self) -> float:
-        """Nominal liquid left outside recovery when recovery is exactly at its floor."""
         return self.nominal_introduced_mL_per_cycle - self.minimum_recovered_mL_per_cycle
 
     @property
     def maximum_classified_nonrecovery_mL_per_cycle(self) -> float:
-        """Combined authority ceilings for residual free liquid and external leakage."""
         return self.residual_free_liquid_max_mL + self.external_leakage_max_mL_per_cycle
 
     @property
     def recovery_ratio_for_residual_leakage_closure(self) -> float:
-        """Recovery needed if residual and leakage are the only nonrecovery sinks.
-
-        This is a digital conservation threshold, not a prediction that either sink
-        reaches its allowed maximum or that no other physical sink exists.
-        """
+        """Recovery needed if residual and leakage are the only nonrecovery sinks."""
         if self.nominal_introduced_mL_per_cycle == 0.0:
             return 1.0
-        return max(
-            0.0,
-            1.0 - self.maximum_classified_nonrecovery_mL_per_cycle / self.nominal_introduced_mL_per_cycle,
-        )
+        return max(0.0, 1.0 - self.maximum_classified_nonrecovery_mL_per_cycle / self.nominal_introduced_mL_per_cycle)
 
     @property
     def recovery_ratio_closure_delta(self) -> float:
         return self.recovery_ratio_for_residual_leakage_closure - self.recovery_ratio_min
 
     def service_capacity_screen(self, *, cycles: int, prime_events: int) -> ServiceCapacityScreen:
-        """Screen cumulative cartridge inflow for explicit cycle and prime counts.
+        """Bound retained occupancy for explicit service-cycle and prime counts.
 
-        Every prime event is charged at the authority maximum. No residual or leakage
-        credit is taken. Prime events are intentionally independent of cycle count:
-        interruptions can require multiple re-primes during one service cycle.
+        The lower bound counts only nominal liquid that must be recovered at the
+        authority recovery floor. The upper bound charges every introduced nominal
+        and prime volume to the cartridge, taking no residual/leakage credit. Prime
+        recovery is intentionally not assumed because no authority recovery fraction
+        for prime liquid exists. This interval therefore remains conservative at both
+        ends until physical routing and recovery data exist.
         """
         if type(cycles) is not int or cycles <= 0:
             raise WasteFluidAccountingError("cycles must be a positive integer")
@@ -87,6 +87,7 @@ class WasteFluidBudget:
             raise WasteFluidAccountingError("prime_events must be a nonnegative integer")
         nominal = cycles * self.nominal_introduced_mL_per_cycle
         prime = prime_events * self.maximum_initial_prime_mL_per_cycle
+        minimum_recovered = cycles * self.minimum_recovered_mL_per_cycle
         inflow = nominal + prime
         margin = self.cartridge_retained_capacity_requirement_mL - inflow
         return ServiceCapacityScreen(
@@ -94,18 +95,13 @@ class WasteFluidBudget:
             prime_events=prime_events,
             nominal_liquid_mL=nominal,
             prime_liquid_mL=prime,
+            minimum_recovered_nominal_mL=minimum_recovered,
             maximum_cartridge_inflow_mL=inflow,
             requirement_margin_mL=margin,
             capacity_satisfied=margin >= -1e-12,
         )
 
     def maximum_prime_events_that_fit(self, *, cycles: int) -> int | None:
-        """Return the maximum full authority-size prime events fitting capacity.
-
-        ``None`` means the authority prime allowance is zero, so prime count does not
-        consume cartridge capacity in this digital model. Nominal service liquid is
-        always charged first and fails closed if it alone exceeds retained capacity.
-        """
         baseline = self.service_capacity_screen(cycles=cycles, prime_events=0)
         if not baseline.capacity_satisfied:
             raise WasteFluidAccountingError("nominal service liquid alone exceeds cartridge requirement")
@@ -114,12 +110,17 @@ class WasteFluidBudget:
         return math.floor((baseline.requirement_margin_mL + 1e-12) / self.maximum_initial_prime_mL_per_cycle)
 
     @property
+    def conservative_service_screen(self) -> ServiceCapacityScreen:
+        return self.service_capacity_screen(cycles=self.service_cycles, prime_events=self.service_cycles)
+
+    @property
     def maximum_cartridge_inflow_screen_mL(self) -> float:
-        # Fail-conservative gate: assume a maximum prime before every service cycle.
-        return self.service_capacity_screen(
-            cycles=self.service_cycles,
-            prime_events=self.service_cycles,
-        ).maximum_cartridge_inflow_mL
+        return self.conservative_service_screen.maximum_cartridge_inflow_mL
+
+    @property
+    def minimum_retained_waste_screen_mL(self) -> float:
+        """Minimum nominal waste that recovery requirements imply must reach cartridge."""
+        return self.conservative_service_screen.minimum_recovered_nominal_mL
 
     @property
     def cartridge_requirement_margin_mL(self) -> float:
@@ -127,7 +128,6 @@ class WasteFluidBudget:
 
     @property
     def single_initial_prime_service_screen(self) -> ServiceCapacityScreen:
-        """Diagnostic profile with one initial prime; not the capacity acceptance gate."""
         return self.service_capacity_screen(cycles=self.service_cycles, prime_events=1)
 
     def validate(self) -> None:
@@ -147,12 +147,15 @@ class WasteFluidBudget:
             raise WasteFluidAccountingError("recovery ratio must be between zero and one")
         if self.minimum_recovered_mL_per_cycle > self.maximum_liquid_presented_to_recovery_mL_per_cycle:
             raise WasteFluidAccountingError("minimum recovery exceeds available liquid")
+        if self.minimum_retained_waste_screen_mL > self.cartridge_retained_capacity_requirement_mL + 1e-12:
+            raise WasteFluidAccountingError("minimum required recovered waste exceeds cartridge requirement")
         if self.cartridge_requirement_margin_mL < -1e-12:
             raise WasteFluidAccountingError("authority cartridge requirement is below conservative cycle inflow screen")
 
     def manifest(self) -> dict[str, object]:
         self.validate()
         single_prime = self.single_initial_prime_service_screen
+        conservative = self.conservative_service_screen
         return {
             "scope": "DIGITAL_CONSERVATION_AND_CAPACITY_SCREEN_ONLY",
             "service_cycles": self.service_cycles,
@@ -167,23 +170,23 @@ class WasteFluidBudget:
             "recovery_ratio_closure_delta": self.recovery_ratio_closure_delta,
             "residual_free_liquid_max_mL": self.residual_free_liquid_max_mL,
             "external_leakage_max_mL_per_cycle": self.external_leakage_max_mL_per_cycle,
+            "minimum_retained_waste_screen_mL": self.minimum_retained_waste_screen_mL,
             "maximum_cartridge_inflow_screen_mL": self.maximum_cartridge_inflow_screen_mL,
+            "conservative_occupancy_uncertainty_mL": conservative.occupancy_uncertainty_mL,
             "maximum_prime_events_that_fit_baseline_service": self.maximum_prime_events_that_fit(cycles=self.service_cycles),
             "single_initial_prime_service_inflow_mL": single_prime.maximum_cartridge_inflow_mL,
             "single_initial_prime_service_margin_mL": single_prime.requirement_margin_mL,
             "cartridge_retained_capacity_requirement_mL": self.cartridge_retained_capacity_requirement_mL,
             "cartridge_requirement_margin_mL": self.cartridge_requirement_margin_mL,
+            "prime_recovery_assumption": "UNSPECIFIED_NO_CREDIT_IN_LOWER_BOUND",
             "physical_validation_eligible": False,
         }
 
 
 def _authority_service_cycles(authority: Authority) -> int:
-    """Read the discrete service-cycle authority without silently truncating it."""
     value = authority.number("fluid", "cartridge", "service_cycles_baseline")
     if not math.isfinite(value) or value <= 0.0 or not value.is_integer():
-        raise WasteFluidAccountingError(
-            "authority service_cycles_baseline must be a positive integer"
-        )
+        raise WasteFluidAccountingError("authority service_cycles_baseline must be a positive integer")
     return int(value)
 
 
