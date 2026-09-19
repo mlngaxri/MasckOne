@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier, Event, Lock
+
 from masck_one import treatment_collision_kernel_v2 as collision_v2
 from masck_one import treatment_terminal_datum_preload_v4 as v4
 from masck_one.treatment_terminal_datum_preload_v5 import (
@@ -48,4 +51,46 @@ def test_v5_restores_v4_collision_hook_when_build_fails(monkeypatch):
     else:
         raise AssertionError("hostile collision-kernel failure must propagate")
 
+    assert v4.intersection_volume_mm3 is original
+
+
+def test_v5_serializes_process_global_v4_collision_hook(monkeypatch):
+    original = v4.intersection_volume_mm3
+    first_entered = Event()
+    release_first = Event()
+    calls_lock = Lock()
+    call_count = 0
+
+    class Architecture:
+        source_cell6_head_sha = v4.SOURCE_CELL6_HEAD_SHA
+
+    def blocking_build(**kwargs):
+        nonlocal call_count
+        with calls_lock:
+            call_count += 1
+            ordinal = call_count
+        assert v4.intersection_volume_mm3 is collision_v2.intersection_volume_mm3
+        if ordinal == 1:
+            first_entered.set()
+            assert release_first.wait(timeout=2.0)
+        return Architecture()
+
+    monkeypatch.setattr(v4, "build_terminal_datum_preload_v4_architecture", blocking_build)
+    start = Barrier(3)
+
+    def invoke():
+        start.wait(timeout=2.0)
+        return build_terminal_datum_preload_v5_architecture()
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(invoke) for _ in range(2)]
+        start.wait(timeout=2.0)
+        assert first_entered.wait(timeout=2.0)
+        with calls_lock:
+            assert call_count == 1
+        release_first.set()
+        results = [future.result(timeout=2.0) for future in futures]
+
+    assert len(results) == 2
+    assert call_count == 2
     assert v4.intersection_volume_mm3 is original
