@@ -20,6 +20,10 @@ class CycleRoutingScreen:
     prime_external_leakage_mL: float
     residual_ceiling_margin_mL: float
     external_leakage_ceiling_margin_mL: float
+    classified_sink_capacity_after_prime_mL: float
+    nominal_unclassified_nonrecovery_after_prime_mL: float
+    classified_sink_headroom_after_nominal_mL: float
+    local_routing_contract_complete: bool
 
 
 @dataclass(frozen=True)
@@ -40,8 +44,12 @@ def screen_cycle_resolved_routing_closure(
 
     The external-leakage requirement is cycle-scoped, so reprime leakage cannot be
     borrowed from another cycle's unused allowance. Residual is screened with the
-    same cycle locality here as a conservative integration guard. The aggregate
-    service closure is still returned for whole-service mass accounting.
+    same cycle locality here as a conservative integration guard. Each cycle also
+    reports the shared classified-sink capacity left after prime allocations and the
+    nominal nonrecovery that remains unclassified after spending that capacity. This
+    avoids presenting prime-only residual/leakage margins as free capacity when the
+    nominal CLEAN liquid needs the same sinks. The aggregate service closure is still
+    returned for whole-service mass accounting.
     """
     budget.validate()
     if not isinstance(prime_events_by_cycle, (tuple, list)) or not prime_events_by_cycle:
@@ -61,6 +69,12 @@ def screen_cycle_resolved_routing_closure(
             prime_residual_ratio_contract=prime_residual_ratio_contract,
             prime_external_leakage_ratio_contract=prime_external_leakage_ratio_contract,
         )
+        classified_after_prime = (
+            local.prime_residual_ceiling_margin_mL
+            + local.prime_external_leakage_ceiling_margin_mL
+        )
+        nominal_unrecovered = budget.maximum_unrecovered_nominal_mL_per_cycle
+        nominal_gap = local.shared_sink_unclassified_nonrecovery_mL
         screens.append(
             CycleRoutingScreen(
                 cycle=index,
@@ -69,6 +83,12 @@ def screen_cycle_resolved_routing_closure(
                 prime_external_leakage_mL=local.maximum_prime_external_leakage_mL,
                 residual_ceiling_margin_mL=local.prime_residual_ceiling_margin_mL,
                 external_leakage_ceiling_margin_mL=local.prime_external_leakage_ceiling_margin_mL,
+                classified_sink_capacity_after_prime_mL=classified_after_prime,
+                nominal_unclassified_nonrecovery_after_prime_mL=nominal_gap,
+                classified_sink_headroom_after_nominal_mL=max(
+                    0.0, classified_after_prime - nominal_unrecovered
+                ),
+                local_routing_contract_complete=local.routing_contract_complete,
             )
         )
 
