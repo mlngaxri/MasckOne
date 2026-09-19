@@ -51,7 +51,8 @@ jobs:
             src/masck_one/structural_frame_retention_verification_v5.py \
             src/masck_one/structural_frame_retention_verification_v6.py \
             src/masck_one/structural_frame_retention_verification_v7.py \
-            src/masck_one/structural_frame_retention_verification_v8.py
+            src/masck_one/structural_frame_retention_verification_v8.py \
+            src/masck_one/structural_frame_retention_verification_v9.py
       - name: Verify positive retention graph, structural roots, and selected tactile successor
         run: |
           python -m pytest -q \
@@ -63,6 +64,7 @@ jobs:
             tests/test_structural_frame_retention_verification_v6.py \
             tests/test_structural_frame_retention_verification_v7.py \
             tests/test_structural_frame_retention_verification_v8.py \
+            tests/test_structural_frame_retention_verification_v9.py \
             tests/test_retention_quick_release_tactile_v3.py \
             tests/test_retention_quick_release_tactile_v4.py \
             tests/test_retention_quick_release_tactile_v5.py \
@@ -87,7 +89,9 @@ jobs:
 # impossible over-capture metrics or stale Boolean evidence. Structural-root V7 then
 # cross-checks generator-recorded source capture against the independent B-rep result.
 # Structural-root V8 independently measures pin-to-yoke material clearance and requires
-# generator-recorded radial clearance to agree, rejecting stale or mixed mating geometry.
+# generator-recorded radial clearance to agree with the authoritative pin/bore contract.
+# Structural-root V9 verifies each split retainer is axially contained by its capture-pin
+# groove and retains enough radial material beyond the shaft to form a digital axial stop.
 # These are focused-CI gates. Parent Cell 6 and complete-repo CI remain separate release
 # gates. No continuous clearance proof, manufactured tolerance, force, wet-use, wear,
 # contamination or tactile-performance claim is promoted here.
