@@ -43,6 +43,7 @@ jobs:
             src/masck_one/retention_quick_release_tactile_v7.py \
             src/masck_one/retention_quick_release_tactile_v8.py \
             src/masck_one/retention_quick_release_tactile_v9.py \
+            src/masck_one/retention_quick_release_tactile_v10.py \
             src/masck_one/structural_frame_retention_roots.py
       - name: Verify positive retention graph and selected tactile successor
         run: |
@@ -54,14 +55,15 @@ jobs:
             tests/test_retention_quick_release_tactile_v6.py \
             tests/test_retention_quick_release_tactile_v7.py \
             tests/test_retention_quick_release_tactile_v8.py \
-            tests/test_retention_quick_release_tactile_v9.py
+            tests/test_retention_quick_release_tactile_v9.py \
+            tests/test_retention_quick_release_tactile_v10.py
 
 # Branch-level mechanism verification only. V1 and V2 remain explicit superseded
 # evidence. V3 repairs the rib/bumper conflict, V4 screens the full nominal release
 # travel, V5 adds a bounded single-axis clearance/travel grid, V6 adds a Y/Z grid,
 # V7 corrects that grid to respect the spool rail's radial clearance, V8 strengthens
-# transverse boundary sampling, and V9 inserts every inter-station travel midpoint so
-# collisions between the 41 inherited travel stations are also screened. Parent Cell 6
-# and complete-repo CI remain separate release gates. No continuous clearance proof,
-# manufactured tolerance, force, wet-use, wear, contamination or tactile-performance
-# claim is promoted here.
+# transverse boundary sampling, V9 inserts every inter-station travel midpoint, and
+# V10 halves that remaining sampled travel interval again by adding quarter points.
+# Parent Cell 6 and complete-repo CI remain separate release gates. No continuous
+# clearance proof, manufactured tolerance, force, wet-use, wear, contamination or
+# tactile-performance claim is promoted here.
