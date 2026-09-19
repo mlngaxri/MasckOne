@@ -45,12 +45,14 @@ jobs:
             src/masck_one/retention_quick_release_tactile_v9.py \
             src/masck_one/retention_quick_release_tactile_v10.py \
             src/masck_one/structural_frame_retention_roots.py \
-            src/masck_one/structural_frame_retention_verification_v2.py
+            src/masck_one/structural_frame_retention_verification_v2.py \
+            src/masck_one/structural_frame_retention_verification_v3.py
       - name: Verify positive retention graph, structural roots, and selected tactile successor
         run: |
           python -m pytest -q \
             tests/test_mechanical_interface_graph.py \
             tests/test_structural_frame_retention_verification_v2.py \
+            tests/test_structural_frame_retention_verification_v3.py \
             tests/test_retention_quick_release_tactile_v3.py \
             tests/test_retention_quick_release_tactile_v4.py \
             tests/test_retention_quick_release_tactile_v5.py \
@@ -66,7 +68,9 @@ jobs:
 # grid, V7 corrects that grid to respect the spool rail's radial clearance, V8
 # strengthens transverse boundary sampling, V9 inserts every inter-station travel
 # midpoint, and V10 halves that remaining sampled travel interval again by adding
-# quarter points. Structural-root V2 independently fails closed on B-rep query errors
-# and is an explicit focused-CI gate. Parent Cell 6 and complete-repo CI remain
-# separate release gates. No continuous clearance proof, manufactured tolerance,
-# force, wet-use, wear, contamination or tactile-performance claim is promoted here.
+# quarter points. Structural-root V2 independently fails closed on B-rep query errors.
+# Structural-root V3 additionally rejects merely positive but materially incomplete
+# capture-pin engagement through the nominal yoke bore. Both are focused-CI gates.
+# Parent Cell 6 and complete-repo CI remain separate release gates. No continuous
+# clearance proof, manufactured tolerance, force, wet-use, wear, contamination or
+# tactile-performance claim is promoted here.
