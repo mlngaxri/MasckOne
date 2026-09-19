@@ -25,6 +25,7 @@ class ServiceCapacityScreen:
     prime_liquid_mL: float
     maximum_cartridge_inflow_mL: float
     requirement_margin_mL: float
+    capacity_satisfied: bool
 
 
 @dataclass(frozen=True)
@@ -77,26 +78,40 @@ class WasteFluidBudget:
         """Screen cumulative cartridge inflow for explicit cycle and prime counts.
 
         Every prime event is charged at the authority maximum. No residual or leakage
-        credit is taken. ``prime_events`` is explicit so loss of prime or service
-        interruptions cannot disappear inside a per-cycle average.
+        credit is taken. Prime events are intentionally independent of cycle count:
+        interruptions can require multiple re-primes during one service cycle.
         """
         if type(cycles) is not int or cycles <= 0:
             raise WasteFluidAccountingError("cycles must be a positive integer")
         if type(prime_events) is not int or prime_events < 0:
             raise WasteFluidAccountingError("prime_events must be a nonnegative integer")
-        if prime_events > cycles:
-            raise WasteFluidAccountingError("prime_events cannot exceed cycles in this service screen")
         nominal = cycles * self.nominal_introduced_mL_per_cycle
         prime = prime_events * self.maximum_initial_prime_mL_per_cycle
         inflow = nominal + prime
+        margin = self.cartridge_retained_capacity_requirement_mL - inflow
         return ServiceCapacityScreen(
             cycles=cycles,
             prime_events=prime_events,
             nominal_liquid_mL=nominal,
             prime_liquid_mL=prime,
             maximum_cartridge_inflow_mL=inflow,
-            requirement_margin_mL=self.cartridge_retained_capacity_requirement_mL - inflow,
+            requirement_margin_mL=margin,
+            capacity_satisfied=margin >= -1e-12,
         )
+
+    def maximum_prime_events_that_fit(self, *, cycles: int) -> int | None:
+        """Return the maximum full authority-size prime events fitting capacity.
+
+        ``None`` means the authority prime allowance is zero, so prime count does not
+        consume cartridge capacity in this digital model. Nominal service liquid is
+        always charged first and fails closed if it alone exceeds retained capacity.
+        """
+        baseline = self.service_capacity_screen(cycles=cycles, prime_events=0)
+        if not baseline.capacity_satisfied:
+            raise WasteFluidAccountingError("nominal service liquid alone exceeds cartridge requirement")
+        if self.maximum_initial_prime_mL_per_cycle == 0.0:
+            return None
+        return math.floor((baseline.requirement_margin_mL + 1e-12) / self.maximum_initial_prime_mL_per_cycle)
 
     @property
     def maximum_cartridge_inflow_screen_mL(self) -> float:
@@ -153,6 +168,7 @@ class WasteFluidBudget:
             "residual_free_liquid_max_mL": self.residual_free_liquid_max_mL,
             "external_leakage_max_mL_per_cycle": self.external_leakage_max_mL_per_cycle,
             "maximum_cartridge_inflow_screen_mL": self.maximum_cartridge_inflow_screen_mL,
+            "maximum_prime_events_that_fit_baseline_service": self.maximum_prime_events_that_fit(cycles=self.service_cycles),
             "single_initial_prime_service_inflow_mL": single_prime.maximum_cartridge_inflow_mL,
             "single_initial_prime_service_margin_mL": single_prime.requirement_margin_mL,
             "cartridge_retained_capacity_requirement_mL": self.cartridge_retained_capacity_requirement_mL,
