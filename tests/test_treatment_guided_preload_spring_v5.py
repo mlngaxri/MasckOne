@@ -113,12 +113,14 @@ def _valid_capture_screen():
     return {"X_root": 0.01, "Z_root": 0.01, "X_tip": 0.01, "Z_tip": 0.01}
 
 
-def test_guided_v5_rejects_nonfinite_capture_evidence_immediately(monkeypatch):
-    terminal_stations = tuple(SimpleNamespace(reaction_id=value) for value in REACTION_IDS)
-    terminal = SimpleNamespace(
+def _fake_terminal():
+    return SimpleNamespace(
         source_cell6_head_sha=guided_v5.SOURCE_CELL6_HEAD_SHA,
-        stations=terminal_stations,
+        stations=tuple(SimpleNamespace(reaction_id=value) for value in REACTION_IDS),
     )
+
+
+def test_guided_v5_rejects_nonfinite_capture_evidence_immediately(monkeypatch):
     generated = 0
 
     def invalid_capture(station):
@@ -128,7 +130,7 @@ def test_guided_v5_rejects_nonfinite_capture_evidence_immediately(monkeypatch):
         capture["X_root"] = float("nan")
         return SimpleNamespace(reaction_id=station.reaction_id, capture_screen=capture)
 
-    monkeypatch.setattr(guided_v5, "build_terminal_datum_preload_v5_architecture", lambda **_kwargs: terminal)
+    monkeypatch.setattr(guided_v5, "build_terminal_datum_preload_v5_architecture", lambda **_kwargs: _fake_terminal())
     monkeypatch.setattr(guided_v5, "build_guided_preload_spring_station", invalid_capture)
 
     try:
@@ -142,18 +144,12 @@ def test_guided_v5_rejects_nonfinite_capture_evidence_immediately(monkeypatch):
 
 
 def test_guided_v5_rejects_missing_capture_probe(monkeypatch):
-    terminal_stations = tuple(SimpleNamespace(reaction_id=value) for value in REACTION_IDS)
-    terminal = SimpleNamespace(
-        source_cell6_head_sha=guided_v5.SOURCE_CELL6_HEAD_SHA,
-        stations=terminal_stations,
-    )
-
     def incomplete_capture(station):
         capture = _valid_capture_screen()
         del capture["Z_tip"]
         return SimpleNamespace(reaction_id=station.reaction_id, capture_screen=capture)
 
-    monkeypatch.setattr(guided_v5, "build_terminal_datum_preload_v5_architecture", lambda **_kwargs: terminal)
+    monkeypatch.setattr(guided_v5, "build_terminal_datum_preload_v5_architecture", lambda **_kwargs: _fake_terminal())
     monkeypatch.setattr(guided_v5, "build_guided_preload_spring_station", incomplete_capture)
 
     try:
@@ -162,3 +158,37 @@ def test_guided_v5_rejects_missing_capture_probe(monkeypatch):
         assert "capture screen keys drifted" in str(exc)
     else:
         raise AssertionError("missing capture probe must fail closed")
+
+
+def test_guided_v5_rejects_string_capture_evidence_without_coercion(monkeypatch):
+    def string_capture(station):
+        capture = _valid_capture_screen()
+        capture["X_root"] = "0.01"
+        return SimpleNamespace(reaction_id=station.reaction_id, capture_screen=capture)
+
+    monkeypatch.setattr(guided_v5, "build_terminal_datum_preload_v5_architecture", lambda **_kwargs: _fake_terminal())
+    monkeypatch.setattr(guided_v5, "build_guided_preload_spring_station", string_capture)
+
+    try:
+        build_guided_preload_spring_v5_architecture()
+    except ValueError as exc:
+        assert "must be a real numeric volume" in str(exc)
+    else:
+        raise AssertionError("serialized string evidence must not qualify geometry")
+
+
+def test_guided_v5_rejects_boolean_capture_evidence(monkeypatch):
+    def boolean_capture(station):
+        capture = _valid_capture_screen()
+        capture["X_root"] = True
+        return SimpleNamespace(reaction_id=station.reaction_id, capture_screen=capture)
+
+    monkeypatch.setattr(guided_v5, "build_terminal_datum_preload_v5_architecture", lambda **_kwargs: _fake_terminal())
+    monkeypatch.setattr(guided_v5, "build_guided_preload_spring_station", boolean_capture)
+
+    try:
+        build_guided_preload_spring_v5_architecture()
+    except ValueError as exc:
+        assert "must be a real numeric volume" in str(exc)
+    else:
+        raise AssertionError("boolean evidence must not qualify geometry")
