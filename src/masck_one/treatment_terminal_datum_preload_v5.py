@@ -10,6 +10,7 @@ before that existing exact fallback can run.
 """
 
 from contextlib import contextmanager
+from threading import RLock
 from typing import Iterator
 
 from . import treatment_collision_kernel_v2 as collision_v2
@@ -22,6 +23,12 @@ COLLISION_KERNEL = "TREATMENT_COLLISION_KERNEL_V2"
 TreatmentTerminalDatumPreloadV5Error = v4.TreatmentTerminalDatumPreloadV4Error
 TerminalDatumPreloadV5Architecture = v4.TerminalDatumPreloadV4Architecture
 
+# V5 temporarily rebinds process-global V4 module state. Serialize that mutation so
+# overlapping V5 callers cannot capture another build's V2 hook as their "original"
+# and subsequently restore V4 to the promoted kernel. RLock preserves nested use in
+# the same thread without weakening failure restoration.
+_COLLISION_HOOK_LOCK = RLock()
+
 
 @contextmanager
 def _v2_collision_verification() -> Iterator[None]:
@@ -30,14 +37,15 @@ def _v2_collision_verification() -> Iterator[None]:
     V4 imports the collision function into its module namespace. Rebinding that hook
     here avoids copying geometry code while keeping legacy V4 behaviour unchanged for
     historical reproduction. The original hook is restored even if verification
-    fails, so importing or building V5 cannot silently alter later V4 callers.
+    fails. The mutation window is serialized because the hook is process-global.
     """
-    original = v4.intersection_volume_mm3
-    v4.intersection_volume_mm3 = collision_v2.intersection_volume_mm3
-    try:
-        yield
-    finally:
-        v4.intersection_volume_mm3 = original
+    with _COLLISION_HOOK_LOCK:
+        original = v4.intersection_volume_mm3
+        v4.intersection_volume_mm3 = collision_v2.intersection_volume_mm3
+        try:
+            yield
+        finally:
+            v4.intersection_volume_mm3 = original
 
 
 def build_terminal_datum_preload_v5_architecture(**kwargs) -> TerminalDatumPreloadV5Architecture:
