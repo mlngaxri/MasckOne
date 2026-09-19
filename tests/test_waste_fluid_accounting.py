@@ -27,14 +27,37 @@ def test_service_profile_tracks_prime_events_separately_from_cycles():
     single_prime = budget.service_capacity_screen(cycles=6, prime_events=1)
     assert single_prime.nominal_liquid_mL == pytest.approx(27.6)
     assert single_prime.prime_liquid_mL == pytest.approx(0.4)
+    assert single_prime.minimum_recovered_nominal_mL == pytest.approx(24.84)
     assert single_prime.maximum_cartridge_inflow_mL == pytest.approx(28.0)
     assert single_prime.requirement_margin_mL == pytest.approx(7.0)
+    assert single_prime.occupancy_uncertainty_mL == pytest.approx(3.16)
     assert single_prime.capacity_satisfied is True
 
     every_cycle_reprime = budget.service_capacity_screen(cycles=6, prime_events=6)
+    assert every_cycle_reprime.minimum_recovered_nominal_mL == pytest.approx(24.84)
     assert every_cycle_reprime.maximum_cartridge_inflow_mL == pytest.approx(30.0)
+    assert every_cycle_reprime.occupancy_uncertainty_mL == pytest.approx(5.16)
     assert every_cycle_reprime.requirement_margin_mL == pytest.approx(5.0)
     assert budget.maximum_cartridge_inflow_screen_mL == every_cycle_reprime.maximum_cartridge_inflow_mL
+
+
+def test_retained_occupancy_interval_does_not_assume_prime_recovery():
+    budget = build_authority_waste_fluid_budget()
+    no_prime = budget.service_capacity_screen(cycles=6, prime_events=0)
+    many_primes = budget.service_capacity_screen(cycles=6, prime_events=10)
+    assert no_prime.minimum_recovered_nominal_mL == pytest.approx(24.84)
+    assert many_primes.minimum_recovered_nominal_mL == pytest.approx(24.84)
+    assert many_primes.maximum_cartridge_inflow_mL - no_prime.maximum_cartridge_inflow_mL == pytest.approx(4.0)
+    manifest = budget.manifest()
+    assert manifest["minimum_retained_waste_screen_mL"] == pytest.approx(24.84)
+    assert manifest["conservative_occupancy_uncertainty_mL"] == pytest.approx(5.16)
+    assert manifest["prime_recovery_assumption"] == "UNSPECIFIED_NO_CREDIT_IN_LOWER_BOUND"
+
+
+def test_minimum_required_recovery_cannot_exceed_cartridge_requirement():
+    budget = replace(build_authority_waste_fluid_budget(), recovery_ratio_min=1.0, service_cycles=8)
+    with pytest.raises(WasteFluidAccountingError, match="minimum required recovered waste"):
+        budget.validate()
 
 
 def test_each_additional_prime_consumes_exact_prime_allowance():
@@ -47,8 +70,6 @@ def test_each_additional_prime_consumes_exact_prime_allowance():
 
 def test_reprime_events_can_exceed_cycle_count_and_fail_at_capacity_boundary():
     budget = build_authority_waste_fluid_budget()
-    # Six nominal cycles consume 27.6 mL, leaving 7.4 mL. At 0.4 mL per
-    # full-size prime event, 18 events fit and the 19th exceeds 35 mL.
     assert budget.maximum_prime_events_that_fit(cycles=6) == 18
     eighteen = budget.service_capacity_screen(cycles=6, prime_events=18)
     nineteen = budget.service_capacity_screen(cycles=6, prime_events=19)
@@ -94,7 +115,6 @@ def test_unrecovered_fluid_closure_exposes_cross_requirement_threshold():
     assert budget.maximum_classified_nonrecovery_mL_per_cycle == pytest.approx(0.450)
     assert budget.recovery_ratio_for_residual_leakage_closure == pytest.approx(0.9021739130434783)
     assert budget.recovery_ratio_closure_delta == pytest.approx(0.0021739130434783)
-
     manifest = budget.manifest()
     assert manifest["maximum_unrecovered_nominal_mL_per_cycle"] == pytest.approx(0.460)
     assert manifest["maximum_classified_nonrecovery_mL_per_cycle"] == pytest.approx(0.450)
@@ -110,20 +130,12 @@ def test_closure_threshold_does_not_promote_recovery_floor():
 
 def test_capacity_screen_credits_neither_residual_nor_leakage():
     budget = build_authority_waste_fluid_budget()
-    changed = replace(
-        budget,
-        residual_free_liquid_max_mL=0.0,
-        external_leakage_max_mL_per_cycle=0.0,
-    )
+    changed = replace(budget, residual_free_liquid_max_mL=0.0, external_leakage_max_mL_per_cycle=0.0)
     assert changed.maximum_cartridge_inflow_screen_mL == budget.maximum_cartridge_inflow_screen_mL
 
 
 def test_zero_nominal_volume_has_defined_closure_threshold():
-    budget = replace(
-        build_authority_waste_fluid_budget(),
-        nominal_introduced_mL_per_cycle=0.0,
-        recovery_ratio_min=0.0,
-    )
+    budget = replace(build_authority_waste_fluid_budget(), nominal_introduced_mL_per_cycle=0.0, recovery_ratio_min=0.0)
     assert budget.recovery_ratio_for_residual_leakage_closure == pytest.approx(1.0)
 
 
@@ -156,10 +168,6 @@ def test_fractional_authority_cycle_count_is_not_silently_truncated():
     base = load_authority()
     data = deepcopy(base.data)
     data["fluid"]["cartridge"]["service_cycles_baseline"] = 6.5
-    mutated = Authority(
-        data=data,
-        source=base.source,
-        validation_report=base.validation_report,
-    )
+    mutated = Authority(data=data, source=base.source, validation_report=base.validation_report)
     with pytest.raises(WasteFluidAccountingError, match="service_cycles_baseline"):
         build_authority_waste_fluid_budget(mutated)
