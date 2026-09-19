@@ -93,14 +93,16 @@ def screen_service_routing_closure(
 
     Residual and leakage ceilings are shared by nominal and prime liquid. Prime sink
     allocations therefore reduce the classified capacity available to nominal
-    nonrecovery before the service-level closure gap is calculated. This prevents a
-    prime contract from silently spending ceiling capacity already needed to close
-    the nominal recovery requirement. These are digital interface contracts, not
-    measured recovery, residual or leakage performance.
+    nonrecovery before the service-level closure gap is calculated. The requested
+    service interval may be a prefix of the configured cartridge life, but may not
+    extend beyond it and thereby manufacture additional sink allowance. These are
+    digital interface contracts, not measured recovery, residual or leakage performance.
     """
     budget.validate()
     if type(cycles) is not int or cycles <= 0:
         raise WasteFluidAccountingError("cycles must be a positive integer")
+    if cycles > budget.service_cycles:
+        raise WasteFluidAccountingError("cycles exceeds configured service life")
     if type(prime_events) is not int or prime_events < 0:
         raise WasteFluidAccountingError("prime_events must be a nonnegative integer")
 
