@@ -54,12 +54,14 @@ class DebouncedInput:
     command. Once faulted, an explicit reset and debounced release are required before
     a new press can be accepted. Sample, arm, watchdog and timed reset calls share one
     monotonic time contract so no path can silently move the runtime clock backwards.
-    That clock contract survives fault reset. Firmware may pass ``now_s`` to ``reset``
+    That clock contract survives fault reset. While a fault is latched, valid monotonic
+    timestamps supplied to sample, arm or watchdog continue to advance the shared clock
+    floor without replacing the first fault. Firmware may pass ``now_s`` to ``reset``
     so recovery no-sample supervision begins at the actual reset request rather than at
-    the older fault observation. A timed healthy reset is otherwise non-destructive but
-    still advances the shared clock observation. Legacy untimed reset remains supported
-    and starts its recovery window at the next arm, sample or watchdog observation.
-    Valid sample timestamps are clock observations even when the electrical level is
+    an older observation. A timed healthy reset is otherwise non-destructive but still
+    advances the shared clock observation. Legacy untimed reset remains supported and
+    starts its recovery window at the next arm, sample or watchdog observation. Valid
+    sample timestamps are clock observations even when the electrical level is
     malformed. The first fault cause remains latched until reset. Timing gates compare
     absolute deadlines rather than subtracting floating timestamps.
     """
@@ -119,9 +121,24 @@ class DebouncedInput:
     def _fault_event(self) -> InputEvent:
         return InputEvent(False, Edge.NONE, True, self._fault, self._fault_code)
 
+    def _observe_time_while_faulted(self, now_s: object) -> None:
+        """Advance the clock floor from a valid post-fault service observation.
+
+        Invalid or regressed values are ignored while faulted so the first diagnostic
+        remains authoritative. A valid later timestamp is still meaningful to recovery:
+        reset must not be able to establish a new epoch earlier than firmware time that
+        this runtime has already observed.
+        """
+        if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
+            return
+        now = float(now_s)
+        if self._last_observed_at is None or now >= self._last_observed_at:
+            self._last_observed_at = now
+
     def arm(self, *, now_s: float) -> InputEvent:
         """Start no-sample supervision from an explicit firmware lifecycle point."""
         if self._fault is not None:
+            self._observe_time_while_faulted(now_s)
             return self._fault_event()
         if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
             return self._trip(FaultCode.ARM_TIME_INVALID, "arm time must be finite")
@@ -139,6 +156,7 @@ class DebouncedInput:
 
     def sample(self, *, pressed: bool, now_s: float) -> InputEvent:
         if self._fault is not None:
+            self._observe_time_while_faulted(now_s)
             return self._fault_event()
         if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
             return self._trip(FaultCode.SAMPLE_TIME_INVALID, "now_s must be finite")
@@ -190,6 +208,7 @@ class DebouncedInput:
     def watchdog(self, *, now_s: float) -> InputEvent:
         """Fail closed when sampling stops or never starts, without synthesising an edge."""
         if self._fault is not None:
+            self._observe_time_while_faulted(now_s)
             return self._fault_event()
         if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
             return self._trip(FaultCode.WATCHDOG_TIME_INVALID, "watchdog time must be finite")
