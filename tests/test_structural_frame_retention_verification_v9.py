@@ -1,8 +1,13 @@
 from dataclasses import replace
 
+import cadquery as cq
 import pytest
 
-from masck_one.structural_frame_retention_roots import CLEVIS_PIN_GROOVE_WIDTH_MM
+from masck_one.model import build_model
+from masck_one.structural_frame_retention_roots import (
+    CLEVIS_PIN_GROOVE_WIDTH_MM,
+    build_structural_frame_retention_roots,
+)
 from masck_one.structural_frame_retention_verification_v9 import (
     MIN_RADIAL_WITHDRAWAL_BLOCK_MM,
     StructuralFrameRetentionVerificationV9,
@@ -38,6 +43,18 @@ def test_v9_rejects_insufficient_radial_withdrawal_block():
     bad[0] = (bad[0][0], MIN_RADIAL_WITHDRAWAL_BLOCK_MM - 0.01)
     with pytest.raises(StructuralFrameRetentionVerificationV9Error, match="minimum digital radial withdrawal block"):
         StructuralFrameRetentionVerificationV9(v8=v8, retainer_axial_spans_mm=spans, radial_withdrawal_blocks_mm=tuple(bad)).validate()
+
+
+def test_v9_rejects_undersized_installed_retainer_brep():
+    model = build_model()
+    architecture = build_structural_frame_retention_roots(model=model)
+    root = architecture.roots[0]
+    x, y, z = root.center_xyz_mm
+    undersized = cq.Workplane("XY").box(2.0, 0.5, 2.0, centered=(True, True, True)).translate((x, y, z))
+    bad_root = replace(root, split_retainer=undersized)
+    bad_architecture = replace(architecture, roots=(bad_root, architecture.roots[1]))
+    with pytest.raises(StructuralFrameRetentionVerificationV9Error, match="minimum digital radial withdrawal block"):
+        verify_structural_frame_retention_roots_v9(model=model, architecture=bad_architecture)
 
 
 def test_v9_rejects_duplicate_root_identity():
