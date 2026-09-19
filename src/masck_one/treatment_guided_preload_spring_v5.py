@@ -8,6 +8,7 @@ bound stations are first verified with the fail-closed collision-kernel V2 befor
 spring cassettes are generated from them.
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 import math
 from numbers import Real
@@ -47,7 +48,10 @@ class GuidedPreloadSpringV5Architecture:
 
 def _require_exact_station_identity(stations, *, stage: str) -> None:
     """Reject missing, duplicate, unexpected, or reordered four-zone station sets."""
-    actual = tuple(station.reaction_id for station in stations)
+    try:
+        actual = tuple(station.reaction_id for station in stations)
+    except (AttributeError, TypeError) as exc:
+        raise ValueError(f"guided spring V5 {stage} station identity is not readable") from exc
     expected = tuple(REACTION_IDS)
     if actual != expected:
         raise ValueError(
@@ -56,24 +60,31 @@ def _require_exact_station_identity(stations, *, stage: str) -> None:
         )
 
 
-def _require_capture_screen(station: GuidedPreloadSpringStation) -> None:
+def _require_capture_screen(station) -> None:
     """Fail closed on incomplete, mistyped, or non-finite geometric capture evidence."""
-    actual_keys = frozenset(station.capture_screen)
+    reaction_id = getattr(station, "reaction_id", "<unreadable>")
+    capture_screen = getattr(station, "capture_screen", None)
+    if not isinstance(capture_screen, Mapping):
+        raise ValueError(
+            f"guided spring V5 {reaction_id} capture screen must be a mapping; "
+            f"got {type(capture_screen).__name__}"
+        )
+    actual_keys = frozenset(capture_screen)
     if actual_keys != _CAPTURE_KEYS:
         raise ValueError(
-            f"guided spring V5 {station.reaction_id} capture screen keys drifted: "
+            f"guided spring V5 {reaction_id} capture screen keys drifted: "
             f"expected {sorted(_CAPTURE_KEYS)!r}, got {sorted(actual_keys)!r}"
         )
-    for name, value in station.capture_screen.items():
+    for name, value in capture_screen.items():
         if isinstance(value, bool) or not isinstance(value, Real):
             raise ValueError(
-                f"guided spring V5 {station.reaction_id} {name} capture evidence "
+                f"guided spring V5 {reaction_id} {name} capture evidence "
                 f"must be a real numeric volume; got {value!r}"
             )
         numeric = float(value)
         if not math.isfinite(numeric) or numeric <= _INTERSECTION_TOLERANCE_MM3:
             raise ValueError(
-                f"guided spring V5 {station.reaction_id} {name} capture evidence "
+                f"guided spring V5 {reaction_id} {name} capture evidence "
                 f"must be finite and > {_INTERSECTION_TOLERANCE_MM3} mm^3; got {value!r}"
             )
 
@@ -88,15 +99,15 @@ def build_guided_preload_spring_v5_architecture(**terminal_kwargs) -> GuidedPrel
     generated: list[GuidedPreloadSpringStation] = []
     for terminal_station in terminal.stations:
         station = build_guided_preload_spring_station(terminal_station)
-        if station.reaction_id != terminal_station.reaction_id:
+        reaction_id = getattr(station, "reaction_id", None)
+        if reaction_id != terminal_station.reaction_id:
             raise ValueError(
                 "guided spring V5 generated station identity drifted: "
-                f"expected {terminal_station.reaction_id!r}, got {station.reaction_id!r}"
+                f"expected {terminal_station.reaction_id!r}, got {reaction_id!r}"
             )
-        # Preserve the most specific evidence diagnostic first, then require the
-        # concrete engineering station type before the object can enter the returned
-        # architecture. This prevents a duck-typed proxy from satisfying the V5
-        # boundary while retaining fail-closed diagnostics for malformed evidence.
+        # Preserve specific capture diagnostics for duck-typed hostile fixtures, but
+        # make the evidence boundary itself total: missing or malformed attributes
+        # now fail closed with ValueError instead of leaking AttributeError/TypeError.
         _require_capture_screen(station)
         if not isinstance(station, GuidedPreloadSpringStation):
             raise ValueError(
