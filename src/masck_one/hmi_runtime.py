@@ -40,7 +40,9 @@ class DebouncedInput:
     before a new press can be accepted. Sample and watchdog calls share one monotonic
     time contract so neither path can silently move the runtime clock backwards. The
     first fault cause remains latched until reset so later bad inputs cannot erase the
-    diagnostic that caused the control to fail closed.
+    diagnostic that caused the control to fail closed. If the watchdog runs before the
+    first sample, its first observation starts a bounded startup window; failure to
+    receive any sample within that window also fails closed.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -62,6 +64,7 @@ class DebouncedInput:
         self._candidate_since: float | None = None
         self._last_sample_at: float | None = None
         self._last_observed_at: float | None = None
+        self._watchdog_started_at: float | None = None
         self._fault: str | None = None
         self._require_release = require_release
 
@@ -83,6 +86,7 @@ class DebouncedInput:
             return self._trip("input stream became stale")
         self._last_observed_at = now
         self._last_sample_at = now
+        self._watchdog_started_at = None
 
         if self._require_release:
             if pressed:
@@ -116,7 +120,7 @@ class DebouncedInput:
         return InputEvent(self._stable, Edge.PRESSED if self._stable else Edge.RELEASED)
 
     def watchdog(self, *, now_s: float) -> InputEvent:
-        """Fail closed when sampling stops, without synthesising an input edge."""
+        """Fail closed when sampling stops or never starts, without synthesising an edge."""
         if self._fault is not None:
             return InputEvent(False, Edge.NONE, True, self._fault)
         if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
@@ -126,6 +130,11 @@ class DebouncedInput:
             return self._trip("watchdog time moved backwards")
         self._last_observed_at = now
         if self._last_sample_at is None:
+            if self._watchdog_started_at is None:
+                self._watchdog_started_at = now
+                return InputEvent(False, Edge.NONE)
+            if now - self._watchdog_started_at > self.stale_after_s:
+                return self._trip("input stream did not start")
             return InputEvent(False, Edge.NONE)
         if now - self._last_sample_at > self.stale_after_s:
             return self._trip("input stream became stale")
