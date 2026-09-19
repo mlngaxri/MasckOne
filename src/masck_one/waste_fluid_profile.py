@@ -26,6 +26,9 @@ class CycleFluidState:
     requirement_margin_mL: float
     capacity_satisfied: bool
     minimum_recovery_capacity_satisfied: bool
+    minimum_projected_service_end_recovered_mL: float
+    projected_mandatory_recovery_margin_mL: float
+    mandatory_recovery_service_target_feasible: bool
     minimum_projected_service_end_inflow_mL: float
     projected_service_end_margin_mL: float
     service_target_feasible: bool
@@ -37,6 +40,7 @@ class ServiceFluidProfile:
     target_cycles: int
     first_overflow_cycle: int | None
     first_mandatory_recovery_overflow_cycle: int | None
+    first_mandatory_recovery_target_infeasible_cycle: int | None
     first_target_infeasible_cycle: int | None
 
     @property
@@ -46,6 +50,10 @@ class ServiceFluidProfile:
     @property
     def mandatory_recovery_capacity_satisfied(self) -> bool:
         return self.first_mandatory_recovery_overflow_cycle is None
+
+    @property
+    def mandatory_recovery_service_target_feasible(self) -> bool:
+        return self.first_mandatory_recovery_target_infeasible_cycle is None
 
     @property
     def service_target_feasible(self) -> bool:
@@ -70,17 +78,15 @@ def screen_service_profile(
     the full authority prime allowance and no recovery, residual, or leakage credit
     is taken in the upper occupancy bound.
 
-    Each state also carries the lower occupancy bound implied by the minimum nominal
-    recovery requirement. Prime recovery is deliberately excluded from that lower
-    bound because no authority recovery fraction exists for prime liquid. Keeping
-    both bounds visible prevents an uncertain occupancy interval from being mistaken
-    for a physical retained-volume prediction.
+    Each state carries the lower occupancy bound implied by minimum nominal
+    recovery. Prime recovery is excluded because no authority recovery fraction
+    exists for prime liquid. The screen also reserves the mandatory nominal recovery
+    for every remaining target cycle. This makes a cartridge that cannot hold the
+    waste it is required to recover fail before that physical occupancy is reached.
 
-    At each boundary the screen reserves nominal liquid for every cycle still needed
-    to reach ``target_cycles``. This catches a reprime-heavy early sequence that has
-    not overflowed yet but has already consumed too much capacity to finish the
-    intended service life. Future reprimes are not assumed in this projection, so an
-    infeasible result is fail-closed even under the best remaining prime case.
+    Separately, the fail-conservative projection reserves all nominal liquid for the
+    remaining target cycles. Future reprimes are not assumed in either projection.
+    These are digital bounds, not retained-volume or recovery predictions.
     """
     if not prime_events_by_cycle:
         raise WasteFluidAccountingError("service profile must contain at least one cycle")
@@ -95,6 +101,7 @@ def screen_service_profile(
     cumulative_primes = 0
     first_overflow: int | None = None
     first_mandatory_recovery_overflow: int | None = None
+    first_mandatory_recovery_target_infeasible: int | None = None
     first_target_infeasible: int | None = None
 
     for cycle, prime_events in enumerate(prime_events_by_cycle, start=1):
@@ -103,6 +110,16 @@ def screen_service_profile(
         cumulative_primes += prime_events
         aggregate = budget.service_capacity_screen(cycles=cycle, prime_events=cumulative_primes)
         remaining_cycles = target_cycles - cycle
+
+        projected_mandatory_recovery = (
+            aggregate.minimum_recovered_nominal_mL
+            + remaining_cycles * budget.minimum_recovered_mL_per_cycle
+        )
+        projected_mandatory_recovery_margin = (
+            budget.cartridge_retained_capacity_requirement_mL - projected_mandatory_recovery
+        )
+        mandatory_recovery_target_feasible = projected_mandatory_recovery_margin >= -1e-12
+
         projected_end_inflow = (
             aggregate.maximum_cartridge_inflow_mL
             + remaining_cycles * budget.nominal_introduced_mL_per_cycle
@@ -125,6 +142,9 @@ def screen_service_profile(
             requirement_margin_mL=aggregate.requirement_margin_mL,
             capacity_satisfied=aggregate.capacity_satisfied,
             minimum_recovery_capacity_satisfied=minimum_recovery_capacity_satisfied,
+            minimum_projected_service_end_recovered_mL=projected_mandatory_recovery,
+            projected_mandatory_recovery_margin_mL=projected_mandatory_recovery_margin,
+            mandatory_recovery_service_target_feasible=mandatory_recovery_target_feasible,
             minimum_projected_service_end_inflow_mL=projected_end_inflow,
             projected_service_end_margin_mL=projected_end_margin,
             service_target_feasible=target_feasible,
@@ -134,6 +154,8 @@ def screen_service_profile(
             first_overflow = cycle
         if first_mandatory_recovery_overflow is None and not state.minimum_recovery_capacity_satisfied:
             first_mandatory_recovery_overflow = cycle
+        if first_mandatory_recovery_target_infeasible is None and not state.mandatory_recovery_service_target_feasible:
+            first_mandatory_recovery_target_infeasible = cycle
         if first_target_infeasible is None and not state.service_target_feasible:
             first_target_infeasible = cycle
 
@@ -142,5 +164,6 @@ def screen_service_profile(
         target_cycles,
         first_overflow,
         first_mandatory_recovery_overflow,
+        first_mandatory_recovery_target_infeasible,
         first_target_infeasible,
     )
