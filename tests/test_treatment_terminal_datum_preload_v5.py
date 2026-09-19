@@ -64,11 +64,31 @@ def test_v5_rejects_duck_typed_builder_result(monkeypatch):
     try:
         build_terminal_datum_preload_v5_architecture()
     except TreatmentTerminalDatumPreloadV5Error as exc:
-        assert "invalid architecture type" in str(exc)
+        assert "requires exact architecture type" in str(exc)
     else:
         raise AssertionError("duck-typed terminal architecture must fail closed")
 
     assert v4.intersection_volume_mm3 is original_hook
+
+
+def test_v5_rejects_subclassed_builder_result(monkeypatch):
+    class HostileArchitecture(v4.TerminalDatumPreloadV4Architecture):
+        pass
+
+    real = v4.build_terminal_datum_preload_v4_architecture()
+    hostile = HostileArchitecture(**real.__dict__)
+    monkeypatch.setattr(
+        v4,
+        "build_terminal_datum_preload_v4_architecture",
+        lambda **_kwargs: hostile,
+    )
+
+    try:
+        build_terminal_datum_preload_v5_architecture()
+    except TreatmentTerminalDatumPreloadV5Error as exc:
+        assert "requires exact architecture type" in str(exc)
+    else:
+        raise AssertionError("subclassed terminal architecture must fail closed")
 
 
 def test_v5_manifest_rejects_unverified_duck_typed_architecture():
@@ -76,9 +96,24 @@ def test_v5_manifest_rejects_unverified_duck_typed_architecture():
     try:
         manifest_v5(fake)
     except TreatmentTerminalDatumPreloadV5Error as exc:
-        assert "requires a verified architecture" in str(exc)
+        assert "requires exact architecture type" in str(exc)
     else:
         raise AssertionError("manifest must not certify an unverified architecture")
+
+
+def test_v5_manifest_rejects_subclassed_architecture():
+    class HostileArchitecture(v4.TerminalDatumPreloadV4Architecture):
+        def manifest(self):
+            return {"schema": "hostile"}
+
+    real = v4.build_terminal_datum_preload_v4_architecture()
+    hostile = HostileArchitecture(**real.__dict__)
+    try:
+        manifest_v5(hostile)
+    except TreatmentTerminalDatumPreloadV5Error as exc:
+        assert "requires exact architecture type" in str(exc)
+    else:
+        raise AssertionError("manifest must not certify a subclassed architecture")
 
 
 def test_v5_serializes_process_global_v4_collision_hook(monkeypatch):
@@ -118,5 +153,5 @@ def test_v5_serializes_process_global_v4_collision_hook(monkeypatch):
 
     assert len(results) == 2
     assert call_count == 2
-    assert all(isinstance(result, v4.TerminalDatumPreloadV4Architecture) for result in results)
+    assert all(type(result) is v4.TerminalDatumPreloadV4Architecture for result in results)
     assert v4.intersection_volume_mm3 is original_hook
