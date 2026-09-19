@@ -26,16 +26,25 @@ class CycleFluidState:
     maximum_cartridge_inflow_mL: float
     requirement_margin_mL: float
     capacity_satisfied: bool
+    minimum_projected_service_end_inflow_mL: float
+    projected_service_end_margin_mL: float
+    service_target_feasible: bool
 
 
 @dataclass(frozen=True)
 class ServiceFluidProfile:
     cycles: tuple[CycleFluidState, ...]
+    target_cycles: int
     first_overflow_cycle: int | None
+    first_target_infeasible_cycle: int | None
 
     @property
     def capacity_satisfied(self) -> bool:
         return self.first_overflow_cycle is None
+
+    @property
+    def service_target_feasible(self) -> bool:
+        return self.first_target_infeasible_cycle is None
 
     @property
     def final(self) -> CycleFluidState:
@@ -46,20 +55,37 @@ def screen_service_profile(
     budget: WasteFluidBudget,
     *,
     prime_events_by_cycle: Sequence[int],
+    target_cycles: int | None = None,
 ) -> ServiceFluidProfile:
     """Screen cumulative cartridge loading at every service-cycle boundary.
 
     ``prime_events_by_cycle`` records actual or assumed reprime counts for each
-    cycle. Multiple reprimes in one cycle are allowed because no authority limit
-    currently constrains their count. Every prime is charged at the full authority
-    prime allowance and no recovery, residual, or leakage credit is taken.
+    observed or planned cycle. Multiple reprimes in one cycle are allowed because
+    no authority limit currently constrains their count. Every prime is charged at
+    the full authority prime allowance and no recovery, residual, or leakage credit
+    is taken.
+
+    At each boundary the screen also reserves nominal liquid for every cycle still
+    needed to reach ``target_cycles``. This catches a reprime-heavy early sequence
+    that has not overflowed yet but has already consumed too much capacity to finish
+    the intended service life. Future reprimes are not assumed in this projection,
+    so an infeasible result is fail-closed even under the best remaining prime case.
     """
     if not prime_events_by_cycle:
         raise WasteFluidAccountingError("service profile must contain at least one cycle")
+    if target_cycles is None:
+        target_cycles = budget.service_cycles
+    if type(target_cycles) is not int or target_cycles <= 0:
+        raise WasteFluidAccountingError("target_cycles must be a positive integer")
+    if target_cycles < len(prime_events_by_cycle):
+        raise WasteFluidAccountingError(
+            "target_cycles cannot be less than the profiled cycle count"
+        )
 
     states: list[CycleFluidState] = []
     cumulative_primes = 0
     first_overflow: int | None = None
+    first_target_infeasible: int | None = None
 
     for cycle, prime_events in enumerate(prime_events_by_cycle, start=1):
         if type(prime_events) is not int or prime_events < 0:
@@ -71,6 +97,15 @@ def screen_service_profile(
             cycles=cycle,
             prime_events=cumulative_primes,
         )
+        remaining_cycles = target_cycles - cycle
+        projected_end_inflow = (
+            aggregate.maximum_cartridge_inflow_mL
+            + remaining_cycles * budget.nominal_introduced_mL_per_cycle
+        )
+        projected_end_margin = (
+            budget.cartridge_retained_capacity_requirement_mL - projected_end_inflow
+        )
+        target_feasible = projected_end_margin >= -1e-12
         state = CycleFluidState(
             cycle=cycle,
             prime_events_this_cycle=prime_events,
@@ -80,9 +115,19 @@ def screen_service_profile(
             maximum_cartridge_inflow_mL=aggregate.maximum_cartridge_inflow_mL,
             requirement_margin_mL=aggregate.requirement_margin_mL,
             capacity_satisfied=aggregate.capacity_satisfied,
+            minimum_projected_service_end_inflow_mL=projected_end_inflow,
+            projected_service_end_margin_mL=projected_end_margin,
+            service_target_feasible=target_feasible,
         )
         states.append(state)
         if first_overflow is None and not state.capacity_satisfied:
             first_overflow = cycle
+        if first_target_infeasible is None and not state.service_target_feasible:
+            first_target_infeasible = cycle
 
-    return ServiceFluidProfile(tuple(states), first_overflow)
+    return ServiceFluidProfile(
+        tuple(states),
+        target_cycles,
+        first_overflow,
+        first_target_infeasible,
+    )
