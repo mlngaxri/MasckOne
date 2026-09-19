@@ -74,8 +74,6 @@ class DebouncedInput:
 
     def reset(self, *, now_s: float | None = None) -> None:
         """Clear a latched fault, optionally anchoring supervision at reset time."""
-        if self._fault is None:
-            return
         reset_at: float | None = None
         if now_s is not None:
             if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
@@ -83,6 +81,8 @@ class DebouncedInput:
             reset_at = float(now_s)
             if self._last_observed_at is not None and reset_at < self._last_observed_at:
                 raise HmiInputError("reset time moved backwards")
+        if self._fault is None:
+            return
         self._reset_state(
             require_release=True,
             preserve_clock=True,
