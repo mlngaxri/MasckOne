@@ -12,7 +12,7 @@ from masck_one.hmi_runtime import FaultCode
 
 
 class HmiFaultWireError(ValueError):
-    """Raised when a caller attempts to encode an unsupported fault code."""
+    """Raised when a fault wire value violates the serialization contract."""
 
 
 _WIRE_IDS: dict[FaultCode, str] = {
@@ -29,12 +29,7 @@ _WIRE_IDS: dict[FaultCode, str] = {
 
 
 def fault_code_wire_id(code: FaultCode) -> str:
-    """Return the stable identifier used across the firmware/telemetry boundary.
-
-    Exact ``FaultCode`` membership is required. Failing explicitly here prevents a
-    malformed or future unsupported value from being silently serialized as a valid
-    diagnostic.
-    """
+    """Return the stable identifier used across the firmware/telemetry boundary."""
     if type(code) is not FaultCode:
         raise HmiFaultWireError("code must be an exact FaultCode")
     try:
@@ -43,13 +38,37 @@ def fault_code_wire_id(code: FaultCode) -> str:
         raise HmiFaultWireError(f"FaultCode {code.name} has no wire identifier") from exc
 
 
+def fault_code_from_wire_id(wire_id: str) -> FaultCode:
+    """Decode one exact stable wire identifier into its runtime fault code.
+
+    The decoder intentionally rejects aliases, case folding, whitespace normalization
+    and non-string values. Firmware or stored telemetry corruption therefore cannot be
+    silently reinterpreted as a different valid fault.
+    """
+    if type(wire_id) is not str:
+        raise HmiFaultWireError("wire_id must be an exact str")
+    matches = [code for code, identifier in _WIRE_IDS.items() if identifier == wire_id]
+    if len(matches) != 1:
+        raise HmiFaultWireError(f"unknown or ambiguous HMI fault wire identifier: {wire_id!r}")
+    return matches[0]
+
+
 def assert_fault_wire_contract_complete() -> None:
-    """Fail if a new runtime fault code has not been assigned a wire identifier."""
+    """Fail if runtime coverage or wire identifier uniqueness is incomplete."""
     missing = set(FaultCode) - set(_WIRE_IDS)
     extra = set(_WIRE_IDS) - set(FaultCode)
-    if missing or extra:
+    identifiers = tuple(_WIRE_IDS.values())
+    duplicates = sorted({identifier for identifier in identifiers if identifiers.count(identifier) > 1})
+    invalid = sorted(
+        repr(identifier)
+        for identifier in identifiers
+        if type(identifier) is not str or not identifier or identifier.strip() != identifier
+    )
+    if missing or extra or duplicates or invalid:
         missing_names = sorted(code.name for code in missing)
         extra_names = sorted(code.name for code in extra)
         raise HmiFaultWireError(
-            f"fault wire contract mismatch: missing={missing_names}, extra={extra_names}"
+            "fault wire contract mismatch: "
+            f"missing={missing_names}, extra={extra_names}, "
+            f"duplicates={duplicates}, invalid={invalid}"
         )
