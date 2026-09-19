@@ -29,10 +29,6 @@ def test_cycle_screen_exposes_shared_sink_shortfall_after_prime_allocation():
         prime_external_leakage_ratio_contract=0.02,
     )
     cycle = closure.cycles[0]
-    # Prime allocations leave 0.410 mL of the shared residual+leakage ceilings.
-    # Nominal CLEAN nonrecovery at the 90% recovery floor is 0.460 mL, so the
-    # cycle still has 0.050 mL without a classified sink. Prime-only margins must
-    # not be mistaken for free capacity available after nominal accounting.
     assert cycle.classified_sink_capacity_after_prime_mL == pytest.approx(0.410)
     assert cycle.nominal_unclassified_nonrecovery_after_prime_mL == pytest.approx(0.050)
     assert cycle.classified_sink_headroom_after_nominal_mL == pytest.approx(0.0)
@@ -63,10 +59,6 @@ def test_cycle_screen_reports_true_shared_sink_headroom_when_recovery_is_tighter
 
 
 def test_clustered_reprimes_cannot_average_external_leakage_across_cycles():
-    # Six primes at a 10% leakage contract total 0.24 mL, below the six-cycle
-    # aggregate 0.30 mL ceiling. They are nevertheless invalid when all occur in
-    # cycle 1 because that cycle alone would allocate 0.24 mL against a 0.05 mL
-    # cycle ceiling.
     with pytest.raises(WasteFluidAccountingError, match="leakage contract exceeds"):
         screen_cycle_resolved_routing_closure(
             build_authority_waste_fluid_budget(),
@@ -97,6 +89,28 @@ def test_zero_prime_cycle_keeps_full_local_sink_headroom():
     assert cycle.prime_external_leakage_mL == pytest.approx(0.0)
     assert cycle.residual_ceiling_margin_mL == pytest.approx(0.4)
     assert cycle.external_leakage_ceiling_margin_mL == pytest.approx(0.05)
+
+
+def test_cycle_routing_profile_cannot_extend_past_configured_service_life():
+    budget = build_authority_waste_fluid_budget()
+    assert budget.service_cycles == 6
+    with pytest.raises(WasteFluidAccountingError, match="exceeds configured service life"):
+        screen_cycle_resolved_routing_closure(
+            budget,
+            prime_events_by_cycle=[0, 0, 0, 0, 0, 0, 0],
+            prime_recovery_ratio_contract=1.0,
+        )
+
+
+def test_cycle_routing_profile_may_screen_a_service_life_prefix():
+    closure = screen_cycle_resolved_routing_closure(
+        build_authority_waste_fluid_budget(),
+        prime_events_by_cycle=[1, 0, 2],
+        prime_recovery_ratio_contract=1.0,
+    )
+    assert len(closure.cycles) == 3
+    assert closure.service.cycles == 3
+    assert closure.service.prime_events == 3
 
 
 def test_cycle_resolved_routing_rejects_invalid_schedules():
