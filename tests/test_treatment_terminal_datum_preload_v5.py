@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+import hashlib
+import json
 from threading import Barrier, Event, Lock
 from types import SimpleNamespace
 
@@ -37,6 +39,39 @@ def test_v5_builds_v4_geometry_under_collision_kernel_v2(monkeypatch):
     assert payload["physical_geometry_changed_from_v4"] is False
     assert payload["collision_threshold_weakened"] is False
     assert payload["physical_validation_eligible"] is False
+
+
+def test_v5_manifest_digest_covers_promoted_evidence():
+    architecture = build_terminal_datum_preload_v5_architecture()
+    v4_payload = architecture.manifest()
+    payload = manifest_v5(architecture)
+
+    promoted_digest = payload["architecture_sha256"]
+    canonical_payload = dict(payload)
+    canonical_payload.pop("architecture_sha256")
+    expected = hashlib.sha256(
+        json.dumps(
+            canonical_payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode()
+    ).hexdigest()
+
+    assert promoted_digest == expected
+    assert promoted_digest != v4_payload["architecture_sha256"]
+
+    changed_kernel = dict(canonical_payload)
+    changed_kernel["collision_kernel"] = "HOSTILE_KERNEL"
+    hostile_digest = hashlib.sha256(
+        json.dumps(
+            changed_kernel,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode()
+    ).hexdigest()
+    assert hostile_digest != promoted_digest
 
 
 def test_v5_restores_v4_collision_hook_when_build_fails(monkeypatch):
