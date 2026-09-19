@@ -15,7 +15,6 @@ from .model import MasckOneModel, build_model
 from .structural_frame_retention_roots import (
     CLEVIS_PIN_GROOVE_WIDTH_MM,
     CLEVIS_PIN_RADIUS_MM,
-    CLEVIS_CLIP_RADIAL_THICKNESS_MM,
     StructuralFrameRetentionRootArchitecture,
     build_structural_frame_retention_roots,
 )
@@ -93,13 +92,20 @@ def verify_structural_frame_retention_roots_v9(*, model: MasckOneModel | None = 
         raise StructuralFrameRetentionVerificationV9Error("retention architecture must contain exactly one wearer-left and one wearer-right root")
     spans = []
     blocks = []
-    authority_outer_radius = CLEVIS_PIN_RADIUS_MM + CLEVIS_CLIP_RADIAL_THICKNESS_MM
     for root in architecture.roots:
         bb = root.split_retainer.val().BoundingBox()
         span = float(bb.ylen)
-        # The split retainer is generated from an authoritative outer radius. The
-        # excess over the ungrooved shaft radius is the digital axial-stop overlap.
-        block = authority_outer_radius - CLEVIS_PIN_RADIUS_MM
+        center_x, _, center_z = root.center_xyz_mm
+        measured_outer_radius = max(
+            abs(float(bb.xmin) - center_x),
+            abs(float(bb.xmax) - center_x),
+            abs(float(bb.zmin) - center_z),
+            abs(float(bb.zmax) - center_z),
+        )
+        # Measure the installed B-rep rather than deriving withdrawal block from the
+        # same constants that generated it. This makes a missing, undersized or stale
+        # split retainer fail closed even when the authority constants remain nominal.
+        block = measured_outer_radius - CLEVIS_PIN_RADIUS_MM
         spans.append((root.root_id, span))
         blocks.append((root.root_id, block))
     v8 = verify_structural_frame_retention_roots_v8(model=model, architecture=architecture)
