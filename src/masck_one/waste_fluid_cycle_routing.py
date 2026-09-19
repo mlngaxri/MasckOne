@@ -48,12 +48,18 @@ def screen_cycle_resolved_routing_closure(
     reports the shared classified-sink capacity left after prime allocations and the
     nominal nonrecovery that remains unclassified after spending that capacity. This
     avoids presenting prime-only residual/leakage margins as free capacity when the
-    nominal CLEAN liquid needs the same sinks. The aggregate service closure is still
-    returned for whole-service mass accounting.
+    nominal CLEAN liquid needs the same sinks. A schedule may represent a prefix of
+    the configured service life, but it may not extend beyond that service life. The
+    aggregate service closure is still returned for whole-profile mass accounting.
     """
     budget.validate()
     if not isinstance(prime_events_by_cycle, (tuple, list)) or not prime_events_by_cycle:
         raise WasteFluidAccountingError("prime_events_by_cycle must be a nonempty tuple or list")
+    if len(prime_events_by_cycle) > budget.service_cycles:
+        raise WasteFluidAccountingError(
+            "prime_events_by_cycle exceeds configured service life: "
+            f"{len(prime_events_by_cycle)} cycles supplied for {budget.service_cycles} service cycles"
+        )
     if any(type(count) is not int or count < 0 for count in prime_events_by_cycle):
         raise WasteFluidAccountingError("prime event counts must be nonnegative integers")
 
