@@ -83,6 +83,16 @@ class WasteFluidBudget:
         }
 
 
+def _authority_service_cycles(authority: Authority) -> int:
+    """Read the discrete service-cycle authority without silently truncating it."""
+    value = authority.number("fluid", "cartridge", "service_cycles_baseline")
+    if not math.isfinite(value) or value <= 0.0 or not value.is_integer():
+        raise WasteFluidAccountingError(
+            "authority service_cycles_baseline must be a positive integer"
+        )
+    return int(value)
+
+
 def build_authority_waste_fluid_budget(authority: Authority | None = None) -> WasteFluidBudget:
     authority = authority or load_authority()
     face_water = authority.number("fluid", "clean_cycle", "face_water_mL")
@@ -93,7 +103,7 @@ def build_authority_waste_fluid_budget(authority: Authority | None = None) -> Wa
         raise WasteFluidAccountingError("clean-cycle component volumes do not reconcile to nominal introduced liquid")
 
     budget = WasteFluidBudget(
-        service_cycles=int(authority.number("fluid", "cartridge", "service_cycles_baseline")),
+        service_cycles=_authority_service_cycles(authority),
         nominal_introduced_mL_per_cycle=nominal,
         maximum_initial_prime_mL_per_cycle=authority.number("fluid", "clean_cycle", "maximum_initial_prime_mL"),
         recovery_ratio_min=authority.number("fluid", "waste", "recovery_ratio_min"),
