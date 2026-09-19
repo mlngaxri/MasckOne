@@ -37,12 +37,13 @@ class DebouncedInput:
     No wall clock is read, making the behaviour deterministic in firmware simulation
     and unit tests. A stale stream faults rather than preserving a potentially unsafe
     held command. Once faulted, an explicit reset and debounced release are required
-    before a new press can be accepted. Sample and watchdog calls share one monotonic
-    time contract so neither path can silently move the runtime clock backwards. The
-    first fault cause remains latched until reset so later bad inputs cannot erase the
-    diagnostic that caused the control to fail closed. If the watchdog runs before the
-    first sample, its first observation starts a bounded startup window; failure to
-    receive any sample within that window also fails closed.
+    before a new press can be accepted. Sample, arm and watchdog calls share one
+    monotonic time contract so no path can silently move the runtime clock backwards.
+    The first fault cause remains latched until reset so later bad inputs cannot erase
+    the diagnostic that caused the control to fail closed. Firmware may call ``arm``
+    at input-supervision startup so the no-sample timeout is measured from a known
+    boot point rather than from the first later watchdog service. Repeated arm calls
+    cannot postpone that deadline.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -72,6 +73,29 @@ class DebouncedInput:
     def faulted(self) -> bool:
         return self._fault is not None
 
+    def arm(self, *, now_s: float) -> InputEvent:
+        """Start no-sample supervision from an explicit firmware lifecycle point.
+
+        Arming is idempotent with respect to the startup deadline: servicing this API
+        repeatedly cannot move the deadline forward. A first sample cancels startup
+        supervision and transfers responsibility to normal stale-stream supervision.
+        """
+        if self._fault is not None:
+            return InputEvent(False, Edge.NONE, True, self._fault)
+        if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
+            return self._trip("arm time must be finite")
+        now = float(now_s)
+        if self._last_observed_at is not None and now < self._last_observed_at:
+            return self._trip("arm time moved backwards")
+        self._last_observed_at = now
+        if self._last_sample_at is not None:
+            return InputEvent(self._stable, Edge.NONE)
+        if self._watchdog_started_at is None:
+            self._watchdog_started_at = now
+        if now - self._watchdog_started_at > self.stale_after_s:
+            return self._trip("input stream did not start")
+        return InputEvent(False, Edge.NONE)
+
     def sample(self, *, pressed: bool, now_s: float) -> InputEvent:
         if self._fault is not None:
             return InputEvent(False, Edge.NONE, True, self._fault)
@@ -84,6 +108,9 @@ class DebouncedInput:
             return self._trip("input time moved backwards")
         if self._last_sample_at is not None and now - self._last_sample_at > self.stale_after_s:
             return self._trip("input stream became stale")
+        if self._last_sample_at is None and self._watchdog_started_at is not None:
+            if now - self._watchdog_started_at > self.stale_after_s:
+                return self._trip("input stream did not start")
         self._last_observed_at = now
         self._last_sample_at = now
         self._watchdog_started_at = None
