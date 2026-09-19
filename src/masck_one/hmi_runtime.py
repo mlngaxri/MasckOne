@@ -55,19 +55,21 @@ class DebouncedInput:
     before a new press can be accepted. Sample, arm and watchdog calls share one
     monotonic time contract so no path can silently move the runtime clock backwards.
     That clock contract survives fault reset, preventing recovery from accepting an
-    older firmware timestamp as a new epoch. Valid timestamps that expose a timeout
-    also advance the clock anchor before the fault is latched, so recovery cannot
-    rewind behind the observation that caused the fault. The first fault cause remains
-    latched until reset so later bad inputs cannot erase the diagnostic that caused the
-    control to fail closed. Faults expose both a human-readable message and a stable
-    ``FaultCode`` so firmware does not need to parse diagnostic prose. A reset request
-    while healthy is deliberately a no-op so an unconditional firmware recovery call
-    cannot erase a valid held state or debounce candidate. Firmware may call ``arm``
-    at input-supervision startup so the no-sample timeout is measured from a known
-    boot point rather than from the first later watchdog service. Repeated arm calls
-    cannot postpone that deadline. Timing gates compare absolute deadlines rather than
-    subtracting floating timestamps, avoiding false one-sample delays at an exact
-    debounce or stale-stream boundary.
+    older firmware timestamp as a new epoch. A fault reset also resumes no-sample
+    supervision from the last trusted timestamp, so recovery cannot create an
+    unbounded unsupervised interval before the next watchdog service. Valid timestamps
+    that expose a timeout also advance the clock anchor before the fault is latched, so
+    recovery cannot rewind behind the observation that caused the fault. The first
+    fault cause remains latched until reset so later bad inputs cannot erase the
+    diagnostic that caused the control to fail closed. Faults expose both a
+    human-readable message and a stable ``FaultCode`` so firmware does not need to
+    parse diagnostic prose. A reset request while healthy is deliberately a no-op so
+    an unconditional firmware recovery call cannot erase a valid held state or
+    debounce candidate. Firmware may call ``arm`` at input-supervision startup so the
+    no-sample timeout is measured from a known boot point rather than from the first
+    later watchdog service. Repeated arm calls cannot postpone that deadline. Timing
+    gates compare absolute deadlines rather than subtracting floating timestamps,
+    avoiding false one-sample delays at an exact debounce or stale-stream boundary.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -80,7 +82,7 @@ class DebouncedInput:
         self._reset_state(require_release=False, preserve_clock=False)
 
     def reset(self) -> None:
-        """Clear a latched fault while preserving the monotonic clock contract."""
+        """Clear a latched fault while preserving clock and recovery supervision."""
         if self._fault is None:
             return
         self._reset_state(require_release=True, preserve_clock=True)
@@ -92,7 +94,12 @@ class DebouncedInput:
         self._candidate_since: float | None = None
         self._last_sample_at: float | None = None
         self._last_observed_at: float | None = last_observed_at
-        self._watchdog_started_at: float | None = None
+        # A fault reset is itself a recovery lifecycle transition. If a trusted clock
+        # anchor exists, supervision resumes there rather than waiting for a future
+        # watchdog call to start a fresh timeout window.
+        self._watchdog_started_at: float | None = (
+            last_observed_at if require_release and last_observed_at is not None else None
+        )
         self._fault: str | None = None
         self._fault_code: FaultCode | None = None
         self._require_release = require_release
