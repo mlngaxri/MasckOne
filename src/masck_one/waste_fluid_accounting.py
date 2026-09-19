@@ -34,6 +34,34 @@ class WasteFluidBudget:
         return self.nominal_introduced_mL_per_cycle * self.recovery_ratio_min
 
     @property
+    def maximum_unrecovered_nominal_mL_per_cycle(self) -> float:
+        """Nominal liquid left outside recovery when recovery is exactly at its floor."""
+        return self.nominal_introduced_mL_per_cycle - self.minimum_recovered_mL_per_cycle
+
+    @property
+    def maximum_classified_nonrecovery_mL_per_cycle(self) -> float:
+        """Combined authority ceilings for residual free liquid and external leakage."""
+        return self.residual_free_liquid_max_mL + self.external_leakage_max_mL_per_cycle
+
+    @property
+    def recovery_ratio_for_residual_leakage_closure(self) -> float:
+        """Recovery needed if residual and leakage are the only nonrecovery sinks.
+
+        This is a digital conservation threshold, not a prediction that either sink
+        reaches its allowed maximum or that no other physical sink exists.
+        """
+        if self.nominal_introduced_mL_per_cycle == 0.0:
+            return 1.0
+        return max(
+            0.0,
+            1.0 - self.maximum_classified_nonrecovery_mL_per_cycle / self.nominal_introduced_mL_per_cycle,
+        )
+
+    @property
+    def recovery_ratio_closure_delta(self) -> float:
+        return self.recovery_ratio_for_residual_leakage_closure - self.recovery_ratio_min
+
+    @property
     def maximum_cartridge_inflow_screen_mL(self) -> float:
         # Deliberately conservative: credit no residual or external leakage and assume
         # the maximum prime can occur on every cycle. This is a packaging screen, not
@@ -73,7 +101,11 @@ class WasteFluidBudget:
             "maximum_initial_prime_mL_per_cycle": self.maximum_initial_prime_mL_per_cycle,
             "maximum_liquid_presented_to_recovery_mL_per_cycle": self.maximum_liquid_presented_to_recovery_mL_per_cycle,
             "minimum_recovered_mL_per_cycle": self.minimum_recovered_mL_per_cycle,
+            "maximum_unrecovered_nominal_mL_per_cycle": self.maximum_unrecovered_nominal_mL_per_cycle,
+            "maximum_classified_nonrecovery_mL_per_cycle": self.maximum_classified_nonrecovery_mL_per_cycle,
             "recovery_ratio_min": self.recovery_ratio_min,
+            "recovery_ratio_for_residual_leakage_closure": self.recovery_ratio_for_residual_leakage_closure,
+            "recovery_ratio_closure_delta": self.recovery_ratio_closure_delta,
             "residual_free_liquid_max_mL": self.residual_free_liquid_max_mL,
             "external_leakage_max_mL_per_cycle": self.external_leakage_max_mL_per_cycle,
             "maximum_cartridge_inflow_screen_mL": self.maximum_cartridge_inflow_screen_mL,
