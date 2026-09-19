@@ -59,3 +59,31 @@ def test_reset_accepts_equal_timestamp_then_requires_debounced_release():
     assert pressed.faulted is False
     assert pressed.stable_pressed is True
     assert pressed.edge is Edge.PRESSED
+
+
+def test_late_sample_timeout_timestamp_remains_clock_floor_after_reset():
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    control.sample(pressed=False, now_s=20.0)
+    fault = control.sample(pressed=False, now_s=20.251)
+    assert fault.faulted is True
+    assert fault.fault == "input stream became stale"
+
+    control.reset()
+    rewound = control.sample(pressed=False, now_s=20.250)
+
+    assert rewound.faulted is True
+    assert rewound.fault == "input time moved backwards"
+
+
+def test_late_first_sample_timeout_timestamp_remains_clock_floor_after_reset():
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    control.arm(now_s=30.0)
+    fault = control.sample(pressed=False, now_s=30.251)
+    assert fault.faulted is True
+    assert fault.fault == "input stream did not start"
+
+    control.reset()
+    rewound = control.watchdog(now_s=30.250)
+
+    assert rewound.faulted is True
+    assert rewound.fault == "watchdog time moved backwards"
