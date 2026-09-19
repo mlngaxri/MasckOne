@@ -57,11 +57,13 @@ class DebouncedInput:
     That clock contract survives fault reset, preventing recovery from accepting an
     older firmware timestamp as a new epoch. A fault reset also resumes no-sample
     supervision from the last trusted timestamp, so recovery cannot create an
-    unbounded unsupervised interval before the next watchdog service. Valid timestamps
-    that expose a timeout also advance the clock anchor before the fault is latched, so
-    recovery cannot rewind behind the observation that caused the fault. The first
-    fault cause remains latched until reset so later bad inputs cannot erase the
-    diagnostic that caused the control to fail closed. Faults expose both a
+    unbounded unsupervised interval before the next watchdog service. Valid sample
+    timestamps are clock observations even when the electrical level is malformed, so
+    a level fault cannot discard usable timing evidence before recovery. Valid
+    timestamps that expose a timeout also advance the clock anchor before the fault is
+    latched, so recovery cannot rewind behind the observation that caused the fault.
+    The first fault cause remains latched until reset so later bad inputs cannot erase
+    the diagnostic that caused the control to fail closed. Faults expose both a
     human-readable message and a stable ``FaultCode`` so firmware does not need to
     parse diagnostic prose. A reset request while healthy is deliberately a no-op so
     an unconditional firmware recovery call cannot erase a valid held state or
@@ -132,14 +134,17 @@ class DebouncedInput:
     def sample(self, *, pressed: bool, now_s: float) -> InputEvent:
         if self._fault is not None:
             return self._fault_event()
-        if type(pressed) is not bool:
-            return self._trip(FaultCode.PRESSED_NOT_BOOL, "pressed must be an exact bool")
+        # Validate and commit the clock observation before validating the electrical
+        # level. A malformed level must not erase a valid monotonic timestamp that can
+        # bound the recovery supervision window after reset.
         if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
             return self._trip(FaultCode.SAMPLE_TIME_INVALID, "now_s must be finite")
         now = float(now_s)
         if self._last_observed_at is not None and now < self._last_observed_at:
             return self._trip(FaultCode.SAMPLE_TIME_REGRESSION, "input time moved backwards")
         self._last_observed_at = now
+        if type(pressed) is not bool:
+            return self._trip(FaultCode.PRESSED_NOT_BOOL, "pressed must be an exact bool")
         if self._last_sample_at is not None and now > self._last_sample_at + self.stale_after_s:
             return self._trip(FaultCode.INPUT_STREAM_STALE, "input stream became stale")
         if self._last_sample_at is None and self._watchdog_started_at is not None:
