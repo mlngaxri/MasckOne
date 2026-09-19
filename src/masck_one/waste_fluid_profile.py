@@ -35,6 +35,7 @@ class CycleFluidState:
     reserved_future_prime_mL: float
     minimum_projected_service_end_inflow_mL: float
     projected_service_end_margin_mL: float
+    maximum_unreserved_prime_events_after_contingency: int | None
     service_target_feasible: bool
 
 
@@ -88,11 +89,12 @@ def screen_service_profile(
     contingency for each unprofiled target cycle. Zero remains the default because
     no authority currently mandates a future reprime count.
 
-    Each state also reports ``maximum_additional_prime_events_for_target``. This is
-    the number of additional maximum-volume prime events that can still occur while
-    preserving capacity for nominal liquid through the requested target cycle. It
-    is a packaging allowance, not a control limit or a prediction of reprime demand.
-    ``None`` means prime volume is zero and therefore does not consume capacity.
+    ``maximum_additional_prime_events_for_target`` reports raw reprime capacity
+    after reserving nominal liquid through the target cycle. The separate
+    ``maximum_unreserved_prime_events_after_contingency`` reports spare reprime
+    capacity only after the selected future-prime contingency has also been charged.
+    Neither value is a control limit or a prediction of reprime demand. ``None``
+    means prime volume is zero and therefore does not consume capacity.
 
     Each state carries the lower occupancy bound implied by minimum nominal
     recovery. Prime recovery is excluded because no authority recovery fraction
@@ -156,6 +158,15 @@ def screen_service_profile(
         projected_end_inflow = nominal_target_inflow + reserved_future_prime_mL
         projected_end_margin = budget.cartridge_retained_capacity_requirement_mL - projected_end_inflow
         target_feasible = projected_end_margin >= -1e-12
+        if budget.maximum_initial_prime_mL_per_cycle == 0.0:
+            maximum_unreserved_primes = None
+        elif target_feasible:
+            maximum_unreserved_primes = max(
+                0,
+                math.floor((projected_end_margin + 1e-12) / budget.maximum_initial_prime_mL_per_cycle),
+            )
+        else:
+            maximum_unreserved_primes = 0
         minimum_recovery_capacity_satisfied = (
             aggregate.minimum_recovered_nominal_mL
             <= budget.cartridge_retained_capacity_requirement_mL + 1e-12
@@ -180,6 +191,7 @@ def screen_service_profile(
             reserved_future_prime_mL=reserved_future_prime_mL,
             minimum_projected_service_end_inflow_mL=projected_end_inflow,
             projected_service_end_margin_mL=projected_end_margin,
+            maximum_unreserved_prime_events_after_contingency=maximum_unreserved_primes,
             service_target_feasible=target_feasible,
         )
         states.append(state)
