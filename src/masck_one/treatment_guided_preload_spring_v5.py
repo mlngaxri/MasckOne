@@ -65,9 +65,6 @@ def _require_capture_screen(station: GuidedPreloadSpringStation) -> None:
             f"expected {sorted(_CAPTURE_KEYS)!r}, got {sorted(actual_keys)!r}"
         )
     for name, value in station.capture_screen.items():
-        # Capture evidence is a computed volume, not a permissive serialization
-        # boundary. In particular, bool is a subclass of int and float("0.01")
-        # succeeds, so coercion would let non-measurement payloads qualify geometry.
         if isinstance(value, bool) or not isinstance(value, Real):
             raise ValueError(
                 f"guided spring V5 {station.reaction_id} {name} capture evidence "
@@ -87,27 +84,25 @@ def build_guided_preload_spring_v5_architecture(**terminal_kwargs) -> GuidedPrel
     if terminal.source_cell6_head_sha != SOURCE_CELL6_HEAD_SHA:
         raise ValueError("guided spring V5 source binding drifted")
 
-    # Count-only validation can admit a duplicated station while silently omitting
-    # another reaction zone. Require the exact structural reaction identity and order
-    # before any spring cassette is generated. Validate each generated station's
-    # concrete engineering type and capture screen immediately so a duck-typed proxy,
-    # mistyped value, NaN/Inf, or missing probe cannot survive into a mounted
-    # architecture. Recheck the generated four-zone identity before returning.
     _require_exact_station_identity(terminal.stations, stage="terminal input")
     generated: list[GuidedPreloadSpringStation] = []
     for terminal_station in terminal.stations:
         station = build_guided_preload_spring_station(terminal_station)
-        if not isinstance(station, GuidedPreloadSpringStation):
-            raise ValueError(
-                "guided spring V5 generator returned invalid station type: "
-                f"expected GuidedPreloadSpringStation, got {type(station).__name__}"
-            )
         if station.reaction_id != terminal_station.reaction_id:
             raise ValueError(
                 "guided spring V5 generated station identity drifted: "
                 f"expected {terminal_station.reaction_id!r}, got {station.reaction_id!r}"
             )
+        # Preserve the most specific evidence diagnostic first, then require the
+        # concrete engineering station type before the object can enter the returned
+        # architecture. This prevents a duck-typed proxy from satisfying the V5
+        # boundary while retaining fail-closed diagnostics for malformed evidence.
         _require_capture_screen(station)
+        if not isinstance(station, GuidedPreloadSpringStation):
+            raise ValueError(
+                "guided spring V5 generator returned invalid station type: "
+                f"expected GuidedPreloadSpringStation, got {type(station).__name__}"
+            )
         generated.append(station)
     stations = tuple(generated)
     _require_exact_station_identity(stations, stage="generated output")
