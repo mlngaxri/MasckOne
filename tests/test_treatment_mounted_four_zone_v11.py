@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier, Event, Lock
+
 import pytest
 
 from masck_one import treatment_mounted_four_zone_v9 as v9
@@ -56,5 +59,47 @@ def test_v11_restores_legacy_hooks_when_build_fails(monkeypatch):
     with pytest.raises(RuntimeError, match="hostile mounted verification failure"):
         v11.build_mounted_four_zone_architecture_v11()
 
+    assert v9.intersection_volume_mm3 is original_intersection
+    assert v9.build_terminal_datum_preload_v4_architecture is original_terminal_builder
+
+
+def test_v11_serializes_process_global_verification_hooks_for_concurrent_builds(monkeypatch):
+    original_intersection = v9.intersection_volume_mm3
+    original_terminal_builder = v9.build_terminal_datum_preload_v4_architecture
+    first_entered = Event()
+    release_first = Event()
+    calls_lock = Lock()
+    call_count = 0
+
+    def blocking_build(**kwargs):
+        nonlocal call_count
+        with calls_lock:
+            call_count += 1
+            ordinal = call_count
+        assert v9.intersection_volume_mm3 is v11.collision_v2.intersection_volume_mm3
+        assert v9.build_terminal_datum_preload_v4_architecture is v11.build_terminal_datum_preload_v5_architecture
+        if ordinal == 1:
+            first_entered.set()
+            assert release_first.wait(timeout=2.0)
+        return ordinal, "datums"
+
+    monkeypatch.setattr(v10, "build_mounted_four_zone_architecture_v10", blocking_build)
+    start = Barrier(3)
+
+    def invoke():
+        start.wait(timeout=2.0)
+        return v11.build_mounted_four_zone_architecture_v11()
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(invoke) for _ in range(2)]
+        start.wait(timeout=2.0)
+        assert first_entered.wait(timeout=2.0)
+        # The second build must not enter V10 while the first owns temporary V9 hooks.
+        with calls_lock:
+            assert call_count == 1
+        release_first.set()
+        results = [future.result(timeout=2.0) for future in futures]
+
+    assert sorted(result[0] for result in results) == [1, 2]
     assert v9.intersection_volume_mm3 is original_intersection
     assert v9.build_terminal_datum_preload_v4_architecture is original_terminal_builder
