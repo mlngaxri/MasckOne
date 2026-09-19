@@ -10,6 +10,8 @@ before that existing exact fallback can run.
 """
 
 from contextlib import contextmanager
+import hashlib
+import json
 from threading import RLock
 from typing import Iterator
 
@@ -78,6 +80,11 @@ def build_terminal_datum_preload_v5_architecture(**kwargs) -> TerminalDatumPrelo
 def manifest_v5(architecture: TerminalDatumPreloadV5Architecture) -> dict[str, object]:
     architecture = _require_exact_architecture(architecture, context="manifest")
     payload = architecture.manifest()
+    # The inherited V4 digest certifies the V4 payload, not this promoted evidence.
+    # Remove it before promotion, then bind a fresh digest to the complete V5 payload.
+    # This prevents a V5 manifest from carrying a valid-looking hash that omits the
+    # collision-kernel identity and V5 evidence-firewall fields.
+    payload.pop("architecture_sha256", None)
     payload.update(
         {
             "schema": SCHEMA,
@@ -88,4 +95,8 @@ def manifest_v5(architecture: TerminalDatumPreloadV5Architecture) -> dict[str, o
             "physical_validation_eligible": False,
         }
     )
+    canonical = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+    ).encode()
+    payload["architecture_sha256"] = hashlib.sha256(canonical).hexdigest()
     return payload
