@@ -1,0 +1,19 @@
+{
+  "status": "RECOVERY_CHECKPOINT_NOT_INTEGRATION_APPROVAL",
+  "main": "17f7d02c6178af8d33e4dfefb5043b497684ddb3",
+  "scope": "OFF_FACE_UNPOWERED_INERT_ANALOG",
+  "physical_result": null,
+  "whole_face_complete": false,
+  "manufactured_components": 20,
+  "interference_checks": 587,
+  "maximum_interference_mm3": 0.0,
+  "collision_blockers": [],
+  "source_sha256": "6ec6423250b450769869ec8a179545c69798c6e4df7f0ef609adacaee33fa052",
+  "base_source_sha256": "025b782ad368312d72f7790de22dd7375dbcebfdd8b25b0c1adcb671b45b06ff",
+  "remaining": [
+    "Source-bound owner shadow integration",
+    "Hostile regression suite",
+    "Qualified metrology criteria and all physical measurements",
+    "STEP export and current-head CI"
+  ]
+}
