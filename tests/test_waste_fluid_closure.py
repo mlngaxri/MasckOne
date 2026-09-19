@@ -46,6 +46,7 @@ def test_service_routing_closure_exposes_prime_liquid_without_destination_contra
     budget = build_authority_waste_fluid_budget()
     closure = screen_service_routing_closure(budget, cycles=6, prime_events=6)
     assert closure.nominal_unclassified_nonrecovery_mL == pytest.approx(0.060)
+    assert closure.shared_sink_unclassified_nonrecovery_mL == pytest.approx(0.060)
     assert closure.total_prime_liquid_mL == pytest.approx(2.400)
     assert closure.minimum_prime_liquid_routed_to_cartridge_mL == pytest.approx(0.0)
     assert closure.maximum_prime_residual_mL == pytest.approx(0.0)
@@ -64,7 +65,7 @@ def test_prime_recovery_contract_routes_only_its_explicit_fraction():
     assert closure.total_liquid_without_routing_contract_mL == pytest.approx(0.300)
 
 
-def test_prime_nonrecovery_can_be_classified_without_double_counting():
+def test_prime_nonrecovery_consumes_sink_capacity_needed_by_nominal_liquid():
     closure = screen_service_routing_closure(
         build_authority_waste_fluid_budget(),
         cycles=6,
@@ -80,14 +81,18 @@ def test_prime_nonrecovery_can_be_classified_without_double_counting():
     assert closure.service_external_leakage_ceiling_mL == pytest.approx(0.300)
     assert closure.prime_residual_ceiling_margin_mL == pytest.approx(2.208)
     assert closure.prime_external_leakage_ceiling_margin_mL == pytest.approx(0.252)
+    assert closure.shared_sink_unclassified_nonrecovery_mL == pytest.approx(0.300)
     assert closure.prime_liquid_without_routing_contract_mL == pytest.approx(0.0, abs=1e-12)
-    assert closure.total_liquid_without_routing_contract_mL == pytest.approx(0.060)
+    assert closure.total_liquid_without_routing_contract_mL == pytest.approx(0.300)
     assert closure.routing_contract_complete is False
 
 
-def test_complete_prime_and_nominal_sink_contract_closes_service_routing():
+def test_service_routing_closes_only_when_nominal_recovery_frees_prime_sink_capacity():
     base = build_authority_waste_fluid_budget()
-    budget = replace(base, recovery_ratio_min=base.recovery_ratio_for_residual_leakage_closure)
+    prime_nonrecovery_per_cycle = base.maximum_initial_prime_mL_per_cycle * 0.10
+    available_nominal_sink_per_cycle = base.maximum_classified_nonrecovery_mL_per_cycle - prime_nonrecovery_per_cycle
+    required_recovery = 1.0 - available_nominal_sink_per_cycle / base.nominal_introduced_mL_per_cycle
+    budget = replace(base, recovery_ratio_min=required_recovery)
     closure = screen_service_routing_closure(
         budget,
         cycles=6,
@@ -96,6 +101,8 @@ def test_complete_prime_and_nominal_sink_contract_closes_service_routing():
         prime_residual_ratio_contract=0.08,
         prime_external_leakage_ratio_contract=0.02,
     )
+    assert required_recovery == pytest.approx(0.9108695652173913)
+    assert closure.shared_sink_unclassified_nonrecovery_mL == pytest.approx(0.0, abs=1e-12)
     assert closure.total_liquid_without_routing_contract_mL == pytest.approx(0.0, abs=1e-12)
     assert closure.routing_contract_complete is True
 
@@ -103,11 +110,8 @@ def test_complete_prime_and_nominal_sink_contract_closes_service_routing():
 def test_prime_sink_contract_rejects_overallocated_mass_balance():
     with pytest.raises(WasteFluidAccountingError, match="must not sum above one"):
         screen_service_routing_closure(
-            build_authority_waste_fluid_budget(),
-            cycles=1,
-            prime_events=1,
-            prime_recovery_ratio_contract=0.90,
-            prime_residual_ratio_contract=0.08,
+            build_authority_waste_fluid_budget(), cycles=1, prime_events=1,
+            prime_recovery_ratio_contract=0.90, prime_residual_ratio_contract=0.08,
             prime_external_leakage_ratio_contract=0.03,
         )
 
@@ -115,9 +119,7 @@ def test_prime_sink_contract_rejects_overallocated_mass_balance():
 def test_prime_residual_contract_cannot_exceed_service_residual_ceiling():
     with pytest.raises(WasteFluidAccountingError, match="residual contract exceeds"):
         screen_service_routing_closure(
-            build_authority_waste_fluid_budget(),
-            cycles=1,
-            prime_events=3,
+            build_authority_waste_fluid_budget(), cycles=1, prime_events=3,
             prime_residual_ratio_contract=0.50,
         )
 
@@ -125,22 +127,19 @@ def test_prime_residual_contract_cannot_exceed_service_residual_ceiling():
 def test_prime_leakage_contract_cannot_exceed_service_leakage_ceiling():
     with pytest.raises(WasteFluidAccountingError, match="leakage contract exceeds"):
         screen_service_routing_closure(
-            build_authority_waste_fluid_budget(),
-            cycles=1,
-            prime_events=2,
+            build_authority_waste_fluid_budget(), cycles=1, prime_events=2,
             prime_external_leakage_ratio_contract=0.10,
         )
 
 
-def test_prime_sink_contract_at_service_ceiling_is_accepted():
+def test_prime_sink_contract_at_service_ceiling_is_accepted_but_displaces_nominal_sink_capacity():
     closure = screen_service_routing_closure(
-        build_authority_waste_fluid_budget(),
-        cycles=1,
-        prime_events=1,
+        build_authority_waste_fluid_budget(), cycles=1, prime_events=1,
         prime_external_leakage_ratio_contract=0.125,
     )
     assert closure.maximum_prime_external_leakage_mL == pytest.approx(0.050)
     assert closure.prime_external_leakage_ceiling_margin_mL == pytest.approx(0.0, abs=1e-12)
+    assert closure.shared_sink_unclassified_nonrecovery_mL == pytest.approx(0.060)
 
 
 def test_service_routing_closure_rejects_invalid_counts_and_prime_contracts():
@@ -156,6 +155,4 @@ def test_service_routing_closure_rejects_invalid_counts_and_prime_contracts():
     ):
         for invalid in (-0.01, 1.01, float("nan"), True):
             with pytest.raises(WasteFluidAccountingError, match="finite and between zero and one"):
-                screen_service_routing_closure(
-                    budget, cycles=1, prime_events=1, **{field: invalid}
-                )
+                screen_service_routing_closure(budget, cycles=1, prime_events=1, **{field: invalid})
