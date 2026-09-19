@@ -2,8 +2,8 @@ from dataclasses import replace
 
 import pytest
 
-from masck_one.structural_frame_retention_verification_v7 import verify_structural_frame_retention_roots_v7
 from masck_one.structural_frame_retention_verification_v8 import (
+    AUTHORITY_RADIAL_CLEARANCE_MM,
     CLEARANCE_METADATA_ABSOLUTE_TOLERANCE_MM,
     StructuralFrameRetentionVerificationV8,
     StructuralFrameRetentionVerificationV8Error,
@@ -16,12 +16,14 @@ def _nominal_candidate():
     return result.v7, result.generated_clearances_mm, result.independent_clearances_mm
 
 
-def test_nominal_v8_clearance_matches_independent_brep_distance():
+def test_nominal_v8_clearance_matches_independent_brep_distance_and_authority():
     result = verify_structural_frame_retention_roots_v8()
     manifest = result.manifest()
     assert manifest["physical_validation_eligible"] is False
     assert manifest["clearance_metadata_absolute_tolerance_mm"] == CLEARANCE_METADATA_ABSOLUTE_TOLERANCE_MM
+    assert manifest["authority_radial_clearance_mm"] == AUTHORITY_RADIAL_CLEARANCE_MM
     assert all(root["absolute_error_mm"] <= CLEARANCE_METADATA_ABSOLUTE_TOLERANCE_MM for root in manifest["roots"])
+    assert all(root["authority_error_mm"] <= CLEARANCE_METADATA_ABSOLUTE_TOLERANCE_MM for root in manifest["roots"])
 
 
 def test_v8_rejects_stale_generated_clearance_metadata():
@@ -31,6 +33,19 @@ def test_v8_rejects_stale_generated_clearance_metadata():
     stale[0] = (root_id, value + 0.01)
     with pytest.raises(StructuralFrameRetentionVerificationV8Error, match="disagrees with independent"):
         StructuralFrameRetentionVerificationV8(v7=v7, generated_clearances_mm=tuple(stale), independent_clearances_mm=independent).validate()
+
+
+def test_v8_rejects_coherent_clearance_drift_from_authority():
+    v7, generated, independent = _nominal_candidate()
+    drift = 0.01
+    drifted_generated = tuple((root_id, value + drift) for root_id, value in generated)
+    drifted_independent = tuple((root_id, value + drift) for root_id, value in independent)
+    with pytest.raises(StructuralFrameRetentionVerificationV8Error, match="authoritative pin/bore radii"):
+        StructuralFrameRetentionVerificationV8(
+            v7=v7,
+            generated_clearances_mm=drifted_generated,
+            independent_clearances_mm=drifted_independent,
+        ).validate()
 
 
 def test_v8_rejects_nonpositive_independent_clearance():
