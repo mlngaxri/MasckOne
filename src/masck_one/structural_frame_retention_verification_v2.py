@@ -14,6 +14,7 @@ import math
 import cadquery as cq
 
 from .model import MasckOneModel, build_model
+from .structural_frame_actuator_reactions import build_structural_frame_actuator_reactions
 from .structural_frame_realization import _protected_zone_solid
 from .structural_frame_retention_roots import (
     StructuralFrameRetentionRootArchitecture,
@@ -47,12 +48,14 @@ def _strict_intersection_volume(a: cq.Workplane, b: cq.Workplane) -> float:
 @dataclass(frozen=True, slots=True)
 class RetentionRootVerificationV2:
     root_id: str
+    source_frame_capture_mm3: float
     yoke_material_intersection_mm3: float
     pin_yoke_material_intersection_mm3: float
     protected_intersection_mm3: float
 
     def validate(self) -> "RetentionRootVerificationV2":
         for value in (
+            self.source_frame_capture_mm3,
             self.yoke_material_intersection_mm3,
             self.pin_yoke_material_intersection_mm3,
             self.protected_intersection_mm3,
@@ -61,6 +64,10 @@ class RetentionRootVerificationV2:
                 raise StructuralFrameRetentionVerificationV2Error(
                     "root verification metrics must be finite and nonnegative"
                 )
+        if self.source_frame_capture_mm3 <= INTERSECTION_TOLERANCE_MM3:
+            raise StructuralFrameRetentionVerificationV2Error(
+                f"{self.root_id} frame counterpart has no positive source-frame capture"
+            )
         if self.yoke_material_intersection_mm3 > INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameRetentionVerificationV2Error(
                 f"{self.root_id} frame counterpart intersects yoke material"
@@ -98,10 +105,11 @@ class StructuralFrameRetentionVerificationV2:
         self.validate()
         return {
             "schema": SCHEMA,
-            "verification_semantics": "FAIL_CLOSED_INDEPENDENT_BREP_COLLISION_RECHECK",
+            "verification_semantics": "FAIL_CLOSED_INDEPENDENT_BREP_COLLISION_AND_SOURCE_CAPTURE_RECHECK",
             "roots": [
                 {
                     "root_id": root.root_id,
+                    "source_frame_capture_mm3": root.source_frame_capture_mm3,
                     "yoke_material_intersection_mm3": root.yoke_material_intersection_mm3,
                     "pin_yoke_material_intersection_mm3": root.pin_yoke_material_intersection_mm3,
                     "protected_intersection_mm3": root.protected_intersection_mm3,
@@ -128,6 +136,13 @@ def verify_structural_frame_retention_roots_v2(
             "exact model and retention-root architecture types are required"
         )
 
+    source_reactions = build_structural_frame_actuator_reactions(model=model)
+    if architecture.source_frame_reaction_architecture_sha256 != source_reactions.architecture_sha256:
+        raise StructuralFrameRetentionVerificationV2Error(
+            "retention roots do not identify the reconstructed source reaction frame"
+        )
+    source_frame = source_reactions.frame_with_reaction_counterparts
+
     frame_bb = architecture.frame_with_retention_roots.val().BoundingBox()
     z_min = min(root.center_xyz_mm[2] - 10.0 for root in architecture.roots)
     z_max = max(root.center_xyz_mm[2] + 10.0 for root in architecture.roots)
@@ -153,6 +168,9 @@ def verify_structural_frame_retention_roots_v2(
         results.append(
             RetentionRootVerificationV2(
                 root_id=root.root_id,
+                source_frame_capture_mm3=_strict_intersection_volume(
+                    root.frame_counterpart, source_frame
+                ),
                 yoke_material_intersection_mm3=_strict_intersection_volume(
                     root.frame_counterpart, root.yoke_root_reference
                 ),
