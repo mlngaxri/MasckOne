@@ -8,6 +8,7 @@ not physical fluid validation.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from typing import Sequence
 
 from .waste_fluid_accounting import WasteFluidAccountingError, WasteFluidBudget
@@ -29,6 +30,7 @@ class CycleFluidState:
     minimum_projected_service_end_recovered_mL: float
     projected_mandatory_recovery_margin_mL: float
     mandatory_recovery_service_target_feasible: bool
+    maximum_additional_prime_events_for_target: int | None
     reserved_future_prime_events: int
     reserved_future_prime_mL: float
     minimum_projected_service_end_inflow_mL: float
@@ -83,10 +85,14 @@ def screen_service_profile(
     is taken in the upper occupancy bound.
 
     ``future_prime_events_per_remaining_cycle`` reserves a caller-selected reprime
-    contingency for each unprofiled target cycle. This closes the previous blind
-    spot where a partially observed service profile reserved future nominal liquid
-    but silently assumed zero future reprimes. Zero remains the default because no
-    authority currently mandates a future reprime count.
+    contingency for each unprofiled target cycle. Zero remains the default because
+    no authority currently mandates a future reprime count.
+
+    Each state also reports ``maximum_additional_prime_events_for_target``. This is
+    the number of additional maximum-volume prime events that can still occur while
+    preserving capacity for nominal liquid through the requested target cycle. It
+    is a packaging allowance, not a control limit or a prediction of reprime demand.
+    ``None`` means prime volume is zero and therefore does not consume capacity.
 
     Each state carries the lower occupancy bound implied by minimum nominal
     recovery. Prime recovery is excluded because no authority recovery fraction
@@ -98,6 +104,7 @@ def screen_service_profile(
     future-prime contingency for remaining target cycles. These are digital bounds,
     not retained-volume or recovery predictions.
     """
+    budget.validate()
     if not prime_events_by_cycle:
         raise WasteFluidAccountingError("service profile must contain at least one cycle")
     if target_cycles is None:
@@ -132,13 +139,22 @@ def screen_service_profile(
         )
         mandatory_recovery_target_feasible = projected_mandatory_recovery_margin >= -1e-12
 
-        reserved_future_prime_events = remaining_cycles * future_prime_events_per_remaining_cycle
-        reserved_future_prime_mL = reserved_future_prime_events * budget.maximum_initial_prime_mL_per_cycle
-        projected_end_inflow = (
+        nominal_target_inflow = (
             aggregate.maximum_cartridge_inflow_mL
             + remaining_cycles * budget.nominal_introduced_mL_per_cycle
-            + reserved_future_prime_mL
         )
+        prime_headroom_mL = budget.cartridge_retained_capacity_requirement_mL - nominal_target_inflow
+        if budget.maximum_initial_prime_mL_per_cycle == 0.0:
+            maximum_additional_primes = None
+        else:
+            maximum_additional_primes = max(
+                0,
+                math.floor((prime_headroom_mL + 1e-12) / budget.maximum_initial_prime_mL_per_cycle),
+            )
+
+        reserved_future_prime_events = remaining_cycles * future_prime_events_per_remaining_cycle
+        reserved_future_prime_mL = reserved_future_prime_events * budget.maximum_initial_prime_mL_per_cycle
+        projected_end_inflow = nominal_target_inflow + reserved_future_prime_mL
         projected_end_margin = budget.cartridge_retained_capacity_requirement_mL - projected_end_inflow
         target_feasible = projected_end_margin >= -1e-12
         minimum_recovery_capacity_satisfied = (
@@ -160,6 +176,7 @@ def screen_service_profile(
             minimum_projected_service_end_recovered_mL=projected_mandatory_recovery,
             projected_mandatory_recovery_margin_mL=projected_mandatory_recovery_margin,
             mandatory_recovery_service_target_feasible=mandatory_recovery_target_feasible,
+            maximum_additional_prime_events_for_target=maximum_additional_primes,
             reserved_future_prime_events=reserved_future_prime_events,
             reserved_future_prime_mL=reserved_future_prime_mL,
             minimum_projected_service_end_inflow_mL=projected_end_inflow,
