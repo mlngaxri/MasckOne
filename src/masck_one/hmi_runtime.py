@@ -39,11 +39,12 @@ class DebouncedInput:
     held command. Once faulted, an explicit reset and debounced release are required
     before a new press can be accepted. Sample, arm and watchdog calls share one
     monotonic time contract so no path can silently move the runtime clock backwards.
-    The first fault cause remains latched until reset so later bad inputs cannot erase
-    the diagnostic that caused the control to fail closed. Firmware may call ``arm``
-    at input-supervision startup so the no-sample timeout is measured from a known
-    boot point rather than from the first later watchdog service. Repeated arm calls
-    cannot postpone that deadline.
+    That clock contract survives fault reset, preventing recovery from accepting an
+    older firmware timestamp as a new epoch. The first fault cause remains latched
+    until reset so later bad inputs cannot erase the diagnostic that caused the control
+    to fail closed. Firmware may call ``arm`` at input-supervision startup so the
+    no-sample timeout is measured from a known boot point rather than from the first
+    later watchdog service. Repeated arm calls cannot postpone that deadline.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -53,18 +54,24 @@ class DebouncedInput:
             raise HmiInputError("stale_after_s must be finite and greater than debounce_s")
         self.debounce_s = float(debounce_s)
         self.stale_after_s = float(stale_after_s)
-        self._reset_state(require_release=False)
+        self._reset_state(require_release=False, preserve_clock=False)
 
     def reset(self) -> None:
-        """Clear a latched fault but require debounced release before another press."""
-        self._reset_state(require_release=True)
+        """Clear a latched fault while preserving the monotonic clock contract.
 
-    def _reset_state(self, *, require_release: bool) -> None:
+        Recovery still requires a debounced release before another press. Preserving
+        the latest observed time prevents reset from turning a caller clock regression
+        into an apparently valid new timeline.
+        """
+        self._reset_state(require_release=True, preserve_clock=True)
+
+    def _reset_state(self, *, require_release: bool, preserve_clock: bool) -> None:
+        last_observed_at = getattr(self, "_last_observed_at", None) if preserve_clock else None
         self._stable = False
         self._candidate = False
         self._candidate_since: float | None = None
         self._last_sample_at: float | None = None
-        self._last_observed_at: float | None = None
+        self._last_observed_at: float | None = last_observed_at
         self._watchdog_started_at: float | None = None
         self._fault: str | None = None
         self._require_release = require_release
