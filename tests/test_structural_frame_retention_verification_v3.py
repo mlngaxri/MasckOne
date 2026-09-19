@@ -5,6 +5,8 @@ from dataclasses import replace
 import pytest
 
 from masck_one.structural_frame_retention_verification_v3 import (
+    CAPTURE_VOLUME_NUMERICAL_REL_TOL,
+    MAX_PIN_BORE_CAPTURE_MM3,
     MIN_PIN_BORE_CAPTURE_MM3,
     MIN_PIN_BORE_CAPTURE_FRACTION,
     NOMINAL_PIN_BORE_CAPTURE_MM3,
@@ -19,7 +21,7 @@ def test_nominal_bilateral_pin_capture_exceeds_coverage_floor() -> None:
     assert MIN_PIN_BORE_CAPTURE_FRACTION == 0.98
     assert MIN_PIN_BORE_CAPTURE_MM3 == pytest.approx(0.98 * NOMINAL_PIN_BORE_CAPTURE_MM3)
     for root in result.v2.roots:
-        assert root.pin_bore_capture_mm3 >= MIN_PIN_BORE_CAPTURE_MM3
+        assert MIN_PIN_BORE_CAPTURE_MM3 <= root.pin_bore_capture_mm3 <= MAX_PIN_BORE_CAPTURE_MM3
     assert result.physical_validation_eligible is False
 
 
@@ -39,6 +41,16 @@ def test_capture_exactly_at_floor_is_accepted() -> None:
     StructuralFrameRetentionVerificationV3(v2=replace(nominal.v2, roots=(threshold, right))).validate()
 
 
+def test_impossible_overcapture_is_rejected() -> None:
+    nominal = verify_structural_frame_retention_roots_v3()
+    left, right = nominal.v2.roots
+    impossible = replace(left, pin_bore_capture_mm3=MAX_PIN_BORE_CAPTURE_MM3 * 1.01)
+    with pytest.raises(StructuralFrameRetentionVerificationV3Error, match="exceeds the nominal"):
+        StructuralFrameRetentionVerificationV3(
+            v2=replace(nominal.v2, roots=(impossible, right))
+        ).validate()
+
+
 def test_invalid_minimum_capture_fails_closed() -> None:
     nominal = verify_structural_frame_retention_roots_v3()
     with pytest.raises(StructuralFrameRetentionVerificationV3Error, match="finite and positive"):
@@ -54,6 +66,15 @@ def test_caller_cannot_weaken_authority_capture_floor() -> None:
         ).validate()
 
 
+def test_caller_cannot_request_impossible_capture_floor() -> None:
+    nominal = verify_structural_frame_retention_roots_v3()
+    with pytest.raises(StructuralFrameRetentionVerificationV3Error, match="cannot exceed the nominal"):
+        StructuralFrameRetentionVerificationV3(
+            v2=nominal.v2,
+            minimum_pin_bore_capture_mm3=MAX_PIN_BORE_CAPTURE_MM3 * 1.01,
+        ).validate()
+
+
 def test_caller_may_strengthen_capture_floor() -> None:
     nominal = verify_structural_frame_retention_roots_v3()
     measured_floor = min(root.pin_bore_capture_mm3 for root in nominal.v2.roots)
@@ -64,9 +85,11 @@ def test_caller_may_strengthen_capture_floor() -> None:
     ).validate()
 
 
-def test_manifest_keeps_digital_evidence_firewall_and_authority_floor() -> None:
+def test_manifest_keeps_digital_evidence_firewall_and_bounded_contract() -> None:
     manifest = verify_structural_frame_retention_roots_v3().manifest()
-    assert manifest["verification_semantics"] == "FAIL_CLOSED_V2_PLUS_MINIMUM_AXIAL_PIN_BORE_CAPTURE_COVERAGE"
+    assert manifest["verification_semantics"] == "FAIL_CLOSED_V2_PLUS_BOUNDED_AXIAL_PIN_BORE_CAPTURE_COVERAGE"
     assert manifest["authority_minimum_pin_bore_capture_mm3"] == pytest.approx(MIN_PIN_BORE_CAPTURE_MM3)
     assert manifest["enforced_minimum_pin_bore_capture_mm3"] == pytest.approx(MIN_PIN_BORE_CAPTURE_MM3)
+    assert manifest["maximum_pin_bore_capture_mm3"] == pytest.approx(MAX_PIN_BORE_CAPTURE_MM3)
+    assert manifest["capture_volume_numerical_relative_tolerance"] == CAPTURE_VOLUME_NUMERICAL_REL_TOL
     assert manifest["physical_validation_eligible"] is False
