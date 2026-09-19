@@ -43,7 +43,7 @@ def test_accepted_cell6_candidate_keeps_exact_consumed_counterface_identity() ->
     assert payload["accepted_cell6_candidate_head_sha"] == ACCEPTED_CELL6_CANDIDATE_HEAD_SHA
     assert payload["accepted_cell6_candidate_counterfaces_identical"] is True
     assert payload["live_main_compatibility_claimed"] is False
-    assert payload["accepted_cell6_candidate_blob_sha1"] == CONSUMED_COUNTERFACE_BLOB_SHA1 if "accepted_cell6_candidate_blob_sha1" in payload else payload["accepted_cell6_candidate_counterface_blob_sha1"] == CONSUMED_COUNTERFACE_BLOB_SHA1
+    assert payload["accepted_cell6_candidate_counterface_blob_sha1"] == CONSUMED_COUNTERFACE_BLOB_SHA1
 
 
 def test_treatment_cell6_v2_binding_preserves_evidence_firewall_and_supersedes_only_identity() -> None:
