@@ -6,7 +6,9 @@ V2 proves that each pin intersects its intended yoke bore. V3 additionally requi
 that the intersection covers essentially the full nominal bore span, preventing a
 barely engaged or axially shifted pin from passing on a microscopic positive overlap.
 The authority floor is fail-closed: callers may strengthen it, but cannot lower it.
-This remains digital geometry evidence only.
+V3 also rejects geometrically impossible over-capture, so a stale bore/pin contract or
+corrupt intersection metric cannot masquerade as stronger engagement. This remains
+digital geometry evidence only.
 """
 
 from dataclasses import dataclass
@@ -26,6 +28,8 @@ SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_VERIFICATION_V3"
 MIN_PIN_BORE_CAPTURE_FRACTION = 0.98
 NOMINAL_PIN_BORE_CAPTURE_MM3 = math.pi * CLEVIS_PIN_RADIUS_MM**2 * YOKE_ROOT_BORE_LENGTH_MM
 MIN_PIN_BORE_CAPTURE_MM3 = MIN_PIN_BORE_CAPTURE_FRACTION * NOMINAL_PIN_BORE_CAPTURE_MM3
+CAPTURE_VOLUME_NUMERICAL_REL_TOL = 1e-6
+MAX_PIN_BORE_CAPTURE_MM3 = NOMINAL_PIN_BORE_CAPTURE_MM3 * (1.0 + CAPTURE_VOLUME_NUMERICAL_REL_TOL)
 
 
 class StructuralFrameRetentionVerificationV3Error(ValueError):
@@ -49,10 +53,18 @@ class StructuralFrameRetentionVerificationV3:
             raise StructuralFrameRetentionVerificationV3Error(
                 "minimum bore capture cannot weaken the authority floor"
             )
+        if self.minimum_pin_bore_capture_mm3 > MAX_PIN_BORE_CAPTURE_MM3:
+            raise StructuralFrameRetentionVerificationV3Error(
+                "minimum bore capture cannot exceed the nominal pin/bore capture bound"
+            )
         for root in self.v2.roots:
             if root.pin_bore_capture_mm3 < self.minimum_pin_bore_capture_mm3:
                 raise StructuralFrameRetentionVerificationV3Error(
                     f"{root.root_id} capture pin does not span enough of the nominal yoke bore"
+                )
+            if root.pin_bore_capture_mm3 > MAX_PIN_BORE_CAPTURE_MM3:
+                raise StructuralFrameRetentionVerificationV3Error(
+                    f"{root.root_id} capture pin exceeds the nominal pin/bore capture bound"
                 )
         if self.physical_validation_eligible is not False:
             raise StructuralFrameRetentionVerificationV3Error(
@@ -64,11 +76,13 @@ class StructuralFrameRetentionVerificationV3:
         self.validate()
         return {
             "schema": SCHEMA,
-            "verification_semantics": "FAIL_CLOSED_V2_PLUS_MINIMUM_AXIAL_PIN_BORE_CAPTURE_COVERAGE",
+            "verification_semantics": "FAIL_CLOSED_V2_PLUS_BOUNDED_AXIAL_PIN_BORE_CAPTURE_COVERAGE",
             "nominal_pin_bore_capture_mm3": NOMINAL_PIN_BORE_CAPTURE_MM3,
             "minimum_pin_bore_capture_fraction": MIN_PIN_BORE_CAPTURE_FRACTION,
             "authority_minimum_pin_bore_capture_mm3": MIN_PIN_BORE_CAPTURE_MM3,
             "enforced_minimum_pin_bore_capture_mm3": self.minimum_pin_bore_capture_mm3,
+            "maximum_pin_bore_capture_mm3": MAX_PIN_BORE_CAPTURE_MM3,
+            "capture_volume_numerical_relative_tolerance": CAPTURE_VOLUME_NUMERICAL_REL_TOL,
             "measured_pin_bore_capture_mm3": {
                 root.root_id: root.pin_bore_capture_mm3 for root in self.v2.roots
             },
