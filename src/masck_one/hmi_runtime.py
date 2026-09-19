@@ -36,7 +36,7 @@ class DebouncedInput:
 
     No wall clock is read, making the behaviour deterministic in firmware simulation
     and unit tests. A stale stream faults rather than preserving a potentially unsafe
-    held command. Once faulted, an explicit reset and observed release are required
+    held command. Once faulted, an explicit reset and debounced release are required
     before a new press can be accepted.
     """
 
@@ -50,7 +50,7 @@ class DebouncedInput:
         self._reset_state(require_release=False)
 
     def reset(self) -> None:
-        """Clear a latched fault but require release before accepting another press."""
+        """Clear a latched fault but require debounced release before another press."""
         self._reset_state(require_release=True)
 
     def _reset_state(self, *, require_release: bool) -> None:
@@ -83,6 +83,12 @@ class DebouncedInput:
 
         if self._require_release:
             if pressed:
+                self._candidate_since = None
+                return InputEvent(False, Edge.NONE)
+            if self._candidate_since is None:
+                self._candidate_since = now
+                return InputEvent(False, Edge.NONE)
+            if now - self._candidate_since < self.debounce_s:
                 return InputEvent(False, Edge.NONE)
             self._require_release = False
             self._candidate = False

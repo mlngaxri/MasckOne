@@ -60,21 +60,42 @@ def test_reset_cannot_reassert_a_command_while_control_remains_held():
     assert control.sample(pressed=True, now_s=0.20).stable_pressed is False
 
     assert control.sample(pressed=False, now_s=0.21).edge is Edge.NONE
-    assert control.sample(pressed=True, now_s=0.22).edge is Edge.NONE
-    event = control.sample(pressed=True, now_s=0.25)
+    assert control.sample(pressed=False, now_s=0.24).edge is Edge.NONE
+    assert control.sample(pressed=True, now_s=0.25).edge is Edge.NONE
+    event = control.sample(pressed=True, now_s=0.28)
     assert event.edge is Edge.PRESSED
     assert event.stable_pressed is True
 
 
 def test_release_to_rearm_does_not_synthesise_release_edge():
-    control = DebouncedInput()
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
     control.sample(pressed=False, now_s=1.0)
     assert control.sample(pressed=False, now_s=0.9).faulted is True
     control.reset()
-    event = control.sample(pressed=False, now_s=0.0)
+    assert control.sample(pressed=False, now_s=0.0).edge is Edge.NONE
+    event = control.sample(pressed=False, now_s=0.03)
     assert event.faulted is False
     assert event.stable_pressed is False
     assert event.edge is Edge.NONE
+
+
+def test_release_glitch_after_reset_does_not_rearm_control():
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    control.sample(pressed=True, now_s=0.00)
+    assert control.sample(pressed=True, now_s=0.03).edge is Edge.PRESSED
+    assert control.watchdog(now_s=0.281).faulted is True
+
+    control.reset()
+    assert control.sample(pressed=False, now_s=0.00).edge is Edge.NONE
+    assert control.sample(pressed=True, now_s=0.01).edge is Edge.NONE
+    assert control.sample(pressed=True, now_s=0.10).edge is Edge.NONE
+    assert control.sample(pressed=True, now_s=0.20).stable_pressed is False
+
+    assert control.sample(pressed=False, now_s=0.21).edge is Edge.NONE
+    assert control.sample(pressed=False, now_s=0.239).edge is Edge.NONE
+    assert control.sample(pressed=False, now_s=0.24).edge is Edge.NONE
+    assert control.sample(pressed=True, now_s=0.25).edge is Edge.NONE
+    assert control.sample(pressed=True, now_s=0.28).edge is Edge.PRESSED
 
 
 @pytest.mark.parametrize("pressed", [0, 1, None, "pressed"])
