@@ -36,7 +36,8 @@ class DebouncedInput:
 
     No wall clock is read, making the behaviour deterministic in firmware simulation
     and unit tests. A stale stream faults rather than preserving a potentially unsafe
-    held command. Once faulted, an explicit reset is required.
+    held command. Once faulted, an explicit reset and observed release are required
+    before a new press can be accepted.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -46,14 +47,19 @@ class DebouncedInput:
             raise HmiInputError("stale_after_s must be finite and greater than debounce_s")
         self.debounce_s = float(debounce_s)
         self.stale_after_s = float(stale_after_s)
-        self.reset()
+        self._reset_state(require_release=False)
 
     def reset(self) -> None:
+        """Clear a latched fault but require release before accepting another press."""
+        self._reset_state(require_release=True)
+
+    def _reset_state(self, *, require_release: bool) -> None:
         self._stable = False
         self._candidate = False
         self._candidate_since: float | None = None
         self._last_sample_at: float | None = None
         self._fault: str | None = None
+        self._require_release = require_release
 
     @property
     def faulted(self) -> bool:
@@ -74,6 +80,14 @@ class DebouncedInput:
             if delta > self.stale_after_s:
                 return self._trip("input stream became stale")
         self._last_sample_at = now
+
+        if self._require_release:
+            if pressed:
+                return InputEvent(False, Edge.NONE)
+            self._require_release = False
+            self._candidate = False
+            self._candidate_since = None
+            return InputEvent(False, Edge.NONE)
 
         if pressed == self._stable:
             self._candidate = self._stable
@@ -111,6 +125,7 @@ class DebouncedInput:
         self._stable = False
         self._candidate = False
         self._candidate_since = None
+        self._require_release = True
         return InputEvent(False, Edge.NONE, True, reason)
 
 
