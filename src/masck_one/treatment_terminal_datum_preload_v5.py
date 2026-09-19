@@ -52,12 +52,22 @@ def build_terminal_datum_preload_v5_architecture(**kwargs) -> TerminalDatumPrelo
     """Build unchanged V4 material geometry under fail-closed collision kernel V2."""
     with _v2_collision_verification():
         architecture = v4.build_terminal_datum_preload_v4_architecture(**kwargs)
+    if not isinstance(architecture, TerminalDatumPreloadV5Architecture):
+        raise TreatmentTerminalDatumPreloadV5Error(
+            "terminal datum V5 builder returned invalid architecture type: "
+            f"expected {TerminalDatumPreloadV5Architecture.__name__}, "
+            f"got {type(architecture).__name__}"
+        )
     if architecture.source_cell6_head_sha != SOURCE_CELL6_HEAD_SHA:
         raise TreatmentTerminalDatumPreloadV5Error("terminal datum V5 source binding drifted")
     return architecture
 
 
 def manifest_v5(architecture: TerminalDatumPreloadV5Architecture) -> dict[str, object]:
+    if not isinstance(architecture, TerminalDatumPreloadV5Architecture):
+        raise TreatmentTerminalDatumPreloadV5Error(
+            "terminal datum V5 manifest requires a verified architecture"
+        )
     payload = architecture.manifest()
     payload.update(
         {
