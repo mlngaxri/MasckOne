@@ -147,6 +147,8 @@ class DebouncedInput:
             return self._trip(FaultCode.ARM_TIME_REGRESSION, "arm time moved backwards")
         self._last_observed_at = now
         if self._last_sample_at is not None:
+            if now > self._last_sample_at + self.stale_after_s:
+                return self._trip(FaultCode.INPUT_STREAM_STALE, "input stream became stale")
             return InputEvent(self._stable, Edge.NONE)
         if self._watchdog_started_at is None:
             self._watchdog_started_at = now
