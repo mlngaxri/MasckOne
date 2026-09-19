@@ -22,6 +22,26 @@ def test_authority_budget_reconciles_cycle_and_capacity_screen():
     assert budget.manifest()["physical_validation_eligible"] is False
 
 
+def test_unrecovered_fluid_closure_exposes_cross_requirement_threshold():
+    budget = build_authority_waste_fluid_budget()
+    assert budget.maximum_unrecovered_nominal_mL_per_cycle == pytest.approx(0.460)
+    assert budget.maximum_classified_nonrecovery_mL_per_cycle == pytest.approx(0.450)
+    assert budget.recovery_ratio_for_residual_leakage_closure == pytest.approx(0.9021739130434783)
+    assert budget.recovery_ratio_closure_delta == pytest.approx(0.0021739130434783)
+
+    manifest = budget.manifest()
+    assert manifest["maximum_unrecovered_nominal_mL_per_cycle"] == pytest.approx(0.460)
+    assert manifest["maximum_classified_nonrecovery_mL_per_cycle"] == pytest.approx(0.450)
+    assert manifest["recovery_ratio_for_residual_leakage_closure"] == pytest.approx(0.9021739130434783)
+
+
+def test_closure_threshold_does_not_promote_recovery_floor():
+    budget = build_authority_waste_fluid_budget()
+    assert budget.recovery_ratio_min == pytest.approx(0.90)
+    assert budget.recovery_ratio_for_residual_leakage_closure > budget.recovery_ratio_min
+    assert budget.manifest()["recovery_ratio_min"] == pytest.approx(0.90)
+
+
 def test_capacity_screen_credits_neither_residual_nor_leakage():
     budget = build_authority_waste_fluid_budget()
     changed = replace(
@@ -30,6 +50,15 @@ def test_capacity_screen_credits_neither_residual_nor_leakage():
         external_leakage_max_mL_per_cycle=0.0,
     )
     assert changed.maximum_cartridge_inflow_screen_mL == budget.maximum_cartridge_inflow_screen_mL
+
+
+def test_zero_nominal_volume_has_defined_closure_threshold():
+    budget = replace(
+        build_authority_waste_fluid_budget(),
+        nominal_introduced_mL_per_cycle=0.0,
+        recovery_ratio_min=0.0,
+    )
+    assert budget.recovery_ratio_for_residual_leakage_closure == pytest.approx(1.0)
 
 
 def test_seventh_cycle_exhausts_digital_requirement_margin():
