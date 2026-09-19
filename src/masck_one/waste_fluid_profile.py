@@ -103,15 +103,20 @@ def screen_service_profile(
     waste it is required to recover fail before that physical occupancy is reached.
 
     The fail-conservative projection reserves all nominal liquid plus the selected
-    future-prime contingency for remaining target cycles. These are digital bounds,
+    future-prime contingency for remaining target cycles. The target is bounded by
+    the configured cartridge service life so callers cannot silently extrapolate the
+    same cartridge beyond its authority service interval. These are digital bounds,
     not retained-volume or recovery predictions.
     """
+    budget.validate()
     if not prime_events_by_cycle:
         raise WasteFluidAccountingError("service profile must contain at least one cycle")
     if target_cycles is None:
         target_cycles = budget.service_cycles
     if type(target_cycles) is not int or target_cycles <= 0:
         raise WasteFluidAccountingError("target_cycles must be a positive integer")
+    if target_cycles > budget.service_cycles:
+        raise WasteFluidAccountingError("target_cycles exceeds configured service life")
     if target_cycles < len(prime_events_by_cycle):
         raise WasteFluidAccountingError("target_cycles cannot be less than the profiled cycle count")
     if type(future_prime_events_per_remaining_cycle) is not int or future_prime_events_per_remaining_cycle < 0:
@@ -131,27 +136,16 @@ def screen_service_profile(
         aggregate = budget.service_capacity_screen(cycles=cycle, prime_events=cumulative_primes)
         remaining_cycles = target_cycles - cycle
 
-        projected_mandatory_recovery = (
-            aggregate.minimum_recovered_nominal_mL
-            + remaining_cycles * budget.minimum_recovered_mL_per_cycle
-        )
-        projected_mandatory_recovery_margin = (
-            budget.cartridge_retained_capacity_requirement_mL - projected_mandatory_recovery
-        )
+        projected_mandatory_recovery = aggregate.minimum_recovered_nominal_mL + remaining_cycles * budget.minimum_recovered_mL_per_cycle
+        projected_mandatory_recovery_margin = budget.cartridge_retained_capacity_requirement_mL - projected_mandatory_recovery
         mandatory_recovery_target_feasible = projected_mandatory_recovery_margin >= -1e-12
 
-        nominal_target_inflow = (
-            aggregate.maximum_cartridge_inflow_mL
-            + remaining_cycles * budget.nominal_introduced_mL_per_cycle
-        )
+        nominal_target_inflow = aggregate.maximum_cartridge_inflow_mL + remaining_cycles * budget.nominal_introduced_mL_per_cycle
         prime_headroom_mL = budget.cartridge_retained_capacity_requirement_mL - nominal_target_inflow
         if budget.maximum_initial_prime_mL_per_cycle == 0.0:
             maximum_additional_primes = None
         else:
-            maximum_additional_primes = max(
-                0,
-                math.floor((prime_headroom_mL + 1e-12) / budget.maximum_initial_prime_mL_per_cycle),
-            )
+            maximum_additional_primes = max(0, math.floor((prime_headroom_mL + 1e-12) / budget.maximum_initial_prime_mL_per_cycle))
 
         reserved_future_prime_events = remaining_cycles * future_prime_events_per_remaining_cycle
         reserved_future_prime_mL = reserved_future_prime_events * budget.maximum_initial_prime_mL_per_cycle
@@ -161,16 +155,10 @@ def screen_service_profile(
         if budget.maximum_initial_prime_mL_per_cycle == 0.0:
             maximum_unreserved_primes = None
         elif target_feasible:
-            maximum_unreserved_primes = max(
-                0,
-                math.floor((projected_end_margin + 1e-12) / budget.maximum_initial_prime_mL_per_cycle),
-            )
+            maximum_unreserved_primes = max(0, math.floor((projected_end_margin + 1e-12) / budget.maximum_initial_prime_mL_per_cycle))
         else:
             maximum_unreserved_primes = 0
-        minimum_recovery_capacity_satisfied = (
-            aggregate.minimum_recovered_nominal_mL
-            <= budget.cartridge_retained_capacity_requirement_mL + 1e-12
-        )
+        minimum_recovery_capacity_satisfied = aggregate.minimum_recovered_nominal_mL <= budget.cartridge_retained_capacity_requirement_mL + 1e-12
         state = CycleFluidState(
             cycle=cycle,
             prime_events_this_cycle=prime_events,
@@ -204,12 +192,4 @@ def screen_service_profile(
         if first_target_infeasible is None and not state.service_target_feasible:
             first_target_infeasible = cycle
 
-    return ServiceFluidProfile(
-        tuple(states),
-        target_cycles,
-        future_prime_events_per_remaining_cycle,
-        first_overflow,
-        first_mandatory_recovery_overflow,
-        first_mandatory_recovery_target_infeasible,
-        first_target_infeasible,
-    )
+    return ServiceFluidProfile(tuple(states), target_cycles, future_prime_events_per_remaining_cycle, first_overflow, first_mandatory_recovery_overflow, first_mandatory_recovery_target_infeasible, first_target_infeasible)
