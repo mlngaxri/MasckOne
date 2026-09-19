@@ -52,15 +52,16 @@ class DebouncedInput:
     No wall clock is read, making behaviour deterministic in firmware simulation and
     unit tests. A stale stream faults rather than preserving a potentially unsafe held
     command. Once faulted, an explicit reset and debounced release are required before
-    a new press can be accepted. Sample, arm and watchdog calls share one monotonic
-    time contract so no path can silently move the runtime clock backwards. That clock
-    contract survives fault reset. Firmware may pass ``now_s`` to ``reset`` so recovery
-    no-sample supervision begins at the actual reset request rather than at the older
-    fault observation. Legacy untimed reset remains supported and starts its recovery
-    window at the next arm, sample or watchdog observation. Valid sample timestamps are
-    clock observations even when the electrical level is malformed. The first fault
-    cause remains latched until reset. Timing gates compare absolute deadlines rather
-    than subtracting floating timestamps.
+    a new press can be accepted. Sample, arm, watchdog and timed reset calls share one
+    monotonic time contract so no path can silently move the runtime clock backwards.
+    That clock contract survives fault reset. Firmware may pass ``now_s`` to ``reset``
+    so recovery no-sample supervision begins at the actual reset request rather than at
+    the older fault observation. A timed healthy reset is otherwise non-destructive but
+    still advances the shared clock observation. Legacy untimed reset remains supported
+    and starts its recovery window at the next arm, sample or watchdog observation.
+    Valid sample timestamps are clock observations even when the electrical level is
+    malformed. The first fault cause remains latched until reset. Timing gates compare
+    absolute deadlines rather than subtracting floating timestamps.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -82,6 +83,8 @@ class DebouncedInput:
             if self._last_observed_at is not None and reset_at < self._last_observed_at:
                 raise HmiInputError("reset time moved backwards")
         if self._fault is None:
+            if reset_at is not None:
+                self._last_observed_at = reset_at
             return
         self._reset_state(
             require_release=True,
