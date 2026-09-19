@@ -1,4 +1,4 @@
-"""Cross-requirement closure checks for nominal CLEAN-cycle liquid.
+"""Cross-requirement closure checks for CLEAN-cycle liquid.
 
 This module reconciles the recovery floor with the residual-fluid and external-
 leakage ceilings without treating those ceilings as measured sinks. The result is
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .waste_fluid_accounting import WasteFluidBudget
+from .waste_fluid_accounting import WasteFluidAccountingError, WasteFluidBudget
 
 
 @dataclass(frozen=True)
@@ -24,21 +24,26 @@ class NonrecoveryClosure:
     closes_using_only_classified_sinks: bool
 
 
-def screen_nonrecovery_closure(budget: WasteFluidBudget) -> NonrecoveryClosure:
-    """Reconcile recovery, residual and leakage requirements for one nominal cycle.
+@dataclass(frozen=True)
+class ServiceRoutingClosure:
+    """Service-level liquid whose destination is not closed by current requirements.
 
-    At the minimum recovery ratio, ``maximum_unrecovered_nominal_mL`` is the
-    largest nominal volume that may remain outside recovered waste. Residual and
-    external leakage are independent ceilings, not predictions, so they are summed
-    only to ask whether those two named sinks can account for that unrecovered
-    allowance in requirement space.
-
-    A positive ``unclassified_nonrecovery_allowance_mL`` means the recovery floor
-    permits more unrecovered liquid than the two named sink ceilings can explain.
-    A positive ``classified_sink_headroom_mL`` means the named ceilings are wider
-    than the unrecovered allowance. Neither quantity is evidence that fluid follows
-    any particular route.
+    Prime liquid is intentionally treated separately from nominal CLEAN liquid.
+    The authority specifies its maximum introduced volume but no prime-specific
+    recovery fraction or disposal sink, so none of it is silently credited to the
+    nominal recovery requirement.
     """
+
+    cycles: int
+    prime_events: int
+    nominal_unclassified_nonrecovery_mL: float
+    prime_liquid_without_routing_contract_mL: float
+    total_liquid_without_routing_contract_mL: float
+    routing_contract_complete: bool
+
+
+def screen_nonrecovery_closure(budget: WasteFluidBudget) -> NonrecoveryClosure:
+    """Reconcile recovery, residual and leakage requirements for one nominal cycle."""
     budget.validate()
     unrecovered = budget.maximum_unrecovered_nominal_mL_per_cycle
     classified = budget.maximum_classified_nonrecovery_mL_per_cycle
@@ -52,4 +57,36 @@ def screen_nonrecovery_closure(budget: WasteFluidBudget) -> NonrecoveryClosure:
         unclassified_nonrecovery_allowance_mL=max(0.0, gap),
         classified_sink_headroom_mL=max(0.0, -gap),
         closes_using_only_classified_sinks=gap <= tolerance,
+    )
+
+
+def screen_service_routing_closure(
+    budget: WasteFluidBudget,
+    *,
+    cycles: int,
+    prime_events: int,
+) -> ServiceRoutingClosure:
+    """Expose service liquid that lacks a requirement-level destination contract.
+
+    This is deliberately stricter than cartridge capacity accounting. Capacity may
+    conservatively reserve all prime liquid, but that does not prove prime liquid is
+    recovered to the cartridge. Until a prime recovery/disposal contract exists,
+    every allowed prime event remains an explicit routing obligation.
+    """
+    budget.validate()
+    if type(cycles) is not int or cycles <= 0:
+        raise WasteFluidAccountingError("cycles must be a positive integer")
+    if type(prime_events) is not int or prime_events < 0:
+        raise WasteFluidAccountingError("prime_events must be a nonnegative integer")
+
+    nominal = screen_nonrecovery_closure(budget).unclassified_nonrecovery_allowance_mL * cycles
+    prime = budget.maximum_initial_prime_mL_per_cycle * prime_events
+    total = nominal + prime
+    return ServiceRoutingClosure(
+        cycles=cycles,
+        prime_events=prime_events,
+        nominal_unclassified_nonrecovery_mL=nominal,
+        prime_liquid_without_routing_contract_mL=prime,
+        total_liquid_without_routing_contract_mL=total,
+        routing_contract_complete=total <= 1e-12,
     )
