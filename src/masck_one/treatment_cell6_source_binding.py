@@ -15,6 +15,8 @@ SCHEMA = "MASCK_ONE_TREATMENT_CELL6_SOURCE_BINDING_V2"
 WORLD_FRAME_ID = "MASCK_ONE_AUTHORITY_WORLD_MM"
 RELEASED_MAIN_SHA = "42fa11818184cde998c6df25d7c46d4fb0e4c3eb"
 CELL6_HEAD_SHA = "2d5ace19e2f87a8bd92f4620d8e6b225ba3826be"
+ACCEPTED_CELL6_CANDIDATE_HEAD_SHA = "a248c814d10fb8cd73da83d0b40ace2309a93997"
+ACCEPTED_CELL6_CANDIDATE_STATUS = "ACCEPTED_EXACT_HEAD_DIGITAL_RECEIPT_NOT_CURRENT_RELEASE_LINE"
 TREATMENT_PREMERGE_HEAD_SHA = "0073fc33d0605ea84e5322111d10a457585bdb59"
 TREATMENT_CELL6_MERGE_CHECKPOINT_SHA = "d070d927d03aa995fd7d34e86dc2629a5b37a5b4"
 SUPERSEDES_SOURCE_BINDING = "MASCK_ONE_TREATMENT_LIVE117_RECONCILIATION_V1_SOURCE_IDENTITY_ONLY"
@@ -27,6 +29,13 @@ CONSUMED_COUNTERFACE_BLOB_SHA1 = {
     "src/masck_one/structural_frame_carrier_landing.py": "a7497537b3851883dc3efa2766f395c2f4b070a0",
     "src/masck_one/structural_frame_carrier_detent.py": "693d4f6cbbc915ec2e6e6ea8ae069f0f8969cb5d",
 }
+
+# These exact blobs were independently re-observed on the accepted Cell 6
+# candidate head above. This proves that the treatment-consumed counterface
+# source files did not move between the historical treatment bind and that
+# accepted frame candidate. It does not claim compatibility with live main,
+# which currently does not contain the Cell 6 implementation.
+ACCEPTED_CELL6_CANDIDATE_COUNTERFACE_BLOB_SHA1 = dict(CONSUMED_COUNTERFACE_BLOB_SHA1)
 
 HISTORICAL_STALE_BINDINGS = {
     "studies/treatment_live117_reconciliation.py:CELL6_HEAD_SHA": "3e840d52d641b429669928ab9e4c207f08086ca1",
@@ -68,6 +77,13 @@ def manifest() -> dict[str, object]:
         "coordinate_frame_id": WORLD_FRAME_ID,
         "released_main_sha": RELEASED_MAIN_SHA,
         "cell6_head_sha": CELL6_HEAD_SHA,
+        "accepted_cell6_candidate_head_sha": ACCEPTED_CELL6_CANDIDATE_HEAD_SHA,
+        "accepted_cell6_candidate_status": ACCEPTED_CELL6_CANDIDATE_STATUS,
+        "accepted_cell6_candidate_counterface_blob_sha1": dict(ACCEPTED_CELL6_CANDIDATE_COUNTERFACE_BLOB_SHA1),
+        "accepted_cell6_candidate_counterfaces_identical": (
+            ACCEPTED_CELL6_CANDIDATE_COUNTERFACE_BLOB_SHA1 == CONSUMED_COUNTERFACE_BLOB_SHA1
+        ),
+        "live_main_compatibility_claimed": False,
         "treatment_premerge_head_sha": TREATMENT_PREMERGE_HEAD_SHA,
         "treatment_cell6_merge_checkpoint_sha": TREATMENT_CELL6_MERGE_CHECKPOINT_SHA,
         "consumed_counterface_blob_sha1": dict(CONSUMED_COUNTERFACE_BLOB_SHA1),
