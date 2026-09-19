@@ -10,6 +10,7 @@ spring cassettes are generated from them.
 
 from dataclasses import dataclass
 import math
+from numbers import Real
 
 from .structural_frame_actuator_reactions import REACTION_IDS
 from .treatment_guided_preload_spring import (
@@ -56,7 +57,7 @@ def _require_exact_station_identity(stations, *, stage: str) -> None:
 
 
 def _require_capture_screen(station: GuidedPreloadSpringStation) -> None:
-    """Fail closed on incomplete or non-finite geometric capture evidence."""
+    """Fail closed on incomplete, mistyped, or non-finite geometric capture evidence."""
     actual_keys = frozenset(station.capture_screen)
     if actual_keys != _CAPTURE_KEYS:
         raise ValueError(
@@ -64,6 +65,14 @@ def _require_capture_screen(station: GuidedPreloadSpringStation) -> None:
             f"expected {sorted(_CAPTURE_KEYS)!r}, got {sorted(actual_keys)!r}"
         )
     for name, value in station.capture_screen.items():
+        # Capture evidence is a computed volume, not a permissive serialization
+        # boundary. In particular, bool is a subclass of int and float("0.01")
+        # succeeds, so coercion would let non-measurement payloads qualify geometry.
+        if isinstance(value, bool) or not isinstance(value, Real):
+            raise ValueError(
+                f"guided spring V5 {station.reaction_id} {name} capture evidence "
+                f"must be a real numeric volume; got {value!r}"
+            )
         numeric = float(value)
         if not math.isfinite(numeric) or numeric <= _INTERSECTION_TOLERANCE_MM3:
             raise ValueError(
@@ -81,8 +90,9 @@ def build_guided_preload_spring_v5_architecture(**terminal_kwargs) -> GuidedPrel
     # Count-only validation can admit a duplicated station while silently omitting
     # another reaction zone. Require the exact structural reaction identity and order
     # before any spring cassette is generated. Validate each generated capture screen
-    # immediately so NaN/Inf or missing probe evidence cannot survive into a mounted
-    # architecture, then recheck the generated four-zone identity before returning.
+    # immediately so mistyped, NaN/Inf, or missing probe evidence cannot survive into
+    # a mounted architecture, then recheck the generated four-zone identity before
+    # returning.
     _require_exact_station_identity(terminal.stations, stage="terminal input")
     generated: list[GuidedPreloadSpringStation] = []
     for terminal_station in terminal.stations:
