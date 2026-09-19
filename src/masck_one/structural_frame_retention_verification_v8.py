@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-"""Independently verify capture-pin clearance to the yoke bore material.
+"""Independently verify capture-pin clearance to the authoritative yoke bore.
 
 V7 cross-checks source-frame capture metadata. V8 adds an independent B-rep distance
-measurement between each capture pin and its nominal yoke material, then requires the
-generator-recorded pin/bore radial clearance to agree. This catches stale clearance
-metadata, mixed mating geometry, and a pin/bore change that remains non-intersecting
-but no longer has the intended positive clearance.
+measurement between each capture pin and its nominal yoke material. It requires both
+the generator metadata and B-rep result to agree with the analytical radial clearance
+implied by the authoritative pin and bore radii. This prevents coherent geometry and
+metadata drift from silently changing the mating contract.
 """
 
 from dataclasses import dataclass
@@ -16,6 +16,8 @@ import cadquery as cq
 
 from .model import MasckOneModel, build_model
 from .structural_frame_retention_roots import (
+    CLEVIS_PIN_RADIUS_MM,
+    YOKE_ROOT_BORE_RADIUS_MM,
     StructuralFrameRetentionRootArchitecture,
     build_structural_frame_retention_roots,
 )
@@ -27,6 +29,7 @@ from .structural_frame_retention_verification_v7 import (
 
 SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_VERIFICATION_V8"
 CLEARANCE_METADATA_ABSOLUTE_TOLERANCE_MM = 1e-6
+AUTHORITY_RADIAL_CLEARANCE_MM = YOKE_ROOT_BORE_RADIUS_MM - CLEVIS_PIN_RADIUS_MM
 EXPECTED_ROOT_IDS = frozenset({"RETENTION_ROOT_WEARER_LEFT", "RETENTION_ROOT_WEARER_RIGHT"})
 
 
@@ -56,6 +59,8 @@ class StructuralFrameRetentionVerificationV8:
             self.v7.validate()
         except StructuralFrameRetentionVerificationV7Error as exc:
             raise StructuralFrameRetentionVerificationV8Error("V7 prerequisite verification failed") from exc
+        if not math.isfinite(AUTHORITY_RADIAL_CLEARANCE_MM) or AUTHORITY_RADIAL_CLEARANCE_MM <= 0.0:
+            raise StructuralFrameRetentionVerificationV8Error("authoritative pin/bore radial clearance must be finite and positive")
         generated = dict(self.generated_clearances_mm)
         independent = dict(self.independent_clearances_mm)
         if len(generated) != 2 or set(generated) != EXPECTED_ROOT_IDS:
@@ -71,6 +76,10 @@ class StructuralFrameRetentionVerificationV8:
                 raise StructuralFrameRetentionVerificationV8Error(f"{root_id} independent radial clearance must be finite and positive")
             if abs(expected - actual) > CLEARANCE_METADATA_ABSOLUTE_TOLERANCE_MM:
                 raise StructuralFrameRetentionVerificationV8Error(f"{root_id} generated radial clearance disagrees with independent B-rep distance")
+            if abs(expected - AUTHORITY_RADIAL_CLEARANCE_MM) > CLEARANCE_METADATA_ABSOLUTE_TOLERANCE_MM:
+                raise StructuralFrameRetentionVerificationV8Error(f"{root_id} generated radial clearance disagrees with authoritative pin/bore radii")
+            if abs(actual - AUTHORITY_RADIAL_CLEARANCE_MM) > CLEARANCE_METADATA_ABSOLUTE_TOLERANCE_MM:
+                raise StructuralFrameRetentionVerificationV8Error(f"{root_id} independent radial clearance disagrees with authoritative pin/bore radii")
         if self.physical_validation_eligible is not False:
             raise StructuralFrameRetentionVerificationV8Error("digital clearance coherence is not physical validation evidence")
         return self
@@ -81,14 +90,18 @@ class StructuralFrameRetentionVerificationV8:
         independent = dict(self.independent_clearances_mm)
         return {
             "schema": SCHEMA,
-            "verification_semantics": "FAIL_CLOSED_V7_PLUS_INDEPENDENT_PIN_BORE_RADIAL_CLEARANCE_COHERENCE",
+            "verification_semantics": "FAIL_CLOSED_V7_PLUS_PIN_BORE_CLEARANCE_AUTHORITY_COHERENCE",
             "clearance_metadata_absolute_tolerance_mm": CLEARANCE_METADATA_ABSOLUTE_TOLERANCE_MM,
+            "authority_pin_radius_mm": CLEVIS_PIN_RADIUS_MM,
+            "authority_bore_radius_mm": YOKE_ROOT_BORE_RADIUS_MM,
+            "authority_radial_clearance_mm": AUTHORITY_RADIAL_CLEARANCE_MM,
             "roots": [
                 {
                     "root_id": root_id,
                     "generated_radial_clearance_mm": generated[root_id],
                     "independent_brep_clearance_mm": independent[root_id],
                     "absolute_error_mm": abs(generated[root_id] - independent[root_id]),
+                    "authority_error_mm": abs(independent[root_id] - AUTHORITY_RADIAL_CLEARANCE_MM),
                 }
                 for root_id in sorted(EXPECTED_ROOT_IDS)
             ],
