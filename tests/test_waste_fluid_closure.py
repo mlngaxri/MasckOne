@@ -2,8 +2,8 @@ from dataclasses import replace
 
 import pytest
 
-from masck_one.waste_fluid_accounting import build_authority_waste_fluid_budget
-from masck_one.waste_fluid_closure import screen_nonrecovery_closure
+from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
+from masck_one.waste_fluid_closure import screen_nonrecovery_closure, screen_service_routing_closure
 
 
 def test_authority_profile_exposes_unclassified_nonrecovery_allowance():
@@ -40,3 +40,31 @@ def test_closure_screen_does_not_credit_sinks_to_cartridge_capacity():
     baseline = budget.maximum_cartridge_inflow_screen_mL
     screen_nonrecovery_closure(budget)
     assert budget.maximum_cartridge_inflow_screen_mL == pytest.approx(baseline)
+
+
+def test_service_routing_closure_exposes_prime_liquid_without_destination_contract():
+    budget = build_authority_waste_fluid_budget()
+    closure = screen_service_routing_closure(budget, cycles=6, prime_events=6)
+    assert closure.nominal_unclassified_nonrecovery_mL == pytest.approx(0.060)
+    assert closure.prime_liquid_without_routing_contract_mL == pytest.approx(2.400)
+    assert closure.total_liquid_without_routing_contract_mL == pytest.approx(2.460)
+    assert closure.routing_contract_complete is False
+
+
+def test_service_routing_closure_can_close_when_nominal_gap_and_prime_volume_are_zero():
+    budget = replace(
+        build_authority_waste_fluid_budget(),
+        recovery_ratio_min=build_authority_waste_fluid_budget().recovery_ratio_for_residual_leakage_closure,
+        maximum_initial_prime_mL_per_cycle=0.0,
+    )
+    closure = screen_service_routing_closure(budget, cycles=6, prime_events=0)
+    assert closure.total_liquid_without_routing_contract_mL == pytest.approx(0.0, abs=1e-12)
+    assert closure.routing_contract_complete is True
+
+
+def test_service_routing_closure_rejects_invalid_counts():
+    budget = build_authority_waste_fluid_budget()
+    with pytest.raises(WasteFluidAccountingError, match="positive integer"):
+        screen_service_routing_closure(budget, cycles=True, prime_events=0)
+    with pytest.raises(WasteFluidAccountingError, match="nonnegative integer"):
+        screen_service_routing_closure(budget, cycles=1, prime_events=-1)
