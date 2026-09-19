@@ -76,6 +76,10 @@ def test_prime_nonrecovery_can_be_classified_without_double_counting():
     assert closure.minimum_prime_liquid_routed_to_cartridge_mL == pytest.approx(2.160)
     assert closure.maximum_prime_residual_mL == pytest.approx(0.192)
     assert closure.maximum_prime_external_leakage_mL == pytest.approx(0.048)
+    assert closure.service_residual_ceiling_mL == pytest.approx(2.400)
+    assert closure.service_external_leakage_ceiling_mL == pytest.approx(0.300)
+    assert closure.prime_residual_ceiling_margin_mL == pytest.approx(2.208)
+    assert closure.prime_external_leakage_ceiling_margin_mL == pytest.approx(0.252)
     assert closure.prime_liquid_without_routing_contract_mL == pytest.approx(0.0, abs=1e-12)
     assert closure.total_liquid_without_routing_contract_mL == pytest.approx(0.060)
     assert closure.routing_contract_complete is False
@@ -106,6 +110,37 @@ def test_prime_sink_contract_rejects_overallocated_mass_balance():
             prime_residual_ratio_contract=0.08,
             prime_external_leakage_ratio_contract=0.03,
         )
+
+
+def test_prime_residual_contract_cannot_exceed_service_residual_ceiling():
+    with pytest.raises(WasteFluidAccountingError, match="residual contract exceeds"):
+        screen_service_routing_closure(
+            build_authority_waste_fluid_budget(),
+            cycles=1,
+            prime_events=3,
+            prime_residual_ratio_contract=0.50,
+        )
+
+
+def test_prime_leakage_contract_cannot_exceed_service_leakage_ceiling():
+    with pytest.raises(WasteFluidAccountingError, match="leakage contract exceeds"):
+        screen_service_routing_closure(
+            build_authority_waste_fluid_budget(),
+            cycles=1,
+            prime_events=2,
+            prime_external_leakage_ratio_contract=0.10,
+        )
+
+
+def test_prime_sink_contract_at_service_ceiling_is_accepted():
+    closure = screen_service_routing_closure(
+        build_authority_waste_fluid_budget(),
+        cycles=1,
+        prime_events=1,
+        prime_external_leakage_ratio_contract=0.125,
+    )
+    assert closure.maximum_prime_external_leakage_mL == pytest.approx(0.050)
+    assert closure.prime_external_leakage_ceiling_margin_mL == pytest.approx(0.0, abs=1e-12)
 
 
 def test_service_routing_closure_rejects_invalid_counts_and_prime_contracts():
