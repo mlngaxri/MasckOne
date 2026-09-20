@@ -124,6 +124,37 @@ def _require_v10_predecessor_evidence(payload: dict[str, object]) -> None:
         )
 
 
+def _mutable_evidence_ids(value: object, seen: set[int] | None = None) -> set[int]:
+    """Collect mutable container identities reachable through evidence containers."""
+    if seen is None:
+        seen = set()
+    identity = id(value)
+    if identity in seen:
+        return set()
+    seen.add(identity)
+
+    mutable_ids: set[int] = set()
+    if type(value) in (dict, list, set, bytearray):
+        mutable_ids.add(identity)
+    if type(value) is dict:
+        for key, item in value.items():
+            mutable_ids.update(_mutable_evidence_ids(key, seen))
+            mutable_ids.update(_mutable_evidence_ids(item, seen))
+    elif type(value) in (list, tuple, set):
+        for item in value:
+            mutable_ids.update(_mutable_evidence_ids(item, seen))
+    return mutable_ids
+
+
+def _require_isolated_promotion(predecessor: dict[str, object], promoted: dict[str, object]) -> None:
+    """Reject a copy operation that leaves any mutable predecessor evidence aliased."""
+    shared = _mutable_evidence_ids(predecessor) & _mutable_evidence_ids(promoted)
+    if shared:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 predecessor evidence remains mutably aliased after isolation"
+        )
+
+
 def verify_promoted_evidence_v11(payload: object) -> None:
     """Fail closed unless materialized V11 evidence is intact and still qualified."""
     if type(payload) is not dict:
@@ -193,6 +224,7 @@ def manifest_v11(architecture, datums) -> dict[str, object]:
         raise TreatmentMountedFourZoneV11Error(
             "mounted four-zone V11 predecessor evidence cannot be isolated for promotion"
         ) from exc
+    _require_isolated_promotion(upstream_payload, payload)
     payload.update(
         {
             "schema": SCHEMA,
