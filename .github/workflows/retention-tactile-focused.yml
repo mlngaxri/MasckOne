@@ -60,7 +60,8 @@ jobs:
             src/masck_one/structural_frame_retention_verification_v13.py \
             src/masck_one/structural_frame_retention_verification_v14.py \
             src/masck_one/structural_frame_retention_verification_v15.py \
-            src/masck_one/structural_frame_retention_verification_v16.py
+            src/masck_one/structural_frame_retention_verification_v16.py \
+            src/masck_one/structural_frame_retention_verification_v17.py
       - name: Verify positive retention graph, structural roots, and selected tactile successor
         run: |
           python -m pytest -q \
@@ -81,6 +82,7 @@ jobs:
             tests/test_structural_frame_retention_verification_v14.py \
             tests/test_structural_frame_retention_verification_v15.py \
             tests/test_structural_frame_retention_verification_v16.py \
+            tests/test_structural_frame_retention_verification_v17.py \
             tests/test_retention_quick_release_tactile_v3.py \
             tests/test_retention_quick_release_tactile_v4.py \
             tests/test_retention_quick_release_tactile_v5.py \
@@ -120,6 +122,9 @@ jobs:
 # authority, detecting internal material drift that can preserve V14's outer dimensions.
 # Structural-root V16 independently binds bilateral pin placement/material symmetry through
 # measured B-rep centers of mass, catching equal-volume translation or asymmetric drift.
+# Structural-root V17 independently binds each actual capture-pin axis to its repaired
+# frame-side clevis-bore axis and checks bilateral mirror registration, rejecting a shifted
+# pin that could otherwise remain non-interfering inside the larger bore.
 # The clevis-bore repair is also compiled and regression-gated here so a future owner-head
 # change cannot silently restore the solid-clevis capture-pin interference.
 # These are focused-CI gates. Parent Cell 6 and complete-repo CI remain separate release
