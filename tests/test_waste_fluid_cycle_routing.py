@@ -13,6 +13,21 @@ def test_authority_one_prime_per_cycle_preserves_local_sink_margins():
     assert closure.first_incomplete_cycle == 1
     assert not closure.all_cycles_routing_complete
 
+def test_cycle_screen_exposes_minimum_cartridge_routing_load():
+    closure = screen_cycle_resolved_routing_closure(build_authority_waste_fluid_budget(), prime_events_by_cycle=[1]*6, prime_recovery_ratio_contract=.90, prime_residual_ratio_contract=.08, prime_external_leakage_ratio_contract=.02)
+    assert all(c.minimum_nominal_routed_to_cartridge_mL == pytest.approx(4.14) for c in closure.cycles)
+    assert all(c.minimum_prime_routed_to_cartridge_mL == pytest.approx(.36) for c in closure.cycles)
+    assert all(c.minimum_total_routed_to_cartridge_mL == pytest.approx(4.50) for c in closure.cycles)
+    assert closure.minimum_total_routed_to_cartridge_mL == pytest.approx(27.0)
+    assert closure.minimum_total_routed_to_cartridge_mL == pytest.approx(closure.service.cycles * 4.14 + closure.service.minimum_prime_liquid_routed_to_cartridge_mL)
+
+def test_prime_without_recovery_contract_gets_no_cartridge_routing_credit():
+    closure = screen_cycle_resolved_routing_closure(build_authority_waste_fluid_budget(), prime_events_by_cycle=[2], prime_residual_ratio_contract=.50)
+    cycle = closure.cycles[0]
+    assert cycle.minimum_nominal_routed_to_cartridge_mL == pytest.approx(4.14)
+    assert cycle.minimum_prime_routed_to_cartridge_mL == pytest.approx(0)
+    assert cycle.minimum_total_routed_to_cartridge_mL == pytest.approx(4.14)
+
 def test_first_incomplete_cycle_preserves_cycle_locality():
     budget = build_authority_waste_fluid_budget()
     tighter = type(budget)(budget.service_cycles, budget.nominal_introduced_mL_per_cycle, budget.maximum_initial_prime_mL_per_cycle, .91, budget.residual_free_liquid_max_mL, budget.external_leakage_max_mL_per_cycle, budget.cartridge_retained_capacity_requirement_mL)
