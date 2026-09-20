@@ -66,6 +66,55 @@ def test_boolean_failure_cannot_be_relabelled_as_zero_clearance_evidence(monkeyp
         _intersection(sweep, sweep)
 
 
+def test_bilateral_service_corridor_drift_is_rejected() -> None:
+    architecture = build_structural_frame_retention_root_service()
+    left, right = architecture.paths
+
+    shifted_right = type(right)(
+        right.root_id,
+        right.pin_withdraw_sweep.translate((0.01, 0.0, 0.0)),
+        right.clip_install_sweep,
+        right.pin_sweep_frame_intersection_mm3,
+        right.pin_sweep_yoke_intersection_mm3,
+        right.clip_sweep_frame_intersection_mm3,
+        right.clip_sweep_yoke_intersection_mm3,
+    )
+    with pytest.raises(StructuralFrameRetentionRootServiceError, match="mirror registered"):
+        type(architecture)(
+            architecture.source_retention_root_architecture_sha256,
+            (left, shifted_right),
+            False,
+        )
+
+
+def test_bilateral_service_corridor_size_asymmetry_is_rejected() -> None:
+    architecture = build_structural_frame_retention_root_service()
+    left, right = architecture.paths
+    clip_bb = right.clip_install_sweep.val().BoundingBox()
+    oversized_clip = cq.Workplane("XY").box(
+        clip_bb.xlen + 0.01,
+        clip_bb.ylen,
+        clip_bb.zlen,
+        centered=(True, True, True),
+    ).translate(((clip_bb.xmin + clip_bb.xmax) / 2.0, (clip_bb.ymin + clip_bb.ymax) / 2.0, (clip_bb.zmin + clip_bb.zmax) / 2.0))
+
+    hostile_right = type(right)(
+        right.root_id,
+        right.pin_withdraw_sweep,
+        oversized_clip,
+        right.pin_sweep_frame_intersection_mm3,
+        right.pin_sweep_yoke_intersection_mm3,
+        right.clip_sweep_frame_intersection_mm3,
+        right.clip_sweep_yoke_intersection_mm3,
+    )
+    with pytest.raises(StructuralFrameRetentionRootServiceError, match="mirror registered"):
+        type(architecture)(
+            architecture.source_retention_root_architecture_sha256,
+            (left, hostile_right),
+            False,
+        )
+
+
 def test_retention_root_service_export_is_deterministic_and_roundtrips(tmp_path) -> None:
     first = export_structural_frame_retention_root_service(tmp_path / "a")
     second = export_structural_frame_retention_root_service(tmp_path / "b")
