@@ -32,6 +32,30 @@ def test_malformed_level_inside_live_stream_retains_level_fault():
     assert fault.fault_code is FaultCode.PRESSED_NOT_BOOL
 
 
+def test_malformed_level_at_exact_stale_boundary_retains_level_fault():
+    """The strict stale deadline must not steal priority at equality."""
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    control.sample(pressed=False, now_s=4.00)
+
+    fault = control.sample(pressed=1, now_s=4.25)
+
+    assert fault.faulted is True
+    assert fault.fault_code is FaultCode.PRESSED_NOT_BOOL
+    assert fault.stable_pressed is False
+
+
+def test_malformed_first_level_at_exact_no_start_boundary_retains_level_fault():
+    """No-start supervision is also strict: expiry begins after, not at, deadline."""
+    control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    assert control.arm(now_s=5.00).faulted is False
+
+    fault = control.sample(pressed=None, now_s=5.25)
+
+    assert fault.faulted is True
+    assert fault.fault_code is FaultCode.PRESSED_NOT_BOOL
+    assert fault.stable_pressed is False
+
+
 def test_expired_no_start_window_wins_over_malformed_first_level():
     control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
     assert control.arm(now_s=3.00).faulted is False
