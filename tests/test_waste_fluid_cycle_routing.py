@@ -25,6 +25,25 @@ def test_cycle_screen_exposes_minimum_cartridge_routing_load():
     assert closure.minimum_total_routed_to_cartridge_mL == pytest.approx(27.0)
     assert closure.minimum_total_routed_to_cartridge_mL == pytest.approx(closure.service.cycles * 4.14 + closure.service.minimum_prime_liquid_routed_to_cartridge_mL)
 
+def test_cycle_screen_tracks_fail_conservative_cartridge_capacity_without_sink_credit():
+    closure = screen_cycle_resolved_routing_closure(build_authority_waste_fluid_budget(), prime_events_by_cycle=[1]*6, prime_recovery_ratio_contract=.90, prime_residual_ratio_contract=.08, prime_external_leakage_ratio_contract=.02)
+    assert [c.cumulative_maximum_cartridge_inflow_mL for c in closure.cycles] == pytest.approx([5,10,15,20,25,30])
+    assert [c.cartridge_capacity_margin_mL for c in closure.cycles] == pytest.approx([30,25,20,15,10,5])
+    assert all(c.cartridge_capacity_satisfied for c in closure.cycles)
+    assert closure.first_cartridge_capacity_exceeded_cycle is None
+    assert closure.all_cycles_cartridge_capacity_satisfied
+
+def test_cycle_screen_identifies_exact_cycle_where_clustered_reprimes_exceed_capacity():
+    closure = screen_cycle_resolved_routing_closure(build_authority_waste_fluid_budget(), prime_events_by_cycle=[0,0,0,0,0,30], prime_recovery_ratio_contract=1.0)
+    assert closure.cycles[4].cumulative_maximum_cartridge_inflow_mL == pytest.approx(23.0)
+    assert closure.cycles[4].cartridge_capacity_margin_mL == pytest.approx(12.0)
+    assert closure.cycles[4].cartridge_capacity_satisfied
+    assert closure.cycles[5].cumulative_maximum_cartridge_inflow_mL == pytest.approx(39.6)
+    assert closure.cycles[5].cartridge_capacity_margin_mL == pytest.approx(-4.6)
+    assert not closure.cycles[5].cartridge_capacity_satisfied
+    assert closure.first_cartridge_capacity_exceeded_cycle == 6
+    assert not closure.all_cycles_cartridge_capacity_satisfied
+
 def test_prime_without_recovery_contract_gets_no_cartridge_routing_credit():
     closure = screen_cycle_resolved_routing_closure(build_authority_waste_fluid_budget(), prime_events_by_cycle=[2], prime_residual_ratio_contract=.50)
     cycle = closure.cycles[0]
