@@ -1,6 +1,7 @@
 import pytest
 
 from masck_one.thermal_control import (
+    ThermalCommand,
     ThermalCommandInterlock,
     ThermalControlError,
     ThermalMode,
@@ -75,3 +76,45 @@ def test_non_boolean_control_inputs_are_rejected(field, value):
     kwargs[field] = value
     with pytest.raises(ThermalControlError, match=f"{field} must be an exact bool"):
         ThermalCommandInterlock().command(**kwargs)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        (ThermalMode.OFF, True, False, False, None),
+        (ThermalMode.OFF, False, True, False, None),
+        (ThermalMode.WARM, False, False, False, None),
+        (ThermalMode.WARM, True, True, False, None),
+        (ThermalMode.COOL, False, False, False, None),
+        (ThermalMode.COOL, True, True, False, None),
+    ],
+)
+def test_impossible_mode_output_combinations_are_rejected(command):
+    with pytest.raises(ThermalControlError, match="impossible command"):
+        ThermalCommand(*command)
+
+
+def test_inhibited_command_must_be_off_and_explain_why():
+    with pytest.raises(ThermalControlError, match="inhibited command must be OFF"):
+        ThermalCommand(ThermalMode.WARM, True, False, inhibited=True, reason="fault")
+    with pytest.raises(ThermalControlError, match="requires a reason"):
+        ThermalCommand(ThermalMode.OFF, False, False, inhibited=True)
+
+
+def test_non_inhibited_command_cannot_carry_fault_reason():
+    with pytest.raises(ThermalControlError, match="cannot carry a reason"):
+        ThermalCommand(ThermalMode.OFF, False, False, reason="stale fault")
+
+
+@pytest.mark.parametrize(
+    "kwargs, message",
+    [
+        ({"mode": "WARM", "warm_enable": True, "cool_enable": False}, "mode must be"),
+        ({"mode": ThermalMode.OFF, "warm_enable": 0, "cool_enable": False}, "warm_enable"),
+        ({"mode": ThermalMode.OFF, "warm_enable": False, "cool_enable": False, "inhibited": 1}, "inhibited"),
+        ({"mode": ThermalMode.OFF, "warm_enable": False, "cool_enable": False, "reason": 7}, "reason must"),
+    ],
+)
+def test_malformed_output_fields_are_rejected(kwargs, message):
+    with pytest.raises(ThermalControlError, match=message):
+        ThermalCommand(**kwargs)

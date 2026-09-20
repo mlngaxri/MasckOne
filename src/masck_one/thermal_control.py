@@ -12,7 +12,7 @@ from enum import Enum, auto
 
 
 class ThermalControlError(ValueError):
-    """Raised when a thermal-control input violates the command contract."""
+    """Raised when a thermal-control input or output violates the command contract."""
 
 
 class ThermalMode(Enum):
@@ -28,6 +28,36 @@ class ThermalCommand:
     cool_enable: bool
     inhibited: bool = False
     reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.mode, ThermalMode):
+            raise ThermalControlError("mode must be a ThermalMode")
+        for name, value in (
+            ("warm_enable", self.warm_enable),
+            ("cool_enable", self.cool_enable),
+            ("inhibited", self.inhibited),
+        ):
+            if type(value) is not bool:
+                raise ThermalControlError(f"{name} must be an exact bool")
+        if self.reason is not None and not isinstance(self.reason, str):
+            raise ThermalControlError("reason must be a string or None")
+
+        expected_enables = {
+            ThermalMode.OFF: (False, False),
+            ThermalMode.WARM: (True, False),
+            ThermalMode.COOL: (False, True),
+        }
+        if (self.warm_enable, self.cool_enable) != expected_enables[self.mode]:
+            raise ThermalControlError(
+                "mode and thermal output enables describe an impossible command"
+            )
+        if self.inhibited:
+            if self.mode is not ThermalMode.OFF:
+                raise ThermalControlError("an inhibited command must be OFF")
+            if not self.reason:
+                raise ThermalControlError("an inhibited command requires a reason")
+        elif self.reason is not None:
+            raise ThermalControlError("a non-inhibited command cannot carry a reason")
 
 
 class ThermalCommandInterlock:
