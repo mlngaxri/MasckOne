@@ -21,6 +21,8 @@ def test_authority_profile_is_conservatively_inside_cartridge_capacity():
     assert guard.first_unavoidable_overflow_cycle is None
     assert guard.minimum_overflow_at_failure_mL == pytest.approx(0)
     assert guard.conservative_overflow_at_failure_mL == pytest.approx(0)
+    assert guard.contractual_reserve_headroom_mL == pytest.approx(8.0)
+    assert guard.conservative_reserve_headroom_mL == pytest.approx(5.0)
 
 
 def test_guard_distinguishes_unproven_fit_from_unavoidable_overflow():
@@ -36,6 +38,8 @@ def test_guard_distinguishes_unproven_fit_from_unavoidable_overflow():
     assert guard.first_unavoidable_overflow_cycle is None
     assert guard.conservative_overflow_at_failure_mL == pytest.approx(.6)
     assert guard.minimum_overflow_at_failure_mL == pytest.approx(0)
+    assert guard.contractual_reserve_headroom_mL == pytest.approx(6.16)
+    assert guard.conservative_reserve_headroom_mL == pytest.approx(-.6)
 
 
 def test_guard_quantifies_first_unavoidable_overflow_without_sink_credit():
@@ -50,6 +54,8 @@ def test_guard_quantifies_first_unavoidable_overflow_without_sink_credit():
     assert guard.first_conservative_capacity_failure_cycle == 6
     assert guard.minimum_overflow_at_failure_mL == pytest.approx(1.84)
     assert guard.conservative_overflow_at_failure_mL == pytest.approx(4.6)
+    assert guard.contractual_reserve_headroom_mL == pytest.approx(-1.84)
+    assert guard.conservative_reserve_headroom_mL == pytest.approx(-4.6)
 
 
 def test_guard_preserves_prefix_service_screening():
@@ -60,6 +66,8 @@ def test_guard_preserves_prefix_service_screening():
     )
     assert len(guard.routing.cycles) == 3
     assert guard.capacity_proven_by_conservative_screen
+    assert guard.contractual_reserve_headroom_mL == pytest.approx(21.78)
+    assert guard.conservative_reserve_headroom_mL == pytest.approx(20.4)
 
 
 def test_explicit_capacity_reserve_reduces_usable_volume_without_changing_authority_budget():
@@ -79,6 +87,8 @@ def test_explicit_capacity_reserve_reduces_usable_volume_without_changing_author
     assert not guard.unavoidable_overflow
     assert guard.first_conservative_capacity_failure_cycle == 6
     assert guard.conservative_overflow_at_failure_mL == pytest.approx(.5)
+    assert guard.contractual_reserve_headroom_mL == pytest.approx(2.5)
+    assert guard.conservative_reserve_headroom_mL == pytest.approx(-.5)
 
 
 @pytest.mark.parametrize("reserve", [-.001, float("nan"), float("inf"), 35.0, 36.0, True, "1"])
