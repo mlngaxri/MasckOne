@@ -58,12 +58,13 @@ class DebouncedInput:
     timestamps supplied to sample, arm or watchdog continue to advance the shared clock
     floor without replacing the first fault. Firmware may pass ``now_s`` to ``reset``
     so recovery no-sample supervision begins at the actual reset request rather than at
-    an older observation. A timed healthy reset is otherwise non-destructive but still
-    advances the shared clock observation. Legacy untimed reset remains supported and
-    starts its recovery window at the next arm, sample or watchdog observation. Valid
-    sample timestamps are clock observations even when the electrical level is
-    malformed. The first fault cause remains latched until reset. Timing gates compare
-    absolute deadlines rather than subtracting floating timestamps.
+    an older observation. A timed healthy reset preserves state only while the existing
+    stream-supervision deadline remains valid; crossing that deadline latches the same
+    fail-closed supervision fault as arm, sample or watchdog. Legacy untimed reset
+    remains supported and starts its recovery window at the next arm, sample or watchdog
+    observation. Valid sample timestamps are clock observations even when the electrical
+    level is malformed. The first fault cause remains latched until reset. Timing gates
+    compare absolute deadlines rather than subtracting floating timestamps.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -87,6 +88,7 @@ class DebouncedInput:
         if self._fault is None:
             if reset_at is not None:
                 self._last_observed_at = reset_at
+                self._supervision_fault(reset_at)
             return
         self._reset_state(
             require_release=True,
@@ -133,8 +135,8 @@ class DebouncedInput:
         """Apply the single authoritative sample-stream supervision contract.
 
         This helper deliberately does not start supervision or accept a sample. It only
-        evaluates an already-established deadline so arm, sample and watchdog cannot
-        drift into different stale or no-start boundary semantics.
+        evaluates an already-established deadline so arm, sample, watchdog and timed
+        healthy reset cannot drift into different stale or no-start boundary semantics.
         """
         if self._last_sample_at is not None:
             if now > self._last_sample_at + self.stale_after_s:
