@@ -52,7 +52,9 @@ jobs:
             src/masck_one/structural_frame_retention_verification_v6.py \
             src/masck_one/structural_frame_retention_verification_v7.py \
             src/masck_one/structural_frame_retention_verification_v8.py \
-            src/masck_one/structural_frame_retention_verification_v9.py
+            src/masck_one/structural_frame_retention_verification_v9.py \
+            src/masck_one/structural_frame_retention_verification_v10.py \
+            src/masck_one/structural_frame_retention_verification_v11.py
       - name: Verify positive retention graph, structural roots, and selected tactile successor
         run: |
           python -m pytest -q \
@@ -65,6 +67,8 @@ jobs:
             tests/test_structural_frame_retention_verification_v7.py \
             tests/test_structural_frame_retention_verification_v8.py \
             tests/test_structural_frame_retention_verification_v9.py \
+            tests/test_structural_frame_retention_verification_v10.py \
+            tests/test_structural_frame_retention_verification_v11.py \
             tests/test_retention_quick_release_tactile_v3.py \
             tests/test_retention_quick_release_tactile_v4.py \
             tests/test_retention_quick_release_tactile_v5.py \
@@ -92,6 +96,9 @@ jobs:
 # generator-recorded radial clearance to agree with the authoritative pin/bore contract.
 # Structural-root V9 verifies each split retainer is axially contained by its capture-pin
 # groove and retains enough radial material beyond the shaft to form a digital axial stop.
-# These are focused-CI gates. Parent Cell 6 and complete-repo CI remain separate release
-# gates. No continuous clearance proof, manufactured tolerance, force, wet-use, wear,
-# contamination or tactile-performance claim is promoted here.
+# Structural-root V10 verifies installed retainer axial registration to the groove center.
+# Structural-root V11 independently checks groove-bottom seating clearance and rejects
+# volumetric retainer/capture-pin interference. These are focused-CI gates. Parent Cell 6
+# and complete-repo CI remain separate release gates. No continuous clearance proof,
+# manufactured tolerance, force, wet-use, wear, contamination or tactile-performance
+# claim is promoted here.
