@@ -74,3 +74,26 @@ def test_v11_promotion_fails_closed_when_predecessor_cannot_be_deep_copied(monke
         assert "cannot be isolated for promotion" in str(exc)
     else:
         raise AssertionError("V11 accepted predecessor evidence that could not be isolated")
+
+
+def test_v11_promotion_rejects_copy_that_retains_mutable_aliases(monkeypatch):
+    architecture = object()
+    datums = object()
+    provenance = _accepted_provenance()
+    upstream = {
+        "schema": v10.SCHEMA_V10,
+        **provenance,
+        "fusion_handoff": dict(provenance),
+        "nested_engineering_evidence": {"zones": [{"zone_id": "UL"}]},
+    }
+
+    monkeypatch.setattr(v11, "_require_promoted_build_result", lambda a, d: (a, d))
+    monkeypatch.setattr(v10, "manifest_v10", lambda a, d: upstream)
+    monkeypatch.setattr(v11.copy, "deepcopy", lambda payload: payload.copy())
+
+    try:
+        v11.manifest_v11(architecture, datums)
+    except v11.TreatmentMountedFourZoneV11Error as exc:
+        assert "remains mutably aliased" in str(exc)
+    else:
+        raise AssertionError("V11 accepted promoted evidence retaining predecessor aliases")
