@@ -133,8 +133,8 @@ def test_healthy_timed_reset_advances_shared_clock_for_sample_path():
     pressed = control.sample(pressed=True, now_s=4.03)
     assert pressed.stable_pressed is True
 
-    control.reset(now_s=5.0)
-    regressed = control.sample(pressed=True, now_s=4.99)
+    control.reset(now_s=4.10)
+    regressed = control.sample(pressed=True, now_s=4.09)
 
     assert regressed.faulted is True
     assert regressed.fault_code is FaultCode.SAMPLE_TIME_REGRESSION
@@ -144,8 +144,8 @@ def test_healthy_timed_reset_advances_shared_clock_for_arm_path():
     control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
     control.sample(pressed=False, now_s=6.0)
 
-    control.reset(now_s=7.0)
-    regressed = control.arm(now_s=6.99)
+    control.reset(now_s=6.10)
+    regressed = control.arm(now_s=6.09)
 
     assert regressed.faulted is True
     assert regressed.fault_code is FaultCode.ARM_TIME_REGRESSION
@@ -155,8 +155,8 @@ def test_healthy_timed_reset_advances_shared_clock_for_watchdog_path():
     control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
     control.sample(pressed=False, now_s=8.0)
 
-    control.reset(now_s=9.0)
-    regressed = control.watchdog(now_s=8.99)
+    control.reset(now_s=8.10)
+    regressed = control.watchdog(now_s=8.09)
 
     assert regressed.faulted is True
     assert regressed.fault_code is FaultCode.WATCHDOG_TIME_REGRESSION
