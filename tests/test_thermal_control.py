@@ -74,6 +74,32 @@ def test_thermal_inhibit_wire_identifiers_are_stable():
     assert ThermalInhibitReason.RECOVERY_INCOMPLETE.value == "recovery_incomplete"
 
 
+def test_wire_payload_uses_only_stable_primitives():
+    command = ThermalCommandInterlock().command(
+        warm_requested=False, cool_requested=True, recovery_complete=True
+    )
+    assert command.to_wire() == {
+        "mode": "cool",
+        "warm_enable": False,
+        "cool_enable": True,
+        "inhibited": False,
+        "reason": None,
+    }
+
+
+def test_inhibited_wire_payload_exposes_stable_reason_identifier():
+    command = ThermalCommandInterlock().command(
+        warm_requested=True, cool_requested=True, recovery_complete=True
+    )
+    assert command.to_wire() == {
+        "mode": "off",
+        "warm_enable": False,
+        "cool_enable": False,
+        "inhibited": True,
+        "reason": "conflicting_requests",
+    }
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
