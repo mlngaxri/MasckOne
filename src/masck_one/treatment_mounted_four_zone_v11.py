@@ -82,7 +82,7 @@ def _promoted_evidence_sha256(payload: dict[str, object]) -> str:
 
 
 def verify_promoted_evidence_v11(payload: object) -> None:
-    """Fail closed unless a materialized V11 manifest still matches its evidence digest."""
+    """Fail closed unless materialized V11 evidence is intact and still qualified."""
     if type(payload) is not dict:
         raise TreatmentMountedFourZoneV11Error(
             "mounted four-zone V11 evidence verification requires exact dict payload"
@@ -91,8 +91,28 @@ def verify_promoted_evidence_v11(payload: object) -> None:
         raise TreatmentMountedFourZoneV11Error(
             "mounted four-zone V11 evidence verification requires V11 schema"
         )
+
+    required_qualification = {
+        "supersedes": v10.SCHEMA_V10,
+        "source_cell6_head_sha": SOURCE_CELL6_HEAD_SHA,
+        "collision_kernel": COLLISION_KERNEL,
+        "terminal_datum_verification": "TERMINAL_DATUM_PRELOAD_V5",
+        "physical_architecture_changed_from_v10": False,
+        "collision_threshold_weakened": False,
+        "physical_validation_eligible": False,
+    }
+    for field, accepted in required_qualification.items():
+        if payload.get(field) != accepted:
+            raise TreatmentMountedFourZoneV11Error(
+                f"mounted four-zone V11 qualification field {field!r} does not match accepted evidence"
+            )
+
     claimed = payload.get("promoted_evidence_sha256")
-    if type(claimed) is not str or len(claimed) != 64:
+    if (
+        type(claimed) is not str
+        or len(claimed) != 64
+        or any(character not in "0123456789abcdef" for character in claimed)
+    ):
         raise TreatmentMountedFourZoneV11Error(
             "mounted four-zone V11 promoted evidence digest is missing or malformed"
         )
