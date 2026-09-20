@@ -62,9 +62,10 @@ def _canonical_wire_identifier(value: object) -> bool:
 
 
 def assert_fault_wire_contract_complete() -> None:
-    """Fail closed if runtime coverage or wire identifiers are malformed or ambiguous."""
-    missing = set(FaultCode) - set(_WIRE_IDS)
-    extra = set(_WIRE_IDS) - set(FaultCode)
+    """Fail closed if runtime coverage, keys or wire identifiers are malformed or ambiguous."""
+    valid_keys = {key for key in _WIRE_IDS if type(key) is FaultCode}
+    invalid_key_reprs = sorted(repr(key) for key in _WIRE_IDS if type(key) is not FaultCode)
+    missing = set(FaultCode) - valid_keys
     identifiers = tuple(_WIRE_IDS.values())
 
     duplicate_reprs = sorted(
@@ -73,11 +74,10 @@ def assert_fault_wire_contract_complete() -> None:
     invalid_reprs = sorted(
         repr(identifier) for identifier in identifiers if not _canonical_wire_identifier(identifier)
     )
-    if missing or extra or duplicate_reprs or invalid_reprs:
+    if missing or invalid_key_reprs or duplicate_reprs or invalid_reprs:
         missing_names = sorted(code.name for code in missing)
-        extra_names = sorted(code.name for code in extra)
         raise HmiFaultWireError(
             "fault wire contract mismatch: "
-            f"missing={missing_names}, extra={extra_names}, "
+            f"missing={missing_names}, invalid_keys={invalid_key_reprs}, "
             f"duplicates={duplicate_reprs}, invalid={invalid_reprs}"
         )
