@@ -39,6 +39,7 @@ def test_v11_digest_covers_complete_promoted_payload_without_mutating_v10(monkey
     promoted, upstream = _manifest(monkeypatch, upstream_marker="v10-owned")
 
     assert promoted["promoted_evidence_sha256"] == _canonical_digest(promoted)
+    v11.verify_promoted_evidence_v11(promoted)
     assert "promoted_evidence_sha256" not in upstream
     assert upstream["schema"] == v10.SCHEMA_V10
 
@@ -50,6 +51,34 @@ def test_v11_digest_changes_when_promoted_collision_evidence_changes(monkeypatch
     altered["collision_kernel"] = "hostile-kernel"
 
     assert promoted["promoted_evidence_sha256"] != v11._promoted_evidence_sha256(altered)
+
+
+def test_v11_verifier_rejects_post_materialization_tamper(monkeypatch):
+    promoted, _ = _manifest(monkeypatch)
+    promoted["collision_kernel"] = "hostile-kernel"
+
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="digest mismatch"):
+        v11.verify_promoted_evidence_v11(promoted)
+
+
+@pytest.mark.parametrize("bad_digest", [None, "", "0" * 63, b"0" * 64])
+def test_v11_verifier_rejects_missing_or_malformed_digest(monkeypatch, bad_digest):
+    promoted, _ = _manifest(monkeypatch)
+    if bad_digest is None:
+        promoted.pop("promoted_evidence_sha256")
+    else:
+        promoted["promoted_evidence_sha256"] = bad_digest
+
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="missing or malformed"):
+        v11.verify_promoted_evidence_v11(promoted)
+
+
+def test_v11_verifier_rejects_wrong_schema(monkeypatch):
+    promoted, _ = _manifest(monkeypatch)
+    promoted["schema"] = v10.SCHEMA_V10
+
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="requires V11 schema"):
+        v11.verify_promoted_evidence_v11(promoted)
 
 
 @pytest.mark.parametrize("bad_value", [float("nan"), float("inf"), float("-inf"), object()])
