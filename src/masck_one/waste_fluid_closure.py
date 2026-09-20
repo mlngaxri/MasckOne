@@ -31,6 +31,7 @@ class ServiceRoutingClosure:
 
     cycles: int
     prime_events: int
+    minimum_nominal_liquid_routed_to_cartridge_mL: float
     nominal_unclassified_nonrecovery_mL: float
     total_prime_liquid_mL: float
     prime_recovery_ratio_contract: float | None
@@ -128,6 +129,7 @@ def screen_service_routing_closure(
     if leakage_margin < -1e-12:
         raise WasteFluidAccountingError("prime external leakage contract exceeds aggregate service leakage ceiling")
 
+    nominal_routed = budget.minimum_recovered_mL_per_cycle * cycles
     nominal_unrecovered = budget.maximum_unrecovered_nominal_mL_per_cycle * cycles
     remaining_classified_sink_capacity = max(0.0, residual_margin) + max(0.0, leakage_margin)
     shared_sink_gap = max(0.0, nominal_unrecovered - remaining_classified_sink_capacity)
@@ -137,6 +139,7 @@ def screen_service_routing_closure(
     return ServiceRoutingClosure(
         cycles=cycles,
         prime_events=prime_events,
+        minimum_nominal_liquid_routed_to_cartridge_mL=nominal_routed,
         nominal_unclassified_nonrecovery_mL=baseline_nominal_gap,
         total_prime_liquid_mL=total_prime,
         prime_recovery_ratio_contract=recovery,
