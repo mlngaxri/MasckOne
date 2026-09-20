@@ -1,7 +1,29 @@
 import pytest
 
+from masck_one.waste_cartridge import (
+    CAPACITY_STATUS,
+    RETAINED_CAPACITY_STATUS,
+    SERVICE_CYCLES_STATUS,
+    CartridgeCapacityReservation,
+)
 from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
-from masck_one.waste_fluid_overflow_guard import screen_cartridge_overflow_guard
+from masck_one.waste_fluid_overflow_guard import (
+    screen_cartridge_overflow_guard,
+    screen_cartridge_reservation_overflow_guard,
+)
+
+
+def _capacity_reservation(*, retained_capacity_mL=35.0, service_cycles=6):
+    return CartridgeCapacityReservation(
+        retained_capacity_min_mL=retained_capacity_mL,
+        retained_capacity_status=RETAINED_CAPACITY_STATUS,
+        service_cycles_baseline=service_cycles,
+        service_cycles_status=SERVICE_CYCLES_STATUS,
+        usable_internal_capacity_mL=None,
+        usable_capacity_evidence_sha256=None,
+        credits_absorbent_or_media_volume=False,
+        capacity_status=CAPACITY_STATUS,
+    )
 
 
 def test_authority_profile_is_conservatively_inside_cartridge_capacity():
@@ -89,6 +111,39 @@ def test_explicit_capacity_reserve_reduces_usable_volume_without_changing_author
     assert guard.conservative_overflow_at_failure_mL == pytest.approx(.5)
     assert guard.contractual_reserve_headroom_mL == pytest.approx(2.5)
     assert guard.conservative_reserve_headroom_mL == pytest.approx(-.5)
+
+
+def test_cartridge_reservation_adapter_binds_real_capacity_contract_to_fluid_screen():
+    guard = screen_cartridge_reservation_overflow_guard(
+        build_authority_waste_fluid_budget(),
+        _capacity_reservation(),
+        prime_events_by_cycle=[1] * 6,
+        prime_recovery_ratio_contract=.90,
+        prime_residual_ratio_contract=.08,
+        prime_external_leakage_ratio_contract=.02,
+    )
+    assert guard.capacity_proven_by_conservative_screen
+    assert guard.usable_capacity_mL == pytest.approx(35.0)
+    assert guard.contractual_reserve_headroom_mL == pytest.approx(8.0)
+    assert guard.conservative_reserve_headroom_mL == pytest.approx(5.0)
+
+
+@pytest.mark.parametrize(
+    ("retained_capacity_mL", "service_cycles"),
+    [(34.9, 6), (35.1, 6), (35.0, 5), (35.0, 7)],
+)
+def test_cartridge_reservation_adapter_fails_closed_on_cross_subsystem_authority_drift(
+    retained_capacity_mL, service_cycles
+):
+    with pytest.raises(WasteFluidAccountingError):
+        screen_cartridge_reservation_overflow_guard(
+            build_authority_waste_fluid_budget(),
+            _capacity_reservation(
+                retained_capacity_mL=retained_capacity_mL,
+                service_cycles=service_cycles,
+            ),
+            prime_events_by_cycle=[0] * 6,
+        )
 
 
 @pytest.mark.parametrize("reserve", [-.001, float("nan"), float("inf"), 35.0, 36.0, True, "1"])
