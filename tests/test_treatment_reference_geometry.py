@@ -1,0 +1,204 @@
+from __future__ import annotations
+
+import pytest
+import cadquery as cq
+
+import masck_one.treatment_reference_geometry as reference_geometry
+from masck_one.treatment_reference_geometry import (
+    TreatmentReferenceGeometryError,
+    _explicit_list_common,
+    _exact_shape_distance,
+    intersection_volume_mm3,
+    translation_reference_compound,
+)
+
+
+def _box(center_x: float) -> cq.Shape:
+    return (
+        cq.Workplane("XY")
+        .box(1.0, 1.0, 1.0)
+        .translate((center_x, 0.0, 0.0))
+        .val()
+    )
+
+
+def test_pairwise_intersection_distinguishes_gap_touch_and_positive_overlap():
+    base = _box(0.0)
+    assert intersection_volume_mm3(base, _box(1.01)) == 0.0
+    assert intersection_volume_mm3(base, _box(1.0)) == 0.0
+    assert intersection_volume_mm3(base, _box(0.75)) == pytest.approx(0.25, abs=1e-9)
+
+
+def test_explicit_list_common_preserves_exact_positive_common_semantics():
+    common = _explicit_list_common(_box(0.0), _box(0.75))
+    assert common.isValid()
+    assert common.Solids()
+    assert sum(float(solid.Volume()) for solid in common.Solids()) == pytest.approx(0.25, abs=1e-9)
+
+
+def test_exact_distance_skips_only_provably_separated_pairs_with_overlapping_aabbs(monkeypatch):
+    ring = (
+        cq.Workplane("XY")
+        .circle(2.0)
+        .circle(1.0)
+        .extrude(1.0)
+        .val()
+    )
+    inner = cq.Workplane("XY").circle(0.5).extrude(1.0).val()
+
+    # Their axis-aligned boxes overlap in all axes, but the central cylinder remains
+    # exactly separated from the ring's inner wall. Common must not be needed.
+    assert _exact_shape_distance(ring, inner) > 0.0
+
+    def forbidden_common(_left: cq.Shape, _right: cq.Shape) -> cq.Shape:
+        raise AssertionError("provably separated pair should not execute Boolean Common")
+
+    monkeypatch.setattr(reference_geometry, "_direct_common", forbidden_common)
+    assert intersection_volume_mm3(ring, inner) == 0.0
+
+
+def test_exact_distance_does_not_hide_touching_or_positive_overlap(monkeypatch):
+    base = _box(0.0)
+    overlapping = _box(0.75)
+    assert _exact_shape_distance(base, overlapping) == 0.0
+
+    calls = 0
+    original = reference_geometry._direct_common
+
+    def counted_common(left: cq.Shape, right: cq.Shape) -> cq.Shape:
+        nonlocal calls
+        calls += 1
+        return original(left, right)
+
+    monkeypatch.setattr(reference_geometry, "_direct_common", counted_common)
+    assert intersection_volume_mm3(base, overlapping) == pytest.approx(0.25, abs=1e-9)
+    assert calls > 0
+
+
+def test_exact_cut_volume_fallback_distinguishes_contact_from_penetration(monkeypatch):
+    base = _box(0.0)
+
+    def failed_common(_left: cq.Shape, _right: cq.Shape) -> cq.Shape:
+        raise TreatmentReferenceGeometryError("forced Common failure")
+
+    monkeypatch.setattr(reference_geometry, "_direct_common", failed_common)
+
+    # Exact face contact removes no volume from A, while the 0.25 mm overlap does.
+    assert intersection_volume_mm3(base, _box(1.0)) == 0.0
+    assert intersection_volume_mm3(base, _box(0.75)) == pytest.approx(0.25, abs=1e-9)
+
+
+def test_exact_cut_volume_fallback_tries_reverse_subtraction_when_first_direction_fails(monkeypatch):
+    base = _box(0.0)
+    touching = _box(1.0)
+    original_cut = reference_geometry._direct_cut
+    cut_calls = 0
+
+    def failed_common(_left: cq.Shape, _right: cq.Shape) -> cq.Shape:
+        raise TreatmentReferenceGeometryError("forced Common failure")
+
+    def fail_first_cut(left: cq.Shape, right: cq.Shape) -> cq.Shape:
+        nonlocal cut_calls
+        cut_calls += 1
+        if cut_calls == 1:
+            raise TreatmentReferenceGeometryError("forced first subtraction failure")
+        return original_cut(left, right)
+
+    monkeypatch.setattr(reference_geometry, "_direct_common", failed_common)
+    monkeypatch.setattr(reference_geometry, "_direct_cut", fail_first_cut)
+
+    assert intersection_volume_mm3(base, touching) == 0.0
+    assert cut_calls == 2
+
+
+def test_exact_partition_keeps_initial_operand_side_locked_through_recursion(monkeypatch):
+    left = cq.Workplane("XY").box(4.0, 1.0, 1.0).val()
+    right = cq.Workplane("XY").box(8.0, 1.0, 1.0).val()
+    original_common = reference_geometry._direct_common
+    original_partition = reference_geometry._partition_solid_once
+    partition_sources: list[tuple[float, float]] = []
+
+    def fail_common_until_right_piece_is_small(
+        left_operand: cq.Shape,
+        right_operand: cq.Shape,
+    ) -> cq.Shape:
+        right_bounds = right_operand.BoundingBox()
+        right_x_span = right_bounds.xmax - right_bounds.xmin
+        if right_x_span > 1.05:
+            raise TreatmentReferenceGeometryError("forced Common failure until right partition is small")
+        return original_common(left_operand, right_operand)
+
+    def failed_cut(_left: cq.Shape, _right: cq.Shape) -> cq.Shape:
+        raise TreatmentReferenceGeometryError("forced Cut failure")
+
+    def recorded_partition(source: cq.Shape) -> list[cq.Shape]:
+        bounds = source.BoundingBox()
+        partition_sources.append(
+            (
+                bounds.xmax - bounds.xmin,
+                (bounds.xmin + bounds.xmax) / 2.0,
+            )
+        )
+        return original_partition(source)
+
+    monkeypatch.setattr(reference_geometry, "_direct_common", fail_common_until_right_piece_is_small)
+    monkeypatch.setattr(reference_geometry, "_direct_cut", failed_cut)
+    monkeypatch.setattr(reference_geometry, "_partition_solid_once", recorded_partition)
+
+    assert intersection_volume_mm3(left, right) == pytest.approx(4.0, abs=1e-8)
+    assert partition_sources[0][0] == pytest.approx(8.0, abs=1e-9)
+    # Under the old role-flipping recursion, once a right-hand partition became
+    # narrower than the unchanged left operand the algorithm switched sides and
+    # partitioned the original 4 mm left box at center X=0. The selected partition
+    # operand must now stay on the original right side for the entire recursion.
+    assert not any(
+        span == pytest.approx(4.0, abs=1e-9)
+        and center == pytest.approx(0.0, abs=1e-9)
+        for span, center in partition_sources[1:]
+    )
+
+
+def test_translation_reference_is_boolean_free_and_covers_midpath_collision():
+    moving = (
+        cq.Workplane("XY")
+        .box(1.0, 1.0, 1.0)
+        .translate((0.0, -2.0, 0.0))
+        .val()
+    )
+    sweep = translation_reference_compound(moving, (0.0, 4.0, 0.0))
+    obstacle = cq.Workplane("XY").box(0.4, 0.4, 0.4).val()
+    assert len(sweep.Solids()) > 1
+    assert intersection_volume_mm3(sweep, obstacle) > 0.0
+
+
+def test_translation_reference_does_not_require_fusing_swept_pieces():
+    ring = (
+        cq.Workplane("XY")
+        .circle(2.0)
+        .circle(1.2)
+        .extrude(0.25)
+        .val()
+    )
+    sweep = translation_reference_compound(ring, (0.0, 3.0, 0.0))
+    assert sweep.Solids()
+    assert all(solid.isValid() for solid in sweep.Solids())
+
+
+def test_translation_reference_skips_zero_volume_axial_cylinder_side_sweep():
+    cylinder = cq.Workplane("XY").circle(1.5).extrude(2.0).val()
+    sweep = translation_reference_compound(cylinder, (0.0, 0.0, 3.0))
+
+    assert sweep.Solids()
+    assert all(solid.isValid() and solid.Volume() > 0.0 for solid in sweep.Solids())
+    bounds = sweep.BoundingBox()
+    assert bounds.zmin == pytest.approx(0.0, abs=1e-9)
+    assert bounds.zmax == pytest.approx(5.0, abs=1e-9)
+
+    midpath_obstacle = (
+        cq.Workplane("XY")
+        .circle(0.25)
+        .extrude(0.25)
+        .translate((0.0, 0.0, 3.0))
+        .val()
+    )
+    assert intersection_volume_mm3(sweep, midpath_obstacle) > 0.0
