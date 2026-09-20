@@ -66,8 +66,30 @@ def _require_promoted_build_result(architecture: object, datums: object):
     return architecture, datums
 
 
+def _require_lossless_json_evidence(value: object, path: str = "$") -> None:
+    """Reject evidence that JSON would coerce into a different Python data model."""
+    if type(value) is dict:
+        for key, item in value.items():
+            if type(key) is not str:
+                raise TreatmentMountedFourZoneV11Error(
+                    f"mounted four-zone V11 promoted evidence requires string JSON object keys at {path}"
+                )
+            _require_lossless_json_evidence(item, f"{path}.{key}")
+        return
+    if type(value) is list:
+        for index, item in enumerate(value):
+            _require_lossless_json_evidence(item, f"{path}[{index}]")
+        return
+    if value is None or type(value) in (str, bool, int, float):
+        return
+    raise TreatmentMountedFourZoneV11Error(
+        f"mounted four-zone V11 promoted evidence contains non-JSON-native {type(value).__name__} at {path}"
+    )
+
+
 def _promoted_evidence_sha256(payload: dict[str, object]) -> str:
     """Digest the complete promoted evidence payload with deterministic JSON semantics."""
+    _require_lossless_json_evidence(payload)
     try:
         canonical = json.dumps(
             payload,
