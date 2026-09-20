@@ -19,10 +19,13 @@ from . import treatment_mounted_four_zone_v9 as v9
 from . import treatment_mounted_four_zone_v10 as v10
 from .treatment_terminal_datum_preload_v5 import (
     COLLISION_KERNEL,
+    SOURCE_CELL6_HEAD_SHA,
+    TerminalDatumPreloadV5Architecture,
     build_terminal_datum_preload_v5_architecture,
 )
 
 SCHEMA = "MASCK_ONE_TREATMENT_MOUNTED_FOUR_ZONE_V11"
+TreatmentMountedFourZoneV11Error = v10.TreatmentMountedFourZoneV10Error
 
 # V11 temporarily rebinds V9 module hooks while V10 executes. Without a lock,
 # overlapping builds can capture each other's temporary bindings and restore stale
@@ -45,14 +48,34 @@ def _v2_mounted_verification() -> Iterator[None]:
             v9.build_terminal_datum_preload_v4_architecture = original_terminal_builder
 
 
+def _require_promoted_build_result(architecture: object, datums: object):
+    """Admit only builder-owned mounted and terminal architecture at V11 boundary."""
+    if type(architecture) is not v10.MountedFourZoneArchitecture:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 builder requires exact MountedFourZoneArchitecture; "
+            f"got {type(architecture).__name__}"
+        )
+    if type(datums) is not TerminalDatumPreloadV5Architecture:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 builder requires exact terminal datum architecture; "
+            f"got {type(datums).__name__}"
+        )
+    if datums.source_cell6_head_sha != SOURCE_CELL6_HEAD_SHA:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 terminal datum source binding drifted after build"
+        )
+    return architecture, datums
+
+
 def build_mounted_four_zone_architecture_v11(**kwargs):
     """Build unchanged V10/V9 material geometry under fail-closed kernel V2."""
     with _v2_mounted_verification():
         architecture, datums = v10.build_mounted_four_zone_architecture_v10(**kwargs)
-    return architecture, datums
+    return _require_promoted_build_result(architecture, datums)
 
 
 def manifest_v11(architecture, datums) -> dict[str, object]:
+    architecture, datums = _require_promoted_build_result(architecture, datums)
     payload = v10.manifest_v10(architecture, datums)
     payload.update(
         {
