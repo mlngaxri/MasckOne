@@ -28,6 +28,28 @@ def test_v11_manifest_records_kernel_promotion_without_geometry_claim_change(mon
     assert payload["physical_validation_eligible"] is False
 
 
+def test_v11_manifest_promotion_does_not_mutate_upstream_v10_evidence(monkeypatch):
+    architecture = object()
+    datums = object()
+    upstream = {
+        "schema": v10.SCHEMA_V10,
+        "source_cell6_head_sha": SOURCE_CELL6_HEAD_SHA,
+        "upstream_marker": "v10-owned",
+    }
+    original = dict(upstream)
+    monkeypatch.setattr(v11, "_require_promoted_build_result", lambda a, d: (a, d))
+    monkeypatch.setattr(v10, "manifest_v10", lambda a, d: upstream)
+
+    promoted = v11.manifest_v11(architecture, datums)
+
+    assert promoted is not upstream
+    assert upstream == original
+    assert upstream["schema"] == v10.SCHEMA_V10
+    assert "collision_kernel" not in upstream
+    assert promoted["schema"] == v11.SCHEMA
+    assert promoted["upstream_marker"] == "v10-owned"
+
+
 def test_v11_manifest_rejects_non_dict_materialization(monkeypatch):
     architecture = object()
     datums = object()
