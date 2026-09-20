@@ -45,6 +45,7 @@ jobs:
             src/masck_one/retention_quick_release_tactile_v9.py \
             src/masck_one/retention_quick_release_tactile_v10.py \
             src/masck_one/structural_frame_retention_roots.py \
+            src/masck_one/structural_frame_retention_clevis_bores.py \
             src/masck_one/structural_frame_retention_verification_v2.py \
             src/masck_one/structural_frame_retention_verification_v3.py \
             src/masck_one/structural_frame_retention_verification_v4.py \
@@ -64,6 +65,7 @@ jobs:
         run: |
           python -m pytest -q \
             tests/test_mechanical_interface_graph.py \
+            tests/test_structural_frame_retention_clevis_bores.py \
             tests/test_structural_frame_retention_verification_v2.py \
             tests/test_structural_frame_retention_verification_v3.py \
             tests/test_structural_frame_retention_verification_v4.py \
@@ -118,6 +120,8 @@ jobs:
 # authority, detecting internal material drift that can preserve V14's outer dimensions.
 # Structural-root V16 independently binds bilateral pin placement/material symmetry through
 # measured B-rep centers of mass, catching equal-volume translation or asymmetric drift.
+# The clevis-bore repair is also compiled and regression-gated here so a future owner-head
+# change cannot silently restore the solid-clevis capture-pin interference.
 # These are focused-CI gates. Parent Cell 6 and complete-repo CI remain separate release
 # gates. No continuous clearance proof, manufactured tolerance, force, wet-use, wear,
 # contamination or tactile-performance claim is promoted here.
