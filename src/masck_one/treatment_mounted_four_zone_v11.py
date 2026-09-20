@@ -110,6 +110,19 @@ def _require_cell6_provenance_v11(payload: dict[str, object]) -> None:
             )
 
 
+def _require_v10_predecessor_evidence(payload: dict[str, object]) -> None:
+    """Prevent V11 promotion from laundering non-V10 evidence through field overwrite."""
+    observed = payload.get("schema")
+    if type(observed) is not str or observed != v10.SCHEMA_V10:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 promotion requires authentic V10 predecessor schema"
+        )
+    if "promoted_evidence_sha256" in payload:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 predecessor evidence must not contain a V11 promotion digest"
+        )
+
+
 def verify_promoted_evidence_v11(payload: object) -> None:
     """Fail closed unless materialized V11 evidence is intact and still qualified."""
     if type(payload) is not dict:
@@ -171,6 +184,7 @@ def manifest_v11(architecture, datums) -> dict[str, object]:
             "mounted four-zone V11 requires exact dict manifest materialization"
         )
     _require_promoted_build_result(architecture, datums)
+    _require_v10_predecessor_evidence(upstream_payload)
     _require_cell6_provenance_v11(upstream_payload)
     payload = upstream_payload.copy()
     payload.update(
@@ -184,7 +198,6 @@ def manifest_v11(architecture, datums) -> dict[str, object]:
             "physical_validation_eligible": False,
         }
     )
-    payload.pop("promoted_evidence_sha256", None)
     payload["promoted_evidence_sha256"] = _promoted_evidence_sha256(payload)
     verify_promoted_evidence_v11(payload)
     return payload
