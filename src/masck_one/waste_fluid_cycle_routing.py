@@ -17,6 +17,8 @@ class CycleRoutingScreen:
     cumulative_minimum_cartridge_routing_mL: float
     cumulative_maximum_cartridge_inflow_mL: float
     cartridge_occupancy_uncertainty_mL: float
+    minimum_routing_capacity_margin_mL: float
+    minimum_routing_capacity_satisfied: bool
     cartridge_capacity_margin_mL: float
     cartridge_capacity_satisfied: bool
     residual_ceiling_margin_mL: float
@@ -39,6 +41,15 @@ class CycleResolvedRoutingClosure:
     @property
     def all_cycles_routing_complete(self) -> bool:
         return self.first_incomplete_cycle is None
+
+    @property
+    def first_unavoidable_cartridge_capacity_exceeded_cycle(self) -> int | None:
+        """First cycle where contractual minimum routing alone exceeds capacity."""
+        return next((state.cycle for state in self.cycles if not state.minimum_routing_capacity_satisfied), None)
+
+    @property
+    def all_cycles_minimum_routing_capacity_satisfied(self) -> bool:
+        return self.first_unavoidable_cartridge_capacity_exceeded_cycle is None
 
     @property
     def first_cartridge_capacity_exceeded_cycle(self) -> int | None:
@@ -103,8 +114,10 @@ def screen_cycle_resolved_routing_closure(
     Minimum routing uses contractual recovery. Capacity uses the independent
     fail-conservative bound that charges every introduced nominal and prime volume
     to the cartridge, so sink allocations never create fictitious capacity credit.
-    The cumulative lower and upper bounds expose the cartridge occupancy uncertainty
-    interval at every cycle boundary without presenting either bound as a prediction.
+    Both bounds are screened against capacity: a lower-bound failure is unavoidable
+    under the supplied routing contract, while an upper-bound failure only means the
+    fail-conservative capacity screen cannot prove fit. The interval between them
+    remains an uncertainty range rather than a retained-volume prediction.
     """
     budget.validate()
     if not isinstance(prime_events_by_cycle, (tuple, list)) or not prime_events_by_cycle:
@@ -141,6 +154,7 @@ def screen_cycle_resolved_routing_closure(
             raise WasteFluidAccountingError(
                 "minimum contractual cartridge routing exceeds fail-conservative introduced-volume bound"
             )
+        minimum_capacity_margin = budget.cartridge_retained_capacity_requirement_mL - cumulative_minimum_routing
         capacity_margin = budget.cartridge_retained_capacity_requirement_mL - cumulative_maximum_inflow
         screens.append(CycleRoutingScreen(
             cycle=index,
@@ -153,6 +167,8 @@ def screen_cycle_resolved_routing_closure(
             cumulative_minimum_cartridge_routing_mL=cumulative_minimum_routing,
             cumulative_maximum_cartridge_inflow_mL=cumulative_maximum_inflow,
             cartridge_occupancy_uncertainty_mL=max(0.0, occupancy_uncertainty),
+            minimum_routing_capacity_margin_mL=minimum_capacity_margin,
+            minimum_routing_capacity_satisfied=minimum_capacity_margin >= -1e-12,
             cartridge_capacity_margin_mL=capacity_margin,
             cartridge_capacity_satisfied=capacity_margin >= -1e-12,
             residual_ceiling_margin_mL=local.prime_residual_ceiling_margin_mL,
