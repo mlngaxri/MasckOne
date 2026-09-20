@@ -36,8 +36,10 @@ def test_fault_recovery_requires_release_before_new_press_across_service_paths()
     assert released.edge is Edge.NONE
     assert not released.stable_pressed
 
-    # The next press must itself debounce before firmware sees a command.
+    # The next press must itself debounce before firmware sees a command. Use a
+    # time strictly beyond the threshold here; exact-boundary semantics are
+    # covered separately by the shared supervision/debounce boundary tests.
     assert hmi.sample(pressed=True, now_s=0.55).edge is Edge.NONE
-    repressed = hmi.sample(pressed=True, now_s=0.58)
+    repressed = hmi.sample(pressed=True, now_s=0.581)
     assert repressed.edge is Edge.PRESSED
     assert repressed.stable_pressed
