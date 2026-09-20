@@ -72,8 +72,8 @@ def build_mounted_four_zone_architecture_v11(**kwargs):
 
 def manifest_v11(architecture, datums) -> dict[str, object]:
     architecture, datums = _require_promoted_build_result(architecture, datums)
-    payload = v10.manifest_v10(architecture, datums)
-    if type(payload) is not dict:
+    upstream_payload = v10.manifest_v10(architecture, datums)
+    if type(upstream_payload) is not dict:
         raise TreatmentMountedFourZoneV11Error(
             "mounted four-zone V11 requires exact dict manifest materialization"
         )
@@ -81,10 +81,15 @@ def manifest_v11(architecture, datums) -> dict[str, object]:
     # architecture and the emitted provenance after it returns so mutation or a
     # malformed upstream manifest cannot acquire V11 qualification.
     _require_promoted_build_result(architecture, datums)
-    if payload.get("source_cell6_head_sha") != SOURCE_CELL6_HEAD_SHA:
+    if upstream_payload.get("source_cell6_head_sha") != SOURCE_CELL6_HEAD_SHA:
         raise TreatmentMountedFourZoneV11Error(
             "mounted four-zone V11 manifest source binding does not match accepted Cell 6 lineage"
         )
+    # Promotion must not mutate an upstream evidence object that V10 may retain or
+    # share with another verifier. Copy only after all V10 evidence has passed the
+    # qualification gates, then add V11-only certification fields to the isolated
+    # payload.
+    payload = upstream_payload.copy()
     payload.update(
         {
             "schema": SCHEMA,
