@@ -65,7 +65,12 @@ def _assert_cycle_service_parity(cycle_closure: CycleResolvedRoutingClosure) -> 
     """Fail if cycle-local accounting drifts from the aggregate service ledger."""
     service = cycle_closure.service
     checks = (
-        ("minimum cartridge routing", cycle_closure.minimum_total_routed_to_cartridge_mL, service.cycles * service.minimum_recovered_nominal_mL_per_cycle + service.minimum_prime_liquid_routed_to_cartridge_mL),
+        (
+            "minimum cartridge routing",
+            cycle_closure.minimum_total_routed_to_cartridge_mL,
+            service.minimum_nominal_liquid_routed_to_cartridge_mL
+            + service.minimum_prime_liquid_routed_to_cartridge_mL,
+        ),
         ("prime residual", cycle_closure.total_prime_residual_mL, service.maximum_prime_residual_mL),
         ("prime external leakage", cycle_closure.total_prime_external_leakage_mL, service.maximum_prime_external_leakage_mL),
     )
