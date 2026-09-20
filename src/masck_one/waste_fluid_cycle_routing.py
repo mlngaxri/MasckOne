@@ -14,7 +14,9 @@ class CycleRoutingScreen:
     minimum_nominal_routed_to_cartridge_mL: float
     minimum_prime_routed_to_cartridge_mL: float
     minimum_total_routed_to_cartridge_mL: float
+    cumulative_minimum_cartridge_routing_mL: float
     cumulative_maximum_cartridge_inflow_mL: float
+    cartridge_occupancy_uncertainty_mL: float
     cartridge_capacity_margin_mL: float
     cartridge_capacity_satisfied: bool
     residual_ceiling_margin_mL: float
@@ -79,6 +81,13 @@ def _assert_cycle_service_parity(cycle_closure: CycleResolvedRoutingClosure) -> 
             raise WasteFluidAccountingError(
                 f"cycle/service routing parity failure for {label}: cycle total {cycle_value:.12g} mL != service total {service_value:.12g} mL"
             )
+    if not math.isclose(
+        cycle_closure.cycles[-1].cumulative_minimum_cartridge_routing_mL,
+        cycle_closure.minimum_total_routed_to_cartridge_mL,
+        rel_tol=0.0,
+        abs_tol=1e-12,
+    ):
+        raise WasteFluidAccountingError("cycle cumulative minimum cartridge routing does not reconcile to service total")
 
 
 def screen_cycle_resolved_routing_closure(
@@ -94,6 +103,8 @@ def screen_cycle_resolved_routing_closure(
     Minimum routing uses contractual recovery. Capacity uses the independent
     fail-conservative bound that charges every introduced nominal and prime volume
     to the cartridge, so sink allocations never create fictitious capacity credit.
+    The cumulative lower and upper bounds expose the cartridge occupancy uncertainty
+    interval at every cycle boundary without presenting either bound as a prediction.
     """
     budget.validate()
     if not isinstance(prime_events_by_cycle, (tuple, list)) or not prime_events_by_cycle:
@@ -107,6 +118,7 @@ def screen_cycle_resolved_routing_closure(
         raise WasteFluidAccountingError("prime event counts must be nonnegative integers")
 
     screens: list[CycleRoutingScreen] = []
+    cumulative_minimum_routing = 0.0
     cumulative_maximum_inflow = 0.0
     for index, prime_events in enumerate(prime_events_by_cycle, start=1):
         local = screen_service_routing_closure(
@@ -121,7 +133,14 @@ def screen_cycle_resolved_routing_closure(
         nominal_unrecovered = budget.maximum_unrecovered_nominal_mL_per_cycle
         nominal_routed = budget.minimum_recovered_mL_per_cycle
         prime_routed = local.minimum_prime_liquid_routed_to_cartridge_mL
+        local_minimum_routing = nominal_routed + prime_routed
+        cumulative_minimum_routing += local_minimum_routing
         cumulative_maximum_inflow += budget.nominal_introduced_mL_per_cycle + prime_events * budget.maximum_initial_prime_mL_per_cycle
+        occupancy_uncertainty = cumulative_maximum_inflow - cumulative_minimum_routing
+        if occupancy_uncertainty < -1e-12:
+            raise WasteFluidAccountingError(
+                "minimum contractual cartridge routing exceeds fail-conservative introduced-volume bound"
+            )
         capacity_margin = budget.cartridge_retained_capacity_requirement_mL - cumulative_maximum_inflow
         screens.append(CycleRoutingScreen(
             cycle=index,
@@ -130,8 +149,10 @@ def screen_cycle_resolved_routing_closure(
             prime_external_leakage_mL=local.maximum_prime_external_leakage_mL,
             minimum_nominal_routed_to_cartridge_mL=nominal_routed,
             minimum_prime_routed_to_cartridge_mL=prime_routed,
-            minimum_total_routed_to_cartridge_mL=nominal_routed + prime_routed,
+            minimum_total_routed_to_cartridge_mL=local_minimum_routing,
+            cumulative_minimum_cartridge_routing_mL=cumulative_minimum_routing,
             cumulative_maximum_cartridge_inflow_mL=cumulative_maximum_inflow,
+            cartridge_occupancy_uncertainty_mL=max(0.0, occupancy_uncertainty),
             cartridge_capacity_margin_mL=capacity_margin,
             cartridge_capacity_satisfied=capacity_margin >= -1e-12,
             residual_ceiling_margin_mL=local.prime_residual_ceiling_margin_mL,
