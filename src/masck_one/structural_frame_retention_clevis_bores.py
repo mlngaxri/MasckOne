@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-"""Realize the missing frame-side capture-pin bores at both retention roots.
+"""Realize and verify the frame-side capture-pin bores at both retention roots.
 
 The retention-root generator establishes a positive clevis load path and a transverse
 capture pin, but its frame counterpart is still solid through the pin axis. This layer
 cuts an authority-bound running bore through each frame clevis and verifies that the
-installed pin no longer occupies frame material while positive frame capture remains.
+installed pin no longer occupies frame material, the bore fully breaks through both
+Y ends, and the cut preserves the intended radial clevis ligaments around the bore.
 Digital geometry only; this is not manufacturing, strength, wear, or service evidence.
 """
 
@@ -16,6 +17,8 @@ import cadquery as cq
 
 from .model import MasckOneModel, build_model
 from .structural_frame_retention_roots import (
+    CLEVIS_EAR_X_MM,
+    CLEVIS_EAR_Z_MM,
     ROOT_IDS,
     ROOT_Y_MM,
     ROOT_Z_MM,
@@ -24,10 +27,15 @@ from .structural_frame_retention_roots import (
     build_structural_frame_retention_roots,
 )
 
-SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_CLEVIS_BORES_V2"
+SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_CLEVIS_BORES_V3"
 CLEVIS_BORE_RADIUS_MM = YOKE_ROOT_BORE_RADIUS_MM
 CLEVIS_BORE_LENGTH_MM = 24.0
 MIN_BORE_END_OVERTRAVEL_MM = 1.0
+# Digital construction floor from the existing 8 x 8 mm clevis-ear seed around the
+# authority-bound 1.6 mm bore. This is a geometry regression threshold, not a
+# manufacturing tolerance or a strength-derived edge-distance requirement.
+MIN_RADIAL_LIGAMENT_MM = min(CLEVIS_EAR_X_MM, CLEVIS_EAR_Z_MM) / 2.0 - CLEVIS_BORE_RADIUS_MM
+GEOMETRY_TOLERANCE_MM = 1e-6
 INTERSECTION_TOLERANCE_MM3 = 1e-7
 
 
@@ -72,6 +80,29 @@ def _bore_end_overtravel_mm(bore: cq.Workplane, counterpart: cq.Workplane) -> tu
     return negative_y, positive_y
 
 
+def _radial_ligaments_mm(
+    counterpart: cq.Workplane,
+    *,
+    center_x: float,
+    center_z: float,
+    bore_radius: float,
+) -> tuple[float, float, float, float]:
+    """Measure exterior-to-bore radial material spans in -X, +X, -Z, +Z."""
+    try:
+        box = counterpart.val().BoundingBox()
+        values = (
+            float((center_x - bore_radius) - box.xmin),
+            float(box.xmax - (center_x + bore_radius)),
+            float((center_z - bore_radius) - box.zmin),
+            float(box.zmax - (center_z + bore_radius)),
+        )
+    except Exception as exc:
+        raise StructuralFrameRetentionClevisBoreError("B-rep radial ligament query failed") from exc
+    if not all(math.isfinite(value) for value in values):
+        raise StructuralFrameRetentionClevisBoreError("radial ligament evidence must be finite")
+    return values
+
+
 @dataclass(frozen=True, slots=True)
 class RetentionClevisBore:
     root_id: str
@@ -81,6 +112,7 @@ class RetentionClevisBore:
     post_cut_frame_capture_volume_mm3: float
     negative_y_bore_overtravel_mm: float
     positive_y_bore_overtravel_mm: float
+    radial_ligaments_mm: tuple[float, float, float, float]
     corrected_frame_counterpart: cq.Workplane = field(repr=False, compare=False)
     bore_reference: cq.Workplane = field(repr=False, compare=False)
 
@@ -105,6 +137,10 @@ class RetentionClevisBore:
                 raise StructuralFrameRetentionClevisBoreError(
                     f"{label} clevis bore does not fully traverse counterpart with required end margin"
                 )
+        if len(self.radial_ligaments_mm) != 4 or not all(math.isfinite(v) for v in self.radial_ligaments_mm):
+            raise StructuralFrameRetentionClevisBoreError("four finite radial ligament measurements are required")
+        if min(self.radial_ligaments_mm) + GEOMETRY_TOLERANCE_MM < MIN_RADIAL_LIGAMENT_MM:
+            raise StructuralFrameRetentionClevisBoreError("clevis bore leaves insufficient radial material ligament")
         _single(self.corrected_frame_counterpart, "corrected frame counterpart")
         _single(self.bore_reference, "clevis bore reference")
         return self
@@ -137,6 +173,7 @@ class StructuralFrameRetentionClevisBoreArchitecture:
             "bore_radius_mm": CLEVIS_BORE_RADIUS_MM,
             "bore_length_mm": CLEVIS_BORE_LENGTH_MM,
             "minimum_bore_end_overtravel_mm": MIN_BORE_END_OVERTRAVEL_MM,
+            "minimum_radial_ligament_mm": MIN_RADIAL_LIGAMENT_MM,
             "roots": [
                 {
                     "root_id": root.root_id,
@@ -145,6 +182,7 @@ class StructuralFrameRetentionClevisBoreArchitecture:
                     "post_cut_frame_capture_volume_mm3": root.post_cut_frame_capture_volume_mm3,
                     "negative_y_bore_overtravel_mm": root.negative_y_bore_overtravel_mm,
                     "positive_y_bore_overtravel_mm": root.positive_y_bore_overtravel_mm,
+                    "radial_ligaments_mm": list(root.radial_ligaments_mm),
                 }
                 for root in self.roots
             ],
@@ -170,18 +208,16 @@ def build_structural_frame_retention_clevis_bores(
             _cylinder_y(CLEVIS_BORE_RADIUS_MM, CLEVIS_BORE_LENGTH_MM, (x, ROOT_Y_MM, ROOT_Z_MM)),
             f"{root.root_id} clevis bore",
         )
-        negative_y_overtravel, positive_y_overtravel = _bore_end_overtravel_mm(
-            bore, root.frame_counterpart
+        negative_y_overtravel, positive_y_overtravel = _bore_end_overtravel_mm(bore, root.frame_counterpart)
+        radial_ligaments = _radial_ligaments_mm(
+            root.frame_counterpart,
+            center_x=x,
+            center_z=ROOT_Z_MM,
+            bore_radius=CLEVIS_BORE_RADIUS_MM,
         )
         pre_intersection = _intersection_mm3(root.capture_pin, root.frame_counterpart)
-        corrected_counterpart = _single(
-            root.frame_counterpart.cut(bore),
-            f"{root.root_id} corrected clevis counterpart",
-        )
-        corrected_frame = _single(
-            corrected_frame.cut(bore),
-            f"frame after {root.root_id} clevis bore",
-        )
+        corrected_counterpart = _single(root.frame_counterpart.cut(bore), f"{root.root_id} corrected clevis counterpart")
+        corrected_frame = _single(corrected_frame.cut(bore), f"frame after {root.root_id} clevis bore")
         post_intersection = _intersection_mm3(root.capture_pin, corrected_counterpart)
         frame_capture = _intersection_mm3(corrected_counterpart, architecture.frame_with_retention_roots)
         corrected_roots.append(
@@ -193,6 +229,7 @@ def build_structural_frame_retention_clevis_bores(
                 post_cut_frame_capture_volume_mm3=frame_capture,
                 negative_y_bore_overtravel_mm=negative_y_overtravel,
                 positive_y_bore_overtravel_mm=positive_y_overtravel,
+                radial_ligaments_mm=radial_ligaments,
                 corrected_frame_counterpart=corrected_counterpart,
                 bore_reference=bore,
             ).validate()
