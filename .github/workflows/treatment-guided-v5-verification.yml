@@ -44,6 +44,7 @@ jobs:
           python -m pytest -q \
             tests/test_treatment_collision_kernel_v2.py \
             tests/test_treatment_terminal_datum_preload_v5.py \
+            tests/test_treatment_terminal_datum_v5_manifest_failclosed.py \
             tests/test_treatment_guided_preload_spring_v5.py \
             tests/test_treatment_mounted_four_zone_v11.py
 
