@@ -67,3 +67,30 @@ def test_contract_validation_reports_missing_code_with_malformed_key(monkeypatch
         match="missing=.*INPUT_STREAM_STALE.*invalid_keys=.*INPUT_STREAM_STALE",
     ):
         wire.assert_fault_wire_contract_complete()
+
+
+def test_encoder_rejects_corrupted_contract_before_emitting_wire_value(monkeypatch):
+    malformed = dict(wire._WIRE_IDS)
+    malformed[FaultCode.INPUT_STREAM_STALE] = "INPUT_STREAM_STALE"
+    monkeypatch.setattr(wire, "_WIRE_IDS", malformed)
+
+    with pytest.raises(wire.HmiFaultWireError, match="fault wire contract mismatch"):
+        wire.fault_code_wire_id(FaultCode.PRESSED_NOT_BOOL)
+
+
+def test_decoder_rejects_malformed_key_before_returning_non_faultcode(monkeypatch):
+    malformed = dict(wire._WIRE_IDS)
+    malformed["corrupt-key"] = "corrupt_fault"
+    monkeypatch.setattr(wire, "_WIRE_IDS", malformed)
+
+    with pytest.raises(wire.HmiFaultWireError, match="invalid_keys="):
+        wire.fault_code_from_wire_id("corrupt_fault")
+
+
+def test_decoder_rejects_duplicate_contract_before_ambiguous_lookup(monkeypatch):
+    malformed = dict(wire._WIRE_IDS)
+    malformed[FaultCode.INPUT_STREAM_NOT_STARTED] = malformed[FaultCode.INPUT_STREAM_STALE]
+    monkeypatch.setattr(wire, "_WIRE_IDS", malformed)
+
+    with pytest.raises(wire.HmiFaultWireError, match="duplicates=.*input_stream_stale"):
+        wire.fault_code_from_wire_id("input_stream_stale")
