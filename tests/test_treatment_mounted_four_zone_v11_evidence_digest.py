@@ -102,6 +102,23 @@ def test_v11_verifier_rejects_rehashed_semantic_forgery(monkeypatch, field, host
         v11.verify_promoted_evidence_v11(promoted)
 
 
+@pytest.mark.parametrize(
+    "field",
+    [
+        "physical_architecture_changed_from_v10",
+        "collision_threshold_weakened",
+        "physical_validation_eligible",
+    ],
+)
+def test_v11_verifier_rejects_rehashed_integer_zero_for_boolean_qualification(monkeypatch, field):
+    promoted, _ = _manifest(monkeypatch)
+    promoted[field] = 0
+    promoted["promoted_evidence_sha256"] = _canonical_digest(promoted)
+
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="qualification field"):
+        v11.verify_promoted_evidence_v11(promoted)
+
+
 @pytest.mark.parametrize("bad_value", [float("nan"), float("inf"), float("-inf"), object()])
 def test_v11_digest_fails_closed_for_noncanonical_evidence(monkeypatch, bad_value):
     architecture = object()
