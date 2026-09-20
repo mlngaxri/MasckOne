@@ -14,6 +14,7 @@ from masck_one.treatment_terminal_datum_preload_v5 import COLLISION_KERNEL
 def test_v11_manifest_records_kernel_promotion_without_geometry_claim_change(monkeypatch):
     architecture = object()
     datums = object()
+    monkeypatch.setattr(v11, "_require_promoted_build_result", lambda a, d: (a, d))
     monkeypatch.setattr(v10, "manifest_v10", lambda a, d: {"schema": v10.SCHEMA_V10})
 
     payload = v11.manifest_v11(architecture, datums)
@@ -27,6 +28,23 @@ def test_v11_manifest_records_kernel_promotion_without_geometry_claim_change(mon
     assert payload["physical_validation_eligible"] is False
 
 
+def test_v11_rejects_unqualified_builder_output_and_restores_hooks(monkeypatch):
+    original_intersection = v9.intersection_volume_mm3
+    original_terminal_builder = v9.build_terminal_datum_preload_v4_architecture
+
+    monkeypatch.setattr(v10, "build_mounted_four_zone_architecture_v10", lambda **kwargs: (object(), object()))
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="exact MountedFourZoneArchitecture"):
+        v11.build_mounted_four_zone_architecture_v11()
+
+    assert v9.intersection_volume_mm3 is original_intersection
+    assert v9.build_terminal_datum_preload_v4_architecture is original_terminal_builder
+
+
+def test_v11_manifest_rejects_unqualified_objects():
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="exact MountedFourZoneArchitecture"):
+        v11.manifest_v11(object(), object())
+
+
 def test_v11_routes_mounted_and_terminal_checks_through_v2_and_restores_hooks(monkeypatch):
     original_intersection = v9.intersection_volume_mm3
     original_terminal_builder = v9.build_terminal_datum_preload_v4_architecture
@@ -38,6 +56,7 @@ def test_v11_routes_mounted_and_terminal_checks_through_v2_and_restores_hooks(mo
         return "architecture", "datums"
 
     monkeypatch.setattr(v10, "build_mounted_four_zone_architecture_v10", fake_build)
+    monkeypatch.setattr(v11, "_require_promoted_build_result", lambda a, d: (a, d))
     assert v11.build_mounted_four_zone_architecture_v11() == ("architecture", "datums")
 
     assert observed["intersection"] is v11.collision_v2.intersection_volume_mm3
@@ -84,6 +103,7 @@ def test_v11_serializes_process_global_verification_hooks_for_concurrent_builds(
         return ordinal, "datums"
 
     monkeypatch.setattr(v10, "build_mounted_four_zone_architecture_v10", blocking_build)
+    monkeypatch.setattr(v11, "_require_promoted_build_result", lambda a, d: (a, d))
     start = Barrier(3)
 
     def invoke():
@@ -94,7 +114,6 @@ def test_v11_serializes_process_global_verification_hooks_for_concurrent_builds(
         futures = [pool.submit(invoke) for _ in range(2)]
         start.wait(timeout=2.0)
         assert first_entered.wait(timeout=2.0)
-        # The second build must not enter V10 while the first owns temporary V9 hooks.
         with calls_lock:
             assert call_count == 1
         release_first.set()
