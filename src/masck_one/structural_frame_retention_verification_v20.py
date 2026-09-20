@@ -12,6 +12,7 @@ comfort, service force, wear, contamination tolerance, or physical safety perfor
 """
 
 from dataclasses import dataclass
+import string
 
 from .model import MasckOneModel, build_model
 from .structural_frame_actuator_reactions import build_structural_frame_actuator_reactions
@@ -21,10 +22,27 @@ from .structural_frame_retention_roots import (
 )
 
 SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_VERIFICATION_V20"
+_SHA256_HEX_LENGTH = 64
+_SHA256_HEX_ALPHABET = frozenset(string.hexdigits.lower())
 
 
 class StructuralFrameRetentionVerificationV20Error(ValueError):
     pass
+
+
+def _is_canonical_sha256(value: object) -> bool:
+    """Accept only the canonical lowercase hexadecimal representation we emit.
+
+    Length-only validation allowed arbitrary 64-character strings to enter retained
+    provenance evidence. Requiring canonical hex keeps the authority boundary fail-closed
+    and prevents case/encoding variants from becoming distinct architecture identities.
+    """
+    return (
+        isinstance(value, str)
+        and len(value) == _SHA256_HEX_LENGTH
+        and value == value.lower()
+        and all(character in _SHA256_HEX_ALPHABET for character in value)
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,7 +56,7 @@ class StructuralFrameRetentionVerificationV20:
             ("recorded", self.recorded_source_sha256),
             ("expected", self.expected_source_sha256),
         ):
-            if not isinstance(value, str) or len(value) != 64:
+            if not _is_canonical_sha256(value):
                 raise StructuralFrameRetentionVerificationV20Error(
                     f"{label} source reaction architecture SHA-256 is invalid"
                 )
