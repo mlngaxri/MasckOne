@@ -81,6 +81,30 @@ def _promoted_evidence_sha256(payload: dict[str, object]) -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
+def verify_promoted_evidence_v11(payload: object) -> None:
+    """Fail closed unless a materialized V11 manifest still matches its evidence digest."""
+    if type(payload) is not dict:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 evidence verification requires exact dict payload"
+        )
+    if payload.get("schema") != SCHEMA:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 evidence verification requires V11 schema"
+        )
+    claimed = payload.get("promoted_evidence_sha256")
+    if type(claimed) is not str or len(claimed) != 64:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 promoted evidence digest is missing or malformed"
+        )
+    evidence = payload.copy()
+    evidence.pop("promoted_evidence_sha256")
+    expected = _promoted_evidence_sha256(evidence)
+    if not hashlib.compare_digest(claimed, expected):
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 promoted evidence digest mismatch"
+        )
+
+
 def build_mounted_four_zone_architecture_v11(**kwargs):
     """Build unchanged V10/V9 material geometry under fail-closed kernel V2."""
     with _v2_mounted_verification():
@@ -95,18 +119,11 @@ def manifest_v11(architecture, datums) -> dict[str, object]:
         raise TreatmentMountedFourZoneV11Error(
             "mounted four-zone V11 requires exact dict manifest materialization"
         )
-    # V10 materialization traverses mutable architecture evidence. Recheck both the
-    # architecture and the emitted provenance after it returns so mutation or a
-    # malformed upstream manifest cannot acquire V11 qualification.
     _require_promoted_build_result(architecture, datums)
     if upstream_payload.get("source_cell6_head_sha") != SOURCE_CELL6_HEAD_SHA:
         raise TreatmentMountedFourZoneV11Error(
             "mounted four-zone V11 manifest source binding does not match accepted Cell 6 lineage"
         )
-    # Promotion must not mutate an upstream evidence object that V10 may retain or
-    # share with another verifier. Copy only after all V10 evidence has passed the
-    # qualification gates, then add V11-only certification fields to the isolated
-    # payload.
     payload = upstream_payload.copy()
     payload.update(
         {
@@ -119,9 +136,7 @@ def manifest_v11(architecture, datums) -> dict[str, object]:
             "physical_validation_eligible": False,
         }
     )
-    # The digest is deliberately computed only after all V11 qualification fields
-    # exist. This binds the promoted collision/source evidence itself, rather than
-    # merely inheriting integrity metadata from an upstream schema.
     payload.pop("promoted_evidence_sha256", None)
     payload["promoted_evidence_sha256"] = _promoted_evidence_sha256(payload)
+    verify_promoted_evidence_v11(payload)
     return payload
