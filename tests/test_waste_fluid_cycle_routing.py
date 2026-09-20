@@ -10,6 +10,10 @@ def test_authority_one_prime_per_cycle_preserves_local_sink_margins():
     assert all(c.prime_external_leakage_mL == pytest.approx(.008) for c in closure.cycles)
     assert all(c.residual_ceiling_margin_mL == pytest.approx(.368) for c in closure.cycles)
     assert all(c.external_leakage_ceiling_margin_mL == pytest.approx(.042) for c in closure.cycles)
+    assert closure.total_prime_residual_mL == pytest.approx(.192)
+    assert closure.total_prime_residual_mL == pytest.approx(closure.service.maximum_prime_residual_mL)
+    assert closure.total_prime_external_leakage_mL == pytest.approx(.048)
+    assert closure.total_prime_external_leakage_mL == pytest.approx(closure.service.maximum_prime_external_leakage_mL)
     assert closure.first_incomplete_cycle == 1
     assert not closure.all_cycles_routing_complete
 
@@ -70,6 +74,7 @@ def test_cycle_routing_profile_may_screen_a_service_life_prefix():
     assert len(closure.cycles) == 3
     assert closure.service.cycles == 3
     assert closure.service.prime_events == 3
+    assert closure.minimum_total_routed_to_cartridge_mL == pytest.approx(3 * 4.14 + 3 * .4)
 
 def test_cycle_resolved_routing_rejects_invalid_schedules():
     budget = build_authority_waste_fluid_budget()
