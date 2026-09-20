@@ -81,6 +81,35 @@ def _promoted_evidence_sha256(payload: dict[str, object]) -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
+def _require_cell6_provenance_v11(payload: dict[str, object]) -> None:
+    """Require every promoted Cell 6 lineage declaration to agree with the pinned source."""
+    required = {
+        "source_cell6_head_sha": SOURCE_CELL6_HEAD_SHA,
+        "source_cell6_geometry_head_sha": SOURCE_CELL6_HEAD_SHA,
+        "source_cell6_head_semantics": v10.SOURCE_CELL6_HEAD_SEMANTICS,
+        "active_cell6_owner_head_claimed": False,
+        "live_cell6_owner_recheck_required_before_promotion": True,
+    }
+    for field, accepted in required.items():
+        observed = payload.get(field)
+        if type(observed) is not type(accepted) or observed != accepted:
+            raise TreatmentMountedFourZoneV11Error(
+                f"mounted four-zone V11 Cell 6 provenance field {field!r} does not match accepted evidence"
+            )
+
+    fusion = payload.get("fusion_handoff")
+    if type(fusion) is not dict:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 requires exact fusion_handoff provenance evidence"
+        )
+    for field, accepted in required.items():
+        observed = fusion.get(field)
+        if type(observed) is not type(accepted) or observed != accepted:
+            raise TreatmentMountedFourZoneV11Error(
+                f"mounted four-zone V11 fusion Cell 6 provenance field {field!r} does not match accepted evidence"
+            )
+
+
 def verify_promoted_evidence_v11(payload: object) -> None:
     """Fail closed unless materialized V11 evidence is intact and still qualified."""
     if type(payload) is not dict:
@@ -92,9 +121,10 @@ def verify_promoted_evidence_v11(payload: object) -> None:
             "mounted four-zone V11 evidence verification requires V11 schema"
         )
 
+    _require_cell6_provenance_v11(payload)
+
     required_qualification = {
         "supersedes": v10.SCHEMA_V10,
-        "source_cell6_head_sha": SOURCE_CELL6_HEAD_SHA,
         "collision_kernel": COLLISION_KERNEL,
         "terminal_datum_verification": "TERMINAL_DATUM_PRELOAD_V5",
         "physical_architecture_changed_from_v10": False,
@@ -141,10 +171,7 @@ def manifest_v11(architecture, datums) -> dict[str, object]:
             "mounted four-zone V11 requires exact dict manifest materialization"
         )
     _require_promoted_build_result(architecture, datums)
-    if upstream_payload.get("source_cell6_head_sha") != SOURCE_CELL6_HEAD_SHA:
-        raise TreatmentMountedFourZoneV11Error(
-            "mounted four-zone V11 manifest source binding does not match accepted Cell 6 lineage"
-        )
+    _require_cell6_provenance_v11(upstream_payload)
     payload = upstream_payload.copy()
     payload.update(
         {
