@@ -21,13 +21,20 @@ class ThermalMode(Enum):
     COOL = auto()
 
 
+class ThermalInhibitReason(Enum):
+    """Machine-readable reasons for a fail-closed thermal command."""
+
+    CONFLICTING_REQUESTS = auto()
+    RECOVERY_INCOMPLETE = auto()
+
+
 @dataclass(frozen=True, slots=True)
 class ThermalCommand:
     mode: ThermalMode
     warm_enable: bool
     cool_enable: bool
     inhibited: bool = False
-    reason: str | None = None
+    reason: ThermalInhibitReason | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.mode, ThermalMode):
@@ -39,8 +46,8 @@ class ThermalCommand:
         ):
             if type(value) is not bool:
                 raise ThermalControlError(f"{name} must be an exact bool")
-        if self.reason is not None and not isinstance(self.reason, str):
-            raise ThermalControlError("reason must be a string or None")
+        if self.reason is not None and not isinstance(self.reason, ThermalInhibitReason):
+            raise ThermalControlError("reason must be a ThermalInhibitReason or None")
 
         expected_enables = {
             ThermalMode.OFF: (False, False),
@@ -54,7 +61,7 @@ class ThermalCommand:
         if self.inhibited:
             if self.mode is not ThermalMode.OFF:
                 raise ThermalControlError("an inhibited command must be OFF")
-            if not self.reason:
+            if self.reason is None:
                 raise ThermalControlError("an inhibited command requires a reason")
         elif self.reason is not None:
             raise ThermalControlError("a non-inhibited command cannot carry a reason")
@@ -84,7 +91,7 @@ class ThermalCommandInterlock:
                 False,
                 False,
                 inhibited=True,
-                reason="warm and cool requests are mutually exclusive",
+                reason=ThermalInhibitReason.CONFLICTING_REQUESTS,
             )
         if cool_requested and not recovery_complete:
             return ThermalCommand(
@@ -92,7 +99,7 @@ class ThermalCommandInterlock:
                 False,
                 False,
                 inhibited=True,
-                reason="cool request requires completed recovery",
+                reason=ThermalInhibitReason.RECOVERY_INCOMPLETE,
             )
         if warm_requested:
             return ThermalCommand(ThermalMode.WARM, True, False)
