@@ -22,8 +22,9 @@ def test_cycle_screen_exposes_minimum_cartridge_routing_load():
     assert all(c.minimum_nominal_routed_to_cartridge_mL == pytest.approx(4.14) for c in closure.cycles)
     assert all(c.minimum_prime_routed_to_cartridge_mL == pytest.approx(.36) for c in closure.cycles)
     assert all(c.minimum_total_routed_to_cartridge_mL == pytest.approx(4.50) for c in closure.cycles)
+    assert closure.service.minimum_nominal_liquid_routed_to_cartridge_mL == pytest.approx(24.84)
     assert closure.minimum_total_routed_to_cartridge_mL == pytest.approx(27.0)
-    assert closure.minimum_total_routed_to_cartridge_mL == pytest.approx(closure.service.cycles * 4.14 + closure.service.minimum_prime_liquid_routed_to_cartridge_mL)
+    assert closure.minimum_total_routed_to_cartridge_mL == pytest.approx(closure.service.minimum_nominal_liquid_routed_to_cartridge_mL + closure.service.minimum_prime_liquid_routed_to_cartridge_mL)
 
 def test_cycle_screen_tracks_fail_conservative_cartridge_capacity_without_sink_credit():
     closure = screen_cycle_resolved_routing_closure(build_authority_waste_fluid_budget(), prime_events_by_cycle=[1]*6, prime_recovery_ratio_contract=.90, prime_residual_ratio_contract=.08, prime_external_leakage_ratio_contract=.02)
@@ -93,6 +94,7 @@ def test_cycle_routing_profile_may_screen_a_service_life_prefix():
     assert len(closure.cycles) == 3
     assert closure.service.cycles == 3
     assert closure.service.prime_events == 3
+    assert closure.service.minimum_nominal_liquid_routed_to_cartridge_mL == pytest.approx(3 * 4.14)
     assert closure.minimum_total_routed_to_cartridge_mL == pytest.approx(3 * 4.14 + 3 * .4)
 
 def test_cycle_resolved_routing_rejects_invalid_schedules():
