@@ -28,6 +28,8 @@ class CartridgeOverflowGuard:
     first_conservative_capacity_failure_cycle: int | None
     minimum_overflow_at_failure_mL: float
     conservative_overflow_at_failure_mL: float
+    contractual_reserve_headroom_mL: float
+    conservative_reserve_headroom_mL: float
 
     @property
     def unavoidable_overflow(self) -> bool:
@@ -57,6 +59,11 @@ def screen_cartridge_overflow_guard(
     retained-capacity requirement. It can represent a separately justified fill
     limit, sensor trip reserve, foam allowance, manufacturing tolerance, or other
     integration reserve. The default is zero so this screen does not invent one.
+
+    Returned reserve headrooms state how much additional unavailable volume could be
+    introduced before the contractual lower bound, or the conservative upper bound,
+    reaches the cartridge requirement. Negative headroom therefore quantifies an
+    already-overcommitted reserve rather than being clipped to zero.
     """
     budget.validate()
     if not isinstance(capacity_reserve_mL, (int, float)) or isinstance(capacity_reserve_mL, bool):
@@ -114,6 +121,22 @@ def screen_cartridge_overflow_guard(
         state = routing.cycles[conservative_cycle - 1]
         conservative_overflow = max(0.0, state.cumulative_maximum_cartridge_inflow_mL - usable_capacity)
 
+    final_state = routing.cycles[-1]
+    contractual_reserve_headroom = (
+        budget.cartridge_retained_capacity_requirement_mL
+        - final_state.cumulative_minimum_cartridge_routing_mL
+        - capacity_reserve_mL
+    )
+    conservative_reserve_headroom = (
+        budget.cartridge_retained_capacity_requirement_mL
+        - final_state.cumulative_maximum_cartridge_inflow_mL
+        - capacity_reserve_mL
+    )
+    if conservative_reserve_headroom > contractual_reserve_headroom + 1e-12:
+        raise WasteFluidAccountingError(
+            "invalid reserve headroom ordering: conservative headroom exceeds contractual headroom"
+        )
+
     return CartridgeOverflowGuard(
         routing=routing,
         capacity_reserve_mL=capacity_reserve_mL,
@@ -122,4 +145,6 @@ def screen_cartridge_overflow_guard(
         first_conservative_capacity_failure_cycle=conservative_cycle,
         minimum_overflow_at_failure_mL=minimum_overflow,
         conservative_overflow_at_failure_mL=conservative_overflow,
+        contractual_reserve_headroom_mL=contractual_reserve_headroom,
+        conservative_reserve_headroom_mL=conservative_reserve_headroom,
     )
