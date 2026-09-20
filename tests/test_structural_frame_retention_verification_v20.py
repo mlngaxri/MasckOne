@@ -25,10 +25,27 @@ def test_v20_rejects_stale_or_foreign_root_provenance() -> None:
         build_structural_frame_retention_verification_v20(roots=stale, model=model)
 
 
-@pytest.mark.parametrize("bad", ["", "abc", "g" * 63])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "",
+        "abc",
+        "g" * 63,
+        "g" * 64,
+        "A" * 64,
+        "0" * 63 + "/",
+        "0" * 63 + " ",
+        "0" * 63 + "\n",
+    ],
+)
 def test_v20_rejects_malformed_source_digest(bad: str) -> None:
     with pytest.raises(StructuralFrameRetentionVerificationV20Error, match="SHA-256 is invalid"):
         StructuralFrameRetentionVerificationV20(bad, "a" * 64).validate()
+
+
+def test_v20_rejects_malformed_expected_digest_even_when_recorded_is_valid() -> None:
+    with pytest.raises(StructuralFrameRetentionVerificationV20Error, match="expected.*SHA-256 is invalid"):
+        StructuralFrameRetentionVerificationV20("a" * 64, "z" * 64).validate()
 
 
 def test_v20_rejects_physical_validation_promotion() -> None:
