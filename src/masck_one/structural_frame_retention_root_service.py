@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import cadquery as cq
@@ -32,10 +33,18 @@ def _valid(shape: cq.Workplane, label: str) -> None:
 
 
 def _intersection(a: cq.Workplane, b: cq.Workplane) -> float:
+    """Return Boolean intersection volume, failing closed if OCC cannot prove it."""
     try:
-        return max(0.0, float(a.intersect(b).val().Volume()))
-    except Exception:
-        return 0.0
+        volume = float(a.intersect(b).val().Volume())
+    except Exception as exc:
+        raise StructuralFrameRetentionRootServiceError(
+            "service-corridor intersection Boolean failed; clearance evidence is unavailable"
+        ) from exc
+    if not math.isfinite(volume) or volume < 0.0:
+        raise StructuralFrameRetentionRootServiceError(
+            "service-corridor intersection volume must be finite and non-negative"
+        )
+    return 0.0 if volume < _INTERSECTION_TOLERANCE_MM3 else volume
 
 
 def _box_from_bounds(bb: cq.BoundBox, *, dx: float = 0.0, dy: float = 0.0, dz: float = 0.0) -> cq.Workplane:
@@ -65,6 +74,10 @@ class RetentionRootServicePath:
             ("clip/frame", self.clip_sweep_frame_intersection_mm3),
             ("clip/yoke", self.clip_sweep_yoke_intersection_mm3),
         ):
+            if not math.isfinite(volume) or volume < 0.0:
+                raise StructuralFrameRetentionRootServiceError(
+                    f"continuous {label} service-corridor evidence must be finite and non-negative"
+                )
             if volume > _INTERSECTION_TOLERANCE_MM3:
                 raise StructuralFrameRetentionRootServiceError(f"continuous {label} service corridor collides with material")
 
