@@ -32,6 +32,7 @@ def fault_code_wire_id(code: FaultCode) -> str:
     """Return the stable identifier used across the firmware/telemetry boundary."""
     if type(code) is not FaultCode:
         raise HmiFaultWireError("code must be an exact FaultCode")
+    assert_fault_wire_contract_complete()
     try:
         return _WIRE_IDS[code]
     except KeyError as exc:
@@ -47,6 +48,7 @@ def fault_code_from_wire_id(wire_id: str) -> FaultCode:
     """
     if type(wire_id) is not str:
         raise HmiFaultWireError("wire_id must be an exact str")
+    assert_fault_wire_contract_complete()
     matches = [code for code, identifier in _WIRE_IDS.items() if identifier == wire_id]
     if len(matches) != 1:
         raise HmiFaultWireError(f"unknown or ambiguous HMI fault wire identifier: {wire_id!r}")
