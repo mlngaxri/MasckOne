@@ -56,11 +56,21 @@ def fault_code_from_wire_id(wire_id: str) -> FaultCode:
 
 
 def _canonical_wire_identifier(value: object) -> bool:
-    """Return whether a value is an exact lower-ASCII snake-case wire identifier."""
+    """Return whether a value is an exact lower-ASCII snake-case wire identifier.
+
+    Every segment starts with ``a`` through ``z`` and may then contain lower-ASCII
+    letters or decimal digits. Requiring a leading letter keeps the telemetry grammar
+    unambiguous for parsers that treat leading digits as numeric tokens.
+    """
     if type(value) is not str or not value or not value.isascii():
         return False
     parts = value.split("_")
-    return all(part and part.isalnum() and part == part.lower() for part in parts)
+    return all(
+        part
+        and "a" <= part[0] <= "z"
+        and all(("a" <= char <= "z") or ("0" <= char <= "9") for char in part[1:])
+        for part in parts
+    )
 
 
 def assert_fault_wire_contract_complete() -> None:
