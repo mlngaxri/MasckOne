@@ -31,7 +31,10 @@ def test_cycle_screen_tracks_cartridge_occupancy_interval_at_each_boundary():
     assert [c.cumulative_minimum_cartridge_routing_mL for c in closure.cycles] == pytest.approx([4.5,9,13.5,18,22.5,27])
     assert [c.cumulative_maximum_cartridge_inflow_mL for c in closure.cycles] == pytest.approx([5,10,15,20,25,30])
     assert [c.cartridge_occupancy_uncertainty_mL for c in closure.cycles] == pytest.approx([.5,1,1.5,2,2.5,3])
+    assert [c.minimum_routing_capacity_margin_mL for c in closure.cycles] == pytest.approx([30.5,26,21.5,17,12.5,8])
     assert closure.cycles[-1].cumulative_minimum_cartridge_routing_mL == pytest.approx(closure.minimum_total_routed_to_cartridge_mL)
+    assert closure.first_unavoidable_cartridge_capacity_exceeded_cycle is None
+    assert closure.all_cycles_minimum_routing_capacity_satisfied
 
 def test_cycle_screen_tracks_fail_conservative_cartridge_capacity_without_sink_credit():
     closure = screen_cycle_resolved_routing_closure(build_authority_waste_fluid_budget(), prime_events_by_cycle=[1]*6, prime_recovery_ratio_contract=.90, prime_residual_ratio_contract=.08, prime_external_leakage_ratio_contract=.02)
@@ -51,6 +54,22 @@ def test_cycle_screen_identifies_exact_cycle_where_clustered_reprimes_exceed_cap
     assert not closure.cycles[5].cartridge_capacity_satisfied
     assert closure.first_cartridge_capacity_exceeded_cycle == 6
     assert not closure.all_cycles_cartridge_capacity_satisfied
+    assert closure.cycles[5].cumulative_minimum_cartridge_routing_mL == pytest.approx(36.84)
+    assert closure.cycles[5].minimum_routing_capacity_margin_mL == pytest.approx(-1.84)
+    assert not closure.cycles[5].minimum_routing_capacity_satisfied
+    assert closure.first_unavoidable_cartridge_capacity_exceeded_cycle == 6
+    assert not closure.all_cycles_minimum_routing_capacity_satisfied
+
+def test_upper_bound_failure_is_distinct_from_unavoidable_capacity_failure():
+    closure = screen_cycle_resolved_routing_closure(build_authority_waste_fluid_budget(), prime_events_by_cycle=[0,0,0,0,0,20], prime_recovery_ratio_contract=.50)
+    final = closure.cycles[-1]
+    assert final.cumulative_maximum_cartridge_inflow_mL == pytest.approx(35.6)
+    assert not final.cartridge_capacity_satisfied
+    assert closure.first_cartridge_capacity_exceeded_cycle == 6
+    assert final.cumulative_minimum_cartridge_routing_mL == pytest.approx(28.84)
+    assert final.minimum_routing_capacity_margin_mL == pytest.approx(6.16)
+    assert final.minimum_routing_capacity_satisfied
+    assert closure.first_unavoidable_cartridge_capacity_exceeded_cycle is None
 
 def test_prime_without_recovery_contract_gets_no_cartridge_routing_credit():
     closure = screen_cycle_resolved_routing_closure(build_authority_waste_fluid_budget(), prime_events_by_cycle=[2], prime_residual_ratio_contract=.50)
