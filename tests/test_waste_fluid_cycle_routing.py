@@ -15,8 +15,8 @@ def test_authority_one_prime_per_cycle_preserves_local_sink_margins():
 
 def test_first_incomplete_cycle_preserves_cycle_locality():
     budget = build_authority_waste_fluid_budget()
-    tighter = type(budget)(budget.service_cycles, budget.nominal_introduced_mL_per_cycle, budget.maximum_initial_prime_mL_per_cycle, .95, budget.residual_free_liquid_max_mL, budget.external_leakage_max_mL_per_cycle, budget.cartridge_retained_capacity_requirement_mL)
-    closure = screen_cycle_resolved_routing_closure(tighter, prime_events_by_cycle=[0, 1, 0], prime_recovery_ratio_contract=.90, prime_residual_ratio_contract=.08, prime_external_leakage_ratio_contract=.02)
+    tighter = type(budget)(budget.service_cycles, budget.nominal_introduced_mL_per_cycle, budget.maximum_initial_prime_mL_per_cycle, .91, budget.residual_free_liquid_max_mL, budget.external_leakage_max_mL_per_cycle, budget.cartridge_retained_capacity_requirement_mL)
+    closure = screen_cycle_resolved_routing_closure(tighter, prime_events_by_cycle=[0,1,0], prime_recovery_ratio_contract=.90, prime_residual_ratio_contract=.08, prime_external_leakage_ratio_contract=.02)
     assert closure.cycles[0].local_routing_contract_complete
     assert not closure.cycles[1].local_routing_contract_complete
     assert closure.first_incomplete_cycle == 2
