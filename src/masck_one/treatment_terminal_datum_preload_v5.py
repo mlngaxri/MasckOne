@@ -74,6 +74,18 @@ def _require_manifest_payload(payload: object) -> dict[str, object]:
     return payload
 
 
+def _canonical_manifest_bytes(payload: dict[str, object]) -> bytes:
+    """Canonicalize certification evidence or fail closed with a lane error."""
+    try:
+        return json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), allow_nan=False
+        ).encode()
+    except (TypeError, ValueError) as exc:
+        raise TreatmentTerminalDatumPreloadV5Error(
+            "terminal datum V5 manifest contains non-canonical certification evidence"
+        ) from exc
+
+
 def build_terminal_datum_preload_v5_architecture(**kwargs) -> TerminalDatumPreloadV5Architecture:
     """Build unchanged V4 material geometry under fail-closed collision kernel V2."""
     with _v2_collision_verification():
@@ -107,8 +119,6 @@ def manifest_v5(architecture: TerminalDatumPreloadV5Architecture) -> dict[str, o
             "physical_validation_eligible": False,
         }
     )
-    canonical = json.dumps(
-        payload, sort_keys=True, separators=(",", ":"), allow_nan=False
-    ).encode()
+    canonical = _canonical_manifest_bytes(payload)
     payload["architecture_sha256"] = hashlib.sha256(canonical).hexdigest()
     return payload
