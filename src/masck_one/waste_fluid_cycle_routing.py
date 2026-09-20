@@ -1,5 +1,6 @@
 """Cycle-resolved routing checks for prime liquid."""
 from __future__ import annotations
+import math
 from dataclasses import dataclass
 from .waste_fluid_accounting import WasteFluidAccountingError, WasteFluidBudget
 from .waste_fluid_closure import ServiceRoutingClosure, screen_service_routing_closure
@@ -38,6 +39,51 @@ class CycleResolvedRoutingClosure:
     def minimum_total_routed_to_cartridge_mL(self) -> float:
         """Minimum liquid explicitly required to reach the cartridge over this profile."""
         return sum(state.minimum_total_routed_to_cartridge_mL for state in self.cycles)
+
+    @property
+    def total_prime_residual_mL(self) -> float:
+        return sum(state.prime_residual_mL for state in self.cycles)
+
+    @property
+    def total_prime_external_leakage_mL(self) -> float:
+        return sum(state.prime_external_leakage_mL for state in self.cycles)
+
+
+def _assert_cycle_service_parity(
+    cycle_closure: CycleResolvedRoutingClosure,
+) -> None:
+    """Fail if cycle-local accounting drifts from the aggregate service ledger.
+
+    Both views are intentionally calculated independently. Keeping this assertion at
+    their integration boundary prevents a later routing change from conserving fluid
+    in one representation while silently creating or losing it in the other.
+    """
+    service = cycle_closure.service
+    checks = (
+        (
+            "minimum cartridge routing",
+            cycle_closure.minimum_total_routed_to_cartridge_mL,
+            service.cycles * service.minimum_recovered_nominal_mL_per_cycle
+            + service.minimum_prime_liquid_routed_to_cartridge_mL,
+        ),
+        (
+            "prime residual",
+            cycle_closure.total_prime_residual_mL,
+            service.maximum_prime_residual_mL,
+        ),
+        (
+            "prime external leakage",
+            cycle_closure.total_prime_external_leakage_mL,
+            service.maximum_prime_external_leakage_mL,
+        ),
+    )
+    for label, cycle_value, service_value in checks:
+        if not math.isclose(cycle_value, service_value, rel_tol=0.0, abs_tol=1e-12):
+            raise WasteFluidAccountingError(
+                f"cycle/service routing parity failure for {label}: "
+                f"cycle total {cycle_value:.12g} mL != service total {service_value:.12g} mL"
+            )
+
 
 def screen_cycle_resolved_routing_closure(
     budget: WasteFluidBudget,
@@ -103,4 +149,6 @@ def screen_cycle_resolved_routing_closure(
         prime_residual_ratio_contract=prime_residual_ratio_contract,
         prime_external_leakage_ratio_contract=prime_external_leakage_ratio_contract,
     )
-    return CycleResolvedRoutingClosure(cycles=tuple(screens), service=service)
+    result = CycleResolvedRoutingClosure(cycles=tuple(screens), service=service)
+    _assert_cycle_service_parity(result)
+    return result
