@@ -8,14 +8,14 @@ import pytest
 from masck_one import treatment_mounted_four_zone_v9 as v9
 from masck_one import treatment_mounted_four_zone_v10 as v10
 from masck_one import treatment_mounted_four_zone_v11 as v11
-from masck_one.treatment_terminal_datum_preload_v5 import COLLISION_KERNEL
+from masck_one.treatment_terminal_datum_preload_v5 import COLLISION_KERNEL, SOURCE_CELL6_HEAD_SHA
 
 
 def test_v11_manifest_records_kernel_promotion_without_geometry_claim_change(monkeypatch):
     architecture = object()
     datums = object()
     monkeypatch.setattr(v11, "_require_promoted_build_result", lambda a, d: (a, d))
-    monkeypatch.setattr(v10, "manifest_v10", lambda a, d: {"schema": v10.SCHEMA_V10})
+    monkeypatch.setattr(v10, "manifest_v10", lambda a, d: {"schema": v10.SCHEMA_V10, "source_cell6_head_sha": SOURCE_CELL6_HEAD_SHA})
 
     payload = v11.manifest_v11(architecture, datums)
 
@@ -26,6 +26,24 @@ def test_v11_manifest_records_kernel_promotion_without_geometry_claim_change(mon
     assert payload["physical_architecture_changed_from_v10"] is False
     assert payload["collision_threshold_weakened"] is False
     assert payload["physical_validation_eligible"] is False
+
+
+def test_v11_manifest_rejects_non_dict_materialization(monkeypatch):
+    architecture = object()
+    datums = object()
+    monkeypatch.setattr(v11, "_require_promoted_build_result", lambda a, d: (a, d))
+    monkeypatch.setattr(v10, "manifest_v10", lambda a, d: [("source_cell6_head_sha", SOURCE_CELL6_HEAD_SHA)])
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="exact dict manifest"):
+        v11.manifest_v11(architecture, datums)
+
+
+def test_v11_manifest_rejects_payload_lineage_mismatch(monkeypatch):
+    architecture = object()
+    datums = object()
+    monkeypatch.setattr(v11, "_require_promoted_build_result", lambda a, d: (a, d))
+    monkeypatch.setattr(v10, "manifest_v10", lambda a, d: {"source_cell6_head_sha": "hostile-lineage"})
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="manifest source binding"):
+        v11.manifest_v11(architecture, datums)
 
 
 def test_v11_rejects_unqualified_builder_output_and_restores_hooks(monkeypatch):
