@@ -63,6 +63,12 @@ def test_conflicting_requests_fail_closed_even_after_recovery():
     assert command.reason is ThermalInhibitReason.CONFLICTING_REQUESTS
 
 
+def test_thermal_mode_wire_identifiers_are_stable():
+    assert ThermalMode.OFF.value == "off"
+    assert ThermalMode.WARM.value == "warm"
+    assert ThermalMode.COOL.value == "cool"
+
+
 def test_thermal_inhibit_wire_identifiers_are_stable():
     assert ThermalInhibitReason.CONFLICTING_REQUESTS.value == "conflicting_requests"
     assert ThermalInhibitReason.RECOVERY_INCOMPLETE.value == "recovery_incomplete"
