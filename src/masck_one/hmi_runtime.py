@@ -122,18 +122,28 @@ class DebouncedInput:
         return InputEvent(False, Edge.NONE, True, self._fault, self._fault_code)
 
     def _observe_time_while_faulted(self, now_s: object) -> None:
-        """Advance the clock floor from a valid post-fault service observation.
-
-        Invalid or regressed values are ignored while faulted so the first diagnostic
-        remains authoritative. A valid later timestamp is still meaningful to recovery:
-        reset must not be able to establish a new epoch earlier than firmware time that
-        this runtime has already observed.
-        """
+        """Advance the clock floor from a valid post-fault service observation."""
         if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
             return
         now = float(now_s)
         if self._last_observed_at is None or now >= self._last_observed_at:
             self._last_observed_at = now
+
+    def _supervision_fault(self, now: float) -> InputEvent | None:
+        """Apply the single authoritative sample-stream supervision contract.
+
+        This helper deliberately does not start supervision or accept a sample. It only
+        evaluates an already-established deadline so arm, sample and watchdog cannot
+        drift into different stale or no-start boundary semantics.
+        """
+        if self._last_sample_at is not None:
+            if now > self._last_sample_at + self.stale_after_s:
+                return self._trip(FaultCode.INPUT_STREAM_STALE, "input stream became stale")
+            return None
+        if self._watchdog_started_at is not None:
+            if now > self._watchdog_started_at + self.stale_after_s:
+                return self._trip(FaultCode.INPUT_STREAM_NOT_STARTED, "input stream did not start")
+        return None
 
     def arm(self, *, now_s: float) -> InputEvent:
         """Start no-sample supervision from an explicit firmware lifecycle point."""
@@ -146,14 +156,13 @@ class DebouncedInput:
         if self._last_observed_at is not None and now < self._last_observed_at:
             return self._trip(FaultCode.ARM_TIME_REGRESSION, "arm time moved backwards")
         self._last_observed_at = now
+        fault = self._supervision_fault(now)
+        if fault is not None:
+            return fault
         if self._last_sample_at is not None:
-            if now > self._last_sample_at + self.stale_after_s:
-                return self._trip(FaultCode.INPUT_STREAM_STALE, "input stream became stale")
             return InputEvent(self._stable, Edge.NONE)
         if self._watchdog_started_at is None:
             self._watchdog_started_at = now
-        if now > self._watchdog_started_at + self.stale_after_s:
-            return self._trip(FaultCode.INPUT_STREAM_NOT_STARTED, "input stream did not start")
         return InputEvent(False, Edge.NONE)
 
     def sample(self, *, pressed: bool, now_s: float) -> InputEvent:
@@ -168,11 +177,9 @@ class DebouncedInput:
         self._last_observed_at = now
         if type(pressed) is not bool:
             return self._trip(FaultCode.PRESSED_NOT_BOOL, "pressed must be an exact bool")
-        if self._last_sample_at is not None and now > self._last_sample_at + self.stale_after_s:
-            return self._trip(FaultCode.INPUT_STREAM_STALE, "input stream became stale")
-        if self._last_sample_at is None and self._watchdog_started_at is not None:
-            if now > self._watchdog_started_at + self.stale_after_s:
-                return self._trip(FaultCode.INPUT_STREAM_NOT_STARTED, "input stream did not start")
+        fault = self._supervision_fault(now)
+        if fault is not None:
+            return fault
         self._last_sample_at = now
         self._watchdog_started_at = None
 
@@ -218,16 +225,13 @@ class DebouncedInput:
         if self._last_observed_at is not None and now < self._last_observed_at:
             return self._trip(FaultCode.WATCHDOG_TIME_REGRESSION, "watchdog time moved backwards")
         self._last_observed_at = now
-        if self._last_sample_at is None:
-            if self._watchdog_started_at is None:
-                self._watchdog_started_at = now
-                return InputEvent(False, Edge.NONE)
-            if now > self._watchdog_started_at + self.stale_after_s:
-                return self._trip(FaultCode.INPUT_STREAM_NOT_STARTED, "input stream did not start")
+        if self._last_sample_at is None and self._watchdog_started_at is None:
+            self._watchdog_started_at = now
             return InputEvent(False, Edge.NONE)
-        if now > self._last_sample_at + self.stale_after_s:
-            return self._trip(FaultCode.INPUT_STREAM_STALE, "input stream became stale")
-        return InputEvent(self._stable, Edge.NONE)
+        fault = self._supervision_fault(now)
+        if fault is not None:
+            return fault
+        return InputEvent(self._stable if self._last_sample_at is not None else False, Edge.NONE)
 
     def _trip(self, code: FaultCode, reason: str) -> InputEvent:
         self._fault = reason
