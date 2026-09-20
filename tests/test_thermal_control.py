@@ -63,6 +63,11 @@ def test_conflicting_requests_fail_closed_even_after_recovery():
     assert command.reason is ThermalInhibitReason.CONFLICTING_REQUESTS
 
 
+def test_thermal_inhibit_wire_identifiers_are_stable():
+    assert ThermalInhibitReason.CONFLICTING_REQUESTS.value == "conflicting_requests"
+    assert ThermalInhibitReason.RECOVERY_INCOMPLETE.value == "recovery_incomplete"
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
