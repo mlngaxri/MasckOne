@@ -64,7 +64,8 @@ jobs:
             src/masck_one/structural_frame_retention_verification_v16.py \
             src/masck_one/structural_frame_retention_verification_v17.py \
             src/masck_one/structural_frame_retention_verification_v18.py \
-            src/masck_one/structural_frame_retention_verification_v19.py
+            src/masck_one/structural_frame_retention_verification_v19.py \
+            src/masck_one/structural_frame_retention_verification_v20.py
       - name: Verify positive retention graph, structural roots, and selected tactile successor
         run: |
           python -m pytest -q \
@@ -89,6 +90,7 @@ jobs:
             tests/test_structural_frame_retention_verification_v17.py \
             tests/test_structural_frame_retention_verification_v18.py \
             tests/test_structural_frame_retention_verification_v19.py \
+            tests/test_structural_frame_retention_verification_v20.py \
             tests/test_retention_quick_release_tactile_v3.py \
             tests/test_retention_quick_release_tactile_v4.py \
             tests/test_retention_quick_release_tactile_v5.py \
@@ -137,6 +139,9 @@ jobs:
 # Structural-root V19 independently recomputes pin/yoke and root/protected-zone intersections
 # with fail-closed OCC handling, so unavailable or invalid Boolean evidence cannot certify
 # clearance merely because the legacy generator maps an exception to zero volume.
+# Structural-root V20 independently rebuilds the actuator-reaction architecture from the
+# supplied model and requires its SHA-256 digest to match the retention-root source digest,
+# rejecting mixed authority states before downstream structural clearance can be certified.
 # Root-service corridors are compiled and regression-gated here. Their Boolean clearance
 # evidence fails closed on OCC query failure, non-finite evidence, negative evidence, or
 # positive frame/yoke collision instead of silently converting failed geometry queries to zero.
