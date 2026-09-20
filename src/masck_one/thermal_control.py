@@ -21,11 +21,11 @@ class ThermalMode(Enum):
     COOL = auto()
 
 
-class ThermalInhibitReason(Enum):
-    """Machine-readable reasons for a fail-closed thermal command."""
+class ThermalInhibitReason(str, Enum):
+    """Stable machine-readable reasons for a fail-closed thermal command."""
 
-    CONFLICTING_REQUESTS = auto()
-    RECOVERY_INCOMPLETE = auto()
+    CONFLICTING_REQUESTS = "conflicting_requests"
+    RECOVERY_INCOMPLETE = "recovery_incomplete"
 
 
 @dataclass(frozen=True, slots=True)
