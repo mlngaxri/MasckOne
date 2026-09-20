@@ -4,6 +4,7 @@ from masck_one.thermal_control import (
     ThermalCommand,
     ThermalCommandInterlock,
     ThermalControlError,
+    ThermalInhibitReason,
     ThermalMode,
 )
 
@@ -16,6 +17,7 @@ def test_idle_is_fail_safe_off():
     assert command.warm_enable is False
     assert command.cool_enable is False
     assert command.inhibited is False
+    assert command.reason is None
 
 
 def test_warm_command_never_enables_cool():
@@ -25,6 +27,7 @@ def test_warm_command_never_enables_cool():
     assert command.mode is ThermalMode.WARM
     assert command.warm_enable is True
     assert command.cool_enable is False
+    assert command.reason is None
 
 
 def test_cool_is_inhibited_until_recovery_completes():
@@ -35,7 +38,7 @@ def test_cool_is_inhibited_until_recovery_completes():
     assert command.warm_enable is False
     assert command.cool_enable is False
     assert command.inhibited is True
-    assert command.reason == "cool request requires completed recovery"
+    assert command.reason is ThermalInhibitReason.RECOVERY_INCOMPLETE
 
 
 def test_cool_can_be_commanded_after_recovery():
@@ -46,6 +49,7 @@ def test_cool_can_be_commanded_after_recovery():
     assert command.warm_enable is False
     assert command.cool_enable is True
     assert command.inhibited is False
+    assert command.reason is None
 
 
 def test_conflicting_requests_fail_closed_even_after_recovery():
@@ -56,7 +60,7 @@ def test_conflicting_requests_fail_closed_even_after_recovery():
     assert command.warm_enable is False
     assert command.cool_enable is False
     assert command.inhibited is True
-    assert command.reason == "warm and cool requests are mutually exclusive"
+    assert command.reason is ThermalInhibitReason.CONFLICTING_REQUESTS
 
 
 @pytest.mark.parametrize(
@@ -96,14 +100,36 @@ def test_impossible_mode_output_combinations_are_rejected(command):
 
 def test_inhibited_command_must_be_off_and_explain_why():
     with pytest.raises(ThermalControlError, match="inhibited command must be OFF"):
-        ThermalCommand(ThermalMode.WARM, True, False, inhibited=True, reason="fault")
+        ThermalCommand(
+            ThermalMode.WARM,
+            True,
+            False,
+            inhibited=True,
+            reason=ThermalInhibitReason.CONFLICTING_REQUESTS,
+        )
     with pytest.raises(ThermalControlError, match="requires a reason"):
         ThermalCommand(ThermalMode.OFF, False, False, inhibited=True)
 
 
 def test_non_inhibited_command_cannot_carry_fault_reason():
     with pytest.raises(ThermalControlError, match="cannot carry a reason"):
-        ThermalCommand(ThermalMode.OFF, False, False, reason="stale fault")
+        ThermalCommand(
+            ThermalMode.OFF,
+            False,
+            False,
+            reason=ThermalInhibitReason.RECOVERY_INCOMPLETE,
+        )
+
+
+def test_free_form_inhibit_reasons_are_rejected():
+    with pytest.raises(ThermalControlError, match="ThermalInhibitReason"):
+        ThermalCommand(
+            ThermalMode.OFF,
+            False,
+            False,
+            inhibited=True,
+            reason="recovery incomplete",
+        )
 
 
 @pytest.mark.parametrize(
