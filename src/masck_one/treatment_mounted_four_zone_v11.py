@@ -11,6 +11,8 @@ cannot observe or restore another build's temporary verification bindings.
 """
 
 from contextlib import contextmanager
+import hashlib
+import json
 from threading import RLock
 from typing import Iterator
 
@@ -63,6 +65,22 @@ def _require_promoted_build_result(architecture: object, datums: object):
     return architecture, datums
 
 
+def _promoted_evidence_sha256(payload: dict[str, object]) -> str:
+    """Digest the complete promoted evidence payload with deterministic JSON semantics."""
+    try:
+        canonical = json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 promoted evidence is not canonically serializable"
+        ) from exc
+    return hashlib.sha256(canonical).hexdigest()
+
+
 def build_mounted_four_zone_architecture_v11(**kwargs):
     """Build unchanged V10/V9 material geometry under fail-closed kernel V2."""
     with _v2_mounted_verification():
@@ -101,4 +119,9 @@ def manifest_v11(architecture, datums) -> dict[str, object]:
             "physical_validation_eligible": False,
         }
     )
+    # The digest is deliberately computed only after all V11 qualification fields
+    # exist. This binds the promoted collision/source evidence itself, rather than
+    # merely inheriting integrity metadata from an upstream schema.
+    payload.pop("promoted_evidence_sha256", None)
+    payload["promoted_evidence_sha256"] = _promoted_evidence_sha256(payload)
     return payload
