@@ -44,3 +44,26 @@ def test_contract_validation_rejects_duplicate_valid_identifiers(monkeypatch):
 
     with pytest.raises(wire.HmiFaultWireError, match="duplicates=.*input_stream_stale"):
         wire.assert_fault_wire_contract_complete()
+
+
+@pytest.mark.parametrize("bad_key", [None, 7, True, "INPUT_STREAM_STALE"])
+def test_contract_validation_rejects_non_faultcode_keys_predictably(monkeypatch, bad_key):
+    malformed = dict(wire._WIRE_IDS)
+    malformed[bad_key] = "unexpected_fault"
+    monkeypatch.setattr(wire, "_WIRE_IDS", malformed)
+
+    with pytest.raises(wire.HmiFaultWireError, match="invalid_keys="):
+        wire.assert_fault_wire_contract_complete()
+
+
+def test_contract_validation_reports_missing_code_with_malformed_key(monkeypatch):
+    malformed = dict(wire._WIRE_IDS)
+    malformed.pop(FaultCode.INPUT_STREAM_STALE)
+    malformed["INPUT_STREAM_STALE"] = "input_stream_stale"
+    monkeypatch.setattr(wire, "_WIRE_IDS", malformed)
+
+    with pytest.raises(
+        wire.HmiFaultWireError,
+        match="missing=.*INPUT_STREAM_STALE.*invalid_keys=.*INPUT_STREAM_STALE",
+    ):
+        wire.assert_fault_wire_contract_complete()
