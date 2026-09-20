@@ -8,17 +8,19 @@ after recovery, matching the released CLEAN -> RECOVERY -> COOL_IF_COMMANDED seq
 """
 
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum
 
 
 class ThermalControlError(ValueError):
     """Raised when a thermal-control input or output violates the command contract."""
 
 
-class ThermalMode(Enum):
-    OFF = auto()
-    WARM = auto()
-    COOL = auto()
+class ThermalMode(str, Enum):
+    """Stable machine-readable thermal output modes."""
+
+    OFF = "off"
+    WARM = "warm"
+    COOL = "cool"
 
 
 class ThermalInhibitReason(str, Enum):
