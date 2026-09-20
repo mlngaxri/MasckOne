@@ -24,9 +24,10 @@ from .structural_frame_retention_roots import (
     build_structural_frame_retention_roots,
 )
 
-SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_CLEVIS_BORES_V1"
+SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_CLEVIS_BORES_V2"
 CLEVIS_BORE_RADIUS_MM = YOKE_ROOT_BORE_RADIUS_MM
 CLEVIS_BORE_LENGTH_MM = 24.0
+MIN_BORE_END_OVERTRAVEL_MM = 1.0
 INTERSECTION_TOLERANCE_MM3 = 1e-7
 
 
@@ -58,6 +59,19 @@ def _intersection_mm3(a: cq.Workplane, b: cq.Workplane) -> float:
     return 0.0 if value <= INTERSECTION_TOLERANCE_MM3 else value
 
 
+def _bore_end_overtravel_mm(bore: cq.Workplane, counterpart: cq.Workplane) -> tuple[float, float]:
+    try:
+        bore_box = bore.val().BoundingBox()
+        counterpart_box = counterpart.val().BoundingBox()
+        negative_y = float(counterpart_box.ymin - bore_box.ymin)
+        positive_y = float(bore_box.ymax - counterpart_box.ymax)
+    except Exception as exc:
+        raise StructuralFrameRetentionClevisBoreError("B-rep bore extent query failed") from exc
+    if not all(math.isfinite(value) for value in (negative_y, positive_y)):
+        raise StructuralFrameRetentionClevisBoreError("bore end overtravel must be finite")
+    return negative_y, positive_y
+
+
 @dataclass(frozen=True, slots=True)
 class RetentionClevisBore:
     root_id: str
@@ -65,6 +79,8 @@ class RetentionClevisBore:
     pre_cut_pin_frame_intersection_mm3: float
     post_cut_pin_frame_intersection_mm3: float
     post_cut_frame_capture_volume_mm3: float
+    negative_y_bore_overtravel_mm: float
+    positive_y_bore_overtravel_mm: float
     corrected_frame_counterpart: cq.Workplane = field(repr=False, compare=False)
     bore_reference: cq.Workplane = field(repr=False, compare=False)
 
@@ -79,6 +95,16 @@ class RetentionClevisBore:
             raise StructuralFrameRetentionClevisBoreError("capture pin still intersects corrected frame clevis")
         if self.post_cut_frame_capture_volume_mm3 <= INTERSECTION_TOLERANCE_MM3:
             raise StructuralFrameRetentionClevisBoreError("clevis bore cut destroyed positive frame attachment")
+        for label, value in (
+            ("negative-Y", self.negative_y_bore_overtravel_mm),
+            ("positive-Y", self.positive_y_bore_overtravel_mm),
+        ):
+            if not math.isfinite(value):
+                raise StructuralFrameRetentionClevisBoreError(f"{label} bore overtravel must be finite")
+            if value < MIN_BORE_END_OVERTRAVEL_MM:
+                raise StructuralFrameRetentionClevisBoreError(
+                    f"{label} clevis bore does not fully traverse counterpart with required end margin"
+                )
         _single(self.corrected_frame_counterpart, "corrected frame counterpart")
         _single(self.bore_reference, "clevis bore reference")
         return self
@@ -110,12 +136,15 @@ class StructuralFrameRetentionClevisBoreArchitecture:
             "source_retention_architecture_sha256": self.source_retention_architecture_sha256,
             "bore_radius_mm": CLEVIS_BORE_RADIUS_MM,
             "bore_length_mm": CLEVIS_BORE_LENGTH_MM,
+            "minimum_bore_end_overtravel_mm": MIN_BORE_END_OVERTRAVEL_MM,
             "roots": [
                 {
                     "root_id": root.root_id,
                     "pre_cut_pin_frame_intersection_mm3": root.pre_cut_pin_frame_intersection_mm3,
                     "post_cut_pin_frame_intersection_mm3": root.post_cut_pin_frame_intersection_mm3,
                     "post_cut_frame_capture_volume_mm3": root.post_cut_frame_capture_volume_mm3,
+                    "negative_y_bore_overtravel_mm": root.negative_y_bore_overtravel_mm,
+                    "positive_y_bore_overtravel_mm": root.positive_y_bore_overtravel_mm,
                 }
                 for root in self.roots
             ],
@@ -141,6 +170,9 @@ def build_structural_frame_retention_clevis_bores(
             _cylinder_y(CLEVIS_BORE_RADIUS_MM, CLEVIS_BORE_LENGTH_MM, (x, ROOT_Y_MM, ROOT_Z_MM)),
             f"{root.root_id} clevis bore",
         )
+        negative_y_overtravel, positive_y_overtravel = _bore_end_overtravel_mm(
+            bore, root.frame_counterpart
+        )
         pre_intersection = _intersection_mm3(root.capture_pin, root.frame_counterpart)
         corrected_counterpart = _single(
             root.frame_counterpart.cut(bore),
@@ -159,6 +191,8 @@ def build_structural_frame_retention_clevis_bores(
                 pre_cut_pin_frame_intersection_mm3=pre_intersection,
                 post_cut_pin_frame_intersection_mm3=post_intersection,
                 post_cut_frame_capture_volume_mm3=frame_capture,
+                negative_y_bore_overtravel_mm=negative_y_overtravel,
+                positive_y_bore_overtravel_mm=positive_y_overtravel,
                 corrected_frame_counterpart=corrected_counterpart,
                 bore_reference=bore,
             ).validate()
