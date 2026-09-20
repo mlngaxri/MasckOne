@@ -87,7 +87,7 @@ def verify_promoted_evidence_v11(payload: object) -> None:
         raise TreatmentMountedFourZoneV11Error(
             "mounted four-zone V11 evidence verification requires exact dict payload"
         )
-    if payload.get("schema") != SCHEMA:
+    if type(payload.get("schema")) is not str or payload.get("schema") != SCHEMA:
         raise TreatmentMountedFourZoneV11Error(
             "mounted four-zone V11 evidence verification requires V11 schema"
         )
@@ -102,7 +102,8 @@ def verify_promoted_evidence_v11(payload: object) -> None:
         "physical_validation_eligible": False,
     }
     for field, accepted in required_qualification.items():
-        if payload.get(field) != accepted:
+        observed = payload.get(field)
+        if type(observed) is not type(accepted) or observed != accepted:
             raise TreatmentMountedFourZoneV11Error(
                 f"mounted four-zone V11 qualification field {field!r} does not match accepted evidence"
             )
