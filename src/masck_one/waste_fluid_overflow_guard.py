@@ -4,6 +4,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+from .waste_cartridge import CartridgeCapacityReservation
 from .waste_fluid_accounting import WasteFluidAccountingError, WasteFluidBudget
 from .waste_fluid_cycle_routing import (
     CycleResolvedRoutingClosure,
@@ -147,4 +148,51 @@ def screen_cartridge_overflow_guard(
         conservative_overflow_at_failure_mL=conservative_overflow,
         contractual_reserve_headroom_mL=contractual_reserve_headroom,
         conservative_reserve_headroom_mL=conservative_reserve_headroom,
+    )
+
+
+def screen_cartridge_reservation_overflow_guard(
+    budget: WasteFluidBudget,
+    cartridge: CartridgeCapacityReservation,
+    *,
+    prime_events_by_cycle: tuple[int, ...] | list[int],
+    prime_recovery_ratio_contract: float | None = None,
+    prime_residual_ratio_contract: float | None = None,
+    prime_external_leakage_ratio_contract: float | None = None,
+    capacity_reserve_mL: float = 0.0,
+) -> CartridgeOverflowGuard:
+    """Bind the fluid capacity screen to the actual cartridge reservation contract.
+
+    The cartridge model and fluid budget are independent subsystem authorities. This
+    adapter fails closed if their retained-capacity or service-life values drift, then
+    delegates to the cycle-resolved overflow guard. It intentionally does not treat
+    ``usable_internal_capacity_mL`` as available volume because the current cartridge
+    contract forbids promoting unverified physical capacity.
+    """
+    budget.validate()
+    cartridge.validate_invariants()
+    if not math.isclose(
+        cartridge.retained_capacity_min_mL,
+        budget.cartridge_retained_capacity_requirement_mL,
+        rel_tol=0.0,
+        abs_tol=1e-12,
+    ):
+        raise WasteFluidAccountingError(
+            "cartridge retained-capacity reservation does not match fluid budget authority"
+        )
+    if cartridge.service_cycles_baseline != budget.service_cycles:
+        raise WasteFluidAccountingError(
+            "cartridge service-cycle reservation does not match fluid budget authority"
+        )
+    if cartridge.usable_internal_capacity_mL is not None:
+        raise WasteFluidAccountingError(
+            "unverified usable internal cartridge capacity cannot replace retained-capacity requirement"
+        )
+    return screen_cartridge_overflow_guard(
+        budget,
+        prime_events_by_cycle=prime_events_by_cycle,
+        prime_recovery_ratio_contract=prime_recovery_ratio_contract,
+        prime_residual_ratio_contract=prime_residual_ratio_contract,
+        prime_external_leakage_ratio_contract=prime_external_leakage_ratio_contract,
+        capacity_reserve_mL=capacity_reserve_mL,
     )
