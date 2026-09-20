@@ -10,6 +10,7 @@ are process-global module state, promoted builds are serialized so concurrent ca
 cannot observe or restore another build's temporary verification bindings.
 """
 
+import copy
 from contextlib import contextmanager
 import hashlib
 import json
@@ -186,7 +187,12 @@ def manifest_v11(architecture, datums) -> dict[str, object]:
     _require_promoted_build_result(architecture, datums)
     _require_v10_predecessor_evidence(upstream_payload)
     _require_cell6_provenance_v11(upstream_payload)
-    payload = upstream_payload.copy()
+    try:
+        payload = copy.deepcopy(upstream_payload)
+    except Exception as exc:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 predecessor evidence cannot be isolated for promotion"
+        ) from exc
     payload.update(
         {
             "schema": SCHEMA,
