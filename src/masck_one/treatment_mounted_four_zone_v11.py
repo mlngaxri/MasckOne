@@ -27,10 +27,6 @@ from .treatment_terminal_datum_preload_v5 import (
 SCHEMA = "MASCK_ONE_TREATMENT_MOUNTED_FOUR_ZONE_V11"
 TreatmentMountedFourZoneV11Error = v10.TreatmentMountedFourZoneV10Error
 
-# V11 temporarily rebinds V9 module hooks while V10 executes. Without a lock,
-# overlapping builds can capture each other's temporary bindings and restore stale
-# state. RLock keeps nested same-thread use valid while making the mutation atomic
-# with respect to other V11 callers.
 _VERIFICATION_HOOK_LOCK = RLock()
 
 
@@ -77,6 +73,18 @@ def build_mounted_four_zone_architecture_v11(**kwargs):
 def manifest_v11(architecture, datums) -> dict[str, object]:
     architecture, datums = _require_promoted_build_result(architecture, datums)
     payload = v10.manifest_v10(architecture, datums)
+    if type(payload) is not dict:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 requires exact dict manifest materialization"
+        )
+    # V10 materialization traverses mutable architecture evidence. Recheck both the
+    # architecture and the emitted provenance after it returns so mutation or a
+    # malformed upstream manifest cannot acquire V11 qualification.
+    _require_promoted_build_result(architecture, datums)
+    if payload.get("source_cell6_head_sha") != SOURCE_CELL6_HEAD_SHA:
+        raise TreatmentMountedFourZoneV11Error(
+            "mounted four-zone V11 manifest source binding does not match accepted Cell 6 lineage"
+        )
     payload.update(
         {
             "schema": SCHEMA,
