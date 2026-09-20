@@ -9,6 +9,7 @@ after recovery, matching the released CLEAN -> RECOVERY -> COOL_IF_COMMANDED seq
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import TypedDict
 
 
 class ThermalControlError(ValueError):
@@ -28,6 +29,16 @@ class ThermalInhibitReason(str, Enum):
 
     CONFLICTING_REQUESTS = "conflicting_requests"
     RECOVERY_INCOMPLETE = "recovery_incomplete"
+
+
+class ThermalCommandWire(TypedDict):
+    """Closed firmware-facing representation of a validated thermal command."""
+
+    mode: str
+    warm_enable: bool
+    cool_enable: bool
+    inhibited: bool
+    reason: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +78,17 @@ class ThermalCommand:
                 raise ThermalControlError("an inhibited command requires a reason")
         elif self.reason is not None:
             raise ThermalControlError("a non-inhibited command cannot carry a reason")
+
+    def to_wire(self) -> ThermalCommandWire:
+        """Serialize only validated, stable primitive values for firmware transport."""
+
+        return {
+            "mode": self.mode.value,
+            "warm_enable": self.warm_enable,
+            "cool_enable": self.cool_enable,
+            "inhibited": self.inhibited,
+            "reason": self.reason.value if self.reason is not None else None,
+        }
 
 
 class ThermalCommandInterlock:
