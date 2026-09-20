@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 
 import cadquery as cq
 import pytest
@@ -8,6 +9,7 @@ import pytest
 from masck_one.structural_frame_retention_root_service import (
     ROOT_IDS,
     StructuralFrameRetentionRootServiceError,
+    _intersection,
     build_structural_frame_retention_root_service,
     export_structural_frame_retention_root_service,
 )
@@ -37,6 +39,31 @@ def test_hostile_service_collision_is_rejected() -> None:
             path.clip_install_sweep,
             pin_sweep_frame_intersection_mm3=0.01,
         )
+
+
+def test_non_finite_or_negative_service_evidence_is_rejected() -> None:
+    architecture = build_structural_frame_retention_root_service()
+    path = architecture.paths[0]
+    for hostile in (math.nan, math.inf, -0.01):
+        with pytest.raises(StructuralFrameRetentionRootServiceError, match="finite and non-negative"):
+            type(path)(
+                path.root_id,
+                path.pin_withdraw_sweep,
+                path.clip_install_sweep,
+                pin_sweep_frame_intersection_mm3=hostile,
+            )
+
+
+def test_boolean_failure_cannot_be_relabelled_as_zero_clearance_evidence(monkeypatch) -> None:
+    architecture = build_structural_frame_retention_root_service()
+    sweep = architecture.paths[0].pin_withdraw_sweep
+
+    def fail_boolean(*args, **kwargs):
+        raise RuntimeError("synthetic OCC failure")
+
+    monkeypatch.setattr(cq.Workplane, "intersect", fail_boolean)
+    with pytest.raises(StructuralFrameRetentionRootServiceError, match="Boolean failed"):
+        _intersection(sweep, sweep)
 
 
 def test_retention_root_service_export_is_deterministic_and_roundtrips(tmp_path) -> None:
