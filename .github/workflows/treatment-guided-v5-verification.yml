@@ -46,8 +46,12 @@ jobs:
             tests/test_treatment_terminal_datum_preload_v5.py \
             tests/test_treatment_terminal_datum_v5_manifest_failclosed.py \
             tests/test_treatment_guided_preload_spring_v5.py \
+            tests/test_treatment_guided_preload_spring_v5_type_gate.py \
             tests/test_treatment_mounted_four_zone_v11.py \
-            tests/test_treatment_mounted_four_zone_v11_evidence_ownership.py
+            tests/test_treatment_mounted_four_zone_v11_evidence_digest.py \
+            tests/test_treatment_mounted_four_zone_v11_evidence_ownership.py \
+            tests/test_treatment_mounted_four_zone_v11_json_shape.py \
+            tests/test_treatment_mounted_four_zone_v11_predecessor_gate.py
 
 # This workflow is the exact-head qualification path for the promoted treatment
 # integration stack. Historical V4/V9/V10 regressions remain evidence, but they
