@@ -72,7 +72,7 @@ class WasteFluidBudget:
         return self.recovery_ratio_for_residual_leakage_closure - self.recovery_ratio_min
 
     def service_capacity_screen(self, *, cycles: int, prime_events: int) -> ServiceCapacityScreen:
-        """Bound retained occupancy for explicit service-cycle and prime counts.
+        """Bound retained occupancy for an in-authority service-life interval.
 
         The lower bound counts only nominal liquid that must be recovered at the
         authority recovery floor. The upper bound charges every introduced nominal
@@ -80,9 +80,18 @@ class WasteFluidBudget:
         recovery is intentionally not assumed because no authority recovery fraction
         for prime liquid exists. This interval therefore remains conservative at both
         ends until physical routing and recovery data exist.
+
+        ``cycles`` may describe a prefix of the configured service life, but may not
+        extend beyond it. This prevents capacity checks from silently reusing a
+        cartridge beyond the authority service interval.
         """
         if type(cycles) is not int or cycles <= 0:
             raise WasteFluidAccountingError("cycles must be a positive integer")
+        if cycles > self.service_cycles:
+            raise WasteFluidAccountingError(
+                "cycles exceeds configured service life: "
+                f"{cycles} requested for {self.service_cycles} service cycles"
+            )
         if type(prime_events) is not int or prime_events < 0:
             raise WasteFluidAccountingError("prime_events must be a nonnegative integer")
         nominal = cycles * self.nominal_introduced_mL_per_cycle
@@ -110,12 +119,12 @@ class WasteFluidBudget:
         return math.floor((baseline.requirement_margin_mL + 1e-12) / self.maximum_initial_prime_mL_per_cycle)
 
     def maximum_service_cycles_that_fit(self, *, prime_events: int) -> int | None:
-        """Return service-cycle capacity after reserving explicit reprime volume.
+        """Return packaging capacity in cycles after reserving explicit reprime volume.
 
-        Prime loading is charged first at the full authority allowance. Remaining
-        retained capacity is then divided by the nominal per-cycle liquid budget.
-        No recovery, residual, or leakage credit is taken in this fail-conservative
-        packaging screen.
+        This is deliberately a packaging calculation rather than a service-profile
+        authorization. It may report capacity beyond ``service_cycles``; callers that
+        model an actual service interval must use ``service_capacity_screen``, which
+        enforces the configured service-life boundary.
         """
         if type(prime_events) is not int or prime_events < 0:
             raise WasteFluidAccountingError("prime_events must be a nonnegative integer")
