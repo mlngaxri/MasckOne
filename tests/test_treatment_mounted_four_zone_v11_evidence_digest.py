@@ -22,12 +22,24 @@ def _canonical_digest(payload: dict[str, object]) -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
+def _cell6_provenance() -> dict[str, object]:
+    return {
+        "source_cell6_head_sha": SOURCE_CELL6_HEAD_SHA,
+        "source_cell6_geometry_head_sha": SOURCE_CELL6_HEAD_SHA,
+        "source_cell6_head_semantics": v10.SOURCE_CELL6_HEAD_SEMANTICS,
+        "active_cell6_owner_head_claimed": False,
+        "live_cell6_owner_recheck_required_before_promotion": True,
+    }
+
+
 def _manifest(monkeypatch, **extra):
     architecture = object()
     datums = object()
+    provenance = _cell6_provenance()
     upstream = {
         "schema": v10.SCHEMA_V10,
-        "source_cell6_head_sha": SOURCE_CELL6_HEAD_SHA,
+        **provenance,
+        "fusion_handoff": dict(provenance),
         **extra,
     }
     monkeypatch.setattr(v11, "_require_promoted_build_result", lambda a, d: (a, d))
@@ -85,7 +97,6 @@ def test_v11_verifier_rejects_wrong_schema(monkeypatch):
     ("field", "hostile"),
     [
         ("supersedes", "hostile-schema"),
-        ("source_cell6_head_sha", "hostile-source"),
         ("collision_kernel", "hostile-kernel"),
         ("terminal_datum_verification", "hostile-terminal"),
         ("physical_architecture_changed_from_v10", True),
@@ -99,6 +110,55 @@ def test_v11_verifier_rejects_rehashed_semantic_forgery(monkeypatch, field, host
     promoted["promoted_evidence_sha256"] = _canonical_digest(promoted)
 
     with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="qualification field"):
+        v11.verify_promoted_evidence_v11(promoted)
+
+
+@pytest.mark.parametrize(
+    ("field", "hostile"),
+    [
+        ("source_cell6_head_sha", "hostile-source"),
+        ("source_cell6_geometry_head_sha", "hostile-source"),
+        ("source_cell6_head_semantics", "hostile-semantics"),
+        ("active_cell6_owner_head_claimed", True),
+        ("live_cell6_owner_recheck_required_before_promotion", False),
+    ],
+)
+def test_v11_verifier_rejects_rehashed_top_level_cell6_provenance_forgery(monkeypatch, field, hostile):
+    promoted, _ = _manifest(monkeypatch)
+    promoted[field] = hostile
+    promoted["promoted_evidence_sha256"] = _canonical_digest(promoted)
+
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="Cell 6 provenance field"):
+        v11.verify_promoted_evidence_v11(promoted)
+
+
+@pytest.mark.parametrize(
+    ("field", "hostile"),
+    [
+        ("source_cell6_head_sha", "hostile-source"),
+        ("source_cell6_geometry_head_sha", "hostile-source"),
+        ("source_cell6_head_semantics", "hostile-semantics"),
+        ("active_cell6_owner_head_claimed", True),
+        ("live_cell6_owner_recheck_required_before_promotion", False),
+    ],
+)
+def test_v11_verifier_rejects_rehashed_fusion_cell6_provenance_forgery(monkeypatch, field, hostile):
+    promoted, _ = _manifest(monkeypatch)
+    fusion = dict(promoted["fusion_handoff"])
+    fusion[field] = hostile
+    promoted["fusion_handoff"] = fusion
+    promoted["promoted_evidence_sha256"] = _canonical_digest(promoted)
+
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="fusion Cell 6 provenance field"):
+        v11.verify_promoted_evidence_v11(promoted)
+
+
+def test_v11_verifier_rejects_missing_fusion_provenance_even_if_rehashed(monkeypatch):
+    promoted, _ = _manifest(monkeypatch)
+    promoted.pop("fusion_handoff")
+    promoted["promoted_evidence_sha256"] = _canonical_digest(promoted)
+
+    with pytest.raises(v11.TreatmentMountedFourZoneV11Error, match="exact fusion_handoff"):
         v11.verify_promoted_evidence_v11(promoted)
 
 
@@ -123,13 +183,15 @@ def test_v11_verifier_rejects_rehashed_integer_zero_for_boolean_qualification(mo
 def test_v11_digest_fails_closed_for_noncanonical_evidence(monkeypatch, bad_value):
     architecture = object()
     datums = object()
+    provenance = _cell6_provenance()
     monkeypatch.setattr(v11, "_require_promoted_build_result", lambda a, d: (a, d))
     monkeypatch.setattr(
         v10,
         "manifest_v10",
         lambda a, d: {
             "schema": v10.SCHEMA_V10,
-            "source_cell6_head_sha": SOURCE_CELL6_HEAD_SHA,
+            **provenance,
+            "fusion_handoff": dict(provenance),
             "hostile": bad_value,
         },
     )
