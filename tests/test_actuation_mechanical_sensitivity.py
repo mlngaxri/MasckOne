@@ -83,6 +83,29 @@ def test_worst_sensitivities_remain_traceable_to_measured_interval():
         assert item.upper_record_id.startswith(f"SENS-{item.zone_id}-")
 
 
+def test_per_zone_extrema_keep_all_four_zones_visible_and_traceable():
+    parameters = _parameters(); result = reduce_measured_mechanical_sensitivity(_sweep(parameters), parameters)
+    assert tuple(item.zone_id for item in result.zone_extrema) == tuple(sorted(ZONE_IDS))
+    for extrema in result.zone_extrema:
+        candidates = (
+            extrema.maximum_abs_force_sensitivity,
+            extrema.maximum_abs_displacement_sensitivity,
+            extrema.maximum_abs_phase_sensitivity,
+            extrema.maximum_abs_temperature_sensitivity,
+        )
+        assert all(item.zone_id == extrema.zone_id for item in candidates)
+        assert all(item.lower_record_id.startswith(f"SENS-{extrema.zone_id}-") for item in candidates)
+        assert all(item.upper_record_id.startswith(f"SENS-{extrema.zone_id}-") for item in candidates)
+
+
+def test_per_zone_extrema_are_order_independent():
+    parameters = _parameters(); sweep = _sweep(parameters)
+    reversed_sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(reversed(sweep.records)))
+    forward = reduce_measured_mechanical_sensitivity(sweep, parameters)
+    reverse = reduce_measured_mechanical_sensitivity(reversed_sweep, parameters)
+    assert forward.zone_extrema == reverse.zone_extrema
+
+
 def test_predicted_evidence_is_rejected_before_sensitivity_reduction():
     parameters = _parameters(); measured = _sweep(parameters)
     predicted = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(ZoneImpedanceRecord(item.zone_id, replace(
