@@ -57,6 +57,31 @@ def test_decoder_rejects_non_string_keys_and_field_drift() -> None:
         )
 
 
+def test_decoder_rejects_mapping_subclasses_before_custom_lookup_can_run() -> None:
+    class HostileDict(dict[str, object]):
+        def __iter__(self):  # type: ignore[override]
+            raise AssertionError("custom iteration must not run")
+
+        def __getitem__(self, key: str) -> object:
+            raise AssertionError("custom lookup must not run")
+
+    payload = HostileDict(
+        stable_pressed=False,
+        edge="none",
+        faulted=False,
+        fault_code=None,
+    )
+    with pytest.raises(HmiEventWireError, match="payload must be an exact dict"):
+        input_event_from_wire(payload)
+
+
+def test_decoder_rejects_non_mapping_container() -> None:
+    with pytest.raises(HmiEventWireError, match="payload must be an exact dict"):
+        input_event_from_wire(
+            [("stable_pressed", False), ("edge", "none"), ("faulted", False), ("fault_code", None)]
+        )
+
+
 def test_encoder_rejects_semantically_impossible_runtime_event() -> None:
     with pytest.raises(HmiEventWireError, match="pressed edge"):
         input_event_to_wire(InputEvent(False, Edge.PRESSED))
