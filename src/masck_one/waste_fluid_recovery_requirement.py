@@ -20,6 +20,7 @@ _TOL = 1e-12
 class ServiceRecoveryRequirement:
     """Minimum nominal recovery needed to close the configured service routing."""
 
+    source_budget: WasteFluidBudget
     source: ServiceRoutingClosure
     authority_recovery_ratio_min: float
     nominal_service_liquid_mL: float
@@ -31,6 +32,9 @@ class ServiceRecoveryRequirement:
     recovery_requirement_closes: bool
 
     def __post_init__(self) -> None:
+        if type(self.source_budget) is not WasteFluidBudget:
+            raise WasteFluidAccountingError("recovery requirement requires exact WasteFluidBudget evidence")
+        self.source_budget.validate()
         if type(self.source) is not ServiceRoutingClosure:
             raise WasteFluidAccountingError("recovery requirement requires exact ServiceRoutingClosure evidence")
         numeric = (
@@ -57,13 +61,44 @@ class ServiceRecoveryRequirement:
         if self.recovery_ratio_shortfall < -_TOL or self.additional_nominal_recovery_required_mL < -_TOL:
             raise WasteFluidAccountingError("recovery shortfall evidence cannot be negative")
 
+        # Bind all recovery arithmetic back to the exact fluid-budget values that
+        # produced the routing closure. Without this check a copied result could
+        # previously replace nominal volume or recovery floor and remain self-consistent.
+        expected_nominal = self.source_budget.nominal_introduced_mL_per_cycle * self.source.cycles
+        if not math.isclose(self.nominal_service_liquid_mL, expected_nominal, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("nominal service liquid is inconsistent with source budget")
+        if not math.isclose(
+            self.authority_recovery_ratio_min,
+            self.source_budget.recovery_ratio_min,
+            rel_tol=0.0,
+            abs_tol=_TOL,
+        ):
+            raise WasteFluidAccountingError("authority recovery ratio is inconsistent with source budget")
+        expected_nominal_routed = self.source_budget.minimum_recovered_mL_per_cycle * self.source.cycles
+        if not math.isclose(
+            self.source.minimum_nominal_liquid_routed_to_cartridge_mL,
+            expected_nominal_routed,
+            rel_tol=0.0,
+            abs_tol=_TOL,
+        ):
+            raise WasteFluidAccountingError("routing closure nominal recovery is inconsistent with source budget")
+        expected_residual_ceiling = self.source_budget.residual_free_liquid_max_mL * self.source.cycles
+        expected_leakage_ceiling = self.source_budget.external_leakage_max_mL_per_cycle * self.source.cycles
+        if not math.isclose(self.source.service_residual_ceiling_mL, expected_residual_ceiling, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("routing closure residual ceiling is inconsistent with source budget")
+        if not math.isclose(self.source.service_external_leakage_ceiling_mL, expected_leakage_ceiling, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("routing closure leakage ceiling is inconsistent with source budget")
+        expected_prime = self.source_budget.maximum_initial_prime_mL_per_cycle * self.source.prime_events
+        if not math.isclose(self.source.total_prime_liquid_mL, expected_prime, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("routing closure prime volume is inconsistent with source budget")
+
         expected_sink = self.source.prime_residual_ceiling_margin_mL + self.source.prime_external_leakage_ceiling_margin_mL
-        expected_required_mL = max(0.0, self.nominal_service_liquid_mL - expected_sink)
-        expected_ratio = min(1.0, expected_required_mL / self.nominal_service_liquid_mL)
-        expected_shortfall = max(0.0, expected_ratio - self.authority_recovery_ratio_min)
+        expected_required_mL = max(0.0, expected_nominal - expected_sink)
+        expected_ratio = min(1.0, expected_required_mL / expected_nominal)
+        expected_shortfall = max(0.0, expected_ratio - self.source_budget.recovery_ratio_min)
         expected_additional = max(
             0.0,
-            expected_required_mL - self.nominal_service_liquid_mL * self.authority_recovery_ratio_min,
+            expected_required_mL - expected_nominal * self.source_budget.recovery_ratio_min,
         )
         checks = (
             (self.available_nominal_nonrecovery_sink_mL, expected_sink, "available sink"),
@@ -89,13 +124,7 @@ def derive_service_recovery_requirement(
     prime_residual_ratio_contract: float | None = None,
     prime_external_leakage_ratio_contract: float | None = None,
 ) -> ServiceRecoveryRequirement:
-    """Derive the nominal recovery floor required after explicit prime sink use.
-
-    Prime residual and leakage allocations consume the same service sink ceilings as
-    nominal liquid. This calculation therefore raises the nominal recovery ratio
-    required for routing closure whenever prime liquid consumes those sinks. No credit
-    is taken for unspecified prime destinations.
-    """
+    """Derive the nominal recovery floor required after explicit prime sink use."""
     budget.validate()
     source = screen_service_routing_closure(
         budget,
@@ -111,12 +140,11 @@ def derive_service_recovery_requirement(
     available_sink = source.prime_residual_ceiling_margin_mL + source.prime_external_leakage_ceiling_margin_mL
     required_recovery_mL = max(0.0, nominal_total - available_sink)
     required_ratio = min(1.0, max(0.0, required_recovery_mL / nominal_total))
-
     ratio_shortfall = max(0.0, required_ratio - budget.recovery_ratio_min)
-    current_required_recovery_mL = nominal_total * budget.recovery_ratio_min
-    additional_recovery = max(0.0, required_recovery_mL - current_required_recovery_mL)
+    additional_recovery = max(0.0, required_recovery_mL - nominal_total * budget.recovery_ratio_min)
 
     return ServiceRecoveryRequirement(
+        source_budget=budget,
         source=source,
         authority_recovery_ratio_min=budget.recovery_ratio_min,
         nominal_service_liquid_mL=nominal_total,
