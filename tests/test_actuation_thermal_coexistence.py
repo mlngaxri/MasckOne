@@ -30,25 +30,19 @@ def _sweep(parameters):
     for zone_index, zone_id in enumerate(ZONE_IDS):
         for angle_index, angle in enumerate(parameters.axis_angle_doe_deg):
             records.append(ZoneImpedanceRecord(zone_id, ImpedanceTestRecord(
-                record_id=f"THERM-{zone_id}-{angle:g}",
-                source_parameter_sha256=parameters.parameter_sha256,
-                specimen_id="COUPON-THERMAL-COEXISTENCE",
-                source_kind="MEASURED",
+                record_id=f"THERM-{zone_id}-{angle:g}", source_parameter_sha256=parameters.parameter_sha256,
+                specimen_id="COUPON-THERMAL-COEXISTENCE", source_kind="MEASURED",
                 frequency_hz=parameters.clean_frequency_baseline_hz,
-                commanded_displacement_pp_mm=parameters.displacement_pp_baseline_mm,
-                axis_angle_deg=angle,
-                measured_force_N=0.30,
-                measured_displacement_pp_mm=parameters.displacement_pp_baseline_mm,
-                measured_phase_deg=0.0,
-                measured_temperature_C=28.0 + zone_index + angle_index * 0.25,
+                commanded_displacement_pp_mm=parameters.displacement_pp_baseline_mm, axis_angle_deg=angle,
+                measured_force_N=0.30, measured_displacement_pp_mm=parameters.displacement_pp_baseline_mm,
+                measured_phase_deg=0.0, measured_temperature_C=28.0 + zone_index + angle_index * 0.25,
                 evidence_uri=f"evidence://bench/thermal-coexistence/{zone_id}/{angle:g}",
             )))
     return FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(records))
 
 
 def test_thermal_envelope_preserves_extrema_zone_angle_and_record_traceability():
-    parameters = _parameters()
-    envelope = reduce_measured_actuation_thermal_envelope(_sweep(parameters), parameters)
+    parameters = _parameters(); envelope = reduce_measured_actuation_thermal_envelope(_sweep(parameters), parameters)
     assert envelope.point_count == 4 * len(parameters.axis_angle_doe_deg)
     assert envelope.min_temperature_C == pytest.approx(28.0)
     assert envelope.min_temperature_zone_id == ZONE_IDS[0]
@@ -57,12 +51,10 @@ def test_thermal_envelope_preserves_extrema_zone_angle_and_record_traceability()
     assert envelope.max_temperature_C == pytest.approx(32.0)
     assert envelope.max_temperature_zone_id == ZONE_IDS[-1]
     assert envelope.max_temperature_axis_angle_deg == parameters.axis_angle_doe_deg[-1]
-    assert envelope.max_temperature_record_id == f"THERM-{ZONE_IDS[-1]}-{parameters.axis_angle_doe_deg[-1]:g}"
 
 
 def test_thermal_envelope_preserves_per_zone_ranges_and_traceability():
-    parameters = _parameters()
-    envelope = reduce_measured_actuation_thermal_envelope(_sweep(parameters), parameters)
+    parameters = _parameters(); envelope = reduce_measured_actuation_thermal_envelope(_sweep(parameters), parameters)
     assert tuple(zone.zone_id for zone in envelope.zone_envelopes) == tuple(sorted(ZONE_IDS))
     for zone in envelope.zone_envelopes:
         zone_index = ZONE_IDS.index(zone.zone_id)
@@ -70,41 +62,42 @@ def test_thermal_envelope_preserves_per_zone_ranges_and_traceability():
         assert zone.min_temperature_C == pytest.approx(28.0 + zone_index)
         assert zone.max_temperature_C == pytest.approx(29.0 + zone_index)
         assert zone.temperature_span_C == pytest.approx(1.0)
-        assert zone.min_temperature_axis_angle_deg == parameters.axis_angle_doe_deg[0]
-        assert zone.max_temperature_axis_angle_deg == parameters.axis_angle_doe_deg[-1]
-        assert zone.min_temperature_record_id == f"THERM-{zone.zone_id}-{parameters.axis_angle_doe_deg[0]:g}"
-        assert zone.max_temperature_record_id == f"THERM-{zone.zone_id}-{parameters.axis_angle_doe_deg[-1]:g}"
+
+
+def test_thermal_envelope_preserves_cross_zone_spread_at_each_angle():
+    parameters = _parameters(); envelope = reduce_measured_actuation_thermal_envelope(_sweep(parameters), parameters)
+    assert tuple(spread.axis_angle_deg for spread in envelope.angle_spreads) == tuple(sorted(parameters.axis_angle_doe_deg))
+    for angle_index, spread in enumerate(envelope.angle_spreads):
+        assert spread.point_count == len(ZONE_IDS)
+        assert spread.min_temperature_C == pytest.approx(28.0 + angle_index * 0.25)
+        assert spread.min_temperature_zone_id == ZONE_IDS[0]
+        assert spread.max_temperature_C == pytest.approx(31.0 + angle_index * 0.25)
+        assert spread.max_temperature_zone_id == ZONE_IDS[-1]
+        assert spread.cross_zone_span_C == pytest.approx(3.0)
+        assert spread.min_temperature_record_id == f"THERM-{ZONE_IDS[0]}-{spread.axis_angle_deg:g}"
+        assert spread.max_temperature_record_id == f"THERM-{ZONE_IDS[-1]}-{spread.axis_angle_deg:g}"
+    assert envelope.max_cross_zone_span_C == pytest.approx(3.0)
+    assert envelope.max_cross_zone_span_axis_angle_deg == min(parameters.axis_angle_doe_deg)
 
 
 def test_thermal_envelope_is_order_independent():
-    parameters = _parameters()
-    sweep = _sweep(parameters)
+    parameters = _parameters(); sweep = _sweep(parameters)
     reversed_sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(reversed(sweep.records)))
     assert reduce_measured_actuation_thermal_envelope(sweep, parameters) == reduce_measured_actuation_thermal_envelope(reversed_sweep, parameters)
 
 
 def test_predicted_sweep_cannot_enter_measured_thermal_envelope():
-    parameters = _parameters()
-    measured = _sweep(parameters)
-    predicted = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(
-        ZoneImpedanceRecord(item.zone_id, replace(
-            item.record,
-            source_kind="PREDICTED",
-            specimen_id="SYNTHETIC-NO-SPECIMEN",
-            measured_force_N=None,
-            measured_displacement_pp_mm=None,
-            measured_phase_deg=None,
-            measured_temperature_C=None,
-            evidence_uri=None,
-        )) for item in measured.records
-    ))
+    parameters = _parameters(); measured = _sweep(parameters)
+    predicted = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(ZoneImpedanceRecord(item.zone_id, replace(
+        item.record, source_kind="PREDICTED", specimen_id="SYNTHETIC-NO-SPECIMEN", measured_force_N=None,
+        measured_displacement_pp_mm=None, measured_phase_deg=None, measured_temperature_C=None, evidence_uri=None,
+    )) for item in measured.records))
     with pytest.raises(ActuationParameterError, match="complete measured four-zone sweep"):
         reduce_measured_actuation_thermal_envelope(predicted, parameters)
 
 
 def test_stale_parameter_identity_is_rejected_before_temperature_reduction():
-    parameters = _parameters()
-    sweep = _sweep(parameters)
+    parameters = _parameters(); sweep = _sweep(parameters)
     stale = replace(parameters, source_authority_revision=parameters.source_authority_revision + "-stale")
     with pytest.raises(ActuationParameterError, match="stale"):
         reduce_measured_actuation_thermal_envelope(sweep, stale)
