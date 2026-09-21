@@ -31,6 +31,19 @@ class ZoneImpedanceRecord:
 
 
 @dataclass(frozen=True, slots=True)
+class ZoneMeasuredResponse:
+    """Lossless extrema used to compare measured zone response without inventing pass criteria."""
+
+    zone_id: str
+    point_count: int
+    min_force_N: float
+    max_force_N: float
+    min_displacement_pp_mm: float
+    max_displacement_pp_mm: float
+    max_abs_displacement_error_mm: float
+
+
+@dataclass(frozen=True, slots=True)
 class FourZoneImpedanceSweep:
     """A complete zone x axis-angle matrix at the authority-bound CLEAN command."""
 
@@ -84,6 +97,34 @@ class FourZoneImpedanceSweep:
             )
         if len(source_kinds) != 1:
             raise ActuationParameterError("Four-zone sweep cannot mix predicted and measured evidence")
+
+    def measured_response_by_zone(self, parameters: ActuationParameterSet) -> Mapping[str, ZoneMeasuredResponse]:
+        """Reduce a complete measured sweep to zone extrema without declaring physical qualification."""
+        self.validate(parameters)
+        if any(item.record.source_kind != "MEASURED" for item in self.records):
+            raise ActuationParameterError("Measured response reduction requires a complete measured four-zone sweep")
+
+        result: dict[str, ZoneMeasuredResponse] = {}
+        target = parameters.displacement_pp_baseline_mm
+        for zone_id in ZONE_IDS:
+            zone_records = [item.record for item in self.records if item.zone_id == zone_id]
+            forces = [record.measured_force_N for record in zone_records]
+            displacements = [record.measured_displacement_pp_mm for record in zone_records]
+            # MEASURED construction guarantees these observations are present and finite.
+            if any(value is None for value in forces + displacements):
+                raise ActuationParameterError("Measured sweep lost required force or displacement observations")
+            force_values = [float(value) for value in forces if value is not None]
+            displacement_values = [float(value) for value in displacements if value is not None]
+            result[zone_id] = ZoneMeasuredResponse(
+                zone_id=zone_id,
+                point_count=len(zone_records),
+                min_force_N=min(force_values),
+                max_force_N=max(force_values),
+                min_displacement_pp_mm=min(displacement_values),
+                max_displacement_pp_mm=max(displacement_values),
+                max_abs_displacement_error_mm=max(abs(value - target) for value in displacement_values),
+            )
+        return result
 
     def manifest(self, *, include_sha: bool = True) -> Mapping[str, object]:
         """Return canonical, order-independent evidence for downstream provenance binding."""
