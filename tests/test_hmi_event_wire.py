@@ -66,3 +66,15 @@ def test_encoder_rejects_invalid_fault_code_through_event_boundary() -> None:
     event = InputEvent(False, Edge.NONE, True, "diagnostic text", "input_stream_stale")  # type: ignore[arg-type]
     with pytest.raises(HmiEventWireError, match="fault_code must be an exact FaultCode"):
         input_event_to_wire(event)
+
+
+def test_encoder_rejects_non_string_fault_diagnostic() -> None:
+    event = InputEvent(False, Edge.NONE, True, 7, FaultCode.INPUT_STREAM_STALE)  # type: ignore[arg-type]
+    with pytest.raises(HmiEventWireError, match="fault diagnostic must be an exact string or None"):
+        input_event_to_wire(event)
+
+
+def test_encoder_rejects_fault_diagnostic_on_healthy_event() -> None:
+    event = InputEvent(False, Edge.NONE, False, "stale diagnostic", None)
+    with pytest.raises(HmiEventWireError, match="healthy event cannot carry a fault diagnostic"):
+        input_event_to_wire(event)
