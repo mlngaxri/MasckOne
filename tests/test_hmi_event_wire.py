@@ -60,3 +60,9 @@ def test_decoder_rejects_non_string_keys_and_field_drift() -> None:
 def test_encoder_rejects_semantically_impossible_runtime_event() -> None:
     with pytest.raises(HmiEventWireError, match="pressed edge"):
         input_event_to_wire(InputEvent(False, Edge.PRESSED))
+
+
+def test_encoder_rejects_invalid_fault_code_through_event_boundary() -> None:
+    event = InputEvent(False, Edge.NONE, True, "diagnostic text", "input_stream_stale")  # type: ignore[arg-type]
+    with pytest.raises(HmiEventWireError, match="fault_code must be an exact FaultCode"):
+        input_event_to_wire(event)
