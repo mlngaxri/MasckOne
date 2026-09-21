@@ -39,6 +39,21 @@ class ZoneThermalMechanicalEnvelope:
 
 
 @dataclass(frozen=True, slots=True)
+class AngleThermalMechanicalSpread:
+    """Cross-zone thermal/mechanical spread at one shared carrier angle."""
+
+    axis_angle_deg: float
+    point_count: int
+    hottest_point: ThermalMechanicalPoint
+    coolest_point: ThermalMechanicalPoint
+    minimum_force_point: ThermalMechanicalPoint
+    maximum_force_point: ThermalMechanicalPoint
+    temperature_span_C: float
+    force_span_N: float
+    hottest_zone_is_minimum_force_zone: bool
+
+
+@dataclass(frozen=True, slots=True)
 class ActuationThermalMechanicalCoupling:
     """Traceable measured points relevant to thermal/mechanical coexistence."""
 
@@ -49,6 +64,9 @@ class ActuationThermalMechanicalCoupling:
     hottest_continuous_force_shortfall_point: ThermalMechanicalPoint | None
     hottest_transient_force_shortfall_point: ThermalMechanicalPoint | None
     zone_envelopes: tuple[ZoneThermalMechanicalEnvelope, ...]
+    angle_spreads: tuple[AngleThermalMechanicalSpread, ...]
+    maximum_temperature_span_angle: AngleThermalMechanicalSpread
+    maximum_force_span_angle: AngleThermalMechanicalSpread
 
 
 def _point(item: ZoneImpedanceRecord, parameters: ActuationParameterSet) -> ThermalMechanicalPoint:
@@ -93,6 +111,27 @@ def _reduce_zone(zone_id: str, points: tuple[ThermalMechanicalPoint, ...]) -> Zo
     )
 
 
+def _reduce_angle(angle: float, points: tuple[ThermalMechanicalPoint, ...]) -> AngleThermalMechanicalSpread:
+    angle_points = tuple(point for point in points if point.axis_angle_deg == angle)
+    if not angle_points:
+        raise ActuationParameterError(f"Measured coexistence evidence missing carrier angle {angle:g}")
+    hottest = max(angle_points, key=lambda point: (point.temperature_C, _canonical(point)))
+    coolest = min(angle_points, key=lambda point: (point.temperature_C, _canonical(point)))
+    minimum_force = min(angle_points, key=lambda point: (point.force_N, _canonical(point)))
+    maximum_force = max(angle_points, key=lambda point: (point.force_N, _canonical(point)))
+    return AngleThermalMechanicalSpread(
+        axis_angle_deg=angle,
+        point_count=len(angle_points),
+        hottest_point=hottest,
+        coolest_point=coolest,
+        minimum_force_point=minimum_force,
+        maximum_force_point=maximum_force,
+        temperature_span_C=hottest.temperature_C - coolest.temperature_C,
+        force_span_N=maximum_force.force_N - minimum_force.force_N,
+        hottest_zone_is_minimum_force_zone=hottest.zone_id == minimum_force.zone_id,
+    )
+
+
 def reduce_measured_thermal_mechanical_coupling(
     sweep: FourZoneImpedanceSweep,
     parameters: ActuationParameterSet,
@@ -118,6 +157,10 @@ def reduce_measured_thermal_mechanical_coupling(
 
     zone_ids = tuple(sorted({point.zone_id for point in points}))
     zone_envelopes = tuple(_reduce_zone(zone_id, tuple(point for point in points if point.zone_id == zone_id)) for zone_id in zone_ids)
+    angles = tuple(sorted({point.axis_angle_deg for point in points}))
+    angle_spreads = tuple(_reduce_angle(angle, points) for angle in angles)
+    maximum_temperature_span_angle = max(angle_spreads, key=lambda spread: (spread.temperature_span_C, -spread.axis_angle_deg))
+    maximum_force_span_angle = max(angle_spreads, key=lambda spread: (spread.force_span_N, -spread.axis_angle_deg))
 
     return ActuationThermalMechanicalCoupling(
         point_count=len(points),
@@ -127,4 +170,7 @@ def reduce_measured_thermal_mechanical_coupling(
         hottest_continuous_force_shortfall_point=hottest_continuous_shortfall,
         hottest_transient_force_shortfall_point=hottest_transient_shortfall,
         zone_envelopes=zone_envelopes,
+        angle_spreads=angle_spreads,
+        maximum_temperature_span_angle=maximum_temperature_span_angle,
+        maximum_force_span_angle=maximum_force_span_angle,
     )
