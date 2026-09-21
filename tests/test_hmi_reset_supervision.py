@@ -1,6 +1,4 @@
-import pytest
-
-from masck_one.hmi_runtime import DebouncedInput, FaultCode, HmiInputError
+from masck_one.hmi_runtime import DebouncedInput, FaultCode
 
 
 def _stale_fault() -> DebouncedInput:
@@ -68,50 +66,56 @@ def test_recovery_sample_inside_timed_reset_window_enters_normal_stale_supervisi
     assert stale.fault_code is FaultCode.INPUT_STREAM_STALE
 
 
-def test_timed_reset_rejects_clock_regression_without_clearing_fault():
+def test_timed_reset_regression_preserves_existing_first_fault():
     control = _stale_fault()
 
-    with pytest.raises(HmiInputError, match="reset time moved backwards"):
-        control.reset(now_s=10.20)
+    reset = control.reset(now_s=10.20)
 
+    assert reset.faulted is True
+    assert reset.fault_code is FaultCode.INPUT_STREAM_STALE
+    assert reset.fault == "input stream stale"
     assert control.faulted is True
 
 
-def test_timed_reset_rejects_malformed_time_without_clearing_fault():
+def test_timed_reset_malformed_time_preserves_existing_first_fault():
     control = _stale_fault()
 
-    with pytest.raises(HmiInputError, match="reset time must be finite"):
-        control.reset(now_s=float("nan"))
+    reset = control.reset(now_s=float("nan"))
 
+    assert reset.faulted is True
+    assert reset.fault_code is FaultCode.INPUT_STREAM_STALE
+    assert reset.fault == "input stream stale"
     assert control.faulted is True
 
 
-def test_healthy_timed_reset_rejects_malformed_time_without_mutating_state():
+def test_healthy_timed_reset_malformed_time_latches_fail_closed_fault():
     control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
     control.sample(pressed=True, now_s=1.0)
     pressed = control.sample(pressed=True, now_s=1.03)
     assert pressed.stable_pressed is True
 
-    with pytest.raises(HmiInputError, match="reset time must be finite"):
-        control.reset(now_s=float("nan"))
+    reset = control.reset(now_s=float("nan"))
 
-    still_pressed = control.sample(pressed=True, now_s=1.04)
-    assert still_pressed.stable_pressed is True
-    assert still_pressed.faulted is False
+    assert reset.faulted is True
+    assert reset.fault_code is FaultCode.RESET_TIME_INVALID
+    assert reset.stable_pressed is False
+    assert reset.edge.value == "none"
+    assert control.faulted is True
 
 
-def test_healthy_timed_reset_rejects_clock_regression_without_mutating_state():
+def test_healthy_timed_reset_clock_regression_latches_fail_closed_fault():
     control = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
     control.sample(pressed=True, now_s=2.0)
     pressed = control.sample(pressed=True, now_s=2.03)
     assert pressed.stable_pressed is True
 
-    with pytest.raises(HmiInputError, match="reset time moved backwards"):
-        control.reset(now_s=2.02)
+    reset = control.reset(now_s=2.02)
 
-    still_pressed = control.sample(pressed=True, now_s=2.04)
-    assert still_pressed.stable_pressed is True
-    assert still_pressed.faulted is False
+    assert reset.faulted is True
+    assert reset.fault_code is FaultCode.RESET_TIME_REGRESSION
+    assert reset.stable_pressed is False
+    assert reset.edge.value == "none"
+    assert control.faulted is True
 
 
 def test_valid_healthy_timed_reset_remains_non_destructive():
