@@ -2,7 +2,6 @@ from __future__ import annotations
 
 """Stable fail-closed serialization for conditioned HMI input events."""
 
-from collections.abc import Mapping
 from typing import Any
 
 from masck_one.hmi_fault_wire import (
@@ -39,10 +38,16 @@ def input_event_to_wire(event: InputEvent) -> dict[str, Any]:
     }
 
 
-def input_event_from_wire(payload: Mapping[str, object]) -> InputEvent:
-    """Decode one exact event payload, rejecting malformed or impossible states."""
-    if not isinstance(payload, Mapping):
-        raise HmiEventWireError("payload must be a mapping")
+def input_event_from_wire(payload: object) -> InputEvent:
+    """Decode one exact event payload, rejecting malformed or impossible states.
+
+    The firmware boundary accepts the plain dictionary shape produced by a decoded
+    object payload, not arbitrary Mapping implementations. This keeps validation and
+    field reads deterministic and prevents caller-defined iteration or lookup behavior
+    from changing the object between contract checks and decoding.
+    """
+    if type(payload) is not dict:
+        raise HmiEventWireError("payload must be an exact dict")
     if any(type(key) is not str for key in payload):
         raise HmiEventWireError("payload keys must be exact strings")
     keys = frozenset(payload)
