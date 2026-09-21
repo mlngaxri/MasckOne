@@ -1,8 +1,8 @@
 """Adjacent-angle mechanical sensitivity from measured four-zone actuation evidence.
 
-This reducer quantifies how force and displacement change with carrier angle while
-preserving the two measured records behind every slope. It does not define a new
-acceptance threshold or claim physical qualification.
+This reducer quantifies how force, displacement, phase, and temperature change with
+carrier angle while preserving the two measured records behind every slope. It does
+not define a new acceptance threshold or claim physical qualification.
 """
 from __future__ import annotations
 
@@ -25,6 +25,8 @@ class ZoneMechanicalSensitivity:
     force_slope_N_per_deg: float
     displacement_delta_mm: float
     displacement_slope_mm_per_deg: float
+    phase_delta_deg: float
+    phase_slope_deg_per_deg: float
     temperature_delta_C: float
     temperature_slope_C_per_deg: float
 
@@ -35,15 +37,31 @@ class ActuationMechanicalSensitivityEnvelope:
     sensitivities: tuple[ZoneMechanicalSensitivity, ...]
     maximum_abs_force_sensitivity: ZoneMechanicalSensitivity
     maximum_abs_displacement_sensitivity: ZoneMechanicalSensitivity
+    maximum_abs_phase_sensitivity: ZoneMechanicalSensitivity
     maximum_abs_temperature_sensitivity: ZoneMechanicalSensitivity
 
 
-def _interval(zone_id: str, lower: ThermalMechanicalPoint, upper: ThermalMechanicalPoint) -> ZoneMechanicalSensitivity:
+def _signed_phase_delta_deg(lower_deg: float, upper_deg: float) -> float:
+    """Return the shortest signed phase change, avoiding a false 360-degree wrap jump."""
+    delta = (upper_deg - lower_deg + 180.0) % 360.0 - 180.0
+    if delta == -180.0 and upper_deg - lower_deg > 0.0:
+        return 180.0
+    return delta
+
+
+def _interval(
+    zone_id: str,
+    lower: ThermalMechanicalPoint,
+    upper: ThermalMechanicalPoint,
+    lower_phase_deg: float,
+    upper_phase_deg: float,
+) -> ZoneMechanicalSensitivity:
     delta_angle = upper.axis_angle_deg - lower.axis_angle_deg
     if delta_angle <= 0.0:
         raise ActuationParameterError(f"Mechanical sensitivity requires strictly increasing carrier angles for {zone_id}")
     force_delta = upper.force_N - lower.force_N
     displacement_delta = upper.displacement_pp_mm - lower.displacement_pp_mm
+    phase_delta = _signed_phase_delta_deg(lower_phase_deg, upper_phase_deg)
     temperature_delta = upper.temperature_C - lower.temperature_C
     return ZoneMechanicalSensitivity(
         zone_id=zone_id,
@@ -56,6 +74,8 @@ def _interval(zone_id: str, lower: ThermalMechanicalPoint, upper: ThermalMechani
         force_slope_N_per_deg=force_delta / delta_angle,
         displacement_delta_mm=displacement_delta,
         displacement_slope_mm_per_deg=displacement_delta / delta_angle,
+        phase_delta_deg=phase_delta,
+        phase_slope_deg_per_deg=phase_delta / delta_angle,
         temperature_delta_C=temperature_delta,
         temperature_slope_C_per_deg=temperature_delta / delta_angle,
     )
@@ -71,6 +91,7 @@ def reduce_measured_mechanical_sensitivity(
 ) -> ActuationMechanicalSensitivityEnvelope:
     """Reduce adjacent-angle measured sensitivities without losing record provenance."""
     coupling = reduce_measured_thermal_mechanical_coupling(sweep, parameters)
+    phase_by_record_id = {item.record.record_id: float(item.record.measured_phase_deg) for item in sweep.records}
     by_zone: dict[str, list[ThermalMechanicalPoint]] = {}
     for point in tuple(
         ThermalMechanicalPoint(
@@ -93,7 +114,16 @@ def reduce_measured_mechanical_sensitivity(
         points = sorted(by_zone[zone_id], key=lambda point: (point.axis_angle_deg, point.record_id))
         if len(points) < 2:
             raise ActuationParameterError(f"Mechanical sensitivity requires at least two measured carrier angles for {zone_id}")
-        sensitivities.extend(_interval(zone_id, lower, upper) for lower, upper in zip(points, points[1:]))
+        sensitivities.extend(
+            _interval(
+                zone_id,
+                lower,
+                upper,
+                phase_by_record_id[lower.record_id],
+                phase_by_record_id[upper.record_id],
+            )
+            for lower, upper in zip(points, points[1:])
+        )
 
     result = tuple(sensitivities)
     if not result or coupling.point_count == 0:
@@ -103,5 +133,6 @@ def reduce_measured_mechanical_sensitivity(
         sensitivities=result,
         maximum_abs_force_sensitivity=max(result, key=lambda item: (abs(item.force_slope_N_per_deg), _canonical(item))),
         maximum_abs_displacement_sensitivity=max(result, key=lambda item: (abs(item.displacement_slope_mm_per_deg), _canonical(item))),
+        maximum_abs_phase_sensitivity=max(result, key=lambda item: (abs(item.phase_slope_deg_per_deg), _canonical(item))),
         maximum_abs_temperature_sensitivity=max(result, key=lambda item: (abs(item.temperature_slope_C_per_deg), _canonical(item))),
     )
