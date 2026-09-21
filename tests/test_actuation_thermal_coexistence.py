@@ -80,6 +80,15 @@ def test_thermal_envelope_preserves_cross_zone_spread_at_each_angle():
     assert envelope.max_cross_zone_span_axis_angle_deg == min(parameters.axis_angle_doe_deg)
 
 
+def test_worst_cross_zone_spread_retains_both_source_records():
+    parameters = _parameters(); envelope = reduce_measured_actuation_thermal_envelope(_sweep(parameters), parameters)
+    angle = min(parameters.axis_angle_doe_deg)
+    assert envelope.max_cross_zone_span_min_zone_id == ZONE_IDS[0]
+    assert envelope.max_cross_zone_span_min_record_id == f"THERM-{ZONE_IDS[0]}-{angle:g}"
+    assert envelope.max_cross_zone_span_max_zone_id == ZONE_IDS[-1]
+    assert envelope.max_cross_zone_span_max_record_id == f"THERM-{ZONE_IDS[-1]}-{angle:g}"
+
+
 def test_thermal_envelope_preserves_adjacent_angle_sensitivity_and_traceability():
     parameters = _parameters(); envelope = reduce_measured_actuation_thermal_envelope(_sweep(parameters), parameters)
     expected_count = len(ZONE_IDS) * (len(parameters.axis_angle_doe_deg) - 1)
@@ -92,6 +101,16 @@ def test_thermal_envelope_preserves_adjacent_angle_sensitivity_and_traceability(
         assert sensitivity.upper_record_id == f"THERM-{sensitivity.zone_id}-{sensitivity.upper_axis_angle_deg:g}"
     expected_max = max(abs(item.temperature_slope_C_per_deg) for item in envelope.angle_sensitivities)
     assert envelope.max_abs_temperature_slope_C_per_deg == pytest.approx(expected_max)
+
+
+def test_worst_thermal_sensitivity_retains_both_source_records():
+    parameters = _parameters(); envelope = reduce_measured_actuation_thermal_envelope(_sweep(parameters), parameters)
+    assert envelope.max_abs_temperature_slope_lower_record_id == (
+        f"THERM-{envelope.max_abs_temperature_slope_zone_id}-{envelope.max_abs_temperature_slope_lower_axis_angle_deg:g}"
+    )
+    assert envelope.max_abs_temperature_slope_upper_record_id == (
+        f"THERM-{envelope.max_abs_temperature_slope_zone_id}-{envelope.max_abs_temperature_slope_upper_axis_angle_deg:g}"
+    )
 
 
 def test_thermal_angle_sensitivity_preserves_signed_cooling_response():
