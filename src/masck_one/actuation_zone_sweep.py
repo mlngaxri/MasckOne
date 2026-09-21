@@ -19,7 +19,6 @@ def _canonical_sha256(value: object, *, label: str) -> str:
 @dataclass(frozen=True, slots=True)
 class ZoneImpedanceRecord:
     """Bind one impedance record to one controlled actuator zone."""
-
     zone_id: str
     record: ImpedanceTestRecord
 
@@ -33,7 +32,6 @@ class ZoneImpedanceRecord:
 @dataclass(frozen=True, slots=True)
 class ZoneMeasuredResponse:
     """Lossless extrema and requirement margins without declaring physical qualification."""
-
     zone_id: str
     point_count: int
     min_force_N: float
@@ -46,9 +44,25 @@ class ZoneMeasuredResponse:
 
 
 @dataclass(frozen=True, slots=True)
+class SystemMeasuredResponse:
+    """Whole four-zone extrema with traceable worst-case zone and DOE point."""
+    point_count: int
+    min_force_N: float
+    min_force_zone_id: str
+    min_force_axis_angle_deg: float
+    max_force_N: float
+    max_force_zone_id: str
+    max_force_axis_angle_deg: float
+    max_abs_displacement_error_mm: float
+    max_error_zone_id: str
+    max_error_axis_angle_deg: float
+    min_continuous_force_margin_N: float
+    min_transient_force_margin_N: float
+
+
+@dataclass(frozen=True, slots=True)
 class FourZoneImpedanceSweep:
     """A complete zone x axis-angle matrix at the authority-bound CLEAN command."""
-
     source_parameter_sha256: str
     records: tuple[ZoneImpedanceRecord, ...]
 
@@ -58,16 +72,13 @@ class FourZoneImpedanceSweep:
             raise ActuationParameterError("Four-zone sweep records must be an immutable tuple")
         if not self.records:
             raise ActuationParameterError("Four-zone sweep cannot contain empty evidence")
-
         observed: set[tuple[str, float]] = set()
         record_ids: set[str] = set()
         for item in self.records:
             if type(item) is not ZoneImpedanceRecord:
                 raise ActuationParameterError("Four-zone sweep contains non-zone impedance evidence")
             if item.record.source_parameter_sha256 != self.source_parameter_sha256:
-                raise ActuationParameterError(
-                    "Four-zone sweep record parameter identity must match the sweep parameter identity"
-                )
+                raise ActuationParameterError("Four-zone sweep record parameter identity must match the sweep parameter identity")
             key = (item.zone_id, float(item.record.axis_angle_deg))
             if key in observed:
                 raise ActuationParameterError(f"Duplicate four-zone sweep point {key!r}")
@@ -81,22 +92,17 @@ class FourZoneImpedanceSweep:
             raise ActuationParameterError("Four-zone sweep requires exact ActuationParameterSet evidence")
         if self.source_parameter_sha256 != parameters.parameter_sha256:
             raise ActuationParameterError("Four-zone sweep is stale for the supplied actuation parameter set")
-
         expected = {(zone_id, angle) for zone_id in ZONE_IDS for angle in parameters.axis_angle_doe_deg}
         observed: set[tuple[str, float]] = set()
         source_kinds: set[str] = set()
-
         for item in self.records:
             item.record.validate_command_envelope(parameters)
             observed.add((item.zone_id, float(item.record.axis_angle_deg)))
             source_kinds.add(item.record.source_kind)
-
         missing = expected - observed
         extra = observed - expected
         if missing or extra:
-            raise ActuationParameterError(
-                f"Four-zone sweep must cover every controlled zone x axis-angle point; missing={sorted(missing)!r}, extra={sorted(extra)!r}"
-            )
+            raise ActuationParameterError(f"Four-zone sweep must cover every controlled zone x axis-angle point; missing={sorted(missing)!r}, extra={sorted(extra)!r}")
         if len(source_kinds) != 1:
             raise ActuationParameterError("Four-zone sweep cannot mix predicted and measured evidence")
 
@@ -105,7 +111,6 @@ class FourZoneImpedanceSweep:
         self.validate(parameters)
         if any(item.record.source_kind != "MEASURED" for item in self.records):
             raise ActuationParameterError("Measured response reduction requires a complete measured four-zone sweep")
-
         result: dict[str, ZoneMeasuredResponse] = {}
         target = parameters.displacement_pp_baseline_mm
         for zone_id in ZONE_IDS:
@@ -118,11 +123,8 @@ class FourZoneImpedanceSweep:
             displacement_values = [float(value) for value in displacements if value is not None]
             minimum_force = min(force_values)
             result[zone_id] = ZoneMeasuredResponse(
-                zone_id=zone_id,
-                point_count=len(zone_records),
-                min_force_N=minimum_force,
-                max_force_N=max(force_values),
-                min_displacement_pp_mm=min(displacement_values),
+                zone_id=zone_id, point_count=len(zone_records), min_force_N=minimum_force,
+                max_force_N=max(force_values), min_displacement_pp_mm=min(displacement_values),
                 max_displacement_pp_mm=max(displacement_values),
                 max_abs_displacement_error_mm=max(abs(value - target) for value in displacement_values),
                 min_continuous_force_margin_N=minimum_force - parameters.continuous_force_requirement_N,
@@ -130,19 +132,37 @@ class FourZoneImpedanceSweep:
             )
         return result
 
+    def measured_system_response(self, parameters: ActuationParameterSet) -> SystemMeasuredResponse:
+        """Locate whole-system measured extrema while preserving the exact zone and DOE point."""
+        self.validate(parameters)
+        if any(item.record.source_kind != "MEASURED" for item in self.records):
+            raise ActuationParameterError("System measured response requires a complete measured four-zone sweep")
+        target = parameters.displacement_pp_baseline_mm
+        points: list[tuple[ZoneImpedanceRecord, float, float]] = []
+        for item in self.records:
+            force = item.record.measured_force_N
+            displacement = item.record.measured_displacement_pp_mm
+            if force is None or displacement is None:
+                raise ActuationParameterError("Measured sweep lost required force or displacement observations")
+            points.append((item, float(force), abs(float(displacement) - target)))
+        minimum = min(points, key=lambda point: (point[1], point[0].zone_id, point[0].record.axis_angle_deg))
+        maximum = max(points, key=lambda point: (point[1], point[0].zone_id, point[0].record.axis_angle_deg))
+        worst_error = max(points, key=lambda point: (point[2], point[0].zone_id, point[0].record.axis_angle_deg))
+        minimum_force = minimum[1]
+        return SystemMeasuredResponse(
+            point_count=len(points), min_force_N=minimum_force, min_force_zone_id=minimum[0].zone_id,
+            min_force_axis_angle_deg=float(minimum[0].record.axis_angle_deg), max_force_N=maximum[1],
+            max_force_zone_id=maximum[0].zone_id, max_force_axis_angle_deg=float(maximum[0].record.axis_angle_deg),
+            max_abs_displacement_error_mm=worst_error[2], max_error_zone_id=worst_error[0].zone_id,
+            max_error_axis_angle_deg=float(worst_error[0].record.axis_angle_deg),
+            min_continuous_force_margin_N=minimum_force - parameters.continuous_force_requirement_N,
+            min_transient_force_margin_N=minimum_force - parameters.transient_force_requirement_N,
+        )
+
     def manifest(self, *, include_sha: bool = True) -> Mapping[str, object]:
         """Return canonical, order-independent evidence for downstream provenance binding."""
-        records = sorted(
-            self.records,
-            key=lambda item: (item.zone_id, float(item.record.axis_angle_deg), item.record.record_id),
-        )
-        payload: dict[str, object] = {
-            "source_parameter_sha256": self.source_parameter_sha256,
-            "records": [
-                {"zone_id": item.zone_id, "record": dict(item.record.manifest())}
-                for item in records
-            ],
-        }
+        records = sorted(self.records, key=lambda item: (item.zone_id, float(item.record.axis_angle_deg), item.record.record_id))
+        payload: dict[str, object] = {"source_parameter_sha256": self.source_parameter_sha256, "records": [{"zone_id": item.zone_id, "record": dict(item.record.manifest())} for item in records]}
         if include_sha:
             payload["sweep_sha256"] = self.sweep_sha256
         return payload
