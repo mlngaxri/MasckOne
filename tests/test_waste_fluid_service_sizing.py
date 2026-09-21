@@ -5,19 +5,17 @@ from masck_one.waste_fluid_accounting import (
     build_authority_waste_fluid_budget,
 )
 from masck_one.waste_fluid_profile import screen_service_profile
-from masck_one.waste_fluid_service_sizing import derive_service_capacity_sizing_interval
+from masck_one.waste_fluid_service_sizing import (
+    ServiceCapacitySizingInterval,
+    derive_service_capacity_sizing_interval,
+)
 
 
 def test_authority_service_profile_exposes_capacity_sizing_interval():
     budget = build_authority_waste_fluid_budget()
-    profile = screen_service_profile(
-        budget,
-        prime_events_by_cycle=(1, 1, 1, 1, 1, 1),
-        target_cycles=6,
-    )
-
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1, 1, 1, 1, 1, 1), target_cycles=6)
     sizing = derive_service_capacity_sizing_interval(profile)
-
+    assert sizing.source is profile
     assert sizing.contractual_required_usable_capacity_mL == pytest.approx(27.0)
     assert sizing.conservative_required_usable_capacity_mL == pytest.approx(30.0)
     assert sizing.unresolved_capacity_interval_mL == pytest.approx(3.0)
@@ -34,15 +32,8 @@ def test_authority_service_profile_exposes_capacity_sizing_interval():
 
 def test_explicit_reserve_is_added_back_to_retained_capacity_sizing_bounds():
     budget = build_authority_waste_fluid_budget()
-    profile = screen_service_profile(
-        budget,
-        prime_events_by_cycle=(1, 1, 1, 1, 1, 1),
-        target_cycles=6,
-        capacity_reserve_mL=5.5,
-    )
-
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1, 1, 1, 1, 1, 1), target_cycles=6, capacity_reserve_mL=5.5)
     sizing = derive_service_capacity_sizing_interval(profile)
-
     assert sizing.capacity_reserve_mL == pytest.approx(5.5)
     assert sizing.usable_capacity_mL == pytest.approx(29.5)
     assert sizing.retained_capacity_requirement_mL == pytest.approx(35.0)
@@ -58,15 +49,8 @@ def test_explicit_reserve_is_added_back_to_retained_capacity_sizing_bounds():
 
 def test_future_reprime_contingency_is_charged_to_conservative_sizing_bound():
     budget = build_authority_waste_fluid_budget()
-    profile = screen_service_profile(
-        budget,
-        prime_events_by_cycle=(1,),
-        target_cycles=6,
-        future_prime_events_per_remaining_cycle=2,
-    )
-
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1,), target_cycles=6, future_prime_events_per_remaining_cycle=2)
     sizing = derive_service_capacity_sizing_interval(profile)
-
     assert sizing.contractual_required_usable_capacity_mL == pytest.approx(27.0)
     assert sizing.conservative_required_usable_capacity_mL == pytest.approx(32.0)
     assert sizing.contractual_required_retained_capacity_mL == pytest.approx(27.0)
@@ -77,16 +61,8 @@ def test_future_reprime_contingency_is_charged_to_conservative_sizing_bound():
 
 def test_future_reprime_and_capacity_reserve_compose_without_double_credit():
     budget = build_authority_waste_fluid_budget()
-    profile = screen_service_profile(
-        budget,
-        prime_events_by_cycle=(1,),
-        target_cycles=6,
-        future_prime_events_per_remaining_cycle=2,
-        capacity_reserve_mL=4.0,
-    )
-
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1,), target_cycles=6, future_prime_events_per_remaining_cycle=2, capacity_reserve_mL=4.0)
     sizing = derive_service_capacity_sizing_interval(profile)
-
     assert sizing.usable_capacity_mL == pytest.approx(31.0)
     assert sizing.retained_capacity_requirement_mL == pytest.approx(35.0)
     assert sizing.contractual_required_retained_capacity_mL == pytest.approx(31.0)
@@ -100,3 +76,23 @@ def test_future_reprime_and_capacity_reserve_compose_without_double_credit():
 def test_sizing_rejects_non_profile_evidence():
     with pytest.raises(WasteFluidAccountingError, match="exact ServiceFluidProfile"):
         derive_service_capacity_sizing_interval(object())
+
+
+def test_sizing_object_rejects_forged_capacity_headroom_against_bound_profile():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1, 1, 1, 1, 1, 1), target_cycles=6)
+    sizing = derive_service_capacity_sizing_interval(profile)
+    values = {name: getattr(sizing, name) for name in sizing.__dataclass_fields__}
+    values["conservative_headroom_mL"] += 1.0
+    with pytest.raises(WasteFluidAccountingError, match="stale or inconsistent"):
+        ServiceCapacitySizingInterval(**values)
+
+
+def test_sizing_object_rejects_forged_fit_decision_against_bound_profile():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1, 1, 1, 1, 1, 1), target_cycles=6, capacity_reserve_mL=5.5)
+    sizing = derive_service_capacity_sizing_interval(profile)
+    values = {name: getattr(sizing, name) for name in sizing.__dataclass_fields__}
+    values["conservative_fit"] = True
+    with pytest.raises(WasteFluidAccountingError, match="conservative capacity fit"):
+        ServiceCapacitySizingInterval(**values)
