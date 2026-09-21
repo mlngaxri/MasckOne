@@ -96,6 +96,9 @@ class ThermalCommand:
 
         if type(payload) is not dict:
             raise ThermalControlError("thermal wire payload must be an exact dict")
+        if any(type(key) is not str for key in payload):
+            raise ThermalControlError("thermal wire payload keys must be exact strings")
+
         required = {"mode", "warm_enable", "cool_enable", "inhibited", "reason"}
         keys = set(payload)
         if keys != required:
