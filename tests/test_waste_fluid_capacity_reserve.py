@@ -31,6 +31,7 @@ def test_reserve_components_sum_without_changing_authority_capacity():
     assert dict(reserve.breakdown_mL) == {"fill_sensor_trip_mL": 1.0, "foam_allowance_mL": 1.5, "manufacturing_tolerance_mL": .5, "other_integration_mL": 1.0}
     assert guard.capacity_reserve_mL == pytest.approx(4.0)
     assert guard.usable_capacity_mL == pytest.approx(31.0)
+    assert guard.source_capacity_reserve_sha256 == reserve.evidence_sha256
     assert guard.capacity_proven_by_conservative_screen
     assert build_authority_waste_fluid_budget().cartridge_retained_capacity_requirement_mL == pytest.approx(35.0)
 
@@ -53,6 +54,7 @@ def test_overflow_evidence_retains_exact_reserve_source():
     )
     assert evidence.reserve is reserve
     assert evidence.guard.capacity_reserve_mL == pytest.approx(5.5)
+    assert evidence.guard.source_capacity_reserve_sha256 == reserve.evidence_sha256
     assert evidence.guard.usable_capacity_mL == pytest.approx(29.5)
     assert evidence.guard.first_conservative_capacity_failure_cycle == 6
 
@@ -63,6 +65,17 @@ def test_overflow_evidence_rejects_mismatched_scalar_guard():
     mismatched = screen_cartridge_overflow_guard(budget, prime_events_by_cycle=[0] * 6, capacity_reserve_mL=1.0)
     with pytest.raises(WasteFluidAccountingError, match="does not match typed reserve"):
         CapacityReservedOverflowGuard(reserve, mismatched)
+
+
+def test_overflow_evidence_rejects_equal_total_different_reserve_composition():
+    budget = build_authority_waste_fluid_budget()
+    original = CartridgeCapacityReserve(fill_sensor_trip_mL=1.0, foam_allowance_mL=1.0)
+    substituted = CartridgeCapacityReserve(manufacturing_tolerance_mL=2.0)
+    guard = screen_cartridge_capacity_reserve(budget, original, prime_events_by_cycle=[0] * 6)
+    assert original.total_mL == substituted.total_mL
+    assert original.evidence_sha256 != substituted.evidence_sha256
+    with pytest.raises(WasteFluidAccountingError, match="composition does not match"):
+        CapacityReservedOverflowGuard(substituted, guard)
 
 
 def test_same_typed_reserve_drives_overflow_and_service_profile_capacity():
