@@ -14,11 +14,12 @@ _TOL = 1e-12
 class CartridgeOverflowGuard:
     """Capacity disposition for an explicit service-cycle reprime schedule.
 
-    This object is source-bound engineering evidence. Construction fails closed if
-    any derived field disagrees with the supplied cycle-resolved routing closure.
+    Retained and usable capacity are both carried so downstream integration cannot
+    silently reinterpret an unavailable-volume reserve as a smaller cartridge.
     """
 
     routing: CycleResolvedRoutingClosure
+    retained_capacity_mL: float
     capacity_reserve_mL: float
     usable_capacity_mL: float
     contractual_required_usable_capacity_mL: float
@@ -36,6 +37,7 @@ class CartridgeOverflowGuard:
         if not self.routing.cycles:
             raise WasteFluidAccountingError("overflow guard requires at least one routed cycle")
         numeric = {
+            "retained_capacity_mL": self.retained_capacity_mL,
             "capacity_reserve_mL": self.capacity_reserve_mL,
             "usable_capacity_mL": self.usable_capacity_mL,
             "contractual_required_usable_capacity_mL": self.contractual_required_usable_capacity_mL,
@@ -48,36 +50,31 @@ class CartridgeOverflowGuard:
         for name, value in numeric.items():
             if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(float(value)):
                 raise WasteFluidAccountingError(f"{name} must be a finite numeric value")
-        if self.capacity_reserve_mL < 0 or self.usable_capacity_mL <= 0:
-            raise WasteFluidAccountingError("overflow guard capacity reserve/usable capacity is nonphysical")
+        if self.retained_capacity_mL <= 0 or self.capacity_reserve_mL < 0 or self.usable_capacity_mL <= 0:
+            raise WasteFluidAccountingError("overflow guard retained/reserve/usable capacity is nonphysical")
+        if not math.isclose(self.usable_capacity_mL + self.capacity_reserve_mL, self.retained_capacity_mL, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("usable capacity plus reserve must equal retained cartridge capacity")
 
-        retained_capacity = self.usable_capacity_mL + self.capacity_reserve_mL
         final = self.routing.cycles[-1]
         contractual_required = final.cumulative_minimum_cartridge_routing_mL
         conservative_required = final.cumulative_maximum_cartridge_inflow_mL
-        unavoidable_cycle = next((s.cycle for s in self.routing.cycles if s.cumulative_minimum_cartridge_routing_mL > self.usable_capacity_mL + _TOL), None)
-        conservative_cycle = next((s.cycle for s in self.routing.cycles if s.cumulative_maximum_cartridge_inflow_mL > self.usable_capacity_mL + _TOL), None)
-        minimum_overflow = 0.0 if unavoidable_cycle is None else max(0.0, self.routing.cycles[unavoidable_cycle - 1].cumulative_minimum_cartridge_routing_mL - self.usable_capacity_mL)
-        conservative_overflow = 0.0 if conservative_cycle is None else max(0.0, self.routing.cycles[conservative_cycle - 1].cumulative_maximum_cartridge_inflow_mL - self.usable_capacity_mL)
+        unavoidable_state = next((s for s in self.routing.cycles if s.cumulative_minimum_cartridge_routing_mL > self.usable_capacity_mL + _TOL), None)
+        conservative_state = next((s for s in self.routing.cycles if s.cumulative_maximum_cartridge_inflow_mL > self.usable_capacity_mL + _TOL), None)
+        unavoidable_cycle = None if unavoidable_state is None else unavoidable_state.cycle
+        conservative_cycle = None if conservative_state is None else conservative_state.cycle
+        minimum_overflow = 0.0 if unavoidable_state is None else max(0.0, unavoidable_state.cumulative_minimum_cartridge_routing_mL - self.usable_capacity_mL)
+        conservative_overflow = 0.0 if conservative_state is None else max(0.0, conservative_state.cumulative_maximum_cartridge_inflow_mL - self.usable_capacity_mL)
         expected = (
-            contractual_required,
-            conservative_required,
-            unavoidable_cycle,
-            conservative_cycle,
-            minimum_overflow,
-            conservative_overflow,
-            retained_capacity - contractual_required - self.capacity_reserve_mL,
-            retained_capacity - conservative_required - self.capacity_reserve_mL,
+            contractual_required, conservative_required, unavoidable_cycle, conservative_cycle,
+            minimum_overflow, conservative_overflow,
+            self.usable_capacity_mL - contractual_required,
+            self.usable_capacity_mL - conservative_required,
         )
         supplied = (
-            self.contractual_required_usable_capacity_mL,
-            self.conservative_required_usable_capacity_mL,
-            self.first_unavoidable_overflow_cycle,
-            self.first_conservative_capacity_failure_cycle,
-            self.minimum_overflow_at_failure_mL,
-            self.conservative_overflow_at_failure_mL,
-            self.contractual_reserve_headroom_mL,
-            self.conservative_reserve_headroom_mL,
+            self.contractual_required_usable_capacity_mL, self.conservative_required_usable_capacity_mL,
+            self.first_unavoidable_overflow_cycle, self.first_conservative_capacity_failure_cycle,
+            self.minimum_overflow_at_failure_mL, self.conservative_overflow_at_failure_mL,
+            self.contractual_reserve_headroom_mL, self.conservative_reserve_headroom_mL,
         )
         for index, (actual, wanted) in enumerate(zip(supplied, expected)):
             if index in (2, 3):
@@ -108,9 +105,7 @@ class CartridgeOverflowGuard:
 
 
 def screen_cartridge_overflow_guard(
-    budget: WasteFluidBudget,
-    *,
-    prime_events_by_cycle: tuple[int, ...] | list[int],
+    budget: WasteFluidBudget, *, prime_events_by_cycle: tuple[int, ...] | list[int],
     prime_recovery_ratio_contract: float | None = None,
     prime_residual_ratio_contract: float | None = None,
     prime_external_leakage_ratio_contract: float | None = None,
@@ -123,40 +118,39 @@ def screen_cartridge_overflow_guard(
     capacity_reserve_mL = float(capacity_reserve_mL)
     if not math.isfinite(capacity_reserve_mL) or capacity_reserve_mL < 0:
         raise WasteFluidAccountingError("capacity_reserve_mL must be finite and nonnegative")
-    if capacity_reserve_mL >= budget.cartridge_retained_capacity_requirement_mL:
+    retained_capacity = budget.cartridge_retained_capacity_requirement_mL
+    if capacity_reserve_mL >= retained_capacity:
         raise WasteFluidAccountingError("capacity_reserve_mL must be smaller than cartridge retained-capacity requirement")
 
     routing = screen_cycle_resolved_routing_closure(
-        budget,
-        prime_events_by_cycle=prime_events_by_cycle,
+        budget, prime_events_by_cycle=prime_events_by_cycle,
         prime_recovery_ratio_contract=prime_recovery_ratio_contract,
         prime_residual_ratio_contract=prime_residual_ratio_contract,
         prime_external_leakage_ratio_contract=prime_external_leakage_ratio_contract,
     )
-    usable_capacity = budget.cartridge_retained_capacity_requirement_mL - capacity_reserve_mL
-    unavoidable_cycle = next((s.cycle for s in routing.cycles if s.cumulative_minimum_cartridge_routing_mL > usable_capacity + _TOL), None)
-    conservative_cycle = next((s.cycle for s in routing.cycles if s.cumulative_maximum_cartridge_inflow_mL > usable_capacity + _TOL), None)
+    usable_capacity = retained_capacity - capacity_reserve_mL
+    unavoidable_state = next((s for s in routing.cycles if s.cumulative_minimum_cartridge_routing_mL > usable_capacity + _TOL), None)
+    conservative_state = next((s for s in routing.cycles if s.cumulative_maximum_cartridge_inflow_mL > usable_capacity + _TOL), None)
+    unavoidable_cycle = None if unavoidable_state is None else unavoidable_state.cycle
+    conservative_cycle = None if conservative_state is None else conservative_state.cycle
     if unavoidable_cycle is not None and (conservative_cycle is None or unavoidable_cycle < conservative_cycle):
         raise WasteFluidAccountingError("invalid capacity ordering: minimum-routing overflow precedes conservative inflow overflow")
 
-    minimum_overflow = 0.0 if unavoidable_cycle is None else max(0.0, routing.cycles[unavoidable_cycle - 1].cumulative_minimum_cartridge_routing_mL - usable_capacity)
-    conservative_overflow = 0.0 if conservative_cycle is None else max(0.0, routing.cycles[conservative_cycle - 1].cumulative_maximum_cartridge_inflow_mL - usable_capacity)
+    minimum_overflow = 0.0 if unavoidable_state is None else max(0.0, unavoidable_state.cumulative_minimum_cartridge_routing_mL - usable_capacity)
+    conservative_overflow = 0.0 if conservative_state is None else max(0.0, conservative_state.cumulative_maximum_cartridge_inflow_mL - usable_capacity)
     final = routing.cycles[-1]
     contractual_required = final.cumulative_minimum_cartridge_routing_mL
     conservative_required = final.cumulative_maximum_cartridge_inflow_mL
-    contractual_headroom = usable_capacity - contractual_required
-    conservative_headroom = usable_capacity - conservative_required
 
     return CartridgeOverflowGuard(
-        routing=routing,
-        capacity_reserve_mL=capacity_reserve_mL,
-        usable_capacity_mL=usable_capacity,
+        routing=routing, retained_capacity_mL=retained_capacity,
+        capacity_reserve_mL=capacity_reserve_mL, usable_capacity_mL=usable_capacity,
         contractual_required_usable_capacity_mL=contractual_required,
         conservative_required_usable_capacity_mL=conservative_required,
         first_unavoidable_overflow_cycle=unavoidable_cycle,
         first_conservative_capacity_failure_cycle=conservative_cycle,
         minimum_overflow_at_failure_mL=minimum_overflow,
         conservative_overflow_at_failure_mL=conservative_overflow,
-        contractual_reserve_headroom_mL=contractual_headroom,
-        conservative_reserve_headroom_mL=conservative_headroom,
+        contractual_reserve_headroom_mL=usable_capacity - contractual_required,
+        conservative_reserve_headroom_mL=usable_capacity - conservative_required,
     )
