@@ -58,15 +58,17 @@ class DebouncedInput:
     timestamps supplied to sample, arm or watchdog continue to advance the shared clock
     floor without replacing the first fault. Firmware may pass ``now_s`` to ``reset``
     so recovery no-sample supervision begins at the actual reset request rather than at
-    an older observation. A timed healthy reset preserves state only while the existing
-    stream-supervision deadline remains valid; crossing that deadline latches the same
-    fail-closed supervision fault as arm, sample or watchdog. Legacy untimed reset
-    remains supported and starts its recovery window at the next arm, sample or watchdog
-    observation. Valid sample timestamps are clock observations even when the electrical
-    level is malformed. Established supervision deadlines are evaluated before a new
-    electrical level is classified, so an already-expired stream retains chronological
-    first-fault priority. The first fault cause remains latched until reset. Timing gates
-    compare absolute deadlines rather than subtracting floating timestamps.
+    an older observation. Reset returns the resulting ``InputEvent`` so a timed healthy
+    reset cannot silently latch a supervision fault. A timed healthy reset preserves
+    state only while the existing stream-supervision deadline remains valid; crossing
+    that deadline latches the same fail-closed supervision fault as arm, sample or
+    watchdog. Legacy untimed reset remains supported and starts its recovery window at
+    the next arm, sample or watchdog observation. Valid sample timestamps are clock
+    observations even when the electrical level is malformed. Established supervision
+    deadlines are evaluated before a new electrical level is classified, so an already-
+    expired stream retains chronological first-fault priority. The first fault cause
+    remains latched until reset. Timing gates compare absolute deadlines rather than
+    subtracting floating timestamps.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -78,8 +80,8 @@ class DebouncedInput:
         self.stale_after_s = float(stale_after_s)
         self._reset_state(require_release=False, preserve_clock=False)
 
-    def reset(self, *, now_s: float | None = None) -> None:
-        """Clear a latched fault, optionally anchoring supervision at reset time."""
+    def reset(self, *, now_s: float | None = None) -> InputEvent:
+        """Clear a latched fault and return the resulting observable runtime state."""
         reset_at: float | None = None
         if now_s is not None:
             if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
@@ -90,9 +92,12 @@ class DebouncedInput:
         if self._fault is None:
             if reset_at is not None:
                 self._last_observed_at = reset_at
-                self._supervision_fault(reset_at)
-            return
+                fault = self._supervision_fault(reset_at)
+                if fault is not None:
+                    return fault
+            return InputEvent(self._stable, Edge.NONE)
         self._reset_state(require_release=True, preserve_clock=True, recovery_started_at=reset_at)
+        return InputEvent(False, Edge.NONE)
 
     def _reset_state(self, *, require_release: bool, preserve_clock: bool, recovery_started_at: float | None = None) -> None:
         last_observed_at = getattr(self, "_last_observed_at", None) if preserve_clock else None
