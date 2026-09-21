@@ -25,20 +25,30 @@ def _parameters():
 
 
 def _point(parameters, zone_id, angle, *, source_kind="PREDICTED", suffix=""):
+    kwargs = {}
+    if source_kind == "MEASURED":
+        kwargs = {
+            "measured_force_N": 0.20 + angle / 1000.0,
+            "measured_displacement_pp_mm": parameters.displacement_pp_baseline_mm + (angle - parameters.axis_angle_baseline_deg) / 1000.0,
+            "measured_phase_deg": 0.0,
+            "measured_temperature_C": 30.0,
+            "evidence_uri": f"evidence://bench/impedance/{zone_id}/{angle:g}{suffix}",
+        }
     record = ImpedanceTestRecord(
         record_id=f"IMP-{zone_id}-{angle:g}{suffix}",
         source_parameter_sha256=parameters.parameter_sha256,
-        specimen_id="SYNTHETIC-NO-SPECIMEN",
+        specimen_id="COUPON-001" if source_kind == "MEASURED" else "SYNTHETIC-NO-SPECIMEN",
         source_kind=source_kind,
         frequency_hz=parameters.clean_frequency_baseline_hz,
         commanded_displacement_pp_mm=parameters.displacement_pp_baseline_mm,
         axis_angle_deg=angle,
+        **kwargs,
     )
     return ZoneImpedanceRecord(zone_id=zone_id, record=record)
 
 
-def _complete(parameters):
-    return tuple(_point(parameters, zone_id, angle) for zone_id in ZONE_IDS for angle in parameters.axis_angle_doe_deg)
+def _complete(parameters, *, source_kind="PREDICTED"):
+    return tuple(_point(parameters, zone_id, angle, source_kind=source_kind) for zone_id in ZONE_IDS for angle in parameters.axis_angle_doe_deg)
 
 
 def test_complete_four_zone_axis_angle_matrix_is_accepted():
@@ -67,6 +77,28 @@ def test_sweep_digest_changes_when_impedance_evidence_changes():
     records[0] = ZoneImpedanceRecord(first.zone_id, replace(first.record, specimen_id="SYNTHETIC-ALTERNATE"))
     changed = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(records))
     assert changed.sweep_sha256 != baseline.sweep_sha256
+
+
+def test_measured_response_reduction_reports_zone_extrema_without_qualification_claim():
+    parameters = _parameters()
+    sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, _complete(parameters, source_kind="MEASURED"))
+    response = sweep.measured_response_by_zone(parameters)
+    assert tuple(response) == ZONE_IDS
+    for zone_id in ZONE_IDS:
+        zone = response[zone_id]
+        assert zone.point_count == len(parameters.axis_angle_doe_deg)
+        assert zone.min_force_N == pytest.approx(0.25)
+        assert zone.max_force_N == pytest.approx(0.272)
+        assert zone.min_displacement_pp_mm == pytest.approx(0.509)
+        assert zone.max_displacement_pp_mm == pytest.approx(0.531)
+        assert zone.max_abs_displacement_error_mm == pytest.approx(0.011)
+
+
+def test_predicted_sweep_cannot_masquerade_as_measured_response():
+    parameters = _parameters()
+    sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, _complete(parameters))
+    with pytest.raises(ActuationParameterError, match="complete measured four-zone sweep"):
+        sweep.measured_response_by_zone(parameters)
 
 
 def test_missing_zone_angle_point_fails_closed():
