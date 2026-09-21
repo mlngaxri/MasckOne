@@ -50,6 +50,7 @@ jobs:
             src/masck_one/retention_quick_release_tactile_v14.py \
             src/masck_one/retention_quick_release_tactile_v15.py \
             src/masck_one/retention_quick_release_tactile_v16.py \
+            src/masck_one/retention_quick_release_tactile_v17.py \
             src/masck_one/structural_frame_retention_roots.py \
             src/masck_one/structural_frame_retention_root_service.py \
             src/masck_one/structural_frame_retention_clevis_bores.py \
@@ -112,7 +113,8 @@ jobs:
             tests/test_retention_quick_release_tactile_v13.py \
             tests/test_retention_quick_release_tactile_v14.py \
             tests/test_retention_quick_release_tactile_v15.py \
-            tests/test_retention_quick_release_tactile_v16.py
+            tests/test_retention_quick_release_tactile_v16.py \
+            tests/test_retention_quick_release_tactile_v17.py
 
 # Branch-level mechanism verification only. V1 and V2 remain explicit superseded
 # tactile evidence. V3 repairs the rib/bumper conflict, V4 screens nominal release
@@ -126,10 +128,12 @@ jobs:
 # from the inherited 80% domain to the full declared rail-radial and anti-rotation side
 # clearances. V16 independently densifies that full domain to nine radial rings and 32
 # angular rays while preserving explicit constrained-boundary coverage and fail-closed
-# OCC evidence. Structural-root V2-V21 remain regression-gated, including fail-closed
-# B-rep handling, capture geometry, pin/retainer registration, integrated collision
-# checks, source-reaction provenance and complete root-architecture provenance. Root-
-# service corridors and the clevis-bore repair remain compiled and gated here. These are
-# focused-CI gates. Parent Cell 6 and complete-repo CI remain separate release gates. No
-# continuous clearance proof, manufactured tolerance, force, wet-use, wear, contamination
-# or tactile-performance claim is promoted here.
+# OCC evidence. V17 independently screens the interstitial cells between the V16 polar
+# samples using radial midpoints and a half-ray angular phase offset, with fail-closed
+# OCC evidence and a bound pose/intersection identity. Structural-root V2-V21 remain
+# regression-gated, including fail-closed B-rep handling, capture geometry, pin/retainer
+# registration, integrated collision checks, source-reaction provenance and complete
+# root-architecture provenance. Root-service corridors and the clevis-bore repair remain
+# compiled and gated here. These are focused-CI gates. Parent Cell 6 and complete-repo CI
+# remain separate release gates. No continuous clearance proof, manufactured tolerance,
+# force, wet-use, wear, contamination or tactile-performance claim is promoted here.
