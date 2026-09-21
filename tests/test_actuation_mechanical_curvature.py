@@ -60,7 +60,6 @@ def test_curvature_preserves_three_record_provenance_and_sweep_identity():
 
 def test_curvature_is_zero_for_linear_response_over_uniform_or_nonuniform_doe_spacing():
     parameters = _parameters(); sweep = _sweep(parameters)
-    # Build values affine in angle, rather than point index, so the expected second-order response is zero.
     records = tuple(ZoneImpedanceRecord(item.zone_id, replace(
         item.record,
         measured_force_N=0.25 + 0.001 * float(item.record.axis_angle_deg),
@@ -93,6 +92,25 @@ def test_local_force_knee_is_exposed_with_exact_three_record_evidence():
     assert worst.center_record_id.startswith(f"CURV-{zone_id}-")
     assert worst.upper_record_id.startswith(f"CURV-{zone_id}-")
     assert abs(worst.force_curvature_N_per_deg2) > 0.0
+
+
+def test_per_zone_curvature_extrema_keep_all_four_actuators_visible():
+    parameters = _parameters(); sweep = _sweep(parameters)
+    result = reduce_measured_mechanical_curvature(sweep, parameters)
+    assert tuple(item.zone_id for item in result.per_zone_extrema) == tuple(sorted(ZONE_IDS))
+    for extrema in result.per_zone_extrema:
+        zone_items = tuple(item for item in result.curvatures if item.zone_id == extrema.zone_id)
+        for worst, attribute in (
+            (extrema.maximum_abs_force_curvature, "force_curvature_N_per_deg2"),
+            (extrema.maximum_abs_displacement_curvature, "displacement_curvature_mm_per_deg2"),
+            (extrema.maximum_abs_phase_curvature, "phase_curvature_deg_per_deg2"),
+            (extrema.maximum_abs_temperature_curvature, "temperature_curvature_C_per_deg2"),
+        ):
+            assert worst.zone_id == extrema.zone_id
+            assert abs(getattr(worst, attribute)) == max(abs(getattr(item, attribute)) for item in zone_items)
+            assert worst.lower_record_id.startswith(f"CURV-{extrema.zone_id}-")
+            assert worst.center_record_id.startswith(f"CURV-{extrema.zone_id}-")
+            assert worst.upper_record_id.startswith(f"CURV-{extrema.zone_id}-")
 
 
 def test_curvature_reduction_is_order_independent():
