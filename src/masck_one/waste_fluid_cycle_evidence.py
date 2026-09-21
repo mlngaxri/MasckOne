@@ -73,6 +73,10 @@ def validate_cycle_routing_evidence(closure: CycleResolvedRoutingClosure) -> Non
         expected_classified_capacity = state.residual_ceiling_margin_mL + state.external_leakage_ceiling_margin_mL
         if not math.isclose(state.classified_sink_capacity_after_prime_mL, expected_classified_capacity, rel_tol=0.0, abs_tol=_TOL):
             raise WasteFluidAccountingError("cycle classified sink capacity does not reconcile to residual and leakage margins")
+        if state.nominal_unclassified_nonrecovery_after_prime_mL > _TOL and state.classified_sink_headroom_after_nominal_mL > _TOL:
+            raise WasteFluidAccountingError("cycle cannot simultaneously have nominal sink deficit and classified sink headroom")
+        if state.local_routing_contract_complete and state.nominal_unclassified_nonrecovery_after_prime_mL > _TOL:
+            raise WasteFluidAccountingError("cycle routing cannot be complete while nominal nonrecovery remains unclassified")
 
         capacity_from_minimum = state.minimum_routing_capacity_margin_mL + cumulative_minimum
         capacity_from_maximum = state.cartridge_capacity_margin_mL + state.cumulative_maximum_cartridge_inflow_mL
