@@ -90,6 +90,54 @@ class ThermalCommand:
             "reason": self.reason.value if self.reason is not None else None,
         }
 
+    @classmethod
+    def from_wire(cls, payload: object) -> ThermalCommand:
+        """Decode an exact wire payload and reject malformed or impossible commands."""
+
+        if type(payload) is not dict:
+            raise ThermalControlError("thermal wire payload must be an exact dict")
+        required = {"mode", "warm_enable", "cool_enable", "inhibited", "reason"}
+        keys = set(payload)
+        if keys != required:
+            missing = sorted(required - keys)
+            extra = sorted(keys - required)
+            raise ThermalControlError(
+                f"thermal wire payload fields mismatch: missing={missing}, extra={extra}"
+            )
+
+        mode_value = payload["mode"]
+        if type(mode_value) is not str:
+            raise ThermalControlError("wire mode must be an exact str")
+        try:
+            mode = ThermalMode(mode_value)
+        except ValueError as exc:
+            raise ThermalControlError("wire mode is not a recognized ThermalMode") from exc
+
+        for name in ("warm_enable", "cool_enable", "inhibited"):
+            if type(payload[name]) is not bool:
+                raise ThermalControlError(f"wire {name} must be an exact bool")
+
+        reason_value = payload["reason"]
+        if reason_value is None:
+            reason = None
+        else:
+            if type(reason_value) is not str:
+                raise ThermalControlError("wire reason must be an exact str or None")
+            try:
+                reason = ThermalInhibitReason(reason_value)
+            except ValueError as exc:
+                raise ThermalControlError(
+                    "wire reason is not a recognized ThermalInhibitReason"
+                ) from exc
+
+        return cls(
+            mode=mode,
+            warm_enable=payload["warm_enable"],
+            cool_enable=payload["cool_enable"],
+            inhibited=payload["inhibited"],
+            reason=reason,
+        )
+
 
 class ThermalCommandInterlock:
     """Fail-closed WARM/COOL command arbiter with explicit recovery gating."""

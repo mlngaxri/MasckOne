@@ -100,6 +100,42 @@ def test_inhibited_wire_payload_exposes_stable_reason_identifier():
     }
 
 
+def test_wire_round_trip_preserves_valid_command():
+    original = ThermalCommandInterlock().command(
+        warm_requested=False, cool_requested=True, recovery_complete=False
+    )
+    assert ThermalCommand.from_wire(original.to_wire()) == original
+
+
+@pytest.mark.parametrize(
+    "payload, message",
+    [
+        (None, "exact dict"),
+        ({"mode": "off", "warm_enable": False, "cool_enable": False, "inhibited": False}, "fields mismatch"),
+        ({"mode": "off", "warm_enable": False, "cool_enable": False, "inhibited": False, "reason": None, "extra": 1}, "fields mismatch"),
+        ({"mode": "invalid", "warm_enable": False, "cool_enable": False, "inhibited": False, "reason": None}, "recognized ThermalMode"),
+        ({"mode": "warm", "warm_enable": 1, "cool_enable": False, "inhibited": False, "reason": None}, "warm_enable"),
+        ({"mode": "off", "warm_enable": False, "cool_enable": False, "inhibited": False, "reason": "unknown"}, "recognized ThermalInhibitReason"),
+        ({"mode": "off", "warm_enable": False, "cool_enable": False, "inhibited": False, "reason": 7}, "exact str or None"),
+    ],
+)
+def test_malformed_wire_payloads_are_rejected(payload, message):
+    with pytest.raises(ThermalControlError, match=message):
+        ThermalCommand.from_wire(payload)
+
+
+def test_wire_decoder_rejects_semantically_impossible_command():
+    payload = {
+        "mode": "warm",
+        "warm_enable": False,
+        "cool_enable": True,
+        "inhibited": False,
+        "reason": None,
+    }
+    with pytest.raises(ThermalControlError, match="impossible command"):
+        ThermalCommand.from_wire(payload)
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
