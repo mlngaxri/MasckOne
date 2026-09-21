@@ -23,6 +23,8 @@ _WIRE_IDS: dict[FaultCode, str] = {
     FaultCode.ARM_TIME_REGRESSION: "arm_time_regression",
     FaultCode.WATCHDOG_TIME_INVALID: "watchdog_time_invalid",
     FaultCode.WATCHDOG_TIME_REGRESSION: "watchdog_time_regression",
+    FaultCode.RESET_TIME_INVALID: "reset_time_invalid",
+    FaultCode.RESET_TIME_REGRESSION: "reset_time_regression",
     FaultCode.INPUT_STREAM_NOT_STARTED: "input_stream_not_started",
     FaultCode.INPUT_STREAM_STALE: "input_stream_stale",
 }
