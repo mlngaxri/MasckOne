@@ -1,0 +1,95 @@
+from __future__ import annotations
+
+"""Stable fail-closed serialization for conditioned HMI input events."""
+
+from collections.abc import Mapping
+from typing import Any
+
+from masck_one.hmi_fault_wire import (
+    HmiFaultWireError,
+    fault_code_from_wire_id,
+    fault_code_wire_id,
+)
+from masck_one.hmi_runtime import Edge, InputEvent
+
+
+class HmiEventWireError(ValueError):
+    """Raised when an HMI event wire payload violates the contract."""
+
+
+_EDGE_TO_WIRE: dict[Edge, str] = {
+    Edge.NONE: "none",
+    Edge.PRESSED: "pressed",
+    Edge.RELEASED: "released",
+}
+_WIRE_TO_EDGE = {identifier: edge for edge, identifier in _EDGE_TO_WIRE.items()}
+_FIELDS = frozenset({"stable_pressed", "edge", "faulted", "fault_code"})
+
+
+def input_event_to_wire(event: InputEvent) -> dict[str, Any]:
+    """Serialize one runtime event without exposing enum implementation values."""
+    if type(event) is not InputEvent:
+        raise HmiEventWireError("event must be an exact InputEvent")
+    _validate_event(event)
+    return {
+        "stable_pressed": event.stable_pressed,
+        "edge": _EDGE_TO_WIRE[event.edge],
+        "faulted": event.faulted,
+        "fault_code": fault_code_wire_id(event.fault_code) if event.fault_code is not None else None,
+    }
+
+
+def input_event_from_wire(payload: Mapping[str, object]) -> InputEvent:
+    """Decode one exact event payload, rejecting malformed or impossible states."""
+    if not isinstance(payload, Mapping):
+        raise HmiEventWireError("payload must be a mapping")
+    if any(type(key) is not str for key in payload):
+        raise HmiEventWireError("payload keys must be exact strings")
+    keys = frozenset(payload)
+    if keys != _FIELDS:
+        missing = sorted(_FIELDS - keys)
+        extra = sorted(keys - _FIELDS)
+        raise HmiEventWireError(f"event wire fields mismatch: missing={missing}, extra={extra}")
+
+    stable_pressed = payload["stable_pressed"]
+    faulted = payload["faulted"]
+    edge_id = payload["edge"]
+    fault_id = payload["fault_code"]
+    if type(stable_pressed) is not bool or type(faulted) is not bool:
+        raise HmiEventWireError("stable_pressed and faulted must be exact bools")
+    if type(edge_id) is not str or edge_id not in _WIRE_TO_EDGE:
+        raise HmiEventWireError(f"unknown HMI edge wire identifier: {edge_id!r}")
+    edge = _WIRE_TO_EDGE[edge_id]
+
+    fault_code = None
+    if fault_id is not None:
+        try:
+            fault_code = fault_code_from_wire_id(fault_id)  # type: ignore[arg-type]
+        except HmiFaultWireError as exc:
+            raise HmiEventWireError(str(exc)) from exc
+
+    event = InputEvent(
+        stable_pressed=stable_pressed,
+        edge=edge,
+        faulted=faulted,
+        fault=None,
+        fault_code=fault_code,
+    )
+    _validate_event(event)
+    return event
+
+
+def _validate_event(event: InputEvent) -> None:
+    if type(event.stable_pressed) is not bool or type(event.faulted) is not bool:
+        raise HmiEventWireError("event booleans must be exact bools")
+    if type(event.edge) is not Edge:
+        raise HmiEventWireError("edge must be an exact Edge")
+    if event.faulted:
+        if event.stable_pressed or event.edge is not Edge.NONE or event.fault_code is None:
+            raise HmiEventWireError("faulted event must be released, edgeless, and carry a fault code")
+    elif event.fault_code is not None:
+        raise HmiEventWireError("healthy event cannot carry a fault code")
+    if event.edge is Edge.PRESSED and not event.stable_pressed:
+        raise HmiEventWireError("pressed edge requires stable_pressed=true")
+    if event.edge is Edge.RELEASED and event.stable_pressed:
+        raise HmiEventWireError("released edge requires stable_pressed=false")
