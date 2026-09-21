@@ -28,6 +28,21 @@ class ZoneThermalEnvelope:
 
 
 @dataclass(frozen=True, slots=True)
+class AngleThermalSpread:
+    """Cross-zone temperature spread at one shared axis-angle DOE point."""
+
+    axis_angle_deg: float
+    point_count: int
+    min_temperature_C: float
+    min_temperature_zone_id: str
+    min_temperature_record_id: str
+    max_temperature_C: float
+    max_temperature_zone_id: str
+    max_temperature_record_id: str
+    cross_zone_span_C: float
+
+
+@dataclass(frozen=True, slots=True)
 class ActuationThermalEnvelope:
     """Traceable measured temperature extrema across the complete four-zone DOE."""
 
@@ -41,17 +56,16 @@ class ActuationThermalEnvelope:
     max_temperature_axis_angle_deg: float
     max_temperature_record_id: str
     zone_envelopes: tuple[ZoneThermalEnvelope, ...]
+    angle_spreads: tuple[AngleThermalSpread, ...]
+    max_cross_zone_span_C: float
+    max_cross_zone_span_axis_angle_deg: float
 
 
 def reduce_measured_actuation_thermal_envelope(
     sweep: FourZoneImpedanceSweep,
     parameters: ActuationParameterSet,
 ) -> ActuationThermalEnvelope:
-    """Reduce a complete measured sweep to traceable system and per-zone extrema.
-
-    The sweep's existing validator remains the authority for completeness,
-    parameter provenance, command envelope and evidence-kind consistency.
-    """
+    """Reduce a complete measured sweep to traceable system, zone and angle extrema."""
     if type(sweep) is not FourZoneImpedanceSweep:
         raise ActuationParameterError("Actuation thermal envelope requires exact FourZoneImpedanceSweep evidence")
     if type(parameters) is not ActuationParameterSet:
@@ -87,6 +101,24 @@ def reduce_measured_actuation_thermal_envelope(
             temperature_span_C=zone_maximum[1] - zone_minimum[1],
         ))
 
+    angle_spreads: list[AngleThermalSpread] = []
+    for angle in sorted({float(item.record.axis_angle_deg) for item, _ in points}):
+        angle_points = [point for point in points if float(point[0].record.axis_angle_deg) == angle]
+        angle_minimum = min(angle_points, key=lambda point: (point[1], point[0].zone_id, point[0].record.record_id))
+        angle_maximum = max(angle_points, key=lambda point: (point[1], point[0].zone_id, point[0].record.record_id))
+        angle_spreads.append(AngleThermalSpread(
+            axis_angle_deg=angle,
+            point_count=len(angle_points),
+            min_temperature_C=angle_minimum[1],
+            min_temperature_zone_id=angle_minimum[0].zone_id,
+            min_temperature_record_id=angle_minimum[0].record.record_id,
+            max_temperature_C=angle_maximum[1],
+            max_temperature_zone_id=angle_maximum[0].zone_id,
+            max_temperature_record_id=angle_maximum[0].record.record_id,
+            cross_zone_span_C=angle_maximum[1] - angle_minimum[1],
+        ))
+    worst_spread = max(angle_spreads, key=lambda spread: (spread.cross_zone_span_C, -spread.axis_angle_deg))
+
     return ActuationThermalEnvelope(
         point_count=len(points),
         min_temperature_C=minimum[1],
@@ -98,4 +130,7 @@ def reduce_measured_actuation_thermal_envelope(
         max_temperature_axis_angle_deg=float(maximum[0].record.axis_angle_deg),
         max_temperature_record_id=maximum[0].record.record_id,
         zone_envelopes=tuple(zone_envelopes),
+        angle_spreads=tuple(angle_spreads),
+        max_cross_zone_span_C=worst_spread.cross_zone_span_C,
+        max_cross_zone_span_axis_angle_deg=worst_spread.axis_angle_deg,
     )
