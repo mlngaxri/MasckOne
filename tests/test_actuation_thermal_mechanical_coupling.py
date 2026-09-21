@@ -67,6 +67,34 @@ def test_coupled_reduction_preserves_each_zone_extrema_on_original_records():
         assert envelope.maximum_displacement_error_point.axis_angle_deg == max(parameters.axis_angle_doe_deg)
 
 
+def test_angle_spreads_keep_cross_zone_thermal_and_force_evidence_together():
+    parameters = _parameters(); result = reduce_measured_thermal_mechanical_coupling(_sweep(parameters), parameters)
+    assert tuple(spread.axis_angle_deg for spread in result.angle_spreads) == tuple(sorted(parameters.axis_angle_doe_deg))
+    assert all(spread.point_count == len(ZONE_IDS) for spread in result.angle_spreads)
+    for spread in result.angle_spreads:
+        assert spread.hottest_point.zone_id == ZONE_IDS[-1]
+        assert spread.coolest_point.zone_id == ZONE_IDS[0]
+        assert spread.minimum_force_point.zone_id == ZONE_IDS[0]
+        assert spread.maximum_force_point.zone_id == ZONE_IDS[-1]
+        assert spread.temperature_span_C == pytest.approx(len(ZONE_IDS) - 1)
+        assert spread.force_span_N == pytest.approx((len(ZONE_IDS) - 1) * 0.02)
+        assert spread.hottest_zone_is_minimum_force_zone is False
+        assert spread.hottest_point.record_id.endswith(f"-{spread.axis_angle_deg:g}")
+        assert spread.minimum_force_point.record_id.endswith(f"-{spread.axis_angle_deg:g}")
+
+
+def test_angle_spread_worst_cases_are_deterministic_and_order_independent():
+    parameters = _parameters(); sweep = _sweep(parameters)
+    reversed_sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(reversed(sweep.records)))
+    forward = reduce_measured_thermal_mechanical_coupling(sweep, parameters)
+    reverse = reduce_measured_thermal_mechanical_coupling(reversed_sweep, parameters)
+    assert forward.angle_spreads == reverse.angle_spreads
+    assert forward.maximum_temperature_span_angle == reverse.maximum_temperature_span_angle
+    assert forward.maximum_force_span_angle == reverse.maximum_force_span_angle
+    assert forward.maximum_temperature_span_angle.axis_angle_deg == min(parameters.axis_angle_doe_deg)
+    assert forward.maximum_force_span_angle.axis_angle_deg == min(parameters.axis_angle_doe_deg)
+
+
 def test_zone_coupled_envelopes_are_order_independent():
     parameters = _parameters(); sweep = _sweep(parameters)
     reversed_sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(reversed(sweep.records)))
