@@ -25,6 +25,8 @@ class CapacityCrossingWindow:
     crossing_volume_mL: float
     headroom_before_cycle_mL: float
     overshoot_after_cycle_mL: float
+    increment_fraction_to_threshold: float
+    increment_fraction_after_threshold: float
 
     def __post_init__(self) -> None:
         if self.path not in ("contractual", "conservative"):
@@ -35,7 +37,8 @@ class CapacityCrossingWindow:
             self.utilization_fraction, self.threshold_volume_mL,
             self.volume_before_cycle_mL, self.cycle_increment_mL,
             self.crossing_volume_mL, self.headroom_before_cycle_mL,
-            self.overshoot_after_cycle_mL,
+            self.overshoot_after_cycle_mL, self.increment_fraction_to_threshold,
+            self.increment_fraction_after_threshold,
         )
         if any(type(value) not in (int, float) or not math.isfinite(float(value)) for value in values):
             raise WasteFluidAccountingError("capacity crossing evidence must be finite numeric data")
@@ -44,11 +47,16 @@ class CapacityCrossingWindow:
         if min(self.threshold_volume_mL, self.volume_before_cycle_mL, self.cycle_increment_mL,
                self.crossing_volume_mL, self.headroom_before_cycle_mL, self.overshoot_after_cycle_mL) < -_TOL:
             raise WasteFluidAccountingError("capacity crossing volumes cannot be negative")
-        if self.volume_before_cycle_mL + self.cycle_increment_mL != self.crossing_volume_mL:
+        if self.cycle_increment_mL <= _TOL:
+            raise WasteFluidAccountingError("capacity crossing requires a positive cartridge increment")
+        if not math.isclose(self.volume_before_cycle_mL + self.cycle_increment_mL,
+                            self.crossing_volume_mL, rel_tol=0.0, abs_tol=_TOL):
             raise WasteFluidAccountingError("capacity crossing increment does not conserve cartridge volume")
-        if self.threshold_volume_mL - self.volume_before_cycle_mL != self.headroom_before_cycle_mL:
+        if not math.isclose(self.threshold_volume_mL - self.volume_before_cycle_mL,
+                            self.headroom_before_cycle_mL, rel_tol=0.0, abs_tol=_TOL):
             raise WasteFluidAccountingError("capacity crossing pre-cycle headroom is inconsistent")
-        if self.crossing_volume_mL - self.threshold_volume_mL != self.overshoot_after_cycle_mL:
+        if not math.isclose(self.crossing_volume_mL - self.threshold_volume_mL,
+                            self.overshoot_after_cycle_mL, rel_tol=0.0, abs_tol=_TOL):
             raise WasteFluidAccountingError("capacity crossing overshoot is inconsistent")
         if self.headroom_before_cycle_mL <= _TOL:
             raise WasteFluidAccountingError("capacity crossing cycle must begin below its threshold")
@@ -56,6 +64,19 @@ class CapacityCrossingWindow:
             raise WasteFluidAccountingError("capacity crossing cycle must end at or above its threshold")
         if self.headroom_before_cycle_mL - self.cycle_increment_mL > _TOL:
             raise WasteFluidAccountingError("capacity crossing increment cannot reach the threshold")
+        expected_to = self.headroom_before_cycle_mL / self.cycle_increment_mL
+        expected_after = self.overshoot_after_cycle_mL / self.cycle_increment_mL
+        if not 0.0 < self.increment_fraction_to_threshold <= 1.0 + _TOL:
+            raise WasteFluidAccountingError("capacity crossing threshold fraction must be in (0, 1]")
+        if not -_TOL <= self.increment_fraction_after_threshold < 1.0 + _TOL:
+            raise WasteFluidAccountingError("capacity crossing post-threshold fraction must be in [0, 1)")
+        if not math.isclose(self.increment_fraction_to_threshold, expected_to, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("capacity crossing threshold fraction is inconsistent")
+        if not math.isclose(self.increment_fraction_after_threshold, expected_after, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("capacity crossing post-threshold fraction is inconsistent")
+        if not math.isclose(self.increment_fraction_to_threshold + self.increment_fraction_after_threshold,
+                            1.0, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("capacity crossing increment fractions do not conserve cycle load")
 
 
 @dataclass(frozen=True)
@@ -92,8 +113,10 @@ def _build_windows(source: CartridgeCapacityMilestones) -> tuple[CapacityCrossin
             if not math.isclose(after, float(crossing), rel_tol=0.0, abs_tol=_TOL):
                 raise WasteFluidAccountingError("capacity crossing volume disagrees with cycle routing")
             increment = after - before
-            if increment < -_TOL:
-                raise WasteFluidAccountingError("cartridge cumulative routing cannot decrease across a crossing cycle")
+            if increment <= _TOL:
+                raise WasteFluidAccountingError("reached capacity milestone requires positive cycle routing")
+            headroom = threshold - before
+            overshoot = after - threshold
             windows.append(CapacityCrossingWindow(
                 utilization_fraction=milestone.utilization_fraction,
                 path=path,
@@ -102,8 +125,10 @@ def _build_windows(source: CartridgeCapacityMilestones) -> tuple[CapacityCrossin
                 volume_before_cycle_mL=before,
                 cycle_increment_mL=increment,
                 crossing_volume_mL=after,
-                headroom_before_cycle_mL=threshold - before,
-                overshoot_after_cycle_mL=after - threshold,
+                headroom_before_cycle_mL=headroom,
+                overshoot_after_cycle_mL=overshoot,
+                increment_fraction_to_threshold=headroom / increment,
+                increment_fraction_after_threshold=overshoot / increment,
             ))
     return tuple(windows)
 
