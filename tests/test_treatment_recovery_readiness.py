@@ -8,6 +8,11 @@ from masck_one.waste_fluid_accounting import (
     WasteFluidAccountingError,
     build_authority_waste_fluid_budget,
 )
+from masck_one.waste_fluid_capacity_reserve import (
+    CapacityReservedOverflowGuard,
+    CartridgeCapacityReserve,
+    screen_cartridge_capacity_reserve_evidence,
+)
 from masck_one.waste_fluid_cycle_routing import screen_cycle_resolved_routing_closure
 
 
@@ -42,6 +47,37 @@ def test_complete_routing_and_capacity_permit_post_recovery_handoff():
     assert readiness.post_recovery_handoff_permitted
     assert readiness.blocking_cycle is None
     assert readiness.blocking_reason is None
+
+
+def test_typed_capacity_reserve_survives_readiness_boundary():
+    budget = build_authority_waste_fluid_budget()
+    reserve = CartridgeCapacityReserve(fill_sensor_trip_mL=1.0, foam_allowance_mL=2.0, manufacturing_tolerance_mL=1.5, other_integration_mL=1.0)
+    evidence = screen_cartridge_capacity_reserve_evidence(budget, reserve, prime_events_by_cycle=(1, 1, 1, 1, 1, 1), prime_recovery_ratio_contract=1.0)
+    readiness = screen_treatment_recovery_readiness(evidence)
+    assert readiness.source_capacity_reserve_evidence is evidence
+    assert readiness.source_capacity_guard is evidence.guard
+    assert readiness.source_capacity_reserve_evidence.reserve is reserve
+    assert readiness.source_capacity_guard.capacity_reserve_mL == pytest.approx(5.5)
+    assert readiness.source_capacity_guard.usable_capacity_mL == pytest.approx(29.5)
+
+
+def test_typed_capacity_reserve_cannot_be_rebound_to_different_guard():
+    budget = build_authority_waste_fluid_budget()
+    reserve = CartridgeCapacityReserve(fill_sensor_trip_mL=1.0)
+    evidence = screen_cartridge_capacity_reserve_evidence(budget, reserve, prime_events_by_cycle=(0,), prime_recovery_ratio_contract=1.0)
+    other = screen_cartridge_capacity_reserve_evidence(budget, reserve, prime_events_by_cycle=(1,), prime_recovery_ratio_contract=1.0)
+    with pytest.raises(WasteFluidAccountingError, match="exact source capacity guard"):
+        TreatmentRecoveryReadiness(
+            source_closure=other.guard.routing,
+            routing_complete=other.guard.routing.all_cycles_routing_complete,
+            minimum_routing_capacity_satisfied=not other.guard.unavoidable_overflow,
+            conservative_capacity_satisfied=other.guard.capacity_proven_by_conservative_screen,
+            post_recovery_handoff_permitted=True,
+            blocking_cycle=None,
+            blocking_reason=None,
+            source_capacity_guard=other.guard,
+            source_capacity_reserve_evidence=evidence,
+        )
 
 
 def test_incomplete_routing_blocks_before_capacity_even_when_capacity_fits():
