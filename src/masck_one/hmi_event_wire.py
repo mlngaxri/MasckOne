@@ -16,17 +16,18 @@ class HmiEventWireError(ValueError):
     """Raised when an HMI event wire payload violates the contract."""
 
 
-_EDGE_TO_WIRE: dict[Edge, str] = {
+_CANONICAL_EDGE_TO_WIRE: dict[Edge, str] = {
     Edge.NONE: "none",
     Edge.PRESSED: "pressed",
     Edge.RELEASED: "released",
 }
+_EDGE_TO_WIRE: dict[Edge, str] = dict(_CANONICAL_EDGE_TO_WIRE)
 _WIRE_TO_EDGE = {identifier: edge for edge, identifier in _EDGE_TO_WIRE.items()}
 _FIELDS = frozenset({"stable_pressed", "edge", "faulted", "fault_code"})
 
 
 def assert_event_wire_contract_complete() -> None:
-    """Fail closed if runtime edge coverage or stable identifiers drift."""
+    """Fail closed if runtime edge coverage or canonical wire semantics drift."""
     valid_keys = {key for key in _EDGE_TO_WIRE if type(key) is Edge}
     invalid_key_reprs = sorted(repr(key) for key in _EDGE_TO_WIRE if type(key) is not Edge)
     missing = set(Edge) - valid_keys
@@ -39,18 +40,26 @@ def assert_event_wire_contract_complete() -> None:
         for identifier in identifiers
         if type(identifier) is not str or identifier not in {"none", "pressed", "released"}
     )
+    canonical_matches = _EDGE_TO_WIRE == _CANONICAL_EDGE_TO_WIRE
     inverse_matches = _WIRE_TO_EDGE == {
         identifier: edge
         for edge, identifier in _EDGE_TO_WIRE.items()
         if type(edge) is Edge and type(identifier) is str
     }
-    if missing or invalid_key_reprs or duplicate_reprs or invalid_reprs or not inverse_matches:
+    if (
+        missing
+        or invalid_key_reprs
+        or duplicate_reprs
+        or invalid_reprs
+        or not canonical_matches
+        or not inverse_matches
+    ):
         missing_names = sorted(edge.name for edge in missing)
         raise HmiEventWireError(
             "event edge wire contract mismatch: "
             f"missing={missing_names}, invalid_keys={invalid_key_reprs}, "
             f"duplicates={duplicate_reprs}, invalid={invalid_reprs}, "
-            f"inverse_matches={inverse_matches}"
+            f"canonical_matches={canonical_matches}, inverse_matches={inverse_matches}"
         )
 
 
