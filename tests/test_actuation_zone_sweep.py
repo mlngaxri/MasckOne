@@ -55,13 +55,33 @@ def test_missing_zone_angle_point_fails_closed():
         sweep.validate(parameters)
 
 
-def test_duplicate_zone_angle_point_fails_closed():
+def test_duplicate_zone_angle_point_fails_closed_at_construction():
     parameters = _parameters()
     records = _complete(parameters)
     duplicate = ZoneImpedanceRecord(records[0].zone_id, replace(records[0].record, record_id="IMP-DUPLICATE"))
-    sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, records + (duplicate,))
     with pytest.raises(ActuationParameterError, match="Duplicate four-zone sweep point"):
-        sweep.validate(parameters)
+        FourZoneImpedanceSweep(parameters.parameter_sha256, records + (duplicate,))
+
+
+def test_duplicate_record_id_fails_closed_at_construction():
+    parameters = _parameters()
+    records = _complete(parameters)
+    duplicate_id = ZoneImpedanceRecord(records[1].zone_id, replace(records[1].record, record_id=records[0].record.record_id))
+    forged = (records[0], duplicate_id) + records[2:]
+    with pytest.raises(ActuationParameterError, match="record IDs must be unique"):
+        FourZoneImpedanceSweep(parameters.parameter_sha256, forged)
+
+
+def test_sweep_container_and_identity_fail_closed_at_construction():
+    parameters = _parameters()
+    with pytest.raises(ActuationParameterError, match="canonical lowercase SHA-256"):
+        FourZoneImpedanceSweep("NOT-A-SHA", _complete(parameters))
+    with pytest.raises(ActuationParameterError, match="immutable tuple"):
+        FourZoneImpedanceSweep(parameters.parameter_sha256, list(_complete(parameters)))
+    with pytest.raises(ActuationParameterError, match="empty evidence"):
+        FourZoneImpedanceSweep(parameters.parameter_sha256, ())
+    with pytest.raises(ActuationParameterError, match="non-zone impedance evidence"):
+        FourZoneImpedanceSweep(parameters.parameter_sha256, (object(),))
 
 
 def test_stale_parameter_identity_fails_closed():
