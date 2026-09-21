@@ -80,6 +80,34 @@ def test_thermal_envelope_preserves_cross_zone_spread_at_each_angle():
     assert envelope.max_cross_zone_span_axis_angle_deg == min(parameters.axis_angle_doe_deg)
 
 
+def test_thermal_envelope_preserves_adjacent_angle_sensitivity_and_traceability():
+    parameters = _parameters(); envelope = reduce_measured_actuation_thermal_envelope(_sweep(parameters), parameters)
+    expected_count = len(ZONE_IDS) * (len(parameters.axis_angle_doe_deg) - 1)
+    assert len(envelope.angle_sensitivities) == expected_count
+    for sensitivity in envelope.angle_sensitivities:
+        angle_delta = sensitivity.upper_axis_angle_deg - sensitivity.lower_axis_angle_deg
+        assert sensitivity.temperature_delta_C == pytest.approx(0.25)
+        assert sensitivity.temperature_slope_C_per_deg == pytest.approx(0.25 / angle_delta)
+        assert sensitivity.lower_record_id == f"THERM-{sensitivity.zone_id}-{sensitivity.lower_axis_angle_deg:g}"
+        assert sensitivity.upper_record_id == f"THERM-{sensitivity.zone_id}-{sensitivity.upper_axis_angle_deg:g}"
+    expected_max = max(abs(item.temperature_slope_C_per_deg) for item in envelope.angle_sensitivities)
+    assert envelope.max_abs_temperature_slope_C_per_deg == pytest.approx(expected_max)
+
+
+def test_thermal_angle_sensitivity_preserves_signed_cooling_response():
+    parameters = _parameters(); sweep = _sweep(parameters)
+    first_zone = ZONE_IDS[0]
+    target_angle = sorted(parameters.axis_angle_doe_deg)[1]
+    changed = tuple(ZoneImpedanceRecord(item.zone_id, replace(item.record, measured_temperature_C=27.0))
+                    if item.zone_id == first_zone and float(item.record.axis_angle_deg) == float(target_angle)
+                    else item for item in sweep.records)
+    envelope = reduce_measured_actuation_thermal_envelope(FourZoneImpedanceSweep(parameters.parameter_sha256, changed), parameters)
+    signed = [item for item in envelope.angle_sensitivities
+              if item.zone_id == first_zone and item.upper_axis_angle_deg == float(target_angle)][0]
+    assert signed.temperature_delta_C < 0.0
+    assert signed.temperature_slope_C_per_deg < 0.0
+
+
 def test_thermal_envelope_is_order_independent():
     parameters = _parameters(); sweep = _sweep(parameters)
     reversed_sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(reversed(sweep.records)))
