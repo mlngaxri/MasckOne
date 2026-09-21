@@ -48,6 +48,7 @@ class CycleResolvedRoutingClosure:
             raise WasteFluidAccountingError("cycle-resolved routing cycle count does not match service evidence")
         if self.service.prime_events != sum(state.prime_events for state in self.cycles):
             raise WasteFluidAccountingError("cycle-resolved routing prime-event count does not match service evidence")
+        _assert_cycle_state_parity(self.cycles)
         _assert_cycle_service_parity(self)
 
     @property
@@ -91,6 +92,75 @@ class CycleResolvedRoutingClosure:
         return sum(state.prime_external_leakage_mL for state in self.cycles)
 
 
+def _close(left: float, right: float) -> bool:
+    return math.isclose(left, right, rel_tol=0.0, abs_tol=1e-12)
+
+
+def _assert_cycle_state_parity(cycles: tuple[CycleRoutingScreen, ...]) -> None:
+    """Reconstruct every intermediate occupancy state from its local ledger.
+
+    This prevents a forged intermediate cumulative value from surviving merely
+    because the final service total still reconciles. Capacity is inferred
+    independently from both cumulative bounds plus their margins and must remain
+    constant across the complete profile.
+    """
+    cumulative_minimum = 0.0
+    inferred_capacity: float | None = None
+    previous_maximum = 0.0
+    for state in cycles:
+        local_total = state.minimum_nominal_routed_to_cartridge_mL + state.minimum_prime_routed_to_cartridge_mL
+        if not _close(state.minimum_total_routed_to_cartridge_mL, local_total):
+            raise WasteFluidAccountingError(
+                f"cycle {state.cycle} minimum routing components do not reconcile"
+            )
+        cumulative_minimum += local_total
+        if not _close(state.cumulative_minimum_cartridge_routing_mL, cumulative_minimum):
+            raise WasteFluidAccountingError(
+                f"cycle {state.cycle} cumulative minimum cartridge routing does not reconcile"
+            )
+        if state.cumulative_maximum_cartridge_inflow_mL + 1e-12 < previous_maximum:
+            raise WasteFluidAccountingError(
+                f"cycle {state.cycle} cumulative maximum cartridge inflow decreased"
+            )
+        if state.cumulative_maximum_cartridge_inflow_mL + 1e-12 < cumulative_minimum:
+            raise WasteFluidAccountingError(
+                f"cycle {state.cycle} maximum cartridge inflow is below contractual minimum routing"
+            )
+        uncertainty = state.cumulative_maximum_cartridge_inflow_mL - cumulative_minimum
+        if not _close(state.cartridge_occupancy_uncertainty_mL, uncertainty):
+            raise WasteFluidAccountingError(
+                f"cycle {state.cycle} cartridge occupancy uncertainty does not reconcile"
+            )
+        capacity_from_minimum = cumulative_minimum + state.minimum_routing_capacity_margin_mL
+        capacity_from_maximum = state.cumulative_maximum_cartridge_inflow_mL + state.cartridge_capacity_margin_mL
+        if not _close(capacity_from_minimum, capacity_from_maximum):
+            raise WasteFluidAccountingError(
+                f"cycle {state.cycle} capacity margins do not resolve to one retained capacity"
+            )
+        if inferred_capacity is None:
+            inferred_capacity = capacity_from_minimum
+        elif not _close(capacity_from_minimum, inferred_capacity):
+            raise WasteFluidAccountingError(
+                f"cycle {state.cycle} inferred retained capacity changed within routing evidence"
+            )
+        minimum_satisfied = state.minimum_routing_capacity_margin_mL >= -1e-12
+        if state.minimum_routing_capacity_satisfied is not minimum_satisfied:
+            raise WasteFluidAccountingError(
+                f"cycle {state.cycle} minimum-routing capacity disposition disagrees with margin"
+            )
+        maximum_satisfied = state.cartridge_capacity_margin_mL >= -1e-12
+        if state.cartridge_capacity_satisfied is not maximum_satisfied:
+            raise WasteFluidAccountingError(
+                f"cycle {state.cycle} cartridge capacity disposition disagrees with margin"
+            )
+        classified_after_prime = state.residual_ceiling_margin_mL + state.external_leakage_ceiling_margin_mL
+        if not _close(state.classified_sink_capacity_after_prime_mL, classified_after_prime):
+            raise WasteFluidAccountingError(
+                f"cycle {state.cycle} classified sink capacity does not reconcile"
+            )
+        previous_maximum = state.cumulative_maximum_cartridge_inflow_mL
+
+
 def _assert_cycle_service_parity(cycle_closure: CycleResolvedRoutingClosure) -> None:
     """Fail if cycle-local accounting drifts from the aggregate service ledger.
 
@@ -100,36 +170,18 @@ def _assert_cycle_service_parity(cycle_closure: CycleResolvedRoutingClosure) -> 
     """
     service = cycle_closure.service
     checks = (
-        (
-            "nominal cartridge routing",
-            sum(state.minimum_nominal_routed_to_cartridge_mL for state in cycle_closure.cycles),
-            service.minimum_nominal_liquid_routed_to_cartridge_mL,
-        ),
-        (
-            "prime cartridge routing",
-            sum(state.minimum_prime_routed_to_cartridge_mL for state in cycle_closure.cycles),
-            service.minimum_prime_liquid_routed_to_cartridge_mL,
-        ),
-        (
-            "minimum cartridge routing",
-            cycle_closure.minimum_total_routed_to_cartridge_mL,
-            service.minimum_nominal_liquid_routed_to_cartridge_mL
-            + service.minimum_prime_liquid_routed_to_cartridge_mL,
-        ),
+        ("nominal cartridge routing", sum(state.minimum_nominal_routed_to_cartridge_mL for state in cycle_closure.cycles), service.minimum_nominal_liquid_routed_to_cartridge_mL),
+        ("prime cartridge routing", sum(state.minimum_prime_routed_to_cartridge_mL for state in cycle_closure.cycles), service.minimum_prime_liquid_routed_to_cartridge_mL),
+        ("minimum cartridge routing", cycle_closure.minimum_total_routed_to_cartridge_mL, service.minimum_nominal_liquid_routed_to_cartridge_mL + service.minimum_prime_liquid_routed_to_cartridge_mL),
         ("prime residual", cycle_closure.total_prime_residual_mL, service.maximum_prime_residual_mL),
         ("prime external leakage", cycle_closure.total_prime_external_leakage_mL, service.maximum_prime_external_leakage_mL),
     )
     for label, cycle_value, service_value in checks:
-        if not math.isclose(cycle_value, service_value, rel_tol=0.0, abs_tol=1e-12):
+        if not _close(cycle_value, service_value):
             raise WasteFluidAccountingError(
                 f"cycle/service routing parity failure for {label}: cycle total {cycle_value:.12g} mL != service total {service_value:.12g} mL"
             )
-    if not math.isclose(
-        cycle_closure.cycles[-1].cumulative_minimum_cartridge_routing_mL,
-        cycle_closure.minimum_total_routed_to_cartridge_mL,
-        rel_tol=0.0,
-        abs_tol=1e-12,
-    ):
+    if not _close(cycle_closure.cycles[-1].cumulative_minimum_cartridge_routing_mL, cycle_closure.minimum_total_routed_to_cartridge_mL):
         raise WasteFluidAccountingError("cycle cumulative minimum cartridge routing does not reconcile to service total")
 
 
@@ -183,9 +235,7 @@ def screen_cycle_resolved_routing_closure(
         cumulative_maximum_inflow += budget.nominal_introduced_mL_per_cycle + prime_events * budget.maximum_initial_prime_mL_per_cycle
         occupancy_uncertainty = cumulative_maximum_inflow - cumulative_minimum_routing
         if occupancy_uncertainty < -1e-12:
-            raise WasteFluidAccountingError(
-                "minimum contractual cartridge routing exceeds fail-conservative introduced-volume bound"
-            )
+            raise WasteFluidAccountingError("minimum contractual cartridge routing exceeds fail-conservative introduced-volume bound")
         minimum_capacity_margin = budget.cartridge_retained_capacity_requirement_mL - cumulative_minimum_routing
         capacity_margin = budget.cartridge_retained_capacity_requirement_mL - cumulative_maximum_inflow
         screens.append(CycleRoutingScreen(
