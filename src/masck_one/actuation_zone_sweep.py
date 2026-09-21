@@ -7,6 +7,12 @@ from .actuation_parameters import ActuationParameterError, ActuationParameterSet
 from .actuator_frames import ZONE_IDS
 
 
+def _canonical_sha256(value: object, *, label: str) -> str:
+    if type(value) is not str or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+        raise ActuationParameterError(f"{label} must be a canonical lowercase SHA-256 digest")
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class ZoneImpedanceRecord:
     """Bind one impedance record to one controlled actuator zone."""
@@ -28,23 +34,18 @@ class FourZoneImpedanceSweep:
     source_parameter_sha256: str
     records: tuple[ZoneImpedanceRecord, ...]
 
-    def validate(self, parameters: ActuationParameterSet) -> None:
-        if type(parameters) is not ActuationParameterSet:
-            raise ActuationParameterError("Four-zone sweep requires exact ActuationParameterSet evidence")
-        if self.source_parameter_sha256 != parameters.parameter_sha256:
-            raise ActuationParameterError("Four-zone sweep is stale for the supplied actuation parameter set")
+    def __post_init__(self) -> None:
+        _canonical_sha256(self.source_parameter_sha256, label="four-zone sweep parameter identity")
         if type(self.records) is not tuple:
             raise ActuationParameterError("Four-zone sweep records must be an immutable tuple")
+        if not self.records:
+            raise ActuationParameterError("Four-zone sweep cannot contain empty evidence")
 
-        expected = {(zone_id, angle) for zone_id in ZONE_IDS for angle in parameters.axis_angle_doe_deg}
         observed: set[tuple[str, float]] = set()
         record_ids: set[str] = set()
-        source_kinds: set[str] = set()
-
         for item in self.records:
             if type(item) is not ZoneImpedanceRecord:
                 raise ActuationParameterError("Four-zone sweep contains non-zone impedance evidence")
-            item.record.validate_command_envelope(parameters)
             key = (item.zone_id, float(item.record.axis_angle_deg))
             if key in observed:
                 raise ActuationParameterError(f"Duplicate four-zone sweep point {key!r}")
@@ -52,6 +53,20 @@ class FourZoneImpedanceSweep:
                 raise ActuationParameterError("Four-zone sweep record IDs must be unique")
             observed.add(key)
             record_ids.add(item.record.record_id)
+
+    def validate(self, parameters: ActuationParameterSet) -> None:
+        if type(parameters) is not ActuationParameterSet:
+            raise ActuationParameterError("Four-zone sweep requires exact ActuationParameterSet evidence")
+        if self.source_parameter_sha256 != parameters.parameter_sha256:
+            raise ActuationParameterError("Four-zone sweep is stale for the supplied actuation parameter set")
+
+        expected = {(zone_id, angle) for zone_id in ZONE_IDS for angle in parameters.axis_angle_doe_deg}
+        observed: set[tuple[str, float]] = set()
+        source_kinds: set[str] = set()
+
+        for item in self.records:
+            item.record.validate_command_envelope(parameters)
+            observed.add((item.zone_id, float(item.record.axis_angle_deg)))
             source_kinds.add(item.record.source_kind)
 
         missing = expected - observed
