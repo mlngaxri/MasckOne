@@ -9,8 +9,18 @@ from masck_one.waste_fluid_cycle_routing import CycleResolvedRoutingClosure, scr
 
 
 def _closure():
+    budget = build_authority_waste_fluid_budget()
+    budget = type(budget)(
+        budget.service_cycles,
+        budget.nominal_introduced_mL_per_cycle,
+        budget.maximum_initial_prime_mL_per_cycle,
+        0.95,
+        budget.residual_free_liquid_max_mL,
+        budget.external_leakage_max_mL_per_cycle,
+        budget.cartridge_retained_capacity_requirement_mL,
+    )
     return screen_cycle_resolved_routing_closure(
-        build_authority_waste_fluid_budget(),
+        budget,
         prime_events_by_cycle=[0, 1, 0],
         prime_recovery_ratio_contract=1.0,
     )
