@@ -14,7 +14,7 @@ import math
 
 
 class HmiInputError(ValueError):
-    """Raised when an HMI sample violates the runtime contract."""
+    """Raised when static HMI configuration violates the runtime contract."""
 
 
 class Edge(Enum):
@@ -33,6 +33,8 @@ class FaultCode(Enum):
     ARM_TIME_REGRESSION = auto()
     WATCHDOG_TIME_INVALID = auto()
     WATCHDOG_TIME_REGRESSION = auto()
+    RESET_TIME_INVALID = auto()
+    RESET_TIME_REGRESSION = auto()
     INPUT_STREAM_NOT_STARTED = auto()
     INPUT_STREAM_STALE = auto()
 
@@ -55,20 +57,22 @@ class DebouncedInput:
     a new press can be accepted. Sample, arm, watchdog and timed reset calls share one
     monotonic time contract so no path can silently move the runtime clock backwards.
     That clock contract survives fault reset. While a fault is latched, valid monotonic
-    timestamps supplied to sample, arm or watchdog continue to advance the shared clock
-    floor without replacing the first fault. Firmware may pass ``now_s`` to ``reset``
-    so recovery no-sample supervision begins at the actual reset request rather than at
-    an older observation. Reset returns the resulting ``InputEvent`` so a timed healthy
-    reset cannot silently latch a supervision fault. A timed healthy reset preserves
-    state only while the existing stream-supervision deadline remains valid; crossing
-    that deadline latches the same fail-closed supervision fault as arm, sample or
-    watchdog. Legacy untimed reset remains supported and starts its recovery window at
-    the next arm, sample or watchdog observation. Valid sample timestamps are clock
-    observations even when the electrical level is malformed. Established supervision
-    deadlines are evaluated before a new electrical level is classified, so an already-
-    expired stream retains chronological first-fault priority. The first fault cause
-    remains latched until reset. Timing gates compare absolute deadlines rather than
-    subtracting floating timestamps.
+    timestamps supplied to sample, arm, watchdog or reset continue to advance the shared
+    clock floor without replacing the first fault. Invalid or regressing reset timestamps
+    are runtime faults rather than exceptions, keeping the firmware-facing API fail-closed
+    and event-observable. Firmware may pass ``now_s`` to ``reset`` so recovery no-sample
+    supervision begins at the actual reset request rather than at an older observation.
+    Reset returns the resulting ``InputEvent`` so a timed healthy reset cannot silently
+    latch a supervision fault. A timed healthy reset preserves state only while the
+    existing stream-supervision deadline remains valid; crossing that deadline latches
+    the same fail-closed supervision fault as arm, sample or watchdog. Legacy untimed
+    reset remains supported and starts its recovery window at the next arm, sample or
+    watchdog observation. Valid sample timestamps are clock observations even when the
+    electrical level is malformed. Established supervision deadlines are evaluated
+    before a new electrical level is classified, so an already-expired stream retains
+    chronological first-fault priority. The first fault cause remains latched until a
+    valid reset. Timing gates compare absolute deadlines rather than subtracting floating
+    timestamps.
     """
 
     def __init__(self, *, debounce_s: float = 0.030, stale_after_s: float = 0.250) -> None:
@@ -81,14 +85,18 @@ class DebouncedInput:
         self._reset_state(require_release=False, preserve_clock=False)
 
     def reset(self, *, now_s: float | None = None) -> InputEvent:
-        """Clear a latched fault and return the resulting observable runtime state."""
+        """Clear a latched fault only from a valid reset observation."""
         reset_at: float | None = None
         if now_s is not None:
             if type(now_s) not in (int, float) or not math.isfinite(float(now_s)):
-                raise HmiInputError("reset time must be finite")
+                if self._fault is not None:
+                    return self._fault_event()
+                return self._trip(FaultCode.RESET_TIME_INVALID, "reset time must be finite")
             reset_at = float(now_s)
             if self._last_observed_at is not None and reset_at < self._last_observed_at:
-                raise HmiInputError("reset time moved backwards")
+                if self._fault is not None:
+                    return self._fault_event()
+                return self._trip(FaultCode.RESET_TIME_REGRESSION, "reset time moved backwards")
         if self._fault is None:
             if reset_at is not None:
                 self._last_observed_at = reset_at
