@@ -32,9 +32,20 @@ class ZoneMechanicalSensitivity:
 
 
 @dataclass(frozen=True, slots=True)
+class ZoneMechanicalSensitivityExtrema:
+    """Worst measured adjacent-angle sensitivities retained independently per zone."""
+    zone_id: str
+    maximum_abs_force_sensitivity: ZoneMechanicalSensitivity
+    maximum_abs_displacement_sensitivity: ZoneMechanicalSensitivity
+    maximum_abs_phase_sensitivity: ZoneMechanicalSensitivity
+    maximum_abs_temperature_sensitivity: ZoneMechanicalSensitivity
+
+
+@dataclass(frozen=True, slots=True)
 class ActuationMechanicalSensitivityEnvelope:
     interval_count: int
     sensitivities: tuple[ZoneMechanicalSensitivity, ...]
+    zone_extrema: tuple[ZoneMechanicalSensitivityExtrema, ...]
     maximum_abs_force_sensitivity: ZoneMechanicalSensitivity
     maximum_abs_displacement_sensitivity: ZoneMechanicalSensitivity
     maximum_abs_phase_sensitivity: ZoneMechanicalSensitivity
@@ -85,6 +96,10 @@ def _canonical(item: ZoneMechanicalSensitivity) -> tuple[str, float, float, str,
     return (item.zone_id, item.lower_angle_deg, item.upper_angle_deg, item.lower_record_id, item.upper_record_id)
 
 
+def _maximum(items: tuple[ZoneMechanicalSensitivity, ...], attribute: str) -> ZoneMechanicalSensitivity:
+    return max(items, key=lambda item: (abs(getattr(item, attribute)), _canonical(item)))
+
+
 def reduce_measured_mechanical_sensitivity(
     sweep: FourZoneImpedanceSweep,
     parameters: ActuationParameterSet,
@@ -128,11 +143,26 @@ def reduce_measured_mechanical_sensitivity(
     result = tuple(sensitivities)
     if not result or coupling.point_count == 0:
         raise ActuationParameterError("Mechanical sensitivity requires measured four-zone evidence")
+
+    zone_extrema = []
+    for zone_id in sorted(by_zone):
+        zone_items = tuple(item for item in result if item.zone_id == zone_id)
+        if not zone_items:
+            raise ActuationParameterError(f"Mechanical sensitivity has no adjacent-angle evidence for {zone_id}")
+        zone_extrema.append(ZoneMechanicalSensitivityExtrema(
+            zone_id=zone_id,
+            maximum_abs_force_sensitivity=_maximum(zone_items, "force_slope_N_per_deg"),
+            maximum_abs_displacement_sensitivity=_maximum(zone_items, "displacement_slope_mm_per_deg"),
+            maximum_abs_phase_sensitivity=_maximum(zone_items, "phase_slope_deg_per_deg"),
+            maximum_abs_temperature_sensitivity=_maximum(zone_items, "temperature_slope_C_per_deg"),
+        ))
+
     return ActuationMechanicalSensitivityEnvelope(
         interval_count=len(result),
         sensitivities=result,
-        maximum_abs_force_sensitivity=max(result, key=lambda item: (abs(item.force_slope_N_per_deg), _canonical(item))),
-        maximum_abs_displacement_sensitivity=max(result, key=lambda item: (abs(item.displacement_slope_mm_per_deg), _canonical(item))),
-        maximum_abs_phase_sensitivity=max(result, key=lambda item: (abs(item.phase_slope_deg_per_deg), _canonical(item))),
-        maximum_abs_temperature_sensitivity=max(result, key=lambda item: (abs(item.temperature_slope_C_per_deg), _canonical(item))),
+        zone_extrema=tuple(zone_extrema),
+        maximum_abs_force_sensitivity=_maximum(result, "force_slope_N_per_deg"),
+        maximum_abs_displacement_sensitivity=_maximum(result, "displacement_slope_mm_per_deg"),
+        maximum_abs_phase_sensitivity=_maximum(result, "phase_slope_deg_per_deg"),
+        maximum_abs_temperature_sensitivity=_maximum(result, "temperature_slope_C_per_deg"),
     )
