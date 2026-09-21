@@ -45,6 +45,7 @@ jobs:
             src/masck_one/retention_quick_release_tactile_v9.py \
             src/masck_one/retention_quick_release_tactile_v10.py \
             src/masck_one/retention_quick_release_tactile_v11.py \
+            src/masck_one/retention_quick_release_tactile_v12.py \
             src/masck_one/structural_frame_retention_roots.py \
             src/masck_one/structural_frame_retention_root_service.py \
             src/masck_one/structural_frame_retention_clevis_bores.py \
@@ -102,7 +103,8 @@ jobs:
             tests/test_retention_quick_release_tactile_v8.py \
             tests/test_retention_quick_release_tactile_v9.py \
             tests/test_retention_quick_release_tactile_v10.py \
-            tests/test_retention_quick_release_tactile_v11.py
+            tests/test_retention_quick_release_tactile_v11.py \
+            tests/test_retention_quick_release_tactile_v12.py
 
 # Branch-level mechanism verification only. V1 and V2 remain explicit superseded
 # tactile evidence. V3 repairs the rib/bumper conflict, V4 screens the full nominal
@@ -110,14 +112,15 @@ jobs:
 # grid, V7 corrects that grid to respect the spool rail's radial clearance, V8
 # strengthens transverse boundary sampling, V9 inserts every inter-station travel
 # midpoint, V10 halves that remaining sampled travel interval again by adding quarter
-# points, and V11 halves it again with eighth-interval stations while failing closed on
-# invalid or unavailable OCC clearance evidence. Structural-root V2 independently fails
-# closed on B-rep query errors. Structural-root V3 rejects incomplete or impossible
-# capture-pin engagement through the nominal yoke bore. Structural-root V4 rejects
-# material bilateral pin/bore capture mismatch. Structural-root V5 also rejects material
-# bilateral mismatch where the two root counterparts capture into the source structural
-# frame. Structural-root V6 binds each source-frame capture to the physical volume of its
-# frame counterpart, rejecting impossible over-capture metrics or stale Boolean evidence.
+# points, V11 halves it again with eighth-interval stations while failing closed on
+# invalid or unavailable OCC clearance evidence, and V12 cryptographically binds that
+# exact station schedule while proving every V10 station remains registered. Structural-root
+# V2 independently fails closed on B-rep query errors. Structural-root V3 rejects incomplete
+# or impossible capture-pin engagement through the nominal yoke bore. Structural-root V4
+# rejects material bilateral pin/bore capture mismatch. Structural-root V5 also rejects
+# material bilateral mismatch where the two root counterparts capture into the source
+# structural frame. Structural-root V6 binds each source-frame capture to the physical volume
+# of its frame counterpart, rejecting impossible over-capture metrics or stale Boolean evidence.
 # Structural-root V7 cross-checks generator-recorded source capture against the independent
 # B-rep result. Structural-root V8 independently measures pin-to-yoke material clearance
 # and requires generator-recorded radial clearance to agree with the authoritative pin/bore
