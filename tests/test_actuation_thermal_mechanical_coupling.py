@@ -53,6 +53,28 @@ def test_coupled_reduction_keeps_hottest_point_mechanics_on_same_record():
     assert hottest.force_N == pytest.approx(0.25 + (len(ZONE_IDS) - 1) * 0.02 + (len(parameters.axis_angle_doe_deg) - 1) * 0.01)
 
 
+def test_coupled_reduction_preserves_each_zone_extrema_on_original_records():
+    parameters = _parameters(); result = reduce_measured_thermal_mechanical_coupling(_sweep(parameters), parameters)
+    assert tuple(envelope.zone_id for envelope in result.zone_envelopes) == tuple(sorted(ZONE_IDS))
+    assert all(envelope.point_count == len(parameters.axis_angle_doe_deg) for envelope in result.zone_envelopes)
+    for envelope in result.zone_envelopes:
+        assert envelope.hottest_point.zone_id == envelope.zone_id
+        assert envelope.hottest_point.axis_angle_deg == max(parameters.axis_angle_doe_deg)
+        assert envelope.hottest_point.record_id == f"COUPLED-{envelope.zone_id}-{max(parameters.axis_angle_doe_deg):g}"
+        assert envelope.minimum_force_point.zone_id == envelope.zone_id
+        assert envelope.minimum_force_point.axis_angle_deg == min(parameters.axis_angle_doe_deg)
+        assert envelope.maximum_displacement_error_point.zone_id == envelope.zone_id
+        assert envelope.maximum_displacement_error_point.axis_angle_deg == max(parameters.axis_angle_doe_deg)
+
+
+def test_zone_coupled_envelopes_are_order_independent():
+    parameters = _parameters(); sweep = _sweep(parameters)
+    reversed_sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(reversed(sweep.records)))
+    forward = reduce_measured_thermal_mechanical_coupling(sweep, parameters)
+    reverse = reduce_measured_thermal_mechanical_coupling(reversed_sweep, parameters)
+    assert forward.zone_envelopes == reverse.zone_envelopes
+
+
 def test_coupled_reduction_reports_signed_shortfalls_without_qualification_claim():
     parameters = _parameters(); result = reduce_measured_thermal_mechanical_coupling(_sweep(parameters), parameters)
     assert result.minimum_force_point.continuous_force_margin_N == pytest.approx(0.25 - parameters.continuous_force_requirement_N)
