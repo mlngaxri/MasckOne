@@ -30,12 +30,17 @@ class CartridgeOverflowGuard:
     conservative_overflow_at_failure_mL: float
     contractual_reserve_headroom_mL: float
     conservative_reserve_headroom_mL: float
+    source_capacity_reserve_sha256: str | None = None
 
     def __post_init__(self) -> None:
         if type(self.routing) is not CycleResolvedRoutingClosure:
             raise WasteFluidAccountingError("overflow guard requires exact CycleResolvedRoutingClosure evidence")
         if not self.routing.cycles:
             raise WasteFluidAccountingError("overflow guard requires at least one routed cycle")
+        if self.source_capacity_reserve_sha256 is not None:
+            value = self.source_capacity_reserve_sha256
+            if type(value) is not str or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+                raise WasteFluidAccountingError("capacity reserve provenance must be a canonical lowercase SHA-256 digest")
         numeric = {
             "retained_capacity_mL": self.retained_capacity_mL,
             "capacity_reserve_mL": self.capacity_reserve_mL,
@@ -110,6 +115,7 @@ def screen_cartridge_overflow_guard(
     prime_residual_ratio_contract: float | None = None,
     prime_external_leakage_ratio_contract: float | None = None,
     capacity_reserve_mL: float = 0.0,
+    source_capacity_reserve_sha256: str | None = None,
 ) -> CartridgeOverflowGuard:
     """Classify cartridge capacity without granting unsupported sink credit."""
     budget.validate()
@@ -118,6 +124,9 @@ def screen_cartridge_overflow_guard(
     capacity_reserve_mL = float(capacity_reserve_mL)
     if not math.isfinite(capacity_reserve_mL) or capacity_reserve_mL < 0:
         raise WasteFluidAccountingError("capacity_reserve_mL must be finite and nonnegative")
+    if source_capacity_reserve_sha256 is not None:
+        if type(source_capacity_reserve_sha256) is not str or len(source_capacity_reserve_sha256) != 64 or any(c not in "0123456789abcdef" for c in source_capacity_reserve_sha256):
+            raise WasteFluidAccountingError("capacity reserve provenance must be a canonical lowercase SHA-256 digest")
     retained_capacity = budget.cartridge_retained_capacity_requirement_mL
     if capacity_reserve_mL >= retained_capacity:
         raise WasteFluidAccountingError("capacity_reserve_mL must be smaller than cartridge retained-capacity requirement")
@@ -153,4 +162,5 @@ def screen_cartridge_overflow_guard(
         conservative_overflow_at_failure_mL=conservative_overflow,
         contractual_reserve_headroom_mL=usable_capacity - contractual_required,
         conservative_reserve_headroom_mL=usable_capacity - conservative_required,
+        source_capacity_reserve_sha256=source_capacity_reserve_sha256,
     )
