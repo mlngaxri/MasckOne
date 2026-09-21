@@ -49,6 +49,10 @@ class FourZoneImpedanceSweep:
         for item in self.records:
             if type(item) is not ZoneImpedanceRecord:
                 raise ActuationParameterError("Four-zone sweep contains non-zone impedance evidence")
+            if item.record.source_parameter_sha256 != self.source_parameter_sha256:
+                raise ActuationParameterError(
+                    "Four-zone sweep record parameter identity must match the sweep parameter identity"
+                )
             key = (item.zone_id, float(item.record.axis_angle_deg))
             if key in observed:
                 raise ActuationParameterError(f"Duplicate four-zone sweep point {key!r}")
