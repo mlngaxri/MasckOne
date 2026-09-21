@@ -54,6 +54,7 @@ jobs:
             src/masck_one/retention_quick_release_tactile_v18.py \
             src/masck_one/retention_quick_release_tactile_v19.py \
             src/masck_one/retention_quick_release_tactile_v20.py \
+            src/masck_one/retention_quick_release_tactile_v21.py \
             src/masck_one/structural_frame_retention_roots.py \
             src/masck_one/structural_frame_retention_root_service.py \
             src/masck_one/structural_frame_retention_clevis_bores.py \
@@ -120,7 +121,8 @@ jobs:
             tests/test_retention_quick_release_tactile_v17.py \
             tests/test_retention_quick_release_tactile_v18.py \
             tests/test_retention_quick_release_tactile_v19.py \
-            tests/test_retention_quick_release_tactile_v20.py
+            tests/test_retention_quick_release_tactile_v20.py \
+            tests/test_retention_quick_release_tactile_v21.py
 
 # Branch-level mechanism verification only. V1 and V2 remain explicit superseded
 # tactile evidence. V3 repairs the rib/bumper conflict, V4 screens nominal release
@@ -139,8 +141,9 @@ jobs:
 # screens every midpoint between adjacent canonical release-travel stations against both
 # V16 aligned and V17 interstitial transverse meshes. V19 independently screens the 25%
 # and 75% positions in every canonical interval against both meshes. V20 independently
-# screens the four remaining eighth-grid positions in every interval against both meshes,
-# halving the largest sampled travel gap again. V18-V20 fail closed on OCC evidence and
+# screens the four remaining eighth-grid positions in every interval against both meshes.
+# V21 independently screens the eight odd sixteenth-grid positions in every interval,
+# halving the largest sampled travel gap again. V18-V21 fail closed on OCC evidence and
 # bind their pose/intersection identities. Structural-root V2-V21 remain regression-gated,
 # including fail-closed B-rep handling, capture geometry, pin/retainer registration,
 # integrated collision checks, source-reaction provenance and complete root-architecture
