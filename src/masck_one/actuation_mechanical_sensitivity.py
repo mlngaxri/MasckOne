@@ -43,6 +43,8 @@ class ZoneMechanicalSensitivityExtrema:
 
 @dataclass(frozen=True, slots=True)
 class ActuationMechanicalSensitivityEnvelope:
+    source_parameter_sha256: str
+    source_sweep_sha256: str
     interval_count: int
     sensitivities: tuple[ZoneMechanicalSensitivity, ...]
     zone_extrema: tuple[ZoneMechanicalSensitivityExtrema, ...]
@@ -104,7 +106,7 @@ def reduce_measured_mechanical_sensitivity(
     sweep: FourZoneImpedanceSweep,
     parameters: ActuationParameterSet,
 ) -> ActuationMechanicalSensitivityEnvelope:
-    """Reduce adjacent-angle measured sensitivities without losing record provenance."""
+    """Reduce adjacent-angle measured sensitivities without losing record or sweep provenance."""
     coupling = reduce_measured_thermal_mechanical_coupling(sweep, parameters)
     phase_by_record_id = {item.record.record_id: float(item.record.measured_phase_deg) for item in sweep.records}
     by_zone: dict[str, list[ThermalMechanicalPoint]] = {}
@@ -158,6 +160,8 @@ def reduce_measured_mechanical_sensitivity(
         ))
 
     return ActuationMechanicalSensitivityEnvelope(
+        source_parameter_sha256=sweep.source_parameter_sha256,
+        source_sweep_sha256=sweep.sweep_sha256,
         interval_count=len(result),
         sensitivities=result,
         zone_extrema=tuple(zone_extrema),
