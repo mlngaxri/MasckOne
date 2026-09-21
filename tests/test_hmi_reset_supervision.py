@@ -1,4 +1,4 @@
-from masck_one.hmi_runtime import DebouncedInput, FaultCode
+from masck_one.hmi_runtime import DebouncedInput, Edge, FaultCode
 
 
 def _stale_fault() -> DebouncedInput:
@@ -73,7 +73,7 @@ def test_timed_reset_regression_preserves_existing_first_fault():
 
     assert reset.faulted is True
     assert reset.fault_code is FaultCode.INPUT_STREAM_STALE
-    assert reset.fault == "input stream stale"
+    assert reset.fault == "input stream became stale"
     assert control.faulted is True
 
 
@@ -84,7 +84,7 @@ def test_timed_reset_malformed_time_preserves_existing_first_fault():
 
     assert reset.faulted is True
     assert reset.fault_code is FaultCode.INPUT_STREAM_STALE
-    assert reset.fault == "input stream stale"
+    assert reset.fault == "input stream became stale"
     assert control.faulted is True
 
 
@@ -99,7 +99,7 @@ def test_healthy_timed_reset_malformed_time_latches_fail_closed_fault():
     assert reset.faulted is True
     assert reset.fault_code is FaultCode.RESET_TIME_INVALID
     assert reset.stable_pressed is False
-    assert reset.edge.value == "none"
+    assert reset.edge is Edge.NONE
     assert control.faulted is True
 
 
@@ -114,7 +114,7 @@ def test_healthy_timed_reset_clock_regression_latches_fail_closed_fault():
     assert reset.faulted is True
     assert reset.fault_code is FaultCode.RESET_TIME_REGRESSION
     assert reset.stable_pressed is False
-    assert reset.edge.value == "none"
+    assert reset.edge is Edge.NONE
     assert control.faulted is True
 
 
