@@ -40,7 +40,7 @@ class ZoneThermalMechanicalEnvelope:
 
 @dataclass(frozen=True, slots=True)
 class AngleThermalMechanicalSpread:
-    """Cross-zone thermal/mechanical spread at one shared carrier angle."""
+    """Cross-zone thermal/mechanical spread and requirement margin at one carrier angle."""
 
     axis_angle_deg: float
     point_count: int
@@ -54,6 +54,9 @@ class AngleThermalMechanicalSpread:
     temperature_span_C: float
     force_span_N: float
     displacement_span_mm: float
+    minimum_continuous_force_margin_N: float
+    minimum_transient_force_margin_N: float
+    maximum_abs_displacement_error_mm: float
     hottest_zone_is_minimum_force_zone: bool
     hottest_zone_is_maximum_displacement_error_zone: bool
 
@@ -73,6 +76,9 @@ class ActuationThermalMechanicalCoupling:
     maximum_temperature_span_angle: AngleThermalMechanicalSpread
     maximum_force_span_angle: AngleThermalMechanicalSpread
     maximum_displacement_span_angle: AngleThermalMechanicalSpread
+    minimum_continuous_force_margin_angle: AngleThermalMechanicalSpread
+    minimum_transient_force_margin_angle: AngleThermalMechanicalSpread
+    maximum_abs_displacement_error_angle: AngleThermalMechanicalSpread
 
 
 def _point(item: ZoneImpedanceRecord, parameters: ActuationParameterSet) -> ThermalMechanicalPoint:
@@ -141,6 +147,9 @@ def _reduce_angle(angle: float, points: tuple[ThermalMechanicalPoint, ...]) -> A
         temperature_span_C=hottest.temperature_C - coolest.temperature_C,
         force_span_N=maximum_force.force_N - minimum_force.force_N,
         displacement_span_mm=maximum_displacement.displacement_pp_mm - minimum_displacement.displacement_pp_mm,
+        minimum_continuous_force_margin_N=minimum_force.continuous_force_margin_N,
+        minimum_transient_force_margin_N=minimum_force.transient_force_margin_N,
+        maximum_abs_displacement_error_mm=abs(maximum_error.displacement_error_mm),
         hottest_zone_is_minimum_force_zone=hottest.zone_id == minimum_force.zone_id,
         hottest_zone_is_maximum_displacement_error_zone=hottest.zone_id == maximum_error.zone_id,
     )
@@ -176,6 +185,9 @@ def reduce_measured_thermal_mechanical_coupling(
     maximum_temperature_span_angle = max(angle_spreads, key=lambda spread: (spread.temperature_span_C, -spread.axis_angle_deg))
     maximum_force_span_angle = max(angle_spreads, key=lambda spread: (spread.force_span_N, -spread.axis_angle_deg))
     maximum_displacement_span_angle = max(angle_spreads, key=lambda spread: (spread.displacement_span_mm, -spread.axis_angle_deg))
+    minimum_continuous_force_margin_angle = min(angle_spreads, key=lambda spread: (spread.minimum_continuous_force_margin_N, spread.axis_angle_deg))
+    minimum_transient_force_margin_angle = min(angle_spreads, key=lambda spread: (spread.minimum_transient_force_margin_N, spread.axis_angle_deg))
+    maximum_abs_displacement_error_angle = max(angle_spreads, key=lambda spread: (spread.maximum_abs_displacement_error_mm, -spread.axis_angle_deg))
 
     return ActuationThermalMechanicalCoupling(
         point_count=len(points),
@@ -189,4 +201,7 @@ def reduce_measured_thermal_mechanical_coupling(
         maximum_temperature_span_angle=maximum_temperature_span_angle,
         maximum_force_span_angle=maximum_force_span_angle,
         maximum_displacement_span_angle=maximum_displacement_span_angle,
+        minimum_continuous_force_margin_angle=minimum_continuous_force_margin_angle,
+        minimum_transient_force_margin_angle=minimum_transient_force_margin_angle,
+        maximum_abs_displacement_error_angle=maximum_abs_displacement_error_angle,
     )
