@@ -32,7 +32,7 @@ class ZoneImpedanceRecord:
 
 @dataclass(frozen=True, slots=True)
 class ZoneMeasuredResponse:
-    """Lossless extrema used to compare measured zone response without inventing pass criteria."""
+    """Lossless extrema and requirement margins without declaring physical qualification."""
 
     zone_id: str
     point_count: int
@@ -41,6 +41,8 @@ class ZoneMeasuredResponse:
     min_displacement_pp_mm: float
     max_displacement_pp_mm: float
     max_abs_displacement_error_mm: float
+    min_continuous_force_margin_N: float
+    min_transient_force_margin_N: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,7 +101,7 @@ class FourZoneImpedanceSweep:
             raise ActuationParameterError("Four-zone sweep cannot mix predicted and measured evidence")
 
     def measured_response_by_zone(self, parameters: ActuationParameterSet) -> Mapping[str, ZoneMeasuredResponse]:
-        """Reduce a complete measured sweep to zone extrema without declaring physical qualification."""
+        """Reduce measured evidence to zone extrema and signed force margins, not qualification."""
         self.validate(parameters)
         if any(item.record.source_kind != "MEASURED" for item in self.records):
             raise ActuationParameterError("Measured response reduction requires a complete measured four-zone sweep")
@@ -110,19 +112,21 @@ class FourZoneImpedanceSweep:
             zone_records = [item.record for item in self.records if item.zone_id == zone_id]
             forces = [record.measured_force_N for record in zone_records]
             displacements = [record.measured_displacement_pp_mm for record in zone_records]
-            # MEASURED construction guarantees these observations are present and finite.
             if any(value is None for value in forces + displacements):
                 raise ActuationParameterError("Measured sweep lost required force or displacement observations")
             force_values = [float(value) for value in forces if value is not None]
             displacement_values = [float(value) for value in displacements if value is not None]
+            minimum_force = min(force_values)
             result[zone_id] = ZoneMeasuredResponse(
                 zone_id=zone_id,
                 point_count=len(zone_records),
-                min_force_N=min(force_values),
+                min_force_N=minimum_force,
                 max_force_N=max(force_values),
                 min_displacement_pp_mm=min(displacement_values),
                 max_displacement_pp_mm=max(displacement_values),
                 max_abs_displacement_error_mm=max(abs(value - target) for value in displacement_values),
+                min_continuous_force_margin_N=minimum_force - parameters.continuous_force_requirement_N,
+                min_transient_force_margin_N=minimum_force - parameters.transient_force_requirement_N,
             )
         return result
 
