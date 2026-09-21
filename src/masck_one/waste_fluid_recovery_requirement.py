@@ -22,6 +22,7 @@ class ServiceRecoveryRequirement:
 
     source: ServiceRoutingClosure
     authority_recovery_ratio_min: float
+    nominal_service_liquid_mL: float
     available_nominal_nonrecovery_sink_mL: float
     required_nominal_recovery_mL: float
     required_nominal_recovery_ratio: float
@@ -34,6 +35,7 @@ class ServiceRecoveryRequirement:
             raise WasteFluidAccountingError("recovery requirement requires exact ServiceRoutingClosure evidence")
         numeric = (
             self.authority_recovery_ratio_min,
+            self.nominal_service_liquid_mL,
             self.available_nominal_nonrecovery_sink_mL,
             self.required_nominal_recovery_mL,
             self.required_nominal_recovery_ratio,
@@ -44,6 +46,8 @@ class ServiceRecoveryRequirement:
             raise WasteFluidAccountingError("recovery requirement evidence must be finite numeric data")
         if not 0.0 <= self.authority_recovery_ratio_min <= 1.0:
             raise WasteFluidAccountingError("authority recovery ratio must be between zero and one")
+        if self.nominal_service_liquid_mL <= _TOL:
+            raise WasteFluidAccountingError("nominal service liquid must be positive")
         if not 0.0 <= self.required_nominal_recovery_ratio <= 1.0:
             raise WasteFluidAccountingError("required nominal recovery ratio must be between zero and one")
         if self.available_nominal_nonrecovery_sink_mL < -_TOL:
@@ -52,7 +56,26 @@ class ServiceRecoveryRequirement:
             raise WasteFluidAccountingError("required nominal recovery cannot be negative")
         if self.recovery_ratio_shortfall < -_TOL or self.additional_nominal_recovery_required_mL < -_TOL:
             raise WasteFluidAccountingError("recovery shortfall evidence cannot be negative")
-        expected_closes = self.recovery_ratio_shortfall <= _TOL
+
+        expected_sink = self.source.prime_residual_ceiling_margin_mL + self.source.prime_external_leakage_ceiling_margin_mL
+        expected_required_mL = max(0.0, self.nominal_service_liquid_mL - expected_sink)
+        expected_ratio = min(1.0, expected_required_mL / self.nominal_service_liquid_mL)
+        expected_shortfall = max(0.0, expected_ratio - self.authority_recovery_ratio_min)
+        expected_additional = max(
+            0.0,
+            expected_required_mL - self.nominal_service_liquid_mL * self.authority_recovery_ratio_min,
+        )
+        checks = (
+            (self.available_nominal_nonrecovery_sink_mL, expected_sink, "available sink"),
+            (self.required_nominal_recovery_mL, expected_required_mL, "required recovery volume"),
+            (self.required_nominal_recovery_ratio, expected_ratio, "required recovery ratio"),
+            (self.recovery_ratio_shortfall, expected_shortfall, "recovery ratio shortfall"),
+            (self.additional_nominal_recovery_required_mL, expected_additional, "additional recovery volume"),
+        )
+        for actual, expected, label in checks:
+            if not math.isclose(actual, expected, rel_tol=0.0, abs_tol=_TOL):
+                raise WasteFluidAccountingError(f"recovery requirement {label} is inconsistent with source evidence")
+        expected_closes = expected_shortfall <= _TOL
         if type(self.recovery_requirement_closes) is not bool or self.recovery_requirement_closes != expected_closes:
             raise WasteFluidAccountingError("recovery closure decision is inconsistent with recovery shortfall")
 
@@ -83,13 +106,11 @@ def derive_service_recovery_requirement(
         prime_external_leakage_ratio_contract=prime_external_leakage_ratio_contract,
     )
     nominal_total = budget.nominal_introduced_mL_per_cycle * cycles
-    available_sink = source.prime_residual_ceiling_margin_mL + source.prime_external_leakage_ceiling_margin_mL
     if nominal_total <= _TOL:
-        required_recovery_mL = 0.0
-        required_ratio = 1.0
-    else:
-        required_recovery_mL = max(0.0, nominal_total - available_sink)
-        required_ratio = min(1.0, max(0.0, required_recovery_mL / nominal_total))
+        raise WasteFluidAccountingError("nominal service liquid must be positive")
+    available_sink = source.prime_residual_ceiling_margin_mL + source.prime_external_leakage_ceiling_margin_mL
+    required_recovery_mL = max(0.0, nominal_total - available_sink)
+    required_ratio = min(1.0, max(0.0, required_recovery_mL / nominal_total))
 
     ratio_shortfall = max(0.0, required_ratio - budget.recovery_ratio_min)
     current_required_recovery_mL = nominal_total * budget.recovery_ratio_min
@@ -98,6 +119,7 @@ def derive_service_recovery_requirement(
     return ServiceRecoveryRequirement(
         source=source,
         authority_recovery_ratio_min=budget.recovery_ratio_min,
+        nominal_service_liquid_mL=nominal_total,
         available_nominal_nonrecovery_sink_mL=available_sink,
         required_nominal_recovery_mL=required_recovery_mL,
         required_nominal_recovery_ratio=required_ratio,
