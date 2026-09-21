@@ -89,14 +89,7 @@ class ActuationParameterSet:
         raw = json.dumps(self.manifest(include_sha=False), sort_keys=True, separators=(",", ":")).encode("utf-8")
         return hashlib.sha256(raw).hexdigest()
 
-    def validate_current_sources(
-        self,
-        *,
-        authority: Authority,
-        actuator_architecture: ActuatorFrameArchitecture,
-        displacement_contract: ActuationDisplacementContract,
-        coupling_architecture: ActuatorCouplingArchitecture,
-    ) -> None:
+    def validate_current_sources(self, *, authority: Authority, actuator_architecture: ActuatorFrameArchitecture, displacement_contract: ActuationDisplacementContract, coupling_architecture: ActuatorCouplingArchitecture) -> None:
         if self.source_authority_revision != str(authority.get("project", "authority_revision")):
             raise ActuationParameterError("Actuation parameter set is stale for the current authority revision")
         if self.source_actuator_architecture_sha256 != actuator_architecture.architecture_sha256:
@@ -179,6 +172,23 @@ class ImpedanceTestRecord:
                 raise ActuationParameterError("Measured impedance records require evidence provenance")
             _text(self.evidence_uri, label="evidence URI")
 
+    def validate_command_envelope(self, parameters: ActuationParameterSet) -> None:
+        """Fail closed unless this record uses the exact authority-bound CLEAN command envelope."""
+        if type(parameters) is not ActuationParameterSet:
+            raise ActuationParameterError("Impedance record requires exact ActuationParameterSet evidence")
+        if self.source_parameter_sha256 != parameters.parameter_sha256:
+            raise ActuationParameterError("Impedance record is stale for the supplied actuation parameter set")
+        if self.commanded_displacement_pp_mm != parameters.displacement_pp_baseline_mm:
+            raise ActuationParameterError("Impedance record displacement is outside the authority-bound command envelope")
+        if self.axis_angle_deg not in parameters.axis_angle_doe_deg:
+            raise ActuationParameterError("Impedance record axis angle is outside the authority-bound DOE")
+        allowed_frequencies = parameters.frequency_sensitivity_points_hz
+        if allowed_frequencies is None:
+            if self.frequency_hz != parameters.clean_frequency_baseline_hz:
+                raise ActuationParameterError("Impedance record frequency is outside the authority-bound CLEAN baseline")
+        elif self.frequency_hz not in allowed_frequencies:
+            raise ActuationParameterError("Impedance record frequency is outside the authority-bound sensitivity DOE")
+
     def manifest(self) -> Mapping[str, object]:
         return {
             "record_id": self.record_id,
@@ -196,12 +206,7 @@ class ImpedanceTestRecord:
         }
 
 
-def build_actuation_parameter_set(
-    authority: Authority,
-    actuator_architecture: ActuatorFrameArchitecture,
-    displacement_contract: ActuationDisplacementContract,
-    coupling_architecture: ActuatorCouplingArchitecture,
-) -> ActuationParameterSet:
+def build_actuation_parameter_set(authority: Authority, actuator_architecture: ActuatorFrameArchitecture, displacement_contract: ActuationDisplacementContract, coupling_architecture: ActuatorCouplingArchitecture) -> ActuationParameterSet:
     parameters = ActuationParameterSet(
         source_authority_revision=str(authority.get("project", "authority_revision")),
         source_actuator_architecture_sha256=actuator_architecture.architecture_sha256,
@@ -217,10 +222,5 @@ def build_actuation_parameter_set(
         physical_validation_eligible=False,
         evidence_status="AUTHORITY_BOUND_ACTUATION_PARAMETER_AND_IMPEDANCE_HANDOFF_ONLY_NOT_FORCE_IMPEDANCE_EFFICACY_OR_PHYSICAL_VALIDATION",
     )
-    parameters.validate_current_sources(
-        authority=authority,
-        actuator_architecture=actuator_architecture,
-        displacement_contract=displacement_contract,
-        coupling_architecture=coupling_architecture,
-    )
+    parameters.validate_current_sources(authority=authority, actuator_architecture=actuator_architecture, displacement_contract=displacement_contract, coupling_architecture=coupling_architecture)
     return parameters
