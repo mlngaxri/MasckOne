@@ -1,6 +1,6 @@
 import pytest
 
-from masck_one.hmi_runtime import DebouncedInput, FaultCode, HmiInputError
+from masck_one.hmi_runtime import DebouncedInput, FaultCode
 
 
 def _fault_at(now_s: float = 1.0) -> DebouncedInput:
@@ -22,8 +22,9 @@ def test_valid_post_fault_service_time_advances_reset_clock_floor(service):
         repeated = control.watchdog(now_s=5.0)
 
     assert repeated.fault_code is FaultCode.PRESSED_NOT_BOOL
-    with pytest.raises(HmiInputError, match="reset time moved backwards"):
-        control.reset(now_s=4.999)
+    reset = control.reset(now_s=4.999)
+    assert reset.fault_code is FaultCode.PRESSED_NOT_BOOL
+    assert reset.fault == "pressed must be an exact bool"
     assert control.faulted is True
 
 
@@ -52,8 +53,9 @@ def test_regressed_post_fault_time_does_not_lower_clock_floor():
     repeated = control.arm(now_s=9.0)
     assert repeated.fault_code is FaultCode.PRESSED_NOT_BOOL
 
-    with pytest.raises(HmiInputError, match="reset time moved backwards"):
-        control.reset(now_s=9.5)
+    reset = control.reset(now_s=9.5)
+    assert reset.fault_code is FaultCode.PRESSED_NOT_BOOL
+    assert reset.fault == "pressed must be an exact bool"
     assert control.faulted is True
 
 
