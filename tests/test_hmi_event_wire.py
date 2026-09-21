@@ -1,5 +1,6 @@
 import pytest
 
+import masck_one.hmi_event_wire as hmi_event_wire
 from masck_one.hmi_event_wire import HmiEventWireError, input_event_from_wire, input_event_to_wire
 from masck_one.hmi_runtime import DebouncedInput, Edge, FaultCode, InputEvent
 
@@ -103,3 +104,16 @@ def test_encoder_rejects_fault_diagnostic_on_healthy_event() -> None:
     event = InputEvent(False, Edge.NONE, False, "stale diagnostic", None)
     with pytest.raises(HmiEventWireError, match="healthy event cannot carry a fault diagnostic"):
         input_event_to_wire(event)
+
+
+def test_contract_rejects_swapped_edge_semantics_even_with_matching_inverse(monkeypatch: pytest.MonkeyPatch) -> None:
+    swapped = {
+        Edge.NONE: "none",
+        Edge.PRESSED: "released",
+        Edge.RELEASED: "pressed",
+    }
+    monkeypatch.setattr(hmi_event_wire, "_EDGE_TO_WIRE", swapped)
+    monkeypatch.setattr(hmi_event_wire, "_WIRE_TO_EDGE", {identifier: edge for edge, identifier in swapped.items()})
+
+    with pytest.raises(HmiEventWireError, match="canonical_matches=False"):
+        input_event_to_wire(InputEvent(True, Edge.PRESSED))

@@ -16,13 +16,51 @@ class HmiEventWireError(ValueError):
     """Raised when an HMI event wire payload violates the contract."""
 
 
-_EDGE_TO_WIRE: dict[Edge, str] = {
+_CANONICAL_EDGE_TO_WIRE: dict[Edge, str] = {
     Edge.NONE: "none",
     Edge.PRESSED: "pressed",
     Edge.RELEASED: "released",
 }
+_EDGE_TO_WIRE: dict[Edge, str] = dict(_CANONICAL_EDGE_TO_WIRE)
 _WIRE_TO_EDGE = {identifier: edge for edge, identifier in _EDGE_TO_WIRE.items()}
 _FIELDS = frozenset({"stable_pressed", "edge", "faulted", "fault_code"})
+
+
+def assert_event_wire_contract_complete() -> None:
+    """Fail closed if runtime edge coverage or canonical wire semantics drift."""
+    valid_keys = {key for key in _EDGE_TO_WIRE if type(key) is Edge}
+    invalid_key_reprs = sorted(repr(key) for key in _EDGE_TO_WIRE if type(key) is not Edge)
+    missing = set(Edge) - valid_keys
+    identifiers = tuple(_EDGE_TO_WIRE.values())
+    duplicate_reprs = sorted(
+        {repr(identifier) for identifier in identifiers if identifiers.count(identifier) > 1}
+    )
+    invalid_reprs = sorted(
+        repr(identifier)
+        for identifier in identifiers
+        if type(identifier) is not str or identifier not in {"none", "pressed", "released"}
+    )
+    canonical_matches = _EDGE_TO_WIRE == _CANONICAL_EDGE_TO_WIRE
+    inverse_matches = _WIRE_TO_EDGE == {
+        identifier: edge
+        for edge, identifier in _EDGE_TO_WIRE.items()
+        if type(edge) is Edge and type(identifier) is str
+    }
+    if (
+        missing
+        or invalid_key_reprs
+        or duplicate_reprs
+        or invalid_reprs
+        or not canonical_matches
+        or not inverse_matches
+    ):
+        missing_names = sorted(edge.name for edge in missing)
+        raise HmiEventWireError(
+            "event edge wire contract mismatch: "
+            f"missing={missing_names}, invalid_keys={invalid_key_reprs}, "
+            f"duplicates={duplicate_reprs}, invalid={invalid_reprs}, "
+            f"canonical_matches={canonical_matches}, inverse_matches={inverse_matches}"
+        )
 
 
 def input_event_to_wire(event: InputEvent) -> dict[str, Any]:
@@ -30,6 +68,7 @@ def input_event_to_wire(event: InputEvent) -> dict[str, Any]:
     if type(event) is not InputEvent:
         raise HmiEventWireError("event must be an exact InputEvent")
     _validate_event(event)
+    assert_event_wire_contract_complete()
     return {
         "stable_pressed": event.stable_pressed,
         "edge": _EDGE_TO_WIRE[event.edge],
@@ -56,6 +95,7 @@ def input_event_from_wire(payload: object) -> InputEvent:
         extra = sorted(keys - _FIELDS)
         raise HmiEventWireError(f"event wire fields mismatch: missing={missing}, extra={extra}")
 
+    assert_event_wire_contract_complete()
     stable_pressed = payload["stable_pressed"]
     faulted = payload["faulted"]
     edge_id = payload["edge"]
