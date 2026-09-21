@@ -72,11 +72,17 @@ class ActuationThermalEnvelope:
     angle_spreads: tuple[AngleThermalSpread, ...]
     max_cross_zone_span_C: float
     max_cross_zone_span_axis_angle_deg: float
+    max_cross_zone_span_min_zone_id: str
+    max_cross_zone_span_min_record_id: str
+    max_cross_zone_span_max_zone_id: str
+    max_cross_zone_span_max_record_id: str
     angle_sensitivities: tuple[ZoneAngleThermalSensitivity, ...]
     max_abs_temperature_slope_C_per_deg: float
     max_abs_temperature_slope_zone_id: str
     max_abs_temperature_slope_lower_axis_angle_deg: float
     max_abs_temperature_slope_upper_axis_angle_deg: float
+    max_abs_temperature_slope_lower_record_id: str
+    max_abs_temperature_slope_upper_record_id: str
 
 
 def reduce_measured_actuation_thermal_envelope(
@@ -170,9 +176,15 @@ def reduce_measured_actuation_thermal_envelope(
         angle_spreads=tuple(angle_spreads),
         max_cross_zone_span_C=worst_spread.cross_zone_span_C,
         max_cross_zone_span_axis_angle_deg=worst_spread.axis_angle_deg,
+        max_cross_zone_span_min_zone_id=worst_spread.min_temperature_zone_id,
+        max_cross_zone_span_min_record_id=worst_spread.min_temperature_record_id,
+        max_cross_zone_span_max_zone_id=worst_spread.max_temperature_zone_id,
+        max_cross_zone_span_max_record_id=worst_spread.max_temperature_record_id,
         angle_sensitivities=tuple(angle_sensitivities),
         max_abs_temperature_slope_C_per_deg=abs(worst_sensitivity.temperature_slope_C_per_deg),
         max_abs_temperature_slope_zone_id=worst_sensitivity.zone_id,
         max_abs_temperature_slope_lower_axis_angle_deg=worst_sensitivity.lower_axis_angle_deg,
         max_abs_temperature_slope_upper_axis_angle_deg=worst_sensitivity.upper_axis_angle_deg,
+        max_abs_temperature_slope_lower_record_id=worst_sensitivity.lower_record_id,
+        max_abs_temperature_slope_upper_record_id=worst_sensitivity.upper_record_id,
     )
