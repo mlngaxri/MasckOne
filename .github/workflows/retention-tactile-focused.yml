@@ -44,6 +44,7 @@ jobs:
             src/masck_one/retention_quick_release_tactile_v8.py \
             src/masck_one/retention_quick_release_tactile_v9.py \
             src/masck_one/retention_quick_release_tactile_v10.py \
+            src/masck_one/retention_quick_release_tactile_v11.py \
             src/masck_one/structural_frame_retention_roots.py \
             src/masck_one/structural_frame_retention_root_service.py \
             src/masck_one/structural_frame_retention_clevis_bores.py \
@@ -100,59 +101,50 @@ jobs:
             tests/test_retention_quick_release_tactile_v7.py \
             tests/test_retention_quick_release_tactile_v8.py \
             tests/test_retention_quick_release_tactile_v9.py \
-            tests/test_retention_quick_release_tactile_v10.py
+            tests/test_retention_quick_release_tactile_v10.py \
+            tests/test_retention_quick_release_tactile_v11.py
 
 # Branch-level mechanism verification only. V1 and V2 remain explicit superseded
 # tactile evidence. V3 repairs the rib/bumper conflict, V4 screens the full nominal
 # release travel, V5 adds a bounded single-axis clearance/travel grid, V6 adds a Y/Z
 # grid, V7 corrects that grid to respect the spool rail's radial clearance, V8
 # strengthens transverse boundary sampling, V9 inserts every inter-station travel
-# midpoint, and V10 halves that remaining sampled travel interval again by adding
-# quarter points. Structural-root V2 independently fails closed on B-rep query errors.
-# Structural-root V3 rejects incomplete or impossible capture-pin engagement through
-# the nominal yoke bore. Structural-root V4 rejects material bilateral pin/bore capture
-# mismatch. Structural-root V5 also rejects material bilateral mismatch where the two
-# root counterparts capture into the source structural frame. Structural-root V6 binds
-# each source-frame capture to the physical volume of its frame counterpart, rejecting
-# impossible over-capture metrics or stale Boolean evidence. Structural-root V7 then
-# cross-checks generator-recorded source capture against the independent B-rep result.
-# Structural-root V8 independently measures pin-to-yoke material clearance and requires
-# generator-recorded radial clearance to agree with the authoritative pin/bore contract.
-# Structural-root V9 verifies each split retainer is axially contained by its capture-pin
-# groove and retains enough radial material beyond the shaft to form a digital axial stop.
-# Structural-root V10 verifies installed retainer axial registration to the groove center.
-# Structural-root V11 independently checks groove-bottom seating clearance and rejects
-# volumetric retainer/capture-pin interference. Structural-root V12 independently rejects
-# installed split-retainer interference with the local frame clevis or nominal yoke material.
-# Structural-root V13 independently verifies the actual headed pin B-rep is seated against
-# the proximal clevis face and retains radial material beyond the shaft for an axial stop.
-# Structural-root V14 binds independently measured capture-pin overall length and head
+# midpoint, V10 halves that remaining sampled travel interval again by adding quarter
+# points, and V11 halves it again with eighth-interval stations while failing closed on
+# invalid or unavailable OCC clearance evidence. Structural-root V2 independently fails
+# closed on B-rep query errors. Structural-root V3 rejects incomplete or impossible
+# capture-pin engagement through the nominal yoke bore. Structural-root V4 rejects
+# material bilateral pin/bore capture mismatch. Structural-root V5 also rejects material
+# bilateral mismatch where the two root counterparts capture into the source structural
+# frame. Structural-root V6 binds each source-frame capture to the physical volume of its
+# frame counterpart, rejecting impossible over-capture metrics or stale Boolean evidence.
+# Structural-root V7 cross-checks generator-recorded source capture against the independent
+# B-rep result. Structural-root V8 independently measures pin-to-yoke material clearance
+# and requires generator-recorded radial clearance to agree with the authoritative pin/bore
+# contract. Structural-root V9 verifies each split retainer is axially contained by its
+# capture-pin groove and retains enough radial material beyond the shaft to form a digital
+# axial stop. Structural-root V10 verifies installed retainer axial registration to the
+# groove center. Structural-root V11 independently checks groove-bottom seating clearance
+# and rejects volumetric retainer/capture-pin interference. Structural-root V12 independently
+# rejects installed split-retainer interference with the local frame clevis or nominal yoke
+# material. Structural-root V13 independently verifies the actual headed pin B-rep is seated
+# against the proximal clevis face and retains radial material beyond the shaft for an axial
+# stop. Structural-root V14 binds independently measured capture-pin overall length and head
 # radius back to the structural authority constants, rejecting coherent outer-geometry drift.
 # Structural-root V15 binds actual pin material volume to the analytical shaft/head/groove
 # authority, detecting internal material drift that can preserve V14's outer dimensions.
 # Structural-root V16 independently binds bilateral pin placement/material symmetry through
 # measured B-rep centers of mass, catching equal-volume translation or asymmetric drift.
 # Structural-root V17 independently binds each actual capture-pin axis to its repaired
-# frame-side clevis-bore axis and checks bilateral mirror registration, rejecting a shifted
-# pin that could otherwise remain non-interfering inside the larger bore.
-# Structural-root V18 intersects each actual capture pin against the fully corrected
-# integrated frame after both clevis bores, rejecting non-local structural collisions that
-# a counterpart-only clevis clearance check cannot detect.
-# Structural-root V19 independently recomputes pin/yoke and root/protected-zone intersections
-# with fail-closed OCC handling, so unavailable or invalid Boolean evidence cannot certify
-# clearance merely because the legacy generator maps an exception to zero volume.
-# Structural-root V20 independently rebuilds the actuator-reaction architecture from the
-# supplied model and requires its SHA-256 digest to match the retention-root source digest,
-# rejecting mixed authority states before downstream structural clearance can be certified.
-# Structural-root V21 independently rebuilds the complete retention-root architecture from
-# the supplied model and requires its canonical SHA-256 digest to match the supplied root
-# evidence, rejecting post-construction root-evidence drift even when upstream provenance
-# remains valid.
-# Root-service corridors are compiled and regression-gated here. Their Boolean clearance
-# evidence fails closed on OCC query failure, non-finite evidence, negative evidence, or
-# positive frame/yoke collision instead of silently converting failed geometry queries to zero.
-# The clevis-bore repair is also compiled and regression-gated here so a future owner-head
-# change cannot silently restore the solid-clevis capture-pin interference.
+# frame-side clevis-bore axis and checks bilateral mirror registration. Structural-root V18
+# intersects each actual capture pin against the fully corrected integrated frame after both
+# clevis bores, rejecting non-local structural collisions. Structural-root V19 independently
+# recomputes pin/yoke and root/protected-zone intersections with fail-closed OCC handling.
+# Structural-root V20 independently rebuilds the actuator-reaction architecture and requires
+# its SHA-256 digest to match the retention-root source digest. Structural-root V21 rebuilds
+# the complete retention-root architecture and requires its canonical SHA-256 digest to match
+# supplied root evidence, rejecting post-construction evidence drift. Root-service corridors
+# and the clevis-bore repair remain compiled and regression-gated here.
 # These are focused-CI gates. Parent Cell 6 and complete-repo CI remain separate release
 # gates. No continuous clearance proof, manufactured tolerance, force, wet-use, wear,
 # contamination or tactile-performance claim is promoted here.
