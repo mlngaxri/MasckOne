@@ -39,6 +39,18 @@ def test_trajectory_exposes_cycle_capacity_utilization_before_overflow():
     assert final.conservative_utilization_fraction == pytest.approx(trajectory.guard.conservative_required_usable_capacity_mL / trajectory.guard.usable_capacity_mL)
 
 
+def test_normalized_headroom_conserves_capacity_and_declines_with_service():
+    trajectory = build_cartridge_overflow_trajectory(_guard([1] * 6, .90))
+    contractual = [state.contractual_headroom_fraction for state in trajectory.states]
+    conservative = [state.conservative_headroom_fraction for state in trajectory.states]
+    assert contractual == sorted(contractual, reverse=True)
+    assert conservative == sorted(conservative, reverse=True)
+    for state in trajectory.states:
+        assert state.contractual_utilization_fraction + state.contractual_headroom_fraction == pytest.approx(1)
+        assert state.conservative_utilization_fraction + state.conservative_headroom_fraction == pytest.approx(1)
+        assert state.contractual_headroom_fraction >= state.conservative_headroom_fraction
+
+
 def test_trajectory_exposes_overflow_accumulation_after_first_failure():
     trajectory = build_cartridge_overflow_trajectory(_guard([20] * 6))
     contractual = [state.contractual_overflow_mL for state in trajectory.states]
@@ -51,6 +63,8 @@ def test_trajectory_exposes_overflow_accumulation_after_first_failure():
     assert sum(state.conservative_increment_mL for state in trajectory.states) == pytest.approx(trajectory.guard.conservative_end_of_service_overflow_mL)
     assert trajectory.states[-1].contractual_headroom_mL < 0
     assert trajectory.states[-1].conservative_headroom_mL < 0
+    assert trajectory.states[-1].contractual_headroom_fraction < 0
+    assert trajectory.states[-1].conservative_headroom_fraction < 0
     assert trajectory.states[-1].contractual_utilization_fraction > 1
     assert trajectory.states[-1].conservative_utilization_fraction > 1
 
@@ -62,6 +76,7 @@ def test_reserved_capacity_is_applied_to_every_cycle_state():
     assert reserved.states[-1].conservative_overflow_mL == pytest.approx(.5)
     assert reserved.states[-1].conservative_increment_mL == pytest.approx(.5)
     assert reserved.states[-1].conservative_headroom_mL == pytest.approx(-.5)
+    assert reserved.states[-1].conservative_headroom_fraction < 0
     assert reserved.states[-1].conservative_utilization_fraction > 1
 
 
@@ -81,6 +96,10 @@ def test_trajectory_rejects_tampered_intermediate_headroom_or_utilization():
         replace(trajectory, states=tuple(states))
     states = list(trajectory.states)
     states[2] = replace(states[2], contractual_utilization_fraction=states[2].contractual_utilization_fraction + .001)
+    with pytest.raises(WasteFluidAccountingError, match="stale or inconsistent"):
+        replace(trajectory, states=tuple(states))
+    states = list(trajectory.states)
+    states[2] = replace(states[2], conservative_headroom_fraction=states[2].conservative_headroom_fraction + .001)
     with pytest.raises(WasteFluidAccountingError, match="stale or inconsistent"):
         replace(trajectory, states=tuple(states))
 
