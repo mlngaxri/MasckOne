@@ -48,9 +48,14 @@ class AngleThermalMechanicalSpread:
     coolest_point: ThermalMechanicalPoint
     minimum_force_point: ThermalMechanicalPoint
     maximum_force_point: ThermalMechanicalPoint
+    minimum_displacement_point: ThermalMechanicalPoint
+    maximum_displacement_point: ThermalMechanicalPoint
+    maximum_displacement_error_point: ThermalMechanicalPoint
     temperature_span_C: float
     force_span_N: float
+    displacement_span_mm: float
     hottest_zone_is_minimum_force_zone: bool
+    hottest_zone_is_maximum_displacement_error_zone: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +72,7 @@ class ActuationThermalMechanicalCoupling:
     angle_spreads: tuple[AngleThermalMechanicalSpread, ...]
     maximum_temperature_span_angle: AngleThermalMechanicalSpread
     maximum_force_span_angle: AngleThermalMechanicalSpread
+    maximum_displacement_span_angle: AngleThermalMechanicalSpread
 
 
 def _point(item: ZoneImpedanceRecord, parameters: ActuationParameterSet) -> ThermalMechanicalPoint:
@@ -119,6 +125,9 @@ def _reduce_angle(angle: float, points: tuple[ThermalMechanicalPoint, ...]) -> A
     coolest = min(angle_points, key=lambda point: (point.temperature_C, _canonical(point)))
     minimum_force = min(angle_points, key=lambda point: (point.force_N, _canonical(point)))
     maximum_force = max(angle_points, key=lambda point: (point.force_N, _canonical(point)))
+    minimum_displacement = min(angle_points, key=lambda point: (point.displacement_pp_mm, _canonical(point)))
+    maximum_displacement = max(angle_points, key=lambda point: (point.displacement_pp_mm, _canonical(point)))
+    maximum_error = max(angle_points, key=lambda point: (abs(point.displacement_error_mm), _canonical(point)))
     return AngleThermalMechanicalSpread(
         axis_angle_deg=angle,
         point_count=len(angle_points),
@@ -126,9 +135,14 @@ def _reduce_angle(angle: float, points: tuple[ThermalMechanicalPoint, ...]) -> A
         coolest_point=coolest,
         minimum_force_point=minimum_force,
         maximum_force_point=maximum_force,
+        minimum_displacement_point=minimum_displacement,
+        maximum_displacement_point=maximum_displacement,
+        maximum_displacement_error_point=maximum_error,
         temperature_span_C=hottest.temperature_C - coolest.temperature_C,
         force_span_N=maximum_force.force_N - minimum_force.force_N,
+        displacement_span_mm=maximum_displacement.displacement_pp_mm - minimum_displacement.displacement_pp_mm,
         hottest_zone_is_minimum_force_zone=hottest.zone_id == minimum_force.zone_id,
+        hottest_zone_is_maximum_displacement_error_zone=hottest.zone_id == maximum_error.zone_id,
     )
 
 
@@ -161,6 +175,7 @@ def reduce_measured_thermal_mechanical_coupling(
     angle_spreads = tuple(_reduce_angle(angle, points) for angle in angles)
     maximum_temperature_span_angle = max(angle_spreads, key=lambda spread: (spread.temperature_span_C, -spread.axis_angle_deg))
     maximum_force_span_angle = max(angle_spreads, key=lambda spread: (spread.force_span_N, -spread.axis_angle_deg))
+    maximum_displacement_span_angle = max(angle_spreads, key=lambda spread: (spread.displacement_span_mm, -spread.axis_angle_deg))
 
     return ActuationThermalMechanicalCoupling(
         point_count=len(points),
@@ -173,4 +188,5 @@ def reduce_measured_thermal_mechanical_coupling(
         angle_spreads=angle_spreads,
         maximum_temperature_span_angle=maximum_temperature_span_angle,
         maximum_force_span_angle=maximum_force_span_angle,
+        maximum_displacement_span_angle=maximum_displacement_span_angle,
     )
