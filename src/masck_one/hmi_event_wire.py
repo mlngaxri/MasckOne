@@ -84,13 +84,18 @@ def _validate_event(event: InputEvent) -> None:
         raise HmiEventWireError("event booleans must be exact bools")
     if type(event.edge) is not Edge:
         raise HmiEventWireError("edge must be an exact Edge")
+    if event.fault is not None and type(event.fault) is not str:
+        raise HmiEventWireError("fault diagnostic must be an exact string or None")
     if event.fault_code is not None and type(event.fault_code) is not FaultCode:
         raise HmiEventWireError("fault_code must be an exact FaultCode or None")
     if event.faulted:
         if event.stable_pressed or event.edge is not Edge.NONE or event.fault_code is None:
             raise HmiEventWireError("faulted event must be released, edgeless, and carry a fault code")
-    elif event.fault_code is not None:
-        raise HmiEventWireError("healthy event cannot carry a fault code")
+    else:
+        if event.fault is not None:
+            raise HmiEventWireError("healthy event cannot carry a fault diagnostic")
+        if event.fault_code is not None:
+            raise HmiEventWireError("healthy event cannot carry a fault code")
     if event.edge is Edge.PRESSED and not event.stable_pressed:
         raise HmiEventWireError("pressed edge requires stable_pressed=true")
     if event.edge is Edge.RELEASED and event.stable_pressed:
