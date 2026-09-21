@@ -94,3 +94,24 @@ def test_decoder_rejects_duplicate_contract_before_ambiguous_lookup(monkeypatch)
 
     with pytest.raises(wire.HmiFaultWireError, match="duplicates=.*input_stream_stale"):
         wire.fault_code_from_wire_id("input_stream_stale")
+
+
+def test_contract_validation_rejects_unique_but_semantically_swapped_identifiers(monkeypatch):
+    malformed = dict(wire._WIRE_IDS)
+    malformed[FaultCode.SAMPLE_TIME_INVALID], malformed[FaultCode.ARM_TIME_INVALID] = (
+        malformed[FaultCode.ARM_TIME_INVALID],
+        malformed[FaultCode.SAMPLE_TIME_INVALID],
+    )
+    monkeypatch.setattr(wire, "_WIRE_IDS", malformed)
+
+    with pytest.raises(wire.HmiFaultWireError, match="semantic_mismatches=.*ARM_TIME_INVALID.*SAMPLE_TIME_INVALID"):
+        wire.assert_fault_wire_contract_complete()
+
+
+def test_encoder_rejects_valid_grammar_spelling_drift(monkeypatch):
+    malformed = dict(wire._WIRE_IDS)
+    malformed[FaultCode.INPUT_STREAM_STALE] = "input_stream_timeout"
+    monkeypatch.setattr(wire, "_WIRE_IDS", malformed)
+
+    with pytest.raises(wire.HmiFaultWireError, match="semantic_mismatches=.*INPUT_STREAM_STALE"):
+        wire.fault_code_wire_id(FaultCode.INPUT_STREAM_STALE)
