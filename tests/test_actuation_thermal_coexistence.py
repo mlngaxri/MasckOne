@@ -60,6 +60,22 @@ def test_thermal_envelope_preserves_extrema_zone_angle_and_record_traceability()
     assert envelope.max_temperature_record_id == f"THERM-{ZONE_IDS[-1]}-{parameters.axis_angle_doe_deg[-1]:g}"
 
 
+def test_thermal_envelope_preserves_per_zone_ranges_and_traceability():
+    parameters = _parameters()
+    envelope = reduce_measured_actuation_thermal_envelope(_sweep(parameters), parameters)
+    assert tuple(zone.zone_id for zone in envelope.zone_envelopes) == tuple(sorted(ZONE_IDS))
+    for zone in envelope.zone_envelopes:
+        zone_index = ZONE_IDS.index(zone.zone_id)
+        assert zone.point_count == len(parameters.axis_angle_doe_deg)
+        assert zone.min_temperature_C == pytest.approx(28.0 + zone_index)
+        assert zone.max_temperature_C == pytest.approx(29.0 + zone_index)
+        assert zone.temperature_span_C == pytest.approx(1.0)
+        assert zone.min_temperature_axis_angle_deg == parameters.axis_angle_doe_deg[0]
+        assert zone.max_temperature_axis_angle_deg == parameters.axis_angle_doe_deg[-1]
+        assert zone.min_temperature_record_id == f"THERM-{zone.zone_id}-{parameters.axis_angle_doe_deg[0]:g}"
+        assert zone.max_temperature_record_id == f"THERM-{zone.zone_id}-{parameters.axis_angle_doe_deg[-1]:g}"
+
+
 def test_thermal_envelope_is_order_independent():
     parameters = _parameters()
     sweep = _sweep(parameters)
