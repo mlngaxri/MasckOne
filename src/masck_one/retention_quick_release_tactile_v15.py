@@ -68,9 +68,14 @@ class RetentionQuickReleaseTactileV15:
     def validate(self) -> "RetentionQuickReleaseTactileV15":
         self.prior.validate()
         mechanism = self.prior.prior.prior.prior.mechanism
+        v14_domain = self.prior.prior.prior.prior
+        if not mechanism.rail_radial_clearance_mm > v14_domain.radial_limit_mm:
+            raise RetentionQuickReleaseTactileV15Error("full radial domain must exceed inherited V14 screening radius")
+        if not mechanism.anti_rotation_side_clearance_mm > v14_domain.side_limit_mm:
+            raise RetentionQuickReleaseTactileV15Error("full side domain must exceed inherited V14 screening limit")
         count, boundary_count, maximum, digest = _full_domain_evidence(mechanism)
-        if self.full_domain_pose_count != count or count <= self.prior.sampled_pose_count:
-            raise RetentionQuickReleaseTactileV15Error("full-domain pose count is stale or does not expand V14 evidence")
+        if self.full_domain_pose_count != count or count <= 0:
+            raise RetentionQuickReleaseTactileV15Error("full-domain pose count is stale")
         if self.full_domain_boundary_sample_count != boundary_count or boundary_count < 4:
             raise RetentionQuickReleaseTactileV15Error("full-domain boundary evidence is stale")
         if not math.isfinite(self.full_domain_max_rigid_guide_intersection_mm3):
