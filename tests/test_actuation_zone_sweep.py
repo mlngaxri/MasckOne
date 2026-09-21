@@ -48,6 +48,27 @@ def test_complete_four_zone_axis_angle_matrix_is_accepted():
     assert sweep.point_count == 4 * len(parameters.axis_angle_doe_deg) == 20
 
 
+def test_sweep_manifest_and_digest_are_deterministic_across_record_order():
+    parameters = _parameters()
+    records = _complete(parameters)
+    forward = FourZoneImpedanceSweep(parameters.parameter_sha256, records)
+    reverse = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(reversed(records)))
+    assert forward.sweep_sha256 == reverse.sweep_sha256
+    assert forward.manifest() == reverse.manifest()
+    assert forward.manifest()["sweep_sha256"] == forward.sweep_sha256
+    assert len(forward.sweep_sha256) == 64
+
+
+def test_sweep_digest_changes_when_impedance_evidence_changes():
+    parameters = _parameters()
+    records = list(_complete(parameters))
+    baseline = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(records))
+    first = records[0]
+    records[0] = ZoneImpedanceRecord(first.zone_id, replace(first.record, specimen_id="SYNTHETIC-ALTERNATE"))
+    changed = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(records))
+    assert changed.sweep_sha256 != baseline.sweep_sha256
+
+
 def test_missing_zone_angle_point_fails_closed():
     parameters = _parameters()
     sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, _complete(parameters)[:-1])
