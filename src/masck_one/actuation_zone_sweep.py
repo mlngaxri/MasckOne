@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
+from typing import Mapping
 
 from .actuation_parameters import ActuationParameterError, ActuationParameterSet, ImpedanceTestRecord
 from .actuator_frames import ZONE_IDS
@@ -77,6 +80,28 @@ class FourZoneImpedanceSweep:
             )
         if len(source_kinds) != 1:
             raise ActuationParameterError("Four-zone sweep cannot mix predicted and measured evidence")
+
+    def manifest(self, *, include_sha: bool = True) -> Mapping[str, object]:
+        """Return canonical, order-independent evidence for downstream provenance binding."""
+        records = sorted(
+            self.records,
+            key=lambda item: (item.zone_id, float(item.record.axis_angle_deg), item.record.record_id),
+        )
+        payload: dict[str, object] = {
+            "source_parameter_sha256": self.source_parameter_sha256,
+            "records": [
+                {"zone_id": item.zone_id, "record": dict(item.record.manifest())}
+                for item in records
+            ],
+        }
+        if include_sha:
+            payload["sweep_sha256"] = self.sweep_sha256
+        return payload
+
+    @property
+    def sweep_sha256(self) -> str:
+        raw = json.dumps(self.manifest(include_sha=False), sort_keys=True, separators=(",", ":")).encode("utf-8")
+        return hashlib.sha256(raw).hexdigest()
 
     @property
     def point_count(self) -> int:
