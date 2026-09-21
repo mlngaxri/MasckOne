@@ -24,9 +24,13 @@ def test_contract_rejects_noncanonical_identifier_segments(monkeypatch, malforme
         assert_fault_wire_contract_complete()
 
 
-def test_contract_accepts_digits_after_segment_leading_letter(monkeypatch):
+def test_digit_suffix_is_valid_grammar_but_rejected_as_semantic_drift(monkeypatch):
+    identifier = "input_stream_stale2"
+    assert wire._canonical_wire_identifier(identifier)
+
     corrupted = dict(wire._WIRE_IDS)
-    corrupted[FaultCode.INPUT_STREAM_STALE] = "input_stream_stale2"
+    corrupted[FaultCode.INPUT_STREAM_STALE] = identifier
     monkeypatch.setattr(wire, "_WIRE_IDS", corrupted)
 
-    assert_fault_wire_contract_complete()
+    with pytest.raises(HmiFaultWireError, match="semantic_mismatches=.*INPUT_STREAM_STALE"):
+        assert_fault_wire_contract_complete()
