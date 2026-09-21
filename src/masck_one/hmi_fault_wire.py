@@ -76,7 +76,7 @@ def _canonical_wire_identifier(value: object) -> bool:
 
 
 def assert_fault_wire_contract_complete() -> None:
-    """Fail closed if runtime coverage, keys or wire identifiers are malformed or ambiguous."""
+    """Fail closed if runtime coverage, keys or wire identifiers drift from canonical semantics."""
     valid_keys = {key for key in _WIRE_IDS if type(key) is FaultCode}
     invalid_key_reprs = sorted(repr(key) for key in _WIRE_IDS if type(key) is not FaultCode)
     missing = set(FaultCode) - valid_keys
@@ -88,10 +88,16 @@ def assert_fault_wire_contract_complete() -> None:
     invalid_reprs = sorted(
         repr(identifier) for identifier in identifiers if not _canonical_wire_identifier(identifier)
     )
-    if missing or invalid_key_reprs or duplicate_reprs or invalid_reprs:
+    semantic_mismatches = sorted(
+        f"{code.name}:{_WIRE_IDS[code]!r}!={code.name.lower()!r}"
+        for code in valid_keys
+        if _WIRE_IDS[code] != code.name.lower()
+    )
+    if missing or invalid_key_reprs or duplicate_reprs or invalid_reprs or semantic_mismatches:
         missing_names = sorted(code.name for code in missing)
         raise HmiFaultWireError(
             "fault wire contract mismatch: "
             f"missing={missing_names}, invalid_keys={invalid_key_reprs}, "
-            f"duplicates={duplicate_reprs}, invalid={invalid_reprs}"
+            f"duplicates={duplicate_reprs}, invalid={invalid_reprs}, "
+            f"semantic_mismatches={semantic_mismatches}"
         )
