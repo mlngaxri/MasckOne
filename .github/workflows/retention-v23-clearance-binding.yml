@@ -1,0 +1,53 @@
+name: Retention V23 clearance binding
+
+on:
+  push:
+    branches: [sol-high/retention-quick-release-20260909]
+    paths:
+      - "src/masck_one/retention_quick_release_tactile_v1[6-9].py"
+      - "src/masck_one/retention_quick_release_tactile_v2[0-3].py"
+      - "tests/test_retention_quick_release_tactile_v2[0-3].py"
+      - ".github/workflows/retention-v23-clearance-binding.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: retention-v23-clearance-binding-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  clearance-provenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact retention head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile V23 and clearance-evidence dependencies
+        run: |
+          python -m py_compile \
+            src/masck_one/retention_quick_release_tactile_v18.py \
+            src/masck_one/retention_quick_release_tactile_v19.py \
+            src/masck_one/retention_quick_release_tactile_v20.py \
+            src/masck_one/retention_quick_release_tactile_v21.py \
+            src/masck_one/retention_quick_release_tactile_v22.py \
+            src/masck_one/retention_quick_release_tactile_v23.py
+      - name: Verify complete grid is bound to sampled clearance evidence
+        run: python -m pytest -q tests/test_retention_quick_release_tactile_v23.py
+
+# V23 binds V18-V21 interior travel schedules to their non-empty sampled B-rep
+# clearance evidence. This is provenance and regression evidence only. It does not
+# claim continuous swept-volume, tolerance-stack, strength, fatigue, wet-use,
+# contamination, comfort, or physical validation.
