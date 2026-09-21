@@ -43,6 +43,15 @@ def _sweep(parameters):
     return FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(records))
 
 
+def test_sensitivity_envelope_is_bound_to_parameter_and_exact_sweep_evidence():
+    parameters = _parameters(); sweep = _sweep(parameters)
+    result = reduce_measured_mechanical_sensitivity(sweep, parameters)
+    assert result.source_parameter_sha256 == parameters.parameter_sha256
+    assert result.source_parameter_sha256 == sweep.source_parameter_sha256
+    assert result.source_sweep_sha256 == sweep.sweep_sha256
+    assert len(result.source_sweep_sha256) == 64
+
+
 def test_sensitivity_preserves_adjacent_measured_record_provenance():
     parameters = _parameters(); result = reduce_measured_mechanical_sensitivity(_sweep(parameters), parameters)
     angles = tuple(sorted(parameters.axis_angle_doe_deg))
@@ -72,7 +81,10 @@ def test_phase_sensitivity_uses_shortest_signed_delta_across_wrap():
 def test_sensitivity_reduction_is_order_independent():
     parameters = _parameters(); sweep = _sweep(parameters)
     reversed_sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(reversed(sweep.records)))
-    assert reduce_measured_mechanical_sensitivity(sweep, parameters) == reduce_measured_mechanical_sensitivity(reversed_sweep, parameters)
+    forward = reduce_measured_mechanical_sensitivity(sweep, parameters)
+    reverse = reduce_measured_mechanical_sensitivity(reversed_sweep, parameters)
+    assert forward == reverse
+    assert forward.source_sweep_sha256 == reverse.source_sweep_sha256
 
 
 def test_worst_sensitivities_remain_traceable_to_measured_interval():
