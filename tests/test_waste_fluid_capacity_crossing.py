@@ -24,6 +24,11 @@ def test_crossing_windows_bracket_each_reached_threshold_without_interpolation()
         assert window.crossing_volume_mL >= window.threshold_volume_mL - 1e-12
         assert window.volume_before_cycle_mL + window.cycle_increment_mL == pytest.approx(window.crossing_volume_mL)
         assert window.headroom_before_cycle_mL + window.overshoot_after_cycle_mL == pytest.approx(window.cycle_increment_mL)
+        assert window.increment_fraction_to_threshold == pytest.approx(
+            window.headroom_before_cycle_mL / window.cycle_increment_mL)
+        assert window.increment_fraction_after_threshold == pytest.approx(
+            window.overshoot_after_cycle_mL / window.cycle_increment_mL)
+        assert window.increment_fraction_to_threshold + window.increment_fraction_after_threshold == pytest.approx(1.0)
 
 
 def test_high_prime_profile_quantifies_full_capacity_crossing_increment():
@@ -32,6 +37,8 @@ def test_high_prime_profile_quantifies_full_capacity_crossing_increment():
     assert {w.path for w in full} == {"contractual", "conservative"}
     assert all(w.cycle_increment_mL > 0.0 for w in full)
     assert all(w.headroom_before_cycle_mL <= w.cycle_increment_mL + 1e-12 for w in full)
+    assert all(0.0 < w.increment_fraction_to_threshold <= 1.0 for w in full)
+    assert all(0.0 <= w.increment_fraction_after_threshold < 1.0 for w in full)
 
 
 def test_capacity_reserve_changes_threshold_volume_not_routing_identity():
@@ -57,6 +64,24 @@ def test_crossing_evidence_fails_closed_on_tampered_window():
     windows = list(evidence.windows)
     windows[0] = replace(windows[0], cycle_increment_mL=windows[0].cycle_increment_mL + .001)
     with pytest.raises(WasteFluidAccountingError):
+        replace(evidence, windows=tuple(windows))
+
+
+def test_crossing_fraction_fails_closed_on_tampered_threshold_share():
+    evidence = _crossings([20] * 6)
+    windows = list(evidence.windows)
+    windows[0] = replace(
+        windows[0], increment_fraction_to_threshold=windows[0].increment_fraction_to_threshold + .001)
+    with pytest.raises(WasteFluidAccountingError, match="threshold fraction"):
+        replace(evidence, windows=tuple(windows))
+
+
+def test_crossing_fraction_fails_closed_on_tampered_post_threshold_share():
+    evidence = _crossings([20] * 6)
+    windows = list(evidence.windows)
+    windows[0] = replace(
+        windows[0], increment_fraction_after_threshold=windows[0].increment_fraction_after_threshold + .001)
+    with pytest.raises(WasteFluidAccountingError, match="post-threshold fraction"):
         replace(evidence, windows=tuple(windows))
 
 
