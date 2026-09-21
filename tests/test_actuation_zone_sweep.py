@@ -105,11 +105,21 @@ def test_sweep_container_and_identity_fail_closed_at_construction():
         FourZoneImpedanceSweep(parameters.parameter_sha256, (object(),))
 
 
-def test_stale_parameter_identity_fails_closed():
+def test_sweep_rejects_record_from_different_parameter_identity_at_construction():
     parameters = _parameters()
-    sweep = FourZoneImpedanceSweep("0" * 64, _complete(parameters))
-    with pytest.raises(ActuationParameterError, match="stale"):
-        sweep.validate(parameters)
+    records = list(_complete(parameters))
+    records[0] = ZoneImpedanceRecord(
+        records[0].zone_id,
+        replace(records[0].record, source_parameter_sha256="0" * 64),
+    )
+    with pytest.raises(ActuationParameterError, match="record parameter identity must match"):
+        FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(records))
+
+
+def test_stale_sweep_parameter_identity_fails_closed_at_construction():
+    parameters = _parameters()
+    with pytest.raises(ActuationParameterError, match="record parameter identity must match"):
+        FourZoneImpedanceSweep("0" * 64, _complete(parameters))
 
 
 def test_unapproved_command_inside_matrix_fails_closed():
