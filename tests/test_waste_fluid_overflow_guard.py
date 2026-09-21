@@ -25,6 +25,8 @@ def test_authority_profile_is_conservatively_inside_cartridge_capacity():
     assert guard.first_unavoidable_overflow_cycle is None
     assert guard.minimum_overflow_at_failure_mL == pytest.approx(0)
     assert guard.conservative_overflow_at_failure_mL == pytest.approx(0)
+    assert guard.contractual_end_of_service_overflow_mL == pytest.approx(0)
+    assert guard.conservative_end_of_service_overflow_mL == pytest.approx(0)
     assert guard.contractual_reserve_headroom_mL == pytest.approx(8.0)
     assert guard.conservative_reserve_headroom_mL == pytest.approx(5.0)
 
@@ -40,6 +42,8 @@ def test_guard_distinguishes_unproven_fit_from_unavoidable_overflow():
     assert guard.conservative_required_usable_capacity_mL == pytest.approx(35.6)
     assert guard.contractual_reserve_headroom_mL == pytest.approx(6.16)
     assert guard.conservative_reserve_headroom_mL == pytest.approx(-.6)
+    assert guard.contractual_end_of_service_overflow_mL == pytest.approx(0)
+    assert guard.conservative_end_of_service_overflow_mL == pytest.approx(.6)
 
 
 def test_guard_quantifies_first_unavoidable_overflow_without_sink_credit():
@@ -52,6 +56,18 @@ def test_guard_quantifies_first_unavoidable_overflow_without_sink_credit():
     assert guard.conservative_overflow_at_failure_mL == pytest.approx(4.6)
     assert guard.contractual_required_usable_capacity_mL == pytest.approx(36.84)
     assert guard.conservative_required_usable_capacity_mL == pytest.approx(39.6)
+    assert guard.contractual_end_of_service_overflow_mL == pytest.approx(1.84)
+    assert guard.conservative_end_of_service_overflow_mL == pytest.approx(4.6)
+
+
+def test_end_of_service_overflow_reports_accumulated_shortfall_after_early_failure():
+    guard = screen_cartridge_overflow_guard(build_authority_waste_fluid_budget(), prime_events_by_cycle=[20, 20, 20, 20, 20, 20], prime_recovery_ratio_contract=1.0)
+    assert guard.first_unavoidable_overflow_cycle is not None
+    assert guard.first_unavoidable_overflow_cycle < len(guard.routing.cycles)
+    assert guard.contractual_end_of_service_overflow_mL > guard.minimum_overflow_at_failure_mL
+    assert guard.conservative_end_of_service_overflow_mL > guard.conservative_overflow_at_failure_mL
+    assert guard.contractual_end_of_service_overflow_mL == pytest.approx(max(0.0, guard.contractual_required_usable_capacity_mL - guard.usable_capacity_mL))
+    assert guard.conservative_end_of_service_overflow_mL == pytest.approx(max(0.0, guard.conservative_required_usable_capacity_mL - guard.usable_capacity_mL))
 
 
 def test_guard_preserves_prefix_service_screening():
@@ -75,6 +91,8 @@ def test_explicit_capacity_reserve_preserves_physical_capacity_and_reduces_usabl
     assert guard.conservative_fit_unproven
     assert guard.first_conservative_capacity_failure_cycle == 6
     assert guard.conservative_overflow_at_failure_mL == pytest.approx(.5)
+    assert guard.contractual_end_of_service_overflow_mL == pytest.approx(0)
+    assert guard.conservative_end_of_service_overflow_mL == pytest.approx(.5)
     assert guard.contractual_reserve_headroom_mL == pytest.approx(2.5)
     assert guard.conservative_reserve_headroom_mL == pytest.approx(-.5)
 
