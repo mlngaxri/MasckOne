@@ -92,6 +92,16 @@ def test_measured_response_reduction_reports_zone_extrema_without_qualification_
         assert zone.min_displacement_pp_mm == pytest.approx(0.509)
         assert zone.max_displacement_pp_mm == pytest.approx(0.531)
         assert zone.max_abs_displacement_error_mm == pytest.approx(0.011)
+        assert zone.min_continuous_force_margin_N == pytest.approx(zone.min_force_N - parameters.continuous_force_requirement_N)
+        assert zone.min_transient_force_margin_N == pytest.approx(zone.min_force_N - parameters.transient_force_requirement_N)
+
+
+def test_force_margins_preserve_signed_shortfall_instead_of_claiming_pass():
+    parameters = _parameters()
+    sweep = FourZoneImpedanceSweep(parameters.parameter_sha256, _complete(parameters, source_kind="MEASURED"))
+    for zone in sweep.measured_response_by_zone(parameters).values():
+        assert zone.min_continuous_force_margin_N == pytest.approx(0.05)
+        assert zone.min_transient_force_margin_N == pytest.approx(-0.35)
 
 
 def test_predicted_sweep_cannot_masquerade_as_measured_response():
