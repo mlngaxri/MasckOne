@@ -10,7 +10,7 @@ from masck_one.hmi_fault_wire import (
     fault_code_from_wire_id,
     fault_code_wire_id,
 )
-from masck_one.hmi_runtime import Edge, InputEvent
+from masck_one.hmi_runtime import Edge, FaultCode, InputEvent
 
 
 class HmiEventWireError(ValueError):
@@ -84,6 +84,8 @@ def _validate_event(event: InputEvent) -> None:
         raise HmiEventWireError("event booleans must be exact bools")
     if type(event.edge) is not Edge:
         raise HmiEventWireError("edge must be an exact Edge")
+    if event.fault_code is not None and type(event.fault_code) is not FaultCode:
+        raise HmiEventWireError("fault_code must be an exact FaultCode or None")
     if event.faulted:
         if event.stable_pressed or event.edge is not Edge.NONE or event.fault_code is None:
             raise HmiEventWireError("faulted event must be released, edgeless, and carry a fault code")
