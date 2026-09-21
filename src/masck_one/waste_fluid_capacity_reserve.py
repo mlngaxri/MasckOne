@@ -1,6 +1,8 @@
 """Explicit cartridge capacity-reserve composition for waste/fluid integration."""
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 from dataclasses import dataclass
 from typing import Sequence
@@ -35,6 +37,13 @@ class CartridgeCapacityReserve:
         self.validate()
         return (("fill_sensor_trip_mL", float(self.fill_sensor_trip_mL)), ("foam_allowance_mL", float(self.foam_allowance_mL)), ("manufacturing_tolerance_mL", float(self.manufacturing_tolerance_mL)), ("other_integration_mL", float(self.other_integration_mL)))
 
+    @property
+    def evidence_sha256(self) -> str:
+        """Canonical identity for reserve composition, not merely its scalar total."""
+        payload = {name: value for name, value in self.breakdown_mL}
+        raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        return hashlib.sha256(raw).hexdigest()
+
 
 @dataclass(frozen=True, slots=True)
 class CapacityReservedOverflowGuard:
@@ -49,6 +58,8 @@ class CapacityReservedOverflowGuard:
             raise WasteFluidAccountingError("guard evidence must use exact CartridgeOverflowGuard type")
         if not math.isclose(self.guard.capacity_reserve_mL, self.reserve.total_mL, rel_tol=0.0, abs_tol=1e-12):
             raise WasteFluidAccountingError("overflow guard reserve total does not match typed reserve evidence")
+        if self.guard.source_capacity_reserve_sha256 != self.reserve.evidence_sha256:
+            raise WasteFluidAccountingError("overflow guard reserve composition does not match typed reserve evidence")
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,7 +89,7 @@ def _validated_total_reserve_mL(budget: WasteFluidBudget, reserve: CartridgeCapa
 
 def screen_cartridge_capacity_reserve(budget: WasteFluidBudget, reserve: CartridgeCapacityReserve, *, prime_events_by_cycle: tuple[int, ...] | list[int], prime_recovery_ratio_contract: float | None = None, prime_residual_ratio_contract: float | None = None, prime_external_leakage_ratio_contract: float | None = None) -> CartridgeOverflowGuard:
     total = _validated_total_reserve_mL(budget, reserve)
-    return screen_cartridge_overflow_guard(budget, prime_events_by_cycle=prime_events_by_cycle, prime_recovery_ratio_contract=prime_recovery_ratio_contract, prime_residual_ratio_contract=prime_residual_ratio_contract, prime_external_leakage_ratio_contract=prime_external_leakage_ratio_contract, capacity_reserve_mL=total)
+    return screen_cartridge_overflow_guard(budget, prime_events_by_cycle=prime_events_by_cycle, prime_recovery_ratio_contract=prime_recovery_ratio_contract, prime_residual_ratio_contract=prime_residual_ratio_contract, prime_external_leakage_ratio_contract=prime_external_leakage_ratio_contract, capacity_reserve_mL=total, source_capacity_reserve_sha256=reserve.evidence_sha256)
 
 
 def screen_cartridge_capacity_reserve_evidence(budget: WasteFluidBudget, reserve: CartridgeCapacityReserve, *, prime_events_by_cycle: tuple[int, ...] | list[int], prime_recovery_ratio_contract: float | None = None, prime_residual_ratio_contract: float | None = None, prime_external_leakage_ratio_contract: float | None = None) -> CapacityReservedOverflowGuard:
