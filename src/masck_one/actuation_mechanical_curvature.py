@@ -38,11 +38,22 @@ class ZoneMechanicalCurvature:
 
 
 @dataclass(frozen=True, slots=True)
+class ZoneMechanicalCurvatureExtrema:
+    """Worst measured nonlinear response retained independently for one actuator zone."""
+    zone_id: str
+    maximum_abs_force_curvature: ZoneMechanicalCurvature
+    maximum_abs_displacement_curvature: ZoneMechanicalCurvature
+    maximum_abs_phase_curvature: ZoneMechanicalCurvature
+    maximum_abs_temperature_curvature: ZoneMechanicalCurvature
+
+
+@dataclass(frozen=True, slots=True)
 class ActuationMechanicalCurvatureEnvelope:
     source_parameter_sha256: str
     source_sweep_sha256: str
     triplet_count: int
     curvatures: tuple[ZoneMechanicalCurvature, ...]
+    per_zone_extrema: tuple[ZoneMechanicalCurvatureExtrema, ...]
     maximum_abs_force_curvature: ZoneMechanicalCurvature
     maximum_abs_displacement_curvature: ZoneMechanicalCurvature
     maximum_abs_phase_curvature: ZoneMechanicalCurvature
@@ -94,6 +105,22 @@ def _maximum(items: tuple[ZoneMechanicalCurvature, ...], attribute: str) -> Zone
     return max(items, key=lambda item: (abs(getattr(item, attribute)), _canonical(item)))
 
 
+def _zone_extrema(items: tuple[ZoneMechanicalCurvature, ...]) -> tuple[ZoneMechanicalCurvatureExtrema, ...]:
+    by_zone: dict[str, list[ZoneMechanicalCurvature]] = {}
+    for item in items:
+        by_zone.setdefault(item.zone_id, []).append(item)
+    return tuple(
+        ZoneMechanicalCurvatureExtrema(
+            zone_id=zone_id,
+            maximum_abs_force_curvature=_maximum(tuple(by_zone[zone_id]), "force_curvature_N_per_deg2"),
+            maximum_abs_displacement_curvature=_maximum(tuple(by_zone[zone_id]), "displacement_curvature_mm_per_deg2"),
+            maximum_abs_phase_curvature=_maximum(tuple(by_zone[zone_id]), "phase_curvature_deg_per_deg2"),
+            maximum_abs_temperature_curvature=_maximum(tuple(by_zone[zone_id]), "temperature_curvature_C_per_deg2"),
+        )
+        for zone_id in sorted(by_zone)
+    )
+
+
 def reduce_measured_mechanical_curvature(
     sweep: FourZoneImpedanceSweep,
     parameters: ActuationParameterSet,
@@ -119,6 +146,7 @@ def reduce_measured_mechanical_curvature(
         source_sweep_sha256=sensitivity.source_sweep_sha256,
         triplet_count=len(result),
         curvatures=result,
+        per_zone_extrema=_zone_extrema(result),
         maximum_abs_force_curvature=_maximum(result, "force_curvature_N_per_deg2"),
         maximum_abs_displacement_curvature=_maximum(result, "displacement_curvature_mm_per_deg2"),
         maximum_abs_phase_curvature=_maximum(result, "phase_curvature_deg_per_deg2"),
