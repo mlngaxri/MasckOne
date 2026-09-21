@@ -97,6 +97,16 @@ class CartridgeOverflowGuard:
         return self.conservative_required_usable_capacity_mL - self.contractual_required_usable_capacity_mL
 
     @property
+    def contractual_end_of_service_overflow_mL(self) -> float:
+        """Minimum liquid that cannot fit by the end of the screened service profile."""
+        return max(0.0, -self.contractual_reserve_headroom_mL)
+
+    @property
+    def conservative_end_of_service_overflow_mL(self) -> float:
+        """Worst screened capacity shortfall at the end of the service profile."""
+        return max(0.0, -self.conservative_reserve_headroom_mL)
+
+    @property
     def unavoidable_overflow(self) -> bool:
         return self.first_unavoidable_overflow_cycle is not None
 
