@@ -1,5 +1,5 @@
 import pytest
-from masck_one.thermal_control import ThermalCommandInterlock, ThermalMode
+from masck_one.thermal_control import ThermalCommandInterlock, ThermalInhibitReason, ThermalMode
 from masck_one.treatment_recovery_readiness import screen_treatment_recovery_readiness
 from masck_one.treatment_thermal_handoff import command_thermal_after_treatment
 from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
@@ -29,14 +29,14 @@ def test_cool_is_enabled_only_from_permitted_recovery_evidence():
 @pytest.mark.parametrize("readiness", [
     pytest.param(lambda: _readiness([1], recovery=.90, residual=.08, leakage=.02), id="routing-incomplete"),
     pytest.param(lambda: _readiness([0, 0, 0, 0, 0, 30], recovery=1.0, recovery_floor=.95), id="minimum-capacity-failure"),
-    pytest.param(lambda: _readiness([0, 0, 0, 0, 0, 20], recovery=.50, residual=.50, recovery_floor=.95), id="conservative-capacity-failure"),
+    pytest.param(lambda: _readiness([0, 0, 0, 0, 0, 20], recovery=.90, residual=.10, recovery_floor=.95), id="conservative-capacity-failure"),
 ])
 def test_any_recovery_blocker_inhibits_cool(readiness):
     command = command_thermal_after_treatment(ThermalCommandInterlock(), readiness(), warm_requested=False, cool_requested=True)
     assert command.mode is ThermalMode.OFF
     assert not command.cool_enable
     assert command.inhibited
-    assert command.reason == "cool request requires completed recovery"
+    assert command.reason is ThermalInhibitReason.RECOVERY_INCOMPLETE
 
 
 def test_capacity_reserve_can_block_handoff_when_unreserved_capacity_would_fit():
@@ -62,7 +62,7 @@ def test_mutually_exclusive_thermal_requests_remain_fail_closed():
     command = command_thermal_after_treatment(ThermalCommandInterlock(), _readiness([0], recovery=1.0, recovery_floor=.95), warm_requested=True, cool_requested=True)
     assert command.mode is ThermalMode.OFF
     assert command.inhibited
-    assert command.reason == "warm and cool requests are mutually exclusive"
+    assert command.reason is ThermalInhibitReason.CONFLICTING_REQUESTS
 
 
 @pytest.mark.parametrize("evidence", [True, object(), None])
