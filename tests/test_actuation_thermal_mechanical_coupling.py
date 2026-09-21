@@ -82,11 +82,26 @@ def test_angle_spreads_keep_cross_zone_thermal_force_and_displacement_evidence_t
         assert spread.temperature_span_C == pytest.approx(len(ZONE_IDS) - 1)
         assert spread.force_span_N == pytest.approx((len(ZONE_IDS) - 1) * 0.02)
         assert spread.displacement_span_mm == pytest.approx((len(ZONE_IDS) - 1) * 0.002)
+        assert spread.minimum_continuous_force_margin_N == pytest.approx(spread.minimum_force_point.continuous_force_margin_N)
+        assert spread.minimum_transient_force_margin_N == pytest.approx(spread.minimum_force_point.transient_force_margin_N)
+        assert spread.maximum_abs_displacement_error_mm == pytest.approx(abs(spread.maximum_displacement_error_point.displacement_error_mm))
         assert spread.hottest_zone_is_minimum_force_zone is False
         assert spread.hottest_zone_is_maximum_displacement_error_zone is True
         assert spread.hottest_point.record_id.endswith(f"-{spread.axis_angle_deg:g}")
         assert spread.minimum_displacement_point.record_id.endswith(f"-{spread.axis_angle_deg:g}")
         assert spread.maximum_displacement_point.record_id.endswith(f"-{spread.axis_angle_deg:g}")
+
+
+def test_angle_requirement_margin_worst_cases_are_traceable_and_deterministic():
+    parameters = _parameters(); result = reduce_measured_thermal_mechanical_coupling(_sweep(parameters), parameters)
+    lowest_angle = min(parameters.axis_angle_doe_deg)
+    highest_angle = max(parameters.axis_angle_doe_deg)
+    assert result.minimum_continuous_force_margin_angle.axis_angle_deg == lowest_angle
+    assert result.minimum_transient_force_margin_angle.axis_angle_deg == lowest_angle
+    assert result.minimum_continuous_force_margin_angle.minimum_force_point.record_id == f"COUPLED-{ZONE_IDS[0]}-{lowest_angle:g}"
+    assert result.minimum_transient_force_margin_angle.minimum_force_point.record_id == f"COUPLED-{ZONE_IDS[0]}-{lowest_angle:g}"
+    assert result.maximum_abs_displacement_error_angle.axis_angle_deg == highest_angle
+    assert result.maximum_abs_displacement_error_angle.maximum_displacement_error_point.record_id == f"COUPLED-{ZONE_IDS[-1]}-{highest_angle:g}"
 
 
 def test_angle_spread_worst_cases_are_deterministic_and_order_independent():
@@ -98,6 +113,9 @@ def test_angle_spread_worst_cases_are_deterministic_and_order_independent():
     assert forward.maximum_temperature_span_angle == reverse.maximum_temperature_span_angle
     assert forward.maximum_force_span_angle == reverse.maximum_force_span_angle
     assert forward.maximum_displacement_span_angle == reverse.maximum_displacement_span_angle
+    assert forward.minimum_continuous_force_margin_angle == reverse.minimum_continuous_force_margin_angle
+    assert forward.minimum_transient_force_margin_angle == reverse.minimum_transient_force_margin_angle
+    assert forward.maximum_abs_displacement_error_angle == reverse.maximum_abs_displacement_error_angle
     assert forward.maximum_temperature_span_angle.axis_angle_deg == min(parameters.axis_angle_doe_deg)
     assert forward.maximum_force_span_angle.axis_angle_deg == min(parameters.axis_angle_doe_deg)
     assert forward.maximum_displacement_span_angle.axis_angle_deg == min(parameters.axis_angle_doe_deg)
