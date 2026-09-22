@@ -20,6 +20,9 @@ class ServiceEnvelopePoint:
     prime_events: int
     minimum_nominal_recovery_for_sink_closure_mL: float
     minimum_nominal_recovery_ratio_for_sink_closure: float
+    authority_minimum_nominal_recovery_mL: float
+    additional_nominal_recovery_above_authority_floor_mL: float
+    additional_nominal_recovery_ratio_above_authority_floor: float
     minimum_prime_routed_to_cartridge_mL: float
     minimum_total_cartridge_routing_for_sink_closure_mL: float
     retained_cartridge_capacity_mL: float
@@ -66,10 +69,14 @@ def _point(budget: WasteFluidBudget, *, cycles: int, prime_events: int, recovery
     if nominal_threshold > nominal_introduced + _TOL:
         raise WasteFluidAccountingError("shared-sink closure would require recovering more nominal liquid than introduced")
     nominal_recovery_ratio = nominal_threshold / nominal_introduced
+    authority_minimum = closure.minimum_nominal_liquid_routed_to_cartridge_mL
+    recovery_uplift = max(0.0, nominal_threshold - authority_minimum)
+    recovery_ratio_uplift = recovery_uplift / nominal_introduced
     total = nominal_threshold + closure.minimum_prime_liquid_routed_to_cartridge_mL
     margin = budget.cartridge_retained_capacity_requirement_mL - total
     return ServiceEnvelopePoint(
         prime_events, nominal_threshold, nominal_recovery_ratio,
+        authority_minimum, recovery_uplift, recovery_ratio_uplift,
         closure.minimum_prime_liquid_routed_to_cartridge_mL,
         total, budget.cartridge_retained_capacity_requirement_mL, margin, margin >= -_TOL, closure,
     )
