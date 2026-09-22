@@ -1,0 +1,27 @@
+name: Retention V24 station binding
+
+on:
+  pull_request:
+    paths:
+      - 'src/masck_one/retention_quick_release_tactile_v*.py'
+      - 'tests/test_retention_quick_release_tactile_v*.py'
+      - '.github/workflows/retention-v24-station-binding.yml'
+  workflow_dispatch:
+
+jobs:
+  retention-v24-station-binding:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . pytest
+      - name: Compile V18 through V24
+        run: |
+          python -m py_compile src/masck_one/retention_quick_release_tactile_v18.py src/masck_one/retention_quick_release_tactile_v19.py src/masck_one/retention_quick_release_tactile_v20.py src/masck_one/retention_quick_release_tactile_v21.py src/masck_one/retention_quick_release_tactile_v22.py src/masck_one/retention_quick_release_tactile_v23.py src/masck_one/retention_quick_release_tactile_v24.py
+      - name: Run V24 station binding regression
+        run: pytest -q tests/test_retention_quick_release_tactile_v24.py
