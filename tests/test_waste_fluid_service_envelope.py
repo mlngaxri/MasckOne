@@ -22,12 +22,16 @@ def test_joint_envelope_finds_true_reprime_boundary_beyond_fail_conservative_scr
     assert envelope.limiting_next_prime_events == 26
     feasible = envelope.maximum_feasible
     assert feasible.minimum_nominal_recovery_for_sink_closure_mL == pytest.approx(25.90)
+    assert feasible.minimum_nominal_recovery_ratio_for_sink_closure == pytest.approx(25.90 / 27.60)
+    assert feasible.minimum_nominal_recovery_ratio_for_sink_closure > budget.recovery_ratio_min
     assert feasible.minimum_prime_routed_to_cartridge_mL == pytest.approx(9.00)
     assert feasible.minimum_total_cartridge_routing_for_sink_closure_mL == pytest.approx(34.90)
     assert feasible.cartridge_margin_mL == pytest.approx(.10)
     assert feasible.feasible is True
     blocked = envelope.first_infeasible
     assert blocked.minimum_nominal_recovery_for_sink_closure_mL == pytest.approx(25.94)
+    assert blocked.minimum_nominal_recovery_ratio_for_sink_closure == pytest.approx(25.94 / 27.60)
+    assert blocked.minimum_nominal_recovery_ratio_for_sink_closure > feasible.minimum_nominal_recovery_ratio_for_sink_closure
     assert blocked.minimum_prime_routed_to_cartridge_mL == pytest.approx(9.36)
     assert blocked.minimum_total_cartridge_routing_for_sink_closure_mL == pytest.approx(35.30)
     assert blocked.cartridge_margin_mL == pytest.approx(-.30)
