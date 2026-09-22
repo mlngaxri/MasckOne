@@ -40,19 +40,26 @@ def test_joint_envelope_finds_true_reprime_boundary_beyond_fail_conservative_scr
 
 
 def test_joint_envelope_exposes_independent_shared_sink_event_ceiling_headroom():
-    envelope = _envelope()
+    budget = build_authority_waste_fluid_budget(); envelope = _envelope()
     assert envelope.maximum_prime_events_before_residual_ceiling == 75
     assert envelope.maximum_prime_events_before_external_leakage_ceiling == 37
     assert envelope.residual_event_headroom_at_capacity_boundary == 50
     assert envelope.external_leakage_event_headroom_at_capacity_boundary == 12
+    assert envelope.residual_margin_mL_at_maximum_feasible == pytest.approx(
+        6 * budget.residual_free_liquid_max_mL - 25 * budget.maximum_initial_prime_mL_per_cycle * .08)
+    assert envelope.external_leakage_margin_mL_at_maximum_feasible == pytest.approx(
+        6 * budget.external_leakage_max_mL_per_cycle - 25 * budget.maximum_initial_prime_mL_per_cycle * .02)
+    assert envelope.residual_excess_mL_at_limiting_event == pytest.approx(0.0)
+    assert envelope.external_leakage_excess_mL_at_limiting_event == pytest.approx(0.0)
     assert envelope.controlling_constraint == "CARTRIDGE_CAPACITY"
     assert envelope.limiting_next_prime_events < envelope.maximum_prime_events_before_external_leakage_ceiling
     assert envelope.limiting_next_prime_events < envelope.maximum_prime_events_before_residual_ceiling
 
 
 def test_residual_sink_can_be_true_boundary_before_cartridge_capacity():
+    budget = build_authority_waste_fluid_budget()
     envelope = evaluate_reprime_service_envelope(
-        build_authority_waste_fluid_budget(), cycles=6,
+        budget, cycles=6,
         prime_recovery_ratio_contract=0.0,
         prime_residual_ratio_contract=1.0,
         prime_external_leakage_ratio_contract=0.0,
@@ -64,11 +71,16 @@ def test_residual_sink_can_be_true_boundary_before_cartridge_capacity():
     assert envelope.first_infeasible is None
     assert envelope.maximum_feasible.minimum_nominal_recovery_ratio_for_sink_closure == pytest.approx(1.0)
     assert envelope.maximum_feasible.cartridge_margin_mL == pytest.approx(7.4)
+    assert envelope.residual_margin_mL_at_maximum_feasible == pytest.approx(0.0)
+    assert envelope.residual_excess_mL_at_limiting_event == pytest.approx(budget.maximum_initial_prime_mL_per_cycle)
+    assert envelope.external_leakage_margin_mL_at_maximum_feasible == pytest.approx(6 * budget.external_leakage_max_mL_per_cycle)
+    assert envelope.external_leakage_excess_mL_at_limiting_event == pytest.approx(0.0)
 
 
 def test_zero_fraction_sink_has_no_finite_event_ceiling_or_headroom():
+    budget = build_authority_waste_fluid_budget()
     envelope = evaluate_reprime_service_envelope(
-        build_authority_waste_fluid_budget(), cycles=6,
+        budget, cycles=6,
         prime_recovery_ratio_contract=1.0,
         prime_residual_ratio_contract=0.0,
         prime_external_leakage_ratio_contract=0.0,
@@ -77,6 +89,10 @@ def test_zero_fraction_sink_has_no_finite_event_ceiling_or_headroom():
     assert envelope.maximum_prime_events_before_external_leakage_ceiling is None
     assert envelope.residual_event_headroom_at_capacity_boundary is None
     assert envelope.external_leakage_event_headroom_at_capacity_boundary is None
+    assert envelope.residual_margin_mL_at_maximum_feasible == pytest.approx(6 * budget.residual_free_liquid_max_mL)
+    assert envelope.external_leakage_margin_mL_at_maximum_feasible == pytest.approx(6 * budget.external_leakage_max_mL_per_cycle)
+    assert envelope.residual_excess_mL_at_limiting_event == pytest.approx(0.0)
+    assert envelope.external_leakage_excess_mL_at_limiting_event == pytest.approx(0.0)
     assert envelope.controlling_constraint == "CARTRIDGE_CAPACITY"
 
 
