@@ -89,6 +89,15 @@ class RetentionQuickReleaseTactileV36:
             self.max_longitudinal_sample_gap_mm, gap, rel_tol=0.0, abs_tol=_TOL
         ):
             raise RetentionQuickReleaseTactileV36Error("longitudinal sample-gap evidence is stale")
+        if not math.isclose(
+            gap,
+            self.prior.max_unsampled_longitudinal_interval_mm,
+            rel_tol=0.0,
+            abs_tol=_TOL,
+        ):
+            raise RetentionQuickReleaseTactileV36Error(
+                "complete lattice gap disagrees with V35 collision-screen resolution"
+            )
         if not isinstance(self.coverage_sha256, str) or _DIGEST_RE.fullmatch(self.coverage_sha256) is None or self.coverage_sha256 != digest:
             raise RetentionQuickReleaseTactileV36Error("lattice coverage digest is stale")
         return self
@@ -103,7 +112,7 @@ class RetentionQuickReleaseTactileV36:
             "complete_lattice_position_count": self.complete_lattice_position_count,
             "max_longitudinal_sample_gap_mm": self.max_longitudinal_sample_gap_mm,
             "coverage_sha256": self.coverage_sha256,
-            "criterion": "EXACT_UNION_OF_STATION_HALF_QUARTER_EIGHTH_AND_ODD_SIXTEENTH_AUTHORITIES_EQUALS_COMPLETE_SIXTEENTH_LATTICE",
+            "criterion": "EXACT_UNION_OF_STATION_HALF_QUARTER_EIGHTH_AND_ODD_SIXTEENTH_AUTHORITIES_EQUALS_COMPLETE_SIXTEENTH_LATTICE_AND_MATCHES_V35_COLLISION_SCREEN_RESOLUTION",
             "scope": "SAMPLED_DIGITAL_LONGITUDINAL_COVERAGE_NOT_CONTINUOUS_SWEPT_VOLUME",
         }
         payload["physical_validation_eligible"] = False
