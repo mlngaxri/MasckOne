@@ -34,9 +34,24 @@ def _clearance_corners(mechanism: v1.RetentionQuickReleaseTactile) -> tuple[tupl
     ns = float(mechanism.anti_rotation_side_clearance_mm)
     mr = float(v1.MAX_SPOOL_RAIL_RADIAL_CLEARANCE_MM)
     ms = float(v1.MAX_ANTI_ROTATION_SIDE_CLEARANCE_MM)
-    if not all(math.isfinite(x) and x > 0.0 for x in (nr, ns, mr, ms)) or mr < nr or ms < ns:
-        raise RetentionQuickReleaseTactileV30Error("invalid clearance authority ordering")
-    return (("nominal_nominal", nr, ns), ("nominal_max_side", nr, ms), ("max_radial_nominal", mr, ns), ("max_max", mr, ms))
+    if not all(math.isfinite(x) and x > 0.0 for x in (nr, ns, mr, ms)):
+        raise RetentionQuickReleaseTactileV30Error("invalid clearance authority values")
+    # V30 is explicitly a four-corner tolerance screen. Equality would silently collapse
+    # two or all four authority corners into duplicate geometry while preserving counts.
+    # Require a real nominal-to-maximum interval on both independent clearance axes.
+    if mr <= nr or ms <= ns:
+        raise RetentionQuickReleaseTactileV30Error(
+            "clearance authority must preserve distinct nominal and maximum bounds"
+        )
+    corners = (
+        ("nominal_nominal", nr, ns),
+        ("nominal_max_side", nr, ms),
+        ("max_radial_nominal", mr, ns),
+        ("max_max", mr, ms),
+    )
+    if len({(radial, side) for _, radial, side in corners}) != 4:
+        raise RetentionQuickReleaseTactileV30Error("clearance authority corners must be unique")
+    return corners
 
 
 def _raw_intersection(first, second) -> float:
