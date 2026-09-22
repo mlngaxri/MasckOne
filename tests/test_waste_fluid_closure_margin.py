@@ -12,7 +12,11 @@ def test_authority_closure_margin_exposes_per_cycle_deficit():
     margin = derive_service_closure_margin(requirement)
     assert margin.configured_nominal_nonrecovery_mL == pytest.approx(2.760)
     assert margin.available_sink_mL == pytest.approx(2.700)
+    assert margin.signed_sink_margin_mL == pytest.approx(-0.060)
+    assert margin.sink_surplus_mL == pytest.approx(0.0)
     assert margin.service_deficit_mL == pytest.approx(0.060)
+    assert margin.signed_sink_margin_mL_per_cycle == pytest.approx(-0.010)
+    assert margin.sink_surplus_mL_per_cycle == pytest.approx(0.0)
     assert margin.deficit_mL_per_cycle == pytest.approx(0.010)
     assert margin.required_combined_sink_mL_per_cycle_at_authority_recovery == pytest.approx(0.460)
     assert margin.configured_combined_sink_mL_per_cycle == pytest.approx(0.450)
@@ -28,6 +32,7 @@ def test_prime_sink_consumption_increases_closure_deficit():
     )
     margin = derive_service_closure_margin(requirement)
     assert margin.available_sink_mL == pytest.approx(2.460)
+    assert margin.signed_sink_margin_mL == pytest.approx(-0.300)
     assert margin.service_deficit_mL == pytest.approx(0.300)
     assert margin.deficit_mL_per_cycle == pytest.approx(0.050)
     assert margin.configured_combined_sink_mL_per_cycle == pytest.approx(0.410)
@@ -38,8 +43,24 @@ def test_threshold_recovery_closes_margin_without_extra_sink():
     threshold = derive_service_recovery_requirement(base, cycles=6, prime_events=0).required_nominal_recovery_ratio
     requirement = derive_service_recovery_requirement(replace(base, recovery_ratio_min=threshold), cycles=6, prime_events=0)
     margin = derive_service_closure_margin(requirement)
+    assert margin.signed_sink_margin_mL == pytest.approx(0.0, abs=1e-12)
+    assert margin.sink_surplus_mL == pytest.approx(0.0, abs=1e-12)
     assert margin.service_deficit_mL == pytest.approx(0.0, abs=1e-12)
     assert margin.combined_sink_shortfall_mL_per_cycle == pytest.approx(0.0, abs=1e-12)
+    assert margin.closes is True
+
+
+def test_recovery_above_threshold_exposes_positive_sink_surplus():
+    base = build_authority_waste_fluid_budget()
+    requirement = derive_service_recovery_requirement(replace(base, recovery_ratio_min=0.92), cycles=6, prime_events=0)
+    margin = derive_service_closure_margin(requirement)
+    # 27.6 mL * 8% = 2.208 mL nonrecovery against 2.700 mL sink capacity.
+    assert margin.signed_sink_margin_mL == pytest.approx(0.492)
+    assert margin.sink_surplus_mL == pytest.approx(0.492)
+    assert margin.service_deficit_mL == pytest.approx(0.0)
+    assert margin.signed_sink_margin_mL_per_cycle == pytest.approx(0.082)
+    assert margin.sink_surplus_mL_per_cycle == pytest.approx(0.082)
+    assert margin.deficit_mL_per_cycle == pytest.approx(0.0)
     assert margin.closes is True
 
 
@@ -48,7 +69,11 @@ def test_threshold_recovery_closes_margin_without_extra_sink():
     [
         ("configured_nominal_nonrecovery_mL", 2.70),
         ("available_sink_mL", 2.71),
+        ("signed_sink_margin_mL", -0.05),
+        ("sink_surplus_mL", 0.01),
         ("service_deficit_mL", 0.05),
+        ("signed_sink_margin_mL_per_cycle", -0.02),
+        ("sink_surplus_mL_per_cycle", 0.01),
         ("deficit_mL_per_cycle", 0.02),
         ("required_combined_sink_mL_per_cycle_at_authority_recovery", 0.45),
         ("configured_combined_sink_mL_per_cycle", 0.46),
