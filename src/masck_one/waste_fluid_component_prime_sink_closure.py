@@ -26,6 +26,9 @@ class PrimeAdjustedComponentSinkClosure:
     residual_capacity_after_prime_mL: float
     leakage_capacity_after_prime_mL: float
     classified_capacity_after_prime_mL: float
+    minimum_nominal_recovery_for_sink_closure_mL: float
+    minimum_nominal_recovery_ratio_for_sink_closure: float
+    additional_recovery_above_requirement_floor_mL: float
     residual_allocation_min_mL: float
     residual_allocation_max_mL: float
     leakage_allocation_min_mL: float
@@ -44,8 +47,9 @@ class PrimeAdjustedComponentSinkClosure:
         numeric_names = (
             "nominal_nonrecovered_mL", "prime_residual_mL", "prime_external_leakage_mL",
             "residual_capacity_after_prime_mL", "leakage_capacity_after_prime_mL",
-            "classified_capacity_after_prime_mL", "residual_allocation_min_mL",
-            "residual_allocation_max_mL", "leakage_allocation_min_mL",
+            "classified_capacity_after_prime_mL", "minimum_nominal_recovery_for_sink_closure_mL",
+            "minimum_nominal_recovery_ratio_for_sink_closure", "additional_recovery_above_requirement_floor_mL",
+            "residual_allocation_min_mL", "residual_allocation_max_mL", "leakage_allocation_min_mL",
             "leakage_allocation_max_mL", "unclassified_nominal_liquid_mL",
         )
         for name in numeric_names:
@@ -54,6 +58,8 @@ class PrimeAdjustedComponentSinkClosure:
                 raise WasteFluidAccountingError(f"prime-adjusted sink closure {name} must be finite and nonnegative")
             if not math.isclose(value, expected[name], rel_tol=0.0, abs_tol=_TOL):
                 raise WasteFluidAccountingError(f"prime-adjusted sink closure {name} does not reconcile")
+        if self.minimum_nominal_recovery_ratio_for_sink_closure > 1.0 + _TOL:
+            raise WasteFluidAccountingError("prime-adjusted sink closure recovery ratio cannot exceed one")
         if type(self.feasible) is not bool or self.feasible is not expected["feasible"]:
             raise WasteFluidAccountingError("prime-adjusted sink closure decision does not reconcile")
         if self.feasible:
@@ -87,6 +93,15 @@ def _derive(allocation: ComponentRecoveryAllocation, routing: CycleResolvedRouti
     leakage_capacity = max(0.0, leakage_capacity)
     nonrecovered = allocation.total_nonrecovered_mL
     classified = residual_capacity + leakage_capacity
+
+    introduced = ledger.service_total_introduced_mL
+    recovery_floor = ledger.minimum_recovered_mL
+    minimum_recovery_for_closure = max(0.0, introduced - classified)
+    if introduced <= _TOL:
+        raise WasteFluidAccountingError("prime-adjusted sink closure requires positive introduced liquid")
+    minimum_recovery_ratio = minimum_recovery_for_closure / introduced
+    additional_above_floor = max(0.0, minimum_recovery_for_closure - recovery_floor)
+
     residual_min = max(0.0, nonrecovered - leakage_capacity)
     residual_max = min(nonrecovered, residual_capacity)
     leakage_min = max(0.0, nonrecovered - residual_capacity)
@@ -99,6 +114,9 @@ def _derive(allocation: ComponentRecoveryAllocation, routing: CycleResolvedRouti
         "residual_capacity_after_prime_mL": residual_capacity,
         "leakage_capacity_after_prime_mL": leakage_capacity,
         "classified_capacity_after_prime_mL": classified,
+        "minimum_nominal_recovery_for_sink_closure_mL": minimum_recovery_for_closure,
+        "minimum_nominal_recovery_ratio_for_sink_closure": minimum_recovery_ratio,
+        "additional_recovery_above_requirement_floor_mL": additional_above_floor,
         "residual_allocation_min_mL": residual_min,
         "residual_allocation_max_mL": residual_max,
         "leakage_allocation_min_mL": leakage_min,
