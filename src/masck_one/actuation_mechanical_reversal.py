@@ -80,7 +80,7 @@ def _reversal(lower: ZoneMechanicalSensitivity, upper: ZoneMechanicalSensitivity
 
 
 def _validate_complete_four_zone_triplets(result: tuple[ZoneMechanicalSlopeReversal, ...]) -> tuple[tuple[float, float, float], ...]:
-    """Fail closed unless every physical angle triplet contains each controlled zone exactly once."""
+    """Fail closed unless every angle triplet has four zones and independent measured provenance."""
     by_triplet: dict[tuple[float, float, float], list[ZoneMechanicalSlopeReversal]] = {}
     for item in result:
         key = (item.lower_angle_deg, item.center_angle_deg, item.upper_angle_deg)
@@ -90,6 +90,15 @@ def _validate_complete_four_zone_triplets(result: tuple[ZoneMechanicalSlopeRever
         if len(items) != 4 or len(set(zone_ids)) != 4:
             raise ActuationParameterError(
                 f"Mechanical slope reversal angle triplet {key} requires exactly four unique controlled zones"
+            )
+        record_ids = tuple(
+            record_id
+            for item in items
+            for record_id in (item.lower_record_id, item.center_record_id, item.upper_record_id)
+        )
+        if len(set(record_ids)) != len(record_ids):
+            raise ActuationParameterError(
+                f"Mechanical slope reversal angle triplet {key} requires unique measured record provenance across zones"
             )
     return tuple(sorted(by_triplet))
 
