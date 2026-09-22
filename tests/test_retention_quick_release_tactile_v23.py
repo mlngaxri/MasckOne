@@ -16,6 +16,14 @@ def test_v23_builds_and_binds_all_interior_grid_clearance_families():
     assert manifest["bound_pose_count"] == audit.bound_pose_count
 
 
+def test_v23_binds_the_actual_v18_midpoint_manifest_key():
+    audit = v23.build_retention_quick_release_tactile_v23()
+    upstream = audit.prior.prior.manifest()
+    assert "interstitial_release_travel_screen" in upstream
+    assert "midpoint_release_travel_screen" not in upstream
+    assert v23._FAMILIES[0] == "interstitial_release_travel_screen"
+
+
 def test_v23_rejects_stale_pose_count():
     audit = v23.build_retention_quick_release_tactile_v23()
     with pytest.raises(v23.RetentionQuickReleaseTactileV23Error, match="pose count"):
