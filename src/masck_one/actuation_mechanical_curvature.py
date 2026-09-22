@@ -122,6 +122,15 @@ def _angle_triplet_extrema(items):
         triplet = tuple(by_triplet[key]); zone_ids = {item.zone_id for item in triplet}
         if len(zone_ids) != 4 or len(triplet) != 4:
             raise ActuationParameterError(f"Mechanical curvature angle triplet {key} requires exactly four controlled zones")
+        record_ids = tuple(
+            record_id
+            for item in triplet
+            for record_id in (item.lower_record_id, item.center_record_id, item.upper_record_id)
+        )
+        if len(set(record_ids)) != len(record_ids):
+            raise ActuationParameterError(
+                f"Mechanical curvature angle triplet {key} requires unique measured record provenance across zones"
+            )
         extrema.append(AngleTripletCurvatureExtrema(
             key[0], key[1], key[2], len(zone_ids),
             _maximum(triplet, "force_curvature_N_per_deg2"),
