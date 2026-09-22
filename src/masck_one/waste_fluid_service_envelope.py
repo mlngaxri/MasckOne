@@ -100,6 +100,11 @@ def evaluate_reprime_service_envelope(
 ) -> ReprimeServiceEnvelope:
     """Find the exact integer reprime boundary under the supplied routing contract."""
     budget.validate()
+    # ``cycles`` is both a service-life count and the denominator of the
+    # derived nominal-recovery ratio. Reject bools, fractions and zero here so
+    # invalid service intervals cannot leak into downstream closure arithmetic.
+    if type(cycles) is not int or cycles <= 0:
+        raise WasteFluidAccountingError("service envelope cycles must be a positive integer")
     ratios = (prime_recovery_ratio_contract, prime_residual_ratio_contract, prime_external_leakage_ratio_contract)
     if any(type(value) not in (int, float) or not math.isfinite(value) for value in ratios):
         raise WasteFluidAccountingError("service envelope routing ratios must be finite numbers")
