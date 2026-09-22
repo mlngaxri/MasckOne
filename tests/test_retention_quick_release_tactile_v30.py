@@ -10,6 +10,7 @@ def test_v30_builds_and_binds_all_clearance_corners():
     assert audit.pose_count == audit.transverse_sample_count * len(v30.v12._canonical_positions())
     assert audit.max_rigid_guide_intersection_mm3 == 0.0
     assert len(audit.evidence_sha256) == 64
+    assert manifest["criterion"] == "NO_POSITIVE_RAW_KERNEL_RIGID_GUIDE_INTERSECTION_AT_ANY_NOMINAL_MAX_CLEARANCE_AUTHORITY_CORNER"
 
 
 def test_v30_rejects_stale_pose_count():
@@ -30,9 +31,9 @@ def test_v30_rejects_positive_bound_intersection():
         replace(audit, max_rigid_guide_intersection_mm3=v30.v1.TOL_MM3 + 1e-9).validate()
 
 
-def test_v30_rejects_sub_tolerance_positive_intersection(monkeypatch):
-    """A positive B-rep overlap must fail even when below the generic geometry tolerance."""
-    original = v30.v1._intersection
+def test_v30_rejects_sub_tolerance_positive_raw_kernel_intersection(monkeypatch):
+    """The V30 path must not inherit V1's generic sub-TOL_MM3 zero clamp."""
+    original = v30._raw_intersection
     injected = False
 
     def _sub_tolerance_overlap(a, b):
@@ -43,10 +44,20 @@ def test_v30_rejects_sub_tolerance_positive_intersection(monkeypatch):
             return v30.v1.TOL_MM3 / 2.0
         return value
 
-    monkeypatch.setattr(v30.v1, "_intersection", _sub_tolerance_overlap)
+    monkeypatch.setattr(v30, "_raw_intersection", _sub_tolerance_overlap)
     with pytest.raises(v30.RetentionQuickReleaseTactileV30Error, match="collides with rigid guide"):
         v30._corner_evidence()
     assert injected
+
+
+def test_v30_raw_intersection_bypasses_v1_clamping_helper(monkeypatch):
+    """A future refactor must not route V30 back through V1._intersection."""
+    def _forbidden(*_args, **_kwargs):
+        raise AssertionError("V30 must use raw kernel volume, not v1._intersection")
+
+    monkeypatch.setattr(v30.v1, "_intersection", _forbidden)
+    audit = v30.build_retention_quick_release_tactile_v30()
+    assert audit.max_rigid_guide_intersection_mm3 == 0.0
 
 
 def test_v30_corner_authority_is_complete():
