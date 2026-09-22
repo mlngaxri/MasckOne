@@ -14,6 +14,7 @@ import json
 import math
 import re
 
+from . import retention_quick_release_tactile as v1
 from . import retention_quick_release_tactile_v16 as v16
 from . import retention_quick_release_tactile_v17 as v17
 from . import retention_quick_release_tactile_v24 as v24
@@ -28,15 +29,10 @@ class RetentionQuickReleaseTactileV25Error(ValueError):
     pass
 
 
-def _mechanism(prior: v24.RetentionQuickReleaseTactileV24):
-    # V24 -> V23 -> V22 -> V21 -> V20 -> V19 -> V18 -> V17 -> ... -> V1.
-    return prior.prior.prior.prior.prior.prior.prior.prior.prior.prior.prior.prior.prior.prior.mechanism
-
-
 def _boundary_binding(prior: v24.RetentionQuickReleaseTactileV24) -> tuple[int, float, float, int, str]:
-    mechanism = _mechanism(prior)
-    radial = float(mechanism.rail_radial_clearance_mm)
-    side = float(mechanism.anti_rotation_side_clearance_mm)
+    # V1 constants are the owner-local clearance authority used to construct the mechanism.
+    radial = float(v1.SPOOL_RAIL_RADIAL_CLEARANCE_MM)
+    side = float(v1.ANTI_ROTATION_SIDE_CLEARANCE_MM)
     if not all(math.isfinite(value) and value > 0.0 for value in (radial, side)):
         raise RetentionQuickReleaseTactileV25Error("declared transverse clearance domain is invalid")
 
