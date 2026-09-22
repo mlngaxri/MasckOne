@@ -7,9 +7,9 @@ from masck_one.waste_fluid_cycle_routing import screen_cycle_resolved_routing_cl
 from masck_one.waste_fluid_sink_threshold_trajectory import evaluate_sink_recovery_threshold_trajectory
 
 
-def _routing(events, budget=None):
+def _routing(events):
     return screen_cycle_resolved_routing_closure(
-        budget or build_authority_waste_fluid_budget(),
+        build_authority_waste_fluid_budget(),
         prime_events_by_cycle=events,
         prime_recovery_ratio_contract=.90,
         prime_residual_ratio_contract=.08,
@@ -66,13 +66,19 @@ def test_delayed_prime_event_identifies_when_incremental_gap_changes():
     assert trajectory.peak_minimum_recovery_ratio_cycle == trajectory.cycles[first_peak_index].cycle
 
 
-def test_capacity_coupling_detects_when_required_sink_closure_would_overfill_cartridge():
-    budget = replace(build_authority_waste_fluid_budget(), cartridge_retained_capacity_requirement_mL=27.25)
-    trajectory = evaluate_sink_recovery_threshold_trajectory(_routing([1] * 6, budget))
-
+def test_capacity_coupling_detects_sink_fix_that_overfills_cartridge_before_floor_routing_does():
+    # Twenty-six reprimes remain below the 35 mL cartridge at the contractual
+    # recovery floor, but the extra nominal recovery needed to close shared sinks
+    # pushes the same profile above retained capacity.
+    trajectory = evaluate_sink_recovery_threshold_trajectory(_routing([5, 5, 4, 4, 4, 4]))
     final = trajectory.cycles[-1]
-    assert final.minimum_total_cartridge_routing_at_sink_closure_mL == pytest.approx(27.30)
-    assert final.cartridge_capacity_margin_at_sink_closure_mL == pytest.approx(-.05)
+
+    assert trajectory.source_routing.cycles[-1].minimum_routing_capacity_satisfied is True
+    assert trajectory.source_routing.cycles[-1].minimum_routing_capacity_margin_mL == pytest.approx(.80)
+    assert final.minimum_recovery_for_sink_closure_mL == pytest.approx(25.94)
+    assert final.cumulative_prime_routed_to_cartridge_mL == pytest.approx(9.36)
+    assert final.minimum_total_cartridge_routing_at_sink_closure_mL == pytest.approx(35.30)
+    assert final.cartridge_capacity_margin_at_sink_closure_mL == pytest.approx(-.30)
     assert final.sink_closure_fits_retained_cartridge_capacity is False
     assert trajectory.first_cycle_sink_closure_exceeds_cartridge_capacity == 6
     assert trajectory.all_sink_closure_thresholds_fit_cartridge_capacity is False
