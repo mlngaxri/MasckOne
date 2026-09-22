@@ -41,6 +41,31 @@ def test_joint_envelope_finds_true_reprime_boundary_beyond_fail_conservative_scr
     assert blocked.feasible is False
 
 
+def test_joint_envelope_exposes_independent_shared_sink_event_ceiling_headroom():
+    envelope = _envelope()
+
+    # At 0.4 mL/prime, the 8% residual route consumes 0.032 mL/event against
+    # 6 * 0.4 mL residual allowance. The 2% leakage route consumes 0.008 mL/event
+    # against 6 * 0.05 mL leakage allowance. Capacity therefore limits first at
+    # event 26, while the hard sink ceilings remain visible at 75 and 37 events.
+    assert envelope.maximum_prime_events_before_residual_ceiling == 75
+    assert envelope.maximum_prime_events_before_external_leakage_ceiling == 37
+    assert envelope.limiting_next_prime_events < envelope.maximum_prime_events_before_external_leakage_ceiling
+    assert envelope.limiting_next_prime_events < envelope.maximum_prime_events_before_residual_ceiling
+
+
+def test_zero_fraction_sink_has_no_finite_event_ceiling():
+    envelope = evaluate_reprime_service_envelope(
+        build_authority_waste_fluid_budget(),
+        cycles=6,
+        prime_recovery_ratio_contract=1.0,
+        prime_residual_ratio_contract=0.0,
+        prime_external_leakage_ratio_contract=0.0,
+    )
+    assert envelope.maximum_prime_events_before_residual_ceiling is None
+    assert envelope.maximum_prime_events_before_external_leakage_ceiling is None
+
+
 def test_service_envelope_requires_complete_prime_destination_contract():
     budget = build_authority_waste_fluid_budget()
     with pytest.raises(WasteFluidAccountingError):
