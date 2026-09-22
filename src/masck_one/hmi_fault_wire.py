@@ -8,6 +8,9 @@ The explicit identifiers below are the wire contract and therefore do not change
 enum members are reordered or new members are inserted.
 """
 
+from types import MappingProxyType
+from typing import Mapping
+
 from masck_one.hmi_runtime import FaultCode
 
 
@@ -15,7 +18,7 @@ class HmiFaultWireError(ValueError):
     """Raised when a fault wire value violates the serialization contract."""
 
 
-_WIRE_IDS: dict[FaultCode, str] = {
+_WIRE_IDS: Mapping[FaultCode, str] = MappingProxyType({
     FaultCode.PRESSED_NOT_BOOL: "pressed_not_bool",
     FaultCode.SAMPLE_TIME_INVALID: "sample_time_invalid",
     FaultCode.SAMPLE_TIME_REGRESSION: "sample_time_regression",
@@ -27,7 +30,7 @@ _WIRE_IDS: dict[FaultCode, str] = {
     FaultCode.RESET_TIME_REGRESSION: "reset_time_regression",
     FaultCode.INPUT_STREAM_NOT_STARTED: "input_stream_not_started",
     FaultCode.INPUT_STREAM_STALE: "input_stream_stale",
-}
+})
 
 
 def fault_code_wire_id(code: FaultCode) -> str:
