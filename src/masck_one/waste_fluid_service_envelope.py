@@ -34,6 +34,9 @@ class ReprimeServiceEnvelope:
     limiting_next_prime_events: int
     maximum_prime_events_before_residual_ceiling: int | None
     maximum_prime_events_before_external_leakage_ceiling: int | None
+    residual_event_headroom_at_capacity_boundary: int | None
+    external_leakage_event_headroom_at_capacity_boundary: int | None
+    controlling_constraint: str
     maximum_feasible: ServiceEnvelopePoint
     first_infeasible: ServiceEnvelopePoint
 
@@ -46,113 +49,83 @@ def _maximum_events_within_sink_ceiling(*, ceiling_mL: float, per_event_mL: floa
     """
     if per_event_mL <= _TOL:
         return None
-    # Bias only by the same numerical tolerance used by the closure screen so a
-    # mathematically exact boundary is not lost to binary floating-point noise.
     return math.floor((ceiling_mL + _TOL) / per_event_mL)
 
 
-def _point(
-    budget: WasteFluidBudget,
-    *,
-    cycles: int,
-    prime_events: int,
-    recovery: float,
-    residual: float,
-    leakage: float,
-) -> ServiceEnvelopePoint:
+def _point(budget: WasteFluidBudget, *, cycles: int, prime_events: int, recovery: float, residual: float, leakage: float) -> ServiceEnvelopePoint:
     closure = screen_service_routing_closure(
-        budget,
-        cycles=cycles,
-        prime_events=prime_events,
+        budget, cycles=cycles, prime_events=prime_events,
         prime_recovery_ratio_contract=recovery,
         prime_residual_ratio_contract=residual,
         prime_external_leakage_ratio_contract=leakage,
     )
     if closure.prime_liquid_without_routing_contract_mL > _TOL:
         raise WasteFluidAccountingError("service envelope requires a complete prime destination contract")
-    nominal_threshold = (
-        closure.minimum_nominal_liquid_routed_to_cartridge_mL
-        + closure.shared_sink_unclassified_nonrecovery_mL
-    )
+    nominal_threshold = closure.minimum_nominal_liquid_routed_to_cartridge_mL + closure.shared_sink_unclassified_nonrecovery_mL
     if nominal_threshold > cycles * budget.nominal_introduced_mL_per_cycle + _TOL:
         raise WasteFluidAccountingError("shared-sink closure would require recovering more nominal liquid than introduced")
     total = nominal_threshold + closure.minimum_prime_liquid_routed_to_cartridge_mL
     margin = budget.cartridge_retained_capacity_requirement_mL - total
     return ServiceEnvelopePoint(
-        prime_events=prime_events,
-        minimum_nominal_recovery_for_sink_closure_mL=nominal_threshold,
-        minimum_prime_routed_to_cartridge_mL=closure.minimum_prime_liquid_routed_to_cartridge_mL,
-        minimum_total_cartridge_routing_for_sink_closure_mL=total,
-        retained_cartridge_capacity_mL=budget.cartridge_retained_capacity_requirement_mL,
-        cartridge_margin_mL=margin,
-        feasible=margin >= -_TOL,
-        source_closure=closure,
+        prime_events, nominal_threshold, closure.minimum_prime_liquid_routed_to_cartridge_mL,
+        total, budget.cartridge_retained_capacity_requirement_mL, margin, margin >= -_TOL, closure,
     )
 
 
+def _headroom(limit: int | None, *, used: int) -> int | None:
+    return None if limit is None else limit - used
+
+
+def _controlling_constraint(*, capacity_next: int, residual_limit: int | None, leakage_limit: int | None) -> str:
+    """Identify the first independently computable service-envelope constraint."""
+    candidates = [(capacity_next, "CARTRIDGE_CAPACITY")]
+    if residual_limit is not None:
+        candidates.append((residual_limit + 1, "RESIDUAL_CEILING"))
+    if leakage_limit is not None:
+        candidates.append((leakage_limit + 1, "EXTERNAL_LEAKAGE_CEILING"))
+    first_event = min(event for event, _ in candidates)
+    names = sorted(name for event, name in candidates if event == first_event)
+    return "+".join(names)
+
+
 def evaluate_reprime_service_envelope(
-    budget: WasteFluidBudget,
-    *,
-    cycles: int,
+    budget: WasteFluidBudget, *, cycles: int,
     prime_recovery_ratio_contract: float,
     prime_residual_ratio_contract: float,
     prime_external_leakage_ratio_contract: float,
 ) -> ReprimeServiceEnvelope:
     """Find the exact integer reprime boundary under the supplied routing contract."""
     budget.validate()
-    ratios = (
-        prime_recovery_ratio_contract,
-        prime_residual_ratio_contract,
-        prime_external_leakage_ratio_contract,
-    )
+    ratios = (prime_recovery_ratio_contract, prime_residual_ratio_contract, prime_external_leakage_ratio_contract)
     if any(type(value) not in (int, float) or not math.isfinite(value) for value in ratios):
         raise WasteFluidAccountingError("service envelope routing ratios must be finite numbers")
     if any(value < 0.0 or value > 1.0 for value in ratios):
         raise WasteFluidAccountingError("service envelope routing ratios must each lie in [0, 1]")
-    ratio_sum = sum(ratios)
-    if abs(ratio_sum - 1.0) > _TOL:
+    if abs(sum(ratios) - 1.0) > _TOL:
         raise WasteFluidAccountingError("service envelope requires prime destination ratios to sum to exactly one")
 
     recovery, residual, leakage = (float(value) for value in ratios)
-    previous = _point(
-        budget, cycles=cycles, prime_events=0,
-        recovery=recovery, residual=residual, leakage=leakage,
-    )
+    previous = _point(budget, cycles=cycles, prime_events=0, recovery=recovery, residual=residual, leakage=leakage)
     if not previous.feasible:
         raise WasteFluidAccountingError("zero-prime service cannot close shared sinks within retained cartridge capacity")
 
-    # Independently expose the hard shared-sink event ceilings. This prevents a
-    # cartridge-limited result from hiding how close the same routing contract is
-    # to exhausting residual or external-leakage allowance.
     prime_volume = budget.maximum_initial_prime_mL_per_cycle
     residual_event_limit = _maximum_events_within_sink_ceiling(
-        ceiling_mL=budget.residual_free_liquid_max_mL * cycles,
-        per_event_mL=prime_volume * residual,
+        ceiling_mL=budget.residual_free_liquid_max_mL * cycles, per_event_mL=prime_volume * residual,
     )
     leakage_event_limit = _maximum_events_within_sink_ceiling(
-        ceiling_mL=budget.external_leakage_max_mL_per_cycle * cycles,
-        per_event_mL=prime_volume * leakage,
+        ceiling_mL=budget.external_leakage_max_mL_per_cycle * cycles, per_event_mL=prime_volume * leakage,
     )
-
-    # Capacity provides a finite search bound whenever prime volume is nonzero.
     if prime_volume <= _TOL:
         raise WasteFluidAccountingError("zero-volume prime has no finite reprime-event capacity boundary")
     conservative_bound = budget.maximum_prime_events_that_fit(cycles=cycles)
-    search_limit = max(1, (conservative_bound or 0) + math.ceil(
-        budget.cartridge_retained_capacity_requirement_mL / prime_volume
-    ) + 2)
+    search_limit = max(1, (conservative_bound or 0) + math.ceil(budget.cartridge_retained_capacity_requirement_mL / prime_volume) + 2)
 
     for events in range(1, search_limit + 1):
         try:
-            current = _point(
-                budget, cycles=cycles, prime_events=events,
-                recovery=recovery, residual=residual, leakage=leakage,
-            )
+            current = _point(budget, cycles=cycles, prime_events=events, recovery=recovery, residual=residual, leakage=leakage)
         except WasteFluidAccountingError:
-            # A sink ceiling exceeded before capacity is itself an infeasible next event.
-            raise WasteFluidAccountingError(
-                f"prime routing contract becomes invalid before a capacity boundary at {events} events"
-            )
+            raise WasteFluidAccountingError(f"prime routing contract becomes invalid before a capacity boundary at {events} events")
         if not current.feasible:
             return ReprimeServiceEnvelope(
                 cycles=cycles,
@@ -160,6 +133,13 @@ def evaluate_reprime_service_envelope(
                 limiting_next_prime_events=current.prime_events,
                 maximum_prime_events_before_residual_ceiling=residual_event_limit,
                 maximum_prime_events_before_external_leakage_ceiling=leakage_event_limit,
+                residual_event_headroom_at_capacity_boundary=_headroom(residual_event_limit, used=previous.prime_events),
+                external_leakage_event_headroom_at_capacity_boundary=_headroom(leakage_event_limit, used=previous.prime_events),
+                controlling_constraint=_controlling_constraint(
+                    capacity_next=current.prime_events,
+                    residual_limit=residual_event_limit,
+                    leakage_limit=leakage_event_limit,
+                ),
                 maximum_feasible=previous,
                 first_infeasible=current,
             )
