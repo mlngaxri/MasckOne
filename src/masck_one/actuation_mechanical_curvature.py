@@ -48,12 +48,26 @@ class ZoneMechanicalCurvatureExtrema:
 
 
 @dataclass(frozen=True, slots=True)
+class AngleTripletCurvatureExtrema:
+    """Worst measured zone curvature retained independently for one angle triplet."""
+    lower_angle_deg: float
+    center_angle_deg: float
+    upper_angle_deg: float
+    zone_count: int
+    maximum_abs_force_curvature: ZoneMechanicalCurvature
+    maximum_abs_displacement_curvature: ZoneMechanicalCurvature
+    maximum_abs_phase_curvature: ZoneMechanicalCurvature
+    maximum_abs_temperature_curvature: ZoneMechanicalCurvature
+
+
+@dataclass(frozen=True, slots=True)
 class ActuationMechanicalCurvatureEnvelope:
     source_parameter_sha256: str
     source_sweep_sha256: str
     triplet_count: int
     curvatures: tuple[ZoneMechanicalCurvature, ...]
     per_zone_extrema: tuple[ZoneMechanicalCurvatureExtrema, ...]
+    angle_triplet_extrema: tuple[AngleTripletCurvatureExtrema, ...]
     maximum_abs_force_curvature: ZoneMechanicalCurvature
     maximum_abs_displacement_curvature: ZoneMechanicalCurvature
     maximum_abs_phase_curvature: ZoneMechanicalCurvature
@@ -121,6 +135,29 @@ def _zone_extrema(items: tuple[ZoneMechanicalCurvature, ...]) -> tuple[ZoneMecha
     )
 
 
+def _angle_triplet_extrema(items: tuple[ZoneMechanicalCurvature, ...]) -> tuple[AngleTripletCurvatureExtrema, ...]:
+    by_triplet: dict[tuple[float, float, float], list[ZoneMechanicalCurvature]] = {}
+    for item in items:
+        key = (item.lower_angle_deg, item.center_angle_deg, item.upper_angle_deg)
+        by_triplet.setdefault(key, []).append(item)
+    extrema: list[AngleTripletCurvatureExtrema] = []
+    for key in sorted(by_triplet):
+        triplet = tuple(by_triplet[key])
+        zone_ids = {item.zone_id for item in triplet}
+        if len(zone_ids) != 4 or len(triplet) != 4:
+            raise ActuationParameterError(
+                f"Mechanical curvature angle triplet {key} requires exactly four controlled zones"
+            )
+        extrema.append(AngleTripletCurvatureExtrema(
+            lower_angle_deg=key[0], center_angle_deg=key[1], upper_angle_deg=key[2], zone_count=len(zone_ids),
+            maximum_abs_force_curvature=_maximum(triplet, "force_curvature_N_per_deg2"),
+            maximum_abs_displacement_curvature=_maximum(triplet, "displacement_curvature_mm_per_deg2"),
+            maximum_abs_phase_curvature=_maximum(triplet, "phase_curvature_deg_per_deg2"),
+            maximum_abs_temperature_curvature=_maximum(triplet, "temperature_curvature_C_per_deg2"),
+        ))
+    return tuple(extrema)
+
+
 def reduce_measured_mechanical_curvature(
     sweep: FourZoneImpedanceSweep,
     parameters: ActuationParameterSet,
@@ -147,6 +184,7 @@ def reduce_measured_mechanical_curvature(
         triplet_count=len(result),
         curvatures=result,
         per_zone_extrema=_zone_extrema(result),
+        angle_triplet_extrema=_angle_triplet_extrema(result),
         maximum_abs_force_curvature=_maximum(result, "force_curvature_N_per_deg2"),
         maximum_abs_displacement_curvature=_maximum(result, "displacement_curvature_mm_per_deg2"),
         maximum_abs_phase_curvature=_maximum(result, "phase_curvature_deg_per_deg2"),
