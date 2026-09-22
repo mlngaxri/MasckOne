@@ -20,6 +20,9 @@ def test_authority_baseline_exposes_no_feasible_individual_sink_allocation():
     assert result.residual_allocation_max_mL == pytest.approx(2.4)
     assert result.leakage_allocation_min_mL == pytest.approx(0.36)
     assert result.leakage_allocation_max_mL == pytest.approx(0.3)
+    assert result.residual_capacity_shortfall_mL == pytest.approx(0.06)
+    assert result.leakage_capacity_shortfall_mL == pytest.approx(0.06)
+    assert result.allocation_interval_gap_mL == pytest.approx(0.06)
     assert result.feasible is False
 
 
@@ -29,12 +32,15 @@ def test_recovery_at_closure_threshold_has_exact_feasible_boundary():
     requirement = derive_service_recovery_requirement(budget, cycles=6, prime_events=0)
     result = derive_service_sink_allocation_window(requirement)
     assert result.feasible is True
+    assert result.allocation_interval_gap_mL == pytest.approx(0.0, abs=1e-12)
+    assert result.residual_capacity_shortfall_mL == pytest.approx(0.0, abs=1e-12)
+    assert result.leakage_capacity_shortfall_mL == pytest.approx(0.0, abs=1e-12)
     assert result.residual_allocation_min_mL == pytest.approx(result.residual_allocation_max_mL)
     assert result.leakage_allocation_min_mL == pytest.approx(result.leakage_allocation_max_mL)
     assert result.residual_allocation_min_mL + result.leakage_allocation_max_mL == pytest.approx(result.nominal_nonrecovery_mL)
 
 
-def test_prime_sink_use_tightens_each_allocation_bound():
+def test_prime_sink_use_tightens_each_allocation_bound_and_deficit():
     requirement = derive_service_recovery_requirement(
         build_waste_fluid_budget(), cycles=6, prime_events=6,
         prime_recovery_ratio_contract=0.90,
@@ -44,6 +50,9 @@ def test_prime_sink_use_tightens_each_allocation_bound():
     result = derive_service_sink_allocation_window(requirement)
     assert result.residual_capacity_mL < 2.4
     assert result.leakage_capacity_mL < 0.3
+    assert result.allocation_interval_gap_mL == pytest.approx(0.3)
+    assert result.residual_capacity_shortfall_mL == pytest.approx(0.3)
+    assert result.leakage_capacity_shortfall_mL == pytest.approx(0.3)
     assert result.feasible is False
 
 
@@ -53,6 +62,12 @@ def test_forged_allocation_evidence_fails_closed():
         replace(result, residual_allocation_min_mL=result.residual_allocation_min_mL - 0.1)
     with pytest.raises(WasteFluidAccountingError):
         replace(result, leakage_allocation_max_mL=result.leakage_allocation_max_mL + 0.1)
+    with pytest.raises(WasteFluidAccountingError):
+        replace(result, residual_capacity_shortfall_mL=0.0)
+    with pytest.raises(WasteFluidAccountingError):
+        replace(result, leakage_capacity_shortfall_mL=0.0)
+    with pytest.raises(WasteFluidAccountingError):
+        replace(result, allocation_interval_gap_mL=0.0)
     with pytest.raises(WasteFluidAccountingError):
         replace(result, feasible=True)
 
