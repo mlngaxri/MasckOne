@@ -72,22 +72,26 @@ def _reversal(lower: ZoneMechanicalSensitivity, upper: ZoneMechanicalSensitivity
     phase = _turning_point(lower.phase_slope_deg_per_deg, upper.phase_slope_deg_per_deg)
     temperature = _turning_point(lower.temperature_slope_C_per_deg, upper.temperature_slope_C_per_deg)
     return ZoneMechanicalSlopeReversal(
-        lower.zone_id,
-        lower.lower_angle_deg,
-        lower.upper_angle_deg,
-        upper.upper_angle_deg,
-        lower.lower_record_id,
-        lower.upper_record_id,
-        upper.upper_record_id,
-        force != "NONE",
-        displacement != "NONE",
-        phase != "NONE",
-        temperature != "NONE",
-        force,
-        displacement,
-        phase,
-        temperature,
+        lower.zone_id, lower.lower_angle_deg, lower.upper_angle_deg, upper.upper_angle_deg,
+        lower.lower_record_id, lower.upper_record_id, upper.upper_record_id,
+        force != "NONE", displacement != "NONE", phase != "NONE", temperature != "NONE",
+        force, displacement, phase, temperature,
     )
+
+
+def _validate_complete_four_zone_triplets(result: tuple[ZoneMechanicalSlopeReversal, ...]) -> tuple[tuple[float, float, float], ...]:
+    """Fail closed unless every physical angle triplet contains each controlled zone exactly once."""
+    by_triplet: dict[tuple[float, float, float], list[ZoneMechanicalSlopeReversal]] = {}
+    for item in result:
+        key = (item.lower_angle_deg, item.center_angle_deg, item.upper_angle_deg)
+        by_triplet.setdefault(key, []).append(item)
+    for key, items in by_triplet.items():
+        zone_ids = tuple(item.zone_id for item in items)
+        if len(items) != 4 or len(set(zone_ids)) != 4:
+            raise ActuationParameterError(
+                f"Mechanical slope reversal angle triplet {key} requires exactly four unique controlled zones"
+            )
+    return tuple(sorted(by_triplet))
 
 
 def reduce_measured_mechanical_reversals(
@@ -102,10 +106,7 @@ def reduce_measured_mechanical_reversals(
 
     reversals: list[ZoneMechanicalSlopeReversal] = []
     for zone_id in sorted(by_zone):
-        intervals = sorted(
-            by_zone[zone_id],
-            key=lambda item: (item.lower_angle_deg, item.upper_angle_deg, item.lower_record_id),
-        )
+        intervals = sorted(by_zone[zone_id], key=lambda item: (item.lower_angle_deg, item.upper_angle_deg, item.lower_record_id))
         if len(intervals) < 2:
             raise ActuationParameterError(f"Mechanical slope reversal requires at least three measured carrier angles for {zone_id}")
         reversals.extend(_reversal(lower, upper) for lower, upper in zip(intervals, intervals[1:]))
@@ -113,30 +114,20 @@ def reduce_measured_mechanical_reversals(
     result = tuple(reversals)
     if not result:
         raise ActuationParameterError("Mechanical slope reversal requires measured three-point carrier-angle evidence")
-    triplets = {(item.lower_angle_deg, item.center_angle_deg, item.upper_angle_deg) for item in result}
-    zones = {item.zone_id for item in result}
-    if len(zones) != 4 or len(result) != 4 * len(triplets):
-        raise ActuationParameterError("Mechanical slope reversal requires complete four-zone angle-triplet evidence")
+    triplets = _validate_complete_four_zone_triplets(result)
 
     def count(metric: str, classification: str) -> int:
         return sum(getattr(item, f"{metric}_turning_point") == classification for item in result)
 
     return ActuationMechanicalReversalEnvelope(
-        sensitivity.source_parameter_sha256,
-        sensitivity.source_sweep_sha256,
-        len(triplets),
-        len(result),
-        result,
+        sensitivity.source_parameter_sha256, sensitivity.source_sweep_sha256,
+        len(triplets), len(result), result,
         sum(item.force_reversal for item in result),
         sum(item.displacement_reversal for item in result),
         sum(item.phase_reversal for item in result),
         sum(item.temperature_reversal for item in result),
-        count("force", "PEAK"),
-        count("force", "TROUGH"),
-        count("displacement", "PEAK"),
-        count("displacement", "TROUGH"),
-        count("phase", "PEAK"),
-        count("phase", "TROUGH"),
-        count("temperature", "PEAK"),
-        count("temperature", "TROUGH"),
+        count("force", "PEAK"), count("force", "TROUGH"),
+        count("displacement", "PEAK"), count("displacement", "TROUGH"),
+        count("phase", "PEAK"), count("phase", "TROUGH"),
+        count("temperature", "PEAK"), count("temperature", "TROUGH"),
     )
