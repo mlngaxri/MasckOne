@@ -2,13 +2,13 @@ from dataclasses import replace
 
 import pytest
 
-from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_waste_fluid_budget
+from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
 from masck_one.waste_fluid_recovery_requirement import derive_service_recovery_requirement
 from masck_one.waste_fluid_sink_allocation import derive_service_sink_allocation_window
 
 
 def _requirement(**kwargs):
-    return derive_service_recovery_requirement(build_waste_fluid_budget(), cycles=6, prime_events=0, **kwargs)
+    return derive_service_recovery_requirement(build_authority_waste_fluid_budget(), cycles=6, prime_events=0, **kwargs)
 
 
 def test_authority_baseline_exposes_no_feasible_individual_sink_allocation():
@@ -42,7 +42,7 @@ def test_recovery_at_closure_threshold_has_exact_feasible_boundary():
 
 def test_prime_sink_use_tightens_each_allocation_bound_and_deficit():
     requirement = derive_service_recovery_requirement(
-        build_waste_fluid_budget(), cycles=6, prime_events=6,
+        build_authority_waste_fluid_budget(), cycles=6, prime_events=6,
         prime_recovery_ratio_contract=0.90,
         prime_residual_ratio_contract=0.08,
         prime_external_leakage_ratio_contract=0.02,
