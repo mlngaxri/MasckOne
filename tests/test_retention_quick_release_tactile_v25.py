@@ -31,6 +31,7 @@ def test_v25_rejects_mesh_that_silently_shrinks_radial_boundary(monkeypatch: pyt
         return original(radial * 0.9, min(side, radial * 0.9))
 
     monkeypatch.setattr(v16, "_dense_samples", shrunk)
+    monkeypatch.setattr(v25.v17, "_interstitial_samples", lambda radial, side: ())
     with pytest.raises(v25.RetentionQuickReleaseTactileV25Error, match="radial clearance boundary"):
         v25.build_retention_quick_release_tactile_v25()
 
