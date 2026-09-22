@@ -50,23 +50,42 @@ def test_monotonic_measured_response_has_no_false_reversals():
     assert result.displacement_reversal_count == 0
     assert result.phase_reversal_count == 0
     assert result.temperature_reversal_count == 0
+    assert result.force_peak_count == result.force_trough_count == 0
+    assert all(item.force_turning_point == "NONE" for item in result.reversals)
 
 
-def test_local_force_peak_is_exposed_with_exact_three_record_provenance():
-    parameters = _parameters(); sweep = _sweep(parameters)
-    zone_id = sorted(ZONE_IDS)[0]; angles = tuple(sorted(parameters.axis_angle_doe_deg)); center = angles[len(angles) // 2]
-    records = tuple(
-        ZoneImpedanceRecord(item.zone_id, replace(item.record, measured_force_N=float(item.record.measured_force_N) + 0.10))
+def _with_center_force_offset(sweep, zone_id, center, offset):
+    return FourZoneImpedanceSweep(sweep.source_parameter_sha256, tuple(
+        ZoneImpedanceRecord(item.zone_id, replace(item.record, measured_force_N=float(item.record.measured_force_N) + offset))
         if item.zone_id == zone_id and float(item.record.axis_angle_deg) == center else item
         for item in sweep.records
-    )
-    result = reduce_measured_mechanical_reversals(FourZoneImpedanceSweep(parameters.parameter_sha256, records), parameters)
-    hits = tuple(item for item in result.reversals if item.zone_id == zone_id and item.force_reversal)
+    ))
+
+
+def test_local_force_peak_is_classified_with_exact_three_record_provenance():
+    parameters = _parameters(); sweep = _sweep(parameters)
+    zone_id = sorted(ZONE_IDS)[0]; angles = tuple(sorted(parameters.axis_angle_doe_deg)); center = angles[len(angles) // 2]
+    result = reduce_measured_mechanical_reversals(_with_center_force_offset(sweep, zone_id, center, 0.10), parameters)
+    hits = tuple(item for item in result.reversals if item.zone_id == zone_id and item.force_turning_point == "PEAK")
     assert hits
     hit = next(item for item in hits if item.center_angle_deg == center)
+    assert hit.force_reversal
     assert hit.lower_record_id == f"REV-{zone_id}-{hit.lower_angle_deg:g}"
     assert hit.center_record_id == f"REV-{zone_id}-{center:g}"
     assert hit.upper_record_id == f"REV-{zone_id}-{hit.upper_angle_deg:g}"
+    assert result.force_peak_count >= 1
+    assert result.force_reversal_count == result.force_peak_count + result.force_trough_count
+
+
+def test_local_force_trough_is_distinguished_from_peak():
+    parameters = _parameters(); sweep = _sweep(parameters)
+    zone_id = sorted(ZONE_IDS)[0]; angles = tuple(sorted(parameters.axis_angle_doe_deg)); center = angles[len(angles) // 2]
+    result = reduce_measured_mechanical_reversals(_with_center_force_offset(sweep, zone_id, center, -0.10), parameters)
+    hit = next(item for item in result.reversals if item.zone_id == zone_id and item.center_angle_deg == center)
+    assert hit.force_turning_point == "TROUGH"
+    assert hit.force_reversal
+    assert result.force_trough_count >= 1
+    assert result.force_reversal_count == result.force_peak_count + result.force_trough_count
 
 
 def test_reversal_reduction_is_order_independent():
