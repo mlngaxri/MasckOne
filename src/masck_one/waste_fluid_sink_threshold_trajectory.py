@@ -50,6 +50,21 @@ class SinkRecoveryThresholdTrajectory:
     def peak_additional_recovery_above_floor_mL(self) -> float:
         return max(state.additional_recovery_above_requirement_floor_mL for state in self.cycles)
 
+    @property
+    def peak_minimum_recovery_ratio_for_sink_closure(self) -> float:
+        """Highest cycle-resolved nominal recovery ratio required to close shared sinks."""
+        return max(state.minimum_recovery_ratio_for_sink_closure for state in self.cycles)
+
+    @property
+    def peak_minimum_recovery_ratio_cycle(self) -> int:
+        """Earliest cycle at the peak required recovery ratio."""
+        peak = self.peak_minimum_recovery_ratio_for_sink_closure
+        return next(
+            state.cycle
+            for state in self.cycles
+            if math.isclose(state.minimum_recovery_ratio_for_sink_closure, peak, rel_tol=0.0, abs_tol=_TOL)
+        )
+
 
 def _derive(routing: CycleResolvedRoutingClosure) -> tuple[CycleSinkRecoveryThreshold, ...]:
     cumulative_introduced = 0.0
