@@ -19,6 +19,7 @@ _TOL = 1e-12
 class ServiceEnvelopePoint:
     prime_events: int
     minimum_nominal_recovery_for_sink_closure_mL: float
+    minimum_nominal_recovery_ratio_for_sink_closure: float
     minimum_prime_routed_to_cartridge_mL: float
     minimum_total_cartridge_routing_for_sink_closure_mL: float
     retained_cartridge_capacity_mL: float
@@ -62,12 +63,15 @@ def _point(budget: WasteFluidBudget, *, cycles: int, prime_events: int, recovery
     if closure.prime_liquid_without_routing_contract_mL > _TOL:
         raise WasteFluidAccountingError("service envelope requires a complete prime destination contract")
     nominal_threshold = closure.minimum_nominal_liquid_routed_to_cartridge_mL + closure.shared_sink_unclassified_nonrecovery_mL
-    if nominal_threshold > cycles * budget.nominal_introduced_mL_per_cycle + _TOL:
+    nominal_introduced = cycles * budget.nominal_introduced_mL_per_cycle
+    if nominal_threshold > nominal_introduced + _TOL:
         raise WasteFluidAccountingError("shared-sink closure would require recovering more nominal liquid than introduced")
+    nominal_recovery_ratio = nominal_threshold / nominal_introduced
     total = nominal_threshold + closure.minimum_prime_liquid_routed_to_cartridge_mL
     margin = budget.cartridge_retained_capacity_requirement_mL - total
     return ServiceEnvelopePoint(
-        prime_events, nominal_threshold, closure.minimum_prime_liquid_routed_to_cartridge_mL,
+        prime_events, nominal_threshold, nominal_recovery_ratio,
+        closure.minimum_prime_liquid_routed_to_cartridge_mL,
         total, budget.cartridge_retained_capacity_requirement_mL, margin, margin >= -_TOL, closure,
     )
 
