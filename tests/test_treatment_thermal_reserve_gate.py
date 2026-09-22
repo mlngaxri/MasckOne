@@ -2,7 +2,12 @@ import itertools
 
 import pytest
 
-from masck_one.thermal_control import ThermalCommand, ThermalCommandInterlock, ThermalMode
+from masck_one.thermal_control import (
+    ThermalCommand,
+    ThermalCommandInterlock,
+    ThermalInhibitReason,
+    ThermalMode,
+)
 from masck_one.treatment_recovery_readiness import screen_treatment_recovery_readiness
 from masck_one.treatment_thermal_reserve_gate import command_thermal_after_reserved_treatment
 from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
@@ -71,6 +76,58 @@ def test_reserved_boundary_preserves_closed_wire_state_space():
         assert ThermalCommand.from_wire(wire) == command
         observed.add((wire["mode"], wire["warm_enable"], wire["cool_enable"], wire["inhibited"], wire["reason"]))
     assert len(observed) == 4
+
+
+def test_reserved_boundary_exhausts_permitted_and_blocked_recovery_states():
+    permitted = _reserved_readiness()
+    blocked = _reserved_readiness(
+        reserve=CartridgeCapacityReserve(other_integration_mL=34.0)
+    )
+    assert permitted.post_recovery_handoff_permitted is True
+    assert blocked.post_recovery_handoff_permitted is False
+
+    expected = {
+        (False, False, True): ThermalCommand(ThermalMode.OFF, False, False),
+        (True, False, True): ThermalCommand(ThermalMode.WARM, True, False),
+        (False, True, True): ThermalCommand(ThermalMode.COOL, False, True),
+        (True, True, True): ThermalCommand(
+            ThermalMode.OFF,
+            False,
+            False,
+            inhibited=True,
+            reason=ThermalInhibitReason.CONFLICTING_REQUESTS,
+        ),
+        (False, False, False): ThermalCommand(ThermalMode.OFF, False, False),
+        (True, False, False): ThermalCommand(ThermalMode.WARM, True, False),
+        (False, True, False): ThermalCommand(
+            ThermalMode.OFF,
+            False,
+            False,
+            inhibited=True,
+            reason=ThermalInhibitReason.RECOVERY_INCOMPLETE,
+        ),
+        (True, True, False): ThermalCommand(
+            ThermalMode.OFF,
+            False,
+            False,
+            inhibited=True,
+            reason=ThermalInhibitReason.CONFLICTING_REQUESTS,
+        ),
+    }
+
+    for readiness in (permitted, blocked):
+        recovery_permitted = readiness.post_recovery_handoff_permitted
+        for warm_requested, cool_requested in itertools.product((False, True), repeat=2):
+            command = command_thermal_after_reserved_treatment(
+                ThermalCommandInterlock(),
+                readiness,
+                warm_requested=warm_requested,
+                cool_requested=cool_requested,
+            )
+            assert command == expected[
+                (warm_requested, cool_requested, recovery_permitted)
+            ]
+            assert ThermalCommand.from_wire(command.to_wire()) == command
 
 
 @pytest.mark.parametrize("readiness", [True, object(), None])
