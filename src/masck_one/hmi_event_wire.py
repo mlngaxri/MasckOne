@@ -2,7 +2,8 @@ from __future__ import annotations
 
 """Stable fail-closed serialization for conditioned HMI input events."""
 
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Mapping
 
 from masck_one.hmi_fault_wire import (
     HmiFaultWireError,
@@ -16,13 +17,15 @@ class HmiEventWireError(ValueError):
     """Raised when an HMI event wire payload violates the contract."""
 
 
-_CANONICAL_EDGE_TO_WIRE: dict[Edge, str] = {
+_CANONICAL_EDGE_TO_WIRE: Mapping[Edge, str] = MappingProxyType({
     Edge.NONE: "none",
     Edge.PRESSED: "pressed",
     Edge.RELEASED: "released",
-}
-_EDGE_TO_WIRE: dict[Edge, str] = dict(_CANONICAL_EDGE_TO_WIRE)
-_WIRE_TO_EDGE = {identifier: edge for edge, identifier in _EDGE_TO_WIRE.items()}
+})
+_EDGE_TO_WIRE: Mapping[Edge, str] = _CANONICAL_EDGE_TO_WIRE
+_WIRE_TO_EDGE: Mapping[str, Edge] = MappingProxyType(
+    {identifier: edge for edge, identifier in _EDGE_TO_WIRE.items()}
+)
 _FIELDS = frozenset({"stable_pressed", "edge", "faulted", "fault_code"})
 
 
