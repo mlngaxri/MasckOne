@@ -24,6 +24,7 @@ SCHEMA = "MASCK_ONE_RETENTION_QUICK_RELEASE_TACTILE_V30"
 SUPERSEDES_SCHEMA = v29.SCHEMA
 _DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 
+
 class RetentionQuickReleaseTactileV30Error(ValueError):
     pass
 
@@ -38,6 +39,20 @@ def _clearance_corners(mechanism: v1.RetentionQuickReleaseTactile) -> tuple[tupl
     return (("nominal_nominal", nr, ns), ("nominal_max_side", nr, ms), ("max_radial_nominal", mr, ns), ("max_max", mr, ms))
 
 
+def _raw_intersection(first, second) -> float:
+    """Return the kernel-reported overlap without V1's generic small-volume clamp.
+
+    V1._intersection intentionally maps overlaps below TOL_MM3 to zero for general
+    geometry bookkeeping. V30's contract is stricter: every positive kernel-reported
+    rigid-guide overlap is a failed sampled pose, so using that helper here would hide
+    exactly the sub-tolerance collisions this audit is intended to reject.
+    """
+    value = float(first.val().intersect(second.val()).Volume())
+    if not math.isfinite(value) or value < 0.0:
+        raise RetentionQuickReleaseTactileV30Error("invalid raw clearance-corner intersection")
+    return value
+
+
 def _corner_evidence() -> tuple[int, int, float, str]:
     mechanism = v1.build_retention_quick_release_tactile()
     positions = v12._canonical_positions()
@@ -50,13 +65,7 @@ def _corner_evidence() -> tuple[int, int, float, str]:
                 sample_count += len(samples)
                 for y, z in samples:
                     for x in positions:
-                        overlap = v1._intersection(mechanism.slider.translate((x, y, z)), mechanism.guide)
-                        if not math.isfinite(overlap) or overlap < 0.0:
-                            raise RetentionQuickReleaseTactileV30Error("invalid clearance-corner evidence")
-                        # The V30 contract is deliberately stricter than the generic B-rep
-                        # tolerance: any reported positive overlap is a failed packaging pose.
-                        # TOL_MM3 remains useful to geometry helpers, but must not turn a small
-                        # collision into accepted structural evidence here.
+                        overlap = _raw_intersection(mechanism.slider.translate((x, y, z)), mechanism.guide)
                         if overlap > 0.0:
                             raise RetentionQuickReleaseTactileV30Error(f"clearance authority corner {corner} collides with rigid guide")
                         maximum = max(maximum, overlap)
@@ -68,6 +77,7 @@ def _corner_evidence() -> tuple[int, int, float, str]:
     payload = {"corners": [(n, format(r, ".12f"), format(s, ".12f")) for n, r, s in _clearance_corners(mechanism)], "records": records}
     digest = sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     return sample_count, len(records), round(maximum, 12), digest
+
 
 @dataclass(frozen=True, slots=True)
 class RetentionQuickReleaseTactileV30:
@@ -98,10 +108,11 @@ class RetentionQuickReleaseTactileV30:
         payload.pop("manifest_sha256", None)
         payload["schema"] = SCHEMA
         payload["supersedes_schema"] = SUPERSEDES_SCHEMA
-        payload["clearance_authority_corner_screen"] = {"corner_count": 4, "transverse_sample_count": self.transverse_sample_count, "pose_count": self.pose_count, "max_rigid_guide_intersection_mm3": self.max_rigid_guide_intersection_mm3, "evidence_sha256": self.evidence_sha256, "criterion": "NO_POSITIVE_RIGID_GUIDE_INTERSECTION_AT_ANY_NOMINAL_MAX_CLEARANCE_AUTHORITY_CORNER", "scope": "SAMPLED_DIGITAL_BREP_SCREEN_NOT_CONTINUOUS_SWEPT_VOLUME_OR_MANUFACTURING_TOLERANCE_STACK"}
+        payload["clearance_authority_corner_screen"] = {"corner_count": 4, "transverse_sample_count": self.transverse_sample_count, "pose_count": self.pose_count, "max_rigid_guide_intersection_mm3": self.max_rigid_guide_intersection_mm3, "evidence_sha256": self.evidence_sha256, "criterion": "NO_POSITIVE_RAW_KERNEL_RIGID_GUIDE_INTERSECTION_AT_ANY_NOMINAL_MAX_CLEARANCE_AUTHORITY_CORNER", "scope": "SAMPLED_DIGITAL_BREP_SCREEN_NOT_CONTINUOUS_SWEPT_VOLUME_OR_MANUFACTURING_TOLERANCE_STACK"}
         payload["physical_validation_eligible"] = False
         payload["manifest_sha256"] = sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
         return payload
+
 
 def build_retention_quick_release_tactile_v30() -> RetentionQuickReleaseTactileV30:
     prior = v29.build_retention_quick_release_tactile_v29()
