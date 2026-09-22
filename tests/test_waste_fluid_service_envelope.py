@@ -60,6 +60,8 @@ def test_joint_envelope_exposes_independent_shared_sink_event_ceiling_headroom()
         6 * budget.external_leakage_max_mL_per_cycle - 25 * budget.maximum_initial_prime_mL_per_cycle * .02)
     assert envelope.residual_excess_mL_at_limiting_event == pytest.approx(0.0)
     assert envelope.external_leakage_excess_mL_at_limiting_event == pytest.approx(0.0)
+    assert envelope.nominal_recovery_impossibility_mL_at_limiting_event == pytest.approx(0.0)
+    assert envelope.nominal_recovery_impossibility_ratio_at_limiting_event == pytest.approx(0.0)
     assert envelope.controlling_constraint == "CARTRIDGE_CAPACITY"
     assert envelope.limiting_next_prime_events < envelope.maximum_prime_events_before_external_leakage_ceiling
     assert envelope.limiting_next_prime_events < envelope.maximum_prime_events_before_residual_ceiling
@@ -88,6 +90,10 @@ def test_residual_sink_can_be_true_boundary_before_cartridge_capacity():
     assert envelope.residual_excess_mL_at_limiting_event == pytest.approx(budget.maximum_initial_prime_mL_per_cycle)
     assert envelope.external_leakage_margin_mL_at_maximum_feasible == pytest.approx(6 * budget.external_leakage_max_mL_per_cycle)
     assert envelope.external_leakage_excess_mL_at_limiting_event == pytest.approx(0.0)
+    assert envelope.nominal_recovery_impossibility_mL_at_limiting_event == pytest.approx(budget.maximum_initial_prime_mL_per_cycle)
+    assert envelope.nominal_recovery_impossibility_ratio_at_limiting_event == pytest.approx(
+        budget.maximum_initial_prime_mL_per_cycle / (6 * budget.nominal_introduced_mL_per_cycle)
+    )
 
 
 def test_zero_fraction_sink_has_no_finite_event_ceiling_or_headroom():
@@ -106,6 +112,8 @@ def test_zero_fraction_sink_has_no_finite_event_ceiling_or_headroom():
     assert envelope.external_leakage_margin_mL_at_maximum_feasible == pytest.approx(6 * budget.external_leakage_max_mL_per_cycle)
     assert envelope.residual_excess_mL_at_limiting_event == pytest.approx(0.0)
     assert envelope.external_leakage_excess_mL_at_limiting_event == pytest.approx(0.0)
+    assert envelope.nominal_recovery_impossibility_mL_at_limiting_event == pytest.approx(0.0)
+    assert envelope.nominal_recovery_impossibility_ratio_at_limiting_event == pytest.approx(0.0)
     assert envelope.controlling_constraint == "CARTRIDGE_CAPACITY"
 
 
