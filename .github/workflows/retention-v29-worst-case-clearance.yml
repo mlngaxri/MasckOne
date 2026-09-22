@@ -1,0 +1,53 @@
+name: Retention V29 worst-case clearance
+
+on:
+  push:
+    branches: [sol-high/retention-quick-release-20260909]
+    paths:
+      - "src/masck_one/retention_quick_release_tactile.py"
+      - "src/masck_one/retention_quick_release_tactile_v1[2,6-7].py"
+      - "src/masck_one/retention_quick_release_tactile_v2[8-9].py"
+      - "tests/test_retention_quick_release_tactile_v29.py"
+      - ".github/workflows/retention-v29-worst-case-clearance.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: retention-v29-worst-case-clearance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  worst-case-clearance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact retention head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile V29 and clearance dependencies
+        run: |
+          python -m py_compile \
+            src/masck_one/retention_quick_release_tactile.py \
+            src/masck_one/retention_quick_release_tactile_v12.py \
+            src/masck_one/retention_quick_release_tactile_v16.py \
+            src/masck_one/retention_quick_release_tactile_v17.py \
+            src/masck_one/retention_quick_release_tactile_v28.py \
+            src/masck_one/retention_quick_release_tactile_v29.py
+      - name: Verify accepted maximum transverse clearance envelope
+        run: python -m pytest -q tests/test_retention_quick_release_tactile_v29.py
+
+# Conservative sampled digital B-rep packaging gate at the already-declared maximum
+# radial and anti-rotation clearances. It is not a manufactured tolerance stack,
+# continuous swept-volume proof, strength, fatigue, wet-use or physical validation.
