@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
@@ -60,4 +62,26 @@ def test_service_envelope_rejects_overallocated_prime_contract():
             prime_recovery_ratio_contract=.95,
             prime_residual_ratio_contract=.08,
             prime_external_leakage_ratio_contract=.02,
+        )
+
+
+@pytest.mark.parametrize(
+    "recovery,residual,leakage",
+    [
+        (-.01, .99, .02),
+        (1.01, 0.0, -.01),
+        (.90, -.01, .11),
+        (.90, .11, -.01),
+        (math.nan, .08, .02),
+        (math.inf, .08, .02),
+    ],
+)
+def test_service_envelope_rejects_nonphysical_destination_ratios(recovery, residual, leakage):
+    with pytest.raises(WasteFluidAccountingError):
+        evaluate_reprime_service_envelope(
+            build_authority_waste_fluid_budget(),
+            cycles=6,
+            prime_recovery_ratio_contract=recovery,
+            prime_residual_ratio_contract=residual,
+            prime_external_leakage_ratio_contract=leakage,
         )
