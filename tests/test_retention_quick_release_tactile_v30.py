@@ -8,7 +8,7 @@ def test_v30_builds_and_binds_all_clearance_corners():
     manifest = audit.manifest()["clearance_authority_corner_screen"]
     assert manifest["corner_count"] == 4
     assert audit.pose_count == audit.transverse_sample_count * len(v30.v12._canonical_positions())
-    assert audit.max_rigid_guide_intersection_mm3 <= v30.v1.TOL_MM3
+    assert audit.max_rigid_guide_intersection_mm3 == 0.0
     assert len(audit.evidence_sha256) == 64
 
 
@@ -28,6 +28,25 @@ def test_v30_rejects_positive_bound_intersection():
     audit = v30.build_retention_quick_release_tactile_v30()
     with pytest.raises(v30.RetentionQuickReleaseTactileV30Error):
         replace(audit, max_rigid_guide_intersection_mm3=v30.v1.TOL_MM3 + 1e-9).validate()
+
+
+def test_v30_rejects_sub_tolerance_positive_intersection(monkeypatch):
+    """A positive B-rep overlap must fail even when below the generic geometry tolerance."""
+    original = v30.v1._intersection
+    injected = False
+
+    def _sub_tolerance_overlap(a, b):
+        nonlocal injected
+        value = original(a, b)
+        if not injected and value == 0.0:
+            injected = True
+            return v30.v1.TOL_MM3 / 2.0
+        return value
+
+    monkeypatch.setattr(v30.v1, "_intersection", _sub_tolerance_overlap)
+    with pytest.raises(v30.RetentionQuickReleaseTactileV30Error, match="collides with rigid guide"):
+        v30._corner_evidence()
+    assert injected
 
 
 def test_v30_corner_authority_is_complete():
