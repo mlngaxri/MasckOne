@@ -5,7 +5,8 @@ from __future__ import annotations
 V22 proves schedule completeness. V23 closes the complementary provenance gap by
 requiring every interior schedule family to carry non-empty sampled B-rep clearance
 evidence and binding those family digests, pose counts and maxima into one audit.
-This remains sampled digital evidence, not continuous swept-volume or physical proof.
+Positive rigid-guide intersection fails closed. This remains sampled digital evidence,
+not continuous swept-volume or physical proof.
 """
 
 from dataclasses import dataclass
@@ -52,6 +53,10 @@ def _evidence_binding(prior: v22.RetentionQuickReleaseTactileV22) -> tuple[int, 
             raise RetentionQuickReleaseTactileV23Error(f"{family} evidence digest is invalid")
         if isinstance(overlap, bool) or not isinstance(overlap, (int, float)) or not math.isfinite(float(overlap)) or float(overlap) < 0.0:
             raise RetentionQuickReleaseTactileV23Error(f"{family} maximum intersection is invalid")
+        if float(overlap) > 0.0:
+            raise RetentionQuickReleaseTactileV23Error(
+                f"{family} reports positive rigid-guide intersection {float(overlap):.12g} mm3"
+            )
         total_poses += pose_count
         maximum = max(maximum, float(overlap))
         records.append({"family": family, "pose_count": pose_count, "transverse_sample_count": sample_count, "max_rigid_guide_intersection_mm3": format(float(overlap), ".12f"), "evidence_sha256": digest})
@@ -76,6 +81,8 @@ class RetentionQuickReleaseTactileV23:
             raise RetentionQuickReleaseTactileV23Error("bound clearance pose count is stale")
         if not math.isfinite(self.maximum_bound_intersection_mm3) or not math.isclose(self.maximum_bound_intersection_mm3, maximum, rel_tol=0.0, abs_tol=1e-12):
             raise RetentionQuickReleaseTactileV23Error("bound maximum intersection is stale")
+        if self.maximum_bound_intersection_mm3 > 0.0:
+            raise RetentionQuickReleaseTactileV23Error("bound clearance evidence contains positive rigid-guide intersection")
         if not _DIGEST_RE.fullmatch(self.clearance_evidence_sha256):
             raise RetentionQuickReleaseTactileV23Error("clearance evidence digest must be canonical lowercase SHA-256")
         if self.clearance_evidence_sha256 != digest:
@@ -94,7 +101,7 @@ class RetentionQuickReleaseTactileV23:
             "bound_pose_count": self.bound_pose_count,
             "maximum_bound_intersection_mm3": self.maximum_bound_intersection_mm3,
             "clearance_evidence_sha256": self.clearance_evidence_sha256,
-            "criterion": "COMPLETE_INTERIOR_SIXTEENTH_GRID_SCHEDULE_FAMILIES_CARRY_BOUND_NONEMPTY_CLEARANCE_EVIDENCE",
+            "criterion": "COMPLETE_INTERIOR_SIXTEENTH_GRID_SCHEDULE_FAMILIES_CARRY_BOUND_NONEMPTY_ZERO_INTERSECTION_CLEARANCE_EVIDENCE",
             "scope": "PROVENANCE_BINDING_OF_SAMPLED_DIGITAL_BREP_CLEARANCE_NOT_CONTINUOUS_SWEPT_VOLUME_TOLERANCE_STACK_OR_PHYSICAL_VALIDATION",
         }
         payload["physical_validation_eligible"] = False
