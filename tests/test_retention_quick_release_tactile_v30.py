@@ -101,3 +101,17 @@ def test_v30_corner_authority_is_complete():
     corners = v30._clearance_corners(mechanism)
     assert [name for name, _, _ in corners] == ["nominal_nominal", "nominal_max_side", "max_radial_nominal", "max_max"]
     assert len({(radial, side) for _, radial, side in corners}) == 4
+
+
+def test_v30_rejects_collapsed_radial_authority(monkeypatch):
+    mechanism = v30.v1.build_retention_quick_release_tactile()
+    monkeypatch.setattr(v30.v1, "MAX_SPOOL_RAIL_RADIAL_CLEARANCE_MM", mechanism.rail_radial_clearance_mm)
+    with pytest.raises(v30.RetentionQuickReleaseTactileV30Error, match="distinct nominal and maximum"):
+        v30._clearance_corners(mechanism)
+
+
+def test_v30_rejects_collapsed_side_authority(monkeypatch):
+    mechanism = v30.v1.build_retention_quick_release_tactile()
+    monkeypatch.setattr(v30.v1, "MAX_ANTI_ROTATION_SIDE_CLEARANCE_MM", mechanism.anti_rotation_side_clearance_mm)
+    with pytest.raises(v30.RetentionQuickReleaseTactileV30Error, match="distinct nominal and maximum"):
+        v30._clearance_corners(mechanism)
