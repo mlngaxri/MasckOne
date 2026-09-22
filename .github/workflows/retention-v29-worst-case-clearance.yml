@@ -5,8 +5,11 @@ on:
     branches: [sol-high/retention-quick-release-20260909]
     paths:
       - "src/masck_one/retention_quick_release_tactile.py"
-      - "src/masck_one/retention_quick_release_tactile_v1[2,6-7].py"
-      - "src/masck_one/retention_quick_release_tactile_v2[8-9].py"
+      - "src/masck_one/retention_quick_release_tactile_v12.py"
+      - "src/masck_one/retention_quick_release_tactile_v16.py"
+      - "src/masck_one/retention_quick_release_tactile_v17.py"
+      - "src/masck_one/retention_quick_release_tactile_v28.py"
+      - "src/masck_one/retention_quick_release_tactile_v29.py"
       - "tests/test_retention_quick_release_tactile_v29.py"
       - ".github/workflows/retention-v29-worst-case-clearance.yml"
 
