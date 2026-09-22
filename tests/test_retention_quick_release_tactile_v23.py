@@ -9,7 +9,7 @@ def test_v23_builds_and_binds_all_interior_grid_clearance_families():
     audit = v23.build_retention_quick_release_tactile_v23()
     assert audit.bound_family_count == 4
     assert audit.bound_pose_count > 0
-    assert audit.maximum_bound_intersection_mm3 >= 0.0
+    assert audit.maximum_bound_intersection_mm3 == 0.0
     assert len(audit.clearance_evidence_sha256) == 64
     manifest = audit.manifest()["sixteenth_grid_clearance_evidence_binding"]
     assert manifest["families"] == list(v23._FAMILIES)
@@ -47,4 +47,20 @@ def test_v23_rejects_missing_evidence_family(monkeypatch):
 
     monkeypatch.setattr(type(audit.prior.prior), "manifest", lambda self: incomplete_manifest())
     with pytest.raises(v23.RetentionQuickReleaseTactileV23Error, match="missing clearance evidence family"):
+        audit.validate()
+
+
+def test_v23_rejects_positive_rigid_guide_intersection(monkeypatch):
+    audit = v23.build_retention_quick_release_tactile_v23()
+    original = audit.prior.prior.manifest
+
+    def intersecting_manifest():
+        payload = original()
+        evidence = dict(payload["quarter_release_travel_screen"])
+        evidence["max_rigid_guide_intersection_mm3"] = 1e-9
+        payload["quarter_release_travel_screen"] = evidence
+        return payload
+
+    monkeypatch.setattr(type(audit.prior.prior), "manifest", lambda self: intersecting_manifest())
+    with pytest.raises(v23.RetentionQuickReleaseTactileV23Error, match="positive rigid-guide intersection"):
         audit.validate()
