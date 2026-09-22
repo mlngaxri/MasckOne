@@ -26,6 +26,10 @@ class ZoneMechanicalSlopeReversal:
     displacement_reversal: bool
     phase_reversal: bool
     temperature_reversal: bool
+    force_turning_point: str
+    displacement_turning_point: str
+    phase_turning_point: str
+    temperature_turning_point: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,11 +43,23 @@ class ActuationMechanicalReversalEnvelope:
     displacement_reversal_count: int
     phase_reversal_count: int
     temperature_reversal_count: int
+    force_peak_count: int
+    force_trough_count: int
+    displacement_peak_count: int
+    displacement_trough_count: int
+    phase_peak_count: int
+    phase_trough_count: int
+    temperature_peak_count: int
+    temperature_trough_count: int
 
 
-def _strict_sign_reversal(lower: float, upper: float) -> bool:
-    """Return true only when two measured slopes have opposite non-zero signs."""
-    return (lower < 0.0 < upper) or (upper < 0.0 < lower)
+def _turning_point(lower: float, upper: float) -> str:
+    """Classify a strict measured turning point without a tolerance or inferred threshold."""
+    if lower > 0.0 > upper:
+        return "PEAK"
+    if lower < 0.0 < upper:
+        return "TROUGH"
+    return "NONE"
 
 
 def _reversal(lower: ZoneMechanicalSensitivity, upper: ZoneMechanicalSensitivity) -> ZoneMechanicalSlopeReversal:
@@ -51,6 +67,10 @@ def _reversal(lower: ZoneMechanicalSensitivity, upper: ZoneMechanicalSensitivity
         raise ActuationParameterError("Mechanical slope reversal requires consecutive intervals from one actuator zone")
     if lower.upper_angle_deg != upper.lower_angle_deg:
         raise ActuationParameterError("Mechanical slope reversal intervals must share one measured center angle")
+    force = _turning_point(lower.force_slope_N_per_deg, upper.force_slope_N_per_deg)
+    displacement = _turning_point(lower.displacement_slope_mm_per_deg, upper.displacement_slope_mm_per_deg)
+    phase = _turning_point(lower.phase_slope_deg_per_deg, upper.phase_slope_deg_per_deg)
+    temperature = _turning_point(lower.temperature_slope_C_per_deg, upper.temperature_slope_C_per_deg)
     return ZoneMechanicalSlopeReversal(
         lower.zone_id,
         lower.lower_angle_deg,
@@ -59,10 +79,14 @@ def _reversal(lower: ZoneMechanicalSensitivity, upper: ZoneMechanicalSensitivity
         lower.lower_record_id,
         lower.upper_record_id,
         upper.upper_record_id,
-        _strict_sign_reversal(lower.force_slope_N_per_deg, upper.force_slope_N_per_deg),
-        _strict_sign_reversal(lower.displacement_slope_mm_per_deg, upper.displacement_slope_mm_per_deg),
-        _strict_sign_reversal(lower.phase_slope_deg_per_deg, upper.phase_slope_deg_per_deg),
-        _strict_sign_reversal(lower.temperature_slope_C_per_deg, upper.temperature_slope_C_per_deg),
+        force != "NONE",
+        displacement != "NONE",
+        phase != "NONE",
+        temperature != "NONE",
+        force,
+        displacement,
+        phase,
+        temperature,
     )
 
 
@@ -94,6 +118,9 @@ def reduce_measured_mechanical_reversals(
     if len(zones) != 4 or len(result) != 4 * len(triplets):
         raise ActuationParameterError("Mechanical slope reversal requires complete four-zone angle-triplet evidence")
 
+    def count(metric: str, classification: str) -> int:
+        return sum(getattr(item, f"{metric}_turning_point") == classification for item in result)
+
     return ActuationMechanicalReversalEnvelope(
         sensitivity.source_parameter_sha256,
         sensitivity.source_sweep_sha256,
@@ -104,4 +131,12 @@ def reduce_measured_mechanical_reversals(
         sum(item.displacement_reversal for item in result),
         sum(item.phase_reversal for item in result),
         sum(item.temperature_reversal for item in result),
+        count("force", "PEAK"),
+        count("force", "TROUGH"),
+        count("displacement", "PEAK"),
+        count("displacement", "TROUGH"),
+        count("phase", "PEAK"),
+        count("phase", "TROUGH"),
+        count("temperature", "PEAK"),
+        count("temperature", "TROUGH"),
     )
