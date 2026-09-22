@@ -32,8 +32,23 @@ class ReprimeServiceEnvelope:
     cycles: int
     maximum_feasible_prime_events: int
     limiting_next_prime_events: int
+    maximum_prime_events_before_residual_ceiling: int | None
+    maximum_prime_events_before_external_leakage_ceiling: int | None
     maximum_feasible: ServiceEnvelopePoint
     first_infeasible: ServiceEnvelopePoint
+
+
+def _maximum_events_within_sink_ceiling(*, ceiling_mL: float, per_event_mL: float) -> int | None:
+    """Return the exact integer event count that still fits one shared sink.
+
+    ``None`` means this routing contract sends no prime liquid to that sink, so
+    the sink itself does not impose a finite reprime-event boundary.
+    """
+    if per_event_mL <= _TOL:
+        return None
+    # Bias only by the same numerical tolerance used by the closure screen so a
+    # mathematically exact boundary is not lost to binary floating-point noise.
+    return math.floor((ceiling_mL + _TOL) / per_event_mL)
 
 
 def _point(
@@ -98,26 +113,40 @@ def evaluate_reprime_service_envelope(
     if abs(ratio_sum - 1.0) > _TOL:
         raise WasteFluidAccountingError("service envelope requires prime destination ratios to sum to exactly one")
 
+    recovery, residual, leakage = (float(value) for value in ratios)
     previous = _point(
         budget, cycles=cycles, prime_events=0,
-        recovery=float(ratios[0]), residual=float(ratios[1]), leakage=float(ratios[2]),
+        recovery=recovery, residual=residual, leakage=leakage,
     )
     if not previous.feasible:
         raise WasteFluidAccountingError("zero-prime service cannot close shared sinks within retained cartridge capacity")
 
+    # Independently expose the hard shared-sink event ceilings. This prevents a
+    # cartridge-limited result from hiding how close the same routing contract is
+    # to exhausting residual or external-leakage allowance.
+    prime_volume = budget.maximum_initial_prime_mL_per_cycle
+    residual_event_limit = _maximum_events_within_sink_ceiling(
+        ceiling_mL=budget.residual_free_liquid_max_mL * cycles,
+        per_event_mL=prime_volume * residual,
+    )
+    leakage_event_limit = _maximum_events_within_sink_ceiling(
+        ceiling_mL=budget.external_leakage_max_mL_per_cycle * cycles,
+        per_event_mL=prime_volume * leakage,
+    )
+
     # Capacity provides a finite search bound whenever prime volume is nonzero.
-    if budget.maximum_initial_prime_mL_per_cycle <= _TOL:
+    if prime_volume <= _TOL:
         raise WasteFluidAccountingError("zero-volume prime has no finite reprime-event capacity boundary")
     conservative_bound = budget.maximum_prime_events_that_fit(cycles=cycles)
     search_limit = max(1, (conservative_bound or 0) + math.ceil(
-        budget.cartridge_retained_capacity_requirement_mL / budget.maximum_initial_prime_mL_per_cycle
+        budget.cartridge_retained_capacity_requirement_mL / prime_volume
     ) + 2)
 
     for events in range(1, search_limit + 1):
         try:
             current = _point(
                 budget, cycles=cycles, prime_events=events,
-                recovery=float(ratios[0]), residual=float(ratios[1]), leakage=float(ratios[2]),
+                recovery=recovery, residual=residual, leakage=leakage,
             )
         except WasteFluidAccountingError:
             # A sink ceiling exceeded before capacity is itself an infeasible next event.
@@ -129,6 +158,8 @@ def evaluate_reprime_service_envelope(
                 cycles=cycles,
                 maximum_feasible_prime_events=previous.prime_events,
                 limiting_next_prime_events=current.prime_events,
+                maximum_prime_events_before_residual_ceiling=residual_event_limit,
+                maximum_prime_events_before_external_leakage_ceiling=leakage_event_limit,
                 maximum_feasible=previous,
                 first_infeasible=current,
             )
