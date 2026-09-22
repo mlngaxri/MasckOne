@@ -42,6 +42,15 @@ def test_prime_sink_use_invalidates_nominal_closure_that_only_fits_without_prime
     assert closure.feasible is False
 
 
+def test_prime_use_derives_recovery_threshold_needed_to_close_shared_sinks():
+    closure = evaluate_prime_adjusted_component_sink_closure(_allocation(post=3.90), _routing())
+    # 27.60 mL introduced minus 2.46 mL remaining classified sink capacity.
+    assert closure.minimum_nominal_recovery_for_sink_closure_mL == pytest.approx(25.14)
+    assert closure.minimum_nominal_recovery_ratio_for_sink_closure == pytest.approx(25.14 / 27.60)
+    # Existing 90% requirement floor is 24.84 mL, so prime-adjusted closure needs 0.30 mL more.
+    assert closure.additional_recovery_above_requirement_floor_mL == pytest.approx(.30)
+
+
 def test_additional_nominal_recovery_can_close_prime_adjusted_sinks_exactly():
     # 25.14 mL nominal recovery leaves 2.46 mL, matching capacity after prime use.
     closure = evaluate_prime_adjusted_component_sink_closure(_allocation(post=4.14), _routing())
@@ -64,6 +73,8 @@ def test_full_nominal_recovery_needs_no_remaining_sink_capacity():
     closure = evaluate_prime_adjusted_component_sink_closure(allocation, _routing())
     assert closure.nominal_nonrecovered_mL == pytest.approx(0.0)
     assert closure.feasible is True
+    # The required closure threshold is a property of routing/sink capacity, not the chosen allocation.
+    assert closure.minimum_nominal_recovery_for_sink_closure_mL == pytest.approx(25.14)
 
 
 def test_mismatched_service_interval_fails_closed():
@@ -78,6 +89,12 @@ def test_forged_prime_adjusted_evidence_fails_closed():
     valid = evaluate_prime_adjusted_component_sink_closure(_allocation(post=4.14), _routing())
     with pytest.raises(WasteFluidAccountingError):
         replace(valid, residual_capacity_after_prime_mL=99.0)
+    with pytest.raises(WasteFluidAccountingError):
+        replace(valid, minimum_nominal_recovery_for_sink_closure_mL=0.0)
+    with pytest.raises(WasteFluidAccountingError):
+        replace(valid, minimum_nominal_recovery_ratio_for_sink_closure=.90)
+    with pytest.raises(WasteFluidAccountingError):
+        replace(valid, additional_recovery_above_requirement_floor_mL=0.0)
     with pytest.raises(WasteFluidAccountingError):
         replace(valid, unclassified_nominal_liquid_mL=.1)
     with pytest.raises(WasteFluidAccountingError):
