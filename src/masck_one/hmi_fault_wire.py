@@ -8,6 +8,9 @@ The explicit identifiers below are the wire contract and therefore do not change
 enum members are reordered or new members are inserted.
 """
 
+from types import MappingProxyType
+from typing import Mapping
+
 from masck_one.hmi_runtime import FaultCode
 
 
@@ -15,7 +18,7 @@ class HmiFaultWireError(ValueError):
     """Raised when a fault wire value violates the serialization contract."""
 
 
-_WIRE_IDS: dict[FaultCode, str] = {
+_WIRE_IDS: Mapping[FaultCode, str] = MappingProxyType({
     FaultCode.PRESSED_NOT_BOOL: "pressed_not_bool",
     FaultCode.SAMPLE_TIME_INVALID: "sample_time_invalid",
     FaultCode.SAMPLE_TIME_REGRESSION: "sample_time_regression",
@@ -27,7 +30,10 @@ _WIRE_IDS: dict[FaultCode, str] = {
     FaultCode.RESET_TIME_REGRESSION: "reset_time_regression",
     FaultCode.INPUT_STREAM_NOT_STARTED: "input_stream_not_started",
     FaultCode.INPUT_STREAM_STALE: "input_stream_stale",
-}
+})
+_WIRE_ID_TO_CODE: Mapping[str, FaultCode] = MappingProxyType(
+    {identifier: code for code, identifier in _WIRE_IDS.items()}
+)
 
 
 def fault_code_wire_id(code: FaultCode) -> str:
@@ -51,10 +57,12 @@ def fault_code_from_wire_id(wire_id: str) -> FaultCode:
     if type(wire_id) is not str:
         raise HmiFaultWireError("wire_id must be an exact str")
     assert_fault_wire_contract_complete()
-    matches = [code for code, identifier in _WIRE_IDS.items() if identifier == wire_id]
-    if len(matches) != 1:
-        raise HmiFaultWireError(f"unknown or ambiguous HMI fault wire identifier: {wire_id!r}")
-    return matches[0]
+    try:
+        return _WIRE_ID_TO_CODE[wire_id]
+    except KeyError as exc:
+        raise HmiFaultWireError(
+            f"unknown or ambiguous HMI fault wire identifier: {wire_id!r}"
+        ) from exc
 
 
 def _canonical_wire_identifier(value: object) -> bool:
@@ -76,7 +84,7 @@ def _canonical_wire_identifier(value: object) -> bool:
 
 
 def assert_fault_wire_contract_complete() -> None:
-    """Fail closed if runtime coverage, keys or wire identifiers are malformed or ambiguous."""
+    """Fail closed if runtime coverage, keys or wire identifiers drift from canonical semantics."""
     valid_keys = {key for key in _WIRE_IDS if type(key) is FaultCode}
     invalid_key_reprs = sorted(repr(key) for key in _WIRE_IDS if type(key) is not FaultCode)
     missing = set(FaultCode) - valid_keys
@@ -88,10 +96,28 @@ def assert_fault_wire_contract_complete() -> None:
     invalid_reprs = sorted(
         repr(identifier) for identifier in identifiers if not _canonical_wire_identifier(identifier)
     )
-    if missing or invalid_key_reprs or duplicate_reprs or invalid_reprs:
+    semantic_mismatches = sorted(
+        f"{code.name}:{_WIRE_IDS[code]!r}!={code.name.lower()!r}"
+        for code in valid_keys
+        if _WIRE_IDS[code] != code.name.lower()
+    )
+    inverse_matches = _WIRE_ID_TO_CODE == {
+        identifier: code
+        for code, identifier in _WIRE_IDS.items()
+        if type(code) is FaultCode and type(identifier) is str
+    }
+    if (
+        missing
+        or invalid_key_reprs
+        or duplicate_reprs
+        or invalid_reprs
+        or semantic_mismatches
+        or not inverse_matches
+    ):
         missing_names = sorted(code.name for code in missing)
         raise HmiFaultWireError(
             "fault wire contract mismatch: "
             f"missing={missing_names}, invalid_keys={invalid_key_reprs}, "
-            f"duplicates={duplicate_reprs}, invalid={invalid_reprs}"
+            f"duplicates={duplicate_reprs}, invalid={invalid_reprs}, "
+            f"semantic_mismatches={semantic_mismatches}, inverse_matches={inverse_matches}"
         )
