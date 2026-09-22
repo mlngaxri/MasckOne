@@ -53,7 +53,11 @@ def _corner_evidence() -> tuple[int, int, float, str]:
                         overlap = v1._intersection(mechanism.slider.translate((x, y, z)), mechanism.guide)
                         if not math.isfinite(overlap) or overlap < 0.0:
                             raise RetentionQuickReleaseTactileV30Error("invalid clearance-corner evidence")
-                        if overlap > v1.TOL_MM3:
+                        # The V30 contract is deliberately stricter than the generic B-rep
+                        # tolerance: any reported positive overlap is a failed packaging pose.
+                        # TOL_MM3 remains useful to geometry helpers, but must not turn a small
+                        # collision into accepted structural evidence here.
+                        if overlap > 0.0:
                             raise RetentionQuickReleaseTactileV30Error(f"clearance authority corner {corner} collides with rigid guide")
                         maximum = max(maximum, overlap)
                         records.append((corner, family, format(x, ".12f"), format(y, ".12f"), format(z, ".12f"), format(overlap, ".12f")))
@@ -82,7 +86,7 @@ class RetentionQuickReleaseTactileV30:
             raise RetentionQuickReleaseTactileV30Error("clearance-corner pose count is stale")
         if not math.isfinite(self.max_rigid_guide_intersection_mm3) or self.max_rigid_guide_intersection_mm3 != maximum:
             raise RetentionQuickReleaseTactileV30Error("clearance-corner maximum intersection is stale")
-        if maximum > v1.TOL_MM3:
+        if maximum > 0.0:
             raise RetentionQuickReleaseTactileV30Error("clearance-corner rigid-guide intersection must remain zero")
         if not isinstance(self.evidence_sha256, str) or _DIGEST_RE.fullmatch(self.evidence_sha256) is None or self.evidence_sha256 != digest:
             raise RetentionQuickReleaseTactileV30Error("clearance-corner evidence digest is stale")
