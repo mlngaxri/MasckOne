@@ -44,6 +44,8 @@ class ReprimeServiceEnvelope:
     external_leakage_margin_mL_at_maximum_feasible: float
     residual_excess_mL_at_limiting_event: float
     external_leakage_excess_mL_at_limiting_event: float
+    nominal_recovery_impossibility_mL_at_limiting_event: float
+    nominal_recovery_impossibility_ratio_at_limiting_event: float
     controlling_constraint: str
     maximum_feasible: ServiceEnvelopePoint
     first_infeasible: ServiceEnvelopePoint | None
@@ -151,6 +153,10 @@ def evaluate_reprime_service_envelope(
 
     def result(*, limiting_events: int, controlling: str, first_infeasible: ServiceEnvelopePoint | None) -> ReprimeServiceEnvelope:
         used = previous.prime_events
+        residual_excess = _sink_excess(ceiling_mL=residual_ceiling, per_event_mL=residual_per_event, events=limiting_events)
+        leakage_excess = _sink_excess(ceiling_mL=leakage_ceiling, per_event_mL=leakage_per_event, events=limiting_events)
+        recovery_impossibility = residual_excess + leakage_excess
+        nominal_introduced = cycles * budget.nominal_introduced_mL_per_cycle
         return ReprimeServiceEnvelope(
             cycles=cycles,
             maximum_feasible_prime_events=used,
@@ -161,8 +167,10 @@ def evaluate_reprime_service_envelope(
             external_leakage_event_headroom_at_capacity_boundary=_headroom(leakage_event_limit, used=used),
             residual_margin_mL_at_maximum_feasible=_sink_margin(ceiling_mL=residual_ceiling, per_event_mL=residual_per_event, events=used),
             external_leakage_margin_mL_at_maximum_feasible=_sink_margin(ceiling_mL=leakage_ceiling, per_event_mL=leakage_per_event, events=used),
-            residual_excess_mL_at_limiting_event=_sink_excess(ceiling_mL=residual_ceiling, per_event_mL=residual_per_event, events=limiting_events),
-            external_leakage_excess_mL_at_limiting_event=_sink_excess(ceiling_mL=leakage_ceiling, per_event_mL=leakage_per_event, events=limiting_events),
+            residual_excess_mL_at_limiting_event=residual_excess,
+            external_leakage_excess_mL_at_limiting_event=leakage_excess,
+            nominal_recovery_impossibility_mL_at_limiting_event=recovery_impossibility,
+            nominal_recovery_impossibility_ratio_at_limiting_event=recovery_impossibility / nominal_introduced,
             controlling_constraint=controlling,
             maximum_feasible=previous,
             first_infeasible=first_infeasible,
