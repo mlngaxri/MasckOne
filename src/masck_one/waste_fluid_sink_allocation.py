@@ -24,6 +24,9 @@ class ServiceSinkAllocationWindow:
     residual_allocation_max_mL: float
     leakage_allocation_min_mL: float
     leakage_allocation_max_mL: float
+    residual_capacity_shortfall_mL: float
+    leakage_capacity_shortfall_mL: float
+    allocation_interval_gap_mL: float
     feasible: bool
 
     def __post_init__(self) -> None:
@@ -33,6 +36,8 @@ class ServiceSinkAllocationWindow:
             self.nominal_nonrecovery_mL, self.residual_capacity_mL, self.leakage_capacity_mL,
             self.residual_allocation_min_mL, self.residual_allocation_max_mL,
             self.leakage_allocation_min_mL, self.leakage_allocation_max_mL,
+            self.residual_capacity_shortfall_mL, self.leakage_capacity_shortfall_mL,
+            self.allocation_interval_gap_mL,
         )
         if any(type(v) not in (int, float) or not math.isfinite(float(v)) or v < -_TOL for v in numeric):
             raise WasteFluidAccountingError("sink allocation evidence must be finite and nonnegative")
@@ -45,7 +50,10 @@ class ServiceSinkAllocationWindow:
         residual_max = min(nonrecovery, residual_capacity)
         leakage_min = max(0.0, nonrecovery - residual_capacity)
         leakage_max = min(nonrecovery, leakage_capacity)
-        feasible = residual_min <= residual_max + _TOL and leakage_min <= leakage_max + _TOL
+        residual_shortfall = max(0.0, residual_min - residual_capacity)
+        leakage_shortfall = max(0.0, leakage_min - leakage_capacity)
+        interval_gap = max(0.0, residual_min - residual_max, leakage_min - leakage_max)
+        feasible = interval_gap <= _TOL
         checks = (
             (self.nominal_nonrecovery_mL, nonrecovery, "nominal nonrecovery"),
             (self.residual_capacity_mL, residual_capacity, "residual capacity"),
@@ -54,12 +62,19 @@ class ServiceSinkAllocationWindow:
             (self.residual_allocation_max_mL, residual_max, "maximum residual allocation"),
             (self.leakage_allocation_min_mL, leakage_min, "minimum leakage allocation"),
             (self.leakage_allocation_max_mL, leakage_max, "maximum leakage allocation"),
+            (self.residual_capacity_shortfall_mL, residual_shortfall, "residual capacity shortfall"),
+            (self.leakage_capacity_shortfall_mL, leakage_shortfall, "leakage capacity shortfall"),
+            (self.allocation_interval_gap_mL, interval_gap, "allocation interval gap"),
         )
         for actual, expected, label in checks:
             if not math.isclose(actual, expected, rel_tol=0.0, abs_tol=_TOL):
                 raise WasteFluidAccountingError(f"sink allocation {label} is inconsistent with source evidence")
         if type(self.feasible) is not bool or self.feasible != feasible:
             raise WasteFluidAccountingError("sink allocation feasibility is inconsistent with source evidence")
+        if not math.isclose(residual_shortfall, leakage_shortfall, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("individual sink shortfalls must resolve to one allocation deficit")
+        if not math.isclose(interval_gap, residual_shortfall, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("allocation interval gap must equal the classified-sink capacity deficit")
         if feasible:
             if not math.isclose(residual_min + leakage_max, nonrecovery, rel_tol=0.0, abs_tol=_TOL):
                 raise WasteFluidAccountingError("minimum-residual allocation does not conserve nominal liquid")
@@ -78,7 +93,10 @@ def derive_service_sink_allocation_window(requirement: ServiceRecoveryRequiremen
     residual_max = min(nonrecovery, residual_capacity)
     leakage_min = max(0.0, nonrecovery - residual_capacity)
     leakage_max = min(nonrecovery, leakage_capacity)
-    feasible = residual_min <= residual_max + _TOL and leakage_min <= leakage_max + _TOL
+    residual_shortfall = max(0.0, residual_min - residual_capacity)
+    leakage_shortfall = max(0.0, leakage_min - leakage_capacity)
+    interval_gap = max(0.0, residual_min - residual_max, leakage_min - leakage_max)
+    feasible = interval_gap <= _TOL
     return ServiceSinkAllocationWindow(
         source=requirement,
         nominal_nonrecovery_mL=nonrecovery,
@@ -88,5 +106,8 @@ def derive_service_sink_allocation_window(requirement: ServiceRecoveryRequiremen
         residual_allocation_max_mL=residual_max,
         leakage_allocation_min_mL=leakage_min,
         leakage_allocation_max_mL=leakage_max,
+        residual_capacity_shortfall_mL=residual_shortfall,
+        leakage_capacity_shortfall_mL=leakage_shortfall,
+        allocation_interval_gap_mL=interval_gap,
         feasible=feasible,
     )
