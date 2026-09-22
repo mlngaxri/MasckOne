@@ -40,14 +40,28 @@ def _clearance_corners(mechanism: v1.RetentionQuickReleaseTactile) -> tuple[tupl
 
 
 def _raw_intersection(first, second) -> float:
-    """Return the kernel-reported overlap without V1's generic small-volume clamp.
+    """Return kernel overlap without V1's generic small-volume clamp.
 
-    V1._intersection intentionally maps overlaps below TOL_MM3 to zero for general
-    geometry bookkeeping. V30's contract is stricter: every positive kernel-reported
-    rigid-guide overlap is a failed sampled pose, so using that helper here would hide
-    exactly the sub-tolerance collisions this audit is intended to reject.
+    This audit is fail-closed at the B-rep boundary. Both operands must remain one valid,
+    positive-volume solid before OCC is queried. That prevents a malformed/empty sampler
+    operand from being interpreted as a legitimate zero-clearance result.
     """
-    value = float(first.val().intersect(second.val()).Volume())
+    try:
+        first_shape = first.val()
+        second_shape = second.val()
+        for shape in (first_shape, second_shape):
+            solids = shape.Solids()
+            volume = float(shape.Volume())
+            if not shape.isValid() or len(solids) != 1 or not math.isfinite(volume) or volume <= 0.0:
+                raise RetentionQuickReleaseTactileV30Error("invalid raw clearance-corner operand")
+        result = first_shape.intersect(second_shape)
+        if not result.isValid():
+            raise RetentionQuickReleaseTactileV30Error("invalid raw clearance-corner intersection result")
+        value = float(result.Volume())
+    except RetentionQuickReleaseTactileV30Error:
+        raise
+    except Exception as exc:
+        raise RetentionQuickReleaseTactileV30Error("raw clearance-corner intersection query failed") from exc
     if not math.isfinite(value) or value < 0.0:
         raise RetentionQuickReleaseTactileV30Error("invalid raw clearance-corner intersection")
     return value
