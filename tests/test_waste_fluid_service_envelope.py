@@ -75,6 +75,17 @@ def test_service_envelope_rejects_overallocated_prime_contract():
             prime_recovery_ratio_contract=.95, prime_residual_ratio_contract=.08, prime_external_leakage_ratio_contract=.02)
 
 
+@pytest.mark.parametrize("cycles", [0, -1, 1.5, True])
+def test_service_envelope_rejects_invalid_service_interval(cycles):
+    with pytest.raises(WasteFluidAccountingError, match="positive integer"):
+        evaluate_reprime_service_envelope(
+            build_authority_waste_fluid_budget(), cycles=cycles,
+            prime_recovery_ratio_contract=.90,
+            prime_residual_ratio_contract=.08,
+            prime_external_leakage_ratio_contract=.02,
+        )
+
+
 @pytest.mark.parametrize("recovery,residual,leakage", [
     (-.01, .99, .02), (1.01, 0.0, -.01), (.90, -.01, .11), (.90, .11, -.01),
     (math.nan, .08, .02), (math.inf, .08, .02),
