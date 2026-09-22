@@ -39,7 +39,7 @@ class ReprimeServiceEnvelope:
     external_leakage_event_headroom_at_capacity_boundary: int | None
     controlling_constraint: str
     maximum_feasible: ServiceEnvelopePoint
-    first_infeasible: ServiceEnvelopePoint
+    first_infeasible: ServiceEnvelopePoint | None
 
 
 def _maximum_events_within_sink_ceiling(*, ceiling_mL: float, per_event_mL: float) -> int | None:
@@ -92,6 +92,15 @@ def _controlling_constraint(*, capacity_next: int, residual_limit: int | None, l
     return "+".join(names)
 
 
+def _sink_limit_names(*, events: int, residual_limit: int | None, leakage_limit: int | None) -> list[str]:
+    names: list[str] = []
+    if residual_limit is not None and events > residual_limit:
+        names.append("RESIDUAL_CEILING")
+    if leakage_limit is not None and events > leakage_limit:
+        names.append("EXTERNAL_LEAKAGE_CEILING")
+    return names
+
+
 def evaluate_reprime_service_envelope(
     budget: WasteFluidBudget, *, cycles: int,
     prime_recovery_ratio_contract: float,
@@ -100,9 +109,6 @@ def evaluate_reprime_service_envelope(
 ) -> ReprimeServiceEnvelope:
     """Find the exact integer reprime boundary under the supplied routing contract."""
     budget.validate()
-    # ``cycles`` is both a service-life count and the denominator of the
-    # derived nominal-recovery ratio. Reject bools, fractions and zero here so
-    # invalid service intervals cannot leak into downstream closure arithmetic.
     if type(cycles) is not int or cycles <= 0:
         raise WasteFluidAccountingError("service envelope cycles must be a positive integer")
     ratios = (prime_recovery_ratio_contract, prime_residual_ratio_contract, prime_external_leakage_ratio_contract)
@@ -131,6 +137,28 @@ def evaluate_reprime_service_envelope(
     search_limit = max(1, (conservative_bound or 0) + math.ceil(budget.cartridge_retained_capacity_requirement_mL / prime_volume) + 2)
 
     for events in range(1, search_limit + 1):
+        # A shared sink can become the true service boundary before cartridge
+        # capacity. Do not call _point past that boundary because doing so asks
+        # nominal recovery to exceed 100% and previously converted a valid
+        # sink-limited envelope into an exception.
+        sink_limits = _sink_limit_names(
+            events=events,
+            residual_limit=residual_event_limit,
+            leakage_limit=leakage_event_limit,
+        )
+        if sink_limits:
+            return ReprimeServiceEnvelope(
+                cycles=cycles,
+                maximum_feasible_prime_events=previous.prime_events,
+                limiting_next_prime_events=events,
+                maximum_prime_events_before_residual_ceiling=residual_event_limit,
+                maximum_prime_events_before_external_leakage_ceiling=leakage_event_limit,
+                residual_event_headroom_at_capacity_boundary=_headroom(residual_event_limit, used=previous.prime_events),
+                external_leakage_event_headroom_at_capacity_boundary=_headroom(leakage_event_limit, used=previous.prime_events),
+                controlling_constraint="+".join(sorted(sink_limits)),
+                maximum_feasible=previous,
+                first_infeasible=None,
+            )
         try:
             current = _point(budget, cycles=cycles, prime_events=events, recovery=recovery, residual=residual, leakage=leakage)
         except WasteFluidAccountingError:
