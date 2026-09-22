@@ -17,8 +17,6 @@ def _item(zone_id: str, lower: float, center: float, upper: float) -> ZoneMechan
 
 
 def test_triplet_validator_requires_four_unique_zones_per_physical_triplet():
-    # Total cardinality is deliberately valid (8 records, four zone IDs globally),
-    # but each physical triplet contains a duplicate and is missing one zone.
     malformed = (
         _item("Z1", 55.0, 61.0, 67.0),
         _item("Z1", 55.0, 61.0, 67.0),
@@ -31,6 +29,22 @@ def test_triplet_validator_requires_four_unique_zones_per_physical_triplet():
     )
     with pytest.raises(ActuationParameterError, match="exactly four unique controlled zones"):
         _validate_complete_four_zone_triplets(malformed)
+
+
+def test_triplet_validator_rejects_cross_zone_measurement_record_reuse():
+    items = list(
+        _item(zone_id, 55.0, 61.0, 67.0)
+        for zone_id in ("Z1", "Z2", "Z3", "Z4")
+    )
+    z2 = items[1]
+    items[1] = ZoneMechanicalSlopeReversal(
+        z2.zone_id, z2.lower_angle_deg, z2.center_angle_deg, z2.upper_angle_deg,
+        items[0].lower_record_id, z2.center_record_id, z2.upper_record_id,
+        z2.force_reversal, z2.displacement_reversal, z2.phase_reversal, z2.temperature_reversal,
+        z2.force_turning_point, z2.displacement_turning_point, z2.phase_turning_point, z2.temperature_turning_point,
+    )
+    with pytest.raises(ActuationParameterError, match="unique measured record provenance across zones"):
+        _validate_complete_four_zone_triplets(tuple(items))
 
 
 def test_triplet_validator_accepts_complete_unique_four_zone_matrix():
