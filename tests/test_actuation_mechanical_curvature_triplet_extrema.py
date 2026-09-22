@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import pytest
 
 from masck_one.actuation_mechanical_curvature import (
@@ -56,3 +58,10 @@ def test_angle_triplet_extrema_fail_closed_when_a_controlled_zone_is_missing():
     items = tuple(_item(f"ZONE_{index}", float(index)) for index in range(1, 4))
     with pytest.raises(ActuationParameterError, match="exactly four controlled zones"):
         _angle_triplet_extrema(items)
+
+
+def test_angle_triplet_extrema_reject_cross_zone_record_provenance_collision():
+    items = list(_item(f"ZONE_{index}", float(index)) for index in range(1, 5))
+    items[3] = replace(items[3], center_record_id=items[0].center_record_id)
+    with pytest.raises(ActuationParameterError, match="unique measured record provenance across zones"):
+        _angle_triplet_extrema(tuple(items))
