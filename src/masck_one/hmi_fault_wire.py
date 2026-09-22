@@ -31,6 +31,9 @@ _WIRE_IDS: Mapping[FaultCode, str] = MappingProxyType({
     FaultCode.INPUT_STREAM_NOT_STARTED: "input_stream_not_started",
     FaultCode.INPUT_STREAM_STALE: "input_stream_stale",
 })
+_WIRE_ID_TO_CODE: Mapping[str, FaultCode] = MappingProxyType(
+    {identifier: code for code, identifier in _WIRE_IDS.items()}
+)
 
 
 def fault_code_wire_id(code: FaultCode) -> str:
@@ -54,10 +57,12 @@ def fault_code_from_wire_id(wire_id: str) -> FaultCode:
     if type(wire_id) is not str:
         raise HmiFaultWireError("wire_id must be an exact str")
     assert_fault_wire_contract_complete()
-    matches = [code for code, identifier in _WIRE_IDS.items() if identifier == wire_id]
-    if len(matches) != 1:
-        raise HmiFaultWireError(f"unknown or ambiguous HMI fault wire identifier: {wire_id!r}")
-    return matches[0]
+    try:
+        return _WIRE_ID_TO_CODE[wire_id]
+    except KeyError as exc:
+        raise HmiFaultWireError(
+            f"unknown or ambiguous HMI fault wire identifier: {wire_id!r}"
+        ) from exc
 
 
 def _canonical_wire_identifier(value: object) -> bool:
@@ -96,11 +101,23 @@ def assert_fault_wire_contract_complete() -> None:
         for code in valid_keys
         if _WIRE_IDS[code] != code.name.lower()
     )
-    if missing or invalid_key_reprs or duplicate_reprs or invalid_reprs or semantic_mismatches:
+    inverse_matches = _WIRE_ID_TO_CODE == {
+        identifier: code
+        for code, identifier in _WIRE_IDS.items()
+        if type(code) is FaultCode and type(identifier) is str
+    }
+    if (
+        missing
+        or invalid_key_reprs
+        or duplicate_reprs
+        or invalid_reprs
+        or semantic_mismatches
+        or not inverse_matches
+    ):
         missing_names = sorted(code.name for code in missing)
         raise HmiFaultWireError(
             "fault wire contract mismatch: "
             f"missing={missing_names}, invalid_keys={invalid_key_reprs}, "
             f"duplicates={duplicate_reprs}, invalid={invalid_reprs}, "
-            f"semantic_mismatches={semantic_mismatches}"
+            f"semantic_mismatches={semantic_mismatches}, inverse_matches={inverse_matches}"
         )
