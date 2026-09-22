@@ -42,12 +42,25 @@ class ZoneMechanicalSensitivityExtrema:
 
 
 @dataclass(frozen=True, slots=True)
+class AngleIntervalSensitivityExtrema:
+    """Worst measured zone response retained independently for one carrier-angle interval."""
+    lower_angle_deg: float
+    upper_angle_deg: float
+    zone_count: int
+    maximum_abs_force_sensitivity: ZoneMechanicalSensitivity
+    maximum_abs_displacement_sensitivity: ZoneMechanicalSensitivity
+    maximum_abs_phase_sensitivity: ZoneMechanicalSensitivity
+    maximum_abs_temperature_sensitivity: ZoneMechanicalSensitivity
+
+
+@dataclass(frozen=True, slots=True)
 class ActuationMechanicalSensitivityEnvelope:
     source_parameter_sha256: str
     source_sweep_sha256: str
     interval_count: int
     sensitivities: tuple[ZoneMechanicalSensitivity, ...]
     zone_extrema: tuple[ZoneMechanicalSensitivityExtrema, ...]
+    angle_interval_extrema: tuple[AngleIntervalSensitivityExtrema, ...]
     maximum_abs_force_sensitivity: ZoneMechanicalSensitivity
     maximum_abs_displacement_sensitivity: ZoneMechanicalSensitivity
     maximum_abs_phase_sensitivity: ZoneMechanicalSensitivity
@@ -100,6 +113,25 @@ def _canonical(item: ZoneMechanicalSensitivity) -> tuple[str, float, float, str,
 
 def _maximum(items: tuple[ZoneMechanicalSensitivity, ...], attribute: str) -> ZoneMechanicalSensitivity:
     return max(items, key=lambda item: (abs(getattr(item, attribute)), _canonical(item)))
+
+
+def _angle_interval_extrema(items: tuple[ZoneMechanicalSensitivity, ...]) -> tuple[AngleIntervalSensitivityExtrema, ...]:
+    by_interval: dict[tuple[float, float], list[ZoneMechanicalSensitivity]] = {}
+    for item in items:
+        by_interval.setdefault((item.lower_angle_deg, item.upper_angle_deg), []).append(item)
+    extrema: list[AngleIntervalSensitivityExtrema] = []
+    for (lower_angle, upper_angle), interval_items in sorted(by_interval.items()):
+        candidates = tuple(interval_items)
+        extrema.append(AngleIntervalSensitivityExtrema(
+            lower_angle_deg=lower_angle,
+            upper_angle_deg=upper_angle,
+            zone_count=len(candidates),
+            maximum_abs_force_sensitivity=_maximum(candidates, "force_slope_N_per_deg"),
+            maximum_abs_displacement_sensitivity=_maximum(candidates, "displacement_slope_mm_per_deg"),
+            maximum_abs_phase_sensitivity=_maximum(candidates, "phase_slope_deg_per_deg"),
+            maximum_abs_temperature_sensitivity=_maximum(candidates, "temperature_slope_C_per_deg"),
+        ))
+    return tuple(extrema)
 
 
 def reduce_measured_mechanical_sensitivity(
@@ -159,12 +191,18 @@ def reduce_measured_mechanical_sensitivity(
             maximum_abs_temperature_sensitivity=_maximum(zone_items, "temperature_slope_C_per_deg"),
         ))
 
+    angle_interval_extrema = _angle_interval_extrema(result)
+    expected_zone_count = len(by_zone)
+    if any(item.zone_count != expected_zone_count for item in angle_interval_extrema):
+        raise ActuationParameterError("Mechanical sensitivity angle intervals must retain every controlled actuator zone")
+
     return ActuationMechanicalSensitivityEnvelope(
         source_parameter_sha256=sweep.source_parameter_sha256,
         source_sweep_sha256=sweep.sweep_sha256,
         interval_count=len(result),
         sensitivities=result,
         zone_extrema=tuple(zone_extrema),
+        angle_interval_extrema=angle_interval_extrema,
         maximum_abs_force_sensitivity=_maximum(result, "force_slope_N_per_deg"),
         maximum_abs_displacement_sensitivity=_maximum(result, "displacement_slope_mm_per_deg"),
         maximum_abs_phase_sensitivity=_maximum(result, "phase_slope_deg_per_deg"),
