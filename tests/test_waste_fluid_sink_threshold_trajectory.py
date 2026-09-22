@@ -32,6 +32,8 @@ def test_one_prime_per_cycle_exposes_accumulating_recovery_gap():
     assert final.cumulative_prime_external_leakage_mL == pytest.approx(.048)
     assert final.cumulative_classified_sink_capacity_after_prime_mL == pytest.approx(2.46)
     assert trajectory.peak_additional_recovery_above_floor_mL == pytest.approx(.30)
+    assert trajectory.peak_minimum_recovery_ratio_for_sink_closure == pytest.approx(25.14 / 27.60)
+    assert trajectory.peak_minimum_recovery_ratio_cycle == 1
 
 
 def test_zero_prime_profile_retains_baseline_requirement_mismatch_per_cycle():
@@ -46,6 +48,12 @@ def test_delayed_prime_event_identifies_when_incremental_gap_changes():
     trajectory = evaluate_sink_recovery_threshold_trajectory(_routing([0, 0, 1, 0, 0, 0]))
     gaps = [state.additional_recovery_above_requirement_floor_mL for state in trajectory.cycles]
     assert gaps == pytest.approx([.01, .02, .07, .08, .09, .10])
+
+    ratios = [state.minimum_recovery_ratio_for_sink_closure for state in trajectory.cycles]
+    peak = max(ratios)
+    first_peak_index = next(index for index, ratio in enumerate(ratios) if ratio == peak)
+    assert trajectory.peak_minimum_recovery_ratio_for_sink_closure == pytest.approx(peak)
+    assert trajectory.peak_minimum_recovery_ratio_cycle == trajectory.cycles[first_peak_index].cycle
 
 
 def test_trajectory_rejects_forged_cycle_or_service_evidence():
