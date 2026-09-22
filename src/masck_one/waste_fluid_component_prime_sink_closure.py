@@ -83,6 +83,13 @@ def _derive(allocation: ComponentRecoveryAllocation, routing: CycleResolvedRouti
         raise WasteFluidAccountingError("cycle routing residual ceiling does not match component allocation authority")
     if not math.isclose(service.service_external_leakage_ceiling_mL, expected_leakage_ceiling, rel_tol=0.0, abs_tol=_TOL):
         raise WasteFluidAccountingError("cycle routing leakage ceiling does not match component allocation authority")
+    if not math.isclose(
+        service.minimum_nominal_liquid_routed_to_cartridge_mL,
+        ledger.minimum_service_recovery_mL,
+        rel_tol=0.0,
+        abs_tol=_TOL,
+    ):
+        raise WasteFluidAccountingError("cycle routing recovery floor does not match component allocation authority")
     prime_residual = routing.total_prime_residual_mL
     prime_leakage = routing.total_prime_external_leakage_mL
     residual_capacity = expected_residual_ceiling - prime_residual
