@@ -2,7 +2,8 @@
 
 This reducer exposes when nominal recovery must exceed the requirement floor because
 prime liquid consumes the same finite residual and external-leakage allowances.
-It is requirement arithmetic, not physical recovery or leakage evidence.
+It reconstructs nominal introduced volume from each cycle's independently retained
+routing and sink evidence. It is requirement arithmetic, not physical validation.
 """
 from __future__ import annotations
 
@@ -21,7 +22,7 @@ class CycleSinkRecoveryThreshold:
     cumulative_nominal_introduced_mL: float
     cumulative_prime_residual_mL: float
     cumulative_prime_external_leakage_mL: float
-    classified_sink_capacity_after_prime_mL: float
+    cumulative_classified_sink_capacity_after_prime_mL: float
     requirement_floor_recovery_mL: float
     minimum_recovery_for_sink_closure_mL: float
     minimum_recovery_ratio_for_sink_closure: float
@@ -38,8 +39,7 @@ class SinkRecoveryThresholdTrajectory:
         if type(self.source_routing) is not CycleResolvedRoutingClosure:
             raise WasteFluidAccountingError("sink threshold trajectory requires exact cycle routing evidence")
         self.source_routing.__post_init__()
-        expected = _derive(self.source_routing)
-        if self.cycles != expected:
+        if self.cycles != _derive(self.source_routing):
             raise WasteFluidAccountingError("sink threshold trajectory does not reconcile to routing evidence")
 
     @property
@@ -52,46 +52,71 @@ class SinkRecoveryThresholdTrajectory:
 
 
 def _derive(routing: CycleResolvedRoutingClosure) -> tuple[CycleSinkRecoveryThreshold, ...]:
-    service = routing.service
-    cycles = len(routing.cycles)
-    if cycles <= 0:
-        raise WasteFluidAccountingError("sink threshold trajectory requires at least one cycle")
-    nominal_per_cycle = service.service_nominal_introduced_mL / cycles
-    recovery_floor_per_cycle = service.minimum_nominal_liquid_routed_to_cartridge_mL / cycles
-    residual_ceiling_per_cycle = service.service_residual_ceiling_mL / cycles
-    leakage_ceiling_per_cycle = service.service_external_leakage_ceiling_mL / cycles
-    values = (nominal_per_cycle, recovery_floor_per_cycle, residual_ceiling_per_cycle, leakage_ceiling_per_cycle)
-    if any(not math.isfinite(value) or value < -_TOL for value in values) or nominal_per_cycle <= _TOL:
-        raise WasteFluidAccountingError("sink threshold trajectory requires finite positive nominal service accounting")
-
+    cumulative_introduced = 0.0
+    cumulative_floor = 0.0
     cumulative_prime_residual = 0.0
     cumulative_prime_leakage = 0.0
+    cumulative_classified = 0.0
+    cumulative_nominal_unrecovered = 0.0
     result: list[CycleSinkRecoveryThreshold] = []
+
     for state in routing.cycles:
+        # Exactly one of gap/headroom can be positive. Their signed difference
+        # reconstructs nominal nonrecovery from the retained local sink evidence.
+        nominal_unrecovered = (
+            state.classified_sink_capacity_after_prime_mL
+            + state.nominal_unclassified_nonrecovery_after_prime_mL
+            - state.classified_sink_headroom_after_nominal_mL
+        )
+        local_values = (
+            state.minimum_nominal_routed_to_cartridge_mL,
+            nominal_unrecovered,
+            state.prime_residual_mL,
+            state.prime_external_leakage_mL,
+            state.classified_sink_capacity_after_prime_mL,
+        )
+        if any(not math.isfinite(value) or value < -_TOL for value in local_values):
+            raise WasteFluidAccountingError(f"cycle {state.cycle} has invalid sink threshold evidence")
+        nominal_unrecovered = max(0.0, nominal_unrecovered)
+        local_introduced = state.minimum_nominal_routed_to_cartridge_mL + nominal_unrecovered
+        if local_introduced <= _TOL:
+            raise WasteFluidAccountingError("sink threshold trajectory requires positive nominal introduced liquid")
+
+        cumulative_introduced += local_introduced
+        cumulative_floor += state.minimum_nominal_routed_to_cartridge_mL
+        cumulative_nominal_unrecovered += nominal_unrecovered
         cumulative_prime_residual += state.prime_residual_mL
         cumulative_prime_leakage += state.prime_external_leakage_mL
-        residual_capacity = state.cycle * residual_ceiling_per_cycle - cumulative_prime_residual
-        leakage_capacity = state.cycle * leakage_ceiling_per_cycle - cumulative_prime_leakage
-        if residual_capacity < -_TOL or leakage_capacity < -_TOL:
-            raise WasteFluidAccountingError(f"prime routing exceeds a shared sink ceiling by cycle {state.cycle}")
-        classified = max(0.0, residual_capacity) + max(0.0, leakage_capacity)
-        introduced = state.cycle * nominal_per_cycle
-        floor = state.cycle * recovery_floor_per_cycle
-        threshold = max(0.0, introduced - classified)
-        ratio = threshold / introduced
-        additional = max(0.0, threshold - floor)
+        cumulative_classified += state.classified_sink_capacity_after_prime_mL
+
+        gap = max(0.0, cumulative_nominal_unrecovered - cumulative_classified)
+        threshold = cumulative_floor + gap
+        ratio = threshold / cumulative_introduced
         result.append(CycleSinkRecoveryThreshold(
             cycle=state.cycle,
-            cumulative_nominal_introduced_mL=introduced,
+            cumulative_nominal_introduced_mL=cumulative_introduced,
             cumulative_prime_residual_mL=cumulative_prime_residual,
             cumulative_prime_external_leakage_mL=cumulative_prime_leakage,
-            classified_sink_capacity_after_prime_mL=classified,
-            requirement_floor_recovery_mL=floor,
+            cumulative_classified_sink_capacity_after_prime_mL=cumulative_classified,
+            requirement_floor_recovery_mL=cumulative_floor,
             minimum_recovery_for_sink_closure_mL=threshold,
             minimum_recovery_ratio_for_sink_closure=ratio,
-            additional_recovery_above_requirement_floor_mL=additional,
-            requirement_floor_closes_shared_sinks=additional <= _TOL,
+            additional_recovery_above_requirement_floor_mL=gap,
+            requirement_floor_closes_shared_sinks=gap <= _TOL,
         ))
+
+    if not result:
+        raise WasteFluidAccountingError("sink threshold trajectory requires at least one cycle")
+    final = result[-1]
+    service = routing.service
+    if not math.isclose(final.requirement_floor_recovery_mL,
+                        service.minimum_nominal_liquid_routed_to_cartridge_mL,
+                        rel_tol=0.0, abs_tol=_TOL):
+        raise WasteFluidAccountingError("cycle threshold recovery floor does not reconcile to service evidence")
+    if not math.isclose(final.additional_recovery_above_requirement_floor_mL,
+                        service.shared_sink_unclassified_nonrecovery_mL,
+                        rel_tol=0.0, abs_tol=_TOL):
+        raise WasteFluidAccountingError("cycle threshold sink deficit does not reconcile to service evidence")
     return tuple(result)
 
 
