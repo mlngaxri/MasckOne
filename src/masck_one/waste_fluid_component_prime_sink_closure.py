@@ -94,8 +94,11 @@ def _derive(allocation: ComponentRecoveryAllocation, routing: CycleResolvedRouti
     nonrecovered = allocation.total_nonrecovered_mL
     classified = residual_capacity + leakage_capacity
 
-    introduced = ledger.service_total_introduced_mL
-    recovery_floor = ledger.minimum_recovered_mL
+    # The delivery/recovery ledger is the authority-bound source for nominal liquid.
+    # Keep this reducer coupled to its released field names rather than reconstructing
+    # the total independently from components, so delivery changes remain provenance-bound.
+    introduced = ledger.service_nominal_mL
+    recovery_floor = ledger.minimum_service_recovery_mL
     minimum_recovery_for_closure = max(0.0, introduced - classified)
     if introduced <= _TOL:
         raise WasteFluidAccountingError("prime-adjusted sink closure requires positive introduced liquid")
