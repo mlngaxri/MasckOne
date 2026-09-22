@@ -20,7 +20,7 @@ SCHEMA = "MASCK_ONE_RETENTION_QUICK_RELEASE_TACTILE_V23"
 SUPERSEDES_SCHEMA = v22.SCHEMA
 _DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 _FAMILIES = (
-    "midpoint_release_travel_screen",
+    "interstitial_release_travel_screen",
     "quarter_release_travel_screen",
     "eighth_release_travel_screen",
     "sixteenth_release_travel_screen",
