@@ -2,8 +2,9 @@
 
 This reducer exposes when nominal recovery must exceed the requirement floor because
 prime liquid consumes the same finite residual and external-leakage allowances.
-It reconstructs nominal introduced volume from each cycle's independently retained
-routing and sink evidence. It is requirement arithmetic, not physical validation.
+It also checks the resulting higher recovery demand against retained cartridge
+capacity, preventing a sink fix from silently creating a storage conflict. This is
+requirement arithmetic, not physical validation.
 """
 from __future__ import annotations
 
@@ -28,6 +29,11 @@ class CycleSinkRecoveryThreshold:
     minimum_recovery_ratio_for_sink_closure: float
     additional_recovery_above_requirement_floor_mL: float
     requirement_floor_closes_shared_sinks: bool
+    cumulative_prime_routed_to_cartridge_mL: float
+    minimum_total_cartridge_routing_at_sink_closure_mL: float
+    retained_cartridge_capacity_mL: float
+    cartridge_capacity_margin_at_sink_closure_mL: float
+    sink_closure_fits_retained_cartridge_capacity: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,6 +51,14 @@ class SinkRecoveryThresholdTrajectory:
     @property
     def first_cycle_requiring_recovery_above_floor(self) -> int | None:
         return next((state.cycle for state in self.cycles if not state.requirement_floor_closes_shared_sinks), None)
+
+    @property
+    def first_cycle_sink_closure_exceeds_cartridge_capacity(self) -> int | None:
+        return next((state.cycle for state in self.cycles if not state.sink_closure_fits_retained_cartridge_capacity), None)
+
+    @property
+    def all_sink_closure_thresholds_fit_cartridge_capacity(self) -> bool:
+        return self.first_cycle_sink_closure_exceeds_cartridge_capacity is None
 
     @property
     def peak_additional_recovery_above_floor_mL(self) -> float:
@@ -71,13 +85,13 @@ def _derive(routing: CycleResolvedRoutingClosure) -> tuple[CycleSinkRecoveryThre
     cumulative_floor = 0.0
     cumulative_prime_residual = 0.0
     cumulative_prime_leakage = 0.0
+    cumulative_prime_routed = 0.0
     cumulative_classified = 0.0
     cumulative_nominal_unrecovered = 0.0
+    retained_capacity: float | None = None
     result: list[CycleSinkRecoveryThreshold] = []
 
     for state in routing.cycles:
-        # Exactly one of gap/headroom can be positive. Their signed difference
-        # reconstructs nominal nonrecovery from the retained local sink evidence.
         nominal_unrecovered = (
             state.classified_sink_capacity_after_prime_mL
             + state.nominal_unclassified_nonrecovery_after_prime_mL
@@ -85,6 +99,7 @@ def _derive(routing: CycleResolvedRoutingClosure) -> tuple[CycleSinkRecoveryThre
         )
         local_values = (
             state.minimum_nominal_routed_to_cartridge_mL,
+            state.minimum_prime_routed_to_cartridge_mL,
             nominal_unrecovered,
             state.prime_residual_mL,
             state.prime_external_leakage_mL,
@@ -97,16 +112,29 @@ def _derive(routing: CycleResolvedRoutingClosure) -> tuple[CycleSinkRecoveryThre
         if local_introduced <= _TOL:
             raise WasteFluidAccountingError("sink threshold trajectory requires positive nominal introduced liquid")
 
+        capacity_from_minimum = (
+            state.cumulative_minimum_cartridge_routing_mL + state.minimum_routing_capacity_margin_mL
+        )
+        if not math.isfinite(capacity_from_minimum) or capacity_from_minimum < -_TOL:
+            raise WasteFluidAccountingError(f"cycle {state.cycle} has invalid retained cartridge capacity evidence")
+        if retained_capacity is None:
+            retained_capacity = max(0.0, capacity_from_minimum)
+        elif not math.isclose(capacity_from_minimum, retained_capacity, rel_tol=0.0, abs_tol=_TOL):
+            raise WasteFluidAccountingError("retained cartridge capacity changed within sink threshold trajectory")
+
         cumulative_introduced += local_introduced
         cumulative_floor += state.minimum_nominal_routed_to_cartridge_mL
         cumulative_nominal_unrecovered += nominal_unrecovered
         cumulative_prime_residual += state.prime_residual_mL
         cumulative_prime_leakage += state.prime_external_leakage_mL
+        cumulative_prime_routed += state.minimum_prime_routed_to_cartridge_mL
         cumulative_classified += state.classified_sink_capacity_after_prime_mL
 
         gap = max(0.0, cumulative_nominal_unrecovered - cumulative_classified)
         threshold = cumulative_floor + gap
         ratio = threshold / cumulative_introduced
+        threshold_total_routing = threshold + cumulative_prime_routed
+        capacity_margin = retained_capacity - threshold_total_routing
         result.append(CycleSinkRecoveryThreshold(
             cycle=state.cycle,
             cumulative_nominal_introduced_mL=cumulative_introduced,
@@ -118,6 +146,11 @@ def _derive(routing: CycleResolvedRoutingClosure) -> tuple[CycleSinkRecoveryThre
             minimum_recovery_ratio_for_sink_closure=ratio,
             additional_recovery_above_requirement_floor_mL=gap,
             requirement_floor_closes_shared_sinks=gap <= _TOL,
+            cumulative_prime_routed_to_cartridge_mL=cumulative_prime_routed,
+            minimum_total_cartridge_routing_at_sink_closure_mL=threshold_total_routing,
+            retained_cartridge_capacity_mL=retained_capacity,
+            cartridge_capacity_margin_at_sink_closure_mL=capacity_margin,
+            sink_closure_fits_retained_cartridge_capacity=capacity_margin >= -_TOL,
         ))
 
     if not result:
@@ -132,13 +165,17 @@ def _derive(routing: CycleResolvedRoutingClosure) -> tuple[CycleSinkRecoveryThre
                         service.shared_sink_unclassified_nonrecovery_mL,
                         rel_tol=0.0, abs_tol=_TOL):
         raise WasteFluidAccountingError("cycle threshold sink deficit does not reconcile to service evidence")
+    if not math.isclose(final.cumulative_prime_routed_to_cartridge_mL,
+                        service.minimum_prime_liquid_routed_to_cartridge_mL,
+                        rel_tol=0.0, abs_tol=_TOL):
+        raise WasteFluidAccountingError("cycle threshold prime cartridge routing does not reconcile to service evidence")
     return tuple(result)
 
 
 def evaluate_sink_recovery_threshold_trajectory(
     routing: CycleResolvedRoutingClosure,
 ) -> SinkRecoveryThresholdTrajectory:
-    """Derive the shared-sink recovery threshold at every completed cycle."""
+    """Derive shared-sink recovery and resulting cartridge-capacity demand per cycle."""
     if type(routing) is not CycleResolvedRoutingClosure:
         raise WasteFluidAccountingError("sink threshold trajectory requires exact cycle routing evidence")
     routing.__post_init__()
