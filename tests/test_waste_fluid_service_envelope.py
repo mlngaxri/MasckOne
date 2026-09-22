@@ -29,6 +29,7 @@ def test_joint_envelope_finds_true_reprime_boundary_beyond_fail_conservative_scr
     assert feasible.cartridge_margin_mL == pytest.approx(.10)
     assert feasible.feasible is True
     blocked = envelope.first_infeasible
+    assert blocked is not None
     assert blocked.minimum_nominal_recovery_for_sink_closure_mL == pytest.approx(25.94)
     assert blocked.minimum_nominal_recovery_ratio_for_sink_closure == pytest.approx(25.94 / 27.60)
     assert blocked.minimum_nominal_recovery_ratio_for_sink_closure > feasible.minimum_nominal_recovery_ratio_for_sink_closure
@@ -47,6 +48,22 @@ def test_joint_envelope_exposes_independent_shared_sink_event_ceiling_headroom()
     assert envelope.controlling_constraint == "CARTRIDGE_CAPACITY"
     assert envelope.limiting_next_prime_events < envelope.maximum_prime_events_before_external_leakage_ceiling
     assert envelope.limiting_next_prime_events < envelope.maximum_prime_events_before_residual_ceiling
+
+
+def test_residual_sink_can_be_true_boundary_before_cartridge_capacity():
+    envelope = evaluate_reprime_service_envelope(
+        build_authority_waste_fluid_budget(), cycles=6,
+        prime_recovery_ratio_contract=0.0,
+        prime_residual_ratio_contract=1.0,
+        prime_external_leakage_ratio_contract=0.0,
+    )
+    assert envelope.maximum_prime_events_before_residual_ceiling == 6
+    assert envelope.maximum_feasible_prime_events == 6
+    assert envelope.limiting_next_prime_events == 7
+    assert envelope.controlling_constraint == "RESIDUAL_CEILING"
+    assert envelope.first_infeasible is None
+    assert envelope.maximum_feasible.minimum_nominal_recovery_ratio_for_sink_closure == pytest.approx(1.0)
+    assert envelope.maximum_feasible.cartridge_margin_mL == pytest.approx(7.4)
 
 
 def test_zero_fraction_sink_has_no_finite_event_ceiling_or_headroom():
