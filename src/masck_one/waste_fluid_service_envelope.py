@@ -92,8 +92,11 @@ def evaluate_reprime_service_envelope(
     )
     if any(type(value) not in (int, float) or not math.isfinite(value) for value in ratios):
         raise WasteFluidAccountingError("service envelope routing ratios must be finite numbers")
-    if sum(ratios) < 1.0 - _TOL:
-        raise WasteFluidAccountingError("service envelope requires all prime liquid to have a destination contract")
+    if any(value < 0.0 or value > 1.0 for value in ratios):
+        raise WasteFluidAccountingError("service envelope routing ratios must each lie in [0, 1]")
+    ratio_sum = sum(ratios)
+    if abs(ratio_sum - 1.0) > _TOL:
+        raise WasteFluidAccountingError("service envelope requires prime destination ratios to sum to exactly one")
 
     previous = _point(
         budget, cycles=cycles, prime_events=0,
@@ -118,7 +121,6 @@ def evaluate_reprime_service_envelope(
             )
         except WasteFluidAccountingError:
             # A sink ceiling exceeded before capacity is itself an infeasible next event.
-            closure = previous.source_closure
             raise WasteFluidAccountingError(
                 f"prime routing contract becomes invalid before a capacity boundary at {events} events"
             )
