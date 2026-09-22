@@ -85,6 +85,19 @@ def test_mismatched_service_interval_fails_closed():
         evaluate_prime_adjusted_component_sink_closure(_allocation(post=4.14), short_routing)
 
 
+def test_mismatched_recovery_floor_authority_fails_closed_even_when_sink_ceilings_match():
+    allocation_budget = replace(build_authority_waste_fluid_budget(), recovery_ratio_min=.91)
+    ledger = build_authority_delivery_recovery_ledger(budget=allocation_budget)
+    allocation = evaluate_component_recovery_allocation(
+        ledger=ledger,
+        recovered_face_water_mL=18.0,
+        recovered_cleanser_mL=3.0,
+        recovered_post_flush_water_mL=4.14,
+    )
+    with pytest.raises(WasteFluidAccountingError, match="recovery floor does not match"):
+        evaluate_prime_adjusted_component_sink_closure(allocation, _routing())
+
+
 def test_forged_prime_adjusted_evidence_fails_closed():
     valid = evaluate_prime_adjusted_component_sink_closure(_allocation(post=4.14), _routing())
     with pytest.raises(WasteFluidAccountingError):
