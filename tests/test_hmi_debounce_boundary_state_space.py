@@ -66,7 +66,8 @@ def test_bounce_back_to_stable_cancels_candidate_dwell() -> None:
 
 
 def test_post_fault_release_dwell_cannot_emit_release_or_press_edge() -> None:
-    runtime = DebouncedInput(debounce_s=0.030, stale_after_s=0.250)
+    debounce_s = 0.030
+    runtime = DebouncedInput(debounce_s=debounce_s, stale_after_s=0.250)
     runtime.sample(pressed=True, now_s=0.000)
     runtime.sample(pressed=True, now_s=0.030)
     assert runtime.watchdog(now_s=0.281).faulted
@@ -80,18 +81,22 @@ def test_post_fault_release_dwell_cannot_emit_release_or_press_edge() -> None:
     assert held.edge is Edge.NONE
     assert held.stable_pressed is False
 
-    release_start = runtime.sample(pressed=False, now_s=0.284)
+    release_started_at_s = 0.284
+    release_start = runtime.sample(pressed=False, now_s=release_started_at_s)
     assert release_start.edge is Edge.NONE
     assert release_start.stable_pressed is False
 
-    release_boundary = runtime.sample(pressed=False, now_s=0.314)
+    release_deadline_s = release_started_at_s + debounce_s
+    release_boundary = runtime.sample(pressed=False, now_s=release_deadline_s)
     assert release_boundary.edge is Edge.NONE
     assert release_boundary.stable_pressed is False
 
-    press_start = runtime.sample(pressed=True, now_s=0.315)
+    press_started_at_s = release_deadline_s + 0.001
+    press_start = runtime.sample(pressed=True, now_s=press_started_at_s)
     assert press_start.edge is Edge.NONE
     assert press_start.stable_pressed is False
 
-    press_boundary = runtime.sample(pressed=True, now_s=0.345)
+    press_deadline_s = press_started_at_s + debounce_s
+    press_boundary = runtime.sample(pressed=True, now_s=press_deadline_s)
     assert press_boundary.edge is Edge.PRESSED
     assert press_boundary.stable_pressed is True
