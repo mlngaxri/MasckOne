@@ -28,6 +28,22 @@ def test_maximum_recovery_capacity_failure_is_attributed_to_reprime_when_nominal
     assert screen.nominal_liquid_at_maximum_recovery_mL <= budget.cartridge_retained_capacity_requirement_mL
 
 
+def test_recovery_uplift_is_screened_after_complete_authority_floor_load():
+    _, screen = _screen(.90, .08, .02)
+    assert screen.nominal_recovery_uplift_capacity_allowance_mL == pytest.approx(
+        screen.authority_floor_cartridge_headroom_mL
+    )
+    assert screen.nominal_recovery_uplift_allowance_margin_mL == pytest.approx(
+        screen.nominal_recovery_uplift_capacity_allowance_mL - screen.nominal_recovery_uplift_to_maximum_mL
+    )
+    assert screen.cartridge_overflow_at_maximum_nominal_recovery_mL == pytest.approx(
+        screen.authority_floor_cartridge_overflow_mL
+        + screen.nominal_recovery_uplift_incremental_overflow_mL
+    )
+    if screen.authority_floor_cartridge_capacity_exceeded:
+        assert screen.capacity_exceeded_by_nominal_recovery_uplift is False
+
+
 def test_sink_first_boundary_reports_no_cartridge_failure_source():
     _, screen = _screen(0.0, 1.0, 0.0)
     assert screen.service_envelope.controlling_constraint == "RESIDUAL_CEILING"
@@ -35,6 +51,8 @@ def test_sink_first_boundary_reports_no_cartridge_failure_source():
     assert screen.capacity_exceeded_by_reprime_at_maximum_recovery is False
     assert screen.cartridge_capacity_exceeded_at_maximum_nominal_recovery is False
     assert screen.cartridge_overflow_at_maximum_nominal_recovery_mL == pytest.approx(0.0)
+    assert screen.nominal_recovery_uplift_incremental_overflow_mL == pytest.approx(0.0)
+    assert screen.capacity_exceeded_by_nominal_recovery_uplift is False
 
 
 def test_maximum_recovery_failure_sources_are_mutually_exclusive():
@@ -47,3 +65,6 @@ def test_maximum_recovery_failure_sources_are_mutually_exclusive():
         screen.nominal_capacity_exceeded_at_maximum_recovery
         or screen.capacity_exceeded_by_reprime_at_maximum_recovery
     )
+    assert screen.nominal_recovery_uplift_to_maximum_mL == pytest.approx(0.0)
+    assert screen.nominal_recovery_uplift_incremental_overflow_mL == pytest.approx(0.0)
+    assert screen.capacity_exceeded_by_nominal_recovery_uplift is False
