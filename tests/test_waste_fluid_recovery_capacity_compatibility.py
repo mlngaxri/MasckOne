@@ -128,6 +128,27 @@ def test_rejects_partial_service_window_before_making_service_life_claim():
         evaluate_recovery_capacity_compatibility(budget, partial)
 
 
+def test_rejects_stale_limiting_event_lineage():
+    budget = build_authority_waste_fluid_budget()
+    screen = _screen(budget)
+    stale = replace(screen, limiting_prime_events=screen.limiting_prime_events + 1)
+    with pytest.raises(RecoveryCapacityCompatibilityError, match="limiting prime event disagrees"):
+        evaluate_recovery_capacity_compatibility(budget, stale)
+
+
+def test_rejects_nested_service_envelope_from_different_capacity_authority():
+    budget = build_authority_waste_fluid_budget()
+    screen = _screen(budget)
+    stale_point = replace(
+        screen.service_envelope.maximum_feasible,
+        retained_cartridge_capacity_mL=screen.service_envelope.maximum_feasible.retained_cartridge_capacity_mL + 0.1,
+    )
+    stale_envelope = replace(screen.service_envelope, maximum_feasible=stale_point)
+    stale = replace(screen, service_envelope=stale_envelope)
+    with pytest.raises(RecoveryCapacityCompatibilityError, match="service-envelope retained capacity disagrees"):
+        evaluate_recovery_capacity_compatibility(budget, stale)
+
+
 def test_rejects_stale_authority_floor_nominal_load():
     budget = build_authority_waste_fluid_budget()
     stale = replace(_screen(budget), authority_floor_nominal_recovery_mL=0.0)
