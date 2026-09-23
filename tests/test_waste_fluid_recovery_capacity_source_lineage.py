@@ -72,3 +72,43 @@ def test_rejects_non_integer_limiting_prime_event_count():
     stale = _replace_limiting_closure(stale, prime_events=1.5)
     with pytest.raises(RecoveryCapacityCompatibilityError, match="limiting prime event count must be a non-negative integer"):
         evaluate_recovery_capacity_compatibility(budget, stale)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("prime_residual_ratio_contract", float("nan"), "prime residual contract must be finite"),
+        ("prime_external_leakage_ratio_contract", 1.01, r"prime external leakage contract must lie within \[0, 1\]"),
+    ],
+)
+def test_rejects_invalid_nested_nonrecovery_contracts(field, value, message):
+    budget, screen = _screen()
+    stale = _replace_limiting_closure(screen, **{field: value})
+    with pytest.raises(RecoveryCapacityCompatibilityError, match=message):
+        evaluate_recovery_capacity_compatibility(budget, stale)
+
+
+def test_rejects_nested_prime_partition_above_unity():
+    budget, screen = _screen()
+    stale = _replace_limiting_closure(screen, prime_residual_ratio_contract=.09)
+    with pytest.raises(RecoveryCapacityCompatibilityError, match="routing contracts must not sum above one"):
+        evaluate_recovery_capacity_compatibility(budget, stale)
+
+
+@pytest.mark.parametrize(
+    ("field", "delta", "message"),
+    [
+        ("total_prime_liquid_mL", .1, "total prime load disagrees"),
+        ("minimum_prime_liquid_routed_to_cartridge_mL", .1, "recovered prime load disagrees"),
+        ("maximum_prime_residual_mL", .1, "prime residual load disagrees"),
+        ("maximum_prime_external_leakage_mL", .1, "prime leakage load disagrees"),
+    ],
+)
+def test_rejects_stale_nested_prime_sink_volumes(field, delta, message):
+    budget, screen = _screen()
+    envelope = screen.service_envelope
+    point = envelope.first_infeasible if envelope.first_infeasible is not None else envelope.maximum_feasible
+    value = getattr(point.source_closure, field)
+    stale = _replace_limiting_closure(screen, **{field: value + delta})
+    with pytest.raises(RecoveryCapacityCompatibilityError, match=message):
+        evaluate_recovery_capacity_compatibility(budget, stale)
