@@ -47,9 +47,6 @@ def evaluate_recovery_capacity_compatibility(
     """Compare cartridge packaging capacity with the required nominal recovery range."""
     if not isinstance(screen, LimitingEventCapacityScreen):
         raise TypeError("recovery capacity compatibility requires LimitingEventCapacityScreen evidence")
-    # This reducer makes a service-life claim, so evidence from a shorter window
-    # must not be promoted to the authority service boundary. Longer windows are
-    # already rejected by the limiting-event screen itself.
     if screen.service_envelope.cycles != budget.service_cycles:
         raise RecoveryCapacityCompatibilityError(
             "capacity compatibility requires evidence for exactly the authority service cycle count"
@@ -74,25 +71,38 @@ def evaluate_recovery_capacity_compatibility(
     if not 0.0 <= authority_floor_ratio <= 1.0:
         raise RecoveryCapacityCompatibilityError("authority nominal recovery floor must lie within [0, 1]")
 
+    # Reconstruct both endpoint loads independently from authority inputs before
+    # using the screen as compatibility evidence. This prevents a stale or
+    # partially mutated limiting-event object from silently changing the recovery
+    # floor, reprime reservation, or overflow attribution consumed downstream.
+    expected_floor_nominal = nominal_service * authority_floor_ratio
+    expected_floor_demand = expected_floor_nominal + reprime
+    expected_full_demand = nominal_service + reprime
+    if abs(screen.authority_floor_nominal_recovery_mL - expected_floor_nominal) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("capacity screen authority-floor nominal load disagrees with budget")
+    if abs(screen.authority_floor_cartridge_demand_mL - expected_floor_demand) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("capacity screen authority-floor cartridge demand is stale")
+    if abs(screen.cartridge_demand_at_maximum_nominal_recovery_mL - expected_full_demand) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("capacity screen full-recovery cartridge demand is stale")
+
     reprime_margin = capacity - reprime
     reprime_exceeded = reprime_margin < -1e-12
     available_for_nominal = max(reprime_margin, 0.0)
     capacity_limited_ratio = min(available_for_nominal / nominal_service, 1.0)
     ratio_margin = capacity_limited_ratio - authority_floor_ratio
 
-    minimum_floor_capacity = reprime + nominal_service * authority_floor_ratio
+    minimum_floor_capacity = expected_floor_demand
     floor_shortfall = max(minimum_floor_capacity - capacity, 0.0)
-    minimum_full_capacity = reprime + nominal_service
+    minimum_full_capacity = expected_full_demand
     full_shortfall = max(minimum_full_capacity - capacity, 0.0)
     floor_feasible = (not reprime_exceeded) and floor_shortfall <= 1e-12
     full_feasible = full_shortfall <= 1e-12
 
-    # Convert the same capacity balance into a service-life bound. Reprime is
-    # reserved once at the limiting event; the remaining retained volume is then
-    # divided by recovered nominal liquid per cycle. The result is deliberately
-    # capped at the authority service window: this reducer has no reprime evidence
-    # beyond that boundary, so surplus capacity must not be presented as evidence
-    # for additional treatment cycles.
+    if abs(screen.authority_floor_cartridge_overflow_mL - floor_shortfall) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("capacity screen authority-floor overflow is stale")
+    if abs(screen.cartridge_overflow_at_maximum_nominal_recovery_mL - full_shortfall) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("capacity screen full-recovery overflow is stale")
+
     nominal_per_cycle = budget.nominal_introduced_mL_per_cycle
     recovered_at_floor_per_cycle = nominal_per_cycle * authority_floor_ratio
     if recovered_at_floor_per_cycle <= 0.0:
