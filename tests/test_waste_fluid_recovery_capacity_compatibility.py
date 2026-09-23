@@ -37,7 +37,7 @@ def test_authority_contract_exposes_capacity_recovery_incompatibility():
     assert result.authority_service_cycle_shortfall_at_full_recovery >= result.authority_service_cycle_shortfall_at_recovery_floor
 
 
-def test_larger_synthetic_capacity_can_accept_full_nominal_recovery():
+def test_larger_synthetic_capacity_can_accept_full_nominal_recovery_without_extrapolating_service_evidence():
     budget = replace(build_authority_waste_fluid_budget(), cartridge_retained_capacity_requirement_mL=40.0)
     result = evaluate_recovery_capacity_compatibility(budget, _screen(budget))
     assert result.authority_recovery_floor_capacity_feasible is True
@@ -46,7 +46,8 @@ def test_larger_synthetic_capacity_can_accept_full_nominal_recovery():
     assert result.recovery_ratio_margin_above_authority_floor >= 0.0
     assert result.authority_recovery_floor_capacity_shortfall_mL == 0.0
     assert result.full_nominal_recovery_capacity_shortfall_mL == 0.0
-    assert result.capacity_limited_service_cycles_at_full_recovery >= budget.service_cycles
+    assert result.capacity_limited_service_cycles_at_authority_floor == budget.service_cycles
+    assert result.capacity_limited_service_cycles_at_full_recovery == budget.service_cycles
     assert result.authority_service_cycle_shortfall_at_recovery_floor == 0
     assert result.authority_service_cycle_shortfall_at_full_recovery == 0
 
@@ -60,16 +61,23 @@ def test_capacity_ceiling_reserves_recovered_reprime_before_nominal_recovery():
     assert result.capacity_limited_nominal_recovery_ratio == pytest.approx(result.capacity_available_for_nominal_recovery_mL / result.nominal_introduced_service_mL)
 
 
-def test_service_life_bounds_invert_remaining_capacity_per_cycle():
+def test_service_life_bounds_invert_remaining_capacity_per_cycle_within_authority_window():
     budget = build_authority_waste_fluid_budget()
     result = evaluate_recovery_capacity_compatibility(budget, _screen(budget))
     floor_per_cycle = budget.nominal_introduced_mL_per_cycle * result.authority_nominal_recovery_floor_ratio
-    expected_floor_cycles = math.floor((result.capacity_available_for_nominal_recovery_mL + 1e-12) / floor_per_cycle)
-    expected_full_cycles = math.floor((result.capacity_available_for_nominal_recovery_mL + 1e-12) / budget.nominal_introduced_mL_per_cycle)
+    expected_floor_cycles = min(math.floor((result.capacity_available_for_nominal_recovery_mL + 1e-12) / floor_per_cycle), budget.service_cycles)
+    expected_full_cycles = min(math.floor((result.capacity_available_for_nominal_recovery_mL + 1e-12) / budget.nominal_introduced_mL_per_cycle), budget.service_cycles)
     assert result.capacity_limited_service_cycles_at_authority_floor == expected_floor_cycles
     assert result.capacity_limited_service_cycles_at_full_recovery == expected_full_cycles
     assert result.authority_service_cycle_shortfall_at_recovery_floor == max(budget.service_cycles - expected_floor_cycles, 0)
     assert result.authority_service_cycle_shortfall_at_full_recovery == max(budget.service_cycles - expected_full_cycles, 0)
+
+
+def test_surplus_synthetic_capacity_never_claims_cycles_beyond_evidence_window():
+    budget = replace(build_authority_waste_fluid_budget(), cartridge_retained_capacity_requirement_mL=1000.0)
+    result = evaluate_recovery_capacity_compatibility(budget, _screen(budget))
+    assert result.capacity_limited_service_cycles_at_authority_floor == budget.service_cycles
+    assert result.capacity_limited_service_cycles_at_full_recovery == budget.service_cycles
 
 
 def test_endpoint_capacity_minima_invert_recovery_accounting_exactly():
