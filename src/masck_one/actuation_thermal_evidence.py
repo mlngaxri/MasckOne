@@ -6,6 +6,10 @@ from .actuation_thermal_coexistence import (
     ActuationThermalEnvelope,
     reduce_measured_actuation_thermal_envelope,
 )
+from .actuation_thermal_mechanical_coupling import (
+    ActuationThermalMechanicalCoupling,
+    reduce_measured_thermal_mechanical_coupling,
+)
 from .actuation_zone_sweep import FourZoneImpedanceSweep
 
 
@@ -40,4 +44,39 @@ def validate_actuation_thermal_envelope_evidence(
     if envelope != expected:
         raise ActuationParameterError(
             "Actuation thermal envelope evidence does not match the current measured sweep reduction"
+        )
+
+
+def validate_paired_thermal_mechanical_evidence(
+    envelope: ActuationThermalEnvelope,
+    coupling: ActuationThermalMechanicalCoupling,
+    sweep: FourZoneImpedanceSweep,
+    parameters: ActuationParameterSet,
+) -> None:
+    """Fail closed unless thermal and mechanical views are current and mutually coherent.
+
+    Treatment integration may consume the standalone thermal envelope beside the coupled
+    massage/thermal reduction. Both must therefore describe the same measured sweep, not
+    merely be individually plausible artifacts produced at different times.
+    """
+    validate_actuation_thermal_envelope_evidence(envelope, sweep, parameters)
+    if type(coupling) is not ActuationThermalMechanicalCoupling:
+        raise ActuationParameterError(
+            "Paired thermal/mechanical evidence requires exact ActuationThermalMechanicalCoupling"
+        )
+    expected_coupling = reduce_measured_thermal_mechanical_coupling(sweep, parameters)
+    if coupling != expected_coupling:
+        raise ActuationParameterError(
+            "Paired thermal/mechanical coupling does not match the current measured sweep reduction"
+        )
+
+    if (
+        envelope.point_count != coupling.point_count
+        or envelope.max_temperature_C != coupling.hottest_point.temperature_C
+        or envelope.max_temperature_zone_id != coupling.hottest_point.zone_id
+        or envelope.max_temperature_axis_angle_deg != coupling.hottest_point.axis_angle_deg
+        or envelope.max_temperature_record_id != coupling.hottest_point.record_id
+    ):
+        raise ActuationParameterError(
+            "Paired thermal and mechanical reductions disagree on shared measured thermal evidence"
         )
