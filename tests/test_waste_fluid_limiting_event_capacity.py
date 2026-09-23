@@ -21,6 +21,7 @@ def test_capacity_limited_contract_separates_authority_floor_from_maximum_recove
     assert screen.authority_floor_nominal_recovery_mL == pytest.approx(6 * budget.minimum_recovered_mL_per_cycle)
     assert screen.prime_liquid_routed_to_cartridge_mL == pytest.approx(26 * budget.maximum_initial_prime_mL_per_cycle * .90)
     assert screen.authority_floor_nominal_only_overflow_mL == pytest.approx(0.0)
+    assert screen.authority_floor_nominal_capacity_exceeded is False
     assert screen.authority_floor_prime_capacity_allowance_mL == pytest.approx(
         budget.cartridge_retained_capacity_requirement_mL - screen.authority_floor_nominal_recovery_mL
     )
@@ -30,6 +31,7 @@ def test_capacity_limited_contract_separates_authority_floor_from_maximum_recove
     assert screen.authority_floor_prime_incremental_overflow_mL == pytest.approx(
         -screen.authority_floor_prime_allowance_margin_mL
     )
+    assert screen.authority_floor_capacity_exceeded_by_reprime is True
     assert screen.authority_floor_cartridge_demand_mL == pytest.approx(
         screen.authority_floor_nominal_recovery_mL + screen.prime_liquid_routed_to_cartridge_mL
     )
@@ -68,7 +70,9 @@ def test_sink_first_contract_proves_cartridge_headroom_at_limiting_event():
     assert screen.prime_liquid_routed_to_cartridge_mL == pytest.approx(0.0)
     assert screen.authority_floor_cartridge_demand_mL == pytest.approx(6 * budget.minimum_recovered_mL_per_cycle)
     assert screen.authority_floor_nominal_only_overflow_mL == pytest.approx(0.0)
+    assert screen.authority_floor_nominal_capacity_exceeded is False
     assert screen.authority_floor_prime_incremental_overflow_mL == pytest.approx(0.0)
+    assert screen.authority_floor_capacity_exceeded_by_reprime is False
     assert screen.authority_floor_prime_allowance_margin_mL == pytest.approx(screen.authority_floor_prime_capacity_allowance_mL)
     assert screen.authority_floor_cartridge_overflow_mL == pytest.approx(0.0)
     assert screen.authority_floor_cartridge_headroom_mL > 0.0
