@@ -125,3 +125,17 @@ def test_noncanonical_interlock_is_rejected():
             raise AssertionError("must not be called")
     with pytest.raises(WasteFluidAccountingError, match="requires exact ThermalCommandInterlock"):
         command_thermal_after_treatment(LookalikeInterlock(), _readiness([0], recovery=1.0, recovery_floor=.95), warm_requested=False, cool_requested=True)
+
+
+def test_mutated_permitted_readiness_cannot_enable_cool():
+    readiness = _readiness([1], recovery=.90, residual=.08, leakage=.02)
+    assert not readiness.post_recovery_handoff_permitted
+
+    # Simulate a low-level caller bypassing frozen dataclass protection after the
+    # evidence was originally validated. The subsystem boundary must revalidate it.
+    object.__setattr__(readiness, "post_recovery_handoff_permitted", True)
+
+    with pytest.raises(WasteFluidAccountingError, match="fields must exactly match source routing closure"):
+        command_thermal_after_treatment(
+            ThermalCommandInterlock(), readiness, warm_requested=False, cool_requested=True
+        )
