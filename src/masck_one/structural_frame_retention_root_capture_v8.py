@@ -9,6 +9,10 @@ import math
 
 from . import structural_frame_retention_root_capture_v7 as capture_v7
 from . import structural_frame_retention_root_capture_v2 as capture_v2
+from .structural_frame_retention_roots import (
+    CLEVIS_PIN_GROOVE_DEPTH_MM,
+    CLEVIS_PIN_RADIUS_MM,
+)
 
 SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_ROOT_CAPTURE_V8"
 
@@ -17,18 +21,31 @@ class StructuralFrameRetentionRootCaptureV8Error(ValueError):
     pass
 
 
-def _intervals() -> tuple[float, ...]:
-    """Resolve each interval from its own V7 drawing tolerance.
+def _nominal_geometry() -> tuple[float, float, float]:
+    """Return throat, seated clip-bore diameter and pin diameter from live authority.
 
-    V7 currently allocates equal tolerances, but the features are independent drawing
-    controls. Keeping them independent here prevents a later unequal allocation from
-    silently applying the throat tolerance to the bore and pin.
+    V8 previously attempted to read convenience fields that do not exist on the V2
+    evidence dataclass. Bind directly to the authoritative V2 throat constant and the
+    accepted root pin/groove constants instead, so the worst-case audit is executable
+    and cannot silently depend on an absent duplicate representation.
     """
+    throat = capture_v2.CLIP_THROAT_WIDTH_MM
+    bore = 2.0 * (
+        CLEVIS_PIN_RADIUS_MM
+        - CLEVIS_PIN_GROOVE_DEPTH_MM
+        + capture_v2.CLIP_HOLE_RELIEF_MM
+    )
+    pin = 2.0 * CLEVIS_PIN_RADIUS_MM
+    values = (throat, bore, pin)
+    if not all(math.isfinite(v) and v > 0.0 for v in values):
+        raise StructuralFrameRetentionRootCaptureV8Error("nominal capture geometry must be finite and positive")
+    return values
+
+
+def _intervals() -> tuple[float, ...]:
+    """Resolve each interval from its own V7 drawing tolerance."""
     v7 = capture_v7.build_structural_frame_retention_root_capture_v7()
-    v2 = capture_v2.build_structural_frame_retention_root_capture_v2()
-    throat = v2.retainer_throat_width_mm
-    bore = 2.0 * v2.retainer_inner_radius_mm
-    pin = v2.pin_diameter_mm
+    throat, bore, pin = _nominal_geometry()
     tt = v7.throat_width_bilateral_tolerance_mm
     bt = v7.clip_bore_diameter_bilateral_tolerance_mm
     pt = v7.pin_diameter_bilateral_tolerance_mm
