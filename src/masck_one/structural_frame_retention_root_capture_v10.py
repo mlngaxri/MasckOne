@@ -23,6 +23,12 @@ class StructuralFrameRetentionRootCaptureV10Error(ValueError):
     pass
 
 
+def _sources():
+    radial = capture_v8.build_structural_frame_retention_root_capture_v8().validate()
+    axial = capture_v9.build_structural_frame_retention_root_capture_v9().validate()
+    return radial, axial
+
+
 @dataclass(frozen=True, slots=True)
 class StructuralFrameRetentionRootCaptureV10:
     source_capture_v8_sha256: str
@@ -37,22 +43,13 @@ class StructuralFrameRetentionRootCaptureV10:
     physical_validation_eligible: bool = False
 
     def validate(self) -> "StructuralFrameRetentionRootCaptureV10":
-        radial = capture_v8.build_structural_frame_retention_root_capture_v8()
-        axial = capture_v9.build_structural_frame_retention_root_capture_v9()
+        radial, axial = _sources()
         if self.source_capture_v8_sha256 != radial.evidence_sha256:
             raise StructuralFrameRetentionRootCaptureV10Error("source capture V8 evidence is stale")
         if self.source_capture_v9_sha256 != axial.evidence_sha256:
             raise StructuralFrameRetentionRootCaptureV10Error("source capture V9 evidence is stale")
-        expected = (
-            radial.worst_transition_margin_mm,
-            radial.worst_radial_capture_margin_mm,
-            axial.worst_case_axial_clearance_mm,
-        )
-        actual = (
-            self.worst_transition_margin_mm,
-            self.worst_radial_capture_margin_mm,
-            self.worst_axial_clearance_mm,
-        )
+        expected = (radial.worst_transition_margin_mm, radial.worst_radial_capture_margin_mm, axial.worst_case_axial_clearance_mm)
+        actual = (self.worst_transition_margin_mm, self.worst_radial_capture_margin_mm, self.worst_axial_clearance_mm)
         if actual != expected or not all(math.isfinite(x) and x > 0.0 for x in actual):
             raise StructuralFrameRetentionRootCaptureV10Error("integrated capture margins are stale or non-positive")
         governing = min(expected)
@@ -90,13 +87,8 @@ class StructuralFrameRetentionRootCaptureV10:
 
 
 def build_structural_frame_retention_root_capture_v10() -> StructuralFrameRetentionRootCaptureV10:
-    radial = capture_v8.build_structural_frame_retention_root_capture_v8()
-    axial = capture_v9.build_structural_frame_retention_root_capture_v9()
-    margins = (
-        radial.worst_transition_margin_mm,
-        radial.worst_radial_capture_margin_mm,
-        axial.worst_case_axial_clearance_mm,
-    )
+    radial, axial = _sources()
+    margins = (radial.worst_transition_margin_mm, radial.worst_radial_capture_margin_mm, axial.worst_case_axial_clearance_mm)
     governing = min(margins)
     payload = {
         "source_capture_v8_sha256": radial.evidence_sha256,
@@ -106,10 +98,4 @@ def build_structural_frame_retention_root_capture_v10() -> StructuralFrameRetent
         "integrated_dimensional_closure_passes": True,
     }
     digest = sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
-    return StructuralFrameRetentionRootCaptureV10(
-        radial.evidence_sha256,
-        axial.evidence_sha256,
-        *margins,
-        governing,
-        digest,
-    ).validate()
+    return StructuralFrameRetentionRootCaptureV10(radial.evidence_sha256, axial.evidence_sha256, *margins, governing, digest).validate()
