@@ -3,6 +3,7 @@ from dataclasses import replace
 import pytest
 
 from masck_one.actuation_parameters import ActuationParameterError
+from masck_one.actuation_zone_sweep import FourZoneImpedanceSweep, ZoneImpedanceRecord
 from masck_one.treatment_integrated_evidence import (
     build_integrated_treatment_evidence,
     validate_integrated_treatment_evidence,
@@ -41,9 +42,17 @@ def test_accepts_current_recovery_and_measured_actuation_evidence():
 
 def test_rejects_substituted_measured_sweep():
     parameters, sweep, evidence = _evidence()
-    changed = replace(sweep.records[0], measurement_id="different-capture")
-    other = type(sweep)(parameters=sweep.parameters, records=(changed, *sweep.records[1:]))
-    with pytest.raises((ActuationParameterError, ValueError)):
+    first = sweep.records[0]
+    changed_record = replace(
+        first.record,
+        record_id="DIFFERENT-CAPTURE",
+        evidence_uri="evidence://bench/system/different-capture",
+    )
+    other = FourZoneImpedanceSweep(
+        parameters.parameter_sha256,
+        (ZoneImpedanceRecord(first.zone_id, changed_record), *sweep.records[1:]),
+    )
+    with pytest.raises(ActuationParameterError):
         validate_integrated_treatment_evidence(other, parameters, evidence)
 
 
