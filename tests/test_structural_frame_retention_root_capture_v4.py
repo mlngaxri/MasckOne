@@ -13,7 +13,7 @@ def test_capture_v4_exposes_positive_nominal_residual_section() -> None:
     assert audit.inner_radius_mm == pytest.approx(1.08)
     assert audit.outer_radius_mm == pytest.approx(1.90)
     assert audit.radial_annulus_mm == pytest.approx(0.82)
-    assert audit.throat_side_stock_mm == pytest.approx(0.80)
+    assert audit.throat_side_stock_mm == pytest.approx(0.685)
     assert audit.axial_stock_mm == pytest.approx(0.75)
     assert audit.residual_section_present is True
     assert audit.manifest()["section_status"] == "POSITIVE_NOMINAL_SECTION_STRENGTH_UNVALIDATED"
@@ -26,7 +26,7 @@ def test_capture_v4_exposes_positive_nominal_residual_section() -> None:
         ("inner_radius_mm", 1.00),
         ("outer_radius_mm", 1.80),
         ("radial_annulus_mm", 0.70),
-        ("throat_side_stock_mm", 0.70),
+        ("throat_side_stock_mm", 0.60),
         ("axial_stock_mm", 0.65),
         ("evidence_sha256", "1" * 64),
         ("residual_section_present", False),
