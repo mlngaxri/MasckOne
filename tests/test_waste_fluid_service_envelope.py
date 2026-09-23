@@ -96,6 +96,25 @@ def test_residual_sink_can_be_true_boundary_before_cartridge_capacity():
     )
 
 
+def test_sink_boundary_reports_simultaneous_cartridge_capacity_limit():
+    budget = build_authority_waste_fluid_budget()
+    envelope = evaluate_reprime_service_envelope(
+        budget, cycles=6,
+        prime_recovery_ratio_contract=0.75,
+        prime_residual_ratio_contract=0.25,
+        prime_external_leakage_ratio_contract=0.0,
+    )
+    assert envelope.maximum_prime_events_before_residual_ceiling == 30
+    assert envelope.maximum_feasible_prime_events == 30
+    assert envelope.limiting_next_prime_events == 31
+    assert envelope.controlling_constraint == "CARTRIDGE_CAPACITY+RESIDUAL_CEILING"
+    assert envelope.first_infeasible is None
+    maximum_nominal_recovery = 6 * budget.nominal_introduced_mL_per_cycle
+    recovered_prime_at_limit = 31 * budget.maximum_initial_prime_mL_per_cycle * 0.75
+    assert maximum_nominal_recovery + recovered_prime_at_limit > budget.cartridge_retained_capacity_requirement_mL
+    assert envelope.residual_excess_mL_at_limiting_event > 0.0
+
+
 def test_zero_fraction_sink_has_no_finite_event_ceiling_or_headroom():
     budget = build_authority_waste_fluid_budget()
     envelope = evaluate_reprime_service_envelope(
