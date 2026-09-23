@@ -51,6 +51,17 @@ def evaluate_recovery_capacity_compatibility(
         raise RecoveryCapacityCompatibilityError(
             "capacity compatibility requires evidence for exactly the authority service cycle count"
         )
+    if screen.limiting_prime_events != screen.service_envelope.limiting_next_prime_events:
+        raise RecoveryCapacityCompatibilityError(
+            "capacity screen limiting prime event disagrees with service-envelope evidence"
+        )
+    if abs(
+        screen.service_envelope.maximum_feasible.retained_cartridge_capacity_mL
+        - budget.cartridge_retained_capacity_requirement_mL
+    ) > 1e-9:
+        raise RecoveryCapacityCompatibilityError(
+            "service-envelope retained capacity disagrees with budget"
+        )
     nominal_service = screen.nominal_liquid_at_maximum_recovery_mL
     if nominal_service <= 0.0:
         raise RecoveryCapacityCompatibilityError("nominal introduced service liquid must be positive")
@@ -71,10 +82,6 @@ def evaluate_recovery_capacity_compatibility(
     if not 0.0 <= authority_floor_ratio <= 1.0:
         raise RecoveryCapacityCompatibilityError("authority nominal recovery floor must lie within [0, 1]")
 
-    # Reconstruct both endpoint loads independently from authority inputs before
-    # using the screen as compatibility evidence. This prevents a stale or
-    # partially mutated limiting-event object from silently changing the recovery
-    # floor, reprime reservation, or overflow attribution consumed downstream.
     expected_floor_nominal = nominal_service * authority_floor_ratio
     expected_floor_demand = expected_floor_nominal + reprime
     expected_full_demand = nominal_service + reprime
