@@ -6,10 +6,8 @@ from .actuation_thermal_coexistence import (
     ActuationThermalEnvelope,
     reduce_measured_actuation_thermal_envelope,
 )
-from .actuation_thermal_mechanical_coupling import (
-    ActuationThermalMechanicalCoupling,
-    reduce_measured_thermal_mechanical_coupling,
-)
+from .actuation_thermal_mechanical_coupling import ActuationThermalMechanicalCoupling
+from .actuation_thermal_mechanical_evidence import validate_thermal_mechanical_coupling_evidence
 from .actuation_zone_sweep import FourZoneImpedanceSweep
 
 
@@ -57,18 +55,12 @@ def validate_paired_thermal_mechanical_evidence(
 
     Treatment integration may consume the standalone thermal envelope beside the coupled
     massage/thermal reduction. Both must therefore describe the same measured sweep, not
-    merely be individually plausible artifacts produced at different times.
+    merely be individually plausible artifacts produced at different times. Each side is
+    validated through its own consumption boundary before shared extrema are compared, so
+    future strengthening of either evidence contract is inherited here automatically.
     """
     validate_actuation_thermal_envelope_evidence(envelope, sweep, parameters)
-    if type(coupling) is not ActuationThermalMechanicalCoupling:
-        raise ActuationParameterError(
-            "Paired thermal/mechanical evidence requires exact ActuationThermalMechanicalCoupling"
-        )
-    expected_coupling = reduce_measured_thermal_mechanical_coupling(sweep, parameters)
-    if coupling != expected_coupling:
-        raise ActuationParameterError(
-            "Paired thermal/mechanical coupling does not match the current measured sweep reduction"
-        )
+    validate_thermal_mechanical_coupling_evidence(coupling, sweep, parameters)
 
     if (
         envelope.point_count != coupling.point_count
