@@ -58,11 +58,13 @@ class TreatmentRecoveryReadiness:
         if self.source_capacity_reserve_evidence is not None:
             if type(self.source_capacity_reserve_evidence) is not CapacityReservedOverflowGuard:
                 raise WasteFluidAccountingError("source_capacity_reserve_evidence must be exact CapacityReservedOverflowGuard evidence or None")
+            self.source_capacity_reserve_evidence.__post_init__()
             if self.source_capacity_guard is not self.source_capacity_reserve_evidence.guard:
                 raise WasteFluidAccountingError("typed reserve evidence must bind the exact source capacity guard")
         if self.source_capacity_guard is not None:
             if type(self.source_capacity_guard) is not CartridgeOverflowGuard:
                 raise WasteFluidAccountingError("source_capacity_guard must be exact CartridgeOverflowGuard evidence or None")
+            self.source_capacity_guard.__post_init__()
             if self.source_capacity_guard.routing is not self.source_closure:
                 raise WasteFluidAccountingError("capacity guard must bind the exact source routing closure")
             expected_cycle, expected_reason = _derive_guard_blocker(self.source_capacity_guard)
