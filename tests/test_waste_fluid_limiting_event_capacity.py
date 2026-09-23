@@ -20,6 +20,16 @@ def test_capacity_limited_contract_separates_authority_floor_from_maximum_recove
     assert screen.limiting_prime_events == 26
     assert screen.authority_floor_nominal_recovery_mL == pytest.approx(6 * budget.minimum_recovered_mL_per_cycle)
     assert screen.prime_liquid_routed_to_cartridge_mL == pytest.approx(26 * budget.maximum_initial_prime_mL_per_cycle * .90)
+    assert screen.authority_floor_nominal_only_overflow_mL == pytest.approx(0.0)
+    assert screen.authority_floor_prime_capacity_allowance_mL == pytest.approx(
+        budget.cartridge_retained_capacity_requirement_mL - screen.authority_floor_nominal_recovery_mL
+    )
+    assert screen.authority_floor_prime_allowance_margin_mL == pytest.approx(
+        screen.authority_floor_prime_capacity_allowance_mL - screen.prime_liquid_routed_to_cartridge_mL
+    )
+    assert screen.authority_floor_prime_incremental_overflow_mL == pytest.approx(
+        -screen.authority_floor_prime_allowance_margin_mL
+    )
     assert screen.authority_floor_cartridge_demand_mL == pytest.approx(
         screen.authority_floor_nominal_recovery_mL + screen.prime_liquid_routed_to_cartridge_mL
     )
@@ -27,7 +37,9 @@ def test_capacity_limited_contract_separates_authority_floor_from_maximum_recove
         budget.cartridge_retained_capacity_requirement_mL - screen.authority_floor_cartridge_demand_mL
     )
     assert screen.authority_floor_cartridge_headroom_mL == pytest.approx(max(screen.authority_floor_cartridge_margin_mL, 0.0))
-    assert screen.authority_floor_cartridge_overflow_mL == pytest.approx(max(-screen.authority_floor_cartridge_margin_mL, 0.0))
+    assert screen.authority_floor_cartridge_overflow_mL == pytest.approx(
+        screen.authority_floor_nominal_only_overflow_mL + screen.authority_floor_prime_incremental_overflow_mL
+    )
     assert screen.authority_floor_cartridge_utilization == pytest.approx(
         screen.authority_floor_cartridge_demand_mL / budget.cartridge_retained_capacity_requirement_mL
     )
@@ -55,6 +67,9 @@ def test_sink_first_contract_proves_cartridge_headroom_at_limiting_event():
     assert screen.limiting_prime_events == 7
     assert screen.prime_liquid_routed_to_cartridge_mL == pytest.approx(0.0)
     assert screen.authority_floor_cartridge_demand_mL == pytest.approx(6 * budget.minimum_recovered_mL_per_cycle)
+    assert screen.authority_floor_nominal_only_overflow_mL == pytest.approx(0.0)
+    assert screen.authority_floor_prime_incremental_overflow_mL == pytest.approx(0.0)
+    assert screen.authority_floor_prime_allowance_margin_mL == pytest.approx(screen.authority_floor_prime_capacity_allowance_mL)
     assert screen.authority_floor_cartridge_overflow_mL == pytest.approx(0.0)
     assert screen.authority_floor_cartridge_headroom_mL > 0.0
     assert screen.authority_floor_cartridge_utilization < 1.0
@@ -75,7 +90,11 @@ def test_all_prime_recovery_capacity_screen_conserves_liquid_volume():
     assert screen.cartridge_demand_at_maximum_nominal_recovery_mL == pytest.approx(expected)
     assert screen.cartridge_headroom_at_maximum_nominal_recovery_mL * screen.cartridge_overflow_at_maximum_nominal_recovery_mL == pytest.approx(0.0)
     assert screen.authority_floor_cartridge_headroom_mL * screen.authority_floor_cartridge_overflow_mL == pytest.approx(0.0)
+    assert screen.authority_floor_nominal_only_headroom_mL * screen.authority_floor_nominal_only_overflow_mL == pytest.approx(0.0)
     assert screen.nominal_only_cartridge_headroom_mL * screen.nominal_only_cartridge_overflow_mL == pytest.approx(0.0)
+    assert screen.authority_floor_cartridge_overflow_mL == pytest.approx(
+        screen.authority_floor_nominal_only_overflow_mL + screen.authority_floor_prime_incremental_overflow_mL
+    )
     assert screen.cartridge_overflow_at_maximum_nominal_recovery_mL == pytest.approx(
         screen.nominal_only_cartridge_overflow_mL + screen.prime_incremental_cartridge_overflow_mL
     )
