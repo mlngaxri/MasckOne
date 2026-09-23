@@ -21,6 +21,8 @@ class RecoveryCapacityCompatibilityError(ValueError):
 class RecoveryCapacityCompatibility:
     nominal_introduced_service_mL: float
     recovered_reprime_reserved_mL: float
+    reprime_only_capacity_margin_mL: float
+    reprime_only_capacity_exceeded: bool
     capacity_available_for_nominal_recovery_mL: float
     authority_nominal_recovery_floor_ratio: float
     capacity_limited_nominal_recovery_ratio: float
@@ -58,10 +60,16 @@ def evaluate_recovery_capacity_compatibility(
     if not 0.0 <= authority_floor_ratio <= 1.0:
         raise RecoveryCapacityCompatibilityError("authority nominal recovery floor must lie within [0, 1]")
 
-    available_for_nominal = max(capacity - reprime, 0.0)
+    # Reprime is an unavoidable reserved load for this screen. Keep its capacity
+    # failure distinct from a nominal-recovery incompatibility: clamping the
+    # remaining nominal allowance to zero alone would otherwise hide a cartridge
+    # that cannot package reprime even at zero nominal recovery.
+    reprime_margin = capacity - reprime
+    reprime_exceeded = reprime_margin < -1e-12
+    available_for_nominal = max(reprime_margin, 0.0)
     capacity_limited_ratio = min(available_for_nominal / nominal_service, 1.0)
     ratio_margin = capacity_limited_ratio - authority_floor_ratio
-    floor_feasible = ratio_margin >= -1e-12
+    floor_feasible = (not reprime_exceeded) and ratio_margin >= -1e-12
     full_feasible = capacity >= nominal_service + reprime - 1e-12
 
     # The direct compatibility result must agree with both independently screened
@@ -74,6 +82,8 @@ def evaluate_recovery_capacity_compatibility(
     return RecoveryCapacityCompatibility(
         nominal_introduced_service_mL=nominal_service,
         recovered_reprime_reserved_mL=reprime,
+        reprime_only_capacity_margin_mL=reprime_margin,
+        reprime_only_capacity_exceeded=reprime_exceeded,
         capacity_available_for_nominal_recovery_mL=available_for_nominal,
         authority_nominal_recovery_floor_ratio=authority_floor_ratio,
         capacity_limited_nominal_recovery_ratio=capacity_limited_ratio,
