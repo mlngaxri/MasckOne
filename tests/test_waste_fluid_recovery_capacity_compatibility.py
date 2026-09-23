@@ -128,6 +128,39 @@ def test_rejects_partial_service_window_before_making_service_life_claim():
         evaluate_recovery_capacity_compatibility(budget, partial)
 
 
+def test_rejects_stale_authority_floor_nominal_load():
+    budget = build_authority_waste_fluid_budget()
+    stale = replace(_screen(budget), authority_floor_nominal_recovery_mL=0.0)
+    with pytest.raises(RecoveryCapacityCompatibilityError, match="authority-floor nominal load disagrees"):
+        evaluate_recovery_capacity_compatibility(budget, stale)
+
+
+def test_rejects_stale_endpoint_demands():
+    budget = build_authority_waste_fluid_budget()
+    screen = _screen(budget)
+    with pytest.raises(RecoveryCapacityCompatibilityError, match="authority-floor cartridge demand is stale"):
+        evaluate_recovery_capacity_compatibility(
+            budget, replace(screen, authority_floor_cartridge_demand_mL=screen.authority_floor_cartridge_demand_mL + 0.1)
+        )
+    with pytest.raises(RecoveryCapacityCompatibilityError, match="full-recovery cartridge demand is stale"):
+        evaluate_recovery_capacity_compatibility(
+            budget, replace(screen, cartridge_demand_at_maximum_nominal_recovery_mL=screen.cartridge_demand_at_maximum_nominal_recovery_mL + 0.1)
+        )
+
+
+def test_rejects_stale_endpoint_overflow_attribution():
+    budget = build_authority_waste_fluid_budget()
+    screen = _screen(budget)
+    with pytest.raises(RecoveryCapacityCompatibilityError, match="authority-floor overflow is stale"):
+        evaluate_recovery_capacity_compatibility(
+            budget, replace(screen, authority_floor_cartridge_overflow_mL=screen.authority_floor_cartridge_overflow_mL + 0.1)
+        )
+    with pytest.raises(RecoveryCapacityCompatibilityError, match="full-recovery overflow is stale"):
+        evaluate_recovery_capacity_compatibility(
+            budget, replace(screen, cartridge_overflow_at_maximum_nominal_recovery_mL=screen.cartridge_overflow_at_maximum_nominal_recovery_mL + 0.1)
+        )
+
+
 def test_rejects_wrong_evidence_type():
     with pytest.raises(TypeError, match="LimitingEventCapacityScreen"):
         evaluate_recovery_capacity_compatibility(build_authority_waste_fluid_budget(), object())
