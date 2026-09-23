@@ -76,6 +76,20 @@ def test_source_sweep_is_revalidated_before_coupling_comparison():
         validate_thermal_mechanical_coupling_evidence(coupling, sweep, parameters)
 
 
+def test_mutated_parameter_invariants_fail_before_coexistence_reduction():
+    parameters, sweep, coupling = _evidence()
+    object.__setattr__(parameters, "axis_angle_doe_deg", (parameters.axis_angle_baseline_deg, parameters.axis_angle_baseline_deg))
+    with pytest.raises(ActuationParameterError, match="Axis-angle DOE must be unique"):
+        validate_thermal_mechanical_coupling_evidence(coupling, sweep, parameters)
+
+
+def test_mutated_parameter_cannot_claim_physical_validation_at_evidence_boundary():
+    parameters, sweep, coupling = _evidence()
+    object.__setattr__(parameters, "physical_validation_eligible", True)
+    with pytest.raises(ActuationParameterError, match="cannot be physical validation evidence"):
+        validate_thermal_mechanical_coupling_evidence(coupling, sweep, parameters)
+
+
 def test_wrong_coupling_type_is_rejected():
     parameters, sweep, _ = _evidence()
     with pytest.raises(ActuationParameterError, match="exact ActuationThermalMechanicalCoupling"):
