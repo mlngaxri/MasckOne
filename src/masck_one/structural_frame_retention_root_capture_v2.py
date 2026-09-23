@@ -28,7 +28,11 @@ from .structural_frame_retention_roots import (
 
 SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_ROOT_CAPTURE_V2"
 CLIP_HOLE_RELIEF_MM = capture_v1.CLIP_HOLE_RELIEF_MM
-CLIP_THROAT_WIDTH_MM = 2.20
+# Maximin nominal throat: midpoint between the seated clip inner diameter
+# (2.16 mm) and the 2.70 mm pin shaft. This gives 0.27 mm nominal margin to
+# either geometric escape boundary instead of the previous asymmetric
+# 0.04/0.50 mm split, while reducing the elastic opening demand.
+CLIP_THROAT_WIDTH_MM = 2.43
 _MIN_DIGITAL_MARGIN_MM = 0.02
 
 
@@ -73,12 +77,9 @@ def build_positive_capture_split_retainer(*, center_x: float, groove_center_y: f
     if CLIP_THROAT_WIDTH_MM >= 2.0 * outer:
         raise StructuralFrameRetentionRootCaptureV2Error("retainer throat exceeds outer diameter")
 
-    # The throat must connect the exterior to the annular bore. The previous
-    # chord-floor construction stopped above the bore crown, leaving a closed
-    # ring even though its scalar throat evidence reported an opening. Cut a
-    # controlled-width radial slot from the centreline through the outer crown;
-    # because throat_width > inner_diameter by the guarded installation margin,
-    # the slot positively intersects the bore and produces a real C-retainer.
+    # The throat must connect the exterior to the annular bore. Cut a controlled
+    # radial slot from the centreline through the outer crown; because the throat
+    # is wider than the inner diameter, the slot positively intersects the bore.
     full = _cylinder_y(outer, CLEVIS_PIN_GROOVE_WIDTH_MM, (center_x, groove_center_y, center_z))
     hole = _cylinder_y(inner, CLEVIS_PIN_GROOVE_WIDTH_MM + 0.2, (center_x, groove_center_y, center_z))
     ring = full.cut(hole)
