@@ -47,6 +47,13 @@ def evaluate_recovery_capacity_compatibility(
     """Compare cartridge packaging capacity with the required nominal recovery range."""
     if not isinstance(screen, LimitingEventCapacityScreen):
         raise TypeError("recovery capacity compatibility requires LimitingEventCapacityScreen evidence")
+    # This reducer makes a service-life claim, so evidence from a shorter window
+    # must not be promoted to the authority service boundary. Longer windows are
+    # already rejected by the limiting-event screen itself.
+    if screen.service_envelope.cycles != budget.service_cycles:
+        raise RecoveryCapacityCompatibilityError(
+            "capacity compatibility requires evidence for exactly the authority service cycle count"
+        )
     nominal_service = screen.nominal_liquid_at_maximum_recovery_mL
     if nominal_service <= 0.0:
         raise RecoveryCapacityCompatibilityError("nominal introduced service liquid must be positive")
@@ -57,7 +64,7 @@ def evaluate_recovery_capacity_compatibility(
     if reprime < 0.0:
         raise RecoveryCapacityCompatibilityError("recovered reprime load cannot be negative")
 
-    expected_nominal_service = screen.service_envelope.cycles * budget.nominal_introduced_mL_per_cycle
+    expected_nominal_service = budget.service_cycles * budget.nominal_introduced_mL_per_cycle
     if abs(nominal_service - expected_nominal_service) > 1e-9:
         raise RecoveryCapacityCompatibilityError("capacity screen nominal service load disagrees with budget")
     if abs(capacity - budget.cartridge_retained_capacity_requirement_mL) > 1e-9:
