@@ -4,6 +4,7 @@ import cadquery as cq
 import pytest
 
 from masck_one.structural_frame_retention_root_capture_v2 import (
+    CLIP_AXIAL_THICKNESS_MM,
     CLIP_HOLE_RELIEF_MM,
     CLIP_THROAT_WIDTH_MM,
     StructuralFrameRetentionRootCaptureV2Error,
@@ -12,6 +13,7 @@ from masck_one.structural_frame_retention_root_capture_v2 import (
 from masck_one.structural_frame_retention_roots import (
     CLEVIS_CLIP_RADIAL_THICKNESS_MM,
     CLEVIS_PIN_GROOVE_DEPTH_MM,
+    CLEVIS_PIN_GROOVE_WIDTH_MM,
     CLEVIS_PIN_RADIUS_MM,
     ROOT_Z_MM,
 )
@@ -24,16 +26,19 @@ def test_controlled_throat_blocks_nominal_radial_escape() -> None:
     assert audit.installation_margin_mm > 0.0
     assert audit.radial_escape_capture_margin_mm > 0.0
     assert len(audit.retainers) == 2
-    assert audit.manifest()["capture_status"] == "CONTROLLED_C_CLIP_THROAT_NARROWER_THAN_PIN_SHAFT"
+    assert audit.manifest()["capture_status"] == "CONTROLLED_C_CLIP_THROAT_WITH_POSITIVE_AXIAL_GROOVE_CLEARANCE"
+
+
+def test_corrected_retainer_has_positive_axial_groove_clearance() -> None:
+    audit = build_structural_frame_retention_root_capture_v2()
+    assert CLIP_AXIAL_THICKNESS_MM == 0.60
+    assert CLEVIS_PIN_GROOVE_WIDTH_MM == 0.75
+    assert audit.manifest()["axial_groove_clearance_mm"] == 0.15
+    for retainer in audit.retainers:
+        assert float(retainer.val().BoundingBox().ylen) == pytest.approx(CLIP_AXIAL_THICKNESS_MM, abs=1e-6)
 
 
 def test_controlled_throat_is_topologically_open_to_annular_bore() -> None:
-    """Regress the V2 chord-floor bug that produced a closed ring.
-
-    A probe on the radial centreline between the bore crown and outer crown must
-    be void. If material exists here, the nominal throat does not actually join
-    the exterior to the annular bore and the part cannot be installed radially.
-    """
     audit = build_structural_frame_retention_root_capture_v2()
     inner = CLEVIS_PIN_RADIUS_MM - CLEVIS_PIN_GROOVE_DEPTH_MM + CLIP_HOLE_RELIEF_MM
     outer = CLEVIS_PIN_RADIUS_MM + CLEVIS_CLIP_RADIAL_THICKNESS_MM
