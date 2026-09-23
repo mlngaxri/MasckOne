@@ -67,6 +67,10 @@ def evaluate_recovery_capacity_compatibility(budget: WasteFluidBudget, screen: L
     recovery_contract = closure.prime_recovery_ratio_contract
     if type(recovery_contract) not in (int, float) or not math.isfinite(recovery_contract):
         raise RecoveryCapacityCompatibilityError("limiting-event prime recovery contract must be finite numeric evidence")
+    if not 0.0 <= float(recovery_contract) <= 1.0:
+        raise RecoveryCapacityCompatibilityError("limiting-event prime recovery contract must lie within [0, 1]")
+    if type(screen.limiting_prime_events) is not int or screen.limiting_prime_events < 0:
+        raise RecoveryCapacityCompatibilityError("limiting prime event count must be a non-negative integer")
     expected_reprime = screen.limiting_prime_events * budget.maximum_initial_prime_mL_per_cycle * float(recovery_contract)
 
     _require_finite_evidence(
