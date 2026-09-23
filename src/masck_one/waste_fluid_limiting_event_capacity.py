@@ -34,10 +34,12 @@ class LimitingEventCapacityScreen:
     nominal_liquid_at_maximum_recovery_mL: float
     nominal_only_cartridge_headroom_mL: float
     nominal_only_cartridge_overflow_mL: float
+    nominal_capacity_exceeded_at_maximum_recovery: bool
     prime_cartridge_capacity_allowance_mL: float
     prime_liquid_routed_to_cartridge_mL: float
     prime_cartridge_allowance_margin_mL: float
     prime_incremental_cartridge_overflow_mL: float
+    capacity_exceeded_by_reprime_at_maximum_recovery: bool
     cartridge_demand_at_maximum_nominal_recovery_mL: float
     retained_cartridge_capacity_mL: float
     cartridge_margin_at_maximum_nominal_recovery_mL: float
@@ -116,9 +118,11 @@ def screen_limiting_event_cartridge_capacity(
     nominal_margin = capacity - nominal_at_maximum_recovery
     nominal_headroom = max(nominal_margin, 0.0)
     nominal_overflow = max(-nominal_margin, 0.0)
+    nominal_capacity_exceeded = nominal_overflow > 0.0
     prime_allowance = nominal_headroom
     prime_allowance_margin = prime_allowance - prime_to_cartridge
     prime_incremental_overflow = max(-prime_allowance_margin, 0.0)
+    capacity_exceeded_by_reprime = not nominal_capacity_exceeded and prime_incremental_overflow > 0.0
 
     demand = nominal_at_maximum_recovery + prime_to_cartridge
     margin = capacity - demand
@@ -127,6 +131,9 @@ def screen_limiting_event_cartridge_capacity(
     partitioned_overflow = nominal_overflow + prime_incremental_overflow
     if abs(overflow - partitioned_overflow) > 1e-9:
         raise ValueError("cartridge overflow partition is internally inconsistent")
+    capacity_exceeded = overflow > 0.0
+    if capacity_exceeded != (nominal_capacity_exceeded or capacity_exceeded_by_reprime):
+        raise ValueError("maximum-recovery cartridge failure-source classification is internally inconsistent")
 
     if abs((demand - authority_floor_demand) - nominal_recovery_uplift) > 1e-9:
         raise ValueError("authority-floor and maximum-recovery capacity states are inconsistent")
@@ -153,15 +160,17 @@ def screen_limiting_event_cartridge_capacity(
         nominal_liquid_at_maximum_recovery_mL=nominal_at_maximum_recovery,
         nominal_only_cartridge_headroom_mL=nominal_headroom,
         nominal_only_cartridge_overflow_mL=nominal_overflow,
+        nominal_capacity_exceeded_at_maximum_recovery=nominal_capacity_exceeded,
         prime_cartridge_capacity_allowance_mL=prime_allowance,
         prime_liquid_routed_to_cartridge_mL=prime_to_cartridge,
         prime_cartridge_allowance_margin_mL=prime_allowance_margin,
         prime_incremental_cartridge_overflow_mL=prime_incremental_overflow,
+        capacity_exceeded_by_reprime_at_maximum_recovery=capacity_exceeded_by_reprime,
         cartridge_demand_at_maximum_nominal_recovery_mL=demand,
         retained_cartridge_capacity_mL=capacity,
         cartridge_margin_at_maximum_nominal_recovery_mL=margin,
         cartridge_headroom_at_maximum_nominal_recovery_mL=headroom,
         cartridge_overflow_at_maximum_nominal_recovery_mL=overflow,
         cartridge_utilization_at_maximum_nominal_recovery=utilization,
-        cartridge_capacity_exceeded_at_maximum_nominal_recovery=overflow > 0.0,
+        cartridge_capacity_exceeded_at_maximum_nominal_recovery=capacity_exceeded,
     )
