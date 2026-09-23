@@ -10,10 +10,10 @@ from masck_one.structural_frame_retention_root_capture_v5 import (
 
 def test_capture_v5_exposes_tolerance_critical_throat_transition() -> None:
     audit = build_structural_frame_retention_root_capture_v5()
-    assert audit.throat_half_width_mm == pytest.approx(1.10)
+    assert audit.throat_half_width_mm == pytest.approx(1.215)
     assert audit.bore_radius_mm == pytest.approx(1.08)
-    assert audit.throat_to_bore_transition_margin_mm == pytest.approx(0.02)
-    assert audit.transition_margin_fraction_of_bore == pytest.approx(0.02 / 1.08)
+    assert audit.throat_to_bore_transition_margin_mm == pytest.approx(0.135)
+    assert audit.transition_margin_fraction_of_bore == pytest.approx(0.135 / 1.08)
     assert audit.nominal_bore_connectivity_present is True
     assert audit.manufacturing_tolerance_closure_required is True
     assert audit.manufactured_connectivity_validated is False
@@ -24,10 +24,10 @@ def test_capture_v5_exposes_tolerance_critical_throat_transition() -> None:
     "field,value",
     [
         ("source_capture_v4_sha256", "0" * 64),
-        ("throat_half_width_mm", 1.09),
+        ("throat_half_width_mm", 1.20),
         ("bore_radius_mm", 1.07),
-        ("throat_to_bore_transition_margin_mm", 0.03),
-        ("transition_margin_fraction_of_bore", 0.03 / 1.08),
+        ("throat_to_bore_transition_margin_mm", 0.12),
+        ("transition_margin_fraction_of_bore", 0.12 / 1.08),
         ("evidence_sha256", "1" * 64),
         ("nominal_bore_connectivity_present", False),
         ("manufacturing_tolerance_closure_required", False),
