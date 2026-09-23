@@ -107,6 +107,19 @@ def test_rejects_capacity_screen_from_different_budget():
         evaluate_recovery_capacity_compatibility(altered, _screen(budget))
 
 
+def test_rejects_partial_service_window_before_making_service_life_claim():
+    budget = build_authority_waste_fluid_budget()
+    partial = screen_limiting_event_cartridge_capacity(
+        budget,
+        cycles=budget.service_cycles - 1,
+        prime_recovery_ratio_contract=.90,
+        prime_residual_ratio_contract=.08,
+        prime_external_leakage_ratio_contract=.02,
+    )
+    with pytest.raises(RecoveryCapacityCompatibilityError, match="exactly the authority service cycle count"):
+        evaluate_recovery_capacity_compatibility(budget, partial)
+
+
 def test_rejects_wrong_evidence_type():
     with pytest.raises(TypeError, match="LimitingEventCapacityScreen"):
         evaluate_recovery_capacity_compatibility(build_authority_waste_fluid_budget(), object())
