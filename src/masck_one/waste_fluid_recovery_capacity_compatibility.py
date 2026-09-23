@@ -46,6 +46,43 @@ def _require_finite_evidence(**values: float) -> None:
             raise RecoveryCapacityCompatibilityError(f"{name} must be finite numeric evidence")
 
 
+def _require_prime_routing_source_integrity(closure, budget: WasteFluidBudget) -> float:
+    """Reconstruct the limiting prime split before capacity arithmetic consumes it."""
+    ratios = {
+        "prime recovery contract": closure.prime_recovery_ratio_contract,
+        "prime residual contract": closure.prime_residual_ratio_contract,
+        "prime external leakage contract": closure.prime_external_leakage_ratio_contract,
+    }
+    for name, value in ratios.items():
+        if type(value) not in (int, float) or not math.isfinite(value):
+            raise RecoveryCapacityCompatibilityError(f"limiting-event {name} must be finite numeric evidence")
+        if not 0.0 <= float(value) <= 1.0:
+            raise RecoveryCapacityCompatibilityError(f"limiting-event {name} must lie within [0, 1]")
+    contracted_fraction = sum(float(value) for value in ratios.values())
+    if contracted_fraction > 1.0 + 1e-12:
+        raise RecoveryCapacityCompatibilityError("limiting-event prime routing contracts must not sum above one")
+
+    total_prime = closure.prime_events * budget.maximum_initial_prime_mL_per_cycle
+    expected_recovered = total_prime * float(closure.prime_recovery_ratio_contract)
+    expected_residual = total_prime * float(closure.prime_residual_ratio_contract)
+    expected_leakage = total_prime * float(closure.prime_external_leakage_ratio_contract)
+    _require_finite_evidence(
+        source_total_prime_liquid_mL=closure.total_prime_liquid_mL,
+        source_recovered_prime_liquid_mL=closure.minimum_prime_liquid_routed_to_cartridge_mL,
+        source_prime_residual_mL=closure.maximum_prime_residual_mL,
+        source_prime_external_leakage_mL=closure.maximum_prime_external_leakage_mL,
+    )
+    if abs(closure.total_prime_liquid_mL - total_prime) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("limiting-event total prime load disagrees with budget")
+    if abs(closure.minimum_prime_liquid_routed_to_cartridge_mL - expected_recovered) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("limiting-event recovered prime load disagrees with routing contract")
+    if abs(closure.maximum_prime_residual_mL - expected_residual) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("limiting-event prime residual load disagrees with routing contract")
+    if abs(closure.maximum_prime_external_leakage_mL - expected_leakage) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("limiting-event prime leakage load disagrees with routing contract")
+    return expected_recovered
+
+
 def evaluate_recovery_capacity_compatibility(budget: WasteFluidBudget, screen: LimitingEventCapacityScreen) -> RecoveryCapacityCompatibility:
     """Compare cartridge packaging capacity with the required nominal recovery range."""
     if not isinstance(screen, LimitingEventCapacityScreen):
@@ -56,22 +93,14 @@ def evaluate_recovery_capacity_compatibility(budget: WasteFluidBudget, screen: L
     if screen.limiting_prime_events != envelope.limiting_next_prime_events:
         raise RecoveryCapacityCompatibilityError("capacity screen limiting prime event disagrees with service-envelope evidence")
 
-    # Reconcile the nested closure that actually generated the limiting-event prime load.
-    # Without this check, a coherently edited top-level screen could silently detach the
-    # reserved reprime volume from its routing contract.
     closure = envelope.first_infeasible.source_closure if envelope.first_infeasible is not None else envelope.maximum_feasible.source_closure
     if closure.cycles != budget.service_cycles:
         raise RecoveryCapacityCompatibilityError("limiting-event source closure service window disagrees with budget")
     if closure.prime_events != screen.limiting_prime_events:
         raise RecoveryCapacityCompatibilityError("limiting-event source closure prime count disagrees with capacity screen")
-    recovery_contract = closure.prime_recovery_ratio_contract
-    if type(recovery_contract) not in (int, float) or not math.isfinite(recovery_contract):
-        raise RecoveryCapacityCompatibilityError("limiting-event prime recovery contract must be finite numeric evidence")
-    if not 0.0 <= float(recovery_contract) <= 1.0:
-        raise RecoveryCapacityCompatibilityError("limiting-event prime recovery contract must lie within [0, 1]")
     if type(screen.limiting_prime_events) is not int or screen.limiting_prime_events < 0:
         raise RecoveryCapacityCompatibilityError("limiting prime event count must be a non-negative integer")
-    expected_reprime = screen.limiting_prime_events * budget.maximum_initial_prime_mL_per_cycle * float(recovery_contract)
+    expected_reprime = _require_prime_routing_source_integrity(closure, budget)
 
     _require_finite_evidence(
         service_envelope_retained_capacity_mL=envelope.maximum_feasible.retained_cartridge_capacity_mL,
