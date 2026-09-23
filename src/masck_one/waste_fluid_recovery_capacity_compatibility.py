@@ -40,6 +40,13 @@ class RecoveryCapacityCompatibility:
     full_nominal_recovery_capacity_feasible: bool
 
 
+def _require_finite_evidence(**values: float) -> None:
+    """Reject NaN/inf before tolerance comparisons can silently accept them."""
+    for name, value in values.items():
+        if type(value) not in (int, float) or not math.isfinite(value):
+            raise RecoveryCapacityCompatibilityError(f"{name} must be finite numeric evidence")
+
+
 def evaluate_recovery_capacity_compatibility(
     budget: WasteFluidBudget,
     screen: LimitingEventCapacityScreen,
@@ -55,6 +62,21 @@ def evaluate_recovery_capacity_compatibility(
         raise RecoveryCapacityCompatibilityError(
             "capacity screen limiting prime event disagrees with service-envelope evidence"
         )
+
+    _require_finite_evidence(
+        service_envelope_retained_capacity_mL=screen.service_envelope.maximum_feasible.retained_cartridge_capacity_mL,
+        nominal_liquid_at_maximum_recovery_mL=screen.nominal_liquid_at_maximum_recovery_mL,
+        retained_cartridge_capacity_mL=screen.retained_cartridge_capacity_mL,
+        prime_liquid_routed_to_cartridge_mL=screen.prime_liquid_routed_to_cartridge_mL,
+        authority_floor_nominal_recovery_mL=screen.authority_floor_nominal_recovery_mL,
+        authority_floor_cartridge_demand_mL=screen.authority_floor_cartridge_demand_mL,
+        cartridge_demand_at_maximum_nominal_recovery_mL=screen.cartridge_demand_at_maximum_nominal_recovery_mL,
+        authority_floor_cartridge_overflow_mL=screen.authority_floor_cartridge_overflow_mL,
+        cartridge_overflow_at_maximum_nominal_recovery_mL=screen.cartridge_overflow_at_maximum_nominal_recovery_mL,
+        budget_retained_capacity_mL=budget.cartridge_retained_capacity_requirement_mL,
+        budget_nominal_introduced_per_cycle_mL=budget.nominal_introduced_mL_per_cycle,
+        budget_minimum_recovered_per_cycle_mL=budget.minimum_recovered_mL_per_cycle,
+    )
     if abs(
         screen.service_envelope.maximum_feasible.retained_cartridge_capacity_mL
         - budget.cartridge_retained_capacity_requirement_mL
