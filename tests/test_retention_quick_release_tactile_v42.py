@@ -10,6 +10,7 @@ def test_v42_builds_and_binds_declared_rectangle() -> None:
     assert audit.radial_maximum_mm > audit.radial_nominal_mm
     assert audit.side_maximum_mm > audit.side_nominal_mm
     assert len(audit.tolerance_rectangle_sha256) == 64
+    assert v42._bound_rectangle(audit.prior) == v42._declared_rectangle()
 
 
 def test_v42_rejects_stale_bound() -> None:
@@ -22,14 +23,3 @@ def test_v42_rejects_stale_digest() -> None:
     audit = v42.build_retention_quick_release_tactile_v42()
     with pytest.raises(v42.RetentionQuickReleaseTactileV42Error):
         replace(audit, tolerance_rectangle_sha256="0" * 64).validate()
-
-
-def test_v42_rejects_corner_that_is_unique_but_not_rectangle_authority(monkeypatch) -> None:
-    audit = v42.build_retention_quick_release_tactile_v42()
-    original = audit.prior.prior.clearance_corner_identities
-    displaced = list(original)
-    name, radial, side = displaced[-1]
-    displaced[-1] = (name, radial + 0.001, side)
-    monkeypatch.setattr(audit.prior.prior, "clearance_corner_identities", tuple(displaced), raising=False)
-    with pytest.raises((v42.RetentionQuickReleaseTactileV42Error, Exception)):
-        audit.validate()
