@@ -47,7 +47,7 @@ def _require_finite_evidence(**values: float) -> None:
 
 
 def _require_prime_routing_source_integrity(closure, budget: WasteFluidBudget) -> float:
-    """Reconstruct the limiting prime split before capacity arithmetic consumes it."""
+    """Reconstruct the limiting prime and shared-sink split before capacity arithmetic."""
     ratios = {
         "prime recovery contract": closure.prime_recovery_ratio_contract,
         "prime residual contract": closure.prime_residual_ratio_contract,
@@ -66,20 +66,47 @@ def _require_prime_routing_source_integrity(closure, budget: WasteFluidBudget) -
     expected_recovered = total_prime * float(closure.prime_recovery_ratio_contract)
     expected_residual = total_prime * float(closure.prime_residual_ratio_contract)
     expected_leakage = total_prime * float(closure.prime_external_leakage_ratio_contract)
+    expected_residual_ceiling = budget.residual_free_liquid_max_mL * closure.cycles
+    expected_leakage_ceiling = budget.external_leakage_max_mL_per_cycle * closure.cycles
+    expected_residual_margin = max(expected_residual_ceiling - expected_residual, 0.0)
+    expected_leakage_margin = max(expected_leakage_ceiling - expected_leakage, 0.0)
+    nominal_unrecovered = budget.maximum_unrecovered_nominal_mL_per_cycle * closure.cycles
+    expected_shared_sink_gap = max(0.0, nominal_unrecovered - expected_residual_margin - expected_leakage_margin)
+    expected_unresolved_prime = max(0.0, total_prime * (1.0 - contracted_fraction))
+    expected_total_unresolved = expected_shared_sink_gap + expected_unresolved_prime
+    expected_complete = expected_total_unresolved <= 1e-12
+
     _require_finite_evidence(
         source_total_prime_liquid_mL=closure.total_prime_liquid_mL,
         source_recovered_prime_liquid_mL=closure.minimum_prime_liquid_routed_to_cartridge_mL,
         source_prime_residual_mL=closure.maximum_prime_residual_mL,
         source_prime_external_leakage_mL=closure.maximum_prime_external_leakage_mL,
+        source_service_residual_ceiling_mL=closure.service_residual_ceiling_mL,
+        source_service_external_leakage_ceiling_mL=closure.service_external_leakage_ceiling_mL,
+        source_prime_residual_ceiling_margin_mL=closure.prime_residual_ceiling_margin_mL,
+        source_prime_external_leakage_ceiling_margin_mL=closure.prime_external_leakage_ceiling_margin_mL,
+        source_shared_sink_unclassified_nonrecovery_mL=closure.shared_sink_unclassified_nonrecovery_mL,
+        source_prime_liquid_without_routing_contract_mL=closure.prime_liquid_without_routing_contract_mL,
+        source_total_liquid_without_routing_contract_mL=closure.total_liquid_without_routing_contract_mL,
     )
-    if abs(closure.total_prime_liquid_mL - total_prime) > 1e-9:
-        raise RecoveryCapacityCompatibilityError("limiting-event total prime load disagrees with budget")
-    if abs(closure.minimum_prime_liquid_routed_to_cartridge_mL - expected_recovered) > 1e-9:
-        raise RecoveryCapacityCompatibilityError("limiting-event recovered prime load disagrees with routing contract")
-    if abs(closure.maximum_prime_residual_mL - expected_residual) > 1e-9:
-        raise RecoveryCapacityCompatibilityError("limiting-event prime residual load disagrees with routing contract")
-    if abs(closure.maximum_prime_external_leakage_mL - expected_leakage) > 1e-9:
-        raise RecoveryCapacityCompatibilityError("limiting-event prime leakage load disagrees with routing contract")
+    checks = (
+        (closure.total_prime_liquid_mL, total_prime, "limiting-event total prime load disagrees with budget"),
+        (closure.minimum_prime_liquid_routed_to_cartridge_mL, expected_recovered, "limiting-event recovered prime load disagrees with routing contract"),
+        (closure.maximum_prime_residual_mL, expected_residual, "limiting-event prime residual load disagrees with routing contract"),
+        (closure.maximum_prime_external_leakage_mL, expected_leakage, "limiting-event prime leakage load disagrees with routing contract"),
+        (closure.service_residual_ceiling_mL, expected_residual_ceiling, "limiting-event service residual ceiling disagrees with budget"),
+        (closure.service_external_leakage_ceiling_mL, expected_leakage_ceiling, "limiting-event service leakage ceiling disagrees with budget"),
+        (closure.prime_residual_ceiling_margin_mL, expected_residual_margin, "limiting-event prime residual margin is stale"),
+        (closure.prime_external_leakage_ceiling_margin_mL, expected_leakage_margin, "limiting-event prime leakage margin is stale"),
+        (closure.shared_sink_unclassified_nonrecovery_mL, expected_shared_sink_gap, "limiting-event shared sink gap is stale"),
+        (closure.prime_liquid_without_routing_contract_mL, expected_unresolved_prime, "limiting-event unresolved prime load is stale"),
+        (closure.total_liquid_without_routing_contract_mL, expected_total_unresolved, "limiting-event unresolved total load is stale"),
+    )
+    for actual, expected, message in checks:
+        if abs(actual - expected) > 1e-9:
+            raise RecoveryCapacityCompatibilityError(message)
+    if type(closure.routing_contract_complete) is not bool or closure.routing_contract_complete != expected_complete:
+        raise RecoveryCapacityCompatibilityError("limiting-event routing completeness flag is stale")
     return expected_recovered
 
 
