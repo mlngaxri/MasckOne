@@ -46,12 +46,32 @@ def test_capacity_ceiling_reserves_recovered_reprime_before_nominal_recovery():
     budget = build_authority_waste_fluid_budget()
     screen = _screen(budget)
     result = evaluate_recovery_capacity_compatibility(budget, screen)
+    assert result.reprime_only_capacity_margin_mL == pytest.approx(
+        screen.retained_cartridge_capacity_mL - screen.prime_liquid_routed_to_cartridge_mL
+    )
     assert result.capacity_available_for_nominal_recovery_mL == pytest.approx(
-        max(result.capacity_available_for_nominal_recovery_mL, 0.0)
+        max(result.reprime_only_capacity_margin_mL, 0.0)
     )
     assert result.capacity_limited_nominal_recovery_ratio == pytest.approx(
         result.capacity_available_for_nominal_recovery_mL / result.nominal_introduced_service_mL
     )
+
+
+def test_synthetic_capacity_below_reprime_load_is_reported_independently():
+    authority = build_authority_waste_fluid_budget()
+    authority_screen = _screen(authority)
+    assert authority_screen.prime_liquid_routed_to_cartridge_mL > 0.0
+    budget = replace(
+        authority,
+        cartridge_retained_capacity_requirement_mL=authority_screen.prime_liquid_routed_to_cartridge_mL / 2.0,
+    )
+    result = evaluate_recovery_capacity_compatibility(budget, _screen(budget))
+    assert result.reprime_only_capacity_exceeded is True
+    assert result.reprime_only_capacity_margin_mL < 0.0
+    assert result.capacity_available_for_nominal_recovery_mL == 0.0
+    assert result.capacity_limited_nominal_recovery_ratio == 0.0
+    assert result.authority_recovery_floor_capacity_feasible is False
+    assert result.full_nominal_recovery_capacity_feasible is False
 
 
 def test_rejects_capacity_screen_from_different_budget():
