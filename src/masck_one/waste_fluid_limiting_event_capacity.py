@@ -22,6 +22,9 @@ class LimitingEventCapacityScreen:
     cartridge_demand_at_maximum_nominal_recovery_mL: float
     retained_cartridge_capacity_mL: float
     cartridge_margin_at_maximum_nominal_recovery_mL: float
+    cartridge_headroom_at_maximum_nominal_recovery_mL: float
+    cartridge_overflow_at_maximum_nominal_recovery_mL: float
+    cartridge_utilization_at_maximum_nominal_recovery: float
     cartridge_capacity_exceeded_at_maximum_nominal_recovery: bool
 
 
@@ -39,6 +42,11 @@ def screen_limiting_event_cartridge_capacity(
     that 100% physical recovery is achievable. It is the conservative cartridge
     load corresponding to the maximum physically possible nominal recovery and
     therefore exposes whether a sink-first boundary still has cartridge headroom.
+
+    Headroom and overflow are reported separately so downstream integration never
+    has to infer overflow from a negative signed margin. Utilization is demand
+    divided by retained capacity and therefore exceeds 1.0 exactly when this
+    arithmetic screen is over capacity.
     """
     envelope = evaluate_reprime_service_envelope(
         budget,
@@ -56,7 +64,12 @@ def screen_limiting_event_cartridge_capacity(
     )
     demand = nominal_at_maximum_recovery + prime_to_cartridge
     capacity = budget.cartridge_retained_capacity_requirement_mL
+    if capacity <= 0.0:
+        raise ValueError("retained cartridge capacity must be positive")
     margin = capacity - demand
+    headroom = max(margin, 0.0)
+    overflow = max(-margin, 0.0)
+    utilization = demand / capacity
     return LimitingEventCapacityScreen(
         service_envelope=envelope,
         limiting_prime_events=limiting_events,
@@ -65,5 +78,8 @@ def screen_limiting_event_cartridge_capacity(
         cartridge_demand_at_maximum_nominal_recovery_mL=demand,
         retained_cartridge_capacity_mL=capacity,
         cartridge_margin_at_maximum_nominal_recovery_mL=margin,
-        cartridge_capacity_exceeded_at_maximum_nominal_recovery=margin < 0.0,
+        cartridge_headroom_at_maximum_nominal_recovery_mL=headroom,
+        cartridge_overflow_at_maximum_nominal_recovery_mL=overflow,
+        cartridge_utilization_at_maximum_nominal_recovery=utilization,
+        cartridge_capacity_exceeded_at_maximum_nominal_recovery=overflow > 0.0,
     )
