@@ -48,6 +48,6 @@ jobs:
             tests/test_structural_frame_retention_root_capture_v4.py \
             tests/test_structural_frame_retention_root_capture_v5.py
 
-# Nominal digital geometry gate only. The 20 micrometre throat-to-bore transition
-# margin is explicitly tolerance-critical and does not establish manufactured
-# connectivity, process capability, strength, fatigue, usability, or physical validation.
+# Nominal digital geometry gate only. The current 0.135 mm throat-to-bore transition
+# margin remains tolerance-critical and does not establish manufactured connectivity,
+# process capability, strength, fatigue, usability, or physical validation.
