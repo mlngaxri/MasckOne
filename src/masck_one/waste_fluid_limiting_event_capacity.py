@@ -31,6 +31,10 @@ class LimitingEventCapacityScreen:
     authority_floor_cartridge_utilization: float
     authority_floor_cartridge_capacity_exceeded: bool
     nominal_recovery_uplift_to_maximum_mL: float
+    nominal_recovery_uplift_capacity_allowance_mL: float
+    nominal_recovery_uplift_allowance_margin_mL: float
+    nominal_recovery_uplift_incremental_overflow_mL: float
+    capacity_exceeded_by_nominal_recovery_uplift: bool
     nominal_liquid_at_maximum_recovery_mL: float
     nominal_only_cartridge_headroom_mL: float
     nominal_only_cartridge_overflow_mL: float
@@ -80,9 +84,6 @@ def screen_limiting_event_cartridge_capacity(
     if capacity <= 0.0:
         raise ValueError("retained cartridge capacity must be positive")
 
-    # Partition the authority-floor state before adding reprime load. This makes a
-    # baseline cartridge shortfall distinguishable from an otherwise-feasible
-    # cartridge that is pushed over capacity by recovered reprime liquid.
     authority_floor_nominal_margin = capacity - nominal_at_authority_floor
     authority_floor_nominal_headroom = max(authority_floor_nominal_margin, 0.0)
     authority_floor_nominal_overflow = max(-authority_floor_nominal_margin, 0.0)
@@ -115,6 +116,18 @@ def screen_limiting_event_cartridge_capacity(
     if nominal_recovery_uplift < -1e-12:
         raise ValueError("authority nominal recovery floor exceeds introduced nominal liquid")
 
+    # Treat recovery uncertainty as a separate packaging load after the complete
+    # authority-floor state, including reprime recovery. This identifies whether
+    # a cartridge that satisfies the minimum recovery contract crosses capacity
+    # solely because actual nominal recovery approaches 100%.
+    recovery_uplift_allowance = authority_floor_headroom
+    recovery_uplift_allowance_margin = recovery_uplift_allowance - nominal_recovery_uplift
+    recovery_uplift_incremental_overflow = max(-recovery_uplift_allowance_margin, 0.0)
+    capacity_exceeded_by_recovery_uplift = (
+        not authority_floor_capacity_exceeded
+        and recovery_uplift_incremental_overflow > 0.0
+    )
+
     nominal_margin = capacity - nominal_at_maximum_recovery
     nominal_headroom = max(nominal_margin, 0.0)
     nominal_overflow = max(-nominal_margin, 0.0)
@@ -137,6 +150,10 @@ def screen_limiting_event_cartridge_capacity(
 
     if abs((demand - authority_floor_demand) - nominal_recovery_uplift) > 1e-9:
         raise ValueError("authority-floor and maximum-recovery capacity states are inconsistent")
+    if abs(overflow - (authority_floor_overflow + recovery_uplift_incremental_overflow)) > 1e-9:
+        raise ValueError("nominal-recovery uplift overflow partition is internally inconsistent")
+    if capacity_exceeded_by_recovery_uplift and authority_floor_capacity_exceeded:
+        raise ValueError("nominal-recovery uplift cannot originate an existing authority-floor capacity failure")
 
     utilization = demand / capacity
     return LimitingEventCapacityScreen(
@@ -157,6 +174,10 @@ def screen_limiting_event_cartridge_capacity(
         authority_floor_cartridge_utilization=authority_floor_utilization,
         authority_floor_cartridge_capacity_exceeded=authority_floor_capacity_exceeded,
         nominal_recovery_uplift_to_maximum_mL=nominal_recovery_uplift,
+        nominal_recovery_uplift_capacity_allowance_mL=recovery_uplift_allowance,
+        nominal_recovery_uplift_allowance_margin_mL=recovery_uplift_allowance_margin,
+        nominal_recovery_uplift_incremental_overflow_mL=recovery_uplift_incremental_overflow,
+        capacity_exceeded_by_nominal_recovery_uplift=capacity_exceeded_by_recovery_uplift,
         nominal_liquid_at_maximum_recovery_mL=nominal_at_maximum_recovery,
         nominal_only_cartridge_headroom_mL=nominal_headroom,
         nominal_only_cartridge_overflow_mL=nominal_overflow,
