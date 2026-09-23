@@ -17,6 +17,11 @@ class LimitingEventCapacityScreen:
     service_envelope: ReprimeServiceEnvelope
     limiting_prime_events: int
     authority_floor_nominal_recovery_mL: float
+    authority_floor_nominal_only_headroom_mL: float
+    authority_floor_nominal_only_overflow_mL: float
+    authority_floor_prime_capacity_allowance_mL: float
+    authority_floor_prime_allowance_margin_mL: float
+    authority_floor_prime_incremental_overflow_mL: float
     authority_floor_cartridge_demand_mL: float
     authority_floor_cartridge_margin_mL: float
     authority_floor_cartridge_headroom_mL: float
@@ -71,10 +76,23 @@ def screen_limiting_event_cartridge_capacity(
     if capacity <= 0.0:
         raise ValueError("retained cartridge capacity must be positive")
 
+    # Partition the authority-floor state before adding reprime load. This makes a
+    # baseline cartridge shortfall distinguishable from an otherwise-feasible
+    # cartridge that is pushed over capacity by recovered reprime liquid.
+    authority_floor_nominal_margin = capacity - nominal_at_authority_floor
+    authority_floor_nominal_headroom = max(authority_floor_nominal_margin, 0.0)
+    authority_floor_nominal_overflow = max(-authority_floor_nominal_margin, 0.0)
+    authority_floor_prime_allowance = authority_floor_nominal_headroom
+    authority_floor_prime_allowance_margin = authority_floor_prime_allowance - prime_to_cartridge
+    authority_floor_prime_incremental_overflow = max(-authority_floor_prime_allowance_margin, 0.0)
+
     authority_floor_demand = nominal_at_authority_floor + prime_to_cartridge
     authority_floor_margin = capacity - authority_floor_demand
     authority_floor_headroom = max(authority_floor_margin, 0.0)
     authority_floor_overflow = max(-authority_floor_margin, 0.0)
+    authority_floor_partitioned_overflow = authority_floor_nominal_overflow + authority_floor_prime_incremental_overflow
+    if abs(authority_floor_overflow - authority_floor_partitioned_overflow) > 1e-9:
+        raise ValueError("authority-floor cartridge overflow partition is internally inconsistent")
     authority_floor_utilization = authority_floor_demand / capacity
     authority_floor_capacity_exceeded = authority_floor_overflow > 0.0
     if authority_floor_headroom * authority_floor_overflow > 1e-12:
@@ -99,9 +117,6 @@ def screen_limiting_event_cartridge_capacity(
     if abs(overflow - partitioned_overflow) > 1e-9:
         raise ValueError("cartridge overflow partition is internally inconsistent")
 
-    # Moving from the authority floor to maximum nominal recovery adds exactly the
-    # nominal recovery uplift to cartridge demand. This identity guards against
-    # silently mixing introduced volume with recovered volume in later refactors.
     if abs((demand - authority_floor_demand) - nominal_recovery_uplift) > 1e-9:
         raise ValueError("authority-floor and maximum-recovery capacity states are inconsistent")
 
@@ -110,6 +125,11 @@ def screen_limiting_event_cartridge_capacity(
         service_envelope=envelope,
         limiting_prime_events=limiting_events,
         authority_floor_nominal_recovery_mL=nominal_at_authority_floor,
+        authority_floor_nominal_only_headroom_mL=authority_floor_nominal_headroom,
+        authority_floor_nominal_only_overflow_mL=authority_floor_nominal_overflow,
+        authority_floor_prime_capacity_allowance_mL=authority_floor_prime_allowance,
+        authority_floor_prime_allowance_margin_mL=authority_floor_prime_allowance_margin,
+        authority_floor_prime_incremental_overflow_mL=authority_floor_prime_incremental_overflow,
         authority_floor_cartridge_demand_mL=authority_floor_demand,
         authority_floor_cartridge_margin_mL=authority_floor_margin,
         authority_floor_cartridge_headroom_mL=authority_floor_headroom,
