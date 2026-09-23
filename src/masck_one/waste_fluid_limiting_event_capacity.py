@@ -1,9 +1,8 @@
 """Independent cartridge-capacity screen at the reprime service boundary.
 
 This is requirement arithmetic only. It deliberately separates sink closure from
-cartridge capacity by screening the first limiting reprime event at the maximum
-physically possible nominal recovery, so a sink-first failure cannot be mistaken
-for a simultaneous cartridge-capacity failure.
+cartridge capacity by screening the first limiting reprime event at both the
+authority nominal-recovery floor and maximum physically possible nominal recovery.
 """
 from __future__ import annotations
 
@@ -17,6 +16,11 @@ from .waste_fluid_service_envelope import ReprimeServiceEnvelope, evaluate_repri
 class LimitingEventCapacityScreen:
     service_envelope: ReprimeServiceEnvelope
     limiting_prime_events: int
+    authority_floor_nominal_recovery_mL: float
+    authority_floor_cartridge_demand_mL: float
+    authority_floor_cartridge_margin_mL: float
+    authority_floor_cartridge_overflow_mL: float
+    nominal_recovery_uplift_to_maximum_mL: float
     nominal_liquid_at_maximum_recovery_mL: float
     nominal_only_cartridge_headroom_mL: float
     nominal_only_cartridge_overflow_mL: float
@@ -43,18 +47,11 @@ def screen_limiting_event_cartridge_capacity(
 ) -> LimitingEventCapacityScreen:
     """Screen cartridge capacity independently at the first limiting prime event.
 
-    The nominal term is intentionally set to 100% recovery. This is not a claim
-    that 100% physical recovery is achievable. It is the conservative cartridge
-    load corresponding to the maximum physically possible nominal recovery and
-    therefore exposes whether a sink-first boundary still has cartridge headroom.
-
-    The nominal-only split makes a packaging failure diagnosable: nominal service
-    demand is screened before any reprime load is added, then the remaining
-    retained capacity is exposed as the exact allowance available to recovered
-    reprime liquid. ``prime_incremental_cartridge_overflow_mL`` is the overflow
-    attributable to reprime recovery after consuming that allowance. Keeping it
-    separate from nominal-only overflow preserves an exact capacity partition even
-    when nominal service alone already exceeds retained capacity.
+    Two nominal-recovery states are retained deliberately. The authority-floor
+    state exposes whether the contractual minimum recovery plus recovered reprime
+    liquid already overfills the cartridge. The maximum-recovery state exposes the
+    opposite packaging extreme, where every nominal millilitre reaches the
+    cartridge. Neither state is a claim of measured physical recovery.
     """
     envelope = evaluate_reprime_service_envelope(
         budget,
@@ -65,14 +62,18 @@ def screen_limiting_event_cartridge_capacity(
     )
     limiting_events = envelope.limiting_next_prime_events
     nominal_at_maximum_recovery = cycles * budget.nominal_introduced_mL_per_cycle
-    prime_to_cartridge = (
-        limiting_events
-        * budget.maximum_initial_prime_mL_per_cycle
-        * float(prime_recovery_ratio_contract)
-    )
+    nominal_at_authority_floor = cycles * budget.minimum_recovered_mL_per_cycle
+    prime_to_cartridge = limiting_events * budget.maximum_initial_prime_mL_per_cycle * float(prime_recovery_ratio_contract)
     capacity = budget.cartridge_retained_capacity_requirement_mL
     if capacity <= 0.0:
         raise ValueError("retained cartridge capacity must be positive")
+
+    authority_floor_demand = nominal_at_authority_floor + prime_to_cartridge
+    authority_floor_margin = capacity - authority_floor_demand
+    authority_floor_overflow = max(-authority_floor_margin, 0.0)
+    nominal_recovery_uplift = nominal_at_maximum_recovery - nominal_at_authority_floor
+    if nominal_recovery_uplift < -1e-12:
+        raise ValueError("authority nominal recovery floor exceeds introduced nominal liquid")
 
     nominal_margin = capacity - nominal_at_maximum_recovery
     nominal_headroom = max(nominal_margin, 0.0)
@@ -85,18 +86,25 @@ def screen_limiting_event_cartridge_capacity(
     margin = capacity - demand
     headroom = max(margin, 0.0)
     overflow = max(-margin, 0.0)
-
-    # Capacity partition identity. This is deliberately checked in production,
-    # not only in tests, so future accounting changes cannot silently double-count
-    # or lose overflow between nominal service and reprime recovery.
     partitioned_overflow = nominal_overflow + prime_incremental_overflow
     if abs(overflow - partitioned_overflow) > 1e-9:
         raise ValueError("cartridge overflow partition is internally inconsistent")
+
+    # Moving from the authority floor to maximum nominal recovery adds exactly the
+    # nominal recovery uplift to cartridge demand. This identity guards against
+    # silently mixing introduced volume with recovered volume in later refactors.
+    if abs((demand - authority_floor_demand) - nominal_recovery_uplift) > 1e-9:
+        raise ValueError("authority-floor and maximum-recovery capacity states are inconsistent")
 
     utilization = demand / capacity
     return LimitingEventCapacityScreen(
         service_envelope=envelope,
         limiting_prime_events=limiting_events,
+        authority_floor_nominal_recovery_mL=nominal_at_authority_floor,
+        authority_floor_cartridge_demand_mL=authority_floor_demand,
+        authority_floor_cartridge_margin_mL=authority_floor_margin,
+        authority_floor_cartridge_overflow_mL=authority_floor_overflow,
+        nominal_recovery_uplift_to_maximum_mL=nominal_recovery_uplift,
         nominal_liquid_at_maximum_recovery_mL=nominal_at_maximum_recovery,
         nominal_only_cartridge_headroom_mL=nominal_headroom,
         nominal_only_cartridge_overflow_mL=nominal_overflow,
