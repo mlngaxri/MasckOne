@@ -8,6 +8,7 @@ claim measured recovery performance or physical cartridge capacity.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 
 from .waste_fluid_accounting import WasteFluidBudget
 from .waste_fluid_limiting_event_capacity import LimitingEventCapacityScreen
@@ -31,6 +32,10 @@ class RecoveryCapacityCompatibility:
     authority_recovery_floor_capacity_shortfall_mL: float
     minimum_capacity_for_full_nominal_recovery_mL: float
     full_nominal_recovery_capacity_shortfall_mL: float
+    capacity_limited_service_cycles_at_authority_floor: int
+    capacity_limited_service_cycles_at_full_recovery: int
+    authority_service_cycle_shortfall_at_recovery_floor: int
+    authority_service_cycle_shortfall_at_full_recovery: int
     authority_recovery_floor_capacity_feasible: bool
     full_nominal_recovery_capacity_feasible: bool
 
@@ -52,8 +57,6 @@ def evaluate_recovery_capacity_compatibility(
     if reprime < 0.0:
         raise RecoveryCapacityCompatibilityError("recovered reprime load cannot be negative")
 
-    # Cross-check the independent screen against the supplied authority budget so
-    # evidence from another cycle count or capacity configuration cannot be mixed in.
     expected_nominal_service = screen.service_envelope.cycles * budget.nominal_introduced_mL_per_cycle
     if abs(nominal_service - expected_nominal_service) > 1e-9:
         raise RecoveryCapacityCompatibilityError("capacity screen nominal service load disagrees with budget")
@@ -64,20 +67,12 @@ def evaluate_recovery_capacity_compatibility(
     if not 0.0 <= authority_floor_ratio <= 1.0:
         raise RecoveryCapacityCompatibilityError("authority nominal recovery floor must lie within [0, 1]")
 
-    # Reprime is an unavoidable reserved load for this screen. Keep its capacity
-    # failure distinct from a nominal-recovery incompatibility: clamping the
-    # remaining nominal allowance to zero alone would otherwise hide a cartridge
-    # that cannot package reprime even at zero nominal recovery.
     reprime_margin = capacity - reprime
     reprime_exceeded = reprime_margin < -1e-12
     available_for_nominal = max(reprime_margin, 0.0)
     capacity_limited_ratio = min(available_for_nominal / nominal_service, 1.0)
     ratio_margin = capacity_limited_ratio - authority_floor_ratio
 
-    # Invert the compatibility calculation as a packaging requirement. These are
-    # synthetic arithmetic minima, not measured cartridge capacities. Reporting the
-    # positive shortfall makes an integration failure actionable without changing
-    # the retained-capacity authority value.
     minimum_floor_capacity = reprime + nominal_service * authority_floor_ratio
     floor_shortfall = max(minimum_floor_capacity - capacity, 0.0)
     minimum_full_capacity = reprime + nominal_service
@@ -85,13 +80,28 @@ def evaluate_recovery_capacity_compatibility(
     floor_feasible = (not reprime_exceeded) and floor_shortfall <= 1e-12
     full_feasible = full_shortfall <= 1e-12
 
-    # The inverted requirements and ratio-space result must agree. A disagreement
-    # indicates an accounting regression at a boundary or stale mixed evidence.
+    # Convert the same capacity balance into a service-life bound. Reprime is
+    # reserved once at the limiting event; the remaining retained volume is then
+    # divided by recovered nominal liquid per cycle. This exposes whether a
+    # cartridge can support the authority cycle count without changing that count.
+    nominal_per_cycle = budget.nominal_introduced_mL_per_cycle
+    recovered_at_floor_per_cycle = nominal_per_cycle * authority_floor_ratio
+    if recovered_at_floor_per_cycle <= 0.0:
+        raise RecoveryCapacityCompatibilityError("authority recovered nominal liquid per cycle must be positive")
+    floor_cycle_limit = math.floor((available_for_nominal + 1e-12) / recovered_at_floor_per_cycle)
+    full_cycle_limit = math.floor((available_for_nominal + 1e-12) / nominal_per_cycle)
+    floor_cycle_shortfall = max(budget.service_cycles - floor_cycle_limit, 0)
+    full_cycle_shortfall = max(budget.service_cycles - full_cycle_limit, 0)
+
     if floor_feasible != ((not reprime_exceeded) and ratio_margin >= -1e-12):
         raise RecoveryCapacityCompatibilityError("capacity shortfall and recovery-ratio compatibility disagree")
+    if floor_feasible != ((not reprime_exceeded) and floor_cycle_limit >= budget.service_cycles):
+        raise RecoveryCapacityCompatibilityError("capacity and service-life compatibility disagree at recovery floor")
+    if full_feasible != ((not reprime_exceeded) and full_cycle_limit >= budget.service_cycles):
+        raise RecoveryCapacityCompatibilityError("capacity and service-life compatibility disagree at full recovery")
+    if floor_cycle_limit < full_cycle_limit:
+        raise RecoveryCapacityCompatibilityError("recovery-floor service-life bound cannot be below full-recovery bound")
 
-    # The direct compatibility result must agree with both independently screened
-    # endpoint states. Any disagreement indicates stale or mixed subsystem evidence.
     if floor_feasible == screen.authority_floor_cartridge_capacity_exceeded:
         raise RecoveryCapacityCompatibilityError("authority-floor capacity compatibility disagrees with limiting-event screen")
     if full_feasible == screen.cartridge_capacity_exceeded_at_maximum_nominal_recovery:
@@ -110,6 +120,10 @@ def evaluate_recovery_capacity_compatibility(
         authority_recovery_floor_capacity_shortfall_mL=floor_shortfall,
         minimum_capacity_for_full_nominal_recovery_mL=minimum_full_capacity,
         full_nominal_recovery_capacity_shortfall_mL=full_shortfall,
+        capacity_limited_service_cycles_at_authority_floor=floor_cycle_limit,
+        capacity_limited_service_cycles_at_full_recovery=full_cycle_limit,
+        authority_service_cycle_shortfall_at_recovery_floor=floor_cycle_shortfall,
+        authority_service_cycle_shortfall_at_full_recovery=full_cycle_shortfall,
         authority_recovery_floor_capacity_feasible=floor_feasible,
         full_nominal_recovery_capacity_feasible=full_feasible,
     )
