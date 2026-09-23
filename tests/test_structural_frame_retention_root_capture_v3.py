@@ -11,10 +11,10 @@ from masck_one.structural_frame_retention_root_capture_v3 import (
 def test_capture_v3_exposes_required_elastic_installation_opening() -> None:
     audit = build_structural_frame_retention_root_capture_v3()
     assert audit.pin_shaft_diameter_mm == 2.70
-    assert audit.free_throat_width_mm == 2.20
-    assert audit.required_total_throat_opening_mm == 0.50
-    assert audit.required_per_arm_displacement_mm == 0.25
-    assert audit.required_opening_ratio == pytest.approx(0.50 / 2.20)
+    assert audit.free_throat_width_mm == 2.43
+    assert audit.required_total_throat_opening_mm == 0.27
+    assert audit.required_per_arm_displacement_mm == 0.135
+    assert audit.required_opening_ratio == pytest.approx(0.27 / 2.43)
     assert audit.elastic_installation_required is True
     assert audit.manifest()["installation_status"] == "ELASTIC_OPENING_REQUIRED_MATERIAL_AND_FORCE_UNVALIDATED"
 
