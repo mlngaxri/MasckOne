@@ -74,3 +74,34 @@ def test_validate_rechecks_nested_zone_evidence_type_after_low_level_mutation():
 
     with pytest.raises(ActuationParameterError, match="exact ImpedanceTestRecord"):
         sweep.validate(parameters)
+
+
+def test_validate_rejects_coordinated_parameter_identity_corruption():
+    parameters = _parameters()
+    sweep = _sweep(parameters)
+
+    # Simulate hostile low-level mutation of the frozen authority object followed by
+    # coordinated rebinding of the sweep and every record to the resulting digest.
+    # Digest agreement alone must not make an invalid authority object consumable.
+    object.__setattr__(parameters, "physical_validation_eligible", True)
+    corrupted_sha = parameters.parameter_sha256
+    object.__setattr__(sweep, "source_parameter_sha256", corrupted_sha)
+    for item in sweep.records:
+        object.__setattr__(item.record, "source_parameter_sha256", corrupted_sha)
+
+    with pytest.raises(ActuationParameterError, match="cannot be physical validation evidence"):
+        sweep.validate(parameters)
+
+
+def test_validate_rejects_coordinated_invalid_force_authority():
+    parameters = _parameters()
+    sweep = _sweep(parameters)
+
+    object.__setattr__(parameters, "transient_force_requirement_N", 0.1)
+    corrupted_sha = parameters.parameter_sha256
+    object.__setattr__(sweep, "source_parameter_sha256", corrupted_sha)
+    for item in sweep.records:
+        object.__setattr__(item.record, "source_parameter_sha256", corrupted_sha)
+
+    with pytest.raises(ActuationParameterError, match="Transient force requirement cannot be below continuous"):
+        sweep.validate(parameters)
