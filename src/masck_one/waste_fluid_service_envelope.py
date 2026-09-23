@@ -116,6 +116,16 @@ def _sink_limit_names(*, events: int, residual_limit: int | None, leakage_limit:
     return names
 
 
+def _capacity_exceeded_at_maximum_nominal_recovery(
+    budget: WasteFluidBudget, *, cycles: int, prime_events: int, prime_recovery_ratio: float
+) -> bool:
+    """Screen capacity at a sink-impossible event without constructing invalid closure evidence."""
+    maximum_nominal_recovery = cycles * budget.nominal_introduced_mL_per_cycle
+    recovered_prime = prime_events * budget.maximum_initial_prime_mL_per_cycle * prime_recovery_ratio
+    demand = maximum_nominal_recovery + recovered_prime
+    return demand > budget.cartridge_retained_capacity_requirement_mL + _TOL
+
+
 def evaluate_reprime_service_envelope(
     budget: WasteFluidBudget, *, cycles: int,
     prime_recovery_ratio_contract: float,
@@ -184,6 +194,15 @@ def evaluate_reprime_service_envelope(
     for events in range(1, search_limit + 1):
         sink_limits = _sink_limit_names(events=events, residual_limit=residual_event_limit, leakage_limit=leakage_event_limit)
         if sink_limits:
+            # Once a sink ceiling is exceeded, _point() correctly rejects the event
+            # because nominal recovery would have to exceed liquid introduced. Still
+            # screen cartridge capacity independently at 100% nominal recovery so a
+            # simultaneous physical packaging limit is not hidden by the sink-first
+            # short circuit.
+            if _capacity_exceeded_at_maximum_nominal_recovery(
+                budget, cycles=cycles, prime_events=events, prime_recovery_ratio=recovery
+            ):
+                sink_limits.append("CARTRIDGE_CAPACITY")
             return result(limiting_events=events, controlling="+".join(sorted(sink_limits)), first_infeasible=None)
         try:
             current = _point(budget, cycles=cycles, prime_events=events, recovery=recovery, residual=residual, leakage=leakage)
