@@ -89,22 +89,26 @@ def evaluate_recovery_capacity_compatibility(
 
     # Convert the same capacity balance into a service-life bound. Reprime is
     # reserved once at the limiting event; the remaining retained volume is then
-    # divided by recovered nominal liquid per cycle. This exposes whether a
-    # cartridge can support the authority cycle count without changing that count.
+    # divided by recovered nominal liquid per cycle. The result is deliberately
+    # capped at the authority service window: this reducer has no reprime evidence
+    # beyond that boundary, so surplus capacity must not be presented as evidence
+    # for additional treatment cycles.
     nominal_per_cycle = budget.nominal_introduced_mL_per_cycle
     recovered_at_floor_per_cycle = nominal_per_cycle * authority_floor_ratio
     if recovered_at_floor_per_cycle <= 0.0:
         raise RecoveryCapacityCompatibilityError("authority recovered nominal liquid per cycle must be positive")
-    floor_cycle_limit = math.floor((available_for_nominal + 1e-12) / recovered_at_floor_per_cycle)
-    full_cycle_limit = math.floor((available_for_nominal + 1e-12) / nominal_per_cycle)
+    raw_floor_cycle_limit = math.floor((available_for_nominal + 1e-12) / recovered_at_floor_per_cycle)
+    raw_full_cycle_limit = math.floor((available_for_nominal + 1e-12) / nominal_per_cycle)
+    floor_cycle_limit = min(raw_floor_cycle_limit, budget.service_cycles)
+    full_cycle_limit = min(raw_full_cycle_limit, budget.service_cycles)
     floor_cycle_shortfall = max(budget.service_cycles - floor_cycle_limit, 0)
     full_cycle_shortfall = max(budget.service_cycles - full_cycle_limit, 0)
 
     if floor_feasible != ((not reprime_exceeded) and ratio_margin >= -1e-12):
         raise RecoveryCapacityCompatibilityError("capacity shortfall and recovery-ratio compatibility disagree")
-    if floor_feasible != ((not reprime_exceeded) and floor_cycle_limit >= budget.service_cycles):
+    if floor_feasible != ((not reprime_exceeded) and floor_cycle_limit == budget.service_cycles):
         raise RecoveryCapacityCompatibilityError("capacity and service-life compatibility disagree at recovery floor")
-    if full_feasible != ((not reprime_exceeded) and full_cycle_limit >= budget.service_cycles):
+    if full_feasible != ((not reprime_exceeded) and full_cycle_limit == budget.service_cycles):
         raise RecoveryCapacityCompatibilityError("capacity and service-life compatibility disagree at full recovery")
     if floor_cycle_limit < full_cycle_limit:
         raise RecoveryCapacityCompatibilityError("recovery-floor service-life bound cannot be below full-recovery bound")
