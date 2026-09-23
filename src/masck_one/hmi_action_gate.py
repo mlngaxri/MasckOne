@@ -8,7 +8,7 @@ binding, so held state, fault state, or malformed synthetic events cannot be mis
 for a new user action.
 """
 
-from masck_one.hmi_runtime import Edge, InputEvent
+from masck_one.hmi_runtime import Edge, FaultCode, InputEvent
 
 
 class HmiActionGateError(ValueError):
@@ -31,8 +31,10 @@ def actionable_edge(event: InputEvent) -> Edge:
         raise HmiActionGateError("edge must be an exact Edge")
 
     if event.faulted:
-        if event.stable_pressed or event.edge is not Edge.NONE or event.fault_code is None:
-            raise HmiActionGateError("faulted event must be released, edgeless, and carry a fault code")
+        if event.stable_pressed or event.edge is not Edge.NONE:
+            raise HmiActionGateError("faulted event must be released and edgeless")
+        if type(event.fault_code) is not FaultCode or type(event.fault) is not str:
+            raise HmiActionGateError("faulted event must carry exact fault metadata")
         return Edge.NONE
 
     if event.fault is not None or event.fault_code is not None:
