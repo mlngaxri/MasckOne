@@ -77,6 +77,7 @@ class FourZoneImpedanceSweep:
         for item in self.records:
             if type(item) is not ZoneImpedanceRecord:
                 raise ActuationParameterError("Four-zone sweep contains non-zone impedance evidence")
+            item.__post_init__()
             if item.record.source_parameter_sha256 != self.source_parameter_sha256:
                 raise ActuationParameterError("Four-zone sweep record parameter identity must match the sweep parameter identity")
             key = (item.zone_id, float(item.record.axis_angle_deg))
@@ -90,6 +91,11 @@ class FourZoneImpedanceSweep:
     def validate(self, parameters: ActuationParameterSet) -> None:
         if type(parameters) is not ActuationParameterSet:
             raise ActuationParameterError("Four-zone sweep requires exact ActuationParameterSet evidence")
+        # Re-run construction invariants at every consumption boundary. Frozen
+        # evidence can still be altered through low-level object mutation, and
+        # downstream massage/thermal reducers must not trust stale construction-time
+        # checks when deciding which measured records belong to the four-zone sweep.
+        self.__post_init__()
         if self.source_parameter_sha256 != parameters.parameter_sha256:
             raise ActuationParameterError("Four-zone sweep is stale for the supplied actuation parameter set")
         expected = {(zone_id, angle) for zone_id in ZONE_IDS for angle in parameters.axis_angle_doe_deg}
