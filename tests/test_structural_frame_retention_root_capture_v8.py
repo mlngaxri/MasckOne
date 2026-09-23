@@ -17,6 +17,19 @@ def test_v8_preserves_positive_worst_case_margins():
     assert v8.physical_validation_eligible is False
 
 
+def test_v8_nominal_geometry_is_bound_to_existing_authority():
+    throat, bore, pin = capture_v8._nominal_geometry()
+    assert throat == capture_v8.capture_v2.CLIP_THROAT_WIDTH_MM
+    assert bore == pytest.approx(
+        2.0 * (
+            capture_v8.CLEVIS_PIN_RADIUS_MM
+            - capture_v8.CLEVIS_PIN_GROOVE_DEPTH_MM
+            + capture_v8.capture_v2.CLIP_HOLE_RELIEF_MM
+        )
+    )
+    assert pin == 2.0 * capture_v8.CLEVIS_PIN_RADIUS_MM
+
+
 def test_v8_rejects_stale_v7_authority():
     v8 = build_structural_frame_retention_root_capture_v8()
     with pytest.raises(StructuralFrameRetentionRootCaptureV8Error):
@@ -39,13 +52,13 @@ def test_v8_binds_each_interval_to_its_own_feature_tolerance(monkeypatch):
         pin_diameter_bilateral_tolerance_mm=0.030,
     )
     monkeypatch.setattr(capture_v8.capture_v7, "build_structural_frame_retention_root_capture_v7", lambda: unequal)
-    v2 = capture_v8.capture_v2.build_structural_frame_retention_root_capture_v2()
+    throat, bore, pin = capture_v8._nominal_geometry()
     intervals = capture_v8._intervals()
-    assert intervals[0] == round(v2.retainer_throat_width_mm - 0.010, 12)
-    assert intervals[2] == round(2.0 * v2.retainer_inner_radius_mm - 0.020, 12)
-    assert intervals[4] == round(v2.pin_diameter_mm - 0.030, 12)
-    assert intervals[6] == round((v2.retainer_throat_width_mm - 0.010 - (2.0 * v2.retainer_inner_radius_mm + 0.020)) / 2.0, 12)
-    assert intervals[7] == round((v2.pin_diameter_mm - 0.030) - (v2.retainer_throat_width_mm + 0.010), 12)
+    assert intervals[0] == round(throat - 0.010, 12)
+    assert intervals[2] == round(bore - 0.020, 12)
+    assert intervals[4] == round(pin - 0.030, 12)
+    assert intervals[6] == round((throat - 0.010 - (bore + 0.020)) / 2.0, 12)
+    assert intervals[7] == round((pin - 0.030) - (throat + 0.010), 12)
 
 
 def test_v8_rejects_validation_promotion():
