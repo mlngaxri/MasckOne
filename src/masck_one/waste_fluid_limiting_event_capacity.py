@@ -23,6 +23,7 @@ class LimitingEventCapacityScreen:
     prime_cartridge_capacity_allowance_mL: float
     prime_liquid_routed_to_cartridge_mL: float
     prime_cartridge_allowance_margin_mL: float
+    prime_incremental_cartridge_overflow_mL: float
     cartridge_demand_at_maximum_nominal_recovery_mL: float
     retained_cartridge_capacity_mL: float
     cartridge_margin_at_maximum_nominal_recovery_mL: float
@@ -50,8 +51,10 @@ def screen_limiting_event_cartridge_capacity(
     The nominal-only split makes a packaging failure diagnosable: nominal service
     demand is screened before any reprime load is added, then the remaining
     retained capacity is exposed as the exact allowance available to recovered
-    reprime liquid. A negative prime allowance margin therefore means reprime
-    recovery alone consumed more than the capacity left after nominal service.
+    reprime liquid. ``prime_incremental_cartridge_overflow_mL`` is the overflow
+    attributable to reprime recovery after consuming that allowance. Keeping it
+    separate from nominal-only overflow preserves an exact capacity partition even
+    when nominal service alone already exceeds retained capacity.
     """
     envelope = evaluate_reprime_service_envelope(
         budget,
@@ -76,11 +79,20 @@ def screen_limiting_event_cartridge_capacity(
     nominal_overflow = max(-nominal_margin, 0.0)
     prime_allowance = nominal_headroom
     prime_allowance_margin = prime_allowance - prime_to_cartridge
+    prime_incremental_overflow = max(-prime_allowance_margin, 0.0)
 
     demand = nominal_at_maximum_recovery + prime_to_cartridge
     margin = capacity - demand
     headroom = max(margin, 0.0)
     overflow = max(-margin, 0.0)
+
+    # Capacity partition identity. This is deliberately checked in production,
+    # not only in tests, so future accounting changes cannot silently double-count
+    # or lose overflow between nominal service and reprime recovery.
+    partitioned_overflow = nominal_overflow + prime_incremental_overflow
+    if abs(overflow - partitioned_overflow) > 1e-9:
+        raise ValueError("cartridge overflow partition is internally inconsistent")
+
     utilization = demand / capacity
     return LimitingEventCapacityScreen(
         service_envelope=envelope,
@@ -91,6 +103,7 @@ def screen_limiting_event_cartridge_capacity(
         prime_cartridge_capacity_allowance_mL=prime_allowance,
         prime_liquid_routed_to_cartridge_mL=prime_to_cartridge,
         prime_cartridge_allowance_margin_mL=prime_allowance_margin,
+        prime_incremental_cartridge_overflow_mL=prime_incremental_overflow,
         cartridge_demand_at_maximum_nominal_recovery_mL=demand,
         retained_cartridge_capacity_mL=capacity,
         cartridge_margin_at_maximum_nominal_recovery_mL=margin,
