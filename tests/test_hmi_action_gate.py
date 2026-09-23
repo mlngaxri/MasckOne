@@ -47,11 +47,31 @@ def test_impossible_synthetic_events_fail_explicitly() -> None:
         InputEvent(False, Edge.PRESSED),
         InputEvent(True, Edge.RELEASED),
         InputEvent(False, Edge.NONE, faulted=False, fault_code=FaultCode.INPUT_STREAM_STALE),
-        InputEvent(True, Edge.NONE, faulted=True, fault_code=FaultCode.INPUT_STREAM_STALE),
-        InputEvent(False, Edge.PRESSED, faulted=True, fault_code=FaultCode.INPUT_STREAM_STALE),
+        InputEvent(True, Edge.NONE, faulted=True, fault="input stream stale", fault_code=FaultCode.INPUT_STREAM_STALE),
+        InputEvent(False, Edge.PRESSED, faulted=True, fault="input stream stale", fault_code=FaultCode.INPUT_STREAM_STALE),
         InputEvent(False, Edge.NONE, faulted=True),
     )
     for event in impossible:
+        with pytest.raises(HmiActionGateError):
+            actionable_edge(event)
+
+
+def test_faulted_event_requires_exact_fault_metadata_types() -> None:
+    valid = InputEvent(
+        False,
+        Edge.NONE,
+        faulted=True,
+        fault="input stream stale",
+        fault_code=FaultCode.INPUT_STREAM_STALE,
+    )
+    assert actionable_edge(valid) is Edge.NONE
+
+    malformed = (
+        InputEvent(False, Edge.NONE, faulted=True, fault="input stream stale", fault_code=7),  # type: ignore[arg-type]
+        InputEvent(False, Edge.NONE, faulted=True, fault=7, fault_code=FaultCode.INPUT_STREAM_STALE),  # type: ignore[arg-type]
+        InputEvent(False, Edge.NONE, faulted=True, fault=None, fault_code=FaultCode.INPUT_STREAM_STALE),
+    )
+    for event in malformed:
         with pytest.raises(HmiActionGateError):
             actionable_edge(event)
 
