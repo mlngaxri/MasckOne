@@ -12,6 +12,10 @@ def command_thermal_after_treatment(interlock: ThermalCommandInterlock, readines
         raise WasteFluidAccountingError("treatment thermal handoff requires exact ThermalCommandInterlock")
     if type(readiness) is not TreatmentRecoveryReadiness:
         raise WasteFluidAccountingError("treatment thermal handoff requires exact TreatmentRecoveryReadiness")
+    # Revalidate at the subsystem boundary rather than trusting construction-time
+    # validation. Frozen dataclasses can still be altered by low-level callers, and
+    # thermal enable must never consume a stale or forged recovery decision.
+    readiness.__post_init__()
     if type(readiness.source_capacity_guard) is not CartridgeOverflowGuard:
         raise WasteFluidAccountingError("treatment thermal handoff requires reserve-aware CartridgeOverflowGuard evidence")
     return interlock.command(warm_requested=warm_requested, cool_requested=cool_requested, recovery_complete=readiness.post_recovery_handoff_permitted)
