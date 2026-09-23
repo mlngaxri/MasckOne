@@ -3,7 +3,6 @@ from dataclasses import replace
 import pytest
 
 from masck_one.actuation_mechanical_evidence_bundle import (
-    MeasuredMassageMechanicsEvidenceBundle,
     build_measured_massage_mechanics_evidence_bundle,
     validate_measured_massage_mechanics_evidence_bundle,
 )
@@ -36,9 +35,10 @@ def test_rejects_mixed_sensitivity_view():
     parameters = _parameters()
     sweep = _sweep(parameters)
     evidence = build_measured_massage_mechanics_evidence_bundle(sweep, parameters)
+    worst = evidence.sensitivity.maximum_abs_force_sensitivity
     stale_sensitivity = replace(
         evidence.sensitivity,
-        max_abs_force_sensitivity_N_per_deg=evidence.sensitivity.max_abs_force_sensitivity_N_per_deg + 0.001,
+        maximum_abs_force_sensitivity=replace(worst, force_slope_N_per_deg=worst.force_slope_N_per_deg + 0.001),
     )
     mixed = replace(evidence, sensitivity=stale_sensitivity)
     with pytest.raises(ActuationParameterError, match="stale or disagrees"):
@@ -49,9 +49,10 @@ def test_rejects_mixed_curvature_view():
     parameters = _parameters()
     sweep = _sweep(parameters)
     evidence = build_measured_massage_mechanics_evidence_bundle(sweep, parameters)
+    worst = evidence.curvature.maximum_abs_force_curvature
     stale_curvature = replace(
         evidence.curvature,
-        max_abs_force_curvature_N_per_deg2=evidence.curvature.max_abs_force_curvature_N_per_deg2 + 0.001,
+        maximum_abs_force_curvature=replace(worst, force_curvature_N_per_deg2=worst.force_curvature_N_per_deg2 + 0.001),
     )
     mixed = replace(evidence, curvature=stale_curvature)
     with pytest.raises(ActuationParameterError, match="stale or disagrees"):
