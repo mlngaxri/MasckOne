@@ -1,6 +1,6 @@
 import pytest
 
-from masck_one.waste_fluid_accounting import build_authority_waste_fluid_budget
+from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
 from masck_one.waste_fluid_limiting_event_capacity import screen_limiting_event_cartridge_capacity
 
 
@@ -109,3 +109,15 @@ def test_all_prime_recovery_capacity_screen_conserves_liquid_volume():
         screen.nominal_only_cartridge_overflow_mL
         + screen.prime_incremental_cartridge_overflow_mL
     )
+
+
+def test_capacity_screen_rejects_service_interval_beyond_authority_life():
+    budget = build_authority_waste_fluid_budget()
+    with pytest.raises(WasteFluidAccountingError, match="exceeds configured service life"):
+        screen_limiting_event_cartridge_capacity(
+            budget,
+            cycles=budget.service_cycles + 1,
+            prime_recovery_ratio_contract=.90,
+            prime_residual_ratio_contract=.08,
+            prime_external_leakage_ratio_contract=.02,
+        )
