@@ -19,9 +19,11 @@ class LimitingEventCapacityScreen:
     authority_floor_nominal_recovery_mL: float
     authority_floor_nominal_only_headroom_mL: float
     authority_floor_nominal_only_overflow_mL: float
+    authority_floor_nominal_capacity_exceeded: bool
     authority_floor_prime_capacity_allowance_mL: float
     authority_floor_prime_allowance_margin_mL: float
     authority_floor_prime_incremental_overflow_mL: float
+    authority_floor_capacity_exceeded_by_reprime: bool
     authority_floor_cartridge_demand_mL: float
     authority_floor_cartridge_margin_mL: float
     authority_floor_cartridge_headroom_mL: float
@@ -82,9 +84,14 @@ def screen_limiting_event_cartridge_capacity(
     authority_floor_nominal_margin = capacity - nominal_at_authority_floor
     authority_floor_nominal_headroom = max(authority_floor_nominal_margin, 0.0)
     authority_floor_nominal_overflow = max(-authority_floor_nominal_margin, 0.0)
+    authority_floor_nominal_capacity_exceeded = authority_floor_nominal_overflow > 0.0
     authority_floor_prime_allowance = authority_floor_nominal_headroom
     authority_floor_prime_allowance_margin = authority_floor_prime_allowance - prime_to_cartridge
     authority_floor_prime_incremental_overflow = max(-authority_floor_prime_allowance_margin, 0.0)
+    authority_floor_capacity_exceeded_by_reprime = (
+        not authority_floor_nominal_capacity_exceeded
+        and authority_floor_prime_incremental_overflow > 0.0
+    )
 
     authority_floor_demand = nominal_at_authority_floor + prime_to_cartridge
     authority_floor_margin = capacity - authority_floor_demand
@@ -95,6 +102,10 @@ def screen_limiting_event_cartridge_capacity(
         raise ValueError("authority-floor cartridge overflow partition is internally inconsistent")
     authority_floor_utilization = authority_floor_demand / capacity
     authority_floor_capacity_exceeded = authority_floor_overflow > 0.0
+    if authority_floor_capacity_exceeded != (
+        authority_floor_nominal_capacity_exceeded or authority_floor_capacity_exceeded_by_reprime
+    ):
+        raise ValueError("authority-floor cartridge failure-source classification is internally inconsistent")
     if authority_floor_headroom * authority_floor_overflow > 1e-12:
         raise ValueError("authority-floor cartridge headroom and overflow cannot coexist")
 
@@ -127,9 +138,11 @@ def screen_limiting_event_cartridge_capacity(
         authority_floor_nominal_recovery_mL=nominal_at_authority_floor,
         authority_floor_nominal_only_headroom_mL=authority_floor_nominal_headroom,
         authority_floor_nominal_only_overflow_mL=authority_floor_nominal_overflow,
+        authority_floor_nominal_capacity_exceeded=authority_floor_nominal_capacity_exceeded,
         authority_floor_prime_capacity_allowance_mL=authority_floor_prime_allowance,
         authority_floor_prime_allowance_margin_mL=authority_floor_prime_allowance_margin,
         authority_floor_prime_incremental_overflow_mL=authority_floor_prime_incremental_overflow,
+        authority_floor_capacity_exceeded_by_reprime=authority_floor_capacity_exceeded_by_reprime,
         authority_floor_cartridge_demand_mL=authority_floor_demand,
         authority_floor_cartridge_margin_mL=authority_floor_margin,
         authority_floor_cartridge_headroom_mL=authority_floor_headroom,
