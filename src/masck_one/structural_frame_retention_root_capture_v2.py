@@ -28,11 +28,11 @@ from .structural_frame_retention_roots import (
 
 SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_ROOT_CAPTURE_V2"
 CLIP_HOLE_RELIEF_MM = capture_v1.CLIP_HOLE_RELIEF_MM
-# Maximin nominal throat: midpoint between the seated clip inner diameter
-# (2.16 mm) and the 2.70 mm pin shaft. This gives 0.27 mm nominal margin to
-# either geometric escape boundary instead of the previous asymmetric
-# 0.04/0.50 mm split, while reducing the elastic opening demand.
 CLIP_THROAT_WIDTH_MM = 2.43
+# The legacy retainer used the full 0.75 mm groove width as its axial thickness,
+# leaving zero nominal assembly clearance. Keep the accepted groove unchanged and
+# make the corrected retainer 0.60 mm thick, leaving 0.15 mm total axial clearance.
+CLIP_AXIAL_THICKNESS_MM = 0.60
 _MIN_DIGITAL_MARGIN_MM = 0.02
 
 
@@ -67,6 +67,8 @@ def _throat_metrics() -> tuple[float, float, float, float]:
         raise StructuralFrameRetentionRootCaptureV2Error("retainer throat does not clear its seated inner diameter")
     if CLIP_THROAT_WIDTH_MM >= shaft_diameter - _MIN_DIGITAL_MARGIN_MM:
         raise StructuralFrameRetentionRootCaptureV2Error("retainer throat is not narrower than the capture-pin shaft")
+    if not (0.0 < CLIP_AXIAL_THICKNESS_MM < CLEVIS_PIN_GROOVE_WIDTH_MM):
+        raise StructuralFrameRetentionRootCaptureV2Error("split retainer requires positive nominal axial groove clearance")
     return groove_bottom_diameter, clip_inner_diameter, installation_margin, capture_margin
 
 
@@ -76,17 +78,13 @@ def build_positive_capture_split_retainer(*, center_x: float, groove_center_y: f
     outer = CLEVIS_PIN_RADIUS_MM + CLEVIS_CLIP_RADIAL_THICKNESS_MM
     if CLIP_THROAT_WIDTH_MM >= 2.0 * outer:
         raise StructuralFrameRetentionRootCaptureV2Error("retainer throat exceeds outer diameter")
-
-    # The throat must connect the exterior to the annular bore. Cut a controlled
-    # radial slot from the centreline through the outer crown; because the throat
-    # is wider than the inner diameter, the slot positively intersects the bore.
-    full = _cylinder_y(outer, CLEVIS_PIN_GROOVE_WIDTH_MM, (center_x, groove_center_y, center_z))
-    hole = _cylinder_y(inner, CLEVIS_PIN_GROOVE_WIDTH_MM + 0.2, (center_x, groove_center_y, center_z))
+    full = _cylinder_y(outer, CLIP_AXIAL_THICKNESS_MM, (center_x, groove_center_y, center_z))
+    hole = _cylinder_y(inner, CLIP_AXIAL_THICKNESS_MM + 0.2, (center_x, groove_center_y, center_z))
     ring = full.cut(hole)
     cut_height = outer + 0.04
     split = cq.Workplane("XY").box(
         CLIP_THROAT_WIDTH_MM,
-        CLEVIS_PIN_GROOVE_WIDTH_MM + 0.4,
+        CLIP_AXIAL_THICKNESS_MM + 0.4,
         cut_height,
         centered=(True, True, True),
     ).translate((center_x, groove_center_y, center_z + cut_height / 2.0 - 0.01))
@@ -121,11 +119,16 @@ class StructuralFrameRetentionRootCaptureV2:
             raise StructuralFrameRetentionRootCaptureV2Error("bilateral corrected retainers are required")
         for retainer in self.retainers:
             _single(retainer, "positive-capture split retainer")
+            bb = retainer.val().BoundingBox()
+            if abs(float(bb.ylen) - CLIP_AXIAL_THICKNESS_MM) > 1e-6:
+                raise StructuralFrameRetentionRootCaptureV2Error("split-retainer axial thickness is stale")
         payload = {
             "source_root_architecture_sha256": self.source_root_architecture_sha256,
             "source_capture_v1_sha256": self.source_capture_v1_sha256,
             "root_ids": list(ROOT_IDS),
             "throat_width_mm": self.throat_width_mm,
+            "clip_axial_thickness_mm": CLIP_AXIAL_THICKNESS_MM,
+            "axial_groove_clearance_mm": round(CLEVIS_PIN_GROOVE_WIDTH_MM - CLIP_AXIAL_THICKNESS_MM, 12),
             "installation_margin_mm": self.installation_margin_mm,
             "radial_escape_capture_margin_mm": self.radial_escape_capture_margin_mm,
         }
@@ -143,9 +146,11 @@ class StructuralFrameRetentionRootCaptureV2:
             "source_root_architecture_sha256": self.source_root_architecture_sha256,
             "source_capture_v1_sha256": self.source_capture_v1_sha256,
             "throat_width_mm": self.throat_width_mm,
+            "clip_axial_thickness_mm": CLIP_AXIAL_THICKNESS_MM,
+            "axial_groove_clearance_mm": round(CLEVIS_PIN_GROOVE_WIDTH_MM - CLIP_AXIAL_THICKNESS_MM, 12),
             "installation_margin_mm": self.installation_margin_mm,
             "radial_escape_capture_margin_mm": self.radial_escape_capture_margin_mm,
-            "capture_status": "CONTROLLED_C_CLIP_THROAT_NARROWER_THAN_PIN_SHAFT",
+            "capture_status": "CONTROLLED_C_CLIP_THROAT_WITH_POSITIVE_AXIAL_GROOVE_CLEARANCE",
             "evidence_sha256": self.evidence_sha256,
             "accidental_release_validated": self.accidental_release_validated,
             "physical_validation_eligible": self.physical_validation_eligible,
@@ -167,6 +172,8 @@ def build_structural_frame_retention_root_capture_v2() -> StructuralFrameRetenti
         "source_capture_v1_sha256": v1.capture_evidence_sha256,
         "root_ids": list(ROOT_IDS),
         "throat_width_mm": CLIP_THROAT_WIDTH_MM,
+        "clip_axial_thickness_mm": CLIP_AXIAL_THICKNESS_MM,
+        "axial_groove_clearance_mm": round(CLEVIS_PIN_GROOVE_WIDTH_MM - CLIP_AXIAL_THICKNESS_MM, 12),
         "installation_margin_mm": round(install, 12),
         "radial_escape_capture_margin_mm": round(capture, 12),
     }
