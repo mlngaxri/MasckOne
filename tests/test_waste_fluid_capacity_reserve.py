@@ -78,6 +78,26 @@ def test_overflow_evidence_rejects_equal_total_different_reserve_composition():
         CapacityReservedOverflowGuard(substituted, guard)
 
 
+def test_overflow_evidence_revalidates_mutated_guard_capacity_accounting():
+    evidence = screen_cartridge_capacity_reserve_evidence(
+        build_authority_waste_fluid_budget(), CartridgeCapacityReserve(fill_sensor_trip_mL=2.0),
+        prime_events_by_cycle=[0] * 6,
+    )
+    object.__setattr__(evidence.guard, "usable_capacity_mL", evidence.guard.usable_capacity_mL - 1.0)
+    with pytest.raises(WasteFluidAccountingError):
+        evidence.__post_init__()
+
+
+def test_overflow_evidence_revalidates_mutated_nested_routing():
+    evidence = screen_cartridge_capacity_reserve_evidence(
+        build_authority_waste_fluid_budget(), CartridgeCapacityReserve(fill_sensor_trip_mL=2.0),
+        prime_events_by_cycle=[0] * 6,
+    )
+    object.__setattr__(evidence.guard.routing, "all_cycles_routing_complete", False)
+    with pytest.raises(WasteFluidAccountingError):
+        evidence.__post_init__()
+
+
 def test_same_typed_reserve_drives_overflow_and_service_profile_capacity():
     budget = build_authority_waste_fluid_budget()
     reserve = CartridgeCapacityReserve(2.0, 2.0, .5, 1.0)
