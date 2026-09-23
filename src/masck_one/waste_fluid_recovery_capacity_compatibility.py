@@ -27,6 +27,10 @@ class RecoveryCapacityCompatibility:
     authority_nominal_recovery_floor_ratio: float
     capacity_limited_nominal_recovery_ratio: float
     recovery_ratio_margin_above_authority_floor: float
+    minimum_capacity_for_authority_recovery_floor_mL: float
+    authority_recovery_floor_capacity_shortfall_mL: float
+    minimum_capacity_for_full_nominal_recovery_mL: float
+    full_nominal_recovery_capacity_shortfall_mL: float
     authority_recovery_floor_capacity_feasible: bool
     full_nominal_recovery_capacity_feasible: bool
 
@@ -69,8 +73,22 @@ def evaluate_recovery_capacity_compatibility(
     available_for_nominal = max(reprime_margin, 0.0)
     capacity_limited_ratio = min(available_for_nominal / nominal_service, 1.0)
     ratio_margin = capacity_limited_ratio - authority_floor_ratio
-    floor_feasible = (not reprime_exceeded) and ratio_margin >= -1e-12
-    full_feasible = capacity >= nominal_service + reprime - 1e-12
+
+    # Invert the compatibility calculation as a packaging requirement. These are
+    # synthetic arithmetic minima, not measured cartridge capacities. Reporting the
+    # positive shortfall makes an integration failure actionable without changing
+    # the retained-capacity authority value.
+    minimum_floor_capacity = reprime + nominal_service * authority_floor_ratio
+    floor_shortfall = max(minimum_floor_capacity - capacity, 0.0)
+    minimum_full_capacity = reprime + nominal_service
+    full_shortfall = max(minimum_full_capacity - capacity, 0.0)
+    floor_feasible = (not reprime_exceeded) and floor_shortfall <= 1e-12
+    full_feasible = full_shortfall <= 1e-12
+
+    # The inverted requirements and ratio-space result must agree. A disagreement
+    # indicates an accounting regression at a boundary or stale mixed evidence.
+    if floor_feasible != ((not reprime_exceeded) and ratio_margin >= -1e-12):
+        raise RecoveryCapacityCompatibilityError("capacity shortfall and recovery-ratio compatibility disagree")
 
     # The direct compatibility result must agree with both independently screened
     # endpoint states. Any disagreement indicates stale or mixed subsystem evidence.
@@ -88,6 +106,10 @@ def evaluate_recovery_capacity_compatibility(
         authority_nominal_recovery_floor_ratio=authority_floor_ratio,
         capacity_limited_nominal_recovery_ratio=capacity_limited_ratio,
         recovery_ratio_margin_above_authority_floor=ratio_margin,
+        minimum_capacity_for_authority_recovery_floor_mL=minimum_floor_capacity,
+        authority_recovery_floor_capacity_shortfall_mL=floor_shortfall,
+        minimum_capacity_for_full_nominal_recovery_mL=minimum_full_capacity,
+        full_nominal_recovery_capacity_shortfall_mL=full_shortfall,
         authority_recovery_floor_capacity_feasible=floor_feasible,
         full_nominal_recovery_capacity_feasible=full_feasible,
     )
