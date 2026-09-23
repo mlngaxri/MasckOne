@@ -126,6 +126,11 @@ def evaluate_reprime_service_envelope(
     budget.validate()
     if type(cycles) is not int or cycles <= 0:
         raise WasteFluidAccountingError("service envelope cycles must be a positive integer")
+    if cycles > budget.service_cycles:
+        raise WasteFluidAccountingError(
+            "service envelope cycles exceeds configured service life: "
+            f"{cycles} requested for {budget.service_cycles} service cycles"
+        )
     ratios = (prime_recovery_ratio_contract, prime_residual_ratio_contract, prime_external_leakage_ratio_contract)
     if any(type(value) not in (int, float) or not math.isfinite(value) for value in ratios):
         raise WasteFluidAccountingError("service envelope routing ratios must be finite numbers")
