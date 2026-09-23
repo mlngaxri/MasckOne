@@ -28,6 +28,15 @@ def test_capacity_limited_contract_exposes_negative_worst_case_capacity_margin()
         budget.cartridge_retained_capacity_requirement_mL
         - screen.cartridge_demand_at_maximum_nominal_recovery_mL
     )
+    assert screen.cartridge_headroom_at_maximum_nominal_recovery_mL == pytest.approx(0.0)
+    assert screen.cartridge_overflow_at_maximum_nominal_recovery_mL == pytest.approx(
+        -screen.cartridge_margin_at_maximum_nominal_recovery_mL
+    )
+    assert screen.cartridge_utilization_at_maximum_nominal_recovery == pytest.approx(
+        screen.cartridge_demand_at_maximum_nominal_recovery_mL
+        / budget.cartridge_retained_capacity_requirement_mL
+    )
+    assert screen.cartridge_utilization_at_maximum_nominal_recovery > 1.0
     assert screen.cartridge_capacity_exceeded_at_maximum_nominal_recovery is True
 
 
@@ -47,6 +56,9 @@ def test_sink_first_contract_proves_cartridge_headroom_at_limiting_event():
         6 * budget.nominal_introduced_mL_per_cycle
     )
     assert screen.cartridge_margin_at_maximum_nominal_recovery_mL == pytest.approx(7.4)
+    assert screen.cartridge_headroom_at_maximum_nominal_recovery_mL == pytest.approx(7.4)
+    assert screen.cartridge_overflow_at_maximum_nominal_recovery_mL == pytest.approx(0.0)
+    assert screen.cartridge_utilization_at_maximum_nominal_recovery < 1.0
     assert screen.cartridge_capacity_exceeded_at_maximum_nominal_recovery is False
 
 
@@ -67,3 +79,4 @@ def test_all_prime_recovery_capacity_screen_conserves_liquid_volume():
     assert screen.retained_cartridge_capacity_mL == pytest.approx(
         budget.cartridge_retained_capacity_requirement_mL
     )
+    assert screen.cartridge_headroom_at_maximum_nominal_recovery_mL * screen.cartridge_overflow_at_maximum_nominal_recovery_mL == pytest.approx(0.0)
