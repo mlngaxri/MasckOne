@@ -18,7 +18,11 @@ class LimitingEventCapacityScreen:
     service_envelope: ReprimeServiceEnvelope
     limiting_prime_events: int
     nominal_liquid_at_maximum_recovery_mL: float
+    nominal_only_cartridge_headroom_mL: float
+    nominal_only_cartridge_overflow_mL: float
+    prime_cartridge_capacity_allowance_mL: float
     prime_liquid_routed_to_cartridge_mL: float
+    prime_cartridge_allowance_margin_mL: float
     cartridge_demand_at_maximum_nominal_recovery_mL: float
     retained_cartridge_capacity_mL: float
     cartridge_margin_at_maximum_nominal_recovery_mL: float
@@ -43,10 +47,11 @@ def screen_limiting_event_cartridge_capacity(
     load corresponding to the maximum physically possible nominal recovery and
     therefore exposes whether a sink-first boundary still has cartridge headroom.
 
-    Headroom and overflow are reported separately so downstream integration never
-    has to infer overflow from a negative signed margin. Utilization is demand
-    divided by retained capacity and therefore exceeds 1.0 exactly when this
-    arithmetic screen is over capacity.
+    The nominal-only split makes a packaging failure diagnosable: nominal service
+    demand is screened before any reprime load is added, then the remaining
+    retained capacity is exposed as the exact allowance available to recovered
+    reprime liquid. A negative prime allowance margin therefore means reprime
+    recovery alone consumed more than the capacity left after nominal service.
     """
     envelope = evaluate_reprime_service_envelope(
         budget,
@@ -62,10 +67,17 @@ def screen_limiting_event_cartridge_capacity(
         * budget.maximum_initial_prime_mL_per_cycle
         * float(prime_recovery_ratio_contract)
     )
-    demand = nominal_at_maximum_recovery + prime_to_cartridge
     capacity = budget.cartridge_retained_capacity_requirement_mL
     if capacity <= 0.0:
         raise ValueError("retained cartridge capacity must be positive")
+
+    nominal_margin = capacity - nominal_at_maximum_recovery
+    nominal_headroom = max(nominal_margin, 0.0)
+    nominal_overflow = max(-nominal_margin, 0.0)
+    prime_allowance = nominal_headroom
+    prime_allowance_margin = prime_allowance - prime_to_cartridge
+
+    demand = nominal_at_maximum_recovery + prime_to_cartridge
     margin = capacity - demand
     headroom = max(margin, 0.0)
     overflow = max(-margin, 0.0)
@@ -74,7 +86,11 @@ def screen_limiting_event_cartridge_capacity(
         service_envelope=envelope,
         limiting_prime_events=limiting_events,
         nominal_liquid_at_maximum_recovery_mL=nominal_at_maximum_recovery,
+        nominal_only_cartridge_headroom_mL=nominal_headroom,
+        nominal_only_cartridge_overflow_mL=nominal_overflow,
+        prime_cartridge_capacity_allowance_mL=prime_allowance,
         prime_liquid_routed_to_cartridge_mL=prime_to_cartridge,
+        prime_cartridge_allowance_margin_mL=prime_allowance_margin,
         cartridge_demand_at_maximum_nominal_recovery_mL=demand,
         retained_cartridge_capacity_mL=capacity,
         cartridge_margin_at_maximum_nominal_recovery_mL=margin,
