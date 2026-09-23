@@ -1,0 +1,29 @@
+name: Retention V41 corner mesh authority
+
+on:
+  pull_request:
+    paths:
+      - 'src/masck_one/retention_quick_release_tactile*.py'
+      - 'tests/test_retention_quick_release_tactile*.py'
+      - '.github/workflows/retention-v41-corner-mesh-authority.yml'
+  workflow_dispatch:
+
+jobs:
+  v41-corner-mesh-authority:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install package and CAD test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . pytest
+      - name: Verify exact checked-out head
+        if: github.event_name == 'pull_request'
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Run V41 corner mesh authority regression
+        run: python -m pytest -q tests/test_retention_quick_release_tactile_v41.py
