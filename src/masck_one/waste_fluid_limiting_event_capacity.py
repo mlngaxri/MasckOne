@@ -19,7 +19,10 @@ class LimitingEventCapacityScreen:
     authority_floor_nominal_recovery_mL: float
     authority_floor_cartridge_demand_mL: float
     authority_floor_cartridge_margin_mL: float
+    authority_floor_cartridge_headroom_mL: float
     authority_floor_cartridge_overflow_mL: float
+    authority_floor_cartridge_utilization: float
+    authority_floor_cartridge_capacity_exceeded: bool
     nominal_recovery_uplift_to_maximum_mL: float
     nominal_liquid_at_maximum_recovery_mL: float
     nominal_only_cartridge_headroom_mL: float
@@ -70,7 +73,13 @@ def screen_limiting_event_cartridge_capacity(
 
     authority_floor_demand = nominal_at_authority_floor + prime_to_cartridge
     authority_floor_margin = capacity - authority_floor_demand
+    authority_floor_headroom = max(authority_floor_margin, 0.0)
     authority_floor_overflow = max(-authority_floor_margin, 0.0)
+    authority_floor_utilization = authority_floor_demand / capacity
+    authority_floor_capacity_exceeded = authority_floor_overflow > 0.0
+    if authority_floor_headroom * authority_floor_overflow > 1e-12:
+        raise ValueError("authority-floor cartridge headroom and overflow cannot coexist")
+
     nominal_recovery_uplift = nominal_at_maximum_recovery - nominal_at_authority_floor
     if nominal_recovery_uplift < -1e-12:
         raise ValueError("authority nominal recovery floor exceeds introduced nominal liquid")
@@ -103,7 +112,10 @@ def screen_limiting_event_cartridge_capacity(
         authority_floor_nominal_recovery_mL=nominal_at_authority_floor,
         authority_floor_cartridge_demand_mL=authority_floor_demand,
         authority_floor_cartridge_margin_mL=authority_floor_margin,
+        authority_floor_cartridge_headroom_mL=authority_floor_headroom,
         authority_floor_cartridge_overflow_mL=authority_floor_overflow,
+        authority_floor_cartridge_utilization=authority_floor_utilization,
+        authority_floor_cartridge_capacity_exceeded=authority_floor_capacity_exceeded,
         nominal_recovery_uplift_to_maximum_mL=nominal_recovery_uplift,
         nominal_liquid_at_maximum_recovery_mL=nominal_at_maximum_recovery,
         nominal_only_cartridge_headroom_mL=nominal_headroom,
