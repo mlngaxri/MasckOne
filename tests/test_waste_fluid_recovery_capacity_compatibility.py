@@ -28,6 +28,8 @@ def test_authority_contract_exposes_capacity_recovery_incompatibility():
     assert result.capacity_limited_nominal_recovery_ratio < result.authority_nominal_recovery_floor_ratio
     assert result.recovery_ratio_margin_above_authority_floor < 0.0
     assert result.recovered_reprime_reserved_mL > 0.0
+    assert result.authority_recovery_floor_capacity_shortfall_mL > 0.0
+    assert result.full_nominal_recovery_capacity_shortfall_mL >= result.authority_recovery_floor_capacity_shortfall_mL
 
 
 def test_larger_synthetic_capacity_can_accept_full_nominal_recovery():
@@ -40,6 +42,8 @@ def test_larger_synthetic_capacity_can_accept_full_nominal_recovery():
     assert result.full_nominal_recovery_capacity_feasible is True
     assert result.capacity_limited_nominal_recovery_ratio == pytest.approx(1.0)
     assert result.recovery_ratio_margin_above_authority_floor >= 0.0
+    assert result.authority_recovery_floor_capacity_shortfall_mL == 0.0
+    assert result.full_nominal_recovery_capacity_shortfall_mL == 0.0
 
 
 def test_capacity_ceiling_reserves_recovered_reprime_before_nominal_recovery():
@@ -54,6 +58,23 @@ def test_capacity_ceiling_reserves_recovered_reprime_before_nominal_recovery():
     )
     assert result.capacity_limited_nominal_recovery_ratio == pytest.approx(
         result.capacity_available_for_nominal_recovery_mL / result.nominal_introduced_service_mL
+    )
+
+
+def test_endpoint_capacity_minima_invert_recovery_accounting_exactly():
+    budget = build_authority_waste_fluid_budget()
+    result = evaluate_recovery_capacity_compatibility(budget, _screen(budget))
+    expected_floor = result.recovered_reprime_reserved_mL + (
+        result.nominal_introduced_service_mL * result.authority_nominal_recovery_floor_ratio
+    )
+    expected_full = result.recovered_reprime_reserved_mL + result.nominal_introduced_service_mL
+    assert result.minimum_capacity_for_authority_recovery_floor_mL == pytest.approx(expected_floor)
+    assert result.minimum_capacity_for_full_nominal_recovery_mL == pytest.approx(expected_full)
+    assert result.authority_recovery_floor_capacity_shortfall_mL == pytest.approx(
+        max(expected_floor - budget.cartridge_retained_capacity_requirement_mL, 0.0)
+    )
+    assert result.full_nominal_recovery_capacity_shortfall_mL == pytest.approx(
+        max(expected_full - budget.cartridge_retained_capacity_requirement_mL, 0.0)
     )
 
 
@@ -72,6 +93,7 @@ def test_synthetic_capacity_below_reprime_load_is_reported_independently():
     assert result.capacity_limited_nominal_recovery_ratio == 0.0
     assert result.authority_recovery_floor_capacity_feasible is False
     assert result.full_nominal_recovery_capacity_feasible is False
+    assert result.authority_recovery_floor_capacity_shortfall_mL > 0.0
 
 
 def test_rejects_capacity_screen_from_different_budget():
