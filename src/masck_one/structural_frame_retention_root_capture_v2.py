@@ -70,24 +70,25 @@ def build_positive_capture_split_retainer(*, center_x: float, groove_center_y: f
     _throat_metrics()
     inner = CLEVIS_PIN_RADIUS_MM - CLEVIS_PIN_GROOVE_DEPTH_MM + CLIP_HOLE_RELIEF_MM
     outer = CLEVIS_PIN_RADIUS_MM + CLEVIS_CLIP_RADIAL_THICKNESS_MM
-    half_throat = CLIP_THROAT_WIDTH_MM / 2.0
-    if half_throat >= outer:
-        raise StructuralFrameRetentionRootCaptureV2Error("retainer throat exceeds outer radius")
+    if CLIP_THROAT_WIDTH_MM >= 2.0 * outer:
+        raise StructuralFrameRetentionRootCaptureV2Error("retainer throat exceeds outer diameter")
 
-    # Cut from the top of the annulus down to the chord whose width is the
-    # controlled throat. This avoids the legacy proportional cut whose opening
-    # was not tied to pin capture semantics.
-    throat_floor_z = center_z + math.sqrt(outer * outer - half_throat * half_throat)
-    cut_height = 2.0 * (outer - (throat_floor_z - center_z)) + 0.02
+    # The throat must connect the exterior to the annular bore. The previous
+    # chord-floor construction stopped above the bore crown, leaving a closed
+    # ring even though its scalar throat evidence reported an opening. Cut a
+    # controlled-width radial slot from the centreline through the outer crown;
+    # because throat_width > inner_diameter by the guarded installation margin,
+    # the slot positively intersects the bore and produces a real C-retainer.
     full = _cylinder_y(outer, CLEVIS_PIN_GROOVE_WIDTH_MM, (center_x, groove_center_y, center_z))
     hole = _cylinder_y(inner, CLEVIS_PIN_GROOVE_WIDTH_MM + 0.2, (center_x, groove_center_y, center_z))
     ring = full.cut(hole)
+    cut_height = outer + 0.04
     split = cq.Workplane("XY").box(
-        outer * 2.5,
+        CLIP_THROAT_WIDTH_MM,
         CLEVIS_PIN_GROOVE_WIDTH_MM + 0.4,
         cut_height,
         centered=(True, True, True),
-    ).translate((center_x, groove_center_y, center_z + outer - cut_height / 2.0 + 0.01))
+    ).translate((center_x, groove_center_y, center_z + cut_height / 2.0 - 0.01))
     return _single(ring.cut(split), "positive-capture split retainer")
 
 
