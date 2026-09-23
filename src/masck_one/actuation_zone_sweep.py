@@ -91,10 +91,12 @@ class FourZoneImpedanceSweep:
     def validate(self, parameters: ActuationParameterSet) -> None:
         if type(parameters) is not ActuationParameterSet:
             raise ActuationParameterError("Four-zone sweep requires exact ActuationParameterSet evidence")
-        # Re-run construction invariants at every consumption boundary. Frozen
-        # evidence can still be altered through low-level object mutation, and
-        # downstream massage/thermal reducers must not trust stale construction-time
-        # checks when deciding which measured records belong to the four-zone sweep.
+        # Re-run authority and sweep construction invariants at every consumption
+        # boundary. Frozen evidence can still be altered through low-level mutation,
+        # including coordinated mutation of parameter identities and sweep records.
+        # Downstream massage/thermal reducers must therefore validate the authority
+        # object itself before trusting a matching digest.
+        parameters.__post_init__()
         self.__post_init__()
         if self.source_parameter_sha256 != parameters.parameter_sha256:
             raise ActuationParameterError("Four-zone sweep is stale for the supplied actuation parameter set")
@@ -177,7 +179,3 @@ class FourZoneImpedanceSweep:
     def sweep_sha256(self) -> str:
         raw = json.dumps(self.manifest(include_sha=False), sort_keys=True, separators=(",", ":")).encode("utf-8")
         return hashlib.sha256(raw).hexdigest()
-
-    @property
-    def point_count(self) -> int:
-        return len(self.records)
