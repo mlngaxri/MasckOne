@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Sequence
 
 from .waste_fluid_accounting import WasteFluidAccountingError, WasteFluidBudget
+from .waste_fluid_cycle_evidence import validate_cycle_routing_evidence
 from .waste_fluid_overflow_guard import CartridgeOverflowGuard, screen_cartridge_overflow_guard
 from .waste_fluid_profile import ServiceFluidProfile, screen_service_profile
 
@@ -56,6 +57,9 @@ class CapacityReservedOverflowGuard:
             raise WasteFluidAccountingError("reserve evidence must use exact CartridgeCapacityReserve type")
         if type(self.guard) is not CartridgeOverflowGuard:
             raise WasteFluidAccountingError("guard evidence must use exact CartridgeOverflowGuard type")
+        self.reserve.validate()
+        validate_cycle_routing_evidence(self.guard.routing)
+        self.guard.__post_init__()
         if not math.isclose(self.guard.capacity_reserve_mL, self.reserve.total_mL, rel_tol=0.0, abs_tol=1e-12):
             raise WasteFluidAccountingError("overflow guard reserve total does not match typed reserve evidence")
         if self.guard.source_capacity_reserve_sha256 != self.reserve.evidence_sha256:
