@@ -34,6 +34,11 @@ def validate_thermal_mechanical_coupling_evidence(
             "Thermal/mechanical evidence requires exact ActuationParameterSet authority"
         )
 
+    # Re-run the parameter-set construction invariants at the same consumption
+    # boundary. A frozen authority object can still be altered through low-level
+    # mutation; recomputing against a correspondingly altered sweep is not enough if
+    # the mutated command/force envelope is itself structurally invalid.
+    parameters.__post_init__()
     expected = reduce_measured_thermal_mechanical_coupling(sweep, parameters)
     if coupling != expected:
         raise ActuationParameterError(
