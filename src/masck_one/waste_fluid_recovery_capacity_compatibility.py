@@ -41,30 +41,36 @@ class RecoveryCapacityCompatibility:
 
 
 def _require_finite_evidence(**values: float) -> None:
-    """Reject NaN/inf before tolerance comparisons can silently accept them."""
     for name, value in values.items():
         if type(value) not in (int, float) or not math.isfinite(value):
             raise RecoveryCapacityCompatibilityError(f"{name} must be finite numeric evidence")
 
 
-def evaluate_recovery_capacity_compatibility(
-    budget: WasteFluidBudget,
-    screen: LimitingEventCapacityScreen,
-) -> RecoveryCapacityCompatibility:
+def evaluate_recovery_capacity_compatibility(budget: WasteFluidBudget, screen: LimitingEventCapacityScreen) -> RecoveryCapacityCompatibility:
     """Compare cartridge packaging capacity with the required nominal recovery range."""
     if not isinstance(screen, LimitingEventCapacityScreen):
         raise TypeError("recovery capacity compatibility requires LimitingEventCapacityScreen evidence")
-    if screen.service_envelope.cycles != budget.service_cycles:
-        raise RecoveryCapacityCompatibilityError(
-            "capacity compatibility requires evidence for exactly the authority service cycle count"
-        )
-    if screen.limiting_prime_events != screen.service_envelope.limiting_next_prime_events:
-        raise RecoveryCapacityCompatibilityError(
-            "capacity screen limiting prime event disagrees with service-envelope evidence"
-        )
+    envelope = screen.service_envelope
+    if envelope.cycles != budget.service_cycles:
+        raise RecoveryCapacityCompatibilityError("capacity compatibility requires evidence for exactly the authority service cycle count")
+    if screen.limiting_prime_events != envelope.limiting_next_prime_events:
+        raise RecoveryCapacityCompatibilityError("capacity screen limiting prime event disagrees with service-envelope evidence")
+
+    # Reconcile the nested closure that actually generated the limiting-event prime load.
+    # Without this check, a coherently edited top-level screen could silently detach the
+    # reserved reprime volume from its routing contract.
+    closure = envelope.first_infeasible.source_closure if envelope.first_infeasible is not None else envelope.maximum_feasible.source_closure
+    if closure.cycles != budget.service_cycles:
+        raise RecoveryCapacityCompatibilityError("limiting-event source closure service window disagrees with budget")
+    if closure.prime_events != screen.limiting_prime_events:
+        raise RecoveryCapacityCompatibilityError("limiting-event source closure prime count disagrees with capacity screen")
+    recovery_contract = closure.prime_recovery_ratio_contract
+    if type(recovery_contract) not in (int, float) or not math.isfinite(recovery_contract):
+        raise RecoveryCapacityCompatibilityError("limiting-event prime recovery contract must be finite numeric evidence")
+    expected_reprime = screen.limiting_prime_events * budget.maximum_initial_prime_mL_per_cycle * float(recovery_contract)
 
     _require_finite_evidence(
-        service_envelope_retained_capacity_mL=screen.service_envelope.maximum_feasible.retained_cartridge_capacity_mL,
+        service_envelope_retained_capacity_mL=envelope.maximum_feasible.retained_cartridge_capacity_mL,
         nominal_liquid_at_maximum_recovery_mL=screen.nominal_liquid_at_maximum_recovery_mL,
         retained_cartridge_capacity_mL=screen.retained_cartridge_capacity_mL,
         prime_liquid_routed_to_cartridge_mL=screen.prime_liquid_routed_to_cartridge_mL,
@@ -76,14 +82,13 @@ def evaluate_recovery_capacity_compatibility(
         budget_retained_capacity_mL=budget.cartridge_retained_capacity_requirement_mL,
         budget_nominal_introduced_per_cycle_mL=budget.nominal_introduced_mL_per_cycle,
         budget_minimum_recovered_per_cycle_mL=budget.minimum_recovered_mL_per_cycle,
+        budget_maximum_initial_prime_mL_per_cycle=budget.maximum_initial_prime_mL_per_cycle,
+        expected_reprime_mL=expected_reprime,
     )
-    if abs(
-        screen.service_envelope.maximum_feasible.retained_cartridge_capacity_mL
-        - budget.cartridge_retained_capacity_requirement_mL
-    ) > 1e-9:
-        raise RecoveryCapacityCompatibilityError(
-            "service-envelope retained capacity disagrees with budget"
-        )
+    if abs(screen.prime_liquid_routed_to_cartridge_mL - expected_reprime) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("capacity screen recovered reprime load disagrees with limiting-event routing contract")
+    if abs(envelope.maximum_feasible.retained_cartridge_capacity_mL - budget.cartridge_retained_capacity_requirement_mL) > 1e-9:
+        raise RecoveryCapacityCompatibilityError("service-envelope retained capacity disagrees with budget")
     nominal_service = screen.nominal_liquid_at_maximum_recovery_mL
     if nominal_service <= 0.0:
         raise RecoveryCapacityCompatibilityError("nominal introduced service liquid must be positive")
@@ -119,7 +124,6 @@ def evaluate_recovery_capacity_compatibility(
     available_for_nominal = max(reprime_margin, 0.0)
     capacity_limited_ratio = min(available_for_nominal / nominal_service, 1.0)
     ratio_margin = capacity_limited_ratio - authority_floor_ratio
-
     minimum_floor_capacity = expected_floor_demand
     floor_shortfall = max(minimum_floor_capacity - capacity, 0.0)
     minimum_full_capacity = expected_full_demand
@@ -151,29 +155,14 @@ def evaluate_recovery_capacity_compatibility(
         raise RecoveryCapacityCompatibilityError("capacity and service-life compatibility disagree at full recovery")
     if floor_cycle_limit < full_cycle_limit:
         raise RecoveryCapacityCompatibilityError("recovery-floor service-life bound cannot be below full-recovery bound")
-
     if floor_feasible == screen.authority_floor_cartridge_capacity_exceeded:
         raise RecoveryCapacityCompatibilityError("authority-floor capacity compatibility disagrees with limiting-event screen")
     if full_feasible == screen.cartridge_capacity_exceeded_at_maximum_nominal_recovery:
         raise RecoveryCapacityCompatibilityError("full-recovery capacity compatibility disagrees with limiting-event screen")
 
     return RecoveryCapacityCompatibility(
-        nominal_introduced_service_mL=nominal_service,
-        recovered_reprime_reserved_mL=reprime,
-        reprime_only_capacity_margin_mL=reprime_margin,
-        reprime_only_capacity_exceeded=reprime_exceeded,
-        capacity_available_for_nominal_recovery_mL=available_for_nominal,
-        authority_nominal_recovery_floor_ratio=authority_floor_ratio,
-        capacity_limited_nominal_recovery_ratio=capacity_limited_ratio,
-        recovery_ratio_margin_above_authority_floor=ratio_margin,
-        minimum_capacity_for_authority_recovery_floor_mL=minimum_floor_capacity,
-        authority_recovery_floor_capacity_shortfall_mL=floor_shortfall,
-        minimum_capacity_for_full_nominal_recovery_mL=minimum_full_capacity,
-        full_nominal_recovery_capacity_shortfall_mL=full_shortfall,
-        capacity_limited_service_cycles_at_authority_floor=floor_cycle_limit,
-        capacity_limited_service_cycles_at_full_recovery=full_cycle_limit,
-        authority_service_cycle_shortfall_at_recovery_floor=floor_cycle_shortfall,
-        authority_service_cycle_shortfall_at_full_recovery=full_cycle_shortfall,
-        authority_recovery_floor_capacity_feasible=floor_feasible,
-        full_nominal_recovery_capacity_feasible=full_feasible,
+        nominal_service, reprime, reprime_margin, reprime_exceeded, available_for_nominal,
+        authority_floor_ratio, capacity_limited_ratio, ratio_margin, minimum_floor_capacity,
+        floor_shortfall, minimum_full_capacity, full_shortfall, floor_cycle_limit, full_cycle_limit,
+        floor_cycle_shortfall, full_cycle_shortfall, floor_feasible, full_feasible,
     )
