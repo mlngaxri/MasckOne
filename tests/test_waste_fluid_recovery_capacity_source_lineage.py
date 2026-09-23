@@ -55,3 +55,20 @@ def test_rejects_nonfinite_nested_prime_recovery_contract():
     stale = _replace_limiting_closure(screen, prime_recovery_ratio_contract=float("nan"))
     with pytest.raises(RecoveryCapacityCompatibilityError, match="prime recovery contract must be finite"):
         evaluate_recovery_capacity_compatibility(budget, stale)
+
+
+@pytest.mark.parametrize("ratio", [-0.01, 1.01])
+def test_rejects_out_of_range_nested_prime_recovery_contract_even_if_reprime_is_reconciled(ratio):
+    budget, screen = _screen()
+    stale = _replace_limiting_closure(screen, prime_recovery_ratio_contract=ratio)
+    with pytest.raises(RecoveryCapacityCompatibilityError, match=r"prime recovery contract must lie within \[0, 1\]"):
+        evaluate_recovery_capacity_compatibility(budget, stale)
+
+
+def test_rejects_non_integer_limiting_prime_event_count():
+    budget, screen = _screen()
+    envelope = replace(screen.service_envelope, limiting_next_prime_events=1.5)
+    stale = replace(screen, limiting_prime_events=1.5, service_envelope=envelope)
+    stale = _replace_limiting_closure(stale, prime_events=1.5)
+    with pytest.raises(RecoveryCapacityCompatibilityError, match="limiting prime event count must be a non-negative integer"):
+        evaluate_recovery_capacity_compatibility(budget, stale)
