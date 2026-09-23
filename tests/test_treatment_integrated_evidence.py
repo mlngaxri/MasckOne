@@ -4,12 +4,14 @@ import pytest
 
 from masck_one.actuation_parameters import ActuationParameterError
 from masck_one.actuation_zone_sweep import FourZoneImpedanceSweep, ZoneImpedanceRecord
+from masck_one.thermal_control import ThermalCommandInterlock, ThermalMode
 from masck_one.treatment_integrated_evidence import (
     build_integrated_treatment_evidence,
     validate_integrated_treatment_evidence,
 )
 from masck_one.treatment_massage_thermal_evidence import build_treatment_massage_thermal_evidence
 from masck_one.treatment_recovery_readiness import screen_treatment_recovery_readiness
+from masck_one.treatment_thermal_handoff import command_thermal_from_integrated_treatment_evidence
 from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
 from masck_one.waste_fluid_overflow_guard import screen_cartridge_overflow_guard
 from tests.test_actuation_zone_system_response import _parameters, _sweep
@@ -82,3 +84,55 @@ def test_rejects_wrong_integrated_evidence_type():
     parameters = _parameters()
     with pytest.raises(TypeError, match="exact IntegratedTreatmentEvidence"):
         validate_integrated_treatment_evidence(_sweep(parameters), parameters, object())
+
+
+def test_integrated_evidence_can_drive_cool_without_dropping_measured_provenance():
+    parameters, sweep, evidence = _evidence()
+    command = command_thermal_from_integrated_treatment_evidence(
+        ThermalCommandInterlock(),
+        sweep,
+        parameters,
+        evidence,
+        warm_requested=False,
+        cool_requested=True,
+    )
+    assert command.mode is ThermalMode.COOL
+    assert command.cool_enable
+    assert not command.inhibited
+
+
+def test_integrated_thermal_handoff_rejects_different_measurement_capture():
+    parameters, sweep, evidence = _evidence()
+    first = sweep.records[0]
+    changed_record = replace(
+        first.record,
+        record_id="THERMAL-HANDOFF-DIFFERENT-CAPTURE",
+        evidence_uri="evidence://bench/system/thermal-handoff-different-capture",
+    )
+    other = FourZoneImpedanceSweep(
+        parameters.parameter_sha256,
+        (ZoneImpedanceRecord(first.zone_id, changed_record), *sweep.records[1:]),
+    )
+    with pytest.raises(ActuationParameterError):
+        command_thermal_from_integrated_treatment_evidence(
+            ThermalCommandInterlock(),
+            other,
+            parameters,
+            evidence,
+            warm_requested=False,
+            cool_requested=True,
+        )
+
+
+def test_integrated_thermal_handoff_revalidates_nested_recovery_before_cool():
+    parameters, sweep, evidence = _evidence()
+    object.__setattr__(evidence.recovery, "post_recovery_handoff_permitted", False)
+    with pytest.raises(WasteFluidAccountingError):
+        command_thermal_from_integrated_treatment_evidence(
+            ThermalCommandInterlock(),
+            sweep,
+            parameters,
+            evidence,
+            warm_requested=False,
+            cool_requested=True,
+        )
