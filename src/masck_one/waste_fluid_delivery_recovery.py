@@ -21,6 +21,20 @@ from .waste_fluid_accounting import (
 _TOL = 1e-12
 
 
+def _finite_sum(*values: float, label: str) -> float:
+    result = sum(values)
+    if not math.isfinite(result):
+        raise WasteFluidAccountingError(f"delivery/recovery {label} must remain finite")
+    return result
+
+
+def _finite_product(left: float, right: float, *, label: str) -> float:
+    result = left * right
+    if not math.isfinite(result):
+        raise WasteFluidAccountingError(f"delivery/recovery {label} must remain finite")
+    return result
+
+
 @dataclass(frozen=True, slots=True)
 class CleanCycleDeliveryRecoveryLedger:
     source_budget: WasteFluidBudget
@@ -57,22 +71,36 @@ class CleanCycleDeliveryRecoveryLedger:
         if any(type(v) not in (int, float) or not math.isfinite(float(v)) or v < 0.0 for v in numeric):
             raise WasteFluidAccountingError("delivery/recovery ledger values must be finite and nonnegative")
 
-        component_cycle = self.face_water_mL_per_cycle + self.cleanser_mL_per_cycle + self.post_flush_water_mL_per_cycle
+        component_cycle = _finite_sum(
+            self.face_water_mL_per_cycle,
+            self.cleanser_mL_per_cycle,
+            self.post_flush_water_mL_per_cycle,
+            label="cycle component total",
+        )
         expected_nominal = self.source_budget.nominal_introduced_mL_per_cycle
-        expected_service = self.cycles * expected_nominal
-        expected_recovery = expected_service * self.source_budget.recovery_ratio_min
+        expected_service = _finite_product(self.cycles, expected_nominal, label="expected service nominal volume")
+        expected_recovery = _finite_product(expected_service, self.source_budget.recovery_ratio_min, label="expected service recovery")
         expected_nonrecovery = expected_service - expected_recovery
+        if not math.isfinite(expected_nonrecovery):
+            raise WasteFluidAccountingError("delivery/recovery expected service nonrecovery must remain finite")
+        recovery_total = _finite_sum(self.minimum_service_recovery_mL, self.maximum_service_nonrecovery_mL, label="recovery conservation total")
+        service_component_total = _finite_sum(
+            self.service_face_water_mL,
+            self.service_cleanser_mL,
+            self.service_post_flush_water_mL,
+            label="service component total",
+        )
         checks = (
             (component_cycle, self.nominal_mL_per_cycle, "cycle component conservation"),
             (self.nominal_mL_per_cycle, expected_nominal, "waste-budget nominal binding"),
-            (self.service_face_water_mL, self.cycles * self.face_water_mL_per_cycle, "service face-water total"),
-            (self.service_cleanser_mL, self.cycles * self.cleanser_mL_per_cycle, "service cleanser total"),
-            (self.service_post_flush_water_mL, self.cycles * self.post_flush_water_mL_per_cycle, "service post-flush total"),
+            (self.service_face_water_mL, _finite_product(self.cycles, self.face_water_mL_per_cycle, label="expected service face-water volume"), "service face-water total"),
+            (self.service_cleanser_mL, _finite_product(self.cycles, self.cleanser_mL_per_cycle, label="expected service cleanser volume"), "service cleanser total"),
+            (self.service_post_flush_water_mL, _finite_product(self.cycles, self.post_flush_water_mL_per_cycle, label="expected service post-flush volume"), "service post-flush total"),
             (self.service_nominal_mL, expected_service, "service nominal total"),
             (self.minimum_service_recovery_mL, expected_recovery, "service recovery floor"),
             (self.maximum_service_nonrecovery_mL, expected_nonrecovery, "service nonrecovery envelope"),
-            (self.minimum_service_recovery_mL + self.maximum_service_nonrecovery_mL, self.service_nominal_mL, "recovery conservation"),
-            (self.service_face_water_mL + self.service_cleanser_mL + self.service_post_flush_water_mL, self.service_nominal_mL, "service component conservation"),
+            (recovery_total, self.service_nominal_mL, "recovery conservation"),
+            (service_component_total, self.service_nominal_mL, "service component conservation"),
         )
         for actual, expected, label in checks:
             if not math.isclose(actual, expected, rel_tol=0.0, abs_tol=_TOL):
@@ -104,16 +132,19 @@ def build_authority_delivery_recovery_ledger(
     cleanser = authority.number("fluid", "clean_cycle", "cleanser_mL")
     post_flush = authority.number("fluid", "clean_cycle", "post_flush_water_mL")
     nominal = authority.number("fluid", "clean_cycle", "nominal_introduced_liquid_mL")
-    component_total = face_water + cleanser + post_flush
+    component_total = _finite_sum(face_water, cleanser, post_flush, label="authority clean-cycle component total")
     if not math.isclose(component_total, nominal, rel_tol=0.0, abs_tol=_TOL):
         raise WasteFluidAccountingError("authority clean-cycle components do not conserve nominal introduced liquid")
     if not math.isclose(nominal, budget.nominal_introduced_mL_per_cycle, rel_tol=0.0, abs_tol=_TOL):
         raise WasteFluidAccountingError("delivery authority nominal volume disagrees with recovery budget")
-    service_face = cycles * face_water
-    service_cleanser = cycles * cleanser
-    service_post = cycles * post_flush
-    service_nominal = cycles * nominal
-    minimum_recovery = service_nominal * budget.recovery_ratio_min
+    service_face = _finite_product(cycles, face_water, label="service face-water volume")
+    service_cleanser = _finite_product(cycles, cleanser, label="service cleanser volume")
+    service_post = _finite_product(cycles, post_flush, label="service post-flush volume")
+    service_nominal = _finite_product(cycles, nominal, label="service nominal volume")
+    minimum_recovery = _finite_product(service_nominal, budget.recovery_ratio_min, label="minimum service recovery")
+    maximum_nonrecovery = service_nominal - minimum_recovery
+    if not math.isfinite(maximum_nonrecovery):
+        raise WasteFluidAccountingError("delivery/recovery maximum service nonrecovery must remain finite")
     return CleanCycleDeliveryRecoveryLedger(
         source_budget=budget,
         cycles=cycles,
@@ -126,5 +157,5 @@ def build_authority_delivery_recovery_ledger(
         service_post_flush_water_mL=service_post,
         service_nominal_mL=service_nominal,
         minimum_service_recovery_mL=minimum_recovery,
-        maximum_service_nonrecovery_mL=service_nominal - minimum_recovery,
+        maximum_service_nonrecovery_mL=maximum_nonrecovery,
     )
