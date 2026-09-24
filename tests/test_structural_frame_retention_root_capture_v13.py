@@ -14,6 +14,7 @@ def test_v13_quantifies_zero_headroom_recovery_without_changing_nominal_geometry
     assert evidence.equal_split_reduction_per_feature_mm == pytest.approx(0.01)
     assert evidence.candidate_clip_tolerance_mm == pytest.approx(0.04)
     assert evidence.candidate_groove_tolerance_mm == pytest.approx(0.04)
+    assert evidence.candidate_minimum_axial_clearance_mm == pytest.approx(0.07)
     assert evidence.candidate_maximum_axial_free_play_mm == pytest.approx(0.23)
     assert evidence.nominal_geometry_unchanged is True
 
@@ -28,6 +29,12 @@ def test_v13_rejects_under_recovered_candidate():
     evidence = v13.build_structural_frame_retention_root_capture_v13()
     with pytest.raises(v13.StructuralFrameRetentionRootCaptureV13Error):
         replace(evidence, candidate_maximum_axial_free_play_mm=0.24).validate()
+
+
+def test_v13_rejects_candidate_that_loses_minimum_clearance():
+    evidence = v13.build_structural_frame_retention_root_capture_v13()
+    with pytest.raises(v13.StructuralFrameRetentionRootCaptureV13Error):
+        replace(evidence, candidate_minimum_axial_clearance_mm=0.04).validate()
 
 
 def test_v13_preserves_evidence_firewall():
