@@ -110,6 +110,15 @@ def test_guard_rejects_tampered_derived_evidence(field, value):
         replace(guard, **{field: value})
 
 
+def test_guard_rejects_boolean_cycle_disposition_that_compares_equal_to_cycle_one():
+    guard = _authority_guard(capacity_reserve_mL=34.0)
+    assert guard.first_unavoidable_overflow_cycle == 1
+    assert guard.first_conservative_capacity_failure_cycle == 1
+    for field in ("first_unavoidable_overflow_cycle", "first_conservative_capacity_failure_cycle"):
+        with pytest.raises(WasteFluidAccountingError, match="positive exact integer cycle"):
+            replace(guard, **{field: True})
+
+
 def test_guard_rejects_reserve_reinterpretation_without_matching_usable_capacity():
     guard = _authority_guard()
     with pytest.raises(WasteFluidAccountingError, match="usable capacity plus reserve"):
