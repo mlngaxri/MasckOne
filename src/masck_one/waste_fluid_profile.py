@@ -53,6 +53,76 @@ class ServiceFluidProfile:
     source_capacity_reserve_sha256: str | None = None
 
     def __post_init__(self) -> None:
+        if type(self.cycles) is not tuple or not self.cycles or any(type(state) is not CycleFluidState for state in self.cycles):
+            raise WasteFluidAccountingError("service profile requires exact nonempty CycleFluidState evidence")
+        if type(self.target_cycles) is not int or self.target_cycles <= 0 or self.target_cycles < len(self.cycles):
+            raise WasteFluidAccountingError("service profile target cycle count is invalid")
+        if type(self.future_prime_events_per_remaining_cycle) is not int or self.future_prime_events_per_remaining_cycle < 0:
+            raise WasteFluidAccountingError("future prime contingency must be a nonnegative integer")
+        for value, label in ((self.capacity_reserve_mL, "capacity reserve"), (self.usable_capacity_mL, "usable capacity")):
+            if type(value) not in (int, float) or not math.isfinite(float(value)) or float(value) < 0.0:
+                raise WasteFluidAccountingError(f"service profile {label} must be finite and nonnegative")
+
+        previous_primes = -1
+        previous_nominal = -1.0
+        previous_prime_volume = -1.0
+        numeric_fields = (
+            "cumulative_nominal_mL", "cumulative_prime_mL", "minimum_recovered_nominal_mL",
+            "maximum_cartridge_inflow_mL", "occupancy_uncertainty_mL", "requirement_margin_mL",
+            "minimum_projected_service_end_recovered_mL", "projected_mandatory_recovery_margin_mL",
+            "reserved_future_prime_mL", "minimum_projected_service_end_inflow_mL", "projected_service_end_margin_mL",
+        )
+        for expected_cycle, state in enumerate(self.cycles, start=1):
+            if type(state.cycle) is not int or state.cycle != expected_cycle:
+                raise WasteFluidAccountingError("service profile cycle sequence must be contiguous and one-based")
+            if type(state.prime_events_this_cycle) is not int or state.prime_events_this_cycle < 0:
+                raise WasteFluidAccountingError("cycle prime-event count must be a nonnegative integer")
+            if type(state.cumulative_prime_events) is not int or state.cumulative_prime_events < 0:
+                raise WasteFluidAccountingError("cumulative prime-event count must be a nonnegative integer")
+            if previous_primes >= 0 and state.cumulative_prime_events != previous_primes + state.prime_events_this_cycle:
+                raise WasteFluidAccountingError("cumulative prime-event count does not conserve cycle events")
+            if expected_cycle == 1 and state.cumulative_prime_events != state.prime_events_this_cycle:
+                raise WasteFluidAccountingError("first-cycle cumulative prime-event count is inconsistent")
+            for name in numeric_fields:
+                value = getattr(state, name)
+                if type(value) not in (int, float) or not math.isfinite(float(value)):
+                    raise WasteFluidAccountingError(f"cycle {name} must be finite numeric evidence")
+            for name in ("capacity_satisfied", "minimum_recovery_capacity_satisfied", "mandatory_recovery_service_target_feasible", "service_target_feasible"):
+                if type(getattr(state, name)) is not bool:
+                    raise WasteFluidAccountingError(f"cycle {name} must be boolean evidence")
+            for name in ("maximum_additional_prime_events_for_target", "maximum_unreserved_prime_events_after_contingency"):
+                value = getattr(state, name)
+                if value is not None and (type(value) is not int or value < 0):
+                    raise WasteFluidAccountingError(f"cycle {name} must be nonnegative integer or None")
+            if type(state.reserved_future_prime_events) is not int or state.reserved_future_prime_events < 0:
+                raise WasteFluidAccountingError("reserved future prime-event count must be a nonnegative integer")
+            expected_reserved_events = (self.target_cycles - state.cycle) * self.future_prime_events_per_remaining_cycle
+            if state.reserved_future_prime_events != expected_reserved_events:
+                raise WasteFluidAccountingError("reserved future prime-event count is inconsistent with service contingency")
+            if state.cumulative_nominal_mL + 1e-12 < previous_nominal or state.cumulative_prime_mL + 1e-12 < previous_prime_volume:
+                raise WasteFluidAccountingError("cumulative service volumes cannot decrease across cycles")
+            if state.minimum_recovered_nominal_mL < -1e-12 or state.maximum_cartridge_inflow_mL < -1e-12 or state.occupancy_uncertainty_mL < -1e-12:
+                raise WasteFluidAccountingError("cycle fluid volumes must remain nonnegative")
+            if state.minimum_recovered_nominal_mL > state.maximum_cartridge_inflow_mL + 1e-12:
+                raise WasteFluidAccountingError("minimum recovered volume cannot exceed maximum cartridge inflow")
+            if abs((state.maximum_cartridge_inflow_mL - state.minimum_recovered_nominal_mL) - state.occupancy_uncertainty_mL) > 1e-12:
+                raise WasteFluidAccountingError("cycle occupancy uncertainty does not close recovered-to-inflow interval")
+            previous_primes = state.cumulative_prime_events
+            previous_nominal = state.cumulative_nominal_mL
+            previous_prime_volume = state.cumulative_prime_mL
+
+        marker_specs = (
+            ("first_overflow_cycle", "capacity_satisfied"),
+            ("first_mandatory_recovery_overflow_cycle", "minimum_recovery_capacity_satisfied"),
+            ("first_mandatory_recovery_target_infeasible_cycle", "mandatory_recovery_service_target_feasible"),
+            ("first_target_infeasible_cycle", "service_target_feasible"),
+        )
+        for marker_name, state_name in marker_specs:
+            actual = getattr(self, marker_name)
+            expected = next((state.cycle for state in self.cycles if not getattr(state, state_name)), None)
+            if actual != expected:
+                raise WasteFluidAccountingError(f"{marker_name} is inconsistent with cycle evidence")
+
         if self.source_capacity_reserve_sha256 is not None:
             value = self.source_capacity_reserve_sha256
             if type(value) is not str or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
