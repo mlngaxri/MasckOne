@@ -27,12 +27,7 @@ def _validate(built, geometry):
     )
 
 
-def test_accepts_canonical_current_source_distribution_geometry(built):
-    *_, geometry = built
-    assert _validate(built, geometry) is geometry
-
-
-def test_rejects_eligible_but_noncanonical_outlet_substitution(built):
+def _eligible_noncanonical_geometry(built):
     model, *_, geometry = built
     selected = {item.source_triangle_index for item in geometry.placements}
     replacement_triangle = next(
@@ -63,7 +58,16 @@ def test_rejects_eligible_but_noncanonical_outlet_substitution(built):
         origin_xyz_mm=substituted.center_xyz_mm,
         lateral_direction_xyz=substituted.lateral_direction_xyz,
     )
-    altered = replace(geometry, placements=placements, grooves=tuple(grooves))
+    return replace(geometry, placements=placements, grooves=tuple(grooves))
+
+
+def test_accepts_canonical_current_source_distribution_geometry(built):
+    *_, geometry = built
+    assert _validate(built, geometry) is geometry
+
+
+def test_rejects_eligible_but_noncanonical_outlet_substitution(built):
+    altered = _eligible_noncanonical_geometry(built)
 
     # The existing per-placement source validator intentionally accepts any legal
     # current-source triangle. The consumption boundary must additionally preserve
@@ -81,6 +85,28 @@ def test_rejects_eligible_but_noncanonical_outlet_substitution(built):
     )
     with pytest.raises(DistributionGeometryError, match="canonical current-source outlet selection"):
         _validate(built, altered)
+
+
+def test_rejects_noncanonical_geometry_with_forged_canonical_digest(built):
+    *_, canonical = built
+    altered = _eligible_noncanonical_geometry(built)
+    forged = replace(altered, architecture_sha256=canonical.architecture_sha256)
+
+    # A cached digest is evidence, not authority. Even coordinated mutation of a
+    # legal outlet selection and its stored digest must not cross this boundary.
+    model, water, cleanser, frame, pump, manifold, _ = built
+    forged.validate_current_sources(
+        authority=model.authority,
+        manifold=manifold,
+        pump=pump,
+        water=water,
+        cleanser=cleanser,
+        frame=frame,
+        coverage=model.coverage_mesh,
+        protected=model.protected_volumes,
+    )
+    with pytest.raises(DistributionGeometryError, match="canonical current-source outlet selection"):
+        _validate(built, forged)
 
 
 def test_rejects_wrong_evidence_type(built):
