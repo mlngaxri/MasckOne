@@ -96,3 +96,20 @@ def test_sizing_object_rejects_forged_fit_decision_against_bound_profile():
     values["conservative_fit"] = True
     with pytest.raises(WasteFluidAccountingError, match="conservative capacity fit"):
         ServiceCapacitySizingInterval(**values)
+
+
+def test_sizing_rejects_overflow_in_retained_capacity_reconstruction():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1,), target_cycles=1)
+    object.__setattr__(profile, "capacity_reserve_mL", 1.0e308)
+    object.__setattr__(profile, "usable_capacity_mL", 1.0e308)
+    with pytest.raises(WasteFluidAccountingError, match="arithmetic must remain finite"):
+        derive_service_capacity_sizing_interval(profile)
+
+
+def test_sizing_rejects_nonfinite_cycle_capacity_bound_before_fit_decision():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1,), target_cycles=1)
+    object.__setattr__(profile.cycles[0], "minimum_projected_service_end_inflow_mL", float("inf"))
+    with pytest.raises(WasteFluidAccountingError, match="conservative service capacity bound must be finite"):
+        derive_service_capacity_sizing_interval(profile)
