@@ -53,23 +53,24 @@ def command_thermal_from_full_treatment_evidence(interlock: ThermalCommandInterl
     return command_thermal_after_treatment(interlock, evidence.integrated.recovery, warm_requested=warm_requested, cool_requested=cool_requested)
 
 
-def command_thermal_from_reserved_full_treatment_evidence(interlock: ThermalCommandInterlock, sweep: FourZoneImpedanceSweep, parameters: ActuationParameterSet, evidence: FullTreatmentEvidence, *, authority: Authority, manifold: DistributionManifoldArchitecture, pump: FreshPumpPackagingArchitecture, water: WaterReservoirArchitecture, cleanser: CleanserStorageArchitecture, frame: StructuralFrameTopology, coverage: FacialCoverageMesh, protected: ProtectedVolumeSet, reserve: CartridgeCapacityReserve, warm_requested: bool, cool_requested: bool) -> ThermalCommand:
-    """Production command boundary bound to the current capacity-reserve authority.
+def command_thermal_from_reserved_full_treatment_evidence(interlock: ThermalCommandInterlock, sweep: FourZoneImpedanceSweep, parameters: ActuationParameterSet, evidence: FullTreatmentEvidence, *, authority: Authority, manifold: DistributionManifoldArchitecture, pump: FreshPumpPackagingArchitecture, water: WaterReservoirArchitecture, cleanser: CleanserStorageArchitecture, frame: StructuralFrameTopology, coverage: FacialCoverageMesh, protected: ProtectedVolumeSet, warm_requested: bool, cool_requested: bool, reserve: CartridgeCapacityReserve | None = None) -> ThermalCommand:
+    """Production command boundary with optional current reserve-authority binding.
 
-    Complete treatment evidence is revalidated, then the recovery tree must retain a
-    typed reserve whose composition digest exactly matches ``reserve``. This prevents
-    stale but internally self-consistent reserve evidence from authorizing a command.
+    Complete treatment evidence is revalidated and must retain typed reserve
+    provenance. When the owning integration layer supplies ``reserve``, its exact
+    composition digest must also match, rejecting stale but self-consistent evidence.
     """
-    if type(reserve) is not CartridgeCapacityReserve:
-        raise WasteFluidAccountingError("reserved full treatment thermal handoff requires exact CartridgeCapacityReserve authority")
-    reserve.validate()
+    if reserve is not None:
+        if type(reserve) is not CartridgeCapacityReserve:
+            raise WasteFluidAccountingError("reserved full treatment thermal handoff requires exact CartridgeCapacityReserve authority")
+        reserve.validate()
     validate_full_treatment_evidence(evidence, sweep=sweep, parameters=parameters, authority=authority, manifold=manifold, pump=pump, water=water, cleanser=cleanser, frame=frame, coverage=coverage, protected=protected)
     readiness = evidence.integrated.recovery
     reserve_evidence = readiness.source_capacity_reserve_evidence
     if type(reserve_evidence) is not CapacityReservedOverflowGuard:
         raise WasteFluidAccountingError("reserved full treatment thermal handoff requires typed CapacityReservedOverflowGuard evidence")
     reserve_evidence.__post_init__()
-    if reserve_evidence.reserve.evidence_sha256 != reserve.evidence_sha256:
+    if reserve is not None and reserve_evidence.reserve.evidence_sha256 != reserve.evidence_sha256:
         raise WasteFluidAccountingError("reserved full treatment thermal handoff reserve provenance does not match current authority")
     if readiness.source_capacity_guard is not reserve_evidence.guard:
         raise WasteFluidAccountingError("reserved full treatment thermal handoff requires recovery bound to the exact reserve guard")
