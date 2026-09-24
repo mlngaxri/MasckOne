@@ -1,0 +1,201 @@
+{
+  "adversarial_evaluations": 108,
+  "campaign_sha256": "abf9e1ea7d112a790fb526d63bc366f536a7b136ee6181dfeb6bc7f72be241ad",
+  "capability_counts": {
+    "CURRENT_RIGID": {
+      "1.0": 16,
+      "3.0": 35,
+      "5.0": 48
+    },
+    "ONE_GLOBAL_Z": {
+      "1.0": 21,
+      "3.0": 37,
+      "5.0": 48
+    },
+    "TWO_PROPORTIONAL_REFERENCE_SIZES": {
+      "1.0": 2,
+      "3.0": 38,
+      "5.0": 50
+    }
+  },
+  "capture_proven": 0,
+  "capture_unknown": 147,
+  "decision": "D_DIGITAL_INDETERMINATE",
+  "eye_only_rigid_null_modes": 1,
+  "generator_sha256": "5930e92e770d11ed39603e5e465e083e843d90f1f7b13b6da87ddc0f1c565eb8",
+  "human_fit": false,
+  "main": "17f7d02c6178af8d33e4dfefb5043b497684ddb3",
+  "physical_experiment": "Unpowered adjustable headform alignment study with registered protected references and independent pose metrology; qualify support/seal travel and identify false seated states before human use",
+  "population_statistics": false,
+  "runtime": {
+    "numpy": "2.3.5",
+    "python": "3.12.14"
+  },
+  "schema": "MASCK_FIT_CAMPAIGN_1",
+  "smallest_conditional_witness": {
+    "conditional_capacity_mm": 3.0,
+    "frame": "MASCK_ONE_AUTHORITY_WORLD_MM",
+    "generator_sha256": "5930e92e770d11ed39603e5e465e083e843d90f1f7b13b6da87ddc0f1c565eb8",
+    "lower_ray_scale": 0.8745481157675385,
+    "minimum_claim": "SMALLEST_ON_PRUNED_EXPLORED_RAY_NOT_GLOBAL",
+    "normalized_perturbation": 0.8745481166988611,
+    "parameters": {
+      "asymmetry": 0.0,
+      "bridge_projection": 0.0,
+      "brow_projection": 0.0,
+      "cheek_curvature": 0.0,
+      "cheek_prominence": 0.0,
+      "chin_projection": 0.0,
+      "eye_spacing": 0.0,
+      "face_height": 15.7418661005795,
+      "face_width": 0.0,
+      "forehead_curvature": 0.0,
+      "jaw_width": 0.0,
+      "local_curvature": 0.0,
+      "lower_face_projection": 0.0,
+      "mouth_width": 0.0,
+      "mouth_y": 0.0,
+      "nasal_width": 0.0
+    },
+    "physical_failure_claimed": false,
+    "proof": "Rigid-distance invariant exceeds assumed local residual capacity",
+    "registration": {
+      "adjustments": {
+        "abstract_target_scale": [
+          1.0,
+          1.0
+        ],
+        "existing_product_adjustments": []
+      },
+      "landmark_residual_acceptance_mm": null,
+      "max_residual_mm": 3.1858538536887053,
+      "near_equal_pose_separation_mixed_units": 1.7636231786498745e-06,
+      "optimizer_converged": true,
+      "passive_alignment": "UNKNOWN",
+      "per_landmark_residual_mm": {
+        "EYE_LEFT": 3.1858538536887053,
+        "EYE_RIGHT": 3.1858538536887053,
+        "MOUTH": 3.1858538536887053,
+        "NOSTRIL_LEFT": 4.672175535347379e-08,
+        "NOSTRIL_RIGHT": 4.672175535347379e-08
+      },
+      "pose": [
+        -4.672175490510155e-08,
+        0.5622095035921247,
+        -0.0,
+        0.0,
+        0.0,
+        -1.2691651840904352e-15
+      ],
+      "pose_limits": {
+        "extrinsic_xyz_each_deg": 4.0,
+        "xy_radius_mm": 5.0,
+        "z_mm": 0.0,
+        "z_status": "OWNER_FIXED_ZERO"
+      },
+      "region_access": "UNKNOWN",
+      "rigid_invariant_bound": {
+        "lower_bound_mm": 3.0000010009470444,
+        "pair": [
+          0,
+          4
+        ],
+        "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+      },
+      "seal": "UNKNOWN",
+      "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+      "support": "UNKNOWN",
+      "whole_fit": "UNKNOWN"
+    },
+    "scale_bracket": 9.313225746154785e-10,
+    "source_main": "17f7d02c6178af8d33e4dfefb5043b497684ddb3",
+    "source_snapshot_digest": "48a640ddb71b324c5da8e61f20be726f8690f338bcec7b06ab7fb4f1a7ace8f5",
+    "upper_ray_scale": 0.8745481166988611
+  },
+  "source_snapshot_digest": "48a640ddb71b324c5da8e61f20be726f8690f338bcec7b06ab7fb4f1a7ace8f5",
+  "starting_poses": 147,
+  "structure": {
+    "combined_moderate": 1,
+    "coupled_seeded": 16,
+    "nominal": 1,
+    "one_parameter_boundaries": 32
+  },
+  "surface_demands": {
+    "COMBINED_MODERATE": {
+      "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+      "maximum_absolute_z_mm": 0.0,
+      "qualified_local_travel_mm": null,
+      "seal_support_feasible": "UNKNOWN",
+      "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+      "z_max_mm": 0.0,
+      "z_min_mm": 0.0,
+      "z_span_mm": 0.0
+    },
+    "NOMINAL": {
+      "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+      "maximum_absolute_z_mm": 6.206405237571695e-17,
+      "qualified_local_travel_mm": null,
+      "seal_support_feasible": "UNKNOWN",
+      "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+      "z_max_mm": 6.206405237571695e-17,
+      "z_min_mm": -6.206405237571695e-17,
+      "z_span_mm": 1.241281047514339e-16
+    },
+    "asymmetry_HIGH": {
+      "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+      "maximum_absolute_z_mm": 4.98737535737545,
+      "qualified_local_travel_mm": null,
+      "seal_support_feasible": "UNKNOWN",
+      "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+      "z_max_mm": 4.98737535737545,
+      "z_min_mm": -4.98737535737545,
+      "z_span_mm": 9.9747507147509
+    },
+    "bridge_projection_HIGH": {
+      "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+      "maximum_absolute_z_mm": 14.861780876197985,
+      "qualified_local_travel_mm": null,
+      "seal_support_feasible": "UNKNOWN",
+      "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+      "z_max_mm": 14.861780876197985,
+      "z_min_mm": -7.045403760727295,
+      "z_span_mm": 21.90718463692528
+    },
+    "cheek_prominence_HIGH": {
+      "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+      "maximum_absolute_z_mm": 12.026540384562281,
+      "qualified_local_travel_mm": null,
+      "seal_support_feasible": "UNKNOWN",
+      "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+      "z_max_mm": 12.026540384562281,
+      "z_min_mm": -3.7549226599528676,
+      "z_span_mm": 15.78146304451515
+    }
+  },
+  "synthetic_morphologies": 50,
+  "two_size_grid_search_counts": {
+    "0.95+1.0": {
+      "1.0": 16,
+      "3.0": 37,
+      "5.0": 49
+    },
+    "0.95+1.05": {
+      "1.0": 2,
+      "3.0": 38,
+      "5.0": 50
+    },
+    "1.0+1.05": {
+      "1.0": 18,
+      "3.0": 41,
+      "5.0": 49
+    }
+  },
+  "upstream_dependencies": [
+    "Registered facial/headform depth",
+    "Source-bound compliant support/seal travel",
+    "Passive self-alignment constraint/contact geometry",
+    "Integrated emergency and normal whole-head removal",
+    "CS015 required regions registered to a measured surface"
+  ],
+  "whole_face_complete": false
+}
