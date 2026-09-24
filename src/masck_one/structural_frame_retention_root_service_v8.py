@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-"""V8 full symmetry gate for bilateral retention-root service clearance.
+"""V8 same-root service-access separation gate.
 
-V7 binds all four exact B-rep service clearances but only checks the crossed pairs for
-mirror equivalence. V8 closes the remaining asymmetry hole by requiring both same-
-operation pairs and both crossed-operation pairs to remain symmetry-bound, while
-preserving V7 geometry and clearance authority.
+V3 proves each operation clears the opposite seated hardware, while V4-V7 prove
+bilateral operation corridors do not conflict. V8 closes the remaining local access gap:
+the pin-withdrawal and retainer-installation corridors at each root must themselves
+remain spatially separated. This reduces accidental simultaneous access and catches a
+future packaging edit that makes the two service gestures occupy the same local space.
 """
 
 from dataclasses import dataclass
@@ -13,10 +14,14 @@ from hashlib import sha256
 import json
 import math
 
+from . import structural_frame_retention_root_service as v1
+from . import structural_frame_retention_root_service_v6 as v6
 from . import structural_frame_retention_root_service_v7 as v7
+from .structural_frame_retention_roots import build_structural_frame_retention_roots
 
 SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_ROOT_SERVICE_V8"
 SUPERSEDES_SCHEMA = v7.SCHEMA
+MIN_LOCAL_OPERATION_SEPARATION_MM = v1.ACCESS_CLEARANCE_MM
 SYMMETRY_TOLERANCE_MM = v7.SYMMETRY_TOLERANCE_MM
 
 
@@ -24,63 +29,53 @@ class StructuralFrameRetentionRootServiceV8Error(ValueError):
     pass
 
 
-def _symmetry_evidence() -> tuple[tuple[tuple[str, float], ...], str]:
+def _local_access_evidence() -> tuple[tuple[tuple[str, float], ...], str]:
+    roots = build_structural_frame_retention_roots()
+    service = v1.build_structural_frame_retention_root_service(roots=roots)
+    if len(service.paths) != 2:
+        raise StructuralFrameRetentionRootServiceV8Error("exactly two bilateral service paths are required")
+
+    records: list[tuple[str, float]] = []
+    for path in service.paths:
+        distance = v6._brep_distance(path.pin_withdraw_sweep, path.clip_install_sweep)
+        if not math.isfinite(distance) or distance < MIN_LOCAL_OPERATION_SEPARATION_MM:
+            raise StructuralFrameRetentionRootServiceV8Error(
+                f"{path.root_id} pin and retainer service corridors are insufficiently separated"
+            )
+        records.append((path.root_id, round(distance, 12)))
+
+    if abs(records[0][1] - records[1][1]) > SYMMETRY_TOLERANCE_MM:
+        raise StructuralFrameRetentionRootServiceV8Error(
+            "same-root service-access separation is not mirror-equivalent"
+        )
+
     source = v7.build_structural_frame_retention_root_service_v7()
-    distances = dict(source.pairwise_clearances_mm)
-    required = {
-        "pin_withdraw_vs_pin_withdraw",
-        "clip_install_vs_clip_install",
-        "left_pin_withdraw_vs_right_clip_install",
-        "left_clip_install_vs_right_pin_withdraw",
-    }
-    if set(distances) != required:
-        raise StructuralFrameRetentionRootServiceV8Error("V7 pairwise service record set is incomplete")
-
-    # Same-operation pairs are each generated from mirrored left/right service solids.
-    # Their symmetry residual is therefore measured by reversing operand order and
-    # requiring exact-distance invariance. Crossed pairs must agree with each other.
-    source_records = tuple(source.pairwise_clearances_mm)
-    pin_same = distances["pin_withdraw_vs_pin_withdraw"]
-    clip_same = distances["clip_install_vs_clip_install"]
-    crossed_error = abs(
-        distances["left_pin_withdraw_vs_right_clip_install"]
-        - distances["left_clip_install_vs_right_pin_withdraw"]
-    )
-    residuals = (
-        ("pin_withdraw_mirror_residual", 0.0 if math.isfinite(pin_same) else math.inf),
-        ("clip_install_mirror_residual", 0.0 if math.isfinite(clip_same) else math.inf),
-        ("crossed_operation_mirror_residual", crossed_error),
-    )
-    for label, residual in residuals:
-        if not math.isfinite(residual) or residual > SYMMETRY_TOLERANCE_MM:
-            raise StructuralFrameRetentionRootServiceV8Error(f"bilateral service symmetry violated for {label}")
-
     payload = {
         "source_v7_evidence_sha256": source.pairwise_evidence_sha256,
-        "source_records": [(label, format(value, ".12f")) for label, value in source_records],
-        "residuals": [(label, format(value, ".12f")) for label, value in residuals],
+        "records": [(root_id, format(distance, ".12f")) for root_id, distance in records],
+        "minimum_local_operation_separation_mm": format(MIN_LOCAL_OPERATION_SEPARATION_MM, ".12f"),
         "symmetry_tolerance_mm": format(SYMMETRY_TOLERANCE_MM, ".12f"),
     }
     digest = sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-    return residuals, digest
+    return tuple(records), digest
 
 
 @dataclass(frozen=True, slots=True)
 class StructuralFrameRetentionRootServiceV8:
     source_v7_evidence_sha256: str
-    symmetry_residuals_mm: tuple[tuple[str, float], ...]
-    symmetry_evidence_sha256: str
+    local_operation_separations_mm: tuple[tuple[str, float], ...]
+    local_access_evidence_sha256: str
     physical_validation_eligible: bool = False
 
     def validate(self) -> "StructuralFrameRetentionRootServiceV8":
         source = v7.build_structural_frame_retention_root_service_v7()
-        residuals, digest = _symmetry_evidence()
+        records, digest = _local_access_evidence()
         if self.source_v7_evidence_sha256 != source.pairwise_evidence_sha256:
             raise StructuralFrameRetentionRootServiceV8Error("source V7 service evidence is stale")
-        if self.symmetry_residuals_mm != residuals:
-            raise StructuralFrameRetentionRootServiceV8Error("service symmetry evidence is stale")
-        if self.symmetry_evidence_sha256 != digest or len(digest) != 64:
-            raise StructuralFrameRetentionRootServiceV8Error("service symmetry digest is stale")
+        if self.local_operation_separations_mm != records:
+            raise StructuralFrameRetentionRootServiceV8Error("local service-access evidence is stale")
+        if self.local_access_evidence_sha256 != digest or len(digest) != 64:
+            raise StructuralFrameRetentionRootServiceV8Error("local service-access digest is stale")
         if self.physical_validation_eligible is not False:
             raise StructuralFrameRetentionRootServiceV8Error("digital service geometry is not physical evidence")
         return self
@@ -91,10 +86,11 @@ class StructuralFrameRetentionRootServiceV8:
             "schema": SCHEMA,
             "supersedes_schema": SUPERSEDES_SCHEMA,
             "source_v7_evidence_sha256": self.source_v7_evidence_sha256,
-            "symmetry_residuals_mm": [list(record) for record in self.symmetry_residuals_mm],
+            "local_operation_separations_mm": [list(record) for record in self.local_operation_separations_mm],
+            "minimum_local_operation_separation_mm": MIN_LOCAL_OPERATION_SEPARATION_MM,
             "symmetry_tolerance_mm": SYMMETRY_TOLERANCE_MM,
-            "symmetry_evidence_sha256": self.symmetry_evidence_sha256,
-            "criterion": "ALL_BILATERAL_SERVICE_PAIRINGS_REMAIN_SYMMETRY_BOUND",
+            "local_access_evidence_sha256": self.local_access_evidence_sha256,
+            "criterion": "PIN_AND_RETAINER_SERVICE_GESTURES_REMAIN_LOCALLY_SEPARATED_AND_MIRROR_EQUIVALENT",
             "whole_head_removal_status": "OPEN",
             "physical_validation_eligible": self.physical_validation_eligible,
         }
@@ -104,5 +100,5 @@ class StructuralFrameRetentionRootServiceV8:
 
 def build_structural_frame_retention_root_service_v8() -> StructuralFrameRetentionRootServiceV8:
     source = v7.build_structural_frame_retention_root_service_v7()
-    residuals, digest = _symmetry_evidence()
-    return StructuralFrameRetentionRootServiceV8(source.pairwise_evidence_sha256, residuals, digest, False).validate()
+    records, digest = _local_access_evidence()
+    return StructuralFrameRetentionRootServiceV8(source.pairwise_evidence_sha256, records, digest, False).validate()
