@@ -14,6 +14,7 @@ from .protected_volumes import ProtectedVolumeSet
 from .structural_frame import StructuralFrameTopology
 from .treatment_recovery_readiness import TreatmentRecoveryReadiness
 from .waste_fluid_accounting import WasteFluidAccountingError
+from .waste_fluid_overflow_guard import CartridgeOverflowGuard
 from .water_reservoir import WaterReservoirArchitecture
 
 
@@ -32,6 +33,10 @@ def _validate_recovery(recovery: TreatmentRecoveryReadiness) -> None:
             "CLEAN distribution evidence requires exact TreatmentRecoveryReadiness"
         )
     recovery.__post_init__()
+    if type(recovery.source_capacity_guard) is not CartridgeOverflowGuard:
+        raise WasteFluidAccountingError(
+            "CLEAN distribution evidence requires reserve-aware CartridgeOverflowGuard evidence"
+        )
 
 
 def build_treatment_clean_distribution_evidence(
@@ -47,7 +52,7 @@ def build_treatment_clean_distribution_evidence(
     coverage: FacialCoverageMesh,
     protected: ProtectedVolumeSet,
 ) -> TreatmentCleanDistributionEvidence:
-    """Bind canonical delivery placement and recovery evidence without new physics."""
+    """Bind canonical delivery placement and capacity-aware recovery evidence."""
     validate_canonical_distribution_geometry(
         geometry,
         authority=authority,
