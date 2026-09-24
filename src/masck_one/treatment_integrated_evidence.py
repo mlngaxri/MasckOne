@@ -20,6 +20,7 @@ class IntegratedTreatmentEvidence:
 
     recovery: TreatmentRecoveryReadiness
     massage_thermal: TreatmentMassageThermalEvidence
+    source_parameter_sha256: str
     source_sweep_sha256: str
 
 
@@ -34,6 +35,7 @@ def build_integrated_treatment_evidence(
     return IntegratedTreatmentEvidence(
         recovery=recovery,
         massage_thermal=massage_thermal,
+        source_parameter_sha256=parameters.parameter_sha256,
         source_sweep_sha256=sweep.sweep_sha256,
     )
 
@@ -68,6 +70,10 @@ def validate_integrated_treatment_evidence(
     validate_integrated_treatment_inputs(
         evidence.recovery, sweep, parameters, evidence.massage_thermal
     )
+    if evidence.source_parameter_sha256 != parameters.parameter_sha256:
+        raise ActuationParameterError(
+            "integrated treatment evidence does not match current actuation parameter set"
+        )
     if evidence.source_sweep_sha256 != sweep.sweep_sha256:
         raise ActuationParameterError(
             "integrated treatment evidence does not match current four-zone sweep"
