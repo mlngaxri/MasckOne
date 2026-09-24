@@ -2,9 +2,9 @@ from dataclasses import replace
 
 import pytest
 
+from masck_one.distribution_geometry import DistributionGeometryError
 from masck_one.treatment_clean_distribution_evidence import build_treatment_clean_distribution_evidence
 from masck_one.treatment_full_evidence import (
-    FullTreatmentEvidence,
     build_full_treatment_evidence,
     validate_full_treatment_evidence,
 )
@@ -80,7 +80,7 @@ def test_rejects_independently_qualified_recovery_trees_even_when_both_are_valid
 def test_rejects_forged_clean_distribution_binding_inside_full_tree(built):
     sources, parameters, sweep, full = _full(built)
     forged_clean = replace(full.clean, source_distribution_sha256="0" * 64)
-    with pytest.raises(Exception):
+    with pytest.raises(DistributionGeometryError, match="digest does not match"):
         validate_full_treatment_evidence(
             replace(full, clean=forged_clean), sweep=sweep, parameters=parameters, **sources
         )
