@@ -45,6 +45,8 @@ class StructuralFrameRetentionRootCaptureV13:
 
     def validate(self) -> "StructuralFrameRetentionRootCaptureV13":
         prior = capture_v12.build_structural_frame_retention_root_capture_v12().validate()
+        if self.source_capture_v12_sha256 != prior.evidence_sha256:
+            raise StructuralFrameRetentionRootCaptureV13Error("capture V13 is not bound to current V12 authority")
         current = prior.axial_free_play_headroom_mm
         required = max(0.0, TARGET_AXIAL_FREE_PLAY_HEADROOM_MM - current)
         split = required / 2.0
