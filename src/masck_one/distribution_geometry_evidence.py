@@ -31,12 +31,12 @@ def validate_canonical_distribution_geometry(
     """Reject stale or substituted outlet selections at a consumption boundary.
 
     ``DistributionGeometryArchitecture.validate_current_sources`` proves that every
-    supplied placement is individually legal for the current sources.  This stronger
+    supplied placement is individually legal for the current sources. This stronger
     boundary also reconstructs the deterministic farthest-sample selection, including
     the independent 18-water then 6-cleanser allocation, and requires the consumed
-    architecture to be exactly that canonical result.  It therefore prevents an
-    eligible but noncanonical target triangle from silently replacing a selected
-    outlet while retaining valid clearance, direction, and source hashes.
+    architecture to be exactly that canonical result. Comparing the complete typed
+    architecture, rather than trusting its stored digest alone, keeps this boundary
+    fail-closed if a caller mutates both geometry and the cached digest coherently.
     """
     if type(geometry) is not DistributionGeometryArchitecture:
         raise DistributionGeometryError(
@@ -63,7 +63,7 @@ def validate_canonical_distribution_geometry(
         coverage,
         protected,
     )
-    if geometry.architecture_sha256 != expected.architecture_sha256:
+    if geometry != expected:
         raise DistributionGeometryError(
             "distribution geometry does not match canonical current-source outlet selection"
         )
