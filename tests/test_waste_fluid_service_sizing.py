@@ -103,7 +103,7 @@ def test_sizing_rejects_overflow_in_retained_capacity_reconstruction():
     profile = screen_service_profile(budget, prime_events_by_cycle=(1,), target_cycles=1)
     object.__setattr__(profile, "capacity_reserve_mL", 1.0e308)
     object.__setattr__(profile, "usable_capacity_mL", 1.0e308)
-    with pytest.raises(WasteFluidAccountingError, match="arithmetic must remain finite"):
+    with pytest.raises(WasteFluidAccountingError, match="service profile capacity reserve"):
         derive_service_capacity_sizing_interval(profile)
 
 
@@ -111,5 +111,22 @@ def test_sizing_rejects_nonfinite_cycle_capacity_bound_before_fit_decision():
     budget = build_authority_waste_fluid_budget()
     profile = screen_service_profile(budget, prime_events_by_cycle=(1,), target_cycles=1)
     object.__setattr__(profile.cycles[0], "minimum_projected_service_end_inflow_mL", float("inf"))
-    with pytest.raises(WasteFluidAccountingError, match="conservative service capacity bound must be finite"):
+    with pytest.raises(WasteFluidAccountingError, match="cycle minimum_projected_service_end_inflow_mL"):
         derive_service_capacity_sizing_interval(profile)
+
+
+def test_sizing_rejects_stale_nested_profile_metadata_before_fit_decision():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1,), target_cycles=1)
+    object.__setattr__(profile, "target_cycles", 0)
+    with pytest.raises(WasteFluidAccountingError, match="target cycle count is invalid"):
+        derive_service_capacity_sizing_interval(profile)
+
+
+def test_sizing_evidence_revalidates_bound_profile_after_construction():
+    budget = build_authority_waste_fluid_budget()
+    profile = screen_service_profile(budget, prime_events_by_cycle=(1,), target_cycles=1)
+    sizing = derive_service_capacity_sizing_interval(profile)
+    object.__setattr__(profile, "future_prime_events_per_remaining_cycle", -1)
+    with pytest.raises(WasteFluidAccountingError, match="future prime contingency"):
+        sizing.__post_init__()
