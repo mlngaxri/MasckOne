@@ -58,7 +58,7 @@ def test_rejects_internally_valid_guard_from_different_delivery_authority():
         prime_residual_ratio_contract=0.08,
         prime_external_leakage_ratio_contract=0.02,
     )
-    with pytest.raises(WasteFluidAccountingError, match="inflow trajectory"):
+    with pytest.raises(WasteFluidAccountingError, match="service routing|inflow trajectory"):
         validate_overflow_guard_authority(budget, guard)
 
 
@@ -66,7 +66,29 @@ def test_rejects_internally_valid_guard_from_different_nominal_recovery_authorit
     budget = build_authority_waste_fluid_budget()
     alternate = replace(budget, recovery_ratio_min=0.95)
     guard = _guard(alternate)
-    with pytest.raises(WasteFluidAccountingError, match="nominal recovery"):
+    with pytest.raises(WasteFluidAccountingError, match="service routing|nominal recovery"):
+        validate_overflow_guard_authority(budget, guard)
+
+
+def test_rejects_authority_collision_that_preserves_nominal_recovery_and_maximum_inflow():
+    budget = build_authority_waste_fluid_budget()
+    alternate_nominal = budget.nominal_introduced_mL_per_cycle + 0.1
+    alternate_prime = budget.maximum_initial_prime_mL_per_cycle - 0.1
+    alternate = replace(
+        budget,
+        nominal_introduced_mL_per_cycle=alternate_nominal,
+        maximum_initial_prime_mL_per_cycle=alternate_prime,
+        recovery_ratio_min=budget.minimum_recovered_mL_per_cycle / alternate_nominal,
+    )
+    guard = _guard(alternate)
+
+    assert guard.routing.cycles[0].minimum_nominal_routed_to_cartridge_mL == pytest.approx(
+        budget.minimum_recovered_mL_per_cycle
+    )
+    assert guard.routing.cycles[-1].cumulative_maximum_cartridge_inflow_mL == pytest.approx(
+        budget.conservative_service_screen.maximum_cartridge_inflow_mL
+    )
+    with pytest.raises(WasteFluidAccountingError, match="service routing"):
         validate_overflow_guard_authority(budget, guard)
 
 

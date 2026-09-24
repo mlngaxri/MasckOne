@@ -4,6 +4,7 @@ from __future__ import annotations
 import math
 
 from .waste_fluid_accounting import WasteFluidAccountingError, WasteFluidBudget
+from .waste_fluid_closure import screen_service_routing_closure
 from .waste_fluid_cycle_evidence import validate_cycle_routing_evidence
 from .waste_fluid_overflow_guard import CartridgeOverflowGuard
 
@@ -42,6 +43,20 @@ def validate_overflow_guard_authority(
     if len(guard.routing.cycles) != budget.service_cycles:
         raise WasteFluidAccountingError(
             "overflow guard cycle evidence must cover the complete authority service life"
+        )
+
+    service = guard.routing.service
+    expected_service = screen_service_routing_closure(
+        budget,
+        cycles=service.cycles,
+        prime_events=service.prime_events,
+        prime_recovery_ratio_contract=service.prime_recovery_ratio_contract,
+        prime_residual_ratio_contract=service.prime_residual_ratio_contract,
+        prime_external_leakage_ratio_contract=service.prime_external_leakage_ratio_contract,
+    )
+    if service != expected_service:
+        raise WasteFluidAccountingError(
+            "overflow guard service routing does not match fluid authority"
         )
 
     cumulative_prime_events = 0
