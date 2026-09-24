@@ -10,11 +10,13 @@ from masck_one.waste_fluid_overflow_authority import validate_overflow_guard_aut
 from masck_one.waste_fluid_overflow_guard import screen_cartridge_overflow_guard
 
 
-def _guard(budget=None):
+def _guard(budget=None, *, prime_events_by_cycle=None):
     budget = budget or build_authority_waste_fluid_budget()
+    if prime_events_by_cycle is None:
+        prime_events_by_cycle = [1] * budget.service_cycles
     return screen_cartridge_overflow_guard(
         budget,
-        prime_events_by_cycle=[1] * 6,
+        prime_events_by_cycle=prime_events_by_cycle,
         prime_recovery_ratio_contract=0.90,
         prime_residual_ratio_contract=0.08,
         prime_external_leakage_ratio_contract=0.02,
@@ -25,6 +27,13 @@ def test_authority_guard_binds_to_budget():
     budget = build_authority_waste_fluid_budget()
     guard = _guard(budget)
     validate_overflow_guard_authority(budget, guard)
+
+
+def test_rejects_partial_service_trajectory_as_overflow_authority():
+    budget = build_authority_waste_fluid_budget()
+    guard = _guard(budget, prime_events_by_cycle=[1] * (budget.service_cycles - 1))
+    with pytest.raises(WasteFluidAccountingError, match="complete authority service life"):
+        validate_overflow_guard_authority(budget, guard)
 
 
 def test_rejects_internally_valid_guard_from_different_capacity_authority():
