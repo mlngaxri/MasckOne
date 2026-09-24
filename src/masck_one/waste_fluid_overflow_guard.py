@@ -55,6 +55,12 @@ class CartridgeOverflowGuard:
         for name, value in numeric.items():
             if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(float(value)):
                 raise WasteFluidAccountingError(f"{name} must be a finite numeric value")
+        for name, value in (
+            ("first_unavoidable_overflow_cycle", self.first_unavoidable_overflow_cycle),
+            ("first_conservative_capacity_failure_cycle", self.first_conservative_capacity_failure_cycle),
+        ):
+            if value is not None and (type(value) is not int or value < 1):
+                raise WasteFluidAccountingError(f"{name} must be None or a positive exact integer cycle")
         if self.retained_capacity_mL <= 0 or self.capacity_reserve_mL < 0 or self.usable_capacity_mL <= 0:
             raise WasteFluidAccountingError("overflow guard retained/reserve/usable capacity is nonphysical")
         if not math.isclose(self.usable_capacity_mL + self.capacity_reserve_mL, self.retained_capacity_mL, rel_tol=0.0, abs_tol=_TOL):
