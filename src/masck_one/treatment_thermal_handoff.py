@@ -28,6 +28,8 @@ def command_thermal_after_treatment(interlock: ThermalCommandInterlock, readines
         raise WasteFluidAccountingError("treatment thermal handoff requires exact ThermalCommandInterlock")
     if type(readiness) is not TreatmentRecoveryReadiness:
         raise WasteFluidAccountingError("treatment thermal handoff requires exact TreatmentRecoveryReadiness")
+    if type(warm_requested) is not bool or type(cool_requested) is not bool:
+        raise WasteFluidAccountingError("treatment thermal requests must be exact booleans")
     readiness.__post_init__()
     if type(readiness.source_capacity_guard) is not CartridgeOverflowGuard:
         raise WasteFluidAccountingError("treatment thermal handoff requires reserve-aware CartridgeOverflowGuard evidence")
