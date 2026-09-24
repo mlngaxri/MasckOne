@@ -26,6 +26,7 @@ def _mutate_cycle(profile, index, **changes):
 def test_authority_profile_closes():
     profile = _profile()
     assert validate_service_profile_closure(profile) is profile
+    assert validate_service_profile_closure(profile, build_authority_waste_fluid_budget()) is profile
 
 
 @pytest.mark.parametrize(
@@ -48,8 +49,6 @@ def test_rejects_stale_decision_boolean(field):
     profile = _profile()
     state = profile.cycles[0]
     bad = _mutate_cycle(profile, 0, **{field: not getattr(state, field)})
-    # Recompute the corresponding first-failure marker when needed so the profile's
-    # structural marker check cannot be the only reason this hostile case fails.
     marker_by_field = {
         "capacity_satisfied": "first_overflow_cycle",
         "mandatory_recovery_service_target_feasible": "first_mandatory_recovery_target_infeasible_cycle",
@@ -90,3 +89,50 @@ def test_rejects_projected_inflow_below_accumulated_inflow_even_with_coherent_ma
     )
     with pytest.raises(WasteFluidAccountingError):
         validate_service_profile_closure(bad)
+
+
+@pytest.mark.parametrize(
+    "field",
+    (
+        "cumulative_nominal_mL",
+        "cumulative_prime_mL",
+        "minimum_recovered_nominal_mL",
+        "maximum_cartridge_inflow_mL",
+        "reserved_future_prime_mL",
+        "minimum_projected_service_end_recovered_mL",
+        "minimum_projected_service_end_inflow_mL",
+    ),
+)
+def test_authority_closure_rejects_stale_source_derived_volume(field):
+    budget = build_authority_waste_fluid_budget()
+    profile = _profile()
+    state = profile.cycles[0]
+    bad = _mutate_cycle(profile, 0, **{field: getattr(state, field) + 0.01})
+    with pytest.raises(WasteFluidAccountingError):
+        validate_service_profile_closure(bad, budget)
+
+
+def test_authority_closure_rejects_stale_additional_prime_headroom():
+    budget = build_authority_waste_fluid_budget()
+    profile = _profile()
+    state = profile.cycles[0]
+    bad = _mutate_cycle(
+        profile,
+        0,
+        maximum_additional_prime_events_for_target=state.maximum_additional_prime_events_for_target + 1,
+    )
+    with pytest.raises(WasteFluidAccountingError):
+        validate_service_profile_closure(bad, budget)
+
+
+def test_authority_closure_rejects_stale_unreserved_prime_headroom():
+    budget = build_authority_waste_fluid_budget()
+    profile = _profile()
+    state = profile.cycles[0]
+    bad = _mutate_cycle(
+        profile,
+        0,
+        maximum_unreserved_prime_events_after_contingency=state.maximum_unreserved_prime_events_after_contingency + 1,
+    )
+    with pytest.raises(WasteFluidAccountingError):
+        validate_service_profile_closure(bad, budget)
