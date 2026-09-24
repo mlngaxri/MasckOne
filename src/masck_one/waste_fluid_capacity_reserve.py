@@ -40,7 +40,6 @@ class CartridgeCapacityReserve:
 
     @property
     def evidence_sha256(self) -> str:
-        """Canonical identity for reserve composition, not merely its scalar total."""
         payload = {name: value for name, value in self.breakdown_mL}
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return hashlib.sha256(raw).hexdigest()
@@ -48,7 +47,6 @@ class CartridgeCapacityReserve:
 
 @dataclass(frozen=True, slots=True)
 class CapacityReservedOverflowGuard:
-    """Overflow result retaining the exact reserve composition that produced it."""
     reserve: CartridgeCapacityReserve
     guard: CartridgeOverflowGuard
 
@@ -68,7 +66,6 @@ class CapacityReservedOverflowGuard:
 
 @dataclass(frozen=True, slots=True)
 class CapacityReservedServiceProfile:
-    """Service profile retaining the exact reserve assumptions that produced it."""
     reserve: CartridgeCapacityReserve
     profile: ServiceFluidProfile
 
@@ -77,8 +74,12 @@ class CapacityReservedServiceProfile:
             raise WasteFluidAccountingError("reserve evidence must use exact CartridgeCapacityReserve type")
         if type(self.profile) is not ServiceFluidProfile:
             raise WasteFluidAccountingError("profile evidence must use exact ServiceFluidProfile type")
+        self.reserve.validate()
+        self.profile.__post_init__()
         if not math.isclose(self.profile.capacity_reserve_mL, self.reserve.total_mL, rel_tol=0.0, abs_tol=1e-12):
             raise WasteFluidAccountingError("service profile reserve total does not match typed reserve evidence")
+        if self.profile.source_capacity_reserve_sha256 != self.reserve.evidence_sha256:
+            raise WasteFluidAccountingError("service profile reserve composition does not match typed reserve evidence")
 
 
 def _validated_total_reserve_mL(budget: WasteFluidBudget, reserve: CartridgeCapacityReserve) -> float:
@@ -97,18 +98,15 @@ def screen_cartridge_capacity_reserve(budget: WasteFluidBudget, reserve: Cartrid
 
 
 def screen_cartridge_capacity_reserve_evidence(budget: WasteFluidBudget, reserve: CartridgeCapacityReserve, *, prime_events_by_cycle: tuple[int, ...] | list[int], prime_recovery_ratio_contract: float | None = None, prime_residual_ratio_contract: float | None = None, prime_external_leakage_ratio_contract: float | None = None) -> CapacityReservedOverflowGuard:
-    """Return overflow accounting with source-bound reserve composition."""
     guard = screen_cartridge_capacity_reserve(budget, reserve, prime_events_by_cycle=prime_events_by_cycle, prime_recovery_ratio_contract=prime_recovery_ratio_contract, prime_residual_ratio_contract=prime_residual_ratio_contract, prime_external_leakage_ratio_contract=prime_external_leakage_ratio_contract)
     return CapacityReservedOverflowGuard(reserve=reserve, guard=guard)
 
 
 def screen_service_profile_with_capacity_reserve(budget: WasteFluidBudget, reserve: CartridgeCapacityReserve, *, prime_events_by_cycle: Sequence[int], target_cycles: int | None = None, future_prime_events_per_remaining_cycle: int = 0) -> ServiceFluidProfile:
-    """Run service-life accounting using an explicit composed capacity reserve."""
     total = _validated_total_reserve_mL(budget, reserve)
-    return screen_service_profile(budget, prime_events_by_cycle=prime_events_by_cycle, target_cycles=target_cycles, future_prime_events_per_remaining_cycle=future_prime_events_per_remaining_cycle, capacity_reserve_mL=total)
+    return screen_service_profile(budget, prime_events_by_cycle=prime_events_by_cycle, target_cycles=target_cycles, future_prime_events_per_remaining_cycle=future_prime_events_per_remaining_cycle, capacity_reserve_mL=total, source_capacity_reserve_sha256=reserve.evidence_sha256)
 
 
 def screen_service_profile_with_capacity_reserve_evidence(budget: WasteFluidBudget, reserve: CartridgeCapacityReserve, *, prime_events_by_cycle: Sequence[int], target_cycles: int | None = None, future_prime_events_per_remaining_cycle: int = 0) -> CapacityReservedServiceProfile:
-    """Return service accounting together with source-bound reserve composition."""
     profile = screen_service_profile_with_capacity_reserve(budget, reserve, prime_events_by_cycle=prime_events_by_cycle, target_cycles=target_cycles, future_prime_events_per_remaining_cycle=future_prime_events_per_remaining_cycle)
     return CapacityReservedServiceProfile(reserve=reserve, profile=profile)
