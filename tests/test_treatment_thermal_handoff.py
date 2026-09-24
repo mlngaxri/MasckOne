@@ -139,3 +139,24 @@ def test_mutated_permitted_readiness_cannot_enable_cool():
         command_thermal_after_treatment(
             ThermalCommandInterlock(), readiness, warm_requested=False, cool_requested=True
         )
+
+
+@pytest.mark.parametrize(
+    ("warm_requested", "cool_requested"),
+    [
+        (1, False),
+        (0, True),
+        (False, 1),
+        (True, 0),
+        (None, False),
+        (False, object()),
+    ],
+)
+def test_non_boolean_thermal_requests_are_rejected(warm_requested, cool_requested):
+    with pytest.raises(WasteFluidAccountingError, match="thermal requests must be exact booleans"):
+        command_thermal_after_treatment(
+            ThermalCommandInterlock(),
+            _readiness([0], recovery=1.0, recovery_floor=.95),
+            warm_requested=warm_requested,
+            cool_requested=cool_requested,
+        )
