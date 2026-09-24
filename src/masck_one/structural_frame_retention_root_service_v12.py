@@ -20,6 +20,7 @@ from .structural_frame_retention_roots import build_structural_frame_retention_r
 SCHEMA = "MASCK_ONE_STRUCTURAL_FRAME_RETENTION_ROOT_SERVICE_V12"
 SUPERSEDES_SCHEMA = v11.SCHEMA
 REGISTRATION_TOLERANCE_MM = v11.REGISTRATION_TOLERANCE_MM
+VOLUME_TOLERANCE_MM3 = 1e-6
 
 
 class StructuralFrameRetentionRootServiceV12Error(ValueError):
@@ -53,7 +54,15 @@ def _cross_section_evidence() -> tuple[tuple[tuple[str, tuple[float, ...], tuple
             retainer_sweep.ymin - (retainer.ymin - c),
             retainer_sweep.ymax - (retainer.ymax + c),
         )
-        values = pin_errors + retainer_errors
+        expected_pin_volume = (pin.xlen + 2.0 * c) * (pin.zlen + 2.0 * c) * v1.PIN_WITHDRAW_EXTENSION_MM
+        expected_retainer_volume = (retainer.xlen + 2.0 * c) * (retainer.ylen + 2.0 * c) * v1.CLIP_RADIAL_EXTENSION_MM
+        pin_volume_error = float(path.pin_withdraw_sweep.val().Volume()) - expected_pin_volume
+        retainer_volume_error = float(path.clip_install_sweep.val().Volume()) - expected_retainer_volume
+        if abs(pin_volume_error) > VOLUME_TOLERANCE_MM3:
+            raise StructuralFrameRetentionRootServiceV12Error(f"{root.root_id} pin corridor volume is inconsistent with authored cross-section and travel")
+        if abs(retainer_volume_error) > VOLUME_TOLERANCE_MM3:
+            raise StructuralFrameRetentionRootServiceV12Error(f"{root.root_id} retainer corridor volume is inconsistent with authored cross-section and travel")
+        values = pin_errors + retainer_errors + (pin_volume_error, retainer_volume_error)
         if not all(math.isfinite(value) for value in values):
             raise StructuralFrameRetentionRootServiceV12Error("service cross-section registration must be finite")
         if any(abs(value) > REGISTRATION_TOLERANCE_MM for value in pin_errors):
@@ -69,6 +78,7 @@ def _cross_section_evidence() -> tuple[tuple[tuple[str, tuple[float, ...], tuple
         "access_clearance_mm": v1.ACCESS_CLEARANCE_MM,
         "cross_section_boundary_error_mm": records,
         "registration_tolerance_mm": REGISTRATION_TOLERANCE_MM,
+        "volume_tolerance_mm3": VOLUME_TOLERANCE_MM3,
     }
     digest = sha256(json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
     return tuple(records), digest
@@ -104,7 +114,7 @@ class StructuralFrameRetentionRootServiceV12:
             "access_clearance_mm": v1.ACCESS_CLEARANCE_MM,
             "registration_tolerance_mm": REGISTRATION_TOLERANCE_MM,
             "cross_section_registration_evidence_sha256": self.cross_section_registration_evidence_sha256,
-            "criterion": "SERVICE_CORRIDOR_CROSS_SECTIONS_REGISTER_TO_SEATED_HARDWARE_PLUS_ACCESS_CLEARANCE",
+            "criterion": "SERVICE_CORRIDORS_REGISTER_TO_SEATED_HARDWARE_AND_PRESERVE_AUTHORED_PRISMATIC_VOLUME",
             "whole_head_removal_status": "OPEN",
             "physical_validation_eligible": self.physical_validation_eligible,
         }
