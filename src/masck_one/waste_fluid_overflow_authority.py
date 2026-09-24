@@ -6,6 +6,7 @@ import math
 from .waste_fluid_accounting import WasteFluidAccountingError, WasteFluidBudget
 from .waste_fluid_closure import screen_service_routing_closure
 from .waste_fluid_cycle_evidence import validate_cycle_routing_evidence
+from .waste_fluid_cycle_routing import screen_cycle_resolved_routing_closure
 from .waste_fluid_overflow_guard import CartridgeOverflowGuard
 
 _TOL = 1e-12
@@ -57,6 +58,22 @@ def validate_overflow_guard_authority(
     if service != expected_service:
         raise WasteFluidAccountingError(
             "overflow guard service routing does not match fluid authority"
+        )
+
+    # Rebuild the complete cycle trajectory from authority plus the explicit reprime
+    # schedule. Aggregate service parity alone cannot detect equal-and-opposite
+    # corruption of prime recovery between cycles, which can move an apparent
+    # contractual overflow boundary earlier or later without changing final totals.
+    expected_routing = screen_cycle_resolved_routing_closure(
+        budget,
+        prime_events_by_cycle=tuple(state.prime_events for state in guard.routing.cycles),
+        prime_recovery_ratio_contract=service.prime_recovery_ratio_contract,
+        prime_residual_ratio_contract=service.prime_residual_ratio_contract,
+        prime_external_leakage_ratio_contract=service.prime_external_leakage_ratio_contract,
+    )
+    if guard.routing != expected_routing:
+        raise WasteFluidAccountingError(
+            "overflow guard cycle routing does not match fluid authority"
         )
 
     cumulative_prime_events = 0
