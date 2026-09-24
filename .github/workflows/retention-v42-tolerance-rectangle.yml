@@ -1,0 +1,44 @@
+name: Retention V42 tolerance rectangle
+
+on:
+  push:
+    branches: [sol-high/retention-quick-release-20260909]
+    paths:
+      - "src/masck_one/retention_quick_release_tactile.py"
+      - "src/masck_one/retention_quick_release_tactile_v40.py"
+      - "src/masck_one/retention_quick_release_tactile_v41.py"
+      - "src/masck_one/retention_quick_release_tactile_v42.py"
+      - "tests/test_retention_quick_release_tactile_v42.py"
+      - ".github/workflows/retention-v42-tolerance-rectangle.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: retention-v42-tolerance-rectangle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tolerance-rectangle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - run: python -m py_compile src/masck_one/retention_quick_release_tactile_v42.py
+      - run: python -m pytest -q tests/test_retention_quick_release_tactile_v42.py
+
+# Exact-head focused gate. V42 proves that the collision/mesh-bound four-corner
+# authority is exactly the Cartesian product of the already-declared nominal and
+# maximum radial and anti-rotation clearances. It does not claim manufactured
+# tolerance-stack closure, continuous swept-volume clearance, strength, wear,
+# wet-use performance, comfort, safety, or physical validation.

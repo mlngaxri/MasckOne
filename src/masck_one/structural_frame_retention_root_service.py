@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import cadquery as cq
@@ -19,6 +20,7 @@ PIN_WITHDRAW_EXTENSION_MM = 8.0
 CLIP_RADIAL_EXTENSION_MM = 5.0
 ACCESS_CLEARANCE_MM = 0.20
 _INTERSECTION_TOLERANCE_MM3 = 1e-7
+_GEOMETRY_TOLERANCE_MM = 1e-6
 
 
 class StructuralFrameRetentionRootServiceError(ValueError):
@@ -32,16 +34,39 @@ def _valid(shape: cq.Workplane, label: str) -> None:
 
 
 def _intersection(a: cq.Workplane, b: cq.Workplane) -> float:
+    """Return Boolean intersection volume, failing closed if OCC cannot prove it."""
     try:
-        return max(0.0, float(a.intersect(b).val().Volume()))
-    except Exception:
-        return 0.0
+        volume = float(a.intersect(b).val().Volume())
+    except Exception as exc:
+        raise StructuralFrameRetentionRootServiceError(
+            "service-corridor intersection Boolean failed; clearance evidence is unavailable"
+        ) from exc
+    if not math.isfinite(volume) or volume < 0.0:
+        raise StructuralFrameRetentionRootServiceError(
+            "service-corridor intersection volume must be finite and non-negative"
+        )
+    return 0.0 if volume < _INTERSECTION_TOLERANCE_MM3 else volume
 
 
 def _box_from_bounds(bb: cq.BoundBox, *, dx: float = 0.0, dy: float = 0.0, dz: float = 0.0) -> cq.Workplane:
     return cq.Workplane("XY").box(
         bb.xlen + dx, bb.ylen + dy, bb.zlen + dz, centered=(True, True, True)
     ).translate(((bb.xmin + bb.xmax) / 2.0, (bb.ymin + bb.ymax) / 2.0, (bb.zmin + bb.zmax) / 2.0))
+
+
+def _center_and_size(shape: cq.Workplane) -> tuple[float, float, float, float, float, float]:
+    bb = shape.val().BoundingBox()
+    values = (
+        (bb.xmin + bb.xmax) / 2.0,
+        (bb.ymin + bb.ymax) / 2.0,
+        (bb.zmin + bb.zmax) / 2.0,
+        bb.xlen,
+        bb.ylen,
+        bb.zlen,
+    )
+    if not all(math.isfinite(value) for value in values):
+        raise StructuralFrameRetentionRootServiceError("service-corridor bounds must be finite")
+    return values
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,6 +90,10 @@ class RetentionRootServicePath:
             ("clip/frame", self.clip_sweep_frame_intersection_mm3),
             ("clip/yoke", self.clip_sweep_yoke_intersection_mm3),
         ):
+            if not math.isfinite(volume) or volume < 0.0:
+                raise StructuralFrameRetentionRootServiceError(
+                    f"continuous {label} service-corridor evidence must be finite and non-negative"
+                )
             if volume > _INTERSECTION_TOLERANCE_MM3:
                 raise StructuralFrameRetentionRootServiceError(f"continuous {label} service corridor collides with material")
 
@@ -95,6 +124,29 @@ class StructuralFrameRetentionRootServiceArchitecture:
             raise StructuralFrameRetentionRootServiceError("both bilateral root service paths are required")
         if self.physical_validation_eligible is not False:
             raise StructuralFrameRetentionRootServiceError("digital service geometry is not physical evidence")
+
+        # The two root mechanisms are bilateral counterparts. A collision-free corridor that
+        # silently drifts on only one side is not acceptable service evidence. Prove mirror
+        # registration directly from the realized B-reps, not from nominal root coordinates.
+        left, right = self.paths
+        for label, left_shape, right_shape in (
+            ("pin withdrawal", left.pin_withdraw_sweep, right.pin_withdraw_sweep),
+            ("clip installation", left.clip_install_sweep, right.clip_install_sweep),
+        ):
+            lx, ly, lz, ldx, ldy, ldz = _center_and_size(left_shape)
+            rx, ry, rz, rdx, rdy, rdz = _center_and_size(right_shape)
+            errors = (
+                abs(lx + rx),
+                abs(ly - ry),
+                abs(lz - rz),
+                abs(ldx - rdx),
+                abs(ldy - rdy),
+                abs(ldz - rdz),
+            )
+            if any(error > _GEOMETRY_TOLERANCE_MM for error in errors):
+                raise StructuralFrameRetentionRootServiceError(
+                    f"bilateral {label} service corridors must remain mirror registered"
+                )
 
     @property
     def architecture_sha256(self) -> str:

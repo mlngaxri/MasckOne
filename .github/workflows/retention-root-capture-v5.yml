@@ -1,0 +1,53 @@
+name: Retention root capture V5
+
+on:
+  push:
+    branches: [sol-high/retention-quick-release-20260909]
+    paths:
+      - 'src/masck_one/structural_frame_retention_root_capture_v*.py'
+      - 'src/masck_one/structural_frame_retention_roots.py'
+      - 'tests/test_structural_frame_retention_root_capture_v*.py'
+      - '.github/workflows/retention-root-capture-v5.yml'
+  pull_request:
+    paths:
+      - 'src/masck_one/structural_frame_retention_root_capture_v*.py'
+      - 'src/masck_one/structural_frame_retention_roots.py'
+      - 'tests/test_structural_frame_retention_root_capture_v*.py'
+      - '.github/workflows/retention-root-capture-v5.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  throat-transition-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile capture chain
+        run: |
+          python -m py_compile src/masck_one/structural_frame_retention_root_capture_v{1,2,3,4,5}.py
+      - name: Verify capture chain and throat transition firewall
+        run: |
+          python -m pytest -q \
+            tests/test_structural_frame_retention_root_capture_v1.py \
+            tests/test_structural_frame_retention_root_capture_v2.py \
+            tests/test_structural_frame_retention_root_capture_v3.py \
+            tests/test_structural_frame_retention_root_capture_v4.py \
+            tests/test_structural_frame_retention_root_capture_v5.py
+
+# Nominal digital geometry gate only. The current 0.135 mm throat-to-bore transition
+# margin remains tolerance-critical and does not establish manufactured connectivity,
+# process capability, strength, fatigue, usability, or physical validation.

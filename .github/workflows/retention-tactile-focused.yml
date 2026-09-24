@@ -1,0 +1,153 @@
+name: Retention tactile focused verification
+
+on:
+  push:
+    branches: [sol-high/retention-quick-release-20260909]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: retention-tactile-focused-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quick-release-tactile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact retention head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile owner-local retention sources
+        run: |
+          python -m py_compile \
+            src/masck_one/mechanical_interface_graph.py \
+            src/masck_one/retention_quick_release_tactile.py \
+            src/masck_one/retention_quick_release_tactile_v2.py \
+            src/masck_one/retention_quick_release_tactile_v3.py \
+            src/masck_one/retention_quick_release_tactile_v4.py \
+            src/masck_one/retention_quick_release_tactile_v5.py \
+            src/masck_one/retention_quick_release_tactile_v6.py \
+            src/masck_one/retention_quick_release_tactile_v7.py \
+            src/masck_one/retention_quick_release_tactile_v8.py \
+            src/masck_one/retention_quick_release_tactile_v9.py \
+            src/masck_one/retention_quick_release_tactile_v10.py \
+            src/masck_one/retention_quick_release_tactile_v11.py \
+            src/masck_one/retention_quick_release_tactile_v12.py \
+            src/masck_one/retention_quick_release_tactile_v13.py \
+            src/masck_one/retention_quick_release_tactile_v14.py \
+            src/masck_one/retention_quick_release_tactile_v15.py \
+            src/masck_one/retention_quick_release_tactile_v16.py \
+            src/masck_one/retention_quick_release_tactile_v17.py \
+            src/masck_one/retention_quick_release_tactile_v18.py \
+            src/masck_one/retention_quick_release_tactile_v19.py \
+            src/masck_one/retention_quick_release_tactile_v20.py \
+            src/masck_one/retention_quick_release_tactile_v21.py \
+            src/masck_one/structural_frame_retention_roots.py \
+            src/masck_one/structural_frame_retention_root_service.py \
+            src/masck_one/structural_frame_retention_clevis_bores.py \
+            src/masck_one/structural_frame_retention_verification_v2.py \
+            src/masck_one/structural_frame_retention_verification_v3.py \
+            src/masck_one/structural_frame_retention_verification_v4.py \
+            src/masck_one/structural_frame_retention_verification_v5.py \
+            src/masck_one/structural_frame_retention_verification_v6.py \
+            src/masck_one/structural_frame_retention_verification_v7.py \
+            src/masck_one/structural_frame_retention_verification_v8.py \
+            src/masck_one/structural_frame_retention_verification_v9.py \
+            src/masck_one/structural_frame_retention_verification_v10.py \
+            src/masck_one/structural_frame_retention_verification_v11.py \
+            src/masck_one/structural_frame_retention_verification_v12.py \
+            src/masck_one/structural_frame_retention_verification_v13.py \
+            src/masck_one/structural_frame_retention_verification_v14.py \
+            src/masck_one/structural_frame_retention_verification_v15.py \
+            src/masck_one/structural_frame_retention_verification_v16.py \
+            src/masck_one/structural_frame_retention_verification_v17.py \
+            src/masck_one/structural_frame_retention_verification_v18.py \
+            src/masck_one/structural_frame_retention_verification_v19.py \
+            src/masck_one/structural_frame_retention_verification_v20.py \
+            src/masck_one/structural_frame_retention_verification_v21.py
+      - name: Verify positive retention graph, structural roots, and selected tactile successor
+        run: |
+          python -m pytest -q \
+            tests/test_mechanical_interface_graph.py \
+            tests/test_structural_frame_retention_root_service.py \
+            tests/test_structural_frame_retention_clevis_bores.py \
+            tests/test_structural_frame_retention_verification_v2.py \
+            tests/test_structural_frame_retention_verification_v3.py \
+            tests/test_structural_frame_retention_verification_v4.py \
+            tests/test_structural_frame_retention_verification_v5.py \
+            tests/test_structural_frame_retention_verification_v6.py \
+            tests/test_structural_frame_retention_verification_v7.py \
+            tests/test_structural_frame_retention_verification_v8.py \
+            tests/test_structural_frame_retention_verification_v9.py \
+            tests/test_structural_frame_retention_verification_v10.py \
+            tests/test_structural_frame_retention_verification_v11.py \
+            tests/test_structural_frame_retention_verification_v12.py \
+            tests/test_structural_frame_retention_verification_v13.py \
+            tests/test_structural_frame_retention_verification_v14.py \
+            tests/test_structural_frame_retention_verification_v15.py \
+            tests/test_structural_frame_retention_verification_v16.py \
+            tests/test_structural_frame_retention_verification_v17.py \
+            tests/test_structural_frame_retention_verification_v18.py \
+            tests/test_structural_frame_retention_verification_v19.py \
+            tests/test_structural_frame_retention_verification_v20.py \
+            tests/test_structural_frame_retention_verification_v21.py \
+            tests/test_retention_quick_release_tactile_v3.py \
+            tests/test_retention_quick_release_tactile_v4.py \
+            tests/test_retention_quick_release_tactile_v5.py \
+            tests/test_retention_quick_release_tactile_v6.py \
+            tests/test_retention_quick_release_tactile_v7.py \
+            tests/test_retention_quick_release_tactile_v8.py \
+            tests/test_retention_quick_release_tactile_v9.py \
+            tests/test_retention_quick_release_tactile_v10.py \
+            tests/test_retention_quick_release_tactile_v11.py \
+            tests/test_retention_quick_release_tactile_v12.py \
+            tests/test_retention_quick_release_tactile_v13.py \
+            tests/test_retention_quick_release_tactile_v14.py \
+            tests/test_retention_quick_release_tactile_v15.py \
+            tests/test_retention_quick_release_tactile_v16.py \
+            tests/test_retention_quick_release_tactile_v17.py \
+            tests/test_retention_quick_release_tactile_v18.py \
+            tests/test_retention_quick_release_tactile_v19.py \
+            tests/test_retention_quick_release_tactile_v20.py \
+            tests/test_retention_quick_release_tactile_v21.py
+
+# Branch-level mechanism verification only. V1 and V2 remain explicit superseded
+# tactile evidence. V3 repairs the rib/bumper conflict, V4 screens nominal release
+# travel, V5-V8 expand bounded clearance sampling, V9-V11 progressively halve the
+# remaining sampled travel interval, and V11 also fails closed on invalid/unavailable
+# OCC clearance evidence. V12 cryptographically binds the exact station schedule and
+# proves every V10 station remains registered. V13 independently audits that bound
+# schedule for retained/full-release endpoints, exact travel span, strict monotonicity
+# and uniform spacing. V14 cryptographically binds every sampled transverse/travel pose
+# and its rigid-guide intersection evidence. V15 expands the same boundary-aware screen
+# from the inherited 80% domain to the full declared rail-radial and anti-rotation side
+# clearances. V16 independently densifies that full domain to nine radial rings and 32
+# angular rays while preserving explicit constrained-boundary coverage and fail-closed
+# OCC evidence. V17 independently screens the interstitial cells between the V16 polar
+# samples using radial midpoints and a half-ray angular phase offset. V18 independently
+# screens every midpoint between adjacent canonical release-travel stations against both
+# V16 aligned and V17 interstitial transverse meshes. V19 independently screens the 25%
+# and 75% positions in every canonical interval against both meshes. V20 independently
+# screens the four remaining eighth-grid positions in every interval against both meshes.
+# V21 independently screens the eight odd sixteenth-grid positions in every interval,
+# halving the largest sampled travel gap again. V18-V21 fail closed on OCC evidence and
+# bind their pose/intersection identities. Structural-root V2-V21 remain regression-gated,
+# including fail-closed B-rep handling, capture geometry, pin/retainer registration,
+# integrated collision checks, source-reaction provenance and complete root-architecture
+# provenance. Root-service corridors and the clevis-bore repair remain compiled and gated
+# here. These are focused-CI gates. Parent Cell 6 and complete-repo CI remain separate
+# release gates. No continuous clearance proof, manufactured tolerance, force, wet-use,
+# wear, contamination or tactile-performance claim is promoted here.

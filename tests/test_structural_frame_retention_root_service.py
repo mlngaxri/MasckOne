@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 
 import cadquery as cq
 import pytest
@@ -8,6 +9,7 @@ import pytest
 from masck_one.structural_frame_retention_root_service import (
     ROOT_IDS,
     StructuralFrameRetentionRootServiceError,
+    _intersection,
     build_structural_frame_retention_root_service,
     export_structural_frame_retention_root_service,
 )
@@ -36,6 +38,80 @@ def test_hostile_service_collision_is_rejected() -> None:
             path.pin_withdraw_sweep,
             path.clip_install_sweep,
             pin_sweep_frame_intersection_mm3=0.01,
+        )
+
+
+def test_non_finite_or_negative_service_evidence_is_rejected() -> None:
+    architecture = build_structural_frame_retention_root_service()
+    path = architecture.paths[0]
+    for hostile in (math.nan, math.inf, -0.01):
+        with pytest.raises(StructuralFrameRetentionRootServiceError, match="finite and non-negative"):
+            type(path)(
+                path.root_id,
+                path.pin_withdraw_sweep,
+                path.clip_install_sweep,
+                pin_sweep_frame_intersection_mm3=hostile,
+            )
+
+
+def test_boolean_failure_cannot_be_relabelled_as_zero_clearance_evidence(monkeypatch) -> None:
+    architecture = build_structural_frame_retention_root_service()
+    sweep = architecture.paths[0].pin_withdraw_sweep
+
+    def fail_boolean(*args, **kwargs):
+        raise RuntimeError("synthetic OCC failure")
+
+    monkeypatch.setattr(cq.Workplane, "intersect", fail_boolean)
+    with pytest.raises(StructuralFrameRetentionRootServiceError, match="Boolean failed"):
+        _intersection(sweep, sweep)
+
+
+def test_bilateral_service_corridor_drift_is_rejected() -> None:
+    architecture = build_structural_frame_retention_root_service()
+    left, right = architecture.paths
+
+    shifted_right = type(right)(
+        right.root_id,
+        right.pin_withdraw_sweep.translate((0.01, 0.0, 0.0)),
+        right.clip_install_sweep,
+        right.pin_sweep_frame_intersection_mm3,
+        right.pin_sweep_yoke_intersection_mm3,
+        right.clip_sweep_frame_intersection_mm3,
+        right.clip_sweep_yoke_intersection_mm3,
+    )
+    with pytest.raises(StructuralFrameRetentionRootServiceError, match="mirror registered"):
+        type(architecture)(
+            architecture.source_retention_root_architecture_sha256,
+            (left, shifted_right),
+            False,
+        )
+
+
+def test_bilateral_service_corridor_size_asymmetry_is_rejected() -> None:
+    architecture = build_structural_frame_retention_root_service()
+    left, right = architecture.paths
+    clip_bb = right.clip_install_sweep.val().BoundingBox()
+    oversized_clip = cq.Workplane("XY").box(
+        clip_bb.xlen + 0.01,
+        clip_bb.ylen,
+        clip_bb.zlen,
+        centered=(True, True, True),
+    ).translate(((clip_bb.xmin + clip_bb.xmax) / 2.0, (clip_bb.ymin + clip_bb.ymax) / 2.0, (clip_bb.zmin + clip_bb.zmax) / 2.0))
+
+    hostile_right = type(right)(
+        right.root_id,
+        right.pin_withdraw_sweep,
+        oversized_clip,
+        right.pin_sweep_frame_intersection_mm3,
+        right.pin_sweep_yoke_intersection_mm3,
+        right.clip_sweep_frame_intersection_mm3,
+        right.clip_sweep_yoke_intersection_mm3,
+    )
+    with pytest.raises(StructuralFrameRetentionRootServiceError, match="mirror registered"):
+        type(architecture)(
+            architecture.source_retention_root_architecture_sha256,
+            (left, hostile_right),
+            False,
         )
 
 

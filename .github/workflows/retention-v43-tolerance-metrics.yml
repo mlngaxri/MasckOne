@@ -1,0 +1,41 @@
+name: Retention V43 tolerance metrics
+
+on:
+  push:
+    branches: [sol-high/retention-quick-release-20260909]
+    paths:
+      - "src/masck_one/retention_quick_release_tactile.py"
+      - "src/masck_one/retention_quick_release_tactile_v42.py"
+      - "src/masck_one/retention_quick_release_tactile_v43.py"
+      - "tests/test_retention_quick_release_tactile_v43.py"
+      - ".github/workflows/retention-v43-tolerance-metrics.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: retention-v43-tolerance-metrics-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tolerance-metrics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - run: python -m py_compile src/masck_one/retention_quick_release_tactile_v43.py
+      - run: python -m pytest -q tests/test_retention_quick_release_tactile_v43.py
+
+# Exact-head focused gate. V43 binds the V42 tolerance rectangle to independently
+# reconstructed span, area and diagonal metrics. It is digital authority evidence,
+# not manufactured tolerance-stack closure or physical validation.

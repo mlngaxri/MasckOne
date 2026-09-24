@@ -1,0 +1,43 @@
+name: Retention root capture V8
+
+on:
+  push:
+    branches: [sol-high/retention-quick-release-20260909]
+    paths:
+      - 'src/masck_one/structural_frame_retention_root_capture_v*.py'
+      - 'tests/test_structural_frame_retention_root_capture_v*.py'
+      - '.github/workflows/retention-root-capture-v8.yml'
+  pull_request:
+    paths:
+      - 'src/masck_one/structural_frame_retention_root_capture_v*.py'
+      - 'tests/test_structural_frame_retention_root_capture_v*.py'
+      - '.github/workflows/retention-root-capture-v8.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  worst-case-stack-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Compile capture chain
+        run: python -m py_compile src/masck_one/structural_frame_retention_root_capture_v{1,2,3,4,5,6,7,8}.py
+      - name: Verify capture chain and worst-case tolerance stack
+        run: python -m pytest -q tests/test_structural_frame_retention_root_capture_v{1,2,3,4,5,6,7,8}.py
+
+# Digital interval stack only. Passing margins do not establish process capability,
+# material performance, insertion/removal force, fatigue, wear, or physical validation.
