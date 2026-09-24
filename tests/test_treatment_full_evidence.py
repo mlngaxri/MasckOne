@@ -126,3 +126,27 @@ def test_full_treatment_thermal_boundary_rejects_substituted_recovery_before_coo
             ThermalCommandInterlock(), sweep, parameters, substituted,
             **sources, warm_requested=False, cool_requested=True,
         )
+
+
+def test_full_treatment_thermal_boundary_preserves_simultaneous_mode_inhibition(built):
+    sources, parameters, sweep, full = _full(built)
+    command = command_thermal_from_full_treatment_evidence(
+        ThermalCommandInterlock(), sweep, parameters, full,
+        **sources, warm_requested=True, cool_requested=True,
+    )
+    assert command.mode is ThermalMode.OFF
+    assert not command.warm_enable
+    assert not command.cool_enable
+    assert command.inhibited
+
+
+def test_full_treatment_thermal_boundary_preserves_warm_command_semantics(built):
+    sources, parameters, sweep, full = _full(built)
+    command = command_thermal_from_full_treatment_evidence(
+        ThermalCommandInterlock(), sweep, parameters, full,
+        **sources, warm_requested=True, cool_requested=False,
+    )
+    assert command.mode is ThermalMode.WARM
+    assert command.warm_enable
+    assert not command.cool_enable
+    assert not command.inhibited
