@@ -2,6 +2,7 @@ from dataclasses import replace
 
 import pytest
 
+from masck_one.actuation_parameters import ActuationParameterError
 from masck_one.distribution_geometry import DistributionGeometryError
 from masck_one.thermal_control import ThermalCommandInterlock, ThermalMode
 from masck_one.treatment_clean_distribution_evidence import build_treatment_clean_distribution_evidence
@@ -60,6 +61,8 @@ def _full(built):
 def test_accepts_one_shared_recovery_tree_across_all_treatment_subsystems(built):
     sources, parameters, sweep, full = _full(built)
     assert full.clean.recovery is full.integrated.recovery
+    assert full.source_distribution_sha256 == full.clean.source_distribution_sha256
+    assert full.source_sweep_sha256 == full.integrated.source_sweep_sha256
     assert validate_full_treatment_evidence(
         full, sweep=sweep, parameters=parameters, **sources
     ) is full
@@ -85,6 +88,24 @@ def test_rejects_forged_clean_distribution_binding_inside_full_tree(built):
     with pytest.raises(DistributionGeometryError, match="digest does not match"):
         validate_full_treatment_evidence(
             replace(full, clean=forged_clean), sweep=sweep, parameters=parameters, **sources
+        )
+
+
+def test_rejects_forged_full_distribution_provenance_even_when_clean_tree_is_valid(built):
+    sources, parameters, sweep, full = _full(built)
+    with pytest.raises(DistributionGeometryError, match="CLEAN distribution provenance"):
+        validate_full_treatment_evidence(
+            replace(full, source_distribution_sha256="0" * 64),
+            sweep=sweep, parameters=parameters, **sources,
+        )
+
+
+def test_rejects_forged_full_sweep_provenance_even_when_integrated_tree_is_valid(built):
+    sources, parameters, sweep, full = _full(built)
+    with pytest.raises(ActuationParameterError, match="four-zone sweep provenance"):
+        validate_full_treatment_evidence(
+            replace(full, source_sweep_sha256="0" * 64),
+            sweep=sweep, parameters=parameters, **sources,
         )
 
 
