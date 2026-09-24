@@ -9,12 +9,7 @@ from masck_one.distribution_geometry import (
 )
 from masck_one.distribution_geometry_evidence import validate_canonical_distribution_geometry
 from masck_one.spatial import Point2
-from tests.test_distribution_geometry import built as built_fixture
-
-
-@pytest.fixture(scope="module")
-def built(request):
-    return request.getfixturevalue("built_fixture")
+from tests.test_distribution_geometry import built
 
 
 def _validate(built, geometry):
@@ -71,7 +66,7 @@ def test_rejects_eligible_but_noncanonical_outlet_substitution(built):
     altered = replace(geometry, placements=placements, grooves=tuple(grooves))
 
     # The existing per-placement source validator intentionally accepts any legal
-    # current-source triangle.  The consumption boundary must additionally preserve
+    # current-source triangle. The consumption boundary must additionally preserve
     # the deterministic distribution selection itself.
     model, water, cleanser, frame, pump, manifold, _ = built
     altered.validate_current_sources(
