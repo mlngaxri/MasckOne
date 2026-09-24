@@ -71,6 +71,14 @@ class WasteFluidBudget:
     def recovery_ratio_closure_delta(self) -> float:
         return self.recovery_ratio_for_residual_leakage_closure - self.recovery_ratio_min
 
+    @staticmethod
+    def _require_finite_capacity_arithmetic(**values: float) -> None:
+        nonfinite = tuple(name for name, value in values.items() if not math.isfinite(value))
+        if nonfinite:
+            raise WasteFluidAccountingError(
+                "capacity arithmetic produced nonfinite value(s): " + ", ".join(nonfinite)
+            )
+
     def service_capacity_screen(self, *, cycles: int, prime_events: int) -> ServiceCapacityScreen:
         """Bound retained occupancy for an in-authority service-life interval.
 
@@ -99,6 +107,13 @@ class WasteFluidBudget:
         minimum_recovered = cycles * self.minimum_recovered_mL_per_cycle
         inflow = nominal + prime
         margin = self.cartridge_retained_capacity_requirement_mL - inflow
+        self._require_finite_capacity_arithmetic(
+            nominal_liquid_mL=nominal,
+            prime_liquid_mL=prime,
+            minimum_recovered_nominal_mL=minimum_recovered,
+            maximum_cartridge_inflow_mL=inflow,
+            requirement_margin_mL=margin,
+        )
         return ServiceCapacityScreen(
             cycles=cycles,
             prime_events=prime_events,
@@ -130,6 +145,7 @@ class WasteFluidBudget:
             raise WasteFluidAccountingError("prime_events must be a nonnegative integer")
         prime = prime_events * self.maximum_initial_prime_mL_per_cycle
         remaining = self.cartridge_retained_capacity_requirement_mL - prime
+        self._require_finite_capacity_arithmetic(prime_liquid_mL=prime, remaining_capacity_mL=remaining)
         if remaining < -1e-12:
             raise WasteFluidAccountingError("prime liquid alone exceeds cartridge requirement")
         if self.nominal_introduced_mL_per_cycle == 0.0:
