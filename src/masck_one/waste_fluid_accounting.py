@@ -131,7 +131,9 @@ class WasteFluidBudget:
             raise WasteFluidAccountingError("nominal service liquid alone exceeds cartridge requirement")
         if self.maximum_initial_prime_mL_per_cycle == 0.0:
             return None
-        return math.floor((baseline.requirement_margin_mL + 1e-12) / self.maximum_initial_prime_mL_per_cycle)
+        quotient = (baseline.requirement_margin_mL + 1e-12) / self.maximum_initial_prime_mL_per_cycle
+        self._require_finite_capacity_arithmetic(maximum_prime_events_quotient=quotient)
+        return math.floor(quotient)
 
     def maximum_service_cycles_that_fit(self, *, prime_events: int) -> int | None:
         """Return packaging capacity in cycles after reserving explicit reprime volume.
@@ -150,7 +152,9 @@ class WasteFluidBudget:
             raise WasteFluidAccountingError("prime liquid alone exceeds cartridge requirement")
         if self.nominal_introduced_mL_per_cycle == 0.0:
             return None
-        return max(0, math.floor((remaining + 1e-12) / self.nominal_introduced_mL_per_cycle))
+        quotient = (remaining + 1e-12) / self.nominal_introduced_mL_per_cycle
+        self._require_finite_capacity_arithmetic(maximum_service_cycles_quotient=quotient)
+        return max(0, math.floor(quotient))
 
     @property
     def conservative_service_screen(self) -> ServiceCapacityScreen:
