@@ -15,7 +15,29 @@ def test_accepts_atomic_current_mechanics_bundle():
     parameters = _parameters()
     sweep = _sweep(parameters)
     evidence = build_measured_massage_mechanics_evidence_bundle(sweep, parameters)
+    assert evidence.source_parameter_sha256 == parameters.parameter_sha256
+    assert evidence.source_sweep_sha256 == sweep.sweep_sha256
     assert validate_measured_massage_mechanics_evidence_bundle(sweep, parameters, evidence) is evidence
+
+
+def test_rejects_forged_parameter_provenance_before_consuming_nested_views():
+    parameters = _parameters()
+    sweep = _sweep(parameters)
+    evidence = build_measured_massage_mechanics_evidence_bundle(sweep, parameters)
+    forged = replace(evidence, source_parameter_sha256="0" * 64)
+
+    with pytest.raises(ActuationParameterError, match="current actuation parameter set"):
+        validate_measured_massage_mechanics_evidence_bundle(sweep, parameters, forged)
+
+
+def test_rejects_forged_sweep_provenance_before_consuming_nested_views():
+    parameters = _parameters()
+    sweep = _sweep(parameters)
+    evidence = build_measured_massage_mechanics_evidence_bundle(sweep, parameters)
+    forged = replace(evidence, source_sweep_sha256="0" * 64)
+
+    with pytest.raises(ActuationParameterError, match="current four-zone sweep"):
+        validate_measured_massage_mechanics_evidence_bundle(sweep, parameters, forged)
 
 
 def test_rejects_response_from_different_measurement_capture_with_same_extrema():
@@ -27,7 +49,7 @@ def test_rejects_response_from_different_measurement_capture_with_same_extrema()
     changed = FourZoneImpedanceSweep(parameters.parameter_sha256, tuple(records))
 
     assert changed.measured_system_response(parameters) == sweep.measured_system_response(parameters)
-    with pytest.raises(ActuationParameterError, match="stale or disagrees"):
+    with pytest.raises(ActuationParameterError, match="current four-zone sweep"):
         validate_measured_massage_mechanics_evidence_bundle(changed, parameters, evidence)
 
 
