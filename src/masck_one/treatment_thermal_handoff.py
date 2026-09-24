@@ -15,8 +15,9 @@ from .treatment_full_evidence import FullTreatmentEvidence, validate_full_treatm
 from .treatment_integrated_evidence import IntegratedTreatmentEvidence, validate_integrated_treatment_evidence
 from .treatment_recovery_readiness import TreatmentRecoveryReadiness
 from .water_reservoir import WaterReservoirArchitecture
-from .waste_fluid_accounting import WasteFluidAccountingError
+from .waste_fluid_accounting import WasteFluidAccountingError, WasteFluidBudget
 from .waste_fluid_capacity_reserve import CartridgeCapacityReserve, CapacityReservedOverflowGuard
+from .waste_fluid_overflow_authority import validate_overflow_guard_authority
 from .waste_fluid_overflow_guard import CartridgeOverflowGuard
 
 
@@ -53,17 +54,21 @@ def command_thermal_from_full_treatment_evidence(interlock: ThermalCommandInterl
     return command_thermal_after_treatment(interlock, evidence.integrated.recovery, warm_requested=warm_requested, cool_requested=cool_requested)
 
 
-def command_thermal_from_reserved_full_treatment_evidence(interlock: ThermalCommandInterlock, sweep: FourZoneImpedanceSweep, parameters: ActuationParameterSet, evidence: FullTreatmentEvidence, *, authority: Authority, manifold: DistributionManifoldArchitecture, pump: FreshPumpPackagingArchitecture, water: WaterReservoirArchitecture, cleanser: CleanserStorageArchitecture, frame: StructuralFrameTopology, coverage: FacialCoverageMesh, protected: ProtectedVolumeSet, warm_requested: bool, cool_requested: bool, reserve: CartridgeCapacityReserve | None = None) -> ThermalCommand:
-    """Production command boundary with optional current reserve-authority binding.
+def command_thermal_from_reserved_full_treatment_evidence(interlock: ThermalCommandInterlock, sweep: FourZoneImpedanceSweep, parameters: ActuationParameterSet, evidence: FullTreatmentEvidence, *, authority: Authority, manifold: DistributionManifoldArchitecture, pump: FreshPumpPackagingArchitecture, water: WaterReservoirArchitecture, cleanser: CleanserStorageArchitecture, frame: StructuralFrameTopology, coverage: FacialCoverageMesh, protected: ProtectedVolumeSet, warm_requested: bool, cool_requested: bool, reserve: CartridgeCapacityReserve | None = None, budget: WasteFluidBudget | None = None) -> ThermalCommand:
+    """Production command boundary with current reserve and fluid-authority binding.
 
     Complete treatment evidence is revalidated and must retain typed reserve
-    provenance. When the owning integration layer supplies ``reserve``, its exact
-    composition digest must also match, rejecting stale but self-consistent evidence.
+    provenance. When supplied, ``reserve`` must match the captured reserve composition
+    and ``budget`` must independently reproduce the captured overflow trajectory and
+    retained-capacity requirement. These checks reject stale but internally
+    self-consistent treatment evidence before WARM/COOL arbitration.
     """
     if reserve is not None:
         if type(reserve) is not CartridgeCapacityReserve:
             raise WasteFluidAccountingError("reserved full treatment thermal handoff requires exact CartridgeCapacityReserve authority")
         reserve.validate()
+    if budget is not None and type(budget) is not WasteFluidBudget:
+        raise WasteFluidAccountingError("reserved full treatment thermal handoff requires exact WasteFluidBudget authority")
     validate_full_treatment_evidence(evidence, sweep=sweep, parameters=parameters, authority=authority, manifold=manifold, pump=pump, water=water, cleanser=cleanser, frame=frame, coverage=coverage, protected=protected)
     readiness = evidence.integrated.recovery
     reserve_evidence = readiness.source_capacity_reserve_evidence
@@ -74,4 +79,6 @@ def command_thermal_from_reserved_full_treatment_evidence(interlock: ThermalComm
         raise WasteFluidAccountingError("reserved full treatment thermal handoff reserve provenance does not match current authority")
     if readiness.source_capacity_guard is not reserve_evidence.guard:
         raise WasteFluidAccountingError("reserved full treatment thermal handoff requires recovery bound to the exact reserve guard")
+    if budget is not None:
+        validate_overflow_guard_authority(budget, reserve_evidence.guard)
     return command_thermal_after_treatment(interlock, readiness, warm_requested=warm_requested, cool_requested=cool_requested)
