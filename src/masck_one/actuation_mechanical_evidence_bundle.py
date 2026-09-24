@@ -22,6 +22,7 @@ from .actuation_zone_sweep import FourZoneImpedanceSweep
 class MeasuredMassageMechanicsEvidenceBundle:
     """One atomic view of the measured four-zone mechanics reductions."""
 
+    source_parameter_sha256: str
     source_sweep_sha256: str
     response: MeasuredActuationResponseEvidence
     sensitivity: ActuationMechanicalSensitivityEnvelope
@@ -36,6 +37,7 @@ def build_measured_massage_mechanics_evidence_bundle(
     """Build all measured massage reductions from one authority-bound sweep."""
     response = build_measured_actuation_response_evidence(sweep, parameters)
     return MeasuredMassageMechanicsEvidenceBundle(
+        source_parameter_sha256=parameters.parameter_sha256,
         source_sweep_sha256=sweep.sweep_sha256,
         response=response,
         sensitivity=reduce_measured_mechanical_sensitivity(sweep, parameters),
@@ -49,16 +51,25 @@ def validate_measured_massage_mechanics_evidence_bundle(
     parameters: ActuationParameterSet,
     evidence: MeasuredMassageMechanicsEvidenceBundle,
 ) -> MeasuredMassageMechanicsEvidenceBundle:
-    """Fail closed unless every mechanics view comes from the same current sweep.
+    """Fail closed unless every mechanics view comes from the same current inputs.
 
     Downstream packaging and treatment decisions often need response margins,
     adjacent-angle sensitivity, curvature, and slope reversals together. Validating
     those independently at call sites can accidentally combine evidence from
-    different measurement captures. This boundary validates each canonical view and
-    then reconstructs the atomic bundle from the current sweep.
+    different measurement captures or parameter authorities. This boundary binds
+    both parameter and sweep identities, validates each canonical view, and then
+    reconstructs the atomic bundle from the current inputs.
     """
     if type(evidence) is not MeasuredMassageMechanicsEvidenceBundle:
         raise TypeError("evidence must be exact MeasuredMassageMechanicsEvidenceBundle")
+    if evidence.source_parameter_sha256 != parameters.parameter_sha256:
+        raise ActuationParameterError(
+            "Measured massage mechanics evidence bundle is stale for the current actuation parameter set"
+        )
+    if evidence.source_sweep_sha256 != sweep.sweep_sha256:
+        raise ActuationParameterError(
+            "Measured massage mechanics evidence bundle is stale for the current four-zone sweep"
+        )
 
     validate_measured_actuation_response_evidence(sweep, parameters, evidence.response)
     validate_mechanical_sensitivity_evidence(sweep, parameters, evidence.sensitivity)
