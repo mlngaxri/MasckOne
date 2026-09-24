@@ -50,12 +50,25 @@ class ServiceRoutingClosure:
     routing_contract_complete: bool
 
 
+def _require_finite_routing_arithmetic(**values: float) -> None:
+    nonfinite = tuple(name for name, value in values.items() if not math.isfinite(float(value)))
+    if nonfinite:
+        raise WasteFluidAccountingError(
+            "service routing arithmetic produced nonfinite value(s): " + ", ".join(nonfinite)
+        )
+
+
 def screen_nonrecovery_closure(budget: WasteFluidBudget) -> NonrecoveryClosure:
     """Reconcile recovery, residual and leakage requirements for one nominal cycle."""
     budget.validate()
     unrecovered = budget.maximum_unrecovered_nominal_mL_per_cycle
     classified = budget.maximum_classified_nonrecovery_mL_per_cycle
     gap = unrecovered - classified
+    _require_finite_routing_arithmetic(
+        maximum_unrecovered_nominal_mL=unrecovered,
+        classified_nonrecovery_ceiling_mL=classified,
+        nonrecovery_gap_mL=gap,
+    )
     tolerance = 1e-12
     return NonrecoveryClosure(
         maximum_unrecovered_nominal_mL=unrecovered,
@@ -122,8 +135,20 @@ def screen_service_routing_closure(
     leaked_prime = total_prime * (leakage or 0.0)
     service_residual_ceiling = budget.residual_free_liquid_max_mL * cycles
     service_leakage_ceiling = budget.external_leakage_max_mL_per_cycle * cycles
+    _require_finite_routing_arithmetic(
+        total_prime_liquid_mL=total_prime,
+        minimum_prime_liquid_routed_to_cartridge_mL=routed_prime,
+        maximum_prime_residual_mL=residual_prime,
+        maximum_prime_external_leakage_mL=leaked_prime,
+        service_residual_ceiling_mL=service_residual_ceiling,
+        service_external_leakage_ceiling_mL=service_leakage_ceiling,
+    )
     residual_margin = service_residual_ceiling - residual_prime
     leakage_margin = service_leakage_ceiling - leaked_prime
+    _require_finite_routing_arithmetic(
+        prime_residual_ceiling_margin_mL=residual_margin,
+        prime_external_leakage_ceiling_margin_mL=leakage_margin,
+    )
     if residual_margin < -1e-12:
         raise WasteFluidAccountingError("prime residual contract exceeds aggregate service residual ceiling")
     if leakage_margin < -1e-12:
@@ -136,6 +161,15 @@ def screen_service_routing_closure(
     baseline_nominal_gap = screen_nonrecovery_closure(budget).unclassified_nonrecovery_allowance_mL * cycles
     unresolved_prime = max(0.0, total_prime * (1.0 - contracted_fraction))
     total_unresolved = shared_sink_gap + unresolved_prime
+    _require_finite_routing_arithmetic(
+        minimum_nominal_liquid_routed_to_cartridge_mL=nominal_routed,
+        nominal_unrecovered_mL=nominal_unrecovered,
+        remaining_classified_sink_capacity_mL=remaining_classified_sink_capacity,
+        shared_sink_unclassified_nonrecovery_mL=shared_sink_gap,
+        nominal_unclassified_nonrecovery_mL=baseline_nominal_gap,
+        prime_liquid_without_routing_contract_mL=unresolved_prime,
+        total_liquid_without_routing_contract_mL=total_unresolved,
+    )
     return ServiceRoutingClosure(
         cycles=cycles,
         prime_events=prime_events,
