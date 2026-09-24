@@ -18,9 +18,11 @@ def validate_overflow_guard_authority(
 
     The overflow guard already checks its own derived capacity fields. This boundary
     independently binds its retained capacity and cycle-resolved conservative inflow
-    trajectory to the supplied ``WasteFluidBudget``. It is a digital conservation
-    check only and does not claim physical recovery, leakage, foam, pressure/flow,
-    retained capacity, or sealing performance.
+    trajectory to the supplied ``WasteFluidBudget``. Authority-qualified overflow
+    evidence must cover the complete service life so a partial trajectory cannot be
+    mistaken for an end-of-service cartridge-capacity proof. It is a digital
+    conservation check only and does not claim physical recovery, leakage, foam,
+    pressure/flow, retained capacity, or sealing performance.
     """
     if type(budget) is not WasteFluidBudget:
         raise WasteFluidAccountingError("overflow authority validator requires exact WasteFluidBudget")
@@ -37,8 +39,10 @@ def validate_overflow_guard_authority(
         abs_tol=_TOL,
     ):
         raise WasteFluidAccountingError("overflow guard retained capacity does not match fluid authority")
-    if len(guard.routing.cycles) > budget.service_cycles:
-        raise WasteFluidAccountingError("overflow guard cycle evidence exceeds authority service life")
+    if len(guard.routing.cycles) != budget.service_cycles:
+        raise WasteFluidAccountingError(
+            "overflow guard cycle evidence must cover the complete authority service life"
+        )
 
     cumulative_prime_events = 0
     for state in guard.routing.cycles:
