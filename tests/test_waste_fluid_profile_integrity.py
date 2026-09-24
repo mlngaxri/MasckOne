@@ -2,13 +2,12 @@ from dataclasses import replace
 
 import pytest
 
-from masck_one.authority import load_authority
-from masck_one.waste_fluid_accounting import WasteFluidAccountingError, waste_fluid_budget_from_authority
+from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
 from masck_one.waste_fluid_profile import screen_service_profile
 
 
 def _profile():
-    budget = waste_fluid_budget_from_authority(load_authority())
+    budget = build_authority_waste_fluid_budget()
     return screen_service_profile(
         budget,
         prime_events_by_cycle=(1, 0, 1),
