@@ -50,6 +50,13 @@ class ServiceFluidProfile:
     first_mandatory_recovery_overflow_cycle: int | None
     first_mandatory_recovery_target_infeasible_cycle: int | None
     first_target_infeasible_cycle: int | None
+    source_capacity_reserve_sha256: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.source_capacity_reserve_sha256 is not None:
+            value = self.source_capacity_reserve_sha256
+            if type(value) is not str or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+                raise WasteFluidAccountingError("capacity reserve provenance must be a canonical lowercase SHA-256 digest")
 
     @property
     def capacity_satisfied(self) -> bool:
@@ -79,6 +86,7 @@ def screen_service_profile(
     target_cycles: int | None = None,
     future_prime_events_per_remaining_cycle: int = 0,
     capacity_reserve_mL: float = 0.0,
+    source_capacity_reserve_sha256: str | None = None,
 ) -> ServiceFluidProfile:
     """Screen cumulative cartridge loading at every service-cycle boundary.
 
@@ -99,24 +107,11 @@ def screen_service_profile(
     assumed here. This keeps service-life projections consistent with the overflow
     guard when an integration reserve is supplied.
 
-    ``maximum_additional_prime_events_for_target`` reports raw reprime capacity
-    after reserving nominal liquid through the target cycle. The separate
-    ``maximum_unreserved_prime_events_after_contingency`` reports spare reprime
-    capacity only after the selected future-prime contingency has also been charged.
-    Neither value is a control limit or a prediction of reprime demand. ``None``
-    means prime volume is zero and therefore does not consume capacity.
+    ``source_capacity_reserve_sha256`` optionally binds a typed reserve composition
+    to this scalar capacity screen. It is provenance only and does not change any
+    volume calculation.
 
-    Each state carries the lower occupancy bound implied by minimum nominal
-    recovery. Prime recovery is excluded because no authority recovery fraction
-    exists for prime liquid. The screen also reserves the mandatory nominal recovery
-    for every remaining target cycle. This makes a cartridge that cannot hold the
-    waste it is required to recover fail before that physical occupancy is reached.
-
-    The fail-conservative projection reserves all nominal liquid plus the selected
-    future-prime contingency for remaining target cycles. The target is bounded by
-    the configured cartridge service life so callers cannot silently extrapolate the
-    same cartridge beyond its authority service interval. These are digital bounds,
-    not retained-volume or recovery predictions.
+    These are digital bounds, not retained-volume or recovery predictions.
     """
     budget.validate()
     if not isinstance(capacity_reserve_mL, (int, float)) or isinstance(capacity_reserve_mL, bool):
@@ -125,9 +120,10 @@ def screen_service_profile(
     if not math.isfinite(capacity_reserve_mL) or capacity_reserve_mL < 0:
         raise WasteFluidAccountingError("capacity_reserve_mL must be finite and nonnegative")
     if capacity_reserve_mL >= budget.cartridge_retained_capacity_requirement_mL:
-        raise WasteFluidAccountingError(
-            "capacity_reserve_mL must be smaller than cartridge retained-capacity requirement"
-        )
+        raise WasteFluidAccountingError("capacity_reserve_mL must be smaller than cartridge retained-capacity requirement")
+    if source_capacity_reserve_sha256 is not None:
+        if type(source_capacity_reserve_sha256) is not str or len(source_capacity_reserve_sha256) != 64 or any(c not in "0123456789abcdef" for c in source_capacity_reserve_sha256):
+            raise WasteFluidAccountingError("capacity reserve provenance must be a canonical lowercase SHA-256 digest")
     usable_capacity = budget.cartridge_retained_capacity_requirement_mL - capacity_reserve_mL
 
     if not prime_events_by_cycle:
@@ -145,10 +141,8 @@ def screen_service_profile(
 
     states: list[CycleFluidState] = []
     cumulative_primes = 0
-    first_overflow: int | None = None
-    first_mandatory_recovery_overflow: int | None = None
-    first_mandatory_recovery_target_infeasible: int | None = None
-    first_target_infeasible: int | None = None
+    first_overflow = first_mandatory_recovery_overflow = None
+    first_mandatory_recovery_target_infeasible = first_target_infeasible = None
 
     for cycle, prime_events in enumerate(prime_events_by_cycle, start=1):
         if type(prime_events) is not int or prime_events < 0:
@@ -156,22 +150,15 @@ def screen_service_profile(
         cumulative_primes += prime_events
         aggregate = budget.service_capacity_screen(cycles=cycle, prime_events=cumulative_primes)
         remaining_cycles = target_cycles - cycle
-
         current_margin = usable_capacity - aggregate.maximum_cartridge_inflow_mL
         current_capacity_satisfied = current_margin >= -1e-12
         minimum_recovery_capacity_satisfied = aggregate.minimum_recovered_nominal_mL <= usable_capacity + 1e-12
-
         projected_mandatory_recovery = aggregate.minimum_recovered_nominal_mL + remaining_cycles * budget.minimum_recovered_mL_per_cycle
         projected_mandatory_recovery_margin = usable_capacity - projected_mandatory_recovery
         mandatory_recovery_target_feasible = projected_mandatory_recovery_margin >= -1e-12
-
         nominal_target_inflow = aggregate.maximum_cartridge_inflow_mL + remaining_cycles * budget.nominal_introduced_mL_per_cycle
         prime_headroom_mL = usable_capacity - nominal_target_inflow
-        if budget.maximum_initial_prime_mL_per_cycle == 0.0:
-            maximum_additional_primes = None
-        else:
-            maximum_additional_primes = max(0, math.floor((prime_headroom_mL + 1e-12) / budget.maximum_initial_prime_mL_per_cycle))
-
+        maximum_additional_primes = None if budget.maximum_initial_prime_mL_per_cycle == 0.0 else max(0, math.floor((prime_headroom_mL + 1e-12) / budget.maximum_initial_prime_mL_per_cycle))
         reserved_future_prime_events = remaining_cycles * future_prime_events_per_remaining_cycle
         reserved_future_prime_mL = reserved_future_prime_events * budget.maximum_initial_prime_mL_per_cycle
         projected_end_inflow = nominal_target_inflow + reserved_future_prime_mL
@@ -183,48 +170,11 @@ def screen_service_profile(
             maximum_unreserved_primes = max(0, math.floor((projected_end_margin + 1e-12) / budget.maximum_initial_prime_mL_per_cycle))
         else:
             maximum_unreserved_primes = 0
-
-        state = CycleFluidState(
-            cycle=cycle,
-            prime_events_this_cycle=prime_events,
-            cumulative_prime_events=cumulative_primes,
-            cumulative_nominal_mL=aggregate.nominal_liquid_mL,
-            cumulative_prime_mL=aggregate.prime_liquid_mL,
-            minimum_recovered_nominal_mL=aggregate.minimum_recovered_nominal_mL,
-            maximum_cartridge_inflow_mL=aggregate.maximum_cartridge_inflow_mL,
-            occupancy_uncertainty_mL=aggregate.occupancy_uncertainty_mL,
-            requirement_margin_mL=current_margin,
-            capacity_satisfied=current_capacity_satisfied,
-            minimum_recovery_capacity_satisfied=minimum_recovery_capacity_satisfied,
-            minimum_projected_service_end_recovered_mL=projected_mandatory_recovery,
-            projected_mandatory_recovery_margin_mL=projected_mandatory_recovery_margin,
-            mandatory_recovery_service_target_feasible=mandatory_recovery_target_feasible,
-            maximum_additional_prime_events_for_target=maximum_additional_primes,
-            reserved_future_prime_events=reserved_future_prime_events,
-            reserved_future_prime_mL=reserved_future_prime_mL,
-            minimum_projected_service_end_inflow_mL=projected_end_inflow,
-            projected_service_end_margin_mL=projected_end_margin,
-            maximum_unreserved_prime_events_after_contingency=maximum_unreserved_primes,
-            service_target_feasible=target_feasible,
-        )
+        state = CycleFluidState(cycle, prime_events, cumulative_primes, aggregate.nominal_liquid_mL, aggregate.prime_liquid_mL, aggregate.minimum_recovered_nominal_mL, aggregate.maximum_cartridge_inflow_mL, aggregate.occupancy_uncertainty_mL, current_margin, current_capacity_satisfied, minimum_recovery_capacity_satisfied, projected_mandatory_recovery, projected_mandatory_recovery_margin, mandatory_recovery_target_feasible, maximum_additional_primes, reserved_future_prime_events, reserved_future_prime_mL, projected_end_inflow, projected_end_margin, maximum_unreserved_primes, target_feasible)
         states.append(state)
-        if first_overflow is None and not state.capacity_satisfied:
-            first_overflow = cycle
-        if first_mandatory_recovery_overflow is None and not state.minimum_recovery_capacity_satisfied:
-            first_mandatory_recovery_overflow = cycle
-        if first_mandatory_recovery_target_infeasible is None and not state.mandatory_recovery_service_target_feasible:
-            first_mandatory_recovery_target_infeasible = cycle
-        if first_target_infeasible is None and not state.service_target_feasible:
-            first_target_infeasible = cycle
+        if first_overflow is None and not state.capacity_satisfied: first_overflow = cycle
+        if first_mandatory_recovery_overflow is None and not state.minimum_recovery_capacity_satisfied: first_mandatory_recovery_overflow = cycle
+        if first_mandatory_recovery_target_infeasible is None and not state.mandatory_recovery_service_target_feasible: first_mandatory_recovery_target_infeasible = cycle
+        if first_target_infeasible is None and not state.service_target_feasible: first_target_infeasible = cycle
 
-    return ServiceFluidProfile(
-        cycles=tuple(states),
-        target_cycles=target_cycles,
-        future_prime_events_per_remaining_cycle=future_prime_events_per_remaining_cycle,
-        capacity_reserve_mL=capacity_reserve_mL,
-        usable_capacity_mL=usable_capacity,
-        first_overflow_cycle=first_overflow,
-        first_mandatory_recovery_overflow_cycle=first_mandatory_recovery_overflow,
-        first_mandatory_recovery_target_infeasible_cycle=first_mandatory_recovery_target_infeasible,
-        first_target_infeasible_cycle=first_target_infeasible,
-    )
+    return ServiceFluidProfile(tuple(states), target_cycles, future_prime_events_per_remaining_cycle, capacity_reserve_mL, usable_capacity, first_overflow, first_mandatory_recovery_overflow, first_mandatory_recovery_target_infeasible, first_target_infeasible, source_capacity_reserve_sha256)
