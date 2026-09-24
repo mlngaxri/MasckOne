@@ -39,7 +39,23 @@ def _evidence():
 
 def test_accepts_current_recovery_and_measured_actuation_evidence():
     parameters, sweep, evidence = _evidence()
+    assert evidence.source_parameter_sha256 == parameters.parameter_sha256
+    assert evidence.source_sweep_sha256 == sweep.sweep_sha256
     assert validate_integrated_treatment_evidence(sweep, parameters, evidence) is evidence
+
+
+def test_rejects_forged_parameter_provenance():
+    parameters, sweep, evidence = _evidence()
+    forged = replace(evidence, source_parameter_sha256="0" * 64)
+    with pytest.raises(ActuationParameterError, match="actuation parameter set"):
+        validate_integrated_treatment_evidence(sweep, parameters, forged)
+
+
+def test_rejects_forged_sweep_provenance():
+    parameters, sweep, evidence = _evidence()
+    forged = replace(evidence, source_sweep_sha256="0" * 64)
+    with pytest.raises(ActuationParameterError, match="four-zone sweep"):
+        validate_integrated_treatment_evidence(sweep, parameters, forged)
 
 
 def test_rejects_substituted_measured_sweep():
