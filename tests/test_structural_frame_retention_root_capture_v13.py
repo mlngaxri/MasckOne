@@ -1,4 +1,6 @@
 from dataclasses import replace
+from hashlib import sha256
+import json
 
 import pytest
 
@@ -23,6 +25,36 @@ def test_v13_rejects_stale_upstream_evidence():
     evidence = v13.build_structural_frame_retention_root_capture_v13()
     with pytest.raises(v13.StructuralFrameRetentionRootCaptureV13Error):
         replace(evidence, source_capture_v12_sha256="0" * 64).validate()
+
+
+def test_v13_rejects_stale_upstream_even_with_self_consistent_digest():
+    evidence = v13.build_structural_frame_retention_root_capture_v13()
+    stale_source = "0" * 64
+    values = (
+        evidence.current_headroom_mm,
+        evidence.target_headroom_mm,
+        evidence.additional_headroom_required_mm,
+        evidence.combined_bilateral_tolerance_reduction_required_mm,
+        evidence.equal_split_reduction_per_feature_mm,
+        evidence.candidate_clip_tolerance_mm,
+        evidence.candidate_groove_tolerance_mm,
+        evidence.candidate_minimum_axial_clearance_mm,
+        evidence.candidate_maximum_axial_free_play_mm,
+    )
+    payload = {
+        "source_capture_v12_sha256": stale_source,
+        "values": values,
+        "nominal_geometry_unchanged": True,
+    }
+    spoofed_digest = sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    ).hexdigest()
+    with pytest.raises(v13.StructuralFrameRetentionRootCaptureV13Error, match="current V12 authority"):
+        replace(
+            evidence,
+            source_capture_v12_sha256=stale_source,
+            evidence_sha256=spoofed_digest,
+        ).validate()
 
 
 def test_v13_rejects_under_recovered_candidate():
