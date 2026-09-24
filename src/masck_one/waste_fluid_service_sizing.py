@@ -17,6 +17,30 @@ def _finite_sizing_value(value: float, label: str) -> float:
     return float(value)
 
 
+def _validate_projected_bounds(profile: ServiceFluidProfile, contractual: float, conservative: float) -> None:
+    """Reject projected service bounds that contradict already accumulated liquid.
+
+    A service-end projection cannot be below liquid already assigned to the same
+    sink bound. This check is intentionally independent of the projection model so
+    stale or corrupted future-cycle evidence cannot make cartridge sizing look
+    artificially smaller than the current cycle-resolved state.
+    """
+    current_contractual_floor = _finite_sizing_value(
+        max(state.minimum_recovered_nominal_mL for state in profile.cycles),
+        "current recovered-volume floor",
+    )
+    current_conservative_floor = _finite_sizing_value(
+        max(state.maximum_cartridge_inflow_mL for state in profile.cycles),
+        "current cartridge-inflow floor",
+    )
+    if contractual + _TOL < current_contractual_floor:
+        raise WasteFluidAccountingError("projected contractual capacity bound is below already recovered volume")
+    if conservative + _TOL < current_conservative_floor:
+        raise WasteFluidAccountingError("projected conservative capacity bound is below already accumulated cartridge inflow")
+    if conservative + _TOL < contractual:
+        raise WasteFluidAccountingError("conservative service capacity bound cannot be below contractual bound")
+
+
 @dataclass(frozen=True, slots=True)
 class ServiceCapacitySizingInterval:
     """Required cartridge capacity bounds for one screened service profile.
@@ -60,6 +84,7 @@ class ServiceCapacitySizingInterval:
             raise WasteFluidAccountingError("service capacity sizing evidence must be finite numeric data")
         contractual = _finite_sizing_value(max(state.minimum_projected_service_end_recovered_mL for state in self.source.cycles), "contractual service capacity bound")
         conservative = _finite_sizing_value(max(state.minimum_projected_service_end_inflow_mL for state in self.source.cycles), "conservative service capacity bound")
+        _validate_projected_bounds(self.source, contractual, conservative)
         reserve = _finite_sizing_value(self.source.capacity_reserve_mL, "capacity reserve")
         usable = _finite_sizing_value(self.source.usable_capacity_mL, "usable capacity")
         derived = (
@@ -105,10 +130,9 @@ def derive_service_capacity_sizing_interval(profile: ServiceFluidProfile) -> Ser
 
     contractual = _finite_sizing_value(max(state.minimum_projected_service_end_recovered_mL for state in profile.cycles), "contractual service capacity bound")
     conservative = _finite_sizing_value(max(state.minimum_projected_service_end_inflow_mL for state in profile.cycles), "conservative service capacity bound")
+    _validate_projected_bounds(profile, contractual, conservative)
     reserve = _finite_sizing_value(profile.capacity_reserve_mL, "capacity reserve")
     usable = _finite_sizing_value(profile.usable_capacity_mL, "usable capacity")
-    if conservative + _TOL < contractual:
-        raise WasteFluidAccountingError("conservative service capacity bound cannot be below contractual bound")
 
     unresolved = max(0.0, conservative - contractual)
     retained_requirement = usable + reserve
