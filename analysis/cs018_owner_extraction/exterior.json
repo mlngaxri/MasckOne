@@ -1,0 +1,68 @@
+{
+  "capability_blockers": [
+    "REGISTERED_ACTION_FOOTPRINTS_NOT_ESTABLISHED"
+  ],
+  "capability_status": "UNRESOLVED_OWNER_CAPABILITY",
+  "evidence": "DIGITAL",
+  "extractor_sha256": "1959d0a43b68e433067a0c37368cba7e93f7c8003e80a98a009ead518b9550a3",
+  "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+  "human_use_eligible": false,
+  "loaded_source_files": {
+    "src/masck_one/__init__.py": {
+      "git_blob": "34f32e9902669f2e604d2d23a891aa872c405a11",
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "sha256": "3dbdf087ef7358d793edcaa246abc64ae2c46f9d74dba22d916389737cd54666"
+    },
+    "src/masck_one/anatomy.py": {
+      "git_blob": "872d1e5be1b9ce9baa5b63cb53462eb7b36f40ab",
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "sha256": "23ac0e557928e70db2170e23797537667776735614e7dedc22222c3498c70467"
+    },
+    "src/masck_one/authority.py": {
+      "git_blob": "6866e3a428dab8b32b5a1d9e58da78b8f5aa1aa2",
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "sha256": "679707957008e8b38801f60751569f7b6d5969187b7e9a3cc62827ebc2d06f2f"
+    },
+    "src/masck_one/exterior_surface.py": {
+      "git_blob": "bb9185ffadc91f11ccac3285bb4c3d4db496e9dd",
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "sha256": "39640cd7f912811d08a3257abd7445c6e433ad24679cb44229143518c1ccbe8a"
+    },
+    "src/masck_one/spatial.py": {
+      "git_blob": "8c1106b523fef5111009cc56236a53e3bc5ee10e",
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "sha256": "507114d68e312c90fb6da38e094debba72abdba9e25e5f7067fdf2713b2cef48"
+    }
+  },
+  "owner": "exterior",
+  "participants": [
+    {
+      "bounds_mm": [
+        -81.81138412697756,
+        81.79193868986741,
+        -104.12964379893107,
+        103.93113367859456,
+        -1e-07,
+        27.206242778622215
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "b3bfe8e639033b6786f4a5233fc88a1500b060a306ee5f32e2652cad29720177",
+      "id": "exterior:material_parts.exterior_shell.0",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "step": "material_parts__exterior_shell__0.step",
+      "valid": true,
+      "volume_sum_mm3": 62698.974847414764
+    }
+  ],
+  "physical_result": null,
+  "runtime": {
+    "cadquery": "2.7.0",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+  },
+  "source_binding_status": "EXACT_CHECKOUT_AND_LOADED_BLOBS_VERIFIED",
+  "source_tree": "5c896a1c38b32206d9e7801086f3183292936049",
+  "status": "EXTRACTED_NOT_INTEGRATION_APPROVAL"
+}
