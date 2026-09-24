@@ -14,7 +14,27 @@ def test_accepts_current_atomic_treatment_evidence():
     parameters = _parameters()
     sweep = _sweep(parameters)
     evidence = build_treatment_massage_thermal_evidence(sweep, parameters)
+    assert evidence.source_parameter_sha256 == parameters.parameter_sha256
+    assert evidence.source_sweep_sha256 == sweep.sweep_sha256
     assert validate_treatment_massage_thermal_evidence(sweep, parameters, evidence) is evidence
+
+
+def test_rejects_forged_parameter_provenance_before_nested_views_are_consumed():
+    parameters = _parameters()
+    sweep = _sweep(parameters)
+    evidence = build_treatment_massage_thermal_evidence(sweep, parameters)
+    forged = replace(evidence, source_parameter_sha256="0" * 64)
+    with pytest.raises(ActuationParameterError, match="actuation parameter set"):
+        validate_treatment_massage_thermal_evidence(sweep, parameters, forged)
+
+
+def test_rejects_forged_sweep_provenance_before_nested_views_are_consumed():
+    parameters = _parameters()
+    sweep = _sweep(parameters)
+    evidence = build_treatment_massage_thermal_evidence(sweep, parameters)
+    forged = replace(evidence, source_sweep_sha256="0" * 64)
+    with pytest.raises(ActuationParameterError, match="four-zone sweep"):
+        validate_treatment_massage_thermal_evidence(sweep, parameters, forged)
 
 
 def test_rejects_mixed_mechanics_view():
