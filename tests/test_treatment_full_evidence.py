@@ -13,15 +13,30 @@ from masck_one.treatment_full_evidence import (
 from masck_one.treatment_integrated_evidence import build_integrated_treatment_evidence
 from masck_one.treatment_massage_thermal_evidence import build_treatment_massage_thermal_evidence
 from masck_one.treatment_recovery_readiness import screen_treatment_recovery_readiness
-from masck_one.treatment_thermal_handoff import command_thermal_from_full_treatment_evidence
+from masck_one.treatment_thermal_handoff import (
+    command_thermal_from_full_treatment_evidence,
+    command_thermal_from_reserved_full_treatment_evidence,
+)
 from masck_one.waste_fluid_accounting import WasteFluidAccountingError, build_authority_waste_fluid_budget
+from masck_one.waste_fluid_capacity_reserve import (
+    CartridgeCapacityReserve,
+    screen_cartridge_capacity_reserve_evidence,
+)
 from masck_one.waste_fluid_overflow_guard import screen_cartridge_overflow_guard
 from tests.test_actuation_zone_system_response import _parameters, _sweep
 from tests.test_distribution_geometry import built
 
 
-def _recovery():
+def _recovery(*, reserved=False):
     budget = build_authority_waste_fluid_budget()
+    if reserved:
+        evidence = screen_cartridge_capacity_reserve_evidence(
+            budget,
+            CartridgeCapacityReserve(),
+            prime_events_by_cycle=[0] * budget.service_cycles,
+            prime_recovery_ratio_contract=1.0,
+        )
+        return screen_treatment_recovery_readiness(evidence)
     guard = screen_cartridge_overflow_guard(
         budget,
         prime_events_by_cycle=[0] * budget.service_cycles,
@@ -44,9 +59,9 @@ def _sources(built):
     )
 
 
-def _full(built):
+def _full(built, *, reserved=False):
     geometry, sources = _sources(built)
-    recovery = _recovery()
+    recovery = _recovery(reserved=reserved)
     clean = build_treatment_clean_distribution_evidence(geometry, recovery, **sources)
     parameters = _parameters()
     sweep = _sweep(parameters)
@@ -181,3 +196,27 @@ def test_full_treatment_thermal_boundary_preserves_warm_command_semantics(built)
     assert command.warm_enable
     assert not command.cool_enable
     assert not command.inhibited
+
+
+def test_reserved_full_treatment_boundary_enables_cool_from_composition_bound_reserve(built):
+    sources, parameters, sweep, full = _full(built, reserved=True)
+    readiness = full.integrated.recovery
+    assert readiness.source_capacity_reserve_evidence is not None
+    assert readiness.source_capacity_guard is readiness.source_capacity_reserve_evidence.guard
+    command = command_thermal_from_reserved_full_treatment_evidence(
+        ThermalCommandInterlock(), sweep, parameters, full,
+        **sources, warm_requested=False, cool_requested=True,
+    )
+    assert command.mode is ThermalMode.COOL
+    assert command.cool_enable
+    assert not command.inhibited
+
+
+def test_reserved_full_treatment_boundary_rejects_scalar_only_capacity_guard(built):
+    sources, parameters, sweep, full = _full(built)
+    assert full.integrated.recovery.source_capacity_reserve_evidence is None
+    with pytest.raises(WasteFluidAccountingError, match="typed CapacityReservedOverflowGuard"):
+        command_thermal_from_reserved_full_treatment_evidence(
+            ThermalCommandInterlock(), sweep, parameters, full,
+            **sources, warm_requested=False, cool_requested=True,
+        )
