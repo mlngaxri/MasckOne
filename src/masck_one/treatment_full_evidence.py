@@ -32,6 +32,7 @@ class FullTreatmentEvidence:
     clean: TreatmentCleanDistributionEvidence
     integrated: IntegratedTreatmentEvidence
     source_distribution_sha256: str
+    source_parameter_sha256: str
     source_sweep_sha256: str
 
 
@@ -55,6 +56,7 @@ def build_full_treatment_evidence(
         clean=clean,
         integrated=integrated,
         source_distribution_sha256=clean.source_distribution_sha256,
+        source_parameter_sha256=integrated.source_parameter_sha256,
         source_sweep_sha256=integrated.source_sweep_sha256,
     )
     return validate_full_treatment_evidence(
@@ -108,6 +110,10 @@ def validate_full_treatment_evidence(
     if evidence.source_distribution_sha256 != evidence.clean.source_distribution_sha256:
         raise DistributionGeometryError(
             "full treatment evidence does not match CLEAN distribution provenance"
+        )
+    if evidence.source_parameter_sha256 != evidence.integrated.source_parameter_sha256:
+        raise ActuationParameterError(
+            "full treatment evidence does not match actuation parameter provenance"
         )
     if evidence.source_sweep_sha256 != evidence.integrated.source_sweep_sha256:
         raise ActuationParameterError(
