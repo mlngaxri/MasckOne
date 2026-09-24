@@ -49,6 +49,16 @@ def test_ledger_rejects_forged_component_or_recovery_evidence():
         replace(ledger, service_face_water_mL=ledger.service_face_water_mL + 0.01)
 
 
+def test_ledger_rejects_overflow_in_derived_conservation_sums():
+    ledger = build_authority_delivery_recovery_ledger()
+    with pytest.raises(WasteFluidAccountingError, match="cycle component total must remain finite"):
+        replace(ledger, face_water_mL_per_cycle=1e308, cleanser_mL_per_cycle=1e308)
+    with pytest.raises(WasteFluidAccountingError, match="recovery conservation total must remain finite"):
+        replace(ledger, minimum_service_recovery_mL=1e308, maximum_service_nonrecovery_mL=1e308)
+    with pytest.raises(WasteFluidAccountingError, match="service component total must remain finite"):
+        replace(ledger, service_face_water_mL=1e308, service_cleanser_mL=1e308)
+
+
 def test_delivery_recovery_cycles_fail_closed_outside_service_life():
     with pytest.raises(WasteFluidAccountingError, match="cycles must lie within"):
         build_authority_delivery_recovery_ledger(cycles=0)
