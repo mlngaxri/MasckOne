@@ -58,7 +58,7 @@ def test_rejects_internally_valid_guard_from_different_delivery_authority():
         prime_residual_ratio_contract=0.08,
         prime_external_leakage_ratio_contract=0.02,
     )
-    with pytest.raises(WasteFluidAccountingError, match="service routing|inflow trajectory"):
+    with pytest.raises(WasteFluidAccountingError, match="service routing|cycle routing|inflow trajectory"):
         validate_overflow_guard_authority(budget, guard)
 
 
@@ -66,7 +66,7 @@ def test_rejects_internally_valid_guard_from_different_nominal_recovery_authorit
     budget = build_authority_waste_fluid_budget()
     alternate = replace(budget, recovery_ratio_min=0.95)
     guard = _guard(alternate)
-    with pytest.raises(WasteFluidAccountingError, match="service routing|nominal recovery"):
+    with pytest.raises(WasteFluidAccountingError, match="service routing|cycle routing|nominal recovery"):
         validate_overflow_guard_authority(budget, guard)
 
 
@@ -88,8 +88,40 @@ def test_rejects_authority_collision_that_preserves_nominal_recovery_and_maximum
     assert guard.routing.cycles[-1].cumulative_maximum_cartridge_inflow_mL == pytest.approx(
         budget.conservative_service_screen.maximum_cartridge_inflow_mL
     )
-    with pytest.raises(WasteFluidAccountingError, match="service routing"):
+    with pytest.raises(WasteFluidAccountingError, match="service routing|cycle routing"):
         validate_overflow_guard_authority(budget, guard)
+
+
+def test_rejects_equal_and_opposite_cycle_prime_recovery_corruption():
+    budget = build_authority_waste_fluid_budget()
+    guard = _guard(budget)
+    first, second, *rest = guard.routing.cycles
+    delta = 0.01
+
+    forged_first = replace(
+        first,
+        minimum_prime_routed_to_cartridge_mL=first.minimum_prime_routed_to_cartridge_mL + delta,
+        minimum_total_routed_to_cartridge_mL=first.minimum_total_routed_to_cartridge_mL + delta,
+        cumulative_minimum_cartridge_routing_mL=first.cumulative_minimum_cartridge_routing_mL + delta,
+        cartridge_occupancy_uncertainty_mL=first.cartridge_occupancy_uncertainty_mL - delta,
+        minimum_routing_capacity_margin_mL=first.minimum_routing_capacity_margin_mL - delta,
+    )
+    forged_second = replace(
+        second,
+        minimum_prime_routed_to_cartridge_mL=second.minimum_prime_routed_to_cartridge_mL - delta,
+        minimum_total_routed_to_cartridge_mL=second.minimum_total_routed_to_cartridge_mL - delta,
+    )
+    forged_routing = replace(
+        guard.routing,
+        cycles=(forged_first, forged_second, *rest),
+    )
+    forged_guard = replace(guard, routing=forged_routing)
+
+    # The forged profile remains internally self-consistent and preserves aggregate
+    # service totals, but it no longer represents the authority's per-cycle routing.
+    forged_guard.__post_init__()
+    with pytest.raises(WasteFluidAccountingError, match="cycle routing"):
+        validate_overflow_guard_authority(budget, forged_guard)
 
 
 def test_rejects_wrong_evidence_types():
