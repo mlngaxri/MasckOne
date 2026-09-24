@@ -126,7 +126,8 @@ def screen_service_routing_closure(
         "prime_external_leakage_ratio_contract", prime_external_leakage_ratio_contract
     )
     contracted_fraction = sum(value or 0.0 for value in (recovery, residual, leakage))
-    if contracted_fraction > 1.0 + 1e-12:
+    _require_finite_routing_arithmetic(prime_contracted_fraction=contracted_fraction)
+    if contracted_fraction > 1.0:
         raise WasteFluidAccountingError("prime routing contract fractions must not sum above one")
 
     total_prime = budget.maximum_initial_prime_mL_per_cycle * prime_events
