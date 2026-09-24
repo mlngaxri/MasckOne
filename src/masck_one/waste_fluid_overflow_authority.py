@@ -46,6 +46,16 @@ def validate_overflow_guard_authority(
 
     cumulative_prime_events = 0
     for state in guard.routing.cycles:
+        if not math.isclose(
+            state.minimum_nominal_routed_to_cartridge_mL,
+            budget.minimum_recovered_mL_per_cycle,
+            rel_tol=0.0,
+            abs_tol=_TOL,
+        ):
+            raise WasteFluidAccountingError(
+                "overflow guard nominal recovery does not match fluid authority"
+            )
+
         cumulative_prime_events += state.prime_events
         authority_screen = budget.service_capacity_screen(
             cycles=state.cycle,
