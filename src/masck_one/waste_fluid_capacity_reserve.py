@@ -31,7 +31,10 @@ class CartridgeCapacityReserve:
     @property
     def total_mL(self) -> float:
         self.validate()
-        return float(self.fill_sensor_trip_mL + self.foam_allowance_mL + self.manufacturing_tolerance_mL + self.other_integration_mL)
+        total = float(self.fill_sensor_trip_mL + self.foam_allowance_mL + self.manufacturing_tolerance_mL + self.other_integration_mL)
+        if not math.isfinite(total):
+            raise WasteFluidAccountingError("composed capacity reserve total must remain finite")
+        return total
 
     @property
     def breakdown_mL(self) -> tuple[tuple[str, float], ...]:
