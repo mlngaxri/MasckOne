@@ -20,6 +20,40 @@ def test_service_routing_rejects_finite_operands_whose_prime_product_overflows()
         screen_service_routing_closure(budget, cycles=1, prime_events=2)
 
 
+def test_service_routing_rejects_even_sub_tolerance_prime_sink_overallocation():
+    budget = build_authority_waste_fluid_budget()
+    # Digital destination fractions partition one physical prime volume. A prior
+    # numerical tolerance allowed a tiny sum above unity, which could allocate
+    # more liquid to named sinks than the prime event actually contains.
+    with pytest.raises(WasteFluidAccountingError, match="must not sum above one"):
+        screen_service_routing_closure(
+            budget,
+            cycles=budget.service_cycles,
+            prime_events=1,
+            prime_recovery_ratio_contract=0.90,
+            prime_residual_ratio_contract=0.08,
+            prime_external_leakage_ratio_contract=0.0200000000005,
+        )
+
+
+def test_service_routing_accepts_exact_full_prime_sink_partition():
+    budget = build_authority_waste_fluid_budget()
+    closure = screen_service_routing_closure(
+        budget,
+        cycles=budget.service_cycles,
+        prime_events=1,
+        prime_recovery_ratio_contract=0.90,
+        prime_residual_ratio_contract=0.08,
+        prime_external_leakage_ratio_contract=0.02,
+    )
+    assert closure.prime_liquid_without_routing_contract_mL == pytest.approx(0.0)
+    assert (
+        closure.minimum_prime_liquid_routed_to_cartridge_mL
+        + closure.maximum_prime_residual_mL
+        + closure.maximum_prime_external_leakage_mL
+    ) == pytest.approx(closure.total_prime_liquid_mL)
+
+
 def test_service_routing_finite_guard_does_not_change_authority_result():
     closure = screen_service_routing_closure(
         build_authority_waste_fluid_budget(),
