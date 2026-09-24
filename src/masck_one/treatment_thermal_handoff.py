@@ -12,14 +12,11 @@ from .protected_volumes import ProtectedVolumeSet
 from .structural_frame import StructuralFrameTopology
 from .thermal_control import ThermalCommand, ThermalCommandInterlock
 from .treatment_full_evidence import FullTreatmentEvidence, validate_full_treatment_evidence
-from .treatment_integrated_evidence import (
-    IntegratedTreatmentEvidence,
-    validate_integrated_treatment_evidence,
-)
+from .treatment_integrated_evidence import IntegratedTreatmentEvidence, validate_integrated_treatment_evidence
 from .treatment_recovery_readiness import TreatmentRecoveryReadiness
 from .water_reservoir import WaterReservoirArchitecture
 from .waste_fluid_accounting import WasteFluidAccountingError
-from .waste_fluid_capacity_reserve import CapacityReservedOverflowGuard
+from .waste_fluid_capacity_reserve import CartridgeCapacityReserve, CapacityReservedOverflowGuard
 from .waste_fluid_overflow_guard import CartridgeOverflowGuard
 
 
@@ -37,42 +34,13 @@ def command_thermal_after_treatment(interlock: ThermalCommandInterlock, readines
     return interlock.command(warm_requested=warm_requested, cool_requested=cool_requested, recovery_complete=readiness.post_recovery_handoff_permitted)
 
 
-def command_thermal_from_integrated_treatment_evidence(
-    interlock: ThermalCommandInterlock,
-    sweep: FourZoneImpedanceSweep,
-    parameters: ActuationParameterSet,
-    evidence: IntegratedTreatmentEvidence,
-    *,
-    warm_requested: bool,
-    cool_requested: bool,
-) -> ThermalCommand:
+def command_thermal_from_integrated_treatment_evidence(interlock: ThermalCommandInterlock, sweep: FourZoneImpedanceSweep, parameters: ActuationParameterSet, evidence: IntegratedTreatmentEvidence, *, warm_requested: bool, cool_requested: bool) -> ThermalCommand:
     """Arbitrate thermal output only after validating massage/thermal and recovery evidence."""
     validate_integrated_treatment_evidence(sweep, parameters, evidence)
-    return command_thermal_after_treatment(
-        interlock,
-        evidence.recovery,
-        warm_requested=warm_requested,
-        cool_requested=cool_requested,
-    )
+    return command_thermal_after_treatment(interlock, evidence.recovery, warm_requested=warm_requested, cool_requested=cool_requested)
 
 
-def command_thermal_from_full_treatment_evidence(
-    interlock: ThermalCommandInterlock,
-    sweep: FourZoneImpedanceSweep,
-    parameters: ActuationParameterSet,
-    evidence: FullTreatmentEvidence,
-    *,
-    authority: Authority,
-    manifold: DistributionManifoldArchitecture,
-    pump: FreshPumpPackagingArchitecture,
-    water: WaterReservoirArchitecture,
-    cleanser: CleanserStorageArchitecture,
-    frame: StructuralFrameTopology,
-    coverage: FacialCoverageMesh,
-    protected: ProtectedVolumeSet,
-    warm_requested: bool,
-    cool_requested: bool,
-) -> ThermalCommand:
+def command_thermal_from_full_treatment_evidence(interlock: ThermalCommandInterlock, sweep: FourZoneImpedanceSweep, parameters: ActuationParameterSet, evidence: FullTreatmentEvidence, *, authority: Authority, manifold: DistributionManifoldArchitecture, pump: FreshPumpPackagingArchitecture, water: WaterReservoirArchitecture, cleanser: CleanserStorageArchitecture, frame: StructuralFrameTopology, coverage: FacialCoverageMesh, protected: ProtectedVolumeSet, warm_requested: bool, cool_requested: bool) -> ThermalCommand:
     """Command WARM/COOL only from the complete current treatment evidence tree.
 
     This engineering boundary revalidates canonical CLEAN outlet distribution, shared
@@ -81,77 +49,28 @@ def command_thermal_from_full_treatment_evidence(
     reserve guards remain accepted here for engineering sweeps; production callers
     should use ``command_thermal_from_reserved_full_treatment_evidence``.
     """
-    validate_full_treatment_evidence(
-        evidence,
-        sweep=sweep,
-        parameters=parameters,
-        authority=authority,
-        manifold=manifold,
-        pump=pump,
-        water=water,
-        cleanser=cleanser,
-        frame=frame,
-        coverage=coverage,
-        protected=protected,
-    )
-    return command_thermal_after_treatment(
-        interlock,
-        evidence.integrated.recovery,
-        warm_requested=warm_requested,
-        cool_requested=cool_requested,
-    )
+    validate_full_treatment_evidence(evidence, sweep=sweep, parameters=parameters, authority=authority, manifold=manifold, pump=pump, water=water, cleanser=cleanser, frame=frame, coverage=coverage, protected=protected)
+    return command_thermal_after_treatment(interlock, evidence.integrated.recovery, warm_requested=warm_requested, cool_requested=cool_requested)
 
 
-def command_thermal_from_reserved_full_treatment_evidence(
-    interlock: ThermalCommandInterlock,
-    sweep: FourZoneImpedanceSweep,
-    parameters: ActuationParameterSet,
-    evidence: FullTreatmentEvidence,
-    *,
-    authority: Authority,
-    manifold: DistributionManifoldArchitecture,
-    pump: FreshPumpPackagingArchitecture,
-    water: WaterReservoirArchitecture,
-    cleanser: CleanserStorageArchitecture,
-    frame: StructuralFrameTopology,
-    coverage: FacialCoverageMesh,
-    protected: ProtectedVolumeSet,
-    warm_requested: bool,
-    cool_requested: bool,
-) -> ThermalCommand:
-    """Production command boundary requiring full treatment and typed reserve provenance.
+def command_thermal_from_reserved_full_treatment_evidence(interlock: ThermalCommandInterlock, sweep: FourZoneImpedanceSweep, parameters: ActuationParameterSet, evidence: FullTreatmentEvidence, *, authority: Authority, manifold: DistributionManifoldArchitecture, pump: FreshPumpPackagingArchitecture, water: WaterReservoirArchitecture, cleanser: CleanserStorageArchitecture, frame: StructuralFrameTopology, coverage: FacialCoverageMesh, protected: ProtectedVolumeSet, reserve: CartridgeCapacityReserve, warm_requested: bool, cool_requested: bool) -> ThermalCommand:
+    """Production command boundary bound to the current capacity-reserve authority.
 
-    In addition to complete CLEAN, recovery, massage, and thermal revalidation, this
-    boundary requires the shared recovery tree to retain the composition-bound
-    ``CapacityReservedOverflowGuard``. A scalar cartridge reserve cannot therefore
-    cross the production whole-treatment command boundary.
+    Complete treatment evidence is revalidated, then the recovery tree must retain a
+    typed reserve whose composition digest exactly matches ``reserve``. This prevents
+    stale but internally self-consistent reserve evidence from authorizing a command.
     """
-    validate_full_treatment_evidence(
-        evidence,
-        sweep=sweep,
-        parameters=parameters,
-        authority=authority,
-        manifold=manifold,
-        pump=pump,
-        water=water,
-        cleanser=cleanser,
-        frame=frame,
-        coverage=coverage,
-        protected=protected,
-    )
+    if type(reserve) is not CartridgeCapacityReserve:
+        raise WasteFluidAccountingError("reserved full treatment thermal handoff requires exact CartridgeCapacityReserve authority")
+    reserve.validate()
+    validate_full_treatment_evidence(evidence, sweep=sweep, parameters=parameters, authority=authority, manifold=manifold, pump=pump, water=water, cleanser=cleanser, frame=frame, coverage=coverage, protected=protected)
     readiness = evidence.integrated.recovery
     reserve_evidence = readiness.source_capacity_reserve_evidence
     if type(reserve_evidence) is not CapacityReservedOverflowGuard:
-        raise WasteFluidAccountingError(
-            "reserved full treatment thermal handoff requires typed CapacityReservedOverflowGuard evidence"
-        )
+        raise WasteFluidAccountingError("reserved full treatment thermal handoff requires typed CapacityReservedOverflowGuard evidence")
+    reserve_evidence.__post_init__()
+    if reserve_evidence.reserve.evidence_sha256 != reserve.evidence_sha256:
+        raise WasteFluidAccountingError("reserved full treatment thermal handoff reserve provenance does not match current authority")
     if readiness.source_capacity_guard is not reserve_evidence.guard:
-        raise WasteFluidAccountingError(
-            "reserved full treatment thermal handoff requires recovery bound to the exact reserve guard"
-        )
-    return command_thermal_after_treatment(
-        interlock,
-        readiness,
-        warm_requested=warm_requested,
-        cool_requested=cool_requested,
-    )
+        raise WasteFluidAccountingError("reserved full treatment thermal handoff requires recovery bound to the exact reserve guard")
+    return command_thermal_after_treatment(interlock, readiness, warm_requested=warm_requested, cool_requested=cool_requested)
