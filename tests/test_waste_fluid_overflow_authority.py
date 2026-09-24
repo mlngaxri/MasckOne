@@ -62,6 +62,14 @@ def test_rejects_internally_valid_guard_from_different_delivery_authority():
         validate_overflow_guard_authority(budget, guard)
 
 
+def test_rejects_internally_valid_guard_from_different_nominal_recovery_authority():
+    budget = build_authority_waste_fluid_budget()
+    alternate = replace(budget, recovery_ratio_min=0.95)
+    guard = _guard(alternate)
+    with pytest.raises(WasteFluidAccountingError, match="nominal recovery"):
+        validate_overflow_guard_authority(budget, guard)
+
+
 def test_rejects_wrong_evidence_types():
     budget = build_authority_waste_fluid_budget()
     guard = _guard(budget)
