@@ -62,6 +62,7 @@ def test_accepts_one_shared_recovery_tree_across_all_treatment_subsystems(built)
     sources, parameters, sweep, full = _full(built)
     assert full.clean.recovery is full.integrated.recovery
     assert full.source_distribution_sha256 == full.clean.source_distribution_sha256
+    assert full.source_parameter_sha256 == full.integrated.source_parameter_sha256
     assert full.source_sweep_sha256 == full.integrated.source_sweep_sha256
     assert validate_full_treatment_evidence(
         full, sweep=sweep, parameters=parameters, **sources
@@ -96,6 +97,15 @@ def test_rejects_forged_full_distribution_provenance_even_when_clean_tree_is_val
     with pytest.raises(DistributionGeometryError, match="CLEAN distribution provenance"):
         validate_full_treatment_evidence(
             replace(full, source_distribution_sha256="0" * 64),
+            sweep=sweep, parameters=parameters, **sources,
+        )
+
+
+def test_rejects_forged_full_parameter_provenance_even_when_integrated_tree_is_valid(built):
+    sources, parameters, sweep, full = _full(built)
+    with pytest.raises(ActuationParameterError, match="actuation parameter provenance"):
+        validate_full_treatment_evidence(
+            replace(full, source_parameter_sha256="0" * 64),
             sweep=sweep, parameters=parameters, **sources,
         )
 
