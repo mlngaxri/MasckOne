@@ -1,6 +1,6 @@
 from dataclasses import replace
+from types import SimpleNamespace
 
-import cadquery as cq
 import pytest
 
 from masck_one import structural_frame_retention_root_service_v11 as v11
@@ -29,23 +29,26 @@ def test_v11_rejects_stale_v10_provenance_records_and_digest():
         replace(audit, seat_registration_evidence_sha256="f" * 64).validate()
 
 
-def test_v11_rejects_pin_corridor_detached_from_seated_boundary(monkeypatch):
+def _service_with_shifted_path(*, pin_shift_y=0.0, retainer_shift_z=0.0):
     service = v11.v1.build_structural_frame_retention_root_service()
     path = service.paths[0]
-    shifted = path.pin_withdraw_sweep.translate((0.0, -0.01, 0.0))
-    bad_path = replace(path, pin_withdraw_sweep=shifted)
-    bad_service = replace(service, paths=(bad_path, service.paths[1]))
+    bad_path = replace(
+        path,
+        pin_withdraw_sweep=path.pin_withdraw_sweep.translate((0.0, pin_shift_y, 0.0)),
+        clip_install_sweep=path.clip_install_sweep.translate((0.0, 0.0, retainer_shift_z)),
+    )
+    return SimpleNamespace(paths=(bad_path, service.paths[1]), architecture_sha256=service.architecture_sha256)
+
+
+def test_v11_rejects_pin_corridor_detached_from_seated_boundary(monkeypatch):
+    bad_service = _service_with_shifted_path(pin_shift_y=-0.01)
     monkeypatch.setattr(v11.v1, "build_structural_frame_retention_root_service", lambda: bad_service)
     with pytest.raises(v11.StructuralFrameRetentionRootServiceV11Error, match="pin withdrawal corridor is detached"):
         v11._seat_registration_evidence()
 
 
 def test_v11_rejects_retainer_corridor_detached_from_seated_boundary(monkeypatch):
-    service = v11.v1.build_structural_frame_retention_root_service()
-    path = service.paths[0]
-    shifted = path.clip_install_sweep.translate((0.0, 0.0, 0.01))
-    bad_path = replace(path, clip_install_sweep=shifted)
-    bad_service = replace(service, paths=(bad_path, service.paths[1]))
+    bad_service = _service_with_shifted_path(retainer_shift_z=0.01)
     monkeypatch.setattr(v11.v1, "build_structural_frame_retention_root_service", lambda: bad_service)
     with pytest.raises(v11.StructuralFrameRetentionRootServiceV11Error, match="retainer corridor is detached"):
         v11._seat_registration_evidence()
