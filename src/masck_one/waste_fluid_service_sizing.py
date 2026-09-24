@@ -10,6 +10,13 @@ from .waste_fluid_profile import ServiceFluidProfile
 _TOL = 1e-12
 
 
+def _finite_sizing_value(value: float, label: str) -> float:
+    """Return a finite sizing value or fail before it can drive a fit decision."""
+    if type(value) not in (int, float) or not math.isfinite(float(value)):
+        raise WasteFluidAccountingError(f"{label} must be finite")
+    return float(value)
+
+
 @dataclass(frozen=True, slots=True)
 class ServiceCapacitySizingInterval:
     """Required cartridge capacity bounds for one screened service profile.
@@ -50,21 +57,31 @@ class ServiceCapacitySizingInterval:
         )
         if any(type(value) not in (int, float) or not math.isfinite(float(value)) for value in numeric):
             raise WasteFluidAccountingError("service capacity sizing evidence must be finite numeric data")
-        contractual = max(state.minimum_projected_service_end_recovered_mL for state in self.source.cycles)
-        conservative = max(state.minimum_projected_service_end_inflow_mL for state in self.source.cycles)
-        reserve = self.source.capacity_reserve_mL
-        usable = self.source.usable_capacity_mL
-        expected = (
-            contractual,
-            conservative,
+        contractual = _finite_sizing_value(max(state.minimum_projected_service_end_recovered_mL for state in self.source.cycles), "contractual service capacity bound")
+        conservative = _finite_sizing_value(max(state.minimum_projected_service_end_inflow_mL for state in self.source.cycles), "conservative service capacity bound")
+        reserve = _finite_sizing_value(self.source.capacity_reserve_mL, "capacity reserve")
+        usable = _finite_sizing_value(self.source.usable_capacity_mL, "usable capacity")
+        derived = (
             max(0.0, conservative - contractual),
-            reserve,
-            usable,
             usable + reserve,
             contractual + reserve,
             conservative + reserve,
             usable - contractual,
             usable - conservative,
+        )
+        if any(not math.isfinite(value) for value in derived):
+            raise WasteFluidAccountingError("derived service capacity sizing arithmetic must remain finite")
+        expected = (
+            contractual,
+            conservative,
+            derived[0],
+            reserve,
+            usable,
+            derived[1],
+            derived[2],
+            derived[3],
+            derived[4],
+            derived[5],
         )
         if any(not math.isclose(float(actual), float(want), rel_tol=0.0, abs_tol=_TOL)
                for actual, want in zip(numeric, expected)):
@@ -84,21 +101,34 @@ def derive_service_capacity_sizing_interval(profile: ServiceFluidProfile) -> Ser
     if not profile.cycles:
         raise WasteFluidAccountingError("service capacity sizing requires cycle evidence")
 
-    contractual = max(state.minimum_projected_service_end_recovered_mL for state in profile.cycles)
-    conservative = max(state.minimum_projected_service_end_inflow_mL for state in profile.cycles)
+    contractual = _finite_sizing_value(max(state.minimum_projected_service_end_recovered_mL for state in profile.cycles), "contractual service capacity bound")
+    conservative = _finite_sizing_value(max(state.minimum_projected_service_end_inflow_mL for state in profile.cycles), "conservative service capacity bound")
+    reserve = _finite_sizing_value(profile.capacity_reserve_mL, "capacity reserve")
+    usable = _finite_sizing_value(profile.usable_capacity_mL, "usable capacity")
     if conservative + _TOL < contractual:
         raise WasteFluidAccountingError("conservative service capacity bound cannot be below contractual bound")
 
     unresolved = max(0.0, conservative - contractual)
-    reserve = profile.capacity_reserve_mL
-    retained_requirement = profile.usable_capacity_mL + reserve
+    retained_requirement = usable + reserve
     contractual_retained = contractual + reserve
     conservative_retained = conservative + reserve
     contractual_headroom = retained_requirement - contractual_retained
     conservative_headroom = retained_requirement - conservative_retained
+    derived = (
+        unresolved,
+        retained_requirement,
+        contractual_retained,
+        conservative_retained,
+        contractual_headroom,
+        conservative_headroom,
+    )
+    if any(not math.isfinite(value) for value in derived):
+        raise WasteFluidAccountingError("derived service capacity sizing arithmetic must remain finite")
 
-    usable_contractual_headroom = profile.usable_capacity_mL - contractual
-    usable_conservative_headroom = profile.usable_capacity_mL - conservative
+    usable_contractual_headroom = usable - contractual
+    usable_conservative_headroom = usable - conservative
+    if not math.isfinite(usable_contractual_headroom) or not math.isfinite(usable_conservative_headroom):
+        raise WasteFluidAccountingError("usable service capacity headroom must remain finite")
     if abs(contractual_headroom - usable_contractual_headroom) > _TOL:
         raise WasteFluidAccountingError("contractual reserve accounting does not conserve capacity")
     if abs(conservative_headroom - usable_conservative_headroom) > _TOL:
@@ -110,7 +140,7 @@ def derive_service_capacity_sizing_interval(profile: ServiceFluidProfile) -> Ser
         conservative_required_usable_capacity_mL=conservative,
         unresolved_capacity_interval_mL=unresolved,
         capacity_reserve_mL=reserve,
-        usable_capacity_mL=profile.usable_capacity_mL,
+        usable_capacity_mL=usable,
         retained_capacity_requirement_mL=retained_requirement,
         contractual_required_retained_capacity_mL=contractual_retained,
         conservative_required_retained_capacity_mL=conservative_retained,
