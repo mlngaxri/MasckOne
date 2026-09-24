@@ -43,6 +43,7 @@ class ServiceCapacitySizingInterval:
     def __post_init__(self) -> None:
         if type(self.source) is not ServiceFluidProfile or not self.source.cycles:
             raise WasteFluidAccountingError("service capacity sizing requires exact cycle-resolved profile evidence")
+        self.source.__post_init__()
         numeric = (
             self.contractual_required_usable_capacity_mL,
             self.conservative_required_usable_capacity_mL,
@@ -98,6 +99,7 @@ def derive_service_capacity_sizing_interval(profile: ServiceFluidProfile) -> Ser
     """Derive auditable usable and retained-capacity bounds from an exact profile."""
     if type(profile) is not ServiceFluidProfile:
         raise WasteFluidAccountingError("service capacity sizing requires exact ServiceFluidProfile evidence")
+    profile.__post_init__()
     if not profile.cycles:
         raise WasteFluidAccountingError("service capacity sizing requires cycle evidence")
 
