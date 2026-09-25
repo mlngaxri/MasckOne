@@ -17,7 +17,7 @@ from .treatment_recovery_readiness import TreatmentRecoveryReadiness
 from .water_reservoir import WaterReservoirArchitecture
 from .waste_fluid_accounting import WasteFluidAccountingError, WasteFluidBudget
 from .waste_fluid_capacity_reserve import CartridgeCapacityReserve, CapacityReservedOverflowGuard
-from .waste_fluid_overflow_authority import validate_overflow_guard_authority
+from .waste_fluid_reserved_overflow_authority import validate_capacity_reserved_overflow_authority
 from .waste_fluid_overflow_guard import CartridgeOverflowGuard
 
 
@@ -80,5 +80,5 @@ def command_thermal_from_reserved_full_treatment_evidence(interlock: ThermalComm
     if readiness.source_capacity_guard is not reserve_evidence.guard:
         raise WasteFluidAccountingError("reserved full treatment thermal handoff requires recovery bound to the exact reserve guard")
     if budget is not None:
-        validate_overflow_guard_authority(budget, reserve_evidence.guard)
+        validate_capacity_reserved_overflow_authority(budget, reserve_evidence)
     return command_thermal_after_treatment(interlock, readiness, warm_requested=warm_requested, cool_requested=cool_requested)
