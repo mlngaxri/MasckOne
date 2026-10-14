@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   build:
@@ -100,15 +101,32 @@ jobs:
           Path('/tmp/masck-site.js').write_text('\n'.join(scripts))
           PY
           node --check /tmp/masck-site.js
-      - name: Commit generated use journey
+      - name: Publish generated use journey through bounded PR
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add website/index.html website/use-journey-v18-truth.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'refine: build complete product use journey'
-            git pull --rebase origin main
-            git push origin HEAD:main
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+
+          source_sha="${GITHUB_SHA}"
+          source_short="${source_sha:0:12}"
+          generated_branch="generated/site-prompt18-${source_short}"
+          git checkout -b "$generated_branch"
+          git commit -m 'refine: build complete product use journey'
+          generated_sha="$(git rev-parse HEAD)"
+          git push origin "HEAD:refs/heads/${generated_branch}"
+
+          existing="$(gh pr list --head "$generated_branch" --base main --state open --json number --jq '.[0].number // empty')"
+          if [ -z "$existing" ]; then
+            gh pr create \
+              --base main \
+              --head "$generated_branch" \
+              --title "Generated Prompt 18 use journey from ${source_short}" \
+              --body "Generated from exact source SHA \`${source_sha}\`. Generated result SHA \`${generated_sha}\`. Promotion requires normal exact-source engineering CI, generated-artifact inspection, independent review, and expected-head merge protection. This workflow does not push directly to released main."
           fi
