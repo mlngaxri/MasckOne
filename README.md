@@ -1,4 +1,4 @@
-# Masck One
+# Masck One (pretty much taking break until my externals are over)
 
 Masck One is an early-stage hands-free facial-skincare wearable for people who already follow multi-step routines, exploring whether repetitive skincare steps can be automated to reduce the active time and effort those routines require.
 
