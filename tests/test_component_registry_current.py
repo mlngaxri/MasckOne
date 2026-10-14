@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 import json
+import pathlib
 from types import SimpleNamespace
 
 import pytest
@@ -319,9 +320,12 @@ def test_export_uses_registry_as_physical_material_boundary(monkeypatch, tmp_pat
         lambda model, waste_release: registry,
     )
 
-    def write_fixture_step(_shape, path, *args, **kwargs):
-        with open(path, "w", encoding="utf-8") as handle:
-            handle.write("fixture STEP placeholder\n")
+    real_export = release_export.cq.exporters.export
+
+    def write_fixture_step(shape, path, *args, **kwargs):
+        # A real unit solid rather than placeholder text: export_release reimports
+        # frame STEPs and checks validity and volume, and that gate should stay live.
+        real_export(release_export.cq.Workplane("XY").box(1.0, 1.0, 1.0), str(path))
 
     monkeypatch.setattr(release_export.cq.exporters, "export", write_fixture_step)
     monkeypatch.setattr(
@@ -357,6 +361,38 @@ def test_export_uses_registry_as_physical_material_boundary(monkeypatch, tmp_pat
     )
     monkeypatch.setattr(release_export, "boundary_release_manifest", lambda *args: {})
     monkeypatch.setattr(release_export, "_realized_waste_backbone_manifest", lambda release=None: {})
+    # This test isolates the registry material boundary, so it substitutes the
+    # heavy producers above rather than building real geometry. The Cell 6 bundle
+    # is the tenth such collaborator, but export_release independently reimports
+    # every declared frame STEP and requires a valid positive-volume solid, so
+    # stubbing that validation away would remove a real gate rather than a slow
+    # dependency. The substitute therefore emits genuine minimal solids and real
+    # manifests: every frame check downstream runs for real and passes on its own
+    # terms. Contract fields come from the same constants export_release compares
+    # against, so the drift check still compares two independent copies.
+    def fake_frame_bundle(stage):
+        for filename in release_export.FRAME_EXPORTED_STEP_FILES:
+            release_export.cq.exporters.export(
+                release_export.cq.Workplane("XY").box(1.0, 1.0, 1.0),
+                str(pathlib.Path(stage) / filename),
+            )
+        for filename in release_export.FRAME_EXPORTED_MANIFEST_FILES:
+            (pathlib.Path(stage) / filename).write_text(
+                json.dumps({"physical_validation_eligible": False}) + "\n",
+                encoding="utf-8",
+            )
+        return {
+            "exported_step_files": list(release_export.FRAME_EXPORTED_STEP_FILES),
+            "exported_manifest_files": list(release_export.FRAME_EXPORTED_MANIFEST_FILES),
+            "standalone_physical_geometry_pending_assembly_rebind": list(
+                release_export.FRAME_PENDING_ASSEMBLY_REBIND
+            ),
+            "digital_topology": {},
+        }
+
+    monkeypatch.setattr(
+        release_export, "export_structural_frame_release_bundle", fake_frame_bundle
+    )
 
     report = release_export.export_release(tmp_path, model=current_model)
 
