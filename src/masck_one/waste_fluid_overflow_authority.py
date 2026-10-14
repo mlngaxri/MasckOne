@@ -1,0 +1,115 @@
+"""Authority binding for cartridge overflow-guard evidence."""
+from __future__ import annotations
+
+import math
+
+from .waste_fluid_accounting import WasteFluidAccountingError, WasteFluidBudget
+from .waste_fluid_closure import screen_service_routing_closure
+from .waste_fluid_cycle_evidence import validate_cycle_routing_evidence
+from .waste_fluid_cycle_routing import screen_cycle_resolved_routing_closure
+from .waste_fluid_overflow_guard import CartridgeOverflowGuard
+
+_TOL = 1e-12
+
+
+def validate_overflow_guard_authority(
+    budget: WasteFluidBudget,
+    guard: CartridgeOverflowGuard,
+) -> None:
+    """Reject internally valid overflow evidence that drifts from its fluid authority.
+
+    The overflow guard already checks its own derived capacity fields. This boundary
+    independently binds its retained capacity and cycle-resolved conservative inflow
+    trajectory to the supplied ``WasteFluidBudget``. Authority-qualified overflow
+    evidence must cover the complete service life so a partial trajectory cannot be
+    mistaken for an end-of-service cartridge-capacity proof. It is a digital
+    conservation check only and does not claim physical recovery, leakage, foam,
+    pressure/flow, retained capacity, or sealing performance.
+    """
+    if type(budget) is not WasteFluidBudget:
+        raise WasteFluidAccountingError("overflow authority validator requires exact WasteFluidBudget")
+    if type(guard) is not CartridgeOverflowGuard:
+        raise WasteFluidAccountingError("overflow authority validator requires exact CartridgeOverflowGuard")
+    budget.validate()
+    guard.__post_init__()
+    validate_cycle_routing_evidence(guard.routing)
+
+    if not math.isclose(
+        guard.retained_capacity_mL,
+        budget.cartridge_retained_capacity_requirement_mL,
+        rel_tol=0.0,
+        abs_tol=_TOL,
+    ):
+        raise WasteFluidAccountingError("overflow guard retained capacity does not match fluid authority")
+    if len(guard.routing.cycles) != budget.service_cycles:
+        raise WasteFluidAccountingError(
+            "overflow guard cycle evidence must cover the complete authority service life"
+        )
+
+    service = guard.routing.service
+    expected_service = screen_service_routing_closure(
+        budget,
+        cycles=service.cycles,
+        prime_events=service.prime_events,
+        prime_recovery_ratio_contract=service.prime_recovery_ratio_contract,
+        prime_residual_ratio_contract=service.prime_residual_ratio_contract,
+        prime_external_leakage_ratio_contract=service.prime_external_leakage_ratio_contract,
+    )
+    if service != expected_service:
+        raise WasteFluidAccountingError(
+            "overflow guard service routing does not match fluid authority"
+        )
+
+    # Rebuild the complete cycle trajectory from authority plus the explicit reprime
+    # schedule. Aggregate service parity alone cannot detect equal-and-opposite
+    # corruption of prime recovery between cycles, which can move an apparent
+    # contractual overflow boundary earlier or later without changing final totals.
+    expected_routing = screen_cycle_resolved_routing_closure(
+        budget,
+        prime_events_by_cycle=tuple(state.prime_events for state in guard.routing.cycles),
+        prime_recovery_ratio_contract=service.prime_recovery_ratio_contract,
+        prime_residual_ratio_contract=service.prime_residual_ratio_contract,
+        prime_external_leakage_ratio_contract=service.prime_external_leakage_ratio_contract,
+    )
+    if guard.routing != expected_routing:
+        raise WasteFluidAccountingError(
+            "overflow guard cycle routing does not match fluid authority"
+        )
+
+    cumulative_prime_events = 0
+    for state in guard.routing.cycles:
+        if not math.isclose(
+            state.minimum_nominal_routed_to_cartridge_mL,
+            budget.minimum_recovered_mL_per_cycle,
+            rel_tol=0.0,
+            abs_tol=_TOL,
+        ):
+            raise WasteFluidAccountingError(
+                "overflow guard nominal recovery does not match fluid authority"
+            )
+
+        cumulative_prime_events += state.prime_events
+        authority_screen = budget.service_capacity_screen(
+            cycles=state.cycle,
+            prime_events=cumulative_prime_events,
+        )
+        expected_maximum = authority_screen.maximum_cartridge_inflow_mL
+        if not math.isclose(
+            state.cumulative_maximum_cartridge_inflow_mL,
+            expected_maximum,
+            rel_tol=0.0,
+            abs_tol=_TOL,
+        ):
+            raise WasteFluidAccountingError(
+                "overflow guard conservative inflow trajectory does not match fluid authority"
+            )
+
+        authority_minimum_nominal = authority_screen.minimum_recovered_nominal_mL
+        if state.cumulative_minimum_cartridge_routing_mL + _TOL < authority_minimum_nominal:
+            raise WasteFluidAccountingError(
+                "overflow guard minimum routing falls below authority nominal recovery floor"
+            )
+        if state.cumulative_minimum_cartridge_routing_mL > expected_maximum + _TOL:
+            raise WasteFluidAccountingError(
+                "overflow guard minimum routing exceeds authority maximum available inflow"
+            )
