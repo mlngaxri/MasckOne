@@ -116,4 +116,6 @@ The [convergence review](CORE_SKETCH_CONVERGENCE_REVIEW.md) records the broad co
 
 ## Lane 1 bounded implementation, 2026-09-11
 
+PR #157 now includes the [CS-018 source-bound compiler intake](CS018_CLEANSING_CAPABILITY_BINDING.md). Its current source receipt verifies 27 blobs across seven owner lineages. All seven registered capability artifacts remain missing, so the bridge emits no hardware Actions. This advances the digital source-binding task; the actual contact/occlusion matrix and physical G2 gate remain PROVE/BLOCKED.
+
 Draft PR #154 implements an unpowered off-face CS-018 fixture and a deterministic regional cleansing simulation. See `CS018_FACIAL_INTERFACE_CANDIDATE.md` and `REGIONAL_CLEANSING_CONTROLLER.md`. Twelve individual coupon cells have geometric access accounting; actual owner shadows and unresolved reaction paths remain explicit. CS-015/018 remain PROVE/BLOCKED for whole-face physical completion. No human-use operating table or registered human size family is released. Routine OS and prepared-session producers retain their canonical ownership.

@@ -1,0 +1,205 @@
+{
+  "extractor_sha256": "1959d0a43b68e433067a0c37368cba7e93f7c8003e80a98a009ead518b9550a3",
+  "human_use_eligible": false,
+  "initial_attempt": "Owner imports correctly failed closed when jsonschema was unavailable; the dependency-corrected runs are the accepted receipts.",
+  "owners": {
+    "exterior": {
+      "classes": {
+        "OWNER_MATERIAL_CANDIDATE": 1
+      },
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "loaded_source_files": 5,
+      "status": "EXTRACTED_NOT_INTEGRATION_APPROVAL"
+    },
+    "fluid": {
+      "classes": {},
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "loaded_source_files": 25,
+      "status": "OWNER_GRAPH_EXTRACTED_GEOMETRY_UNRESOLVED"
+    },
+    "thermal": {
+      "classes": {
+        "OWNER_MATERIAL_CANDIDATE": 14,
+        "REFERENCE": 12
+      },
+      "head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "loaded_source_files": 4,
+      "status": "EXTRACTED_NOT_INTEGRATION_APPROVAL"
+    }
+  },
+  "physical_result": null,
+  "runtime_note": "Local Python 3.12.14 and CadQuery 2.7.0. jsonschema dependencies appended for actual owner runs. This is not the qualified CI runtime.",
+  "scope": "DIGITAL_SOURCE_EXTRACTION_NOT_REGISTERED_FACIAL_CAPABILITY",
+  "step_archive_sha256": "a109bf01d31e0866bb0deecd97d65e64fb1c53aab232365410e0154fa44f91c3",
+  "test_source_sha256": "699227dc82f4a8cfa60f635fee6107142d3adf9792e49ceec803c41ad7ea619f",
+  "tests": {
+    "owner-extract-boundary": {
+      "junit_sha256": "518e89fa6b9c67e032fba7979c3c513c6247e212aaa6ea8d9aba2ef6f5a053c1",
+      "passed": 16,
+      "receipt": {
+        "action_key": "sha256:f04001405406333e00c0c6ee23dc9be45b2bc89e032ca5043d48fde409421deb",
+        "action_key_scope_digest": "sha256:1026a5857e449fac02a9ee814b9a28ec83fa82ac2e336b0cb4ea121b6972938a",
+        "action_kind": "targeted_test",
+        "attempt_id": "sha256:bbb01ba104c14d0eaa63354cb1b345ecb4cc5bac657bdb9ed2a93f1e5b93b2af",
+        "candidate_digest": "sha256:608d79d8ef3ca4839013db6564eac97c8b5760d21097b56b7d73fe435e929a43",
+        "consumed_invalidation_ids": [],
+        "decision": "evidence_accepted",
+        "dependency_digest": "sha256:1f8db6a07f0da508f3902b55b1ffa328dd430c83fedc6f107ed017b31c8ebf5f",
+        "environment_digest": "sha256:ae1c09af3eeda59e3a803214f55366674510c1b05d4ac5f50119c8eeb73a8a0b",
+        "environment_independent": null,
+        "evaluator_digest": "sha256:6b4889d55135f9858f0aa6b49e95e2658f5ed7fd1b72888d077399f9a28e19ea",
+        "event_fingerprint": "sha256:0f5f7983bc9412c1d91a76f0f3b46da22f712bc4d3d58ecbf735b46fa4df6f5d",
+        "event_id": "sha256:9cd3d8bb4f45e07d147b10f38a77ce76d9bc79936d2d094336df1dbeb61aa853",
+        "evidence_accepted": true,
+        "evidence_digest": "sha256:ad2c9a59976efe0f7aafc5a90f06497ea83f382937804bd03285c21e04d03a0f",
+        "fanout": null,
+        "fixture_corpus_version": "1",
+        "intervention_level": "observe",
+        "invalidation_id": null,
+        "invalidation_reason_code": null,
+        "invalidation_target_receipt_id": null,
+        "invalidation_transition_id": null,
+        "material_progress": {
+          "evidence_digest": null,
+          "status": "unknown"
+        },
+        "metrics": [],
+        "model_ref": null,
+        "outcome": "pass",
+        "policy_digest": "sha256:fe1fd764135a92b738e8d2049f8726ed7eeda032fadacf2f1b79c8814c3933f7",
+        "rate_advisories": [
+          {
+            "effect": "advisory",
+            "state": "missing"
+          }
+        ],
+        "reason_code": "accepted_evidence_recorded",
+        "receipt_id": "sha256:d9a3b7b2b611d72996a411a45607ac185c80d14b740d3aef66813c57480db454",
+        "requirements_digest": "sha256:ea2256570e30d31b2cae8b8ef93cbe6bfa7fbb3766f5f5fddb549c0f673ea243",
+        "reservation_receipt_id": "sha256:91af303461f39d167dd6ba70a4fb325f5f390ca3ffd765308d767d3a778cbe90",
+        "schema_version": "1.0",
+        "task_id": "sha256:004cb0454e35961ec7201e604402189ff4823e0cc92e8c01e0b29e2b0a2e3212",
+        "validator_version": "0.1.0",
+        "work_key": "sha256:a3a4524315a6014592d5520dca21827a08d1007605bd3f473c4c0d1ca8e5d632"
+      },
+      "source_event": {
+        "action_kind": "targeted_test",
+        "action_scope_digest": "sha256:1026a5857e449fac02a9ee814b9a28ec83fa82ac2e336b0cb4ea121b6972938a",
+        "attempt_id": "owner-extract-boundary",
+        "candidate_digest": "sha256:608d79d8ef3ca4839013db6564eac97c8b5760d21097b56b7d73fe435e929a43",
+        "dependency_digest": "sha256:1f8db6a07f0da508f3902b55b1ffa328dd430c83fedc6f107ed017b31c8ebf5f",
+        "environment_digest": "sha256:ae1c09af3eeda59e3a803214f55366674510c1b05d4ac5f50119c8eeb73a8a0b",
+        "evaluator_digest": "sha256:6b4889d55135f9858f0aa6b49e95e2658f5ed7fd1b72888d077399f9a28e19ea",
+        "event_id": "owner-extract-boundary",
+        "material_progress": {
+          "evidence_digest": null,
+          "status": "unknown"
+        },
+        "metrics": [],
+        "policy_digest": "sha256:fe1fd764135a92b738e8d2049f8726ed7eeda032fadacf2f1b79c8814c3933f7",
+        "rate_telemetry": {
+          "effect": "advisory",
+          "state": "missing"
+        },
+        "requirements_digest": "sha256:ea2256570e30d31b2cae8b8ef93cbe6bfa7fbb3766f5f5fddb549c0f673ea243",
+        "schema_version": "1.0",
+        "task_id": "masck-cs018-source-bridge"
+      }
+    },
+    "owner-extract-live-deps": {
+      "junit_sha256": "ba6725617ba78788e76b38e4ed0041c83f5292a6fb4daf728da267684dcc6e99",
+      "passed": 3,
+      "receipt": {
+        "action_key": "sha256:6085763980e9b56c367d778bbf2b3e3230dd1ddc353a30942d1b95bcc5407872",
+        "action_key_scope_digest": "sha256:5f5e600eb90b5c226daecaceb28d1285ae259fc840239ed8afd1e351a484029a",
+        "action_kind": "targeted_test",
+        "attempt_id": "sha256:96bad46c719ef12d6387ae3964d0851cac707834c6cc4c13ae12e75ca08ec172",
+        "candidate_digest": "sha256:608d79d8ef3ca4839013db6564eac97c8b5760d21097b56b7d73fe435e929a43",
+        "consumed_invalidation_ids": [],
+        "decision": "evidence_accepted",
+        "dependency_digest": "sha256:1f8db6a07f0da508f3902b55b1ffa328dd430c83fedc6f107ed017b31c8ebf5f",
+        "environment_digest": "sha256:ae1c09af3eeda59e3a803214f55366674510c1b05d4ac5f50119c8eeb73a8a0b",
+        "environment_independent": null,
+        "evaluator_digest": "sha256:3ee9f83e265233006903ad286935e935f2b061b87950080e5062d64e85aa06fa",
+        "event_fingerprint": "sha256:7d0d0a47a924adb1a39eb1871b0e945ad2cd112242cb1bd989223d3a0eee245a",
+        "event_id": "sha256:7773aa70529dd61996d61ffbdb96a887f9af86062606b10a6bd0907e5fb067c6",
+        "evidence_accepted": true,
+        "evidence_digest": "sha256:2afb07c1cf94f5a3182d2445da4ad31474844385b5a90f44f18a8e180ba5b543",
+        "fanout": null,
+        "fixture_corpus_version": "1",
+        "intervention_level": "observe",
+        "invalidation_id": null,
+        "invalidation_reason_code": null,
+        "invalidation_target_receipt_id": null,
+        "invalidation_transition_id": null,
+        "material_progress": {
+          "evidence_digest": null,
+          "status": "unknown"
+        },
+        "metrics": [],
+        "model_ref": null,
+        "outcome": "pass",
+        "policy_digest": "sha256:fe1fd764135a92b738e8d2049f8726ed7eeda032fadacf2f1b79c8814c3933f7",
+        "rate_advisories": [
+          {
+            "effect": "advisory",
+            "state": "missing"
+          }
+        ],
+        "reason_code": "accepted_evidence_recorded",
+        "receipt_id": "sha256:55d691afbb9b27c8a7d4709e2fd6129ba01297ef6b708553820e438a0acc292c",
+        "requirements_digest": "sha256:ea2256570e30d31b2cae8b8ef93cbe6bfa7fbb3766f5f5fddb549c0f673ea243",
+        "reservation_receipt_id": "sha256:56a53002bd7c1b03c171767f8996f581285fee4c4fb5206af58d8f4102417836",
+        "schema_version": "1.0",
+        "task_id": "sha256:004cb0454e35961ec7201e604402189ff4823e0cc92e8c01e0b29e2b0a2e3212",
+        "validator_version": "0.1.0",
+        "work_key": "sha256:832d46fee4857df7fa194a8e1f15ef8d049d3f28ee348e026fc13122b763f2e5"
+      },
+      "source_event": {
+        "action_kind": "targeted_test",
+        "action_scope_digest": "sha256:5f5e600eb90b5c226daecaceb28d1285ae259fc840239ed8afd1e351a484029a",
+        "attempt_id": "owner-extract-live-deps",
+        "candidate_digest": "sha256:608d79d8ef3ca4839013db6564eac97c8b5760d21097b56b7d73fe435e929a43",
+        "dependency_digest": "sha256:1f8db6a07f0da508f3902b55b1ffa328dd430c83fedc6f107ed017b31c8ebf5f",
+        "environment_digest": "sha256:ae1c09af3eeda59e3a803214f55366674510c1b05d4ac5f50119c8eeb73a8a0b",
+        "evaluator_digest": "sha256:3ee9f83e265233006903ad286935e935f2b061b87950080e5062d64e85aa06fa",
+        "event_id": "owner-extract-live-deps",
+        "invalidation": {
+          "action_scope_digest": "sha256:5f5e600eb90b5c226daecaceb28d1285ae259fc840239ed8afd1e351a484029a",
+          "changes": [
+            {
+              "after": "sha256:3ee9f83e265233006903ad286935e935f2b061b87950080e5062d64e85aa06fa",
+              "before": "sha256:622a676090796bdec3a209a1655972968cb65e257497ba32f2b4f628dfe69bd0",
+              "field": "evaluator_digest"
+            }
+          ],
+          "evidence": [
+            {
+              "digest": "sha256:3ee9f83e265233006903ad286935e935f2b061b87950080e5062d64e85aa06fa",
+              "kind": "evaluator_digest"
+            }
+          ],
+          "invalidates": [
+            "sha256:4834686c725edb9129237a801db6813986b4ae46c3d406644c45fd8389886316"
+          ],
+          "invalidation_id": "sha256:fb8eeebc426135498d8d9ce679e593df8e4dc87e0d524e54d37e9ad761816af5",
+          "reason_code": "evaluator_changed",
+          "schema_version": "1.0"
+        },
+        "material_progress": {
+          "evidence_digest": null,
+          "status": "unknown"
+        },
+        "metrics": [],
+        "policy_digest": "sha256:fe1fd764135a92b738e8d2049f8726ed7eeda032fadacf2f1b79c8814c3933f7",
+        "rate_telemetry": {
+          "effect": "advisory",
+          "state": "missing"
+        },
+        "requirements_digest": "sha256:ea2256570e30d31b2cae8b8ef93cbe6bfa7fbb3766f5f5fddb549c0f673ea243",
+        "schema_version": "1.0",
+        "task_id": "masck-cs018-source-bridge"
+      }
+    }
+  }
+}

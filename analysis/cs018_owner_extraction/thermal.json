@@ -1,0 +1,1543 @@
+{
+  "capability_blockers": [
+    "REGISTERED_ACTION_FOOTPRINTS_NOT_ESTABLISHED"
+  ],
+  "capability_status": "UNRESOLVED_OWNER_CAPABILITY",
+  "evidence": "DIGITAL",
+  "extractor_sha256": "1959d0a43b68e433067a0c37368cba7e93f7c8003e80a98a009ead518b9550a3",
+  "geometry_report": {
+    "authority_blob_sha": "2608dda483b995539de422290371c219668a1527",
+    "components": [
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "LEFT_finned_store_and_choked_plate",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "MACHINED_METAL",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_LEFT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            -52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "LEFT_store_lid",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "JOINED_METAL_CLOSURE",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_LEFT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            -52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "LEFT_fill_plug",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "JOINED_METAL_CLOSURE",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_LEFT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            -52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "LEFT_heater_dielectric_carrier",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "DIELECTRIC_OR_INSULATION_UNQUALIFIED",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_LEFT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            -52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "LEFT_backside_insulator",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "DIELECTRIC_OR_INSULATION_UNQUALIFIED",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_LEFT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            -52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "LEFT_laminate_retainer",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "DIELECTRIC_OR_INSULATION_UNQUALIFIED",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_LEFT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            -52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "RIGHT_finned_store_and_choked_plate",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "MACHINED_METAL",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_RIGHT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "RIGHT_store_lid",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "JOINED_METAL_CLOSURE",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_RIGHT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "RIGHT_fill_plug",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "JOINED_METAL_CLOSURE",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_RIGHT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "RIGHT_heater_dielectric_carrier",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "DIELECTRIC_OR_INSULATION_UNQUALIFIED",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_RIGHT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "RIGHT_backside_insulator",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "DIELECTRIC_OR_INSULATION_UNQUALIFIED",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_RIGHT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "RIGHT_laminate_retainer",
+        "feature_intent": "RECTANGULAR_POCKETS_AND_FINS; INTEGRAL_COLUMNS; PLANAR_JOIN_LAND",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_STATIONARY_THERMAL_GROUP",
+        "local_datums": {
+          "contact_plane_z_mm": -7.0,
+          "lid_plane_z_mm": 4.0
+        },
+        "local_frame": "STORE_CENTER_XY_DEPTH_MIDPLANE",
+        "material_role": "DIELECTRIC_OR_INSULATION_UNQUALIFIED",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "THERMAL_RIGHT",
+        "service": "JOINED_STORE_FACTORY_ONLY; WHOLE_CASSETTE_LIFTS_+Z_IN_BENCH_CRADLE",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            52.0
+          ],
+          [
+            0,
+            1,
+            0,
+            -10.0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "dock_receiver_heat_sink",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_BENCH_BASE; CRADLE_M2_CLEARANCE_BORES",
+        "local_datums": {
+          "receiver_plane_z_mm": -7.0
+        },
+        "local_frame": "AUTHORITY_ALIGNED_BENCH",
+        "material_role": "METAL_HEAT_SINK",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "OFF_FACE_RESET_DOCK",
+        "service": "LIFT_CASSETTES_WITHOUT_LATCH",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "classification": "MANUFACTURED_BENCH_COMPONENT",
+        "component_id": "dock_acquisition_cradle",
+        "fusion_class": "A_NATIVE_ANALYTIC_REBUILD",
+        "joint": "RIGID_BENCH_BASE; CRADLE_M2_CLEARANCE_BORES",
+        "local_datums": {
+          "receiver_plane_z_mm": -7.0
+        },
+        "local_frame": "AUTHORITY_ALIGNED_BENCH",
+        "material_role": "STRUCTURAL_POLYMER",
+        "parameters": {
+          "choke_length_mm": 2.0,
+          "choke_width_mm": 0.92,
+          "fill_port_diameter_mm": 2.0,
+          "fin_count": 9,
+          "fin_height_mm": 6.0,
+          "fin_pitch_mm": 2.3,
+          "fin_thickness_mm": 0.4,
+          "floor_mm": 0.6,
+          "lid_mm": 0.6,
+          "plate_height_mm": 28.0,
+          "plate_thickness_mm": 1.0,
+          "plate_width_mm": 22.0,
+          "plate_y_offset_mm": 6.0,
+          "reset_travel_mm": 20.0,
+          "store_depth_mm": 8.0,
+          "store_height_mm": 40.0,
+          "store_width_mm": 24.0,
+          "wall_mm": 0.7
+        },
+        "parent_assembly": "OFF_FACE_RESET_DOCK",
+        "service": "LIFT_CASSETTES_WITHOUT_LATCH",
+        "world_transform": [
+          [
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      }
+    ],
+    "cost_and_tactile_strategy": {
+      "acquisition": "LEFT_MASTER_RIGHT_RELIEVED_FUNNEL; 3_MM_PER_SIDE_FLARE_OVER_8P2_MM; 20_MM_VERTICAL_WITHDRAWAL_REFERENCE",
+      "dock": "MOLDED_CORED_POLYMER_ACQUISITION_CRADLE; EXTRUDED_SINK_WITH_ONE_CENTRAL_RELIEF; NO_LATCH_MAGNET_OR_BEARING",
+      "store": "MONOLITHIC_MACHINED_BENCH_COUPON; PRODUCTION_COST_NOT_CLOSED; FORMING_OR_CASTING_NEEDS_THERMAL_AND_JOIN_EQUIVALENCE",
+      "terminal": "BROAD_THERMAL_DATUM_CONTACT_UNDER_GRAVITY; CONTACT_PRESSURE_IS_AN_UNQUALIFIED_INPUT",
+      "touch_surface": "POLYMER_EDGE_AND_GAP_FINISH_REQUIRE_TOOLING_AND_CLEANSER_COMPATIBILITY_VALIDATION",
+      "unit_cost": "UNKNOWN_NO_SUPPLIER_QUOTES; NO_UNIT_COST_OR_TACTILE_PERFORMANCE_CLAIM"
+    },
+    "electrical_hardware": "HEATER_SENSOR_HARNESS_REFERENCES_ONLY; NO_ENERGIZED_WEARABLE_BUILD_INSTRUCTIONS",
+    "heater_protection": "SEMANTIC_ONLY: INDEPENDENT_HARDWARE_CUTOFF_IN_SERIES; SENSOR_OPEN_SHORT_DETACH_AND_WATCHDOG_INHIBIT; NO_CONTROL_FIRMWARE",
+    "human_use_eligible": false,
+    "internal_and_bench_motion_intersections_mm3": {
+      "LEFT_WITHDRAWAL/dock_acquisition_cradle": 0.0,
+      "LEFT_WITHDRAWAL/dock_receiver_heat_sink": 0.0,
+      "LEFT_backside_insulator/LEFT_laminate_retainer": 0.0,
+      "LEFT_fill_plug/LEFT_backside_insulator": 0.0,
+      "LEFT_fill_plug/LEFT_heater_dielectric_carrier": 0.0,
+      "LEFT_fill_plug/LEFT_laminate_retainer": 0.0,
+      "LEFT_finned_store_and_choked_plate/LEFT_backside_insulator": 0.0,
+      "LEFT_finned_store_and_choked_plate/LEFT_fill_plug": 0.0,
+      "LEFT_finned_store_and_choked_plate/LEFT_heater_dielectric_carrier": 0.0,
+      "LEFT_finned_store_and_choked_plate/LEFT_laminate_retainer": 0.0,
+      "LEFT_finned_store_and_choked_plate/LEFT_store_lid": 0.0,
+      "LEFT_heater_dielectric_carrier/LEFT_backside_insulator": 0.0,
+      "LEFT_heater_dielectric_carrier/LEFT_laminate_retainer": 0.0,
+      "LEFT_store_lid/LEFT_backside_insulator": 0.0,
+      "LEFT_store_lid/LEFT_fill_plug": 0.0,
+      "LEFT_store_lid/LEFT_heater_dielectric_carrier": 0.0,
+      "LEFT_store_lid/LEFT_laminate_retainer": 0.0,
+      "RIGHT_WITHDRAWAL/dock_acquisition_cradle": 0.0,
+      "RIGHT_WITHDRAWAL/dock_receiver_heat_sink": 0.0,
+      "RIGHT_backside_insulator/RIGHT_laminate_retainer": 0.0,
+      "RIGHT_fill_plug/RIGHT_backside_insulator": 0.0,
+      "RIGHT_fill_plug/RIGHT_heater_dielectric_carrier": 0.0,
+      "RIGHT_fill_plug/RIGHT_laminate_retainer": 0.0,
+      "RIGHT_finned_store_and_choked_plate/RIGHT_backside_insulator": 0.0,
+      "RIGHT_finned_store_and_choked_plate/RIGHT_fill_plug": 0.0,
+      "RIGHT_finned_store_and_choked_plate/RIGHT_heater_dielectric_carrier": 0.0,
+      "RIGHT_finned_store_and_choked_plate/RIGHT_laminate_retainer": 0.0,
+      "RIGHT_finned_store_and_choked_plate/RIGHT_store_lid": 0.0,
+      "RIGHT_heater_dielectric_carrier/RIGHT_backside_insulator": 0.0,
+      "RIGHT_heater_dielectric_carrier/RIGHT_laminate_retainer": 0.0,
+      "RIGHT_store_lid/RIGHT_backside_insulator": 0.0,
+      "RIGHT_store_lid/RIGHT_fill_plug": 0.0,
+      "RIGHT_store_lid/RIGHT_heater_dielectric_carrier": 0.0,
+      "RIGHT_store_lid/RIGHT_laminate_retainer": 0.0,
+      "dock_cradle/sink": 0.0
+    },
+    "metrics": {
+      "PCM_maximum_half_pitch_mm": 0.95,
+      "cavity_mm3": 5128.527999999999,
+      "choke_length_mm": 2.0,
+      "choke_positions_local_mm": [
+        [
+          -8.0,
+          -2.0
+        ],
+        [
+          -8.0,
+          14.0
+        ],
+        [
+          8.0,
+          -2.0
+        ],
+        [
+          8.0,
+          14.0
+        ]
+      ],
+      "choke_total_section_mm2": 3.3856,
+      "fin_area_mm2": 4017.6000000000004,
+      "heater_post_neighborhood_power_fraction_DOE": 0.6,
+      "heater_size_mm": [
+        18.0,
+        24.0
+      ],
+      "lid_seal_land_width_mm": 0.7,
+      "plate_area_mm2": 616.0,
+      "plate_front_z_mm": -7.0
+    },
+    "owner_base_sha": "61b4da28f8fbd45fc1a9885db4366f8506d2043e",
+    "parameters": {
+      "choke_length_mm": 2.0,
+      "choke_width_mm": 0.92,
+      "fill_port_diameter_mm": 2.0,
+      "fin_count": 9,
+      "fin_height_mm": 6.0,
+      "fin_pitch_mm": 2.3,
+      "fin_thickness_mm": 0.4,
+      "floor_mm": 0.6,
+      "lid_mm": 0.6,
+      "plate_height_mm": 28.0,
+      "plate_thickness_mm": 1.0,
+      "plate_width_mm": 22.0,
+      "plate_y_offset_mm": 6.0,
+      "reset_travel_mm": 20.0,
+      "store_depth_mm": 8.0,
+      "store_height_mm": 40.0,
+      "store_width_mm": 24.0,
+      "wall_mm": 0.7
+    },
+    "production_architecture_status": "BLOCKED_PHYSICAL_THERMAL_AND_WHOLE_PRODUCT_INTERFACES",
+    "read_only_treatment_head": "43c3866eea56801696068ad4e417d5b21498682d",
+    "reference_ids": [
+      "LEFT_PCM_INTERNAL_VOID",
+      "LEFT_HEATER_SUPPLIER_ENVELOPE",
+      "LEFT_CONTROL_SENSOR_ENVELOPE",
+      "LEFT_FAULT_SENSOR_ENVELOPE",
+      "LEFT_HARNESS_PASSAGE",
+      "LEFT_BENCH_WITHDRAWAL",
+      "RIGHT_PCM_INTERNAL_VOID",
+      "RIGHT_HEATER_SUPPLIER_ENVELOPE",
+      "RIGHT_CONTROL_SENSOR_ENVELOPE",
+      "RIGHT_FAULT_SENSOR_ENVELOPE",
+      "RIGHT_HARNESS_PASSAGE",
+      "RIGHT_BENCH_WITHDRAWAL"
+    ],
+    "reference_policy": "PCM_VOID_HEATER_SENSOR_HARNESS_AND_SWEEPS_EXCLUDED_FROM_MANUFACTURED_ASSEMBLIES",
+    "schema": "MASCK_ONE_THERMAL_RESET_HARDWARE",
+    "selected_bench_architecture": "STATIONARY_CHOKED_SHARED_PLATE_FINNED_LATENT_STORE_DIRECT_PLATE_DOCK_RESET",
+    "source_main_sha": "42fa11818184cde998c6df25d7c46d4fb0e4c3eb",
+    "wet_interface": "METAL_CONTACT_PLATE; FLUID/CONDENSATE_DRAINS_AROUND_PLATE; EXACT_OWNER_ROUTE_REBIND_OPEN",
+    "whole_product_installation": "OPEN; CURRENT_TREATMENT_FULL_ASSEMBLY_GATE_RED"
+  },
+  "head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+  "human_use_eligible": false,
+  "installed_facial_transform": null,
+  "loaded_source_files": {
+    "src/masck_one/__init__.py": {
+      "git_blob": "34f32e9902669f2e604d2d23a891aa872c405a11",
+      "head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "sha256": "3dbdf087ef7358d793edcaa246abc64ae2c46f9d74dba22d916389737cd54666"
+    },
+    "src/masck_one/authority.py": {
+      "git_blob": "6866e3a428dab8b32b5a1d9e58da78b8f5aa1aa2",
+      "head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "sha256": "679707957008e8b38801f60751569f7b6d5969187b7e9a3cc62827ebc2d06f2f"
+    },
+    "src/masck_one/thermal_reset_hardware.py": {
+      "git_blob": "d0acc062be1b23e1363dfb17642a6591d1429e77",
+      "head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "sha256": "bdd9371b2b95c33cab3df5c2815afcce39e82c2b4888866f1edbad09c31d73f3"
+    },
+    "src/masck_one/warm_cool_package.py": {
+      "git_blob": "96bc48a24bc6d1c81afc3540e9930e9e52470ef6",
+      "head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "sha256": "b82d594601f2a680d257a0a253e178cb0e45d3e4a263871a2fe011df7d298126"
+    }
+  },
+  "owner": "thermal",
+  "participants": [
+    {
+      "bounds_mm": [
+        -62.8,
+        -41.199999999999996,
+        -17.8,
+        9.800000000000002,
+        -5.85,
+        -4.35
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "2e9cf7abb34bd4ff856c5d3809f67855248159090e051077a7ed756fb338f988",
+      "id": "thermal:material_parts.LEFT_backside_insulator",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__LEFT_backside_insulator.step",
+      "valid": true,
+      "volume_sum_mm3": 827.9244000000002
+    },
+    {
+      "bounds_mm": [
+        -53.0,
+        -51.0,
+        -27.0,
+        -25.0,
+        3.4,
+        4.0
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "d5546dfd3238467fedc74321a48f170d2174ad3cf909b64c28b2f01849a20450",
+      "id": "thermal:material_parts.LEFT_fill_plug",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__LEFT_fill_plug.step",
+      "valid": true,
+      "volume_sum_mm3": 1.884955592153876
+    },
+    {
+      "bounds_mm": [
+        -64.0,
+        -40.0,
+        -30.0,
+        10.0,
+        -7.0,
+        3.4000000000000004
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "1d654d0fa57f39467d1fa314aa15ca61ad65319048d1eeac6581a0e227f16fe2",
+      "id": "thermal:material_parts.LEFT_finned_store_and_choked_plate",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__LEFT_finned_store_and_choked_plate.step",
+      "valid": true,
+      "volume_sum_mm3": 2590.783199999998
+    },
+    {
+      "bounds_mm": [
+        -61.0,
+        -43.0,
+        -16.0,
+        8.0,
+        -6.0,
+        -5.9
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "ae8ab289d9ab86b45e8ab820d9cab0a24d0b6f4a9ab13519b9f8e0f11e0b394d",
+      "id": "thermal:material_parts.LEFT_heater_dielectric_carrier",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__LEFT_heater_dielectric_carrier.step",
+      "valid": true,
+      "volume_sum_mm3": 41.49895999999987
+    },
+    {
+      "bounds_mm": [
+        -64.4,
+        -39.6,
+        -17.5,
+        9.5,
+        -4.55,
+        -3.525
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "f8af18708594a17d801ff90eaa7f5befae7eae1807e5493143cbe80229619c6f",
+      "id": "thermal:material_parts.LEFT_laminate_retainer",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__LEFT_laminate_retainer.step",
+      "valid": true,
+      "volume_sum_mm3": 78.47199999999998
+    },
+    {
+      "bounds_mm": [
+        -64.0,
+        -40.0,
+        -30.0,
+        10.0,
+        3.4,
+        4.0
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "ed2eebbeecd50137f2bcafce12d37655e457c50b9e64aeedc7ae916b90495813",
+      "id": "thermal:material_parts.LEFT_store_lid",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__LEFT_store_lid.step",
+      "valid": true,
+      "volume_sum_mm3": 574.1150444078457
+    },
+    {
+      "bounds_mm": [
+        41.2,
+        62.800000000000004,
+        -17.8,
+        9.800000000000002,
+        -5.85,
+        -4.35
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "2be9d1d8af8f05155b7585cf226312f2d86827b78760bac8f2b6f9eda6d31a21",
+      "id": "thermal:material_parts.RIGHT_backside_insulator",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__RIGHT_backside_insulator.step",
+      "valid": true,
+      "volume_sum_mm3": 827.9244000000002
+    },
+    {
+      "bounds_mm": [
+        51.0,
+        53.0,
+        -27.0,
+        -25.0,
+        3.4,
+        4.0
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "c88430b8b3c848c5042099308738150d45a1518be96f7a2892208001c3e5fff8",
+      "id": "thermal:material_parts.RIGHT_fill_plug",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__RIGHT_fill_plug.step",
+      "valid": true,
+      "volume_sum_mm3": 1.884955592153876
+    },
+    {
+      "bounds_mm": [
+        40.0,
+        64.0,
+        -30.0,
+        10.0,
+        -7.0,
+        3.4000000000000004
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "c980d6732cf346c4cc1432c5de548baffccd34a1594524f6365f8cf2d919ef51",
+      "id": "thermal:material_parts.RIGHT_finned_store_and_choked_plate",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__RIGHT_finned_store_and_choked_plate.step",
+      "valid": true,
+      "volume_sum_mm3": 2590.7831999999976
+    },
+    {
+      "bounds_mm": [
+        43.0,
+        61.0,
+        -16.0,
+        8.0,
+        -6.0,
+        -5.9
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "8a15f909e18ed85a483a4fdc0d069cfb81b2404a704f7a6accc22c2d12f482e2",
+      "id": "thermal:material_parts.RIGHT_heater_dielectric_carrier",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__RIGHT_heater_dielectric_carrier.step",
+      "valid": true,
+      "volume_sum_mm3": 41.49895999999987
+    },
+    {
+      "bounds_mm": [
+        39.6,
+        64.4,
+        -17.5,
+        9.5,
+        -4.55,
+        -3.525
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "f48c414e217be39972291a28c03ac0b41fb4b362b07d5103d7e277b4ea0cc376",
+      "id": "thermal:material_parts.RIGHT_laminate_retainer",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__RIGHT_laminate_retainer.step",
+      "valid": true,
+      "volume_sum_mm3": 78.472
+    },
+    {
+      "bounds_mm": [
+        40.0,
+        64.0,
+        -30.0,
+        10.0,
+        3.4,
+        4.0
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "19572edaf83e78fc99afa35d38e9a94becdf5e8d7ec9ce45329d4f9f7e936866",
+      "id": "thermal:material_parts.RIGHT_store_lid",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__RIGHT_store_lid.step",
+      "valid": true,
+      "volume_sum_mm3": 574.1150444078457
+    },
+    {
+      "bounds_mm": [
+        -76.0,
+        76.0,
+        -45.0,
+        25.0,
+        -16.0,
+        1.0000001
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "d1ba01f6b3ecc626a53adb6821790837b2ba109b22f5cba8d3adbbc3b5e87f6b",
+      "id": "thermal:material_parts.dock_acquisition_cradle",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__dock_acquisition_cradle.step",
+      "valid": true,
+      "volume_sum_mm3": 18325.302292096007
+    },
+    {
+      "bounds_mm": [
+        -70.0,
+        70.0,
+        -40.0,
+        20.0,
+        -32.0,
+        -7.000000000000001
+      ],
+      "classification": "OWNER_MATERIAL_CANDIDATE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "10d6e5b522b428129cfaedc7a5a2ebd980ce33388088b9f9fd8a109055b944c3",
+      "id": "thermal:material_parts.dock_receiver_heat_sink",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "material_parts__dock_receiver_heat_sink.step",
+      "valid": true,
+      "volume_sum_mm3": 67648.00000000003
+    },
+    {
+      "bounds_mm": [
+        -64.4,
+        -39.6,
+        -30.0,
+        10.0,
+        -7.0,
+        24.0
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "5090a10ca09c74ed8d8d1ed8073460e33ab66b8f16bd008a60e579a273c5c9aa",
+      "id": "thermal:reference_parts.LEFT_BENCH_WITHDRAWAL",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__LEFT_BENCH_WITHDRAWAL.step",
+      "valid": true,
+      "volume_sum_mm3": 30752.0
+    },
+    {
+      "bounds_mm": [
+        -60.0,
+        -58.0,
+        4.0,
+        6.0,
+        -6.25,
+        -6.0
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "8d5537c1e2d8bdfb17626c1c2e1352f816fcbe7c506f95f42cd262c1e5e35b67",
+      "id": "thermal:reference_parts.LEFT_CONTROL_SENSOR_ENVELOPE",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__LEFT_CONTROL_SENSOR_ENVELOPE.step",
+      "valid": true,
+      "volume_sum_mm3": 0.9999999999999998
+    },
+    {
+      "bounds_mm": [
+        -46.0,
+        -44.0,
+        4.0,
+        6.0,
+        -6.25,
+        -6.0
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "96c0ec6de152c81652e5c6460b122bb6c6ef7f889d66577f3f8e2c0ffc55990d",
+      "id": "thermal:reference_parts.LEFT_FAULT_SENSOR_ENVELOPE",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__LEFT_FAULT_SENSOR_ENVELOPE.step",
+      "valid": true,
+      "volume_sum_mm3": 0.9999999999999998
+    },
+    {
+      "bounds_mm": [
+        -53.8,
+        -50.199999999999996,
+        3.0,
+        11.0,
+        -5.7,
+        -4.7
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "513c40b521718263ce5d778e216790106bb64d012543756750ab99e8148d3306",
+      "id": "thermal:reference_parts.LEFT_HARNESS_PASSAGE",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__LEFT_HARNESS_PASSAGE.step",
+      "valid": true,
+      "volume_sum_mm3": 28.799999999999965
+    },
+    {
+      "bounds_mm": [
+        -61.0,
+        -43.0,
+        -16.0,
+        8.0,
+        -5.9,
+        -5.85
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "bda10d15a3d87ab23849ca944d9f0bba33b0be9d6ba8d32d5eac10d51952d522",
+      "id": "thermal:reference_parts.LEFT_HEATER_SUPPLIER_ENVELOPE",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__LEFT_HEATER_SUPPLIER_ENVELOPE.step",
+      "valid": true,
+      "volume_sum_mm3": 20.749480000000293
+    },
+    {
+      "bounds_mm": [
+        -63.3,
+        -40.699999999999996,
+        -29.3,
+        9.3,
+        -3.4000000000000004,
+        3.4000000000000004
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "6c0ad211a4049926fdbc8e769e4295073e9b5d977870aef5fb958678bbf68a47",
+      "id": "thermal:reference_parts.LEFT_PCM_INTERNAL_VOID",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__LEFT_PCM_INTERNAL_VOID.step",
+      "valid": true,
+      "volume_sum_mm3": 5128.527999999999
+    },
+    {
+      "bounds_mm": [
+        39.6,
+        64.4,
+        -30.0,
+        10.0,
+        -7.0,
+        24.0
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "f1d90033c4009d1d06690d3dab740e913abe1330c2852e881f2a5a016a4985cb",
+      "id": "thermal:reference_parts.RIGHT_BENCH_WITHDRAWAL",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__RIGHT_BENCH_WITHDRAWAL.step",
+      "valid": true,
+      "volume_sum_mm3": 30752.0
+    },
+    {
+      "bounds_mm": [
+        44.0,
+        46.0,
+        4.0,
+        6.0,
+        -6.25,
+        -6.0
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "32411e6886f09fc2883bd7ec383039cc724e0c2195069d4f450fe27736f96e1a",
+      "id": "thermal:reference_parts.RIGHT_CONTROL_SENSOR_ENVELOPE",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__RIGHT_CONTROL_SENSOR_ENVELOPE.step",
+      "valid": true,
+      "volume_sum_mm3": 0.9999999999999998
+    },
+    {
+      "bounds_mm": [
+        58.0,
+        60.0,
+        4.0,
+        6.0,
+        -6.25,
+        -6.0
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "8f7e48150c9415fc510a0bd6373d084c99e13c62c488f3f20366e3280424ba3b",
+      "id": "thermal:reference_parts.RIGHT_FAULT_SENSOR_ENVELOPE",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__RIGHT_FAULT_SENSOR_ENVELOPE.step",
+      "valid": true,
+      "volume_sum_mm3": 0.9999999999999998
+    },
+    {
+      "bounds_mm": [
+        50.2,
+        53.800000000000004,
+        3.0,
+        11.0,
+        -5.7,
+        -4.7
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "1d011460099b084b3099735e093a298dc8f2f574aae948d871ebe82c56a3194d",
+      "id": "thermal:reference_parts.RIGHT_HARNESS_PASSAGE",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__RIGHT_HARNESS_PASSAGE.step",
+      "valid": true,
+      "volume_sum_mm3": 28.799999999999965
+    },
+    {
+      "bounds_mm": [
+        43.0,
+        61.0,
+        -16.0,
+        8.0,
+        -5.9,
+        -5.85
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "a62d2ee8b43ec05ae9fb77450eae7092f3dde86fdd9200ba09a6f32e733ac6be",
+      "id": "thermal:reference_parts.RIGHT_HEATER_SUPPLIER_ENVELOPE",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__RIGHT_HEATER_SUPPLIER_ENVELOPE.step",
+      "valid": true,
+      "volume_sum_mm3": 20.749480000000293
+    },
+    {
+      "bounds_mm": [
+        40.7,
+        63.300000000000004,
+        -29.3,
+        9.3,
+        -3.4000000000000004,
+        3.4000000000000004
+      ],
+      "classification": "REFERENCE",
+      "frame": "OWNER_WORLD_COORDINATES_NO_NEW_TRANSFORM",
+      "geometry_sha256": "ae1978c64dd8afd07f85d57f91bf68a706ad8b61cb6926b08a23bd5de10ac20f",
+      "id": "thermal:reference_parts.RIGHT_PCM_INTERNAL_VOID",
+      "registered_facial_contact": null,
+      "solid_count": 1,
+      "source_head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "step": "reference_parts__RIGHT_PCM_INTERNAL_VOID.step",
+      "valid": true,
+      "volume_sum_mm3": 5128.527999999999
+    }
+  ],
+  "physical_result": null,
+  "runtime": {
+    "cadquery": "2.7.0",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+  },
+  "source_binding_status": "EXACT_CHECKOUT_AND_LOADED_BLOBS_VERIFIED",
+  "source_tree": "2e7b3c4fb0ae1d8d9728829342df873a6417149c",
+  "status": "EXTRACTED_NOT_INTEGRATION_APPROVAL"
+}

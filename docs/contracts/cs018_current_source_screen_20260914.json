@@ -1,0 +1,88 @@
+{
+  "schema": "MASCK_ONE_CS018_CURRENT_SOURCE_SCREEN_V1",
+  "status": "SOURCE_CURRENT_SCREEN_BLOCKED",
+  "scope": "CS018_CONTACT_SUPPORT_NON_WIPING_AND_HARDWARE_CAPABILITY_BINDING",
+  "released_main": "3065148005192930c3929bad1131cf60ed5a35b4",
+  "pr157_pre_checkpoint_head": "b909b265c63c1698861d490ed02fe4c562c5a4c8",
+  "historical_receipts_preserved": true,
+  "compiler_contract": {
+    "released_on_main": true,
+    "hardware_footprints_are_still_declared_inputs": true,
+    "source_bound_capability_required_before_promotion": true,
+    "caller_footprints_may_not_override_source_bound_hardware": true
+  },
+  "producers": [
+    {
+      "role": "structural_frame",
+      "pr": 117,
+      "head": "8c4b6b370d519711b6505afcfe9dc24356966c5f",
+      "blob_binding": "UNRESOLVED_THIS_CHECKPOINT",
+      "evidence": "CANDIDATE_OWNER",
+      "capability_status": "UNKNOWN_UNTIL_EXACT_BLOBS_CONSUMED"
+    },
+    {
+      "role": "treatment",
+      "pr": 135,
+      "head": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "blob_binding": "HISTORICAL_PR157_SNAPSHOT_ONLY",
+      "evidence": "CANDIDATE_OWNER_STALE_TO_CURRENT_FRAME",
+      "capability_status": "UNKNOWN"
+    },
+    {
+      "role": "retention",
+      "pr": 141,
+      "head": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+      "blob_binding": "HISTORICAL_PR157_SNAPSHOT_ONLY",
+      "evidence": "CANDIDATE_OWNER_STALE_TO_CURRENT_FRAME",
+      "capability_status": "UNKNOWN"
+    },
+    {
+      "role": "thermal",
+      "pr": 143,
+      "head": "8e5fc851f089c4e904ae04f14d5c794ada06f3e0",
+      "blob_binding": "UNRESOLVED_THIS_CHECKPOINT",
+      "evidence": "CANDIDATE_OWNER_WITH_FOOTPRINT_PRODUCER",
+      "capability_status": "UNKNOWN_UNTIL_EXACT_BLOBS_CONSUMED"
+    },
+    {
+      "role": "exterior",
+      "pr": 70,
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "blob_binding": "HISTORICAL_PR157_SNAPSHOT_ONLY",
+      "evidence": "CANDIDATE_REVIEW_GEOMETRY",
+      "capability_status": "UNKNOWN"
+    },
+    {
+      "role": "fluid_route_graph",
+      "pr": 104,
+      "head": "484f25e0f04bba9aa27a598155dcf6d701b2a2ef",
+      "blob_binding": "NOT_YET_CONSUMED_BY_PR157",
+      "evidence": "CANDIDATE_ROUTE_GRAPH",
+      "capability_status": "UNKNOWN"
+    }
+  ],
+  "impossibility_witness": {
+    "code": "SOURCE_BOUND_HARDWARE_CAPABILITY_INCOMPLETE",
+    "constraints": [
+      "PR157 source snapshot predates released cleansing compiler",
+      "current frame and thermal owner heads moved beyond PR157 recorded producer identities",
+      "treatment and retention remain stale to the current frame owner",
+      "fluid route graph is not yet consumed by PR157",
+      "exact current producer blob bindings and phase footprints are incomplete"
+    ],
+    "minimum_abstract_capability_required": "For every planner action, provide exact owner head and blob, channel, phase, moving or stationary footprint, every incidental affected cell, evidence status, support or occlusion role, and stale-on-producer-move enforcement.",
+    "planner_action_generation": "BLOCKED",
+    "synthetic_or_caller_invented_footprints": "PROHIBITED_FOR_PROMOTION"
+  },
+  "evidence_firewall": {
+    "geometry_access_is_not_deposited_film_evidence": true,
+    "cleaning_efficacy": "UNKNOWN",
+    "deposited_coverage": "UNKNOWN",
+    "film_survival": "UNKNOWN",
+    "leakage": "UNKNOWN",
+    "human_fit": "UNKNOWN",
+    "comfort": "UNKNOWN",
+    "safety": "UNKNOWN",
+    "physical_validation_required": true
+  }
+}
