@@ -98,6 +98,17 @@ def observe_reservoirs(previous: list[dict], current: list[dict]) -> dict:
             note(slot, "PRODUCT_BINDING_MOVED", "ASSIGNMENT_CHANGED")
         if now["location"] != was["location"]:
             note(slot, "LOCATION_CHANGED", "HARDWARE_CHANGED")
+        # A prepared session depends on the source's preservation state, not
+        # only on its SKU and volume. Changes to these observations must
+        # invalidate the prior preparation even when the container is unchanged.
+        if now.get("contamination_state") != was.get("contamination_state"):
+            note(slot, "CONTAMINATION_STATE_CHANGED", "CHANGEOVER_INCOMPLETE")
+        if now.get("contamination_state") != "VERIFIED_CLEAN":
+            note(slot, "SOURCE_CLEANLINESS_UNPROVED", "CHANGEOVER_INCOMPLETE")
+        if now.get("expires_at_s") != was.get("expires_at_s"):
+            note(slot, "SOURCE_EXPIRY_CHANGED", "RESOURCE_CHANGED")
+        if now.get("expires_at_s") is None:
+            note(slot, "SOURCE_EXPIRY_UNKNOWN", "DOSE_EXPIRED")
         old_ml, new_ml = was.get("volume_ml"), now.get("volume_ml")
         if old_ml is None or new_ml is None:
             note(slot, "VOLUME_UNKNOWN", "RESOURCE_CHANGED")
