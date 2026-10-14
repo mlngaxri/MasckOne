@@ -27,10 +27,10 @@ class Parameters:
     lid_mm: float=.6
     plate_width_mm: float=22.
     plate_height_mm: float=28.
-    plate_thickness_mm: float=.6
+    plate_thickness_mm: float=1.
     plate_y_offset_mm: float=6.
     choke_length_mm: float=2.
-    choke_width_mm: float=1.3
+    choke_width_mm: float=.92
     fin_count: int=9
     fin_thickness_mm: float=.4
     fin_height_mm: float=6.
@@ -84,8 +84,8 @@ def intersection(a,b):
 def cassette(p=Parameters()):
     """Local origin is store XY center and depth mid-plane, +Z into dry package.
 
-    Two integral 1.3 mm square columns meter conductance. Gap is machined from
-    opposite sides, leaving both columns. They are structural and stationary;
+    Four integral 0.92 mm square columns distribute and meter conductance. Gap
+    is machined from opposite sides, leaving the columns. They are stationary;
     there is no conductive member attached to the massage suspension.
     """
     z0=-p.store_depth_mm/2
@@ -105,9 +105,10 @@ def cassette(p=Parameters()):
     plate_front=plate_top-p.plate_thickness_mm
     plate=box(p.plate_width_mm,p.plate_height_mm,p.plate_thickness_mm,
               (0,p.plate_y_offset_mm,plate_top-p.plate_thickness_mm/2))
-    for x in (-8.,8.):
+    posts=[(x,p.plate_y_offset_mm+y) for x in (-8.,8.) for y in (-8.,8.)]
+    for x,y in posts:
         post=box(p.choke_width_mm,p.choke_width_mm,p.choke_length_mm+.2,
-                 (x,p.plate_y_offset_mm,(plate_top+z0)/2))
+                 (x,y,(plate_top+z0)/2))
         tray=tray.fuse(post)
     tray=tray.fuse(plate).clean()
     # Two sensor wells on the dry side retain a continuous metal floor.
@@ -122,18 +123,36 @@ def cassette(p=Parameters()):
     # Planar lap land is the 0.7 mm tray rim; lid and fill plug need a qualified
     # continuous metal joining process. No seal-performance claim follows.
     # Nonstructural dielectric sheet/carrier for an externally qualified foil heater.
-    heater_carrier=box(12.,18.,.10,(0,p.plate_y_offset_mm,plate_top+.05))
-    heater=box(12.,18.,.05,(0,p.plate_y_offset_mm,plate_top+.125))
+    heater_carrier=box(18.,24.,.10,(0,p.plate_y_offset_mm,plate_top+.05))
+    heater=box(18.,24.,.05,(0,p.plate_y_offset_mm,plate_top+.125))
     insulator=box(p.plate_width_mm-.4,p.plate_height_mm-.4,1.5,
                   (0,p.plate_y_offset_mm,plate_top+.9))
-    for x in (-8.,8.):
-        insulator=insulator.cut(box(p.choke_width_mm+.4,p.choke_width_mm+.4,2.,
-                                   (x,p.plate_y_offset_mm,plate_top+1.)))
+    for x,y in posts:
+        hole=box(p.choke_width_mm+.4,p.choke_width_mm+.4,2.,(x,y,plate_top+1.))
+        insulator=insulator.cut(hole)
+        heater_carrier=heater_carrier.cut(hole)
+        heater=heater.cut(hole)
+    for x in (-7.,7.):
+        hole=box(2.4,2.4,2.,(x,p.plate_y_offset_mm+9.,plate_top+1.))
+        insulator=insulator.cut(hole);heater_carrier=heater_carrier.cut(hole);heater=heater.cut(hole)
     # Harness exits the stationary superior edge, not through a moving flexure.
     insulator=insulator.cut(box(4.,8.,2.,(0,p.plate_y_offset_mm+11.,plate_top+1.))).clean()
     harness=box(3.6,8.,1.,(0,p.plate_y_offset_mm+11.,plate_top+.8))
-    material={'finned_store_and_choked_plate':tray,'store_lid':lid,'fill_plug':plug,
-              'heater_dielectric_carrier':heater_carrier,'backside_insulator':insulator}
+    # Captive polymer lid for the dry laminate stack. Side hooks slide into blind
+    # longitudinal grooves outside the liquid cavity, with a closed +Y end stop.
+    retainer=box(22.,27.,.25,(0,p.plate_y_offset_mm,plate_top+1.775))
+    retainer=retainer.cut(box(18.,23.,.5,(0,p.plate_y_offset_mm,plate_top+1.775)))
+    for sign in (-1.,1.):
+        groove=box(.35,26.,.35,(sign*11.875,p.plate_y_offset_mm-.2,z0+.35))
+        tray=tray.cut(groove)
+        hook=box(.6,25.6,.25,(sign*12.,p.plate_y_offset_mm-.2,z0+.35))
+        leg=box(.25,25.6,1.,(sign*12.275,p.plate_y_offset_mm-.2,z0-.05))
+        bridge=box(1.5,25.6,.25,(sign*11.65,p.plate_y_offset_mm-.2,plate_top+1.775))
+        retainer=retainer.fuse(hook).fuse(leg).fuse(bridge)
+    retainer=retainer.clean()
+    material={'finned_store_and_choked_plate':tray.clean(),'store_lid':lid,'fill_plug':plug,
+              'heater_dielectric_carrier':heater_carrier.clean(),'backside_insulator':insulator,
+              'laminate_retainer':retainer}
     refs={'PCM_INTERNAL_VOID':free,'HEATER_SUPPLIER_ENVELOPE':heater,
           'CONTROL_SENSOR_ENVELOPE':sensors['control'],
           'FAULT_SENSOR_ENVELOPE':sensors['independent_fault'],'HARNESS_PASSAGE':harness}
@@ -141,21 +160,23 @@ def cassette(p=Parameters()):
     for k,v in refs.items():positive(v,k)
     return material,refs,dict(plate_front_z_mm=plate_front,cavity_mm3=free.Volume(),
             lid_seal_land_width_mm=p.wall_mm,plate_area_mm2=p.plate_width_mm*p.plate_height_mm,
-            choke_total_section_mm2=2*p.choke_width_mm**2,choke_length_mm=p.choke_length_mm,
+            choke_total_section_mm2=4*p.choke_width_mm**2,choke_length_mm=p.choke_length_mm,
+            choke_positions_local_mm=posts,heater_size_mm=[18.,24.],
+            heater_post_neighborhood_power_fraction_DOE=.6,
             fin_area_mm2=2*p.fin_count*(p.store_height_mm-4*p.wall_mm)*p.fin_height_mm,
             PCM_maximum_half_pitch_mm=(p.fin_pitch_mm-p.fin_thickness_mm)/2)
 
 
 def dock(p,plate_front):
-    # One machined heat sink incorporates both receiver pedestals: no thermal
-    # adhesive or loose puck is required. Bench XY matches authority station spacing.
+    # Extrusion-compatible fins/base/raised rail, cut to length. One central
+    # rail relief leaves two receiver lands. No separate pucks or bearings.
     top=plate_front-4.
     sink=box(140.,60.,3.,(0,-10.,top-1.5))
-    for x in (-52.,52.):
-        sink=sink.fuse(box(p.plate_width_mm,p.plate_height_mm,4.1,
-                           (x,-10.+p.plate_y_offset_mm,plate_front-2.05)))
+    rail=box(140.,p.plate_height_mm,4.1,(0,-10.+p.plate_y_offset_mm,plate_front-2.05))
+    rail=rail.cut(box(76.,p.plate_height_mm+1.,4.2,(0,-10.+p.plate_y_offset_mm,plate_front-2.)))
+    sink=sink.fuse(rail)
     for y in range(-35,20,4):
-        sink=sink.fuse(box(136.,1.,18.1,(0,float(y),top-3.-8.95)))
+        sink=sink.fuse(box(140.,1.,18.1,(0,float(y),top-3.-8.95)))
     # Cradle mounts outside the sink with a planar flange and four M2-clearance
     # bores. Fasteners remain supplier references; no thread is approximated as
     # accepted material. Left master / right relieved guide avoids spacing bind.
@@ -166,10 +187,14 @@ def dock(p,plate_front):
         outer=box(35.,66.,8.,(x,-10.,plate_front+4.))
         zbase=plate_front-.1
         cavity=(cq.Workplane('XY').workplane(offset=zbase).center(x,-10.)
-                .rect(p.store_width_mm+.4+relief,p.store_height_mm+.4)
-                .workplane(offset=8.2).rect(p.store_width_mm+6.4+relief,p.store_height_mm+6.4)
+                .rect(p.store_width_mm+1.2+relief,p.store_height_mm+.4)
+                .workplane(offset=8.2).rect(p.store_width_mm+7.2+relief,p.store_height_mm+6.4)
                 .loft(combine=True).val())
         guide=outer.cut(cavity)
+        # Core thick end regions for molded-polymer development; do not make a
+        # heavy solid block merely to obtain a visually solid touch surface.
+        for y in (-38.,18.):
+            guide=guide.cut(box(27.,7.,6.1,(x,y,plate_front+5.05)))
         # Two exterior risers connect each guide to the base flange.
         for y in (-42.,22.):
             guide=guide.fuse(box(6.,2.,abs(top-4.-plate_front)+1.,
@@ -208,7 +233,7 @@ def build_thermal_reset_hardware(p=Parameters()):
         # Conservative full bench withdrawal envelope, analytically extruded XY
         # package bound. It is not a wearable service or arbitrary rotation proof.
         zmin=metrics['plate_front_z_mm'];zmax=p.store_depth_mm/2+p.reset_travel_mm
-        references[f'{side}_BENCH_WITHDRAWAL']=box(p.store_width_mm,p.store_height_mm,zmax-zmin,
+        references[f'{side}_BENCH_WITHDRAWAL']=box(p.store_width_mm+.8,p.store_height_mm,zmax-zmin,
                                                     (x,-10.,(zmin+zmax)/2))
     dock_parts=dock(p,metrics['plate_front_z_mm']);parts.update(dock_parts)
     for key in dock_parts:
@@ -232,6 +257,13 @@ def build_thermal_reset_hardware(p=Parameters()):
         production_architecture_status='BLOCKED_PHYSICAL_THERMAL_AND_WHOLE_PRODUCT_INTERFACES',
         human_use_eligible=False,parameters=asdict(p),metrics=metrics,components=component_data,
         reference_ids=list(references),internal_and_bench_motion_intersections_mm3=checks,
+        cost_and_tactile_strategy={
+            'dock':'MOLDED_CORED_POLYMER_ACQUISITION_CRADLE; EXTRUDED_SINK_WITH_ONE_CENTRAL_RELIEF; NO_LATCH_MAGNET_OR_BEARING',
+            'acquisition':'LEFT_MASTER_RIGHT_RELIEVED_FUNNEL; 3_MM_PER_SIDE_FLARE_OVER_8P2_MM; 20_MM_VERTICAL_WITHDRAWAL_REFERENCE',
+            'terminal':'BROAD_THERMAL_DATUM_CONTACT_UNDER_GRAVITY; CONTACT_PRESSURE_IS_AN_UNQUALIFIED_INPUT',
+            'touch_surface':'POLYMER_EDGE_AND_GAP_FINISH_REQUIRE_TOOLING_AND_CLEANSER_COMPATIBILITY_VALIDATION',
+            'store':'MONOLITHIC_MACHINED_BENCH_COUPON; PRODUCTION_COST_NOT_CLOSED; FORMING_OR_CASTING_NEEDS_THERMAL_AND_JOIN_EQUIVALENCE',
+            'unit_cost':'UNKNOWN_NO_SUPPLIER_QUOTES; NO_UNIT_COST_OR_TACTILE_PERFORMANCE_CLAIM'},
         whole_product_installation='OPEN; CURRENT_TREATMENT_FULL_ASSEMBLY_GATE_RED',
         wet_interface='METAL_CONTACT_PLATE; FLUID/CONDENSATE_DRAINS_AROUND_PLATE; EXACT_OWNER_ROUTE_REBIND_OPEN',
         heater_protection='SEMANTIC_ONLY: INDEPENDENT_HARDWARE_CUTOFF_IN_SERIES; SENSOR_OPEN_SHORT_DETACH_AND_WATCHDOG_INHIBIT; NO_CONTROL_FIRMWARE',
@@ -246,6 +278,7 @@ def export_thermal_reset(output_dir: Path,source_head_sha: str,p=Parameters()):
     if not re.fullmatch('[0-9a-f]{40}',source_head_sha):raise ValueError('exact source SHA required')
     parts,refs,manifest=build_thermal_reset_hardware(p)
     output_dir.mkdir(parents=True,exist_ok=True)
+    if any(output_dir.glob('*.step')):raise ValueError('export requires a fresh directory to exclude stale parts')
     for name,shape in parts.items():
         # Standalone manufactured files are LOCAL, assemblies below are WORLD.
         if name.startswith('LEFT'):shape=shape.translate((52.,10.,0.))
@@ -261,7 +294,11 @@ def export_thermal_reset(output_dir: Path,source_head_sha: str,p=Parameters()):
     service=cq.Assembly(name='THERMAL_BENCH_SERVICE')
     for key,shape in parts.items():service.add(shape if key.startswith('dock') else shape.translate((0,0,p.reset_travel_mm)),name=key)
     service.export(str(output_dir/'THERMAL_BENCH_SERVICE.step'))
-    manifest['source_file_sha256']={str(Path(__file__).name):sha256(Path(__file__).read_bytes()).hexdigest()}
+    source_root=Path(__file__).resolve().parents[2]
+    source_paths=['src/masck_one/thermal_reset_hardware.py','src/masck_one/thermal_reset_physics.py',
+                  'src/masck_one/warm_cool_package.py','studies/thermal_reset_convergence.py',
+                  'studies/thermal_plate_spreading.py','scripts/export_thermal_reset.py']
+    manifest['source_file_sha256']={name:sha256((source_root/name).read_bytes()).hexdigest() for name in source_paths}
     manifest['producer_head_sha']=source_head_sha
     manifest['standalone_part_coordinates']='LOCAL; APPLY_COMPONENT_WORLD_TRANSFORM_ONCE'
     manifest['assembly_coordinates']='WORLD; DO_NOT_APPLY_COMPONENT_TRANSFORM_AGAIN'
