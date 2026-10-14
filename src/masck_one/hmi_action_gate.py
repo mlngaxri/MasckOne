@@ -22,6 +22,11 @@ def actionable_edge(event: InputEvent) -> Edge:
     returns ``Edge.NONE`` unless the runtime emitted a fresh edge. Faulted events are
     always non-actionable. Structurally impossible events raise rather than being
     silently reinterpreted.
+
+    Runtime-local fault events carry a diagnostic string. The stable firmware wire
+    contract intentionally carries only the machine-readable ``FaultCode``, so a
+    decoded fault may have ``fault=None``. Both forms are valid and remain
+    non-actionable; any supplied diagnostic must still be an exact string.
     """
     if type(event) is not InputEvent:
         raise HmiActionGateError("event must be an exact InputEvent")
@@ -33,8 +38,10 @@ def actionable_edge(event: InputEvent) -> Edge:
     if event.faulted:
         if event.stable_pressed or event.edge is not Edge.NONE:
             raise HmiActionGateError("faulted event must be released and edgeless")
-        if type(event.fault_code) is not FaultCode or type(event.fault) is not str:
-            raise HmiActionGateError("faulted event must carry exact fault metadata")
+        if type(event.fault_code) is not FaultCode:
+            raise HmiActionGateError("faulted event must carry an exact fault code")
+        if event.fault is not None and type(event.fault) is not str:
+            raise HmiActionGateError("fault diagnostic must be an exact string or None")
         return Edge.NONE
 
     if event.fault is not None or event.fault_code is not None:

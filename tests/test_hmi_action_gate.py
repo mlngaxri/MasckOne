@@ -1,6 +1,7 @@
 import pytest
 
 from masck_one.hmi_action_gate import HmiActionGateError, actionable_edge
+from masck_one.hmi_event_wire import input_event_from_wire, input_event_to_wire
 from masck_one.hmi_runtime import DebouncedInput, Edge, FaultCode, InputEvent
 
 
@@ -56,24 +57,46 @@ def test_impossible_synthetic_events_fail_explicitly() -> None:
             actionable_edge(event)
 
 
-def test_faulted_event_requires_exact_fault_metadata_types() -> None:
-    valid = InputEvent(
+def test_faulted_event_requires_exact_machine_readable_fault_metadata() -> None:
+    runtime_local = InputEvent(
         False,
         Edge.NONE,
         faulted=True,
         fault="input stream stale",
         fault_code=FaultCode.INPUT_STREAM_STALE,
     )
-    assert actionable_edge(valid) is Edge.NONE
+    wire_decoded = InputEvent(
+        False,
+        Edge.NONE,
+        faulted=True,
+        fault=None,
+        fault_code=FaultCode.INPUT_STREAM_STALE,
+    )
+    assert actionable_edge(runtime_local) is Edge.NONE
+    assert actionable_edge(wire_decoded) is Edge.NONE
 
     malformed = (
         InputEvent(False, Edge.NONE, faulted=True, fault="input stream stale", fault_code=7),  # type: ignore[arg-type]
         InputEvent(False, Edge.NONE, faulted=True, fault=7, fault_code=FaultCode.INPUT_STREAM_STALE),  # type: ignore[arg-type]
-        InputEvent(False, Edge.NONE, faulted=True, fault=None, fault_code=FaultCode.INPUT_STREAM_STALE),
     )
     for event in malformed:
         with pytest.raises(HmiActionGateError):
             actionable_edge(event)
+
+
+def test_runtime_fault_remains_fail_closed_after_firmware_wire_round_trip() -> None:
+    runtime = DebouncedInput(debounce_s=0.03, stale_after_s=0.25)
+    runtime.arm(now_s=3.0)
+    runtime.sample(pressed=False, now_s=3.01)
+    fault = runtime.watchdog(now_s=3.261)
+    assert fault.fault_code is FaultCode.INPUT_STREAM_STALE
+    assert fault.fault is not None
+
+    decoded = input_event_from_wire(input_event_to_wire(fault))
+    assert decoded.faulted
+    assert decoded.fault_code is FaultCode.INPUT_STREAM_STALE
+    assert decoded.fault is None
+    assert actionable_edge(decoded) is Edge.NONE
 
 
 def test_action_gate_rejects_non_events() -> None:
