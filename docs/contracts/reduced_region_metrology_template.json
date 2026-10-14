@@ -1,0 +1,162 @@
+{
+  "scope": "INERT_SURROGATE_OFF_FACE",
+  "specimen_id": "UNASSIGNED_INERT_SPECIMEN",
+  "stage_id": "RELEASE",
+  "previous_material_id": "UNASSIGNED_INERT_PREVIOUS_MATERIAL",
+  "current_material_id": "UNASSIGNED_INERT_CURRENT_MATERIAL",
+  "predeclared_protocol_sha256": null,
+  "required_cells": [
+    "acquisition_edge",
+    "central_open",
+    "support_footprint",
+    "seal_footprint",
+    "release_edge"
+  ],
+  "cells": [
+    {
+      "id": "acquisition_edge",
+      "previous_material_distinguishable": null,
+      "mass_closure": {
+        "introduced": null,
+        "recovered": null,
+        "retained": null,
+        "fixture_transfer": null,
+        "collected_loss": null
+      },
+      "carryover_fraction": {
+        "residual": null,
+        "residual_blank": null,
+        "total": null,
+        "total_blank": null
+      },
+      "film_retention": {
+        "before": null,
+        "before_blank": null,
+        "after": null,
+        "after_blank": null
+      },
+      "reference_film_retention": {
+        "before": null,
+        "before_blank": null,
+        "after": null,
+        "after_blank": null
+      }
+    },
+    {
+      "id": "central_open",
+      "previous_material_distinguishable": null,
+      "mass_closure": {
+        "introduced": null,
+        "recovered": null,
+        "retained": null,
+        "fixture_transfer": null,
+        "collected_loss": null
+      },
+      "carryover_fraction": {
+        "residual": null,
+        "residual_blank": null,
+        "total": null,
+        "total_blank": null
+      },
+      "film_retention": {
+        "before": null,
+        "before_blank": null,
+        "after": null,
+        "after_blank": null
+      },
+      "reference_film_retention": {
+        "before": null,
+        "before_blank": null,
+        "after": null,
+        "after_blank": null
+      }
+    },
+    {
+      "id": "support_footprint",
+      "previous_material_distinguishable": null,
+      "mass_closure": {
+        "introduced": null,
+        "recovered": null,
+        "retained": null,
+        "fixture_transfer": null,
+        "collected_loss": null
+      },
+      "carryover_fraction": {
+        "residual": null,
+        "residual_blank": null,
+        "total": null,
+        "total_blank": null
+      },
+      "film_retention": {
+        "before": null,
+        "before_blank": null,
+        "after": null,
+        "after_blank": null
+      },
+      "reference_film_retention": {
+        "before": null,
+        "before_blank": null,
+        "after": null,
+        "after_blank": null
+      }
+    },
+    {
+      "id": "seal_footprint",
+      "previous_material_distinguishable": null,
+      "mass_closure": {
+        "introduced": null,
+        "recovered": null,
+        "retained": null,
+        "fixture_transfer": null,
+        "collected_loss": null
+      },
+      "carryover_fraction": {
+        "residual": null,
+        "residual_blank": null,
+        "total": null,
+        "total_blank": null
+      },
+      "film_retention": {
+        "before": null,
+        "before_blank": null,
+        "after": null,
+        "after_blank": null
+      },
+      "reference_film_retention": {
+        "before": null,
+        "before_blank": null,
+        "after": null,
+        "after_blank": null
+      }
+    },
+    {
+      "id": "release_edge",
+      "previous_material_distinguishable": null,
+      "mass_closure": {
+        "introduced": null,
+        "recovered": null,
+        "retained": null,
+        "fixture_transfer": null,
+        "collected_loss": null
+      },
+      "carryover_fraction": {
+        "residual": null,
+        "residual_blank": null,
+        "total": null,
+        "total_blank": null
+      },
+      "film_retention": {
+        "before": null,
+        "before_blank": null,
+        "after": null,
+        "after_blank": null
+      },
+      "reference_film_retention": {
+        "before": null,
+        "before_blank": null,
+        "after": null,
+        "after_blank": null
+      }
+    }
+  ]
+}
