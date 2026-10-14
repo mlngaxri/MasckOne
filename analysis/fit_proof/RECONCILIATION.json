@@ -1,0 +1,29 @@
+{
+  "main": "3ccd9128810e6a6f4d01d57067be777345aa1484",
+  "original_main": "17f7d02c6178af8d33e4dfefb5043b497684ddb3",
+  "original_green_head": "01858462d237ae4e34fae384214e127277c7cade",
+  "recovery_head": "4e6122fa4dc4c729fbbfceb74c173f51aaac47d5",
+  "source_head_before_reconciliation": "1b1079415d46e2eefb9bc1b3a55d9dc8cec7d407",
+  "merge_commit": "14e6edc407d319efde36f1200dd416d5f03680bb",
+  "parents": [
+    "3ccd9128810e6a6f4d01d57067be777345aa1484",
+    "1b1079415d46e2eefb9bc1b3a55d9dc8cec7d407"
+  ],
+  "method": "Fast-forward isolated proof branch to verified GitHub merge object; all history preserved; no force push",
+  "changes": [
+    "docs/CORE_SKETCH_START_HERE.md",
+    "docs/CORE_SKETCH_STATUS_BOARD.md",
+    "docs/PROGRAM_TIMELINE_2027.md"
+  ],
+  "geometry_and_authority_changed": false,
+  "reason": "Initial geometric reuse did not require rebase, but exact-source CI requires current-main ancestry. This supersedes the initial rebase_required assessment in sources.json. CI plumbing remains unchanged.",
+  "metrology_continuation": {
+    "starting_head": "b499b87b3aca51a58731ea7aa7a239056bebf87f",
+    "defect": "PR base metadata still named 17f7d02 although main and the tested merge parent were 3ccd912. Existing branch already contained current main.",
+    "repair": "Update PR #158 base_branch to main through the PR API; returned base_sha is 3ccd912. No history rewrite, force push, workflow edit, or provenance policy change.",
+    "repaired_base_sha": "3ccd9128810e6a6f4d01d57067be777345aa1484",
+    "preserved_claude_head_read_only": "c6000a6989e828009251f68c55c4989a10a49531",
+    "preserved_CS018_owner_read_only": "PR157 a86ab3cbd391026bdf76396a3ef97d79f13be589",
+    "focused_evidence_reused": "85 tests at unchanged proof sources; validation receipt contains exact file hashes"
+  }
+}

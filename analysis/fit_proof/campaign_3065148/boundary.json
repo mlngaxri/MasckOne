@@ -1,0 +1,178 @@
+{
+  "bracket_width_mm": 4.57763671875e-05,
+  "conditional_capacity_mm": 3.0,
+  "evaluations": [
+    [
+      6.0,
+      "CANDIDATE_WITHIN_ASSUMED_CAPACITY"
+    ],
+    [
+      9.0,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      7.5,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.75,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.375,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.1875,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.09375,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.046875,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.0234375,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.01171875,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.005859375,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.0029296875,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.00146484375,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.000732421875,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.0003662109375,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.00018310546875,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.000091552734375,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ],
+    [
+      6.0000457763671875,
+      "PROVEN_RIGID_CAPACITY_FAILURE"
+    ]
+  ],
+  "failing": {
+    "adjustments": {
+      "abstract_target_scale": [
+        1.0,
+        1.0
+      ],
+      "existing_product_adjustments": []
+    },
+    "landmark_residual_acceptance_mm": null,
+    "max_residual_mm": 3.000022333731998,
+    "near_equal_pose_separation_mixed_units": 5.2753820418574005e-06,
+    "optimizer_converged": true,
+    "passive_alignment": "UNKNOWN",
+    "per_landmark_residual_mm": {
+      "EYE_LEFT": 3.000022333731998,
+      "EYE_RIGHT": 3.000022333731998,
+      "MOUTH": 0.0,
+      "NOSTRIL_LEFT": 0.0020201279598470734,
+      "NOSTRIL_RIGHT": 0.0020201279598470734
+    },
+    "pose": [
+      0.0,
+      0.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "pose_limits": {
+      "extrinsic_xyz_each_deg": 4.0,
+      "xy_radius_mm": 5.0,
+      "z_mm": 0.0,
+      "z_status": "OWNER_FIXED_ZERO"
+    },
+    "region_access": "UNKNOWN",
+    "rigid_invariant_bound": {
+      "lower_bound_mm": 3.000022333731998,
+      "pair": [
+        0,
+        1
+      ],
+      "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+    },
+    "seal": "UNKNOWN",
+    "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+    "support": "UNKNOWN",
+    "whole_fit": "UNKNOWN"
+  },
+  "nearest_candidate_value": 6.0,
+  "nearest_nonpassing_value": 6.0000457763671875,
+  "parameter": "eye_spacing",
+  "passing": {
+    "adjustments": {
+      "abstract_target_scale": [
+        1.0,
+        1.0
+      ],
+      "existing_product_adjustments": []
+    },
+    "landmark_residual_acceptance_mm": null,
+    "max_residual_mm": 2.999999445552639,
+    "near_equal_pose_separation_mixed_units": 4.605690760091203e-06,
+    "optimizer_converged": true,
+    "passive_alignment": "UNKNOWN",
+    "per_landmark_residual_mm": {
+      "EYE_LEFT": 2.999999445552639,
+      "EYE_RIGHT": 2.999999445552639,
+      "MOUTH": 0.0,
+      "NOSTRIL_LEFT": 0.0020201125476102533,
+      "NOSTRIL_RIGHT": 0.0020201125476102533
+    },
+    "pose": [
+      0.0,
+      0.0,
+      -0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "pose_limits": {
+      "extrinsic_xyz_each_deg": 4.0,
+      "xy_radius_mm": 5.0,
+      "z_mm": 0.0,
+      "z_status": "OWNER_FIXED_ZERO"
+    },
+    "region_access": "UNKNOWN",
+    "rigid_invariant_bound": {
+      "lower_bound_mm": 2.999999445552639,
+      "pair": [
+        0,
+        1
+      ],
+      "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+    },
+    "seal": "UNKNOWN",
+    "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+    "support": "UNKNOWN",
+    "whole_fit": "UNKNOWN"
+  },
+  "search_scope": "ONE_SYNTHETIC_PARAMETER_RAY"
+}

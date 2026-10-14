@@ -1,0 +1,36 @@
+{
+  "proof_code_head": "401111029ddf99a9a17a6d086c0095275d944e0a",
+  "scope": "LOCAL_FOCUSED_TESTS_NOT_GITHUB_CI",
+  "results": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "85",
+    "time": "32.594",
+    "timestamp": "2026-09-12T07:49:05.589226-03:00",
+    "hostname": "localhost"
+  },
+  "source_module_sha256": {
+    "adversarial_fit_proof.py": "90b16ff69176afb2e78a3f2bcd25fd832042bb9f96c17df15d65a738e1aae6bc",
+    "adversarial_fit_geometry.py": "157ac6cdbe86f0841fca401f6de8e634f46bd21debf6055beb33ac226dfdf1fb",
+    "adversarial_fit_campaign.py": "abf9e1ea7d112a790fb526d63bc366f536a7b136ee6181dfeb6bc7f72be241ad",
+    "adversarial_fit_study.py": "d8e5581c9daf3d2daf47ecaed8870ea405e3da2e4b6ed87a5d36306c12c87eac"
+  },
+  "tests_sha256": {
+    "tests/test_adversarial_fit_geometry.py": "0c84189ce6567c4273c2f6caefabaa0c28ddd40f839f9fc32baecd03539a5b25",
+    "tests/test_adversarial_fit_proof.py": "9bb25909b6cd9d7e5ff4f083d3182f8123a302d9a1a7f7b008080e0745014301",
+    "tests/test_adversarial_fit_receipts.py": "b9774ceaa909568fef0d059eee89622c5eb95182d56986cd16068314e6db6399",
+    "tests/test_adversarial_fit_study.py": "952abe16cb9110e7d4408aae1acc81cbdd048c649b314f0f27ba8c11a1feb221"
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "cadquery": "2.7.0",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "pytest": "9.0.2"
+  },
+  "command": "python -m pytest tests/test_adversarial_fit_geometry.py tests/test_adversarial_fit_proof.py tests/test_adversarial_fit_receipts.py tests/test_adversarial_fit_study.py -q",
+  "runtime_note": "Local Python 3.12/CadQuery 2.7; repository-qualified Python 3.13/CadQuery 2.8 CI remains separate. Local dependency directory appended, never prepended.",
+  "physical_result": null
+}

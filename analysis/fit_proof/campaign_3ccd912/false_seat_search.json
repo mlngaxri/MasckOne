@@ -1,0 +1,5972 @@
+{
+  "cases": [
+    {
+      "case": "NOMINAL",
+      "metrics": {
+        "max_mm": 8.559777473549053e-17,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.2154030248767703e-17,
+          "EYE_RIGHT": 3.375284942904127e-18,
+          "MOUTH": 8.559777473549053e-17,
+          "NOSTRIL_LEFT": 9.897452090124239e-19,
+          "NOSTRIL_RIGHT": 8.603169892942102e-18
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.0,
+            0.0,
+            -3.2154030248767703e-17
+          ],
+          "EYE_RIGHT": [
+            0.0,
+            0.0,
+            -3.375284942904127e-18
+          ],
+          "MOUTH": [
+            -8.174920170539422e-17,
+            0.0,
+            2.5378082279765596e-17
+          ],
+          "NOSTRIL_LEFT": [
+            0.0,
+            0.0,
+            -9.897452090124239e-19
+          ],
+          "NOSTRIL_RIGHT": [
+            0.0,
+            0.0,
+            8.603169892942102e-18
+          ]
+        },
+        "rms_mm": 4.1102913223122844e-17,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 6.206405237571695e-17,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 6.206405237571695e-17,
+          "z_min_mm": -6.206405237571695e-17,
+          "z_span_mm": 1.241281047514339e-16
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 8.559777473549053e-17,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.2154030248767703e-17,
+          "EYE_RIGHT": 3.375284942904127e-18,
+          "MOUTH": 8.559777473549053e-17,
+          "NOSTRIL_LEFT": 9.897452090124239e-19,
+          "NOSTRIL_RIGHT": 8.603169892942102e-18
+        },
+        "pose": [
+          -4.7606474087735776e-17,
+          -4.7606474087735776e-17,
+          -0.0,
+          -2.908114013532622e-17,
+          -2.6173026122347816e-17,
+          -3.9124683871131696e-17
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.0,
+          "pair": null,
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "face_width_LOW",
+      "metrics": {
+        "max_mm": 2.930232558139533,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.930232558139533,
+          "EYE_RIGHT": 2.930232558139533,
+          "MOUTH": 1.998674523194541e-16,
+          "NOSTRIL_LEFT": 0.9767441860465116,
+          "NOSTRIL_RIGHT": 0.9767441860465116
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            2.930232558139533,
+            0.0,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            -2.930232558139533,
+            0.0,
+            0.0
+          ],
+          "MOUTH": [
+            1.998674523194541e-16,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            0.9767441860465116,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.9767441860465116,
+            0.0,
+            0.0
+          ]
+        },
+        "rms_mm": 1.953488372093022,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": -16.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.930232558139533,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.930232558139533,
+          "EYE_RIGHT": 2.930232558139533,
+          "MOUTH": 1.998674523194541e-16,
+          "NOSTRIL_LEFT": 0.9767441860465116,
+          "NOSTRIL_RIGHT": 0.9767441860465116
+        },
+        "pose": [
+          4.3967052221205454e-16,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -2.747940763825341e-16
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 2.930232558139533,
+          "pair": [
+            0,
+            1
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "face_width_HIGH",
+      "metrics": {
+        "max_mm": 2.9302325581395365,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.9302325581395365,
+          "EYE_RIGHT": 2.9302325581395365,
+          "MOUTH": 0.0,
+          "NOSTRIL_LEFT": 0.9767441860465116,
+          "NOSTRIL_RIGHT": 0.9767441860465116
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -2.9302325581395365,
+            0.0,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            2.9302325581395365,
+            0.0,
+            0.0
+          ],
+          "MOUTH": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            -0.9767441860465116,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            0.9767441860465116,
+            0.0,
+            0.0
+          ]
+        },
+        "rms_mm": 1.953488372093024,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 16.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.9302325581395365,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.9302325581395365,
+          "EYE_RIGHT": 2.9302325581395365,
+          "MOUTH": 0.0,
+          "NOSTRIL_LEFT": 0.9767441860465116,
+          "NOSTRIL_RIGHT": 0.9767441860465116
+        },
+        "pose": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 2.9302325581395365,
+          "pair": [
+            0,
+            1
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "face_height_LOW",
+      "metrics": {
+        "max_mm": 3.6428571428571423,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.6428571428571423,
+          "EYE_RIGHT": 3.6428571428571423,
+          "MOUTH": 3.642857142857139,
+          "NOSTRIL_LEFT": 0.0,
+          "NOSTRIL_RIGHT": 0.0
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.0,
+            -3.6428571428571423,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            0.0,
+            -3.6428571428571423,
+            0.0
+          ],
+          "MOUTH": [
+            -2.2855686126497e-16,
+            3.642857142857139,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "rms_mm": 2.821745009379688,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": -18.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 3.6428571428571423,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.6428571428571423,
+          "EYE_RIGHT": 3.6428571428571423,
+          "MOUTH": 3.642857142857139,
+          "NOSTRIL_LEFT": 0.0,
+          "NOSTRIL_RIGHT": 0.0
+        },
+        "pose": [
+          0.0,
+          -0.6428571428571433,
+          -0.0,
+          0.0,
+          0.0,
+          -2.864606397021221e-16
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 3.39672858146411,
+          "pair": [
+            0,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "face_height_HIGH",
+      "metrics": {
+        "max_mm": 3.642857142857146,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.642857142857146,
+          "EYE_RIGHT": 3.642857142857146,
+          "MOUTH": 3.642857142857139,
+          "NOSTRIL_LEFT": 1.7763568394002505e-15,
+          "NOSTRIL_RIGHT": 1.7763568394002505e-15
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.0,
+            3.642857142857146,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            0.0,
+            3.642857142857146,
+            0.0
+          ],
+          "MOUTH": [
+            -6.661913058461904e-16,
+            -3.642857142857139,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            0.0,
+            1.7763568394002505e-15,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            0.0,
+            1.7763568394002505e-15,
+            0.0
+          ]
+        },
+        "rms_mm": 2.82174500937969,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 18.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 3.642857142857146,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.642857142857146,
+          "EYE_RIGHT": 3.642857142857146,
+          "MOUTH": 3.642857142857139,
+          "NOSTRIL_LEFT": 1.7763568394002505e-15,
+          "NOSTRIL_RIGHT": 1.7763568394002505e-15
+        },
+        "pose": [
+          0.0,
+          0.6428571428571446,
+          -0.0,
+          0.0,
+          0.0,
+          -7.031306610870264e-16
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 3.432277979848145,
+          "pair": [
+            0,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "cheek_prominence_LOW",
+      "metrics": {
+        "max_mm": 1.3044431043246971,
+        "residual_norm_mm": {
+          "EYE_LEFT": 1.304443104324668,
+          "EYE_RIGHT": 1.3044431043246971,
+          "MOUTH": 1.3044431043246398,
+          "NOSTRIL_LEFT": 1.2245597351561792,
+          "NOSTRIL_RIGHT": 1.2245597352112234
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -1.7692727283247223e-09,
+            0.010775570913807542,
+            -1.3043985968605065
+          ],
+          "EYE_RIGHT": [
+            -1.7692727283247223e-09,
+            0.010775556866470026,
+            -1.30439859697658
+          ],
+          "MOUTH": [
+            -2.072786046341885e-08,
+            -0.015369139871218351,
+            -1.3043525604527795
+          ],
+          "NOSTRIL_LEFT": [
+            -1.1248859621559859e-08,
+            -0.004276721167374653,
+            -1.2245522670028537
+          ],
+          "NOSTRIL_RIGHT": [
+            -1.1248859621559859e-08,
+            -0.004276725849821084,
+            -1.2245522670415447
+          ]
+        },
+        "rms_mm": 1.2730913971374471,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 8.020775094517749,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 2.5043111860021376,
+          "z_min_mm": -8.020775094517749,
+          "z_span_mm": 10.525086280519886
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": -8.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 1.3044431043246971,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 1.304443104324668,
+          "EYE_RIGHT": 1.3044431043246971,
+          "MOUTH": 1.3044431043246398,
+          "NOSTRIL_LEFT": 1.2245597351561792,
+          "NOSTRIL_RIGHT": 1.2245597352112234
+        },
+        "pose": [
+          -9.580558874750307e-09,
+          -0.03234370385297344,
+          -0.0,
+          1.420871804780621,
+          1.0556365986640711e-10,
+          -1.2775449989067655e-08
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.01225793935702768,
+          "pair": [
+            0,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "cheek_prominence_HIGH",
+      "metrics": {
+        "max_mm": 1.956032267901359,
+        "residual_norm_mm": {
+          "EYE_LEFT": 1.9560322679012712,
+          "EYE_RIGHT": 1.956032267901359,
+          "MOUTH": 1.956032267901325,
+          "NOSTRIL_LEFT": 1.8361405109548394,
+          "NOSTRIL_RIGHT": 1.8361405109176314
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -1.388082893072351e-08,
+            0.024270261336816645,
+            1.9558816905645475
+          ],
+          "EYE_RIGHT": [
+            -1.388082893072351e-08,
+            0.024270267672768853,
+            1.9558816904860137
+          ],
+          "MOUTH": [
+            -5.3264079763704685e-09,
+            -0.03454401800846085,
+            1.9557272161247417
+          ],
+          "NOSTRIL_LEFT": [
+            -9.603317252526722e-09,
+            -0.009589901533392897,
+            1.8361154674360975
+          ],
+          "NOSTRIL_RIGHT": [
+            -9.603317252526722e-09,
+            -0.00958989942140942,
+            1.8361154674099196
+          ]
+        },
+        "rms_mm": 1.9089793425291897,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 12.026540384562281,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 12.026540384562281,
+          "z_min_mm": -3.7549226599528676,
+          "z_span_mm": 15.78146304451515
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 12.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 1.956032267901359,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 1.9560322679012712,
+          "EYE_RIGHT": 1.956032267901359,
+          "MOUTH": 1.956032267901325,
+          "NOSTRIL_LEFT": 1.8361405109548394,
+          "NOSTRIL_RIGHT": 1.8361405109176314
+        },
+        "pose": [
+          -1.0353538856968266e-08,
+          -0.07271351140848334,
+          -0.0,
+          -2.1307043350018398,
+          7.14232893281514e-11,
+          5.762272821635383e-09
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.02757570447459301,
+          "pair": [
+            0,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "cheek_curvature_LOW",
+      "metrics": {
+        "max_mm": 0.43936782251228623,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.4393678225122861,
+          "EYE_RIGHT": 0.43936782251228623,
+          "MOUTH": 0.4015534621928847,
+          "NOSTRIL_LEFT": 0.4393678225122854,
+          "NOSTRIL_RIGHT": 0.43936782251228557
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -3.752205657292507e-09,
+            0.0009968326305909159,
+            0.4393666917096633
+          ],
+          "EYE_RIGHT": [
+            -3.752205657292507e-09,
+            0.0009968326304559127,
+            0.43936669170966375
+          ],
+          "MOUTH": [
+            -3.752378550796675e-09,
+            -0.0017092644385101607,
+            0.4015498243234228
+          ],
+          "NOSTRIL_LEFT": [
+            -3.752292698777637e-09,
+            -0.00021350452459056868,
+            0.43936777063754356
+          ],
+          "NOSTRIL_RIGHT": [
+            -3.752292698777637e-09,
+            -0.00021350452463320124,
+            0.43936777063754373
+          ]
+        },
+        "rms_mm": 0.4320697899265447,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 2.9888183000450277,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 1.1212127101268394,
+          "z_min_mm": -2.9888183000450277,
+          "z_span_mm": 4.110031010171867
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": -6.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.43936782251228623,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.4393678225122861,
+          "EYE_RIGHT": 0.43936782251228623,
+          "MOUTH": 0.4015534621928847,
+          "NOSTRIL_LEFT": 0.4393678225122854,
+          "NOSTRIL_RIGHT": 0.43936782251228557
+        },
+        "pose": [
+          -3.7522766411148245e-09,
+          -0.0033158526613595194,
+          -0.0,
+          -0.43240693991234963,
+          -4.2256321795518627e-16,
+          -1.167802519829163e-13
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.001272675965182657,
+          "pair": [
+            0,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "cheek_curvature_HIGH",
+      "metrics": {
+        "max_mm": 0.43936782251228584,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.4393678225122852,
+          "EYE_RIGHT": 0.43936782251228523,
+          "MOUTH": 0.40155346219306065,
+          "NOSTRIL_LEFT": 0.43936782251228584,
+          "NOSTRIL_RIGHT": 0.4393678225122856
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -4.517787033364584e-09,
+            0.0009968324586040467,
+            -0.43936669171005255
+          ],
+          "EYE_RIGHT": [
+            -4.517787033364584e-09,
+            0.000996832458859842,
+            -0.4393666917100521
+          ],
+          "MOUTH": [
+            -4.517433571045172e-09,
+            -0.0017092646103051834,
+            -0.40154982432286745
+          ],
+          "NOSTRIL_LEFT": [
+            -4.517609397680644e-09,
+            -0.00021350469644687564,
+            -0.43936777063746046
+          ],
+          "NOSTRIL_RIGHT": [
+            -4.517609397680644e-09,
+            -0.00021350469635983416,
+            -0.4393677706374603
+          ]
+        },
+        "rms_mm": 0.43206978992657713,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 2.988818300045028,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 2.988818300045028,
+          "z_min_mm": -1.1212127101265592,
+          "z_span_mm": 4.110031010171587
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 6.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.43936782251228584,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.4393678225122852,
+          "EYE_RIGHT": 0.43936782251228523,
+          "MOUTH": 0.40155346219306065,
+          "NOSTRIL_LEFT": 0.43936782251228584,
+          "NOSTRIL_RIGHT": 0.4393678225122856
+        },
+        "pose": [
+          -4.517641536561711e-09,
+          -0.0033158528331473387,
+          -0.0,
+          0.43240693991171325,
+          -4.2898587198985968e-16,
+          2.383151399398639e-13
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.001272675965182657,
+          "pair": [
+            0,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "brow_projection_LOW",
+      "metrics": {
+        "max_mm": 1.091770694018511,
+        "residual_norm_mm": {
+          "EYE_LEFT": 1.091770694018511,
+          "EYE_RIGHT": 1.0917706940185063,
+          "MOUTH": 1.0917706940184835,
+          "NOSTRIL_LEFT": 0.16523355055817002,
+          "NOSTRIL_RIGHT": 0.16523355103188264
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            1.880241740082056e-09,
+            0.008351857511975425,
+            -1.0917387484163787
+          ],
+          "EYE_RIGHT": [
+            1.880241740082056e-09,
+            0.008351847434497017,
+            -1.091738748493467
+          ],
+          "MOUTH": [
+            -1.1719600911090191e-08,
+            -0.011917078369990008,
+            -1.0917056524360056
+          ],
+          "NOSTRIL_LEFT": [
+            -4.9217856457062226e-09,
+            -0.022048764785680852,
+            -0.16375584936570975
+          ],
+          "NOSTRIL_RIGHT": [
+            -4.9217856457062226e-09,
+            -0.022048768144840913,
+            -0.16375584939140583
+          ]
+        },
+        "rms_mm": 0.852114311295096,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.921119722800344,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 2.20524541107783,
+          "z_min_mm": -4.921119722800344,
+          "z_span_mm": 7.126365133878174
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": -6.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 1.091770694018511,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 1.091770694018511,
+          "EYE_RIGHT": 1.0917706940185063,
+          "MOUTH": 1.0917706940184835,
+          "NOSTRIL_LEFT": 0.16523355055817002,
+          "NOSTRIL_RIGHT": 0.16523355103188264
+        },
+        "pose": [
+          -3.7221715227946884e-09,
+          -0.023836711462128374,
+          -0.0,
+          1.2511019465243929,
+          7.01084543834845e-11,
+          -9.165033138791633e-09
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.018166842567495678,
+          "pair": [
+            0,
+            2
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "brow_projection_HIGH",
+      "metrics": {
+        "max_mm": 1.8189823678560162,
+        "residual_norm_mm": {
+          "EYE_LEFT": 1.818982367855988,
+          "EYE_RIGHT": 1.8189823678559163,
+          "MOUTH": 1.8189823678560162,
+          "NOSTRIL_LEFT": 0.27958073325042826,
+          "NOSTRIL_RIGHT": 0.27958073418044566
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            4.817344745333685e-09,
+            0.02322384997248861,
+            1.8188341066088
+          ],
+          "EYE_RIGHT": [
+            4.817344745333685e-09,
+            0.023223837911011458,
+            1.8188341067627358
+          ],
+          "MOUTH": [
+            -1.1466853803346246e-08,
+            -0.03306681546753509,
+            1.8186817864282678
+          ],
+          "NOSTRIL_LEFT": [
+            -3.3317508751906644e-09,
+            -0.061190747969110504,
+            0.2728022704594445
+          ],
+          "NOSTRIL_RIGHT": [
+            -3.3317508751906644e-09,
+            -0.06119075198960289,
+            0.2728022705107564
+          ]
+        },
+        "rms_mm": 1.4200296713127158,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 8.198448659243667,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 8.198448659243667,
+          "z_min_mm": -3.673737197185094,
+          "z_span_mm": 11.87218585642876
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 10.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 1.8189823678560162,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 1.818982367855988,
+          "EYE_RIGHT": 1.8189823678559163,
+          "MOUTH": 1.8189823678560162,
+          "NOSTRIL_LEFT": 0.27958073325042826,
+          "NOSTRIL_RIGHT": 0.27958073418044566
+        },
+        "pose": [
+          -1.8961429508315177e-09,
+          -0.0661537973540943,
+          -0.0,
+          -2.0845156352879872,
+          -1.39997839765272e-10,
+          -1.096939342778959e-08
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.05042914440951307,
+          "pair": [
+            0,
+            2
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "forehead_curvature_LOW",
+      "metrics": {
+        "max_mm": 0.07928907385604746,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.07928907370298936,
+          "EYE_RIGHT": 0.07928907377079948,
+          "MOUTH": 0.07928907385604746,
+          "NOSTRIL_LEFT": 0.011898363620367839,
+          "NOSTRIL_RIGHT": 0.011898363708030286
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            1.668963029999304e-07,
+            4.407799026751036e-05,
+            -0.07928906145100344
+          ],
+          "EYE_RIGHT": [
+            1.668963029999304e-07,
+            4.405908644145029e-05,
+            -0.07928906152932023
+          ],
+          "MOUTH": [
+            1.4139111153563423e-07,
+            -6.280648895540253e-05,
+            -0.07928904898076847
+          ],
+          "NOSTRIL_LEFT": [
+            1.5414376086653192e-07,
+            -0.00011623373630520462,
+            -0.011897795868869037
+          ],
+          "NOSTRIL_RIGHT": [
+            1.5414376086653192e-07,
+            -0.00011624003758026191,
+            -0.011897795894974634
+          ]
+        },
+        "rms_mm": 0.061876350533673484,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 5.8729004654403285,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.041616475685688145,
+          "z_min_mm": -5.8729004654403285,
+          "z_span_mm": 5.914516941126017
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": -6.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.07928907385604746,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.07928907370298936,
+          "EYE_RIGHT": 0.07928907377079948,
+          "MOUTH": 0.07928907385604746,
+          "NOSTRIL_LEFT": 0.011898363620367839,
+          "NOSTRIL_RIGHT": 0.011898363708030286
+        },
+        "pose": [
+          1.5639422691229653e-07,
+          -0.00012567406135565573,
+          -0.0,
+          0.09085859544441502,
+          7.122573800111765e-11,
+          -1.7192212480844233e-08
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 9.580987362411975e-05,
+          "pair": [
+            0,
+            2
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "forehead_curvature_HIGH",
+      "metrics": {
+        "max_mm": 0.10571867979556493,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.10571867971035508,
+          "EYE_RIGHT": 0.10571867979556493,
+          "MOUTH": 0.10571867977692617,
+          "NOSTRIL_LEFT": 0.015865065063964272,
+          "NOSTRIL_RIGHT": 0.015865060854422283
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            5.954935211605061e-07,
+            7.742302119595479e-05,
+            0.10571865135831907
+          ],
+          "EYE_RIGHT": [
+            5.954935140550788e-07,
+            7.834493514025098e-05,
+            0.1057186507643458
+          ],
+          "MOUTH": [
+            1.839348443673036e-06,
+            -0.00011211597745841573,
+            0.10571862031071279
+          ],
+          "NOSTRIL_LEFT": [
+            1.217422914479016e-06,
+            -0.00020725684978106784,
+            0.015863711186223733
+          ],
+          "NOSTRIL_RIGHT": [
+            1.2174229109263024e-06,
+            -0.00020694954513267305,
+            0.015863710988232645
+          ]
+        },
+        "rms_mm": 0.08250177961303917,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 7.830526308686872,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 7.830526308686872,
+          "z_min_mm": -0.05548857541060262,
+          "z_span_mm": 7.886014884097475
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 8.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.10571867979556493,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.10571867971035508,
+          "EYE_RIGHT": 0.10571867979556493,
+          "MOUTH": 0.10571867977692617,
+          "NOSTRIL_LEFT": 0.015865065063964272,
+          "NOSTRIL_RIGHT": 0.015865060854422283
+        },
+        "pose": [
+          1.1076713488383926e-06,
+          -0.00022388036918563256,
+          -0.0,
+          -0.12114470545935208,
+          5.401930366640623e-10,
+          8.384409219959091e-07
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.00017032839647157516,
+          "pair": [
+            0,
+            2
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "bridge_projection_LOW",
+      "metrics": {
+        "max_mm": 1.28768761713583,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.9192816672365984,
+          "EYE_RIGHT": 0.9192816674472067,
+          "MOUTH": 1.2876876171357188,
+          "NOSTRIL_LEFT": 1.2876876171356757,
+          "NOSTRIL_RIGHT": 1.28768761713583
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -1.603378407821765e-08,
+            0.017183841480473916,
+            -0.9191210471473678
+          ],
+          "EYE_RIGHT": [
+            -1.603378407821765e-08,
+            0.017183850221918817,
+            -0.9191210471945832
+          ],
+          "MOUTH": [
+            -4.242087418530581e-09,
+            0.04581394040542364,
+            1.2868723643738698
+          ],
+          "NOSTRIL_LEFT": [
+            -1.0133714312132724e-08,
+            -0.006886920519335149,
+            -1.2876692003967147
+          ],
+          "NOSTRIL_RIGHT": [
+            -1.0133714312132724e-08,
+            -0.006886917605519294,
+            -1.2876692004124533
+          ]
+        },
+        "rms_mm": 1.1545194468518916,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 5.334037909616809,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 2.6337278123136207,
+          "z_min_mm": -5.334037909616809,
+          "z_span_mm": 7.96776572193043
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": -5.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 1.28768761713583,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.9192816672365984,
+          "EYE_RIGHT": 0.9192816674472067,
+          "MOUTH": 1.2876876171357188,
+          "NOSTRIL_LEFT": 1.2876876171356757,
+          "NOSTRIL_RIGHT": 1.28768761713583
+        },
+        "pose": [
+          -1.117841050741601e-08,
+          0.029253669257508746,
+          -0.0,
+          -1.4942435330685226,
+          4.294039126622607e-11,
+          7.949968663322557e-09
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.012282839418432445,
+          "pair": [
+            2,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "bridge_projection_HIGH",
+      "metrics": {
+        "max_mm": 3.6211995864108495,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.4664285463582454,
+          "EYE_RIGHT": 2.4664285459409885,
+          "MOUTH": 3.462490104306853,
+          "NOSTRIL_LEFT": 3.6211995864108495,
+          "NOSTRIL_RIGHT": 3.621199586410849
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            3.0825688668301154e-09,
+            0.18501602085252244,
+            2.4594793852193084
+          ],
+          "EYE_RIGHT": [
+            3.0825688668301154e-09,
+            0.18501601529015232,
+            2.4594793852193053
+          ],
+          "MOUTH": [
+            -4.404119780648063e-09,
+            0.3900182113564128,
+            -3.440453969643138
+          ],
+          "NOSTRIL_LEFT": [
+            -6.861604617824923e-10,
+            -3.9491113490441876e-08,
+            3.6211995864108495
+          ],
+          "NOSTRIL_RIGHT": [
+            -6.861604617824923e-10,
+            -4.134523745591423e-08,
+            3.6211995864108486
+          ]
+        },
+        "rms_mm": 3.174320404691074,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 14.861780876197985,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 14.861780876197985,
+          "z_min_mm": -7.045403760727295,
+          "z_span_mm": 21.90718463692528
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 14.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 3.6211995864108495,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.4664285463582454,
+          "EYE_RIGHT": 2.4664285459409885,
+          "MOUTH": 3.462490104306853,
+          "NOSTRIL_LEFT": 3.6211995864108495,
+          "NOSTRIL_RIGHT": 3.621199586410849
+        },
+        "pose": [
+          0.0,
+          0.2715331376794849,
+          -0.0,
+          3.999999999999991,
+          2.793505511139533e-15,
+          -5.058737022381958e-09
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.09611346406394716,
+          "pair": [
+            2,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "nasal_width_LOW",
+      "metrics": {
+        "max_mm": 2.2104820780771526,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.00018798128294506,
+          "EYE_RIGHT": 0.00018798128294506,
+          "MOUTH": 6.694896877113686e-17,
+          "NOSTRIL_LEFT": 2.2104820780771526,
+          "NOSTRIL_RIGHT": 2.2104820780771526
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.00018798128294506,
+            0.0,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            -0.00018798128294506,
+            0.0,
+            0.0
+          ],
+          "MOUTH": [
+            -6.694896877113686e-17,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            2.2104820780771526,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            -2.2104820780771526,
+            0.0,
+            0.0
+          ]
+        },
+        "rms_mm": 1.398031623796436,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": -6.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.2104820780771526,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.00018798128294506,
+          "EYE_RIGHT": 0.00018798128294506,
+          "MOUTH": 6.694896877113686e-17,
+          "NOSTRIL_LEFT": 2.2104820780771526,
+          "NOSTRIL_RIGHT": 2.2104820780771526
+        },
+        "pose": [
+          -5.495881527650683e-17,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -1.3739703819126707e-17
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 2.2104820780771526,
+          "pair": [
+            2,
+            3
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "nasal_width_HIGH",
+      "metrics": {
+        "max_mm": 2.2104820780771526,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.00018798128294506,
+          "EYE_RIGHT": 0.00018798128294506,
+          "MOUTH": 6.694896877113683e-17,
+          "NOSTRIL_LEFT": 2.2104820780771526,
+          "NOSTRIL_RIGHT": 2.2104820780771526
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -0.00018798128294506,
+            0.0,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            0.00018798128294506,
+            0.0,
+            0.0
+          ],
+          "MOUTH": [
+            6.694896877113683e-17,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            -2.2104820780771526,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            2.2104820780771526,
+            0.0,
+            0.0
+          ]
+        },
+        "rms_mm": 1.398031623796436,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 6.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.2104820780771526,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.00018798128294506,
+          "EYE_RIGHT": 0.00018798128294506,
+          "MOUTH": 6.694896877113683e-17,
+          "NOSTRIL_LEFT": 2.2104820780771526,
+          "NOSTRIL_RIGHT": 2.2104820780771526
+        },
+        "pose": [
+          5.495881527650682e-17,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          1.3739703819126704e-17
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 2.2104820780771526,
+          "pair": [
+            2,
+            3
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "lower_face_projection_LOW",
+      "metrics": {
+        "max_mm": 2.295056215796571,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.295056215795724,
+          "EYE_RIGHT": 2.295056215796571,
+          "MOUTH": 2.2950562157965697,
+          "NOSTRIL_LEFT": 0.4814799345676136,
+          "NOSTRIL_RIGHT": 0.48147993517917465
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -6.851138323327177e-09,
+            0.07506941243956078,
+            -2.293828157682822
+          ],
+          "EYE_RIGHT": [
+            -6.851138323327177e-09,
+            0.07506941738473927,
+            -2.29382815752183
+          ],
+          "MOUTH": [
+            -1.647027081114734e-10,
+            -0.10798133708096458,
+            -2.2925145723656106
+          ],
+          "NOSTRIL_LEFT": [
+            -3.529093461906996e-09,
+            0.16389230088833262,
+            0.45272755725796254
+          ],
+          "NOSTRIL_RIGHT": [
+            -3.529093461906996e-09,
+            0.16389230253672693,
+            0.4527275573116266
+          ]
+        },
+        "rms_mm": 1.8036349384710262,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 6.619330815950462,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 5.615634695942847,
+          "z_min_mm": -6.619330815950462,
+          "z_span_mm": 12.234965511893309
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": -8.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.295056215796571,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.295056215795724,
+          "EYE_RIGHT": 2.295056215796571,
+          "MOUTH": 2.2950562157965697,
+          "NOSTRIL_LEFT": 0.4814799345676136,
+          "NOSTRIL_RIGHT": 0.48147993517917465
+        },
+        "pose": [
+          -4.1155833360891736e-09,
+          0.15031669734245948,
+          -0.0,
+          -3.7577400567612482,
+          -1.4641541133282374e-10,
+          4.497428976289691e-09
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.17473109292909328,
+          "pair": [
+            2,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "lower_face_projection_HIGH",
+      "metrics": {
+        "max_mm": 3.4719445288518505,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.457437361869645,
+          "EYE_RIGHT": 2.457437361869645,
+          "MOUTH": 3.4719445288518505,
+          "NOSTRIL_LEFT": 0.6078932072166159,
+          "NOSTRIL_RIGHT": 0.6078932072166159
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.0,
+            0.2796185669948912,
+            2.4414773897180706
+          ],
+          "EYE_RIGHT": [
+            0.0,
+            0.2796185669948912,
+            2.4414773897180706
+          ],
+          "MOUTH": [
+            0.0,
+            -5.175690631631369e-08,
+            3.47194452885185
+          ],
+          "NOSTRIL_LEFT": [
+            0.0,
+            0.37975540550907105,
+            -0.47467882127470623
+          ],
+          "NOSTRIL_RIGHT": [
+            0.0,
+            0.37975540550907105,
+            -0.47467882127470623
+          ]
+        },
+        "rms_mm": 2.2303122601649386,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 7.045403848156655,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 7.045403848156655,
+          "z_min_mm": -5.791143328568449,
+          "z_span_mm": 12.836547176725105
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 10.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 3.4719445288518505,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.457437361869645,
+          "EYE_RIGHT": 2.457437361869645,
+          "MOUTH": 3.4719445288518505,
+          "NOSTRIL_LEFT": 0.6078932072166159,
+          "NOSTRIL_RIGHT": 0.6078932072166159
+        },
+        "pose": [
+          0.0,
+          0.36487686444901823,
+          -0.0,
+          4.0,
+          0.0,
+          0.0
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.2724119206356903,
+          "pair": [
+            2,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "chin_projection_LOW",
+      "metrics": {
+        "max_mm": 0.005628072987436123,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.005628072949949176,
+          "EYE_RIGHT": 0.005628072987436123,
+          "MOUTH": 0.005628072915793955,
+          "NOSTRIL_LEFT": 0.0012060160567350393,
+          "NOSTRIL_RIGHT": 0.001206016057001817
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -1.1155289314501715e-07,
+            4.4277389577018766e-07,
+            -0.005628072931426604
+          ],
+          "EYE_RIGHT": [
+            -1.1155289314501715e-07,
+            4.842860690246198e-07,
+            -0.0056280729654945945
+          ],
+          "MOUTH": [
+            -5.5544399085275336e-08,
+            -6.354057191515494e-07,
+            -0.005628072879651423
+          ],
+          "NOSTRIL_LEFT": [
+            -8.354864178272692e-08,
+            1.0060791346688802e-06,
+            0.0012060156341968096
+          ],
+          "NOSTRIL_RIGHT": [
+            -8.354864178272692e-08,
+            1.0199165263458099e-06,
+            0.0012060156228408127
+          ]
+        },
+        "rms_mm": 0.004425710448870333,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 5.981597665276757,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.008559048937657807,
+          "z_min_mm": -5.981597665276757,
+          "z_span_mm": 5.9901567142144145
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": -6.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.005628072987436123,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.005628072949949176,
+          "EYE_RIGHT": 0.005628072987436123,
+          "MOUTH": 0.005628072915793955,
+          "NOSTRIL_LEFT": 0.0012060160567350393,
+          "NOSTRIL_RIGHT": 0.001206016057001817
+        },
+        "pose": [
+          -8.84905685185763e-08,
+          9.160329173594853e-07,
+          -0.0,
+          -0.009213280803663442,
+          3.0983366088910307e-11,
+          3.7753531509108386e-08
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 1.0668584238260337e-06,
+          "pair": [
+            2,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "chin_projection_HIGH",
+      "metrics": {
+        "max_mm": 0.011256145616149797,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.011256145616149797,
+          "EYE_RIGHT": 0.011256145604185357,
+          "MOUTH": 0.011256145613859672,
+          "NOSTRIL_LEFT": 0.002412034522232797,
+          "NOSTRIL_RIGHT": 0.002412034494955142
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -3.5984193402782694e-09,
+            1.844332331302212e-06,
+            0.01125614546505124
+          ],
+          "EYE_RIGHT": [
+            -3.5984193402782694e-09,
+            1.7929864313259714e-06,
+            0.011256145461382774
+          ],
+          "MOUTH": [
+            -7.287463807077535e-08,
+            -2.5770833218530242e-06,
+            0.011256145318613436
+          ],
+          "NOSTRIL_LEFT": [
+            -3.823652683365708e-08,
+            4.025088293779788e-06,
+            -0.0024120311634895997
+          ],
+          "NOSTRIL_RIGHT": [
+            -3.823652683365708e-08,
+            4.007972993491649e-06,
+            -0.002412031164712421
+          ]
+        },
+        "rms_mm": 0.008851420936960328,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 11.96319486654228,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 11.96319486654228,
+          "z_min_mm": -0.01711809715057574,
+          "z_span_mm": 11.980312963692855
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 12.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.011256145616149797,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.011256145616149797,
+          "EYE_RIGHT": 0.011256145604185357,
+          "MOUTH": 0.011256145613859672,
+          "NOSTRIL_LEFT": 0.002412034522232797,
+          "NOSTRIL_RIGHT": 0.002412034494955142
+        },
+        "pose": [
+          -3.212391928837066e-08,
+          3.628671010600609e-06,
+          -0.0,
+          0.018426561135574098,
+          3.3363093274176255e-12,
+          -4.6696878922418104e-08
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 4.267433389770758e-06,
+          "pair": [
+            2,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "jaw_width_LOW",
+      "metrics": {
+        "max_mm": 0.0004887240776310829,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.951035865344554e-07,
+          "EYE_RIGHT": 3.7723245962882336e-07,
+          "MOUTH": 2.884058885789455e-07,
+          "NOSTRIL_LEFT": 0.0004887240776310829,
+          "NOSTRIL_RIGHT": 0.0004887240119668334
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            2.9031160408976575e-07,
+            1.910057747522842e-07,
+            1.879968367672623e-07
+          ],
+          "EYE_RIGHT": [
+            2.762799908850866e-07,
+            -2.2888470851967213e-07,
+            -1.1655679062162364e-07
+          ],
+          "MOUTH": [
+            -2.832231182216731e-07,
+            -1.8939466883693967e-08,
+            -5.1028604389741894e-08
+          ],
+          "NOSTRIL_LEFT": [
+            0.0004887240730653275,
+            5.1039027226806866e-08,
+            4.3102284668797795e-08
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.0004887240003874638,
+            -8.891795388876744e-08,
+            -5.841086598572037e-08
+          ]
+        },
+        "rms_mm": 0.00030909634922413417,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 3.876330785787371e-07,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 3.876330785787371e-07,
+          "z_min_mm": -3.8725811371074733e-07,
+          "z_span_mm": 7.748911922894844e-07
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": -12.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.0004887240776310829,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.951035865344554e-07,
+          "EYE_RIGHT": 3.7723245962882336e-07,
+          "MOUTH": 2.884058885789455e-07,
+          "NOSTRIL_LEFT": 0.0004887240776310829,
+          "NOSTRIL_RIGHT": 0.0004887240119668334
+        },
+        "pose": [
+          5.002330185568968e-08,
+          -1.8939463615419514e-08,
+          -0.0,
+          5.847447331949913e-08,
+          2.769783728360237e-07,
+          -3.8187226788285533e-07
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.0004887240367263956,
+          "pair": [
+            2,
+            3
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "jaw_width_HIGH",
+      "metrics": {
+        "max_mm": 0.0004887240775553919,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.850997254670554e-07,
+          "EYE_RIGHT": 3.8795868042314745e-07,
+          "MOUTH": 2.8881693914824683e-07,
+          "NOSTRIL_LEFT": 0.0004887240775553919,
+          "NOSTRIL_RIGHT": 0.0004887240120562534
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            2.765661051284951e-07,
+            1.9125035066736018e-07,
+            1.8771332243201966e-07
+          ],
+          "EYE_RIGHT": [
+            2.9059771833317427e-07,
+            -2.2917187436632958e-07,
+            -1.1638365785043106e-07
+          ],
+          "MOUTH": [
+            -2.836544301833844e-07,
+            -1.8960761849484697e-08,
+            -5.094976041542043e-08
+          ],
+          "NOSTRIL_LEFT": [
+            -0.0004887240729871678,
+            5.111287393333441e-08,
+            4.304272501321548e-08
+          ],
+          "NOSTRIL_RIGHT": [
+            0.0004887240004656235,
+            -8.903439230323329e-08,
+            -5.8327653137841605e-08
+          ]
+        },
+        "rms_mm": 0.0003090963494354763,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 3.8742481574979066e-07,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 3.87050413103549e-07,
+          "z_min_mm": -3.8742481574979066e-07,
+          "z_span_mm": 7.744752288533396e-07
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 12.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.0004887240775553919,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.850997254670554e-07,
+          "EYE_RIGHT": 3.8795868042314745e-07,
+          "MOUTH": 2.8881693914824683e-07,
+          "NOSTRIL_LEFT": 0.0004887240775553919,
+          "NOSTRIL_RIGHT": 0.0004887240120562534
+        },
+        "pose": [
+          5.001400508547607e-08,
+          -1.8960758928367727e-08,
+          -0.0,
+          5.8384124780125975e-08,
+          2.765630718885209e-07,
+          -3.8235586167097975e-07
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.0004887240367263956,
+          "pair": [
+            2,
+            3
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "eye_spacing_LOW",
+      "metrics": {
+        "max_mm": 5.999998891105275,
+        "residual_norm_mm": {
+          "EYE_LEFT": 5.999998891105275,
+          "EYE_RIGHT": 5.999998891105275,
+          "MOUTH": 1.998674523194541e-16,
+          "NOSTRIL_LEFT": 0.004040225095222283,
+          "NOSTRIL_RIGHT": 0.004040225095222283
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            5.999998891105275,
+            0.0,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            -5.999998891105275,
+            0.0,
+            0.0
+          ],
+          "MOUTH": [
+            1.998674523194541e-16,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            0.004040225095222283,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.004040225095222283,
+            0.0,
+            0.0
+          ]
+        },
+        "rms_mm": 3.7947333511952244,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": -12.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 5.999998891105275,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 5.999998891105275,
+          "EYE_RIGHT": 5.999998891105275,
+          "MOUTH": 1.998674523194541e-16,
+          "NOSTRIL_LEFT": 0.004040225095222283,
+          "NOSTRIL_RIGHT": 0.004040225095222283
+        },
+        "pose": [
+          4.3967052221205454e-16,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -2.747940763825341e-16
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 5.999998891105275,
+          "pair": [
+            0,
+            1
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "eye_spacing_HIGH",
+      "metrics": {
+        "max_mm": 5.999998891105271,
+        "residual_norm_mm": {
+          "EYE_LEFT": 5.999998891105271,
+          "EYE_RIGHT": 5.999998891105271,
+          "MOUTH": 0.0,
+          "NOSTRIL_LEFT": 0.004040225095222283,
+          "NOSTRIL_RIGHT": 0.004040225095222283
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -5.999998891105271,
+            0.0,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            5.999998891105271,
+            0.0,
+            0.0
+          ],
+          "MOUTH": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            -0.004040225095222283,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            0.004040225095222283,
+            0.0,
+            0.0
+          ]
+        },
+        "rms_mm": 3.794733351195222,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 12.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 5.999998891105271,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 5.999998891105271,
+          "EYE_RIGHT": 5.999998891105271,
+          "MOUTH": 0.0,
+          "NOSTRIL_LEFT": 0.004040225095222283,
+          "NOSTRIL_RIGHT": 0.004040225095222283
+        },
+        "pose": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 5.999998891105271,
+          "pair": [
+            0,
+            1
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "mouth_y_LOW",
+      "metrics": {
+        "max_mm": 5.0,
+        "residual_norm_mm": {
+          "EYE_LEFT": 4.99999999999995,
+          "EYE_RIGHT": 4.99999999999995,
+          "MOUTH": 5.0,
+          "NOSTRIL_LEFT": 4.9970180942957425,
+          "NOSTRIL_RIGHT": 4.9970180942957425
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.0,
+            4.99999999999995,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            0.0,
+            4.99999999999995,
+            0.0
+          ],
+          "MOUTH": [
+            -9.397308210822672e-17,
+            -5.0,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            0.0,
+            4.9970180942957425,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            0.0,
+            4.9970180942957425,
+            0.0
+          ]
+        },
+        "rms_mm": 4.998807451171471,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": -10.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 5.0,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 4.99999999999995,
+          "EYE_RIGHT": 4.99999999999995,
+          "MOUTH": 5.0,
+          "NOSTRIL_LEFT": 4.9970180942957425,
+          "NOSTRIL_RIGHT": 4.9970180942957425
+        },
+        "pose": [
+          0.0,
+          5.0,
+          -0.0,
+          0.0,
+          0.0,
+          -8.973768321062899e-17
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 4.879466308556413,
+          "pair": [
+            2,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "mouth_y_HIGH",
+      "metrics": {
+        "max_mm": 5.0,
+        "residual_norm_mm": {
+          "EYE_LEFT": 4.99999999999995,
+          "EYE_RIGHT": 4.99999999999995,
+          "MOUTH": 5.0,
+          "NOSTRIL_LEFT": 4.997018094295743,
+          "NOSTRIL_RIGHT": 4.997018094295743
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.0,
+            -4.99999999999995,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            0.0,
+            -4.99999999999995,
+            0.0
+          ],
+          "MOUTH": [
+            -9.898497982066548e-16,
+            5.0,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            0.0,
+            -4.997018094295743,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            0.0,
+            -4.997018094295743,
+            0.0
+          ]
+        },
+        "rms_mm": 4.998807451171472,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 10.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 5.0,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 4.99999999999995,
+          "EYE_RIGHT": 4.99999999999995,
+          "MOUTH": 5.0,
+          "NOSTRIL_LEFT": 4.997018094295743,
+          "NOSTRIL_RIGHT": 4.997018094295743
+        },
+        "pose": [
+          0.0,
+          -5.0,
+          -0.0,
+          0.0,
+          0.0,
+          -1.4178553947279382e-15
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 4.810474028943599,
+          "pair": [
+            2,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "mouth_width_LOW",
+      "metrics": {
+        "max_mm": 0.0011416390698571193,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.619077876930321e-07,
+          "EYE_RIGHT": 4.7432861282537467e-07,
+          "MOUTH": 5.972588631406204e-07,
+          "NOSTRIL_LEFT": 0.0011416390698571193,
+          "NOSTRIL_RIGHT": 0.0011416390644841982
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            2.1647537096214364e-09,
+            -5.817845760702767e-09,
+            3.6185454716632504e-07
+          ],
+          "EYE_RIGHT": [
+            2.1626149759867985e-09,
+            -9.023381153383525e-09,
+            4.7423784605814686e-07
+          ],
+          "MOUTH": [
+            -2.1612461287158473e-09,
+            -7.4206027989021095e-09,
+            -5.972088523031942e-07
+          ],
+          "NOSTRIL_LEFT": [
+            0.001141639064698552,
+            -6.886407888373469e-09,
+            -1.0830984113436916e-07
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.0011416390622578376,
+            -7.954804814858107e-09,
+            -7.08528145565891e-08
+          ]
+        },
+        "rms_mm": 0.0007220360423224886,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 1.2073562415423654e-06,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 1.2073562415423654e-06,
+          "z_min_mm": -1.2073560042157075e-06,
+          "z_span_mm": 2.4147122457580727e-06
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": -8.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.0011416390698571193,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.619077876930321e-07,
+          "EYE_RIGHT": 4.7432861282537467e-07,
+          "MOUTH": 5.972588631406204e-07,
+          "NOSTRIL_LEFT": 0.0011416390698571193,
+          "NOSTRIL_RIGHT": 0.0011416390644841982
+        },
+        "pose": [
+          3.828311709702122e-10,
+          -7.420606960050874e-09,
+          -0.0,
+          6.843509344964952e-07,
+          -1.0220775736918845e-07,
+          -2.9152990613285563e-09
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.0011416390634781948,
+          "pair": [
+            2,
+            3
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "mouth_width_HIGH",
+      "metrics": {
+        "max_mm": 0.001141639069858207,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.621092651768432e-07,
+          "EYE_RIGHT": 4.7453115902286525e-07,
+          "MOUTH": 5.975478486541075e-07,
+          "NOSTRIL_LEFT": 0.001141639069858207,
+          "NOSTRIL_RIGHT": 0.0011416390644900542
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            2.0959021185262827e-09,
+            -5.865473440280766e-09,
+            3.620556909406953e-07
+          ],
+          "EYE_RIGHT": [
+            2.0980408521609206e-09,
+            -8.975732157523453e-09,
+            4.7444162479740637e-07
+          ],
+          "MOUTH": [
+            -2.0994050933614367e-09,
+            -7.420588588047394e-09,
+            -5.974980826700727e-07
+          ],
+          "NOSTRIL_LEFT": [
+            -0.0011416390646949992,
+            -6.90216150900369e-09,
+            -1.083577379507919e-07
+          ],
+          "NOSTRIL_RIGHT": [
+            0.0011416390622613903,
+            -7.939026325232135e-09,
+            -7.08916868502299e-08
+          ]
+        },
+        "rms_mm": 0.0007220360424193255,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 1.2079300559777377e-06,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 1.2079298186455152e-06,
+          "z_min_mm": -1.2079300559777377e-06,
+          "z_span_mm": 2.4158598746232527e-06
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 8.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.001141639069858207,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.621092651768432e-07,
+          "EYE_RIGHT": 4.7453115902286525e-07,
+          "MOUTH": 5.975478486541075e-07,
+          "NOSTRIL_LEFT": 0.001141639069858207,
+          "NOSTRIL_RIGHT": 0.0011416390644900542
+        },
+        "pose": [
+          3.6905262953010973e-10,
+          -7.420594441328174e-09,
+          -0.0,
+          6.846823680830782e-07,
+          -1.0221015375596437e-07,
+          -2.8286454099706047e-09
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.0011416390634781948,
+          "pair": [
+            2,
+            3
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "asymmetry_LOW",
+      "metrics": {
+        "max_mm": 0.38451145296522676,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.38451145296522676,
+          "EYE_RIGHT": 0.3845114529473718,
+          "MOUTH": 0.38451145293928446,
+          "NOSTRIL_LEFT": 0.29504635292898285,
+          "NOSTRIL_RIGHT": 0.35747369081260016
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -0.20035084884910503,
+            0.32818987617970663,
+            -1.4718664800756316e-07
+          ],
+          "EYE_RIGHT": [
+            -0.04531612508670335,
+            -0.38183177742929075,
+            1.1739027597119061e-07
+          ],
+          "MOUTH": [
+            0.3836774299021922,
+            -0.025311800116298855,
+            2.1283122766274475e-08
+          ],
+          "NOSTRIL_LEFT": [
+            0.08785756714417658,
+            0.15165068261620718,
+            0.23735094003234705
+          ],
+          "NOSTRIL_RIGHT": [
+            0.17298637579011,
+            -0.2037834333572972,
+            -0.23735093364741014
+          ]
+        },
+        "rms_mm": 0.36287379689100857,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.9873751037667144,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 4.9873751037667144,
+          "z_min_mm": -4.9873751037667144,
+          "z_span_mm": 9.974750207533429
+        }
+      },
+      "parameters": {
+        "asymmetry": -8.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.38451145296522676,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.38451145296522676,
+          "EYE_RIGHT": 0.3845114529473718,
+          "MOUTH": 0.38451145293928446,
+          "NOSTRIL_LEFT": 0.29504635292898285,
+          "NOSTRIL_RIGHT": 0.35747369081260016
+        },
+        "pose": [
+          0.08572983174331135,
+          -0.026199535709529084,
+          -0.0,
+          -2.4446607503104018e-08,
+          -3.945693240995536,
+          0.34142482012895076
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.32068370325771767,
+          "pair": [
+            0,
+            3
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "asymmetry_HIGH",
+      "metrics": {
+        "max_mm": 0.38451145296676187,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.3845114529464598,
+          "EYE_RIGHT": 0.38451145296676187,
+          "MOUTH": 0.38451145293796746,
+          "NOSTRIL_LEFT": 0.3574737376657962,
+          "NOSTRIL_RIGHT": 0.29504641605060805
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.04531608831214129,
+            -0.38183178179281896,
+            -6.968134359106674e-08
+          ],
+          "EYE_RIGHT": [
+            0.20035081177098135,
+            0.3281898988167029,
+            3.7641581192327773e-08
+          ],
+          "MOUTH": [
+            -0.383677430489351,
+            -0.025311791196109823,
+            2.2885544757439735e-08
+          ],
+          "NOSTRIL_LEFT": [
+            -0.17298639307301933,
+            -0.2037834288520104,
+            -0.23735099548487038
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.0878575873747689,
+            0.151650696167839,
+            0.23735100235053386
+          ]
+        },
+        "rms_mm": 0.36287381638667116,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.98737535737545,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 4.98737535737545,
+          "z_min_mm": -4.98737535737545,
+          "z_span_mm": 9.9747507147509
+        }
+      },
+      "parameters": {
+        "asymmetry": 8.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.38451145296676187,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.3845114529464598,
+          "EYE_RIGHT": 0.38451145296676187,
+          "MOUTH": 0.38451145293796746,
+          "NOSTRIL_LEFT": 0.3574737376657962,
+          "NOSTRIL_RIGHT": 0.29504641605060805
+        },
+        "pose": [
+          -0.0857298537064608,
+          -0.026199526661964165,
+          -0.0,
+          -2.6287210579789443e-08,
+          3.9456929035387875,
+          -0.3414247957600882
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.32068370325771767,
+          "pair": [
+            1,
+            2
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "local_curvature_LOW",
+      "metrics": {
+        "max_mm": 0.03197798990167184,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.03197798976270011,
+          "EYE_RIGHT": 0.03197798990167184,
+          "MOUTH": 0.0011572819299409639,
+          "NOSTRIL_LEFT": 0.010673905206035183,
+          "NOSTRIL_RIGHT": 0.031977989778052815
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -5.0729991869502555e-06,
+            1.1180672323973795e-05,
+            -0.03197798740572331
+          ],
+          "EYE_RIGHT": [
+            -3.753621751201308e-05,
+            -8.067104459996699e-06,
+            0.03197796685384527
+          ],
+          "MOUTH": [
+            -4.609994536776556e-05,
+            1.5567871969324187e-06,
+            -0.0011563623293840883
+          ],
+          "NOSTRIL_LEFT": [
+            -2.886394037204809e-05,
+            4.764748699592758e-06,
+            -0.010673865116139561
+          ],
+          "NOSTRIL_RIGHT": [
+            3.5845377528431754e-06,
+            -1.6512026270731894e-06,
+            -0.031977989534519975
+          ]
+        },
+        "rms_mm": 0.025231119877931783,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.946941774340776,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.07867597547789239,
+          "z_min_mm": -4.946941774340776,
+          "z_span_mm": 5.025617749818669
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": -5.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.03197798990167184,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.03197798976270011,
+          "EYE_RIGHT": 0.03197798990167184,
+          "MOUTH": 0.0011572819299409639,
+          "NOSTRIL_LEFT": 0.010673905206035183,
+          "NOSTRIL_RIGHT": 0.031977989778052815
+        },
+        "pose": [
+          -3.199783361255315e-05,
+          1.5567855622269517e-06,
+          -0.0,
+          -1.6821936914721877e-08,
+          -0.058165188622470144,
+          -1.7505030838112665e-05
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 2.162739311195594e-05,
+          "pair": [
+            2,
+            3
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "local_curvature_HIGH",
+      "metrics": {
+        "max_mm": 0.03197798982596039,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.03197798961645846,
+          "EYE_RIGHT": 0.03197798982596039,
+          "MOUTH": 0.0011573119651220325,
+          "NOSTRIL_LEFT": 0.010673905048265023,
+          "NOSTRIL_RIGHT": 0.0319779898099026
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -4.052303559376469e-06,
+            1.1604110895291342e-05,
+            0.031977987254262444
+          ],
+          "EYE_RIGHT": [
+            -3.65155230284131e-05,
+            -8.946360168238243e-06,
+            -0.03197796772605232
+          ],
+          "MOUTH": [
+            -4.683685334586784e-05,
+            1.3288791791410404e-06,
+            0.001156363060575443
+          ],
+          "NOSTRIL_LEFT": [
+            -2.8722046648610444e-05,
+            4.753956126535286e-06,
+            0.010673865345942632
+          ],
+          "NOSTRIL_RIGHT": [
+            3.726431581085876e-06,
+            -2.0962269013935497e-06,
+            0.03197798952407382
+          ]
+        },
+        "rms_mm": 0.02523112009192528,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.946941774472385,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 4.946941774472385,
+          "z_min_mm": -0.0786759763645246,
+          "z_span_mm": 5.0256177508369095
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 0.0,
+        "face_height": 0.0,
+        "face_width": 0.0,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 5.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.03197798982596039,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.03197798961645846,
+          "EYE_RIGHT": 0.03197798982596039,
+          "MOUTH": 0.0011573119651220325,
+          "NOSTRIL_LEFT": 0.010673905048265023,
+          "NOSTRIL_RIGHT": 0.0319779898099026
+        },
+        "pose": [
+          -3.170085745863735e-05,
+          1.3288772252329992e-06,
+          -0.0,
+          1.598405289494311e-08,
+          0.058165189277958024,
+          -1.8689775649273966e-05
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 2.162739311195594e-05,
+          "pair": [
+            2,
+            3
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COMBINED_MODERATE",
+      "metrics": {
+        "max_mm": 4.465115724622407,
+        "residual_norm_mm": {
+          "EYE_LEFT": 4.465115724622407,
+          "EYE_RIGHT": 4.465115724622407,
+          "MOUTH": 0.0,
+          "NOSTRIL_LEFT": 0.49039220557086693,
+          "NOSTRIL_RIGHT": 0.49039220557086693
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -4.465115724622407,
+            0.0,
+            0.0
+          ],
+          "EYE_RIGHT": [
+            4.465115724622407,
+            0.0,
+            0.0
+          ],
+          "MOUTH": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_LEFT": [
+            -0.49039220557086693,
+            0.0,
+            0.0
+          ],
+          "NOSTRIL_RIGHT": [
+            0.49039220557086693,
+            0.0,
+            0.0
+          ]
+        },
+        "rms_mm": 2.840967648499711,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 0.0,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 0.0,
+          "z_min_mm": 0.0,
+          "z_span_mm": 0.0
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.0,
+        "bridge_projection": 0.0,
+        "brow_projection": 0.0,
+        "cheek_curvature": 0.0,
+        "cheek_prominence": 0.0,
+        "chin_projection": 0.0,
+        "eye_spacing": 6,
+        "face_height": 0.0,
+        "face_width": 8,
+        "forehead_curvature": 0.0,
+        "jaw_width": 0.0,
+        "local_curvature": 0.0,
+        "lower_face_projection": 0.0,
+        "mouth_width": 0.0,
+        "mouth_y": 0.0,
+        "nasal_width": 0.0
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 4.465115724622407,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 4.465115724622407,
+          "EYE_RIGHT": 4.465115724622407,
+          "MOUTH": 0.0,
+          "NOSTRIL_LEFT": 0.49039220557086693,
+          "NOSTRIL_RIGHT": 0.49039220557086693
+        },
+        "pose": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 4.465115724622407,
+          "pair": [
+            0,
+            1
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_000",
+      "metrics": {
+        "max_mm": 2.1406895599859053,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.140689559875974,
+          "EYE_RIGHT": 2.1406895599859053,
+          "MOUTH": 2.1406895598898243,
+          "NOSTRIL_LEFT": 0.6872888484953664,
+          "NOSTRIL_RIGHT": 0.8263679046282842
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -0.8512228594109672,
+            1.9469688521194328,
+            -0.2593910643313441
+          ],
+          "EYE_RIGHT": [
+            0.9414569150494501,
+            1.8514760723373982,
+            -0.5179256924504737
+          ],
+          "MOUTH": [
+            0.272209660407316,
+            -2.107463904672592,
+            -0.25893934251939044
+          ],
+          "NOSTRIL_LEFT": [
+            0.203631783697789,
+            0.3883788117400293,
+            -0.5292088023885718
+          ],
+          "NOSTRIL_RIGHT": [
+            0.11937892984657061,
+            0.32616057011949984,
+            -0.7498345600249108
+          ]
+        },
+        "rms_mm": 1.7264359386251062,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.905336476357834,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 4.905336476357834,
+          "z_min_mm": -2.797275076551887,
+          "z_span_mm": 7.702611552909721
+        }
+      },
+      "parameters": {
+        "asymmetry": -1.9936180147910356,
+        "bridge_projection": -2.1997244334335346,
+        "brow_projection": -2.6637100653254944,
+        "cheek_curvature": 2.8922684374733816,
+        "cheek_prominence": 2.021605679605589,
+        "chin_projection": 5.182157815184988,
+        "eye_spacing": 3.420096368265142,
+        "face_height": 7.621402331824051,
+        "face_width": -4.467860154844287,
+        "forehead_curvature": -2.8120956190161985,
+        "jaw_width": 3.289401394996773,
+        "local_curvature": -0.8125018627234888,
+        "lower_face_projection": 0.2236067137972526,
+        "mouth_width": 1.0679964761698955,
+        "mouth_y": -0.9182062746642465,
+        "nasal_width": 0.61564059912246
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.1406895599859053,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.140689559875974,
+          "EYE_RIGHT": 2.1406895599859053,
+          "MOUTH": 2.1406895598898243,
+          "NOSTRIL_LEFT": 0.6872888484953664,
+          "NOSTRIL_RIGHT": 0.8263679046282842
+        },
+        "pose": [
+          0.1333841690695192,
+          0.6248010157013619,
+          -0.0,
+          0.46043293085208914,
+          -0.7309004583449759,
+          0.14725003530418815
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 2.0964108338027856,
+          "pair": [
+            0,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_001",
+      "metrics": {
+        "max_mm": 2.0545225380304823,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.0545225380301524,
+          "EYE_RIGHT": 2.0545225380304823,
+          "MOUTH": 2.0545225380236034,
+          "NOSTRIL_LEFT": 1.3233253659454063,
+          "NOSTRIL_RIGHT": 1.2458686041729536
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -0.8537017935863247,
+            1.6807959321243686,
+            0.8168115703487095
+          ],
+          "EYE_RIGHT": [
+            0.8386035420290767,
+            1.7542549371691933,
+            0.6636238196365551
+          ],
+          "MOUTH": [
+            -0.08924746138397784,
+            -1.9732027077388778,
+            0.5653041871907771
+          ],
+          "NOSTRIL_LEFT": [
+            -1.028032429449686,
+            0.5971724144238859,
+            -0.5811406504500147
+          ],
+          "NOSTRIL_RIGHT": [
+            0.9038870220903803,
+            0.6346650551477753,
+            -0.5765215502778017
+          ]
+        },
+        "rms_mm": 1.7869844532515906,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.85826427301076,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 4.85826427301076,
+          "z_min_mm": -1.6856927075976222,
+          "z_span_mm": 6.543956980608382
+        }
+      },
+      "parameters": {
+        "asymmetry": 1.0973456878966905,
+        "bridge_projection": -2.066044473371481,
+        "brow_projection": -2.7242118584316186,
+        "cheek_curvature": -1.0211180958482073,
+        "cheek_prominence": 1.3552273188813269,
+        "chin_projection": 5.9492891781261665,
+        "eye_spacing": -1.180236435207819,
+        "face_height": 5.5397549987369334,
+        "face_width": 7.834911851919628,
+        "forehead_curvature": 2.2312182406758945,
+        "jaw_width": 0.6764628251237967,
+        "local_curvature": 0.6910847638484139,
+        "lower_face_projection": 2.9848891431473685,
+        "mouth_width": 0.5646501601531186,
+        "mouth_y": -1.4158576880899352,
+        "nasal_width": 1.3222341952078267
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.0545225380304823,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.0545225380301524,
+          "EYE_RIGHT": 2.0545225380304823,
+          "MOUTH": 2.0545225380236034,
+          "NOSTRIL_LEFT": 1.3233253659454063,
+          "NOSTRIL_RIGHT": 1.2458686041729536
+        },
+        "pose": [
+          -0.04842965655896952,
+          0.8005664005704004,
+          -0.0,
+          1.6712657469632626,
+          0.6672049016017698,
+          -0.05146265251566208
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 1.9093008155167581,
+          "pair": [
+            1,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_002",
+      "metrics": {
+        "max_mm": 3.4812664301469387,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.4812664301316874,
+          "EYE_RIGHT": 3.4812664301388265,
+          "MOUTH": 3.4812664301469387,
+          "NOSTRIL_LEFT": 2.8694848395546657,
+          "NOSTRIL_RIGHT": 2.8849246387887986
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            1.0760223783976883,
+            3.1695498939411735,
+            0.9567367812343684
+          ],
+          "EYE_RIGHT": [
+            -1.0305583834184162,
+            3.189285227107753,
+            0.9410765729364416
+          ],
+          "MOUTH": [
+            -0.014775688007494639,
+            -3.4218927273540842,
+            0.6400373420302472
+          ],
+          "NOSTRIL_LEFT": [
+            -0.3671459243628785,
+            2.109913007749233,
+            1.909820466533014
+          ],
+          "NOSTRIL_RIGHT": [
+            0.3832016003654193,
+            2.120748340156993,
+            1.9179085438803953
+          ]
+        },
+        "rms_mm": 3.2531332984913517,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.279525380451043,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 4.279525380451043,
+          "z_min_mm": -3.3243392542415404,
+          "z_span_mm": 7.603864634692583
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.289496546068718,
+        "bridge_projection": 4.457874566990388,
+        "brow_projection": 4.2483261851416785,
+        "cheek_curvature": -1.444435590545776,
+        "cheek_prominence": 2.098634814201624,
+        "chin_projection": 1.864190984432823,
+        "eye_spacing": 0.12521546123638494,
+        "face_height": 5.296631026729784,
+        "face_width": -6.094079388948545,
+        "forehead_curvature": -0.6695884256757281,
+        "jaw_width": 0.16800288421513354,
+        "local_curvature": 0.03787053850612798,
+        "lower_face_projection": -1.5777609672275257,
+        "mouth_width": 1.905652123691901,
+        "mouth_y": -4.405387590264471,
+        "nasal_width": 2.0271165567957876
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 3.4812664301469387,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.4812664301316874,
+          "EYE_RIGHT": 3.4812664301388265,
+          "MOUTH": 3.4812664301469387,
+          "NOSTRIL_LEFT": 2.8694848395546657,
+          "NOSTRIL_RIGHT": 2.8849246387887986
+        },
+        "pose": [
+          0.005687359957134816,
+          2.250980023344231,
+          -0.0,
+          -1.7481502075596043,
+          0.16149445962189174,
+          -0.02291616940103382
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 2.9506920857603873,
+          "pair": [
+            1,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_003",
+      "metrics": {
+        "max_mm": 1.8563530426826196,
+        "residual_norm_mm": {
+          "EYE_LEFT": 1.8563530426826196,
+          "EYE_RIGHT": 1.8563530426782495,
+          "MOUTH": 1.8563530426721,
+          "NOSTRIL_LEFT": 1.7251627723608052,
+          "NOSTRIL_RIGHT": 1.833463097879744
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.8643782888435609,
+            1.0954892538886227,
+            1.2242549111469578
+          ],
+          "EYE_RIGHT": [
+            -0.7314601665110985,
+            1.257316533254702,
+            1.1533289986264668
+          ],
+          "MOUTH": [
+            -0.056510973813704825,
+            -1.5537707507065122,
+            1.014223635657103
+          ],
+          "NOSTRIL_LEFT": [
+            0.05402920998538718,
+            1.5863673362625201,
+            0.6758003477709451
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.05500619903440551,
+            1.66720609247374,
+            0.7609107007875613
+          ]
+        },
+        "rms_mm": 1.8262482514489746,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 5.94479866679735,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 5.94479866679735,
+          "z_min_mm": -4.152413480106856,
+          "z_span_mm": 10.097212146904205
+        }
+      },
+      "parameters": {
+        "asymmetry": 2.18774568739778,
+        "bridge_projection": 5.471639293152622,
+        "brow_projection": 2.702668782361645,
+        "cheek_curvature": 2.6830722640083646,
+        "cheek_prominence": -3.2975370749535435,
+        "chin_projection": -0.8279271805087145,
+        "eye_spacing": -0.3467201105303932,
+        "face_height": -2.3245604241676343,
+        "face_width": -3.443026510167323,
+        "forehead_curvature": 2.563415863010082,
+        "jaw_width": -4.267757655211534,
+        "local_curvature": -1.635458852282572,
+        "lower_face_projection": 4.77962586966437,
+        "mouth_width": 0.2237431268249681,
+        "mouth_y": -3.5964886888870238,
+        "nasal_width": 0.4145946441820678
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 1.8563530426826196,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 1.8563530426826196,
+          "EYE_RIGHT": 1.8563530426782495,
+          "MOUTH": 1.8563530426721,
+          "NOSTRIL_LEFT": 1.7251627723608052,
+          "NOSTRIL_RIGHT": 1.833463097879744
+        },
+        "pose": [
+          -0.005216715130068443,
+          1.5829408839447359,
+          -0.0,
+          2.4807995516969465,
+          1.1860335914616562,
+          -0.07795021766928484
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 1.5671704491516607,
+          "pair": [
+            3,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_004",
+      "metrics": {
+        "max_mm": 2.277375651606946,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.277375651606365,
+          "EYE_RIGHT": 2.27737565160627,
+          "MOUTH": 2.277375651606946,
+          "NOSTRIL_LEFT": 2.277375651606522,
+          "NOSTRIL_RIGHT": 2.2079286482920963
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -1.0450453610930737,
+            1.003549758229049,
+            1.757045228372275
+          ],
+          "EYE_RIGHT": [
+            1.0207330600674211,
+            0.8760833579859195,
+            1.8376674967127746
+          ],
+          "MOUTH": [
+            0.04485728775624688,
+            -1.4374786267565156,
+            1.7658094121069567
+          ],
+          "NOSTRIL_LEFT": [
+            1.205336388610304,
+            1.7683739671013594,
+            -0.7787538515476514
+          ],
+          "NOSTRIL_RIGHT": [
+            -1.1061013259304637,
+            1.7049101516469438,
+            -0.8630006648520199
+          ]
+        },
+        "rms_mm": 2.263656703215837,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.988188540080654,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 4.988188540080654,
+          "z_min_mm": -3.369622016904506,
+          "z_span_mm": 8.35781055698516
+        }
+      },
+      "parameters": {
+        "asymmetry": -1.4312502263487348,
+        "bridge_projection": -1.5700706286972226,
+        "brow_projection": 3.448685991082029,
+        "cheek_curvature": -1.31017012129099,
+        "cheek_prominence": -1.8214369600957987,
+        "chin_projection": 2.420100439176501,
+        "eye_spacing": 3.2556359402106203,
+        "face_height": -3.636103669022911,
+        "face_width": -3.2610485495019716,
+        "forehead_curvature": -0.7307101576186934,
+        "jaw_width": -0.8410753180044566,
+        "local_curvature": 1.6992329558500572,
+        "lower_face_projection": 4.9520480673836325,
+        "mouth_width": -1.7263457156826156,
+        "mouth_y": -3.806147134467923,
+        "nasal_width": -2.602682839152071
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.277375651606946,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.277375651606365,
+          "EYE_RIGHT": 2.27737565160627,
+          "MOUTH": 2.277375651606946,
+          "NOSTRIL_LEFT": 2.277375651606522,
+          "NOSTRIL_RIGHT": 2.2079286482920963
+        },
+        "pose": [
+          0.03395878312449953,
+          1.5855747549186228,
+          -0.0,
+          1.8167833673754463,
+          -0.7606733550034456,
+          0.03711067718891509
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 1.4709047024181423,
+          "pair": [
+            2,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_005",
+      "metrics": {
+        "max_mm": 2.85374277124477,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.85374277124477,
+          "EYE_RIGHT": 2.8537427711578722,
+          "MOUTH": 2.8537427710310754,
+          "NOSTRIL_LEFT": 1.5177791396701792,
+          "NOSTRIL_RIGHT": 1.480216829482304
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            2.2826199925993613,
+            0.0957379614781928,
+            1.7100666702060103
+          ],
+          "EYE_RIGHT": [
+            -2.2727678129629325,
+            0.16740533099275723,
+            1.7176582103115583
+          ],
+          "MOUTH": [
+            -0.029256793049597836,
+            -0.2933971396767916,
+            2.838469651361813
+          ],
+          "NOSTRIL_LEFT": [
+            -0.021238770439548915,
+            -1.509261187004073,
+            -0.15916375482886203
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.038166508545693034,
+            -1.4751566166014012,
+            -0.11618148047422179
+          ]
+        },
+        "rms_mm": 2.4052541982368645,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 6.248884097155425,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 6.248884097155425,
+          "z_min_mm": -1.8664649286428436,
+          "z_span_mm": 8.115349025798269
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.7632808046604049,
+        "bridge_projection": -2.196517061776734,
+        "brow_projection": 0.7073122522507997,
+        "cheek_curvature": 1.5268088355542764,
+        "cheek_prominence": 4.983550019388328,
+        "chin_projection": 4.521114512916013,
+        "eye_spacing": -3.719198577824614,
+        "face_height": 8.092188466464162,
+        "face_width": -2.2871368326171417,
+        "forehead_curvature": 1.8165817241373707,
+        "jaw_width": -3.3866907984545045,
+        "local_curvature": 0.6383918752803313,
+        "lower_face_projection": 4.562234615562664,
+        "mouth_width": 1.9569082173443917,
+        "mouth_y": 2.8617566928168845,
+        "nasal_width": 0.35789582500176875
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.85374277124477,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.85374277124477,
+          "EYE_RIGHT": 2.8537427711578722,
+          "MOUTH": 2.8537427710310754,
+          "NOSTRIL_LEFT": 1.5177791396701792,
+          "NOSTRIL_RIGHT": 1.480216829482304
+        },
+        "pose": [
+          -0.024910565475597418,
+          -1.2048918270580724,
+          -0.0,
+          0.4453597121678794,
+          0.39978321160068714,
+          -0.028190132152450188
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 2.277671685842904,
+          "pair": [
+            0,
+            1
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_006",
+      "metrics": {
+        "max_mm": 2.0739307146640735,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.0739307145898684,
+          "EYE_RIGHT": 2.0739307146640735,
+          "MOUTH": 2.0739307145621915,
+          "NOSTRIL_LEFT": 1.3889209908645548,
+          "NOSTRIL_RIGHT": 1.3162319246377425
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -1.4557617213757865,
+            -0.8957848917434532,
+            -1.1745279252620684
+          ],
+          "EYE_RIGHT": [
+            1.5473420028945384,
+            -0.7010392404994477,
+            -1.1897332972499808
+          ],
+          "MOUTH": [
+            -0.06654474562221561,
+            1.4109262711609816,
+            -1.5185675694490137
+          ],
+          "NOSTRIL_LEFT": [
+            1.0977685399725328,
+            -0.84848490948532,
+            -0.06386790967644612
+          ],
+          "NOSTRIL_RIGHT": [
+            -1.0792494585372943,
+            -0.749019033782286,
+            0.08159395023152036
+          ]
+        },
+        "rms_mm": 1.8201721800560775,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.956285128311559,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 2.7467745789194637,
+          "z_min_mm": -4.956285128311559,
+          "z_span_mm": 7.703059707231023
+        }
+      },
+      "parameters": {
+        "asymmetry": 1.867999982804153,
+        "bridge_projection": 1.2028915472903337,
+        "brow_projection": 2.8072674693376696,
+        "cheek_curvature": 0.2768501609492371,
+        "cheek_prominence": -3.875561349061306,
+        "chin_projection": 1.2687710841444257,
+        "eye_spacing": 4.43854095616209,
+        "face_height": 0.08720801802893163,
+        "face_width": -3.940408842343645,
+        "forehead_curvature": -2.2451303701838397,
+        "jaw_width": -0.5770515306125326,
+        "local_curvature": -1.0655517219388966,
+        "lower_face_projection": -3.9332594221200567,
+        "mouth_width": 3.12615206608257,
+        "mouth_y": 2.28176251236433,
+        "nasal_width": -2.313180551787865
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.0739307146640735,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.0739307145898684,
+          "EYE_RIGHT": 2.0739307146640735,
+          "MOUTH": 2.0739307145621915,
+          "NOSTRIL_LEFT": 1.3889209908645548,
+          "NOSTRIL_RIGHT": 1.3162319246377425
+        },
+        "pose": [
+          0.01883237317503285,
+          -0.7939824806574494,
+          -0.0,
+          -1.500537036039289,
+          0.8879619165869772,
+          -0.07413328939758146
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 1.5016963893858204,
+          "pair": [
+            0,
+            1
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_007",
+      "metrics": {
+        "max_mm": 3.5907406618899227,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.5907406618887108,
+          "EYE_RIGHT": 3.5907406618899227,
+          "MOUTH": 3.590740661887406,
+          "NOSTRIL_LEFT": 1.3373522393530972,
+          "NOSTRIL_RIGHT": 1.4505893515782269
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -3.295889814903262,
+            1.4235551675298694,
+            -0.06339963688320696
+          ],
+          "EYE_RIGHT": [
+            3.192357627512294,
+            1.642812378214117,
+            -0.058641018069560936
+          ],
+          "MOUTH": [
+            -0.14059017438950638,
+            -3.5867442140697747,
+            -0.0944396454553307
+          ],
+          "NOSTRIL_LEFT": [
+            0.6568578936414688,
+            0.926930890909702,
+            -0.7055833353622963
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.8629908541940345,
+            1.0350423431433953,
+            -0.536790089690394
+          ]
+        },
+        "rms_mm": 2.9179779293831936,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 2.7419972815939975,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 2.7419972815939975,
+          "z_min_mm": -2.1528929079388295,
+          "z_span_mm": 4.894890189532827
+        }
+      },
+      "parameters": {
+        "asymmetry": 2.0943305136619603,
+        "bridge_projection": -1.5584213554921245,
+        "brow_projection": 1.1898013815710637,
+        "cheek_curvature": 2.707659765654208,
+        "cheek_prominence": 0.034659742419370865,
+        "chin_projection": -2.0084822615160354,
+        "eye_spacing": 5.75785292559638,
+        "face_height": 2.714887060195725,
+        "face_width": 1.9684388443066823,
+        "forehead_curvature": -1.2340500668945222,
+        "jaw_width": 5.806239137469056,
+        "local_curvature": -2.0293886109060195,
+        "lower_face_projection": -0.3072052089496471,
+        "mouth_width": 2.0845375294377826,
+        "mouth_y": -4.0207036484834315,
+        "nasal_width": -2.4029741333045362
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 3.5907406618899227,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.5907406618887108,
+          "EYE_RIGHT": 3.5907406618899227,
+          "MOUTH": 3.590740661887406,
+          "NOSTRIL_LEFT": 1.3373522393530972,
+          "NOSTRIL_RIGHT": 1.4505893515782269
+        },
+        "pose": [
+          -0.08550025954559154,
+          1.0807581971357896,
+          -0.0,
+          -0.1476252587480811,
+          0.9334972841631836,
+          -0.05612569627831239
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 3.244296758559031,
+          "pair": [
+            0,
+            1
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_008",
+      "metrics": {
+        "max_mm": 1.6156043097544381,
+        "residual_norm_mm": {
+          "EYE_LEFT": 1.6156043094600285,
+          "EYE_RIGHT": 1.6156043097544381,
+          "MOUTH": 1.6156043094530914,
+          "NOSTRIL_LEFT": 1.3661620752060406,
+          "NOSTRIL_RIGHT": 1.4144419706693772
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.8920015803408177,
+            1.2795812198456247,
+            0.4209303591256902
+          ],
+          "EYE_RIGHT": [
+            -1.0349410905885499,
+            1.1560401227870187,
+            0.45016159233665415
+          ],
+          "MOUTH": [
+            0.049270957063565185,
+            -1.565828627504871,
+            0.3948801929695293
+          ],
+          "NOSTRIL_LEFT": [
+            1.2468971881888429,
+            -0.47115192390442484,
+            -0.2994362743877094
+          ],
+          "NOSTRIL_RIGHT": [
+            -1.242130046945535,
+            -0.5384175793083958,
+            -0.4097139796953986
+          ]
+        },
+        "rms_mm": 1.5295474336736783,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.958398482171235,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 3.734216584404433,
+          "z_min_mm": -4.958398482171235,
+          "z_span_mm": 8.692615066575668
+        }
+      },
+      "parameters": {
+        "asymmetry": -1.8317091724919639,
+        "bridge_projection": -0.010837866683340636,
+        "brow_projection": -2.77405929923905,
+        "cheek_curvature": -2.873344380296537,
+        "cheek_prominence": -1.8325987611082972,
+        "chin_projection": -2.21835955226868,
+        "eye_spacing": 0.8454404698874134,
+        "face_height": 8.485953262708218,
+        "face_width": -7.591831586414154,
+        "forehead_curvature": -2.8213496554512423,
+        "jaw_width": -4.872158192946982,
+        "local_curvature": 2.4937925284104754,
+        "lower_face_projection": 3.643584507606331,
+        "mouth_width": 3.0772806031147635,
+        "mouth_y": 0.7256015725936198,
+        "nasal_width": -2.1277650922285876
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 1.6156043097544381,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 1.6156043094600285,
+          "EYE_RIGHT": 1.6156043097544381,
+          "MOUTH": 1.6156043094530914,
+          "NOSTRIL_LEFT": 1.3661620752060406,
+          "NOSTRIL_RIGHT": 1.4144419706693772
+        },
+        "pose": [
+          -0.014278666826033279,
+          -0.20995358693087207,
+          -0.0,
+          2.387915636829665,
+          -0.9697817392456568,
+          0.07835729133008063
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 1.244288269637476,
+          "pair": [
+            2,
+            3
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_009",
+      "metrics": {
+        "max_mm": 3.9942057061480982,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.9942057061417753,
+          "EYE_RIGHT": 3.9942057061480982,
+          "MOUTH": 3.9942057061454337,
+          "NOSTRIL_LEFT": 3.246602978364001,
+          "NOSTRIL_RIGHT": 3.3337999032337375
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            1.1137253526211666,
+            3.798840234281876,
+            0.5311383400825025
+          ],
+          "EYE_RIGHT": [
+            -0.8207509972932847,
+            3.879639118089763,
+            0.47796164789216333
+          ],
+          "MOUTH": [
+            -0.09663064662613438,
+            -3.9801466252084836,
+            0.3205847516318789
+          ],
+          "NOSTRIL_LEFT": [
+            0.09592539336162709,
+            2.4461134704322953,
+            2.1325473283845526
+          ],
+          "NOSTRIL_RIGHT": [
+            0.016341186350697257,
+            2.4983211100966054,
+            2.2073392107412024
+          ]
+        },
+        "rms_mm": 3.7286912010229423,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 8.225618160023284,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 8.225618160023284,
+          "z_min_mm": -5.594040715842875,
+          "z_span_mm": 13.81965887586616
+        }
+      },
+      "parameters": {
+        "asymmetry": 1.4948468056372706,
+        "bridge_projection": 4.082345777659362,
+        "brow_projection": 2.82325896353201,
+        "cheek_curvature": -1.1778439946672288,
+        "cheek_prominence": 4.226975824928395,
+        "chin_projection": 5.501551784392651,
+        "eye_spacing": -0.17768452447502803,
+        "face_height": 6.899145539787817,
+        "face_width": -4.8118880138653015,
+        "forehead_curvature": -1.9524565056225753,
+        "jaw_width": 0.5380775573269023,
+        "local_curvature": 1.4788307407485184,
+        "lower_face_projection": -3.2586521405638305,
+        "mouth_width": 3.816176001698709,
+        "mouth_y": -4.92636968467897,
+        "nasal_width": 0.6834645782564488
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 3.9942057061480982,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.9942057061417753,
+          "EYE_RIGHT": 3.9942057061480982,
+          "MOUTH": 3.9942057061454337,
+          "NOSTRIL_LEFT": 3.246602978364001,
+          "NOSTRIL_RIGHT": 3.3337999032337375
+        },
+        "pose": [
+          0.04558606159460021,
+          2.6308614711838674,
+          -0.0,
+          -2.5596228410218704,
+          0.8024913958548893,
+          -0.14848141405236825
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 3.5889691272002935,
+          "pair": [
+            1,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_010",
+      "metrics": {
+        "max_mm": 0.9915852275444154,
+        "residual_norm_mm": {
+          "EYE_LEFT": 0.9915852275444154,
+          "EYE_RIGHT": 0.9915852275435316,
+          "MOUTH": 0.9915852275326769,
+          "NOSTRIL_LEFT": 0.4051667058225803,
+          "NOSTRIL_RIGHT": 0.14498997604011402
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -0.0013620687636972661,
+            -0.4199880240537084,
+            0.8982479991096304
+          ],
+          "EYE_RIGHT": [
+            -0.17462781864061228,
+            -0.7597290658730316,
+            0.6128279814981277
+          ],
+          "MOUTH": [
+            0.12751358544810873,
+            0.759573949667022,
+            0.6245229891480687
+          ],
+          "NOSTRIL_LEFT": [
+            0.2024291918100385,
+            0.14585486345443943,
+            0.31923164100217694
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.13912884930935654,
+            -0.022568913727621265,
+            0.0339985378380069
+          ]
+        },
+        "rms_mm": 0.7918214373313129,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.316229374823806,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 4.316229374823806,
+          "z_min_mm": -2.923567783583861,
+          "z_span_mm": 7.239797158407667
+        }
+      },
+      "parameters": {
+        "asymmetry": -3.2208276920326453,
+        "bridge_projection": -1.5180645269517452,
+        "brow_projection": 3.7371783242092382,
+        "cheek_curvature": -0.8513012431564952,
+        "cheek_prominence": 2.4268049751842025,
+        "chin_projection": -1.4737424314228234,
+        "eye_spacing": 2.4442801543685757,
+        "face_height": -3.451043368964582,
+        "face_width": -7.21282843134715,
+        "forehead_curvature": 3.0470684608593057,
+        "jaw_width": 0.9167927531834348,
+        "local_curvature": 0.7330196669341111,
+        "lower_face_projection": -1.6339908056020414,
+        "mouth_width": -3.4480857776585037,
+        "mouth_y": 0.009924354507589328,
+        "nasal_width": 0.7135892367207379
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 0.9915852275444154,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 0.9915852275444154,
+          "EYE_RIGHT": 0.9915852275435316,
+          "MOUTH": 0.9915852275326769,
+          "NOSTRIL_LEFT": 0.4051667058225803,
+          "NOSTRIL_RIGHT": 0.14498997604011402
+        },
+        "pose": [
+          0.01698606779762446,
+          -0.0632411298185323,
+          -0.0,
+          -2.038875070204281,
+          -1.3201681235623748,
+          0.14554246725239184
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 0.7646395979605956,
+          "pair": [
+            1,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_011",
+      "metrics": {
+        "max_mm": 2.9680421713634337,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.3927423362993405,
+          "EYE_RIGHT": 2.5331392855114934,
+          "MOUTH": 2.9680421713634337,
+          "NOSTRIL_LEFT": 2.968042171359261,
+          "NOSTRIL_RIGHT": 2.9680421713598246
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            0.6891936114632742,
+            -2.2227536918323665,
+            0.5564117893098778
+          ],
+          "EYE_RIGHT": [
+            -0.731929404154382,
+            -2.363715110258852,
+            0.5421483788317307
+          ],
+          "MOUTH": [
+            0.019308709697640657,
+            2.943121451004828,
+            -0.38332444398552906
+          ],
+          "NOSTRIL_LEFT": [
+            -0.7801179556530826,
+            -1.8603136447451885,
+            2.17713652521139
+          ],
+          "NOSTRIL_RIGHT": [
+            0.7406503089653231,
+            -1.9244038233320353,
+            2.134802420727726
+          ]
+        },
+        "rms_mm": 2.7774028703322826,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 5.189479718071915,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 5.189479718071915,
+          "z_min_mm": -2.061414902020392,
+          "z_span_mm": 7.250894620092307
+        }
+      },
+      "parameters": {
+        "asymmetry": -1.1050820647651314,
+        "bridge_projection": 4.65866446526738,
+        "brow_projection": 0.5702818437449633,
+        "cheek_curvature": -0.9273900858230144,
+        "cheek_prominence": 4.076356701141416,
+        "chin_projection": 3.8825749711407394,
+        "eye_spacing": -4.077733695857061,
+        "face_height": -1.8382650557960787,
+        "face_width": 7.244777142737991,
+        "forehead_curvature": 2.2276938301199056,
+        "jaw_width": 3.5401387049748525,
+        "local_curvature": 1.0392453402304525,
+        "lower_face_projection": -2.3097996399249014,
+        "mouth_width": -1.784597216160929,
+        "mouth_y": 4.543207071772921,
+        "nasal_width": 0.8655560167693794
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.9680421713634337,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.3927423362993405,
+          "EYE_RIGHT": 2.5331392855114934,
+          "MOUTH": 2.9680421713634337,
+          "NOSTRIL_LEFT": 2.968042171359261,
+          "NOSTRIL_RIGHT": 2.9680421713598246
+        },
+        "pose": [
+          -0.0023076530961859258,
+          -2.012729764828844,
+          -0.0,
+          -1.4842722203176915,
+          -0.5414347775954156,
+          0.022888098671524727
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 2.61228024826886,
+          "pair": [
+            1,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_012",
+      "metrics": {
+        "max_mm": 3.844891033731016,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.844891033731016,
+          "EYE_RIGHT": 3.844891033728056,
+          "MOUTH": 3.844891033710794,
+          "NOSTRIL_LEFT": 2.6402975811867564,
+          "NOSTRIL_RIGHT": 2.545264470702721
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            2.1064563294151206,
+            -3.1203001175415856,
+            -0.7808687277654958
+          ],
+          "EYE_RIGHT": [
+            -1.9210260275191793,
+            -3.277954881563293,
+            -0.5897947585996856
+          ],
+          "MOUTH": [
+            0.24041162129743965,
+            3.788337416028007,
+            -0.6114645826023284
+          ],
+          "NOSTRIL_LEFT": [
+            1.2149657148028723,
+            -1.757640115644481,
+            1.5510418604768341
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.9717591329948778,
+            -1.8413586666298407,
+            1.4640538494501567
+          ]
+        },
+        "rms_mm": 3.3999736389172037,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 6.253231413123944,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 6.253231413123944,
+          "z_min_mm": -2.4479476582565742,
+          "z_span_mm": 8.701179071380519
+        }
+      },
+      "parameters": {
+        "asymmetry": -2.1067715599782355,
+        "bridge_projection": 6.197354018173872,
+        "brow_projection": -2.0430695837973385,
+        "cheek_curvature": 1.37853615978816,
+        "cheek_prominence": -1.092479337329951,
+        "chin_projection": 4.59789845146839,
+        "eye_spacing": -2.600050937413338,
+        "face_height": -7.0751066236590985,
+        "face_width": -3.9275073231696087,
+        "forehead_curvature": -2.708337084637198,
+        "jaw_width": -0.7982682305304909,
+        "local_curvature": -0.674329686417177,
+        "lower_face_projection": -0.043855832876274814,
+        "mouth_width": 2.61573418705548,
+        "mouth_y": 4.131736674953858,
+        "nasal_width": -2.325043347588377
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 3.844891033731016,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.844891033731016,
+          "EYE_RIGHT": 3.844891033728056,
+          "MOUTH": 3.844891033710794,
+          "NOSTRIL_LEFT": 2.6402975811867564,
+          "NOSTRIL_RIGHT": 2.545264470702721
+        },
+        "pose": [
+          0.14193059233300445,
+          -2.0322873877836214,
+          -0.0,
+          0.7754711413614518,
+          -1.3011800523996329,
+          0.10970679404716849
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 3.6879582859726057,
+          "pair": [
+            1,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_013",
+      "metrics": {
+        "max_mm": 3.5007041475708145,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.5007041475708145,
+          "EYE_RIGHT": 3.5007041475591647,
+          "MOUTH": 3.500704147509302,
+          "NOSTRIL_LEFT": 0.8395941355485944,
+          "NOSTRIL_RIGHT": 0.9281344584734914
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -3.010428374435456,
+            0.9862931190950164,
+            1.4897907284042369
+          ],
+          "EYE_RIGHT": [
+            2.9953213679076143,
+            1.0789740715423193,
+            1.4556079089622276
+          ],
+          "MOUTH": [
+            -0.0508179389262035,
+            -2.5260044518718416,
+            2.4231484838110435
+          ],
+          "NOSTRIL_LEFT": [
+            0.0731895387401611,
+            0.7233283055384634,
+            0.41994971874433884
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.15577699503614895,
+            0.7700047154692014,
+            0.49422650574264326
+          ]
+        },
+        "rms_mm": 2.768795422973671,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 3.774758787385962,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 3.774758787385962,
+          "z_min_mm": -0.8285044007328367,
+          "z_span_mm": 4.603263188118799
+        }
+      },
+      "parameters": {
+        "asymmetry": 1.039181579480001,
+        "bridge_projection": 1.5771766492043016,
+        "brow_projection": 2.4115632207957924,
+        "cheek_curvature": 1.4389233970456328,
+        "cheek_prominence": 1.2868406222506623,
+        "chin_projection": 1.312319316797434,
+        "eye_spacing": 3.724688250416383,
+        "face_height": 1.4595353267445752,
+        "face_width": 6.221388316687602,
+        "forehead_curvature": 1.2552870599446777,
+        "jaw_width": -5.2201545410214765,
+        "local_curvature": 0.49520165198296384,
+        "lower_face_projection": 4.572798018394053,
+        "mouth_width": -1.252154460631072,
+        "mouth_y": -2.9444953721826774,
+        "nasal_width": -1.3459655229358507
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 3.5007041475708145,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.5007041475708145,
+          "EYE_RIGHT": 3.5007041475591647,
+          "MOUTH": 3.500704147509302,
+          "NOSTRIL_LEFT": 0.8395941355485944,
+          "NOSTRIL_RIGHT": 0.9281344584734914
+        },
+        "pose": [
+          -0.04087256329310584,
+          0.8071697117028023,
+          -0.0,
+          0.8383958099094686,
+          0.498722263917595,
+          -0.03334391211799069
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 3.0029102240918633,
+          "pair": [
+            0,
+            1
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_014",
+      "metrics": {
+        "max_mm": 3.458177485694734,
+        "residual_norm_mm": {
+          "EYE_LEFT": 3.458177485694734,
+          "EYE_RIGHT": 3.4581774855844762,
+          "MOUTH": 3.4581774856634344,
+          "NOSTRIL_LEFT": 2.16006351949633,
+          "NOSTRIL_RIGHT": 2.174934442729845
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -1.5062099477883706,
+            2.7374062964498336,
+            1.4822044001776913
+          ],
+          "EYE_RIGHT": [
+            1.5134961732983214,
+            2.686750641554724,
+            1.5651491447526606
+          ],
+          "MOUTH": [
+            0.042313000770510686,
+            -3.2483014981248175,
+            1.1856384396582857
+          ],
+          "NOSTRIL_LEFT": [
+            -1.3784767768718051,
+            1.2870568401053202,
+            1.053167068523366
+          ],
+          "NOSTRIL_RIGHT": [
+            1.4265589757925774,
+            1.2622245831030687,
+            1.0497897030207994
+          ]
+        },
+        "rms_mm": 3.0090925145349137,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 4.3361237434813695,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 4.3361237434813695,
+          "z_min_mm": -3.359076050271889,
+          "z_span_mm": 7.695199793753258
+        }
+      },
+      "parameters": {
+        "asymmetry": -0.5264296926428313,
+        "bridge_projection": 1.7870126294178013,
+        "brow_projection": 4.9082404700956275,
+        "cheek_curvature": 1.2403959479699047,
+        "cheek_prominence": 3.4320612682194573,
+        "chin_projection": 0.3297440722877343,
+        "eye_spacing": 1.0518462776409887,
+        "face_height": 7.004041603414166,
+        "face_width": 5.3704704062971675,
+        "forehead_curvature": -1.7310013653648635,
+        "jaw_width": -4.663720999293343,
+        "local_curvature": -1.160277785394221,
+        "lower_face_projection": 0.04146817150771298,
+        "mouth_width": -0.7838834162374004,
+        "mouth_y": -3.0991811946555012,
+        "nasal_width": 2.916334166376571
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 3.458177485694734,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 3.458177485694734,
+          "EYE_RIGHT": 3.4581774855844762,
+          "MOUTH": 3.4581774856634344,
+          "NOSTRIL_LEFT": 2.16006351949633,
+          "NOSTRIL_RIGHT": 2.174934442729845
+        },
+        "pose": [
+          0.02676511286980675,
+          1.5057019786852361,
+          -0.0,
+          -1.1796518455695801,
+          -0.3188129618547902,
+          0.023173266648268805
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 3.0766426700111396,
+          "pair": [
+            0,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    },
+    {
+      "case": "COUPLED_015",
+      "metrics": {
+        "max_mm": 2.6128695859649453,
+        "residual_norm_mm": {
+          "EYE_LEFT": 2.61286958593324,
+          "EYE_RIGHT": 2.6128695859649453,
+          "MOUTH": 2.6128695859621893,
+          "NOSTRIL_LEFT": 1.4973611458896705,
+          "NOSTRIL_RIGHT": 1.5133388086160942
+        },
+        "residual_vector_xyz_mm": {
+          "EYE_LEFT": [
+            -1.3675801040909903,
+            1.5262758997248582,
+            1.6208929668267713
+          ],
+          "EYE_RIGHT": [
+            1.3675307262836398,
+            1.526949915426826,
+            1.6202997073716867
+          ],
+          "MOUTH": [
+            -0.00029074436715259176,
+            -2.1224786962806093,
+            1.5238673080517546
+          ],
+          "NOSTRIL_LEFT": [
+            0.2865464428010771,
+            0.47824350306259333,
+            1.3896994959761968
+          ],
+          "NOSTRIL_RIGHT": [
+            -0.2868814181160797,
+            0.4780705448595173,
+            1.4068908826703692
+          ]
+        },
+        "rms_mm": 2.236673743328937,
+        "surface": {
+          "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+          "maximum_absolute_z_mm": 5.734021708302069,
+          "qualified_local_travel_mm": null,
+          "seal_support_feasible": "UNKNOWN",
+          "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+          "z_max_mm": 5.734021708302069,
+          "z_min_mm": -1.1380091231977045,
+          "z_span_mm": 6.872030831499774
+        }
+      },
+      "parameters": {
+        "asymmetry": 0.007235859752593221,
+        "bridge_projection": 4.406515818926776,
+        "brow_projection": -0.2826203491397141,
+        "cheek_curvature": -2.08643397351901,
+        "cheek_prominence": 1.194023433094995,
+        "chin_projection": 3.2591352991727973,
+        "eye_spacing": 5.304343082474894,
+        "face_height": 5.117253434075053,
+        "face_width": -7.014474228421653,
+        "forehead_curvature": 3.433051963073627,
+        "jaw_width": -2.397781939268452,
+        "local_curvature": 1.9778479858513727,
+        "lower_face_projection": 4.356000891385994,
+        "mouth_width": 2.920947355706205,
+        "mouth_y": -1.5421743092711893,
+        "nasal_width": 0.3783506597422388
+      },
+      "registration": {
+        "adjustments": {
+          "abstract_target_scale": [
+            1.0,
+            1.0
+          ],
+          "existing_product_adjustments": []
+        },
+        "landmark_residual_acceptance_mm": null,
+        "max_residual_mm": 2.6128695859649453,
+        "near_equal_pose_separation_mixed_units": 0.0,
+        "optimizer_converged": true,
+        "passive_alignment": "UNKNOWN",
+        "per_landmark_residual_mm": {
+          "EYE_LEFT": 2.61286958593324,
+          "EYE_RIGHT": 2.6128695859649453,
+          "MOUTH": 2.6128695859621893,
+          "NOSTRIL_LEFT": 1.4973611458896705,
+          "NOSTRIL_RIGHT": 1.5133388086160942
+        },
+        "pose": [
+          -0.00024168245801138013,
+          0.7059370836273388,
+          -0.0,
+          1.6886433802138314,
+          0.003966580271026287,
+          -0.00016762914820268185
+        ],
+        "pose_limits": {
+          "extrinsic_xyz_each_deg": 4.0,
+          "xy_radius_mm": 5.0,
+          "z_mm": 0.0,
+          "z_status": "OWNER_FIXED_ZERO"
+        },
+        "region_access": "UNKNOWN",
+        "rigid_invariant_bound": {
+          "lower_bound_mm": 1.948682152548713,
+          "pair": [
+            1,
+            4
+          ],
+          "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+        },
+        "seal": "UNKNOWN",
+        "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+        "support": "UNKNOWN",
+        "whole_fit": "UNKNOWN"
+      }
+    }
+  ],
+  "false_seated_physical_state_proven": false,
+  "meaning": "Counterexample to landmark-only surface-fit inference",
+  "observation_band_qualified": false,
+  "search": "MAX_SURFACE_DEPARTURE_GIVEN_HYPOTHETICAL_1MM_LANDMARK_OBSERVATION_BAND",
+  "strongest": {
+    "case": "chin_projection_HIGH",
+    "metrics": {
+      "max_mm": 0.011256145616149797,
+      "residual_norm_mm": {
+        "EYE_LEFT": 0.011256145616149797,
+        "EYE_RIGHT": 0.011256145604185357,
+        "MOUTH": 0.011256145613859672,
+        "NOSTRIL_LEFT": 0.002412034522232797,
+        "NOSTRIL_RIGHT": 0.002412034494955142
+      },
+      "residual_vector_xyz_mm": {
+        "EYE_LEFT": [
+          -3.5984193402782694e-09,
+          1.844332331302212e-06,
+          0.01125614546505124
+        ],
+        "EYE_RIGHT": [
+          -3.5984193402782694e-09,
+          1.7929864313259714e-06,
+          0.011256145461382774
+        ],
+        "MOUTH": [
+          -7.287463807077535e-08,
+          -2.5770833218530242e-06,
+          0.011256145318613436
+        ],
+        "NOSTRIL_LEFT": [
+          -3.823652683365708e-08,
+          4.025088293779788e-06,
+          -0.0024120311634895997
+        ],
+        "NOSTRIL_RIGHT": [
+          -3.823652683365708e-08,
+          4.007972993491649e-06,
+          -0.002412031164712421
+        ]
+      },
+      "rms_mm": 0.008851420936960328,
+      "surface": {
+        "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+        "maximum_absolute_z_mm": 11.96319486654228,
+        "qualified_local_travel_mm": null,
+        "seal_support_feasible": "UNKNOWN",
+        "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+        "z_max_mm": 11.96319486654228,
+        "z_min_mm": -0.01711809715057574,
+        "z_span_mm": 11.980312963692855
+      }
+    },
+    "parameters": {
+      "asymmetry": 0.0,
+      "bridge_projection": 0.0,
+      "brow_projection": 0.0,
+      "cheek_curvature": 0.0,
+      "cheek_prominence": 0.0,
+      "chin_projection": 12.0,
+      "eye_spacing": 0.0,
+      "face_height": 0.0,
+      "face_width": 0.0,
+      "forehead_curvature": 0.0,
+      "jaw_width": 0.0,
+      "local_curvature": 0.0,
+      "lower_face_projection": 0.0,
+      "mouth_width": 0.0,
+      "mouth_y": 0.0,
+      "nasal_width": 0.0
+    },
+    "registration": {
+      "adjustments": {
+        "abstract_target_scale": [
+          1.0,
+          1.0
+        ],
+        "existing_product_adjustments": []
+      },
+      "landmark_residual_acceptance_mm": null,
+      "max_residual_mm": 0.011256145616149797,
+      "near_equal_pose_separation_mixed_units": 0.0,
+      "optimizer_converged": true,
+      "passive_alignment": "UNKNOWN",
+      "per_landmark_residual_mm": {
+        "EYE_LEFT": 0.011256145616149797,
+        "EYE_RIGHT": 0.011256145604185357,
+        "MOUTH": 0.011256145613859672,
+        "NOSTRIL_LEFT": 0.002412034522232797,
+        "NOSTRIL_RIGHT": 0.002412034494955142
+      },
+      "pose": [
+        -3.212391928837066e-08,
+        3.628671010600609e-06,
+        -0.0,
+        0.018426561135574098,
+        3.3363093274176255e-12,
+        -4.6696878922418104e-08
+      ],
+      "pose_limits": {
+        "extrinsic_xyz_each_deg": 4.0,
+        "xy_radius_mm": 5.0,
+        "z_mm": 0.0,
+        "z_status": "OWNER_FIXED_ZERO"
+      },
+      "region_access": "UNKNOWN",
+      "rigid_invariant_bound": {
+        "lower_bound_mm": 4.267433389770758e-06,
+        "pair": [
+          2,
+          4
+        ],
+        "proof": "Triangle inequality: |d_face-d_target| <= residual_i+residual_j"
+      },
+      "seal": "UNKNOWN",
+      "status": "REGISTERED_CANDIDATE_NOT_FIT_APPROVAL",
+      "support": "UNKNOWN",
+      "whole_fit": "UNKNOWN"
+    }
+  }
+}

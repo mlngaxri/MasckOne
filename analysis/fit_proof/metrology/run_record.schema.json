@@ -1,0 +1,356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:masck:isolated-fit-metrology:record:2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "record_origin",
+    "run_id",
+    "rig_revision",
+    "fixture_revision",
+    "source_main",
+    "surface_witness_id",
+    "source_identities",
+    "coupon_identities",
+    "calibration_receipt",
+    "processing_receipt",
+    "criteria_receipt",
+    "mode",
+    "repeat_index",
+    "commanded_initial_pose",
+    "measured_initial_pose",
+    "final_pose",
+    "disengagement",
+    "trajectory",
+    "trajectory_max_gap_s",
+    "contact_sequence",
+    "support_observations",
+    "force_channels",
+    "sparse_residuals",
+    "field_residuals",
+    "required_field_cells",
+    "full_field_file",
+    "protected_surrogate_contacts",
+    "support_loss",
+    "multiple_terminal_states",
+    "calibration_error_mm",
+    "fixture_deflection_mm",
+    "environment",
+    "missing_data_reasons",
+    "physical_result",
+    "run_receipt"
+  ],
+  "properties": {
+    "schema": {
+      "const": "FIT_METROLOGY_RECORD_2"
+    },
+    "record_origin": {
+      "enum": [
+        "NO_PHYSICAL_RESULT",
+        "BENCH_MEASURED",
+        "SYNTHETIC_TEST_FIXTURE"
+      ]
+    },
+    "run_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "rig_revision": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "fixture_revision": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_main": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "surface_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_identities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    "coupon_identities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    "calibration_receipt": {
+      "$ref": "#/$defs/receipt"
+    },
+    "processing_receipt": {
+      "$ref": "#/$defs/receipt"
+    },
+    "criteria_receipt": {
+      "$ref": "#/$defs/receipt"
+    },
+    "mode": {
+      "enum": [
+        "IMPOSED",
+        "ACQUISITION"
+      ]
+    },
+    "repeat_index": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "commanded_initial_pose": {},
+    "measured_initial_pose": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "$ref": "#/$defs/measurement"
+      }
+    },
+    "final_pose": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "$ref": "#/$defs/measurement"
+      }
+    },
+    "disengagement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time_s",
+        "constrained_dofs",
+        "clamps_clear",
+        "jaws_clear",
+        "guard_contact"
+      ],
+      "properties": {
+        "time_s": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "constrained_dofs": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "X",
+              "Y",
+              "Z",
+              "ROLL",
+              "PITCH",
+              "YAW"
+            ]
+          }
+        },
+        "clamps_clear": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "jaws_clear": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "guard_contact": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "trajectory": {},
+    "trajectory_max_gap_s": {},
+    "contact_sequence": {},
+    "support_observations": {},
+    "force_channels": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/measurement"
+      }
+    },
+    "sparse_residuals": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/measurement"
+      }
+    },
+    "field_residuals": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/measurement"
+      }
+    },
+    "required_field_cells": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "full_field_file": {},
+    "protected_surrogate_contacts": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "support_loss": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "multiple_terminal_states": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "calibration_error_mm": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/measurement"
+        }
+      ]
+    },
+    "fixture_deflection_mm": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/measurement"
+        }
+      ]
+    },
+    "environment": {},
+    "missing_data_reasons": {},
+    "physical_result": {
+      "type": "null"
+    },
+    "run_receipt": {
+      "$ref": "#/$defs/receipt"
+    }
+  },
+  "$defs": {
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "uncertainty",
+        "units",
+        "quality"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "uncertainty": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "units": {
+          "enum": [
+            "mm",
+            "deg",
+            "N"
+          ]
+        },
+        "quality": {
+          "enum": [
+            "VALID",
+            "MISSING",
+            "SATURATED",
+            "INVALID"
+          ]
+        }
+      }
+    },
+    "receipt": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "sha256"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "description": "Shape validation only. The analyzer also requires independent source context and exact BENCH_RUN attestation for measured results. No human-use qualification."
+}

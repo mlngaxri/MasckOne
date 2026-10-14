@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:masck:isolated-fit-metrology:source-context:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "source_main",
+    "rig_revision",
+    "fixture_revision",
+    "surface_witness_id",
+    "mode",
+    "source_identities",
+    "coupon_identities"
+  ],
+  "properties": {
+    "schema": {
+      "const": "FIT_METROLOGY_SOURCE_CONTEXT_1"
+    },
+    "source_main": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "rig_revision": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "fixture_revision": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "surface_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "mode": {
+      "enum": [
+        null,
+        "IMPOSED",
+        "ACQUISITION"
+      ]
+    },
+    "source_identities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    "coupon_identities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    }
+  },
+  "description": "Independent, externally reviewed article context. Nulls are placeholders and fail executable qualification."
+}
