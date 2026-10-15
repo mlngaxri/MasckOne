@@ -9,7 +9,7 @@ import pytest
 
 from masck_one.reduced_region_metrology import (
     Measurement, MetrologyError, mass_closure, blank_corrected,
-    carryover_fraction, film_retention, reduce_campaign,
+    carryover_fraction, film_retention, ratio_bounds, reduce_campaign,
 )
 from masck_one.core_sketch_contracts import CoreSketchError
 from masck_one.core_sketch_trial import assess_trial
@@ -191,3 +191,38 @@ def test_blank_template_cli_keeps_unknown_values_and_evidence_firewall(tmp_path)
     assert len(report['method_blockers']) == 26
     assert not report['bench_evidence_accepted']
     assert all(row['mass_closure'] is None for row in report['metrics_by_cell'].values())
+
+
+@pytest.mark.parametrize('interval', [[], [0], [0, 1, 2], [2, 1], [-1, 1],
+                                      [0, True], [0, float('inf')], [0, '1']])
+@pytest.mark.parametrize('side', ['numerator', 'denominator'])
+def test_ratio_input_validation_precedes_missing_sibling(interval, side):
+    with pytest.raises(MetrologyError):
+        ratio_bounds(interval if side == 'numerator' else None,
+                     interval if side == 'denominator' else None)
+
+
+@pytest.mark.parametrize('record', [None, [], 'campaign', 0])
+def test_campaign_requires_object(record):
+    with pytest.raises(MetrologyError, match='campaign must be an object'):
+        reduce_campaign(record)
+
+
+@pytest.mark.parametrize('stage', ['CLEAN', 'RINSE_RECOVER', 'THIN_LEAVE_ON', 'THICK_LEAVE_ON'])
+@pytest.mark.parametrize('part', ['film_retention_fraction', 'film_retention_fraction_uncertainty'])
+@pytest.mark.parametrize('value', [-1, True, '0'])
+def test_optional_early_stage_film_measurements_are_validated(stage, part, value):
+    protocol = json.loads((ROOT/'docs/contracts/reduced_region_protocol.json').read_text())
+    trial = json.loads((ROOT/'docs/contracts/reduced_region_trial_template.json').read_text())
+    row = next(s for s in trial['stages'] if s['id'] == stage)['cells'][0]
+    row[part] = value
+    with pytest.raises(CoreSketchError):
+        assess_trial(protocol, trial)
+
+
+def test_inconsistent_optional_early_film_is_blocked_without_final_limit():
+    protocol = json.loads((ROOT/'docs/contracts/reduced_region_protocol.json').read_text())
+    trial = json.loads((ROOT/'docs/contracts/reduced_region_trial_template.json').read_text())
+    trial['stages'][0]['cells'][0]['film_retention_fraction'] = 1.1
+    report = assess_trial(protocol, trial)
+    assert 'CLEAN:acquisition_edge:FILM_MEASUREMENT_INCONSISTENT' in report['blockers']

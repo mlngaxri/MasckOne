@@ -64,17 +64,19 @@ def assess_trial(protocol: dict, trial: dict) -> dict:
                     blockers.append(ident + ':' + cell + ':' + metric + ':MEASUREMENT_INCONSISTENT')
                 elif limits[limit] is not None and value + uncertainty > limits[limit]:
                     blockers.append(ident + ':' + cell + ':' + metric + ':LIMIT_EXCEEDED')
+            # Optional early-stage film data must satisfy the same input contract.
+            # Its presence cannot hide malformed values behind a later-stage gate.
+            retained, uncertainty = row.get('film_retention_fraction'), row.get('film_retention_fraction_uncertainty')
+            if retained is not None:
+                retained = number(retained, 'retention')
+            if uncertainty is not None:
+                uncertainty = number(uncertainty, 'retention uncertainty')
+            if retained is not None and retained > 1:
+                blockers.append(ident + ':' + cell + ':FILM_MEASUREMENT_INCONSISTENT')
             if ident in {'FINAL_LEAVE_ON','SETTLE','RELEASE'}:
-                retained, uncertainty = row.get('film_retention_fraction'), row.get('film_retention_fraction_uncertainty')
-                if retained is not None:
-                    retained = number(retained, 'retention')
-                if uncertainty is not None:
-                    uncertainty = number(uncertainty, 'retention uncertainty')
                 if retained is None or uncertainty is None:
                     blockers.append(ident + ':' + cell + ':FILM_SURVIVAL_UNKNOWN')
-                elif retained > 1:
-                    blockers.append(ident + ':' + cell + ':FILM_MEASUREMENT_INCONSISTENT')
-                elif limits['min_film_retention_fraction'] is not None and retained - uncertainty < limits['min_film_retention_fraction']:
+                elif retained <= 1 and limits['min_film_retention_fraction'] is not None and retained - uncertainty < limits['min_film_retention_fraction']:
                     blockers.append(ident + ':' + cell + ':FILM_NOT_PRESERVED')
     return result(blockers, candidate_for_independent_bench_review=not blockers,
         whole_face_complete=False, spf_validated=False, human_use_authorized=False)

@@ -79,6 +79,16 @@ def blank_corrected(signal, blank):
 
 
 def ratio_bounds(numerator, denominator):
+    # Validate both supplied intervals before an unknown sibling can short-circuit.
+    for interval in (numerator, denominator):
+        if interval is None:
+            continue
+        if type(interval) not in (tuple, list) or len(interval) != 2:
+            raise MetrologyError('ratio interval requires two ordered nonnegative bounds')
+        for bound in interval:
+            _contracts.non_negative(bound, 'ratio input bound', MetrologyError)
+        if interval[0] > interval[1]:
+            raise MetrologyError('ratio interval bounds are reversed')
     if numerator is None or denominator is None or denominator[0] <= 0:
         return None
     bounds = [numerator[0] / denominator[1], numerator[1] / denominator[0]]
@@ -117,6 +127,8 @@ def reduce_campaign(record: dict) -> dict:
     calibrated photographs, distinct-layer identity, limits and repeatability
     remain obligations of the existing predeclared trial protocol/reviewer.
     """
+    if type(record) is not dict:
+        raise MetrologyError('campaign must be an object')
     try:
         raw = json.dumps(record, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
     except (ValueError, TypeError) as exc:
