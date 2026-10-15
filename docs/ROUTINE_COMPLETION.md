@@ -46,9 +46,24 @@ Only `RETRACTED_OR_CLEARED` and `NOT_PRESENT` count as not shadowing.
 `NEAR_SKIN_NONCONTACT` and `TRANSITIONING` still block, and `UNKNOWN` is never a
 pass.
 
-A shadowed region clears only via one of CS-018's four routes: the structure
-clears, a secondary pass treats it after clearing, an independently validated
-route reaches it while support remains, or it is a justified claim exclusion.
+A declared `STRUCTURE_CLEARS` or `SECONDARY_PASS_AFTER_CLEARING` route requires
+all declared contacts covering the region to report cleared or absent during the
+stage. A route label cannot override a still-shadowing contact snapshot. The
+secondary-pass route also requires the region's reported completion state; this
+module cannot observe whether that pass happened.
+
+`VALIDATED_ROUTE_WHILE_PRESENT` requires a nonblank entry for that region in
+`Stage.validated_route_references`. This is a declared evidence reference for
+traceability, not authentication, an evidence registry lookup, or verification
+that the referenced physical study exists or supports the route. The caller is
+responsible for binding a reviewed study to its actual configuration.
+
+`JUSTIFIED_CLAIM_EXCLUSION` requires the region to be
+`EXCLUDED_WITH_REASON`, including its reason and claim version. String route
+labels, resolutions for undeclared regions, and orphan route references raise
+`RoutineCompletionError`. Contact phase mappings and stage resolution mappings
+are copied into read-only snapshots; changing a caller's dictionaries cannot
+change the assessment inputs later. Region collections are also snapshotted.
 
 ## Exclusion is not a loophole
 
@@ -69,11 +84,41 @@ which yields `PARTIAL` rather than `BLOCKED`. Those are different situations and
 the outcome distinguishes them.
 
 Omitting a genuinely optional modality does not invalidate a routine. A
-mandatory stage left pending does.
+mandatory stage left pending does. A mandatory stage must declare at least one
+region, and a routine containing only optional stages is `BLOCKED`.
+
+## Supplying positive completion evidence
+
+`evaluate_routine` defaults `session_state_valid` and
+`release_preserved_leave_on` to `None` (unknown). Omitted or unknown evidence
+blocks a normal `COMPLETE` claim. Callers migrating from the earlier optimistic
+defaults must explicitly supply their reported evidence:
+
+```python
+assessment = evaluate_routine(
+    "session-17", stages, contacts,
+    session_state_valid=session_checks_passed,
+    release_preserved_leave_on=normal_removal_preserved_layer,
+)
+```
+
+Those two inputs accept only `True`, `False`, or `None`. Stage boolean flags,
+`emergency_release_invoked`, and `excluded_due_to_hardware_limitation` require
+actual booleans: strings and integers cannot stand in for evidence. Duplicate
+stage, region, or contact-element identifiers are rejected.
+
+The host-only offline journal's `REPORT_SEQUENCE_FINISHED` state is not one of
+these positive evidence inputs. Recording every software stage report does not
+establish regional completion, session validity, or film preservation.
 
 ## Safety ordering
 
-Emergency release outranks film preservation and is evaluated first. It may
+The assessment does not command, enable, or inhibit a release mechanism.
+Unpowered emergency release must remain independent of this software and its
+inputs. Reporting an emergency release always prevents `COMPLETE`, even when
+all reported regions are satisfied.
+
+Emergency release outranks film preservation. It may
 yield `INTERRUPTED` or `PARTIAL`, and a leave-on layer wiped by an emergency
 release is **not** held against the routine — it must never be delayed to
 preserve a cosmetic layer.
