@@ -94,3 +94,16 @@ def test_synthetic_comparison_never_claims_physical_evidence():
     ripple = max(w["linear_residual_rms_N"] for w in results["added_sample_ripple"]["loading_windows"])
     assert clean < 1e-12 < ripple
     assert all(r["provenance"] == "synthetic" and r["physical_validation"] == "not_established_by_this_analysis" for r in results.values())
+
+
+@pytest.mark.parametrize("positions,forces", [
+    ((0, 1e-200, 2e-200), (0, 1, 2)),
+    ((0, 1e200, 2e200), (0, 1e-200, 2e-200)),
+    ((0, .5, 1), (0, 1e200, 0)),
+    ((0, .5, 1), (0, 10**1000, 0)),
+])
+def test_numeric_range_errors_are_deliberate(positions, forces):
+    samples = tuple(Sample(x, f) for x, f in zip(positions, forces))
+    t = Trace(samples, tuple(reversed(samples)), "synthetic", "numeric range adversary", "coupon")
+    with pytest.raises(ValueError):
+        analyse(t)

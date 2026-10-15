@@ -27,7 +27,12 @@ class Trace:
 
 
 def _finite(value: float) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
 
 
 def _branch(samples: tuple[Sample, ...], direction: int) -> None:
@@ -67,9 +72,15 @@ def _windows(samples: tuple[Sample, ...], width: int) -> list[dict[str, float]]:
         # Centring avoids cancellation when the datum is far from the stroke.
         xs = [s.displacement_mm - group[0].displacement_mm for s in group]
         ys = [s.compression_N for s in group]
-        xm, ym = sum(xs) / width, sum(ys) / width
-        slope = sum((x - xm) * (y - ym) for x, y in zip(xs, ys)) / sum((x - xm)**2 for x in xs)
-        rms = math.sqrt(sum((y - ym - slope * (x - xm))**2 for x, y in zip(xs, ys)) / width)
+        try:
+            xm, ym = sum(xs) / width, sum(ys) / width
+            denominator = sum((x - xm)**2 for x in xs)
+            if not math.isfinite(denominator) or denominator <= 0:
+                raise ValueError("window displacement variance exceeds supported numeric range")
+            slope = sum((x - xm) * (y - ym) for x, y in zip(xs, ys)) / denominator
+            rms = math.sqrt(sum((y - ym - slope * (x - xm))**2 for x, y in zip(xs, ys)) / width)
+        except OverflowError as exc:
+            raise ValueError("window diagnostics exceed finite numeric range") from exc
         if not math.isfinite(slope) or not math.isfinite(rms):
             raise ValueError("window diagnostics exceed finite numeric range")
         windows.append({"start_mm": group[0].displacement_mm,

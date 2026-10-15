@@ -28,8 +28,10 @@ Run the deterministic software comparison with
 `PYTHONPATH=src python studies/interaction_metrology_comparison.py`. It compares a
 linear stimulus with an invented ripple at the existing primary-control owner's
 1.07 mm stroke context. Forces and error bounds are invented test inputs. Owner
-commit `9fb64aa4753dad03a455aad4802910d8814ef5ce` explicitly rejects the V11 series
-spring force path before dome trip. This work neither repairs that rejection nor
+candidate in [PR #144](https://github.com/mlngaxri/MasckOne/pull/144), observed
+2026-10-15 at short revision `9fb64aa`, explicitly rejects the V11 series
+spring force path before dome trip. This is candidate context, not a release
+binding or an immutable source pin. This work neither repairs that rejection nor
 changes the button, retention, frame or exterior geometry.
 
 ## Off-face coupon fixture planning CAD
