@@ -22,6 +22,8 @@ Nothing here schedules real hardware, doses a product, or authorises execution.
 """
 from __future__ import annotations
 
+from copy import deepcopy
+
 from .core_sketch_contracts import (
     CLASSIFICATION, CoreSketchError, STAGE_ORDER, digest, number, result, text, unique,
 )
@@ -110,7 +112,7 @@ def resolve_session(routine: dict, context: str, eligible_stages: dict) -> dict:
     dropped = [s for s in scheduled if s not in runnable]
     stages = {s["id"]: s for s in unique(routine["contexts"][context]).values()}
     spf_dropped = [s for s in dropped if stages[s]["kind"] == SPF_STAGE]
-    blockers = [s + ":STAGE_NOT_ELIGIBLE" for s in dropped]
+    blockers = list(definition["blockers"]) + [s + ":STAGE_NOT_ELIGIBLE" for s in dropped]
     blockers += [s + ":SUN_PROTECTION_DROPPED" for s in spf_dropped]
     reduced = bool(dropped)
     return result(blockers, routine_id=routine["id"], context=context,
@@ -119,7 +121,7 @@ def resolve_session(routine: dict, context: str, eligible_stages: dict) -> dict:
         # A reduced session is a new eligible session with its own identity.
         session_plan_digest=digest({"routine": definition["routine_digest"], "context": context,
                                     "stages": runnable}),
-        completes_scheduled_routine=not reduced,
+        completes_scheduled_routine=not reduced and not definition["blockers"],
         sun_protection_scheduled=any(stages[s]["kind"] == SPF_STAGE for s in scheduled),
         sun_protection_runnable=any(stages[s]["kind"] == SPF_STAGE for s in runnable),
         evidence_status=EVIDENCE_STATUS)
@@ -133,9 +135,9 @@ def offline_manifest(routine: dict, context: str, revisions: dict) -> dict:
     if not isinstance(revisions, dict):
         raise CoreSketchError("revisions must be an object")
     missing = [key for key in OFFLINE_RESIDENCY_KEYS if revisions.get(key) in (None, "", {}, [])]
-    entries = {key: revisions.get(key) for key in OFFLINE_RESIDENCY_KEYS}
-    return result([key + ":NOT_RESIDENT" for key in missing], required=list(OFFLINE_RESIDENCY_KEYS),
-        entries=entries, missing=missing, routine_id=routine["id"], context=context,
+    entries = deepcopy({key: revisions.get(key) for key in OFFLINE_RESIDENCY_KEYS})
+    return result(list(definition["blockers"]) + [key + ":NOT_RESIDENT" for key in missing], required=list(OFFLINE_RESIDENCY_KEYS),
+        entries=entries, missing=missing, routine_id=routine["id"], routine_revision=routine["revision"], context=context,
         residency_digest=digest(entries), evidence_status=EVIDENCE_STATUS)
 
 
@@ -151,10 +153,20 @@ def assess_offline_execution(manifest: dict, local_cache: dict, network_reachabl
         raise CoreSketchError("network reachability must be explicit")
     if not isinstance(local_cache, dict):
         raise CoreSketchError("local cache must be an object")
+    if not isinstance(manifest, dict):
+        raise CoreSketchError("offline manifest must be an object")
+    if type(manifest.get("blockers")) is not list or any(type(b) is not str for b in manifest["blockers"]):
+        raise CoreSketchError("offline manifest must preserve explicit definition blockers")
     required = manifest.get("required")
-    if not isinstance(required, list) or not required:
+    if (not isinstance(required, list) or required != list(OFFLINE_RESIDENCY_KEYS)
+        or not isinstance(manifest.get("entries"), dict)
+        or set(manifest["entries"]) != set(OFFLINE_RESIDENCY_KEYS)):
         raise CoreSketchError("manifest must declare its residency requirements")
-    blockers = [key + ":NOT_CACHED_LOCALLY" for key in required
+    digest([manifest, local_cache])
+    blockers = list(manifest.get("blockers", []))
+    if manifest.get("residency_digest") != digest(manifest["entries"]):
+        blockers.append("OFFLINE_MANIFEST_CONTENTS_CHANGED")
+    blockers += [key + ":NOT_CACHED_LOCALLY" for key in required
                 if local_cache.get(key) in (None, "", {}, [])]
     blockers += [key + ":CACHED_COPY_DOES_NOT_MATCH_MANIFEST" for key in required
                  if local_cache.get(key) not in (None, "", {}, [])
