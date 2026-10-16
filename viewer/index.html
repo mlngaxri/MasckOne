@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#e8e5dd" />
+  <meta name="description" content="MASCK ONE — interactive, source-informed 3D industrial design reconstruction and component exploration." />
+  <title>MASCK ONE — Industrial Design Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <a class="wordmark" href="#" aria-label="Masck One Studio home">MASCK<span class="markslash">/</span>ONE</a>
+      <div class="top-center"><span class="live-dot"></span> DIGITAL DESIGN STUDY <span class="header-line"></span> 2026 / M·01</div>
+      <a href="https://github.com/mlngaxri/MasckOne" class="source-link" target="_blank" rel="noopener noreferrer">SOURCE REPOSITORY <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <main class="workspace">
+      <section class="stage" aria-label="Interactive three-dimensional product visualisation">
+        <div class="stage-noise" aria-hidden="true"></div>
+        <canvas id="three-canvas" aria-label="Interactive 3D model of the Masck One facial skincare wearable"></canvas>
+        <div class="stage-copy">
+          <div class="eyebrow"><span class="tiny-square"></span> FORM STUDY <span class="pale">/ 01</span></div>
+          <h1>Quiet outside.<br><em>Extraordinary inside.</em></h1>
+          <p>A considered reconstruction of Masck One, from its engineering authority and design language. Explore the object, its surfaces, and the system beneath.</p>
+        </div>
+        <div class="stage-top-right">
+          <span id="display-mode">ASSEMBLED / A-SURFACE</span><span class="crosshair">✳</span>
+        </div>
+        <div class="stage-coordinate">X: WEARER RIGHT <span>/</span> Y: SUPERIOR <span>/</span> Z: ANTERIOR</div>
+        <div class="stage-gesture"><span class="gesture-ring">↗</span> DRAG TO ROTATE <span class="div-dot">·</span> SCROLL TO ZOOM</div>
+        <div id="load-status" role="status" class="load-status">PREPARING 3D STUDIO…</div>
+        <div class="stage-controls" aria-label="Model camera controls">
+          <button id="front-btn" class="circle-control" title="Front view" aria-label="Front view">⌖</button>
+          <button id="iso-btn" class="circle-control" title="Three-quarter view" aria-label="Three-quarter view">◈</button>
+          <button id="rotate-btn" class="circle-control" title="Toggle automatic rotation" aria-label="Toggle automatic rotation">⟳</button>
+          <button id="capture-btn" class="circle-control" title="Save a PNG screenshot" aria-label="Save a PNG screenshot">↧</button>
+        </div>
+      </section>
+
+      <aside class="studio-panel">
+        <div class="panel-intro">
+          <div class="panel-kicker">THE INDUSTRIAL DESIGN STUDIO <span>01 — 04</span></div>
+          <h2>Masck <i>One.</i></h2>
+          <p class="panel-deck">An object designed to disappear into your routine.</p>
+        </div>
+
+        <div class="panel-scroll">
+          <section class="panel-section">
+            <div class="section-head"><span>01</span><h3>VIEW THE SYSTEM</h3></div>
+            <div class="mode-switcher" role="group" aria-label="View mode">
+              <button class="mode-btn active" data-mode="assembled"><span>01</span> ASSEMBLED</button>
+              <button class="mode-btn" data-mode="exploded"><span>02</span> EXPLODED</button>
+              <button class="mode-btn" data-mode="ghost"><span>03</span> X-RAY</button>
+              <button class="mode-btn" data-mode="dock"><span>04</span> WITH DOCK</button>
+            </div>
+            <p class="hint" id="mode-caption">An uninterrupted sculpted exterior. The mechanics stay quiet and out of sight.</p>
+          </section>
+
+          <section class="panel-section">
+            <div class="section-head"><span>02</span><h3>MATERIAL & FINISH</h3></div>
+            <div class="swatch-stack">
+              <button data-swatch="ivory" class="swatch-row active"><i class="swatch" style="--swatch:#E9E5DC"></i><span>Mineral Ivory<small>LOW-GLOSS SATIN / AUTHORITY</small></span><b>↗</b></button>
+              <button data-swatch="stone" class="swatch-row"><i class="swatch" style="--swatch:#CFC8BC"></i><span>Soft Stone<small>FACIAL CONTACT / AUTHORITY</small></span><b>↗</b></button>
+              <button data-swatch="graphite" class="swatch-row"><i class="swatch" style="--swatch:#454542"></i><span>Smoke Graphite<small>RECESSIVE MECHANICS / AUTHORITY</small></span><b>↗</b></button>
+            </div>
+            <div class="material-note"><span id="material-name">MINERAL IVORY</span><span id="material-hex">#E9E5DC</span><span id="material-desc">Fine, low-gloss satin over a warm engineering-polymer shell.</span></div>
+          </section>
+
+          <section class="panel-section">
+            <div class="section-head"><span>03</span><h3>EXPLORE COMPONENTS</h3></div>
+            <div class="component-list" id="component-list">
+              <button class="component-item active" data-component="shell"><span class="component-index">01</span><span>SCULPTED SHELL<small>ENGINEERING GEOMETRY</small></span><span class="item-arrow">↗</span></button>
+              <button class="component-item" data-component="interface"><span class="component-index">02</span><span>FACIAL INTERFACE<small>CONTACT / COMFORT</small></span><span class="item-arrow">↗</span></button>
+              <button class="component-item" data-component="actuators"><span class="component-index">03</span><span>ACTUATION ARRAY<small>FOUR-UNIT ARCHITECTURE</small></span><span class="item-arrow">↗</span></button>
+              <button class="component-item" data-component="fluid"><span class="component-index">04</span><span>FLUID DISTRIBUTION<small>ROUTING / MANIFOLD</small></span><span class="item-arrow">↗</span></button>
+              <button class="component-item" data-component="waste"><span class="component-index">05</span><span>WASTE CARTRIDGE<small>REMOVABLE / SERVICE</small></span><span class="item-arrow">↗</span></button>
+              <button class="component-item" data-component="retention"><span class="component-index">06</span><span>RETENTION SYSTEM<small>QUICK RELEASE / STUDY</small></span><span class="item-arrow">↗</span></button>
+              <button class="component-item" data-component="dock"><span class="component-index">07</span><span>CHARGING DOCK<small>PREPARATION / CONCEPT</small></span><span class="item-arrow">↗</span></button>
+            </div>
+          </section>
+        </div>
+
+        <div class="panel-bottom">
+          <div class="specs">
+            <div><small>ENVELOPE</small><strong>172 × 210 <sup>mm</sup></strong></div>
+            <div><small>ACTUATORS</small><strong>04 <sup>units</sup></strong></div>
+            <div><small>SHELL</small><strong>1.8 <sup>mm nominal</sup></strong></div>
+          </div>
+          <button id="detail-toggle" class="detail-toggle">ABOUT THIS RECONSTRUCTION <span>↗</span></button>
+          <p class="disclaimer" id="disclaimer" hidden>Geometry is source-informed illustrative work, not a native STEP-to-mesh export. Values and colours derive from the current repository authority; shell curvature, internal positioning, dock and hidden mechanisms are provisional. No physical comfort, manufacturing, safety or performance claims are implied.</p>
+        </div>
+      </aside>
+    </main>
+    <footer class="footer">
+      <span>MASCK / ONE — DIGITAL OBJECT STUDY</span>
+      <span>DESIGNED FOR CALM. ENGINEERED FOR COMPLEXITY.</span>
+      <span>REFERENCE: <a href="https://github.com/mlngaxri/MasckOne/blob/main/config/masck_one_authority.yaml" target="_blank" rel="noopener noreferrer">ENGINEERING AUTHORITY ↗</a></span>
+    </footer>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
