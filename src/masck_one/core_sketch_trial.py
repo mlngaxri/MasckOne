@@ -52,17 +52,31 @@ def assess_trial(protocol: dict, trial: dict) -> dict:
                                   ('carryover_fraction','max_carryover_fraction'),
                                   ('protected_deposit_g','max_protected_deposit_g')]:
                 value, uncertainty = row.get(metric), row.get(metric + '_uncertainty')
+                # Unknown/unreviewed limits must not disable input validation.
+                # Validate each supplied sibling even when the other is absent.
+                if value is not None:
+                    value = number(value, metric)
+                if uncertainty is not None:
+                    uncertainty = number(uncertainty, metric + ' uncertainty')
                 if value is None or uncertainty is None:
                     blockers.append(ident + ':' + cell + ':' + metric + ':UNKNOWN')
-                elif limits[limit] is not None and number(value, metric) + number(uncertainty, metric) > limits[limit]:
+                elif metric == 'carryover_fraction' and value > 1:
+                    blockers.append(ident + ':' + cell + ':' + metric + ':MEASUREMENT_INCONSISTENT')
+                elif limits[limit] is not None and value + uncertainty > limits[limit]:
                     blockers.append(ident + ':' + cell + ':' + metric + ':LIMIT_EXCEEDED')
+            # Optional early-stage film data must satisfy the same input contract.
+            # Its presence cannot hide malformed values behind a later-stage gate.
+            retained, uncertainty = row.get('film_retention_fraction'), row.get('film_retention_fraction_uncertainty')
+            if retained is not None:
+                retained = number(retained, 'retention')
+            if uncertainty is not None:
+                uncertainty = number(uncertainty, 'retention uncertainty')
+            if retained is not None and retained > 1:
+                blockers.append(ident + ':' + cell + ':FILM_MEASUREMENT_INCONSISTENT')
             if ident in {'FINAL_LEAVE_ON','SETTLE','RELEASE'}:
-                retained, uncertainty = row.get('film_retention_fraction'), row.get('film_retention_fraction_uncertainty')
                 if retained is None or uncertainty is None:
                     blockers.append(ident + ':' + cell + ':FILM_SURVIVAL_UNKNOWN')
-                elif number(retained, 'retention') > 1:
-                    blockers.append(ident + ':' + cell + ':FILM_MEASUREMENT_INCONSISTENT')
-                elif limits['min_film_retention_fraction'] is not None and number(retained, 'retention') - number(uncertainty, 'retention uncertainty') < limits['min_film_retention_fraction']:
+                elif retained <= 1 and limits['min_film_retention_fraction'] is not None and retained - uncertainty < limits['min_film_retention_fraction']:
                     blockers.append(ident + ':' + cell + ':FILM_NOT_PRESERVED')
     return result(blockers, candidate_for_independent_bench_review=not blockers,
         whole_face_complete=False, spf_validated=False, human_use_authorized=False)

@@ -909,3 +909,74 @@ def test_the_concept_screen_hashes_every_module_that_feeds_it():
         assert f"src/masck_one/{module}.py" in listed, module
     for path in listed:
         assert (root / path).is_file(), f"screen hashes a path that does not exist: {path}"
+
+
+@pytest.mark.parametrize("field,value", [("sku", "SKU-other"), ("market", "US"), ("identity_version", "2")])
+def test_catalogue_contradiction_demotes_rows_even_if_outer_blockers_are_ignored(field, value):
+    product, evidence = make_product()
+    product["identity"][field] = value
+    out = session_product_records(binding(), [product], evidence, CONTEXT, {"p": "MOISTURISE"})
+    row = out["products"][0]
+    assert row["trust"] == "UNSUPPORTED"
+    assert row["identity_status"] == "UNKNOWN"
+    assert row["promoted_by"] is None
+
+
+def test_routine_definition_blockers_survive_session_and_offline_resolution():
+    definition = routine(context="PM")
+    session = resolve_session(definition, "PM", eligible(definition, context="PM"))
+    assert "PM:SPF_SCHEDULED_OUTSIDE_MORNING" in session["blockers"]
+    assert not session["completes_scheduled_routine"]
+    manifest = offline_manifest(definition, "PM", resident())
+    offline = assess_offline_execution(manifest, resident(), network_reachable=False)
+    assert "PM:SPF_SCHEDULED_OUTSIDE_MORNING" in offline["blockers"]
+
+
+def test_manifest_is_a_snapshot_not_an_alias_of_mutable_cache():
+    cache = resident()
+    manifest = offline_manifest(routine(), "AM", cache)
+    cache["dose_windows"]["revision"] = "changed"
+    assert manifest["entries"]["dose_windows"]["revision"] == "dose_windows-1"
+    assert not assess_offline_execution(manifest, cache, network_reachable=False)["model_consistent"]
+
+
+def test_manifest_cannot_shrink_required_residency_to_a_single_key():
+    manifest = offline_manifest(routine(), "AM", resident())
+    manifest["required"] = ["routine_revision"]
+    with pytest.raises(CoreSketchError):
+        assess_offline_execution(manifest, resident(), network_reachable=True)
+
+
+def test_manifest_digest_tampering_is_not_cured_by_matching_cache():
+    cache = resident()
+    manifest = offline_manifest(routine(), "AM", cache)
+    manifest["entries"]["routine_revision"]["revision"] = "changed"
+    cache["routine_revision"]["revision"] = "changed"
+    assert "OFFLINE_MANIFEST_CONTENTS_CHANGED" in assess_offline_execution(manifest, cache,
+                                                                         network_reachable=False)["blockers"]
+
+
+def test_catalogue_contradiction_rows_cannot_make_existing_readiness_green():
+    from masck_one.core_sketch_contracts import assess_readiness, digest
+    from test_core_sketch_contracts import ready
+
+    request, receipt, current = ready()
+    request["binding"]["product_bindings"][0].update(sku="SKU-p", market="UK")
+    current["binding"] = deepcopy(request["binding"])
+    current["doses"][0]["binding"] = deepcopy(request["binding"]["product_bindings"][0])
+    product, evidence = make_product()
+    product["identity"]["sku"] = "different-SKU-with-same-id-and-version"
+    rows = session_product_records(request["binding"], [product], evidence, CONTEXT, {"p": "MOISTURISE"})
+    # Deliberately ignore the producer's outer blockers, as a row consumer can.
+    current["products"] = rows["products"]
+    receipt.update(binding_digest=digest(request["binding"]), request_digest=digest(request),
+                   dose_digest=digest(current["doses"]), products_digest=digest(current["products"]))
+    out = assess_readiness(request, receipt, current, 10)
+    assert "p:PRODUCT_OR_PROFILE_UNSUPPORTED" in out["blockers"]
+    assert not out["start_ready"]
+
+
+@pytest.mark.parametrize("bad", [None, {"blockers": "ignored-warning"}])
+def test_malformed_offline_manifest_is_not_an_empty_success(bad):
+    with pytest.raises(CoreSketchError):
+        assess_offline_execution(bad, resident(), network_reachable=True)

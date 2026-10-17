@@ -34,14 +34,21 @@ deposited quantity and spatial film are three different things.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
+from types import MappingProxyType
 
 from . import _contracts
 
 
 class RoutineCompletionError(ValueError):
     """Raised when a routine state or completion input is invalid."""
+
+
+def _boolean(value: object, name: str, *, unknown: bool = False) -> None:
+    if type(value) is not bool and not (unknown and value is None):
+        raise RoutineCompletionError(f"{name} must be a bool" + (" or None" if unknown else ""))
 
 
 EVIDENCE_STATUS = "REPORTED_STATE_CONSISTENCY_NOT_PHYSICAL_TREATMENT_EVIDENCE"
@@ -149,6 +156,7 @@ class RegionStatus:
 
     def __post_init__(self) -> None:
         _contracts.non_empty_text(self.region_id, "region_id", RoutineCompletionError)
+        _boolean(self.excluded_due_to_hardware_limitation, "excluded_due_to_hardware_limitation")
         if not isinstance(self.state, RegionState):
             raise RoutineCompletionError(f"{self.region_id}: state must be a RegionState")
 
@@ -203,12 +211,22 @@ class ContactElement:
     """
 
     element_id: str
-    phase_states: dict[RoutinePhase, ContactState]
+    phase_states: Mapping[RoutinePhase, ContactState]
     occludable_regions: frozenset[str] = frozenset()
     structural_function: str = ""
 
     def __post_init__(self) -> None:
         _contracts.non_empty_text(self.element_id, "element_id", RoutineCompletionError)
+        if not isinstance(self.phase_states, Mapping):
+            raise RoutineCompletionError("phase_states must be a mapping")
+        if any(not isinstance(p, RoutinePhase) for p in self.phase_states):
+            raise RoutineCompletionError("phase_states keys must be RoutinePhase")
+        object.__setattr__(self, "phase_states", MappingProxyType(dict(self.phase_states)))
+        if isinstance(self.occludable_regions, str):
+            raise RoutineCompletionError("occludable_regions must be a collection of region IDs")
+        object.__setattr__(self, "occludable_regions", frozenset(self.occludable_regions))
+        for region in self.occludable_regions:
+            _contracts.non_empty_text(region, "occludable region", RoutineCompletionError)
         missing = set(RoutinePhase) - set(self.phase_states)
         if missing:
             raise RoutineCompletionError(
@@ -248,12 +266,24 @@ class Stage:
     requires_settle: bool = False
     settle_completed: bool = False
     # Regions whose occlusion has been resolved, and by which route.
-    occlusion_resolutions: dict[str, OcclusionResolution] = field(default_factory=dict)
+    occlusion_resolutions: Mapping[str, OcclusionResolution] = field(default_factory=dict)
+    # Declared traceability references, not authenticated physical validation.
+    validated_route_references: Mapping[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         _contracts.non_empty_text(self.stage_id, "stage_id", RoutineCompletionError)
         if not isinstance(self.phase, RoutinePhase):
             raise RoutineCompletionError(f"{self.stage_id}: phase must be a RoutinePhase")
+        for name in ("mandatory", "requires_settle", "settle_completed"):
+            _boolean(getattr(self, name), name)
+        object.__setattr__(self, "regions", tuple(self.regions))
+        if self.mandatory and not self.regions:
+            raise RoutineCompletionError("mandatory stages must declare at least one region")
+        for name in ("occlusion_resolutions", "validated_route_references"):
+            value = getattr(self, name)
+            if not isinstance(value, Mapping):
+                raise RoutineCompletionError(f"{name} must be a mapping")
+            object.__setattr__(self, name, MappingProxyType(dict(value)))
         seen: set[str] = set()
         for region in self.regions:
             if not isinstance(region, RegionStatus):
@@ -263,6 +293,20 @@ class Stage:
                     f"{self.stage_id}: region {region.region_id} declared twice"
                 )
             seen.add(region.region_id)
+
+        for region_id, route in self.occlusion_resolutions.items():
+            if region_id not in seen or not isinstance(route, OcclusionResolution):
+                raise RoutineCompletionError("occlusion resolution requires a declared region and OcclusionResolution")
+            if route is OcclusionResolution.JUSTIFIED_CLAIM_EXCLUSION:
+                if next(r for r in self.regions if r.region_id == region_id).state is not RegionState.EXCLUDED_WITH_REASON:
+                    raise RoutineCompletionError("claim exclusion resolution requires EXCLUDED_WITH_REASON")
+            if route is OcclusionResolution.VALIDATED_ROUTE_WHILE_PRESENT:
+                _contracts.non_empty_text(self.validated_route_references.get(region_id),
+                                          "validated route reference", RoutineCompletionError)
+        for region_id, reference in self.validated_route_references.items():
+            if self.occlusion_resolutions.get(region_id) is not OcclusionResolution.VALIDATED_ROUTE_WHILE_PRESENT:
+                raise RoutineCompletionError("validated route reference requires its declared route")
+            _contracts.non_empty_text(reference, "validated route reference", RoutineCompletionError)
 
     @property
     def region_ids(self) -> frozenset[str]:
@@ -276,6 +320,7 @@ class Stage:
             "requires_settle": self.requires_settle,
             "settle_completed": self.settle_completed,
             "regions": [r.manifest() for r in self.regions],
+            "validated_route_references": dict(sorted(self.validated_route_references.items())),
             "occlusion_resolutions": {
                 k: v.value for k, v in sorted(self.occlusion_resolutions.items())
             },
@@ -329,11 +374,14 @@ def evaluate_routine(
     contacts: tuple[ContactElement, ...] = (),
     *,
     emergency_release_invoked: bool = False,
-    release_preserved_leave_on: bool = True,
-    session_state_valid: bool = True,
+    release_preserved_leave_on: bool | None = None,
+    session_state_valid: bool | None = None,
     completion_substitutes: dict[str, object] | None = None,
 ) -> RoutineAssessment:
     """Decide whether a reported routine state may claim COMPLETE.
+
+    Unknown session or release evidence blocks COMPLETE. This assessment never
+    commands or gates mechanical release, including unpowered emergency release.
 
     Emergency release outranks everything. An emergency release may yield
     INTERRUPTED or PARTIAL and must never be delayed to preserve a cosmetic
@@ -341,6 +389,16 @@ def evaluate_routine(
     """
 
     _contracts.non_empty_text(routine_id, "routine_id", RoutineCompletionError)
+    _boolean(emergency_release_invoked, "emergency_release_invoked")
+    _boolean(release_preserved_leave_on, "release_preserved_leave_on", unknown=True)
+    _boolean(session_state_valid, "session_state_valid", unknown=True)
+    stages, contacts = tuple(stages), tuple(contacts)
+    if any(not isinstance(s, Stage) for s in stages):
+        raise RoutineCompletionError("stages must contain Stage values")
+    if any(not isinstance(c, ContactElement) for c in contacts):
+        raise RoutineCompletionError("contacts must contain ContactElement values")
+    if len({c.element_id for c in contacts}) != len(contacts):
+        raise RoutineCompletionError("contact element declared twice")
     if not stages:
         raise RoutineCompletionError("a routine must declare at least one stage")
 
@@ -360,6 +418,8 @@ def evaluate_routine(
         seen.add(stage.stage_id)
 
     blockers: list[Blocker] = []
+    if not any(stage.mandatory for stage in stages):
+        blockers.append(Blocker("NO_MANDATORY_STAGES", "-", "no required region-bearing stage was declared"))
 
     for stage in stages:
         if not stage.mandatory:
@@ -388,11 +448,13 @@ def evaluate_routine(
                     c.element_id for c in contacts
                     if c.occludes_during(stage.phase, region.region_id)
                 ]
-                if occluders and region.region_id not in stage.occlusion_resolutions:
+                route = stage.occlusion_resolutions.get(region.region_id)
+                if occluders and route is not OcclusionResolution.VALIDATED_ROUTE_WHILE_PRESENT:
                     blockers.append(Blocker(
                         "UNRESOLVED_OCCLUSION", stage.stage_id,
-                        f"{region.region_id} is shadowed by {sorted(occluders)} with no "
-                        "declared clearing, secondary pass, validated route or exclusion",
+                        f"{region.region_id} is shadowed by {sorted(occluders)}; "
+                        "a clearing declaration cannot override these states, and no "
+                        "referenced route while present or justified exclusion resolves them",
                     ))
 
         if stage.requires_settle and not stage.settle_completed:
@@ -401,18 +463,18 @@ def evaluate_routine(
                 "required settling did not complete, so downstream release-ready status is blocked",
             ))
 
-    if not session_state_valid:
+    if session_state_valid is not True:
         blockers.append(Blocker(
-            "SESSION_STATE_INVALID", "-",
-            "product identity, preparation, carryover/service or resource state is not valid",
+            "SESSION_STATE_UNKNOWN" if session_state_valid is None else "SESSION_STATE_INVALID", "-",
+            "product identity, preparation, carryover/service or resource validity is not established",
         ))
 
     # Release is part of completion: a leave-on stage is invalidated if normal
     # removal materially wipes a required region.
-    if not release_preserved_leave_on and not emergency_release_invoked:
+    if release_preserved_leave_on is not True and not emergency_release_invoked:
         blockers.append(Blocker(
-            "RELEASE_DID_NOT_PRESERVE_LEAVE_ON", "-",
-            "normal release did not preserve the required final leave-on state",
+            "RELEASE_PRESERVATION_UNKNOWN" if release_preserved_leave_on is None else "RELEASE_DID_NOT_PRESERVE_LEAVE_ON", "-",
+            "normal release preservation of the required final leave-on state is not established",
         ))
 
     if emergency_release_invoked:
@@ -421,7 +483,8 @@ def evaluate_routine(
         outcome = RoutineOutcome.COMPLETE
     elif any(b.code.startswith("REGION_") and b.code != "REGION_NOT_COMPLETE" for b in blockers):
         outcome = RoutineOutcome.BLOCKED
-    elif any(b.code in {"UNRESOLVED_OCCLUSION", "SESSION_STATE_INVALID"} for b in blockers):
+    elif any(b.code in {"UNRESOLVED_OCCLUSION", "SESSION_STATE_INVALID", "SESSION_STATE_UNKNOWN",
+                          "RELEASE_PRESERVATION_UNKNOWN", "NO_MANDATORY_STAGES"} for b in blockers):
         outcome = RoutineOutcome.BLOCKED
     else:
         outcome = RoutineOutcome.PARTIAL

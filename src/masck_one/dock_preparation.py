@@ -55,6 +55,20 @@ def _reservoir(record: dict) -> dict:
     return record
 
 
+def _density(value: float) -> float:
+    density = number(value, "density_g_ml")
+    if density == 0:
+        raise CoreSketchError("density_g_ml must be strictly positive")
+    return density
+
+
+def _dose_state(record: dict) -> str:
+    state = record.get("state")
+    if state not in {DOSE_PREPARED, DOSE_BLOCKED}:
+        raise CoreSketchError("dose state must be explicit")
+    return state
+
+
 def _slots(records: list[dict]) -> dict[str, dict]:
     return {slot: _reservoir(r) for slot, r in unique(records, "slot").items()}
 
@@ -98,6 +112,16 @@ def observe_reservoirs(previous: list[dict], current: list[dict]) -> dict:
             note(slot, "PRODUCT_BINDING_MOVED", "ASSIGNMENT_CHANGED")
         if now["location"] != was["location"]:
             note(slot, "LOCATION_CHANGED", "HARDWARE_CHANGED")
+        if now.get("contamination_state") != was.get("contamination_state"):
+            note(slot, "CLEANLINESS_CHANGED", "CHANGEOVER_INCOMPLETE")
+        if now.get("expires_at_s") != was.get("expires_at_s"):
+            note(slot, "STORAGE_EXPIRY_CHANGED", "DOSE_EXPIRED")
+        for field in ("storage_valid", "storage_validity", "storage_state", "hold_history",
+                      "preservation"):
+            if now.get(field) != was.get(field):
+                note(slot, "STORAGE_VALIDITY_CHANGED", "DOSE_DISTURBED")
+        if now.get("density_g_ml") != was.get("density_g_ml"):
+            note(slot, "DENSITY_CHANGED", "RESOURCE_CHANGED")
         old_ml, new_ml = was.get("volume_ml"), now.get("volume_ml")
         if old_ml is None or new_ml is None:
             note(slot, "VOLUME_UNKNOWN", "RESOURCE_CHANGED")
@@ -110,10 +134,6 @@ def observe_reservoirs(previous: list[dict], current: list[dict]) -> dict:
                 note(slot, "UNDECLARED_TOP_UP", "PRODUCT_CHANGED")
             elif new_ml < old_ml:
                 note(slot, "VOLUME_DRAWN_DOWN", "RESOURCE_CHANGED")
-    moved = {r["product"]: slot for slot, r in after.items()}
-    for slot, was in before.items():
-        if moved.get(was["product"], slot) != slot:
-            note(slot, "PRODUCT_SERVED_FROM_DIFFERENT_SLOT", "ASSIGNMENT_CHANGED")
     if not events <= INVALIDATION_EVENTS:
         raise CoreSketchError("derived an event the session model cannot apply")
     return result(sorted(findings), derived_events=sorted(events),
@@ -174,7 +194,7 @@ def derive_session_doses(demands: dict, reservoirs: list[dict], binding: dict, n
         raise CoreSketchError("complete routine needs explicit product bindings")
     if set(expected) != set(demands):
         raise CoreSketchError("dose demands must cover exactly the bound products")
-    held = {r["product"]: r for r in (_reservoir(x) for x in reservoirs)}
+    held = _slots(reservoirs)
     blockers: list[str] = []
     rows: list[dict] = []
     volumes: list[Bound] = []
@@ -185,11 +205,16 @@ def derive_session_doses(demands: dict, reservoirs: list[dict], binding: dict, n
         if demand.get("application") not in APPLICATION_CLASSES:
             raise CoreSketchError("dose demand must name its application class")
         reasons: list[str] = []
-        source = held.get(ident)
+        source = held.get(text(want.get("slot"), "bound slot"))
         target = demand.get("target_ml")
         if source is None:
-            reasons.append("PRODUCT_NOT_LOADED")
+            reasons.append("SLOT_DOES_NOT_MATCH_BINDING" if any(
+                r["product"] == ident for r in held.values()) else "PRODUCT_NOT_LOADED")
         else:
+            if source["location"] != "DOCK":
+                reasons.append("SOURCE_NOT_IN_DOCK")
+            if source["product"] != ident:
+                reasons.append("LOADED_PRODUCT_DOES_NOT_MATCH_BINDING")
             if not source["readable"]:
                 reasons.append("SOURCE_IDENTITY_UNREADABLE")
             if any(source.get(f) != want.get(f) for f in IDENTITY_FIELDS):
@@ -200,12 +225,15 @@ def derive_session_doses(demands: dict, reservoirs: list[dict], binding: dict, n
                 reasons.append("SOURCE_AGE_UNKNOWN_OR_EXPIRED")
             if source.get("contamination_state") != "VERIFIED_CLEAN":
                 reasons.append("SOURCE_CLEANLINESS_UNPROVED")
+            if "storage_valid" in source and source["storage_valid"] is not True:
+                reasons.append("SOURCE_STORAGE_INVALID_OR_UNKNOWN")
         if target is None:
             # The dose this product needs was never characterised. Unknown is the
             # answer; substituting zero would report the step as performed.
             reasons.append("DOSE_UNKNOWN")
         else:
-            number(target, "target_ml")
+            if number(target, "target_ml") == 0:
+                reasons.append("REQUIRED_DOSE_MUST_BE_POSITIVE")
             lo, hi = demand.get("min_ml"), demand.get("max_ml")
             if lo is None or hi is None:
                 reasons.append("DOSE_WINDOW_UNKNOWN")
@@ -220,8 +248,8 @@ def derive_session_doses(demands: dict, reservoirs: list[dict], binding: dict, n
         volumes.append(fixed(target) if prepared else read(None, ident + ".dose_ml"))
         blockers += [ident + ":" + reason for reason in reasons]
         rows.append({"product_binding": ident, "binding": deepcopy(want),
-            "dose_id": None if not prepared else "dose:" + digest([want, target, source["lot"],
-                source["fill_epoch"]])[:32],
+            "source_snapshot": deepcopy(source),
+            "dose_id": None if not prepared else "dose:" + digest([want, target, source])[:32],
             "state": DOSE_PREPARED if prepared else DOSE_BLOCKED,
             "preservation": "VERIFIED" if prepared else "UNPROVED",
             "expires_at_s": source.get("expires_at_s") if prepared else None,
@@ -256,8 +284,10 @@ def account_inventory(reservoirs: list[dict], doses: list[dict]) -> dict:
         volume = read(None, record["slot"] + ".volume_ml") if record.get("volume_ml") is None \
             else fixed(number(record["volume_ml"], "volume_ml"))
         density = read(None, record["slot"] + ".density_g_ml") if record.get("density_g_ml") is None \
-            else fixed(number(record["density_g_ml"], "density_g_ml"))
+            else fixed(_density(record["density_g_ml"]))
         columns[record["location"]].append(volume * density)
+    for dose in doses:
+        _dose_state(dose)
     prepared = [d for d in doses if d.get("state") == DOSE_PREPARED]
     session_ml = total([fixed(number(d["quantity_ml"], "quantity_ml")) for d in prepared]
                        + [read(None, d["product_binding"] + ".dose_ml")
@@ -364,33 +394,49 @@ def resource_scenario_products(dose_result: dict, reservoirs: list[dict]) -> dic
     Lane 5 owns the whole-session ledger; this supplies one of its inputs. The
     property worth stating is what happens to a blocked product: its ``dose_ml``
     is ``None``, which ``core_sketch_resources.read`` turns into an unbounded
-    quantity that names its own unknown. The unknown then survives every sum and
+    quantity that names its own unknown. An exact slot and unchanged source
+    snapshot are required; changed inventory cannot retrospectively supply a
+    different density or lot for a declared dose. This is consistency of declared
+    inputs, not proof of transfer or source authenticity. The unknown survives every sum and
     product in that ledger, so a dose the dock could not prepare cannot quietly
     shrink the session's water, waste, storage or mass demand.
     """
     rows = dose_result.get("doses")
     if not isinstance(rows, list) or not rows:
         raise CoreSketchError("dose manifest required")
-    held = {r["product"]: r for r in (_reservoir(x) for x in reservoirs)}
+    held = _slots(reservoirs)
     products, blockers = [], []
-    for row in rows:
+    for row in unique(rows, "product_binding").values():
         ident = text(row.get("product_binding"), "product_binding")
+        _dose_state(row)
         application = row.get("application")
         if application not in APPLICATION_CLASSES:
             raise CoreSketchError("dose row must name its application class")
         if application not in RESOURCE_ROLES:
             continue
-        source = held.get(ident)
+        bound = row.get("binding")
+        if not isinstance(bound, dict):
+            raise CoreSketchError("dose row must carry its product binding")
+        source = held.get(text(bound.get("slot"), "bound slot"))
+        snapshot = row.get("source_snapshot")
+        source_matches = (source is not None and source["location"] == "DOCK"
+            and source["product"] == ident and isinstance(snapshot, dict)
+            and digest(source) == digest(snapshot)
+            and all(source.get(f) == bound.get(f) for f in IDENTITY_FIELDS))
         quantity = row.get("quantity_ml")
-        prepared = row.get("state") == DOSE_PREPARED and quantity is not None
-        density = None if source is None else source.get("density_g_ml")
+        prepared = (row.get("state") == DOSE_PREPARED and quantity is not None
+            and number(quantity, "quantity_ml") > 0 and source_matches
+            and row.get("dose_id") == "dose:" + digest([bound, quantity, snapshot])[:32])
+        density = snapshot.get("density_g_ml") if source_matches else None
+        if not source_matches:
+            blockers.append(ident + ":DOSE_SOURCE_SNAPSHOT_UNRESOLVED_OR_CHANGED")
         if not prepared:
             blockers.append(ident + ":DOSE_UNRESOLVED_IN_RESOURCE_LEDGER")
         if density is None:
             blockers.append(ident + ":DENSITY_UNKNOWN")
         products.append({"id": ident, "role": RESOURCE_ROLES[application],
             "dose_ml": [number(quantity, "quantity_ml")] * 2 if prepared else None,
-            "density_g_ml": None if density is None else [number(density, "density_g_ml")] * 2})
+            "density_g_ml": None if density is None else [_density(density)] * 2})
     if not any(p["role"] == "MOISTURISE" for p in products):
         blockers.append("NO_MOISTURISE_PRODUCT_IN_SESSION")
     return result(blockers, products=products, evidence_status=EVIDENCE_STATUS,
