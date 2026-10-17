@@ -9,8 +9,15 @@ from dataclasses import dataclass
 from math import fsum
 from . import _contracts
 from .authority import Authority
-from .core_sketch_contracts import CoreSketchError, digest, number, result, text, unique
+from .core_sketch_contracts import CoreSketchError, digest, number as _number, result, text, unique, validate_plan
 from .mass_balance import build_mass_balance_ledger, STANDARD_GRAVITY_M_S2, WATER_DENSITY_G_ML
+
+
+def number(value, label):
+    try:
+        return _number(value, label)
+    except OverflowError as exc:
+        raise CoreSketchError(label + " overflows finite arithmetic") from exc
 
 
 @dataclass(frozen=True)
@@ -79,6 +86,13 @@ def assess_resources(authority: Authority, scenario: dict) -> dict:
     The current ledger's unresolved items cannot be replaced by implicit zero.
     """
     digest(scenario)
+    choices = {}
+    for key in ("optical_selected", "thermal_selected"):
+        value = scenario.get(key)
+        if value is not None and type(value) is not bool:
+            raise CoreSketchError(key + " must be an explicit boolean or unknown")
+        choices[key] = value
+    selection_blockers = [key + ":UNRESOLVED" for key, value in choices.items() if value is None]
     text(scenario.get("id"), "scenario id")
     if scenario.get("status") != "UNVALIDATED_PLANNING_SCENARIO":
         raise CoreSketchError("resource scenario cannot claim a validated routine")
@@ -92,6 +106,11 @@ def assess_resources(authority: Authority, scenario: dict) -> dict:
     extra = scenario.get("inputs", {})
     water = fixed(cc["face_water_mL"] + cc["post_flush_water_mL"]) + Bound(0, cc["maximum_initial_prime_mL"])
     water = water + read(extra.get("wearable_purge_water_ml"), "wearable_purge_water_ml")
+    # Consumption is not the starting on-head inventory. Gross capacity is not
+    # evidence of either an actual fill or usable delivered water.
+    charge = read(extra.get("prepared_water_charge_ml"), "prepared_water_charge_ml")
+    if charge.high is None:
+        charge = Bound(water.low, None, charge.unknowns)
     cleanser = fixed(cc["cleanser_mL"])
     doses = {i: read(p.get("dose_ml"), i + ".dose_ml") for i, p in products.items()}
     product_volume = total(list(doses.values()))
@@ -99,7 +118,7 @@ def assess_resources(authority: Authority, scenario: dict) -> dict:
     purge_product = read(extra.get("product_changeover_ml"), "product_changeover_ml")
     purge_mass = read(extra.get("product_changeover_mass_g"), "product_changeover_mass_g")
     # Purge allocation is explicitly wearable here; dock-only servicing has its own resources.
-    fluid_mass = (water * fixed(WATER_DENSITY_G_ML)
+    fluid_mass = (charge * fixed(WATER_DENSITY_G_ML)
         + cleanser * read(extra.get("cleanser_density_g_ml"), "cleanser_density_g_ml")
         + product_mass + purge_mass)
     prior_waste_mass = read(extra.get("prior_waste_mass_g"), "prior_waste_mass_g")
@@ -107,7 +126,7 @@ def assess_resources(authority: Authority, scenario: dict) -> dict:
     hardware = [e for e in ledger.entries if not e.item_id.startswith("charge_")]
     dry = total([fixed(e.mass_g) if e.is_established else read(None, "hardware." + e.item_id) for e in hardware])
     dry = dry + read(extra.get("session_isolation_hardware_mass_g"), "session_isolation_hardware_mass_g")
-    if scenario.get("optical_selected") is True:
+    if choices["optical_selected"] is not False:
         dry = dry + read(extra.get("optical_hardware_mass_g"), "optical_hardware_mass_g")
     loaded = dry + fluid_mass + prior_waste_mass
     # Post-recovery inventory is conservatively bounded by prepared inventory.
@@ -126,8 +145,8 @@ def assess_resources(authority: Authority, scenario: dict) -> dict:
     storage_check = "UNRESOLVED" if storage_capacity is None else screen(storage, number(storage_capacity, "storage capacity"))
     energy = read(extra.get("electrical_energy_Wh"), "electrical_energy_Wh")
     duration = read(extra.get("routine_duration_s"), "routine_duration_s")
-    thermal = read(extra.get("thermal_state_required_J"), "thermal_state_required_J") if scenario.get("thermal_selected") else fixed(0)
-    reset = read(extra.get("dock_reset_energy_J"), "dock_reset_energy_J") if scenario.get("thermal_selected") else fixed(0)
+    thermal = read(extra.get("thermal_state_required_J"), "thermal_state_required_J") if choices["thermal_selected"] is not False else fixed(0)
+    reset = read(extra.get("dock_reset_energy_J"), "dock_reset_energy_J") if choices["thermal_selected"] is not False else fixed(0)
     # Exact positions and post-transfer positions must be supplied for all inventory.
     # Current canonical ledger intentionally withholds unresolved position evidence.
     positions_known = all(e.is_position_established for e in hardware) and not dry.unknowns
@@ -136,13 +155,17 @@ def assess_resources(authority: Authority, scenario: dict) -> dict:
     if positions_known and not fluid_mass.unknowns and fluid_mass.low == fluid_mass.high and dry.low == dry.high and prior_waste_mass.high == 0:
         fluid_z = extra.get("session_fluid_z_mm")
         hardware_z = extra.get("session_isolation_hardware_z_mm")
-        if fluid_z is not None and hardware_z is not None and scenario.get("optical_selected") is not True:
+        if fluid_z is not None and hardware_z is not None and choices["optical_selected"] is False:
             z = _contracts.finite(fluid_z, "fluid z", CoreSketchError)
             hz = _contracts.finite(hardware_z, "isolation hardware z", CoreSketchError)
             hm = read(extra.get("session_isolation_hardware_mass_g"), "session hardware")
             if hm.low == hm.high:
-                moment = fsum(e.mass_g * e.z_mm for e in hardware) + hm.low * hz + fluid_mass.low * z
-                cg = moment / loaded.low if loaded.low else None
+                try:
+                    moment = _contracts.finite(fsum(e.mass_g * e.z_mm for e in hardware)
+                        + hm.low * hz + fluid_mass.low * z, "mass moment", CoreSketchError)
+                except OverflowError as exc:
+                    raise CoreSketchError("mass moment overflow") from exc
+                cg = None if not loaded.low else _contracts.finite(moment / loaded.low, "cg", CoreSketchError)
     torque = None if moment is None else abs(moment) * STANDARD_GRAVITY_M_S2 / 1_000_000
     limits = authority.get("mass")
     checks = {
@@ -155,8 +178,18 @@ def assess_resources(authority: Authority, scenario: dict) -> dict:
         "waste_demand_vs_retained_requirement": screen(waste, authority.number("fluid", "cartridge", "retained_capacity_min_mL")),
         "battery_usable_energy": "UNRESOLVED" if extra.get("usable_battery_energy_Wh") is None else screen(energy, extra["usable_battery_energy_Wh"]),
     }
-    blockers = [k + ":" + v for k, v in checks.items() if v != "WITHIN_MODEL_BOUND_NOT_PHYSICAL_PASS"]
-    values = {"session_water_ml": water, "cleanser_ml": cleanser, "leave_on_total_ml": product_volume,
+    checks["prepared_water_vs_gross_capacity"] = screen(charge, authority.number("fluid", "water_reservoir", "gross_mL"))
+    if charge.high is not None and water.low > charge.high:
+        charge_check = "VIOLATES_LIMIT"
+    elif water.high is None or charge.high is None:
+        charge_check = "UNRESOLVED"
+    elif water.high <= charge.low:
+        charge_check = "WITHIN_MODEL_BOUND_NOT_PHYSICAL_PASS"
+    else:
+        charge_check = "INTERVAL_CROSSES_LIMIT"
+    checks["water_demand_vs_prepared_charge"] = charge_check
+    blockers = selection_blockers + [k + ":" + v for k, v in checks.items() if v != "WITHIN_MODEL_BOUND_NOT_PHYSICAL_PASS"]
+    values = {"session_water_ml": water, "prepared_water_charge_ml": charge, "cleanser_ml": cleanser, "leave_on_total_ml": product_volume,
         "product_changeover_ml": purge_product, "wearable_session_fluid_mass_g": fluid_mass,
         "dry_mass_g": dry, "loaded_mass_g": loaded, "post_recovery_conservative_inventory_g": loaded,
         "expected_recovered_cleaning_target_ml": recovered_target, "waste_capacity_demand_ml": waste,
@@ -171,3 +204,59 @@ def assess_resources(authority: Authority, scenario: dict) -> dict:
         cg_z_mm=cg, datum_pitch_torque_Nm=torque, screens=checks,
         source_ledger_unresolved=[e.item_id for e in hardware if not e.is_established],
         interpretation="Cleaning and waste numbers are validation-gated planning targets, not observations. Unknown losses, hardware and positions prevent closure. Neck-joint offset and dynamic torque remain unresolved.")
+
+
+def assess_electrical_envelope(plan: dict, envelope: dict) -> dict:
+    """Sequential stages plus continuously operating background loads.
+
+    Caller power bounds are battery-side electrical inputs, not mechanical,
+    optical or thermal outputs. Stage IDs must exactly cover the actual plan.
+    Summed peak uppers are conservative: peaks need not coincide. Peak lowers
+    therefore use maxima, never sums of independently occurring peak loads.
+    """
+    stages = validate_plan(plan)
+    digest(envelope)
+    rows = unique(envelope.get("stages"))
+    if set(rows) != set(stages):
+        raise CoreSketchError("electrical stage inventory must exactly cover plan")
+    background = envelope.get("background")
+    if type(background) is not dict:
+        raise CoreSketchError("continuous background inventory must be explicit")
+
+    def power(row, name):
+        average = read(row.get("average_power_W"), name + ".average_power_W")
+        peak = read(row.get("peak_power_W"), name + ".peak_power_W")
+        if peak.high is not None and (average.low > peak.high or
+            average.high is not None and average.high > peak.high):
+            raise CoreSketchError("average electrical power exceeds peak upper")
+        return average, peak
+
+    bg_average, bg_peak = power(background, "background")
+    durations, energies, peaks, records = [], [], [], {}
+    for ident in stages:
+        row = rows[ident]
+        duration = read(row.get("duration_s"), ident + ".duration_s")
+        average, peak = power(row, ident)
+        operating = average + bg_average
+        energy = operating * duration * fixed(1 / 3600)
+        # The maximum load is at least each independent peak and combined
+        # average lower, but independent peak lower bounds cannot be added.
+        combined_peak = Bound(max(peak.low, bg_peak.low, operating.low),
+            None if peak.high is None or bg_peak.high is None else peak.high + bg_peak.high,
+            tuple(sorted(set(peak.unknowns + bg_peak.unknowns))))
+        durations.append(duration)
+        energies.append(energy)
+        peaks.append(combined_peak)
+        records[ident] = {"duration_s": duration.record(),
+            "average_power_W": operating.record(), "peak_power_W": combined_peak.record(),
+            "energy_Wh": energy.record()}
+    duration, energy = total(durations), total(energies)
+    peak = Bound(max(p.low for p in peaks),
+        None if any(p.high is None for p in peaks) else max(p.high for p in peaks),
+        tuple(sorted({u for p in peaks for u in p.unknowns})))
+    bounds = {"routine_duration_s": duration, "electrical_energy_Wh": energy,
+        "peak_power_W": peak}
+    blockers = [key + ":UNRESOLVED" for key, value in bounds.items() if value.high is None]
+    return result(blockers, plan_digest=digest(plan), inputs_digest=digest(envelope),
+        bounds={key: value.record() for key, value in bounds.items()}, per_stage=records,
+        interpretation="Battery-side planning bounds; peak uppers assume possible coincidence. No battery capability or hardware execution established.")
