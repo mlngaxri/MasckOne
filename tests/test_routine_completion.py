@@ -16,8 +16,14 @@ from masck_one.routine_completion import (
     RoutineOutcome,
     RoutinePhase,
     Stage,
-    evaluate_routine,
+    evaluate_routine as assess_report,
 )
+
+
+def evaluate_routine(*args, **kwargs):
+    """Existing cases explicitly supply successful session and removal evidence."""
+    return assess_report(*args, **{ "session_state_valid": True,
+                                  "release_preserved_leave_on": True, **kwargs})
 
 
 def _regions(*pairs):
@@ -153,14 +159,26 @@ def test_only_cleared_or_absent_counts_as_not_shadowing(state) -> None:
     assert evaluate_routine("R", (stage,), (_annulus(state),)).outcome is RoutineOutcome.BLOCKED
 
 
-@pytest.mark.parametrize("route", list(OcclusionResolution))
-def test_each_declared_resolution_route_clears_the_block(route) -> None:
-    stage = Stage(
-        "LEAVE_ON_1", RoutinePhase.LEAVE_ON, _regions(("chin", RegionState.COMPLETE)),
-        occlusion_resolutions={"chin": route},
-    )
+@pytest.mark.parametrize("route", [OcclusionResolution.STRUCTURE_CLEARS,
+                                  OcclusionResolution.SECONDARY_PASS_AFTER_CLEARING])
+def test_clearing_routes_require_contact_states_to_agree(route) -> None:
+    stage = Stage("LEAVE_ON_1", RoutinePhase.LEAVE_ON,
+                  _regions(("chin", RegionState.COMPLETE)),
+                  occlusion_resolutions={"chin": route})
+    assert evaluate_routine("R", (stage,), (_annulus(ContactState.CONTACTING),)).outcome is RoutineOutcome.BLOCKED
+    assert evaluate_routine("R", (stage,), (_annulus(ContactState.RETRACTED_OR_CLEARED),)).may_claim_complete
+
+
+def test_validated_route_requires_declared_reference_but_does_not_authenticate_it() -> None:
+    stage = Stage("LEAVE_ON_1", RoutinePhase.LEAVE_ON,
+                  _regions(("chin", RegionState.COMPLETE)),
+                  occlusion_resolutions={"chin": OcclusionResolution.VALIDATED_ROUTE_WHILE_PRESENT},
+                  validated_route_references={"chin": "declared-study:route-7"})
     assessment = evaluate_routine("R", (stage,), (_annulus(ContactState.CONTACTING),))
-    assert assessment.outcome is RoutineOutcome.COMPLETE
+    assert assessment.may_claim_complete
+    assert assessment.manifest()["evidence_status"] == EVIDENCE_STATUS
+    assert stage.manifest()["validated_route_references"] == {"chin": "declared-study:route-7"}
+
 
 
 def test_retracting_one_element_does_not_help_if_another_still_shadows() -> None:
@@ -291,3 +309,124 @@ def test_duplicate_region_in_a_stage_fails_closed() -> None:
 def test_blank_identifiers_fail_closed(bad) -> None:
     with pytest.raises(RoutineCompletionError):
         RegionStatus(bad, RegionState.COMPLETE)
+
+
+@pytest.mark.parametrize("field", ["session_state_valid", "release_preserved_leave_on"])
+def test_missing_or_unknown_positive_evidence_blocks_completion(field, leave_on_stage):
+    other = {"session_state_valid": True, "release_preserved_leave_on": True}
+    del other[field]
+    assert assess_report("R", (leave_on_stage,), **other).outcome is RoutineOutcome.BLOCKED
+    other[field] = None
+    assert assess_report("R", (leave_on_stage,), **other).outcome is RoutineOutcome.BLOCKED
+
+
+def test_empty_mandatory_stage_cannot_satisfy_a_routine():
+    with pytest.raises(RoutineCompletionError, match="at least one region"):
+        Stage("EMPTY", RoutinePhase.CLEAN, ())
+
+
+def test_all_optional_stages_cannot_satisfy_a_routine():
+    optional = Stage("OPTIONAL", RoutinePhase.TREAT, (), mandatory=False)
+    assessment = evaluate_routine("R", (optional,))
+    assert assessment.outcome is RoutineOutcome.BLOCKED
+    assert assessment.blockers[0].code == "NO_MANDATORY_STAGES"
+
+
+@pytest.mark.parametrize("bad", [1, 0, "true", "false", [], {}])
+@pytest.mark.parametrize("field", ["mandatory", "requires_settle", "settle_completed"])
+def test_stage_boolean_flags_are_not_truthiness(field, bad):
+    with pytest.raises(RoutineCompletionError, match="must be a bool"):
+        Stage("CLEAN", RoutinePhase.CLEAN, _regions(("chin", RegionState.COMPLETE)), **{field: bad})
+
+
+@pytest.mark.parametrize("bad", [1, 0, "true", "false", [], {}])
+@pytest.mark.parametrize("field", ["session_state_valid", "release_preserved_leave_on", "emergency_release_invoked"])
+def test_evaluation_flags_are_strict_booleans(field, bad, leave_on_stage):
+    with pytest.raises(RoutineCompletionError, match="must be a bool"):
+        evaluate_routine("R", (leave_on_stage,), **{field: bad})
+
+
+def test_hardware_limitation_flag_is_strict_boolean():
+    with pytest.raises(RoutineCompletionError):
+        RegionStatus("chin", RegionState.COMPLETE, excluded_due_to_hardware_limitation="false")
+
+
+def test_duplicate_contact_ids_cannot_hide_conflicting_states(leave_on_stage):
+    with pytest.raises(RoutineCompletionError, match="contact element declared twice"):
+        evaluate_routine("R", (leave_on_stage,), (_annulus(ContactState.CONTACTING),
+                                                _annulus(ContactState.RETRACTED_OR_CLEARED)))
+
+
+def test_contact_state_snapshot_cannot_change_after_construction():
+    states = _all_phases(ContactState.CONTACTING)
+    regions = {"chin"}
+    contact = ContactElement("ring", states, regions)
+    states[RoutinePhase.LEAVE_ON] = ContactState.NOT_PRESENT
+    regions.clear()
+    assert contact.occludes_during(RoutinePhase.LEAVE_ON, "chin")
+    with pytest.raises(TypeError):
+        contact.phase_states[RoutinePhase.LEAVE_ON] = ContactState.NOT_PRESENT
+
+
+def test_stage_snapshot_cannot_change_after_construction():
+    regions = [RegionStatus("chin", RegionState.COMPLETE)]
+    resolutions = {"chin": OcclusionResolution.VALIDATED_ROUTE_WHILE_PRESENT}
+    references = {"chin": "declared-study:7"}
+    stage = Stage("LEAVE", RoutinePhase.LEAVE_ON, regions,
+                  occlusion_resolutions=resolutions, validated_route_references=references)
+    regions.clear()
+    resolutions.clear()
+    references.clear()
+    assert stage.region_ids == frozenset({"chin"})
+    assert stage.validated_route_references["chin"] == "declared-study:7"
+    for mapping in (stage.occlusion_resolutions, stage.validated_route_references):
+        with pytest.raises(TypeError):
+            mapping["chin"] = None
+
+
+@pytest.mark.parametrize("route", ["STRUCTURE_CLEARS", None, 1])
+def test_untyped_occlusion_resolution_rejected(route):
+    with pytest.raises(RoutineCompletionError):
+        Stage("LEAVE", RoutinePhase.LEAVE_ON, _regions(("chin", RegionState.COMPLETE)),
+              occlusion_resolutions={"chin": route})
+
+
+def test_resolution_cannot_name_a_region_outside_the_stage():
+    with pytest.raises(RoutineCompletionError):
+        Stage("LEAVE", RoutinePhase.LEAVE_ON, _regions(("chin", RegionState.COMPLETE)),
+              occlusion_resolutions={"temple": OcclusionResolution.STRUCTURE_CLEARS})
+
+
+def test_exclusion_route_requires_the_versioned_excluded_region_state():
+    with pytest.raises(RoutineCompletionError, match="EXCLUDED_WITH_REASON"):
+        Stage("LEAVE", RoutinePhase.LEAVE_ON, _regions(("chin", RegionState.COMPLETE)),
+              occlusion_resolutions={"chin": OcclusionResolution.JUSTIFIED_CLAIM_EXCLUSION})
+
+
+@pytest.mark.parametrize("reference", [None, "", "   ", 1])
+def test_validated_route_without_reference_rejected(reference):
+    with pytest.raises(RoutineCompletionError, match="validated route reference"):
+        Stage("LEAVE", RoutinePhase.LEAVE_ON, _regions(("chin", RegionState.COMPLETE)),
+              occlusion_resolutions={"chin": OcclusionResolution.VALIDATED_ROUTE_WHILE_PRESENT},
+              validated_route_references={"chin": reference})
+
+
+def test_exclusion_resolution_with_versioned_exclusion_is_consistent():
+    region = RegionStatus("chin", RegionState.EXCLUDED_WITH_REASON,
+                          exclusion_reason="outside claim", exclusion_claim_version="v2")
+    stage = Stage("LEAVE", RoutinePhase.LEAVE_ON, (region,),
+                  occlusion_resolutions={"chin": OcclusionResolution.JUSTIFIED_CLAIM_EXCLUSION})
+    assert evaluate_routine("R", (stage,), (_annulus(ContactState.CONTACTING),)).may_claim_complete
+
+
+def test_emergency_release_remains_interrupted_even_when_evidence_is_unknown(leave_on_stage):
+    assessment = assess_report("R", (leave_on_stage,), emergency_release_invoked=True)
+    assert assessment.outcome is RoutineOutcome.INTERRUPTED
+    assert not any(b.code.startswith("RELEASE_") for b in assessment.blockers)
+
+
+def test_contact_mapping_rejects_extra_untyped_phase():
+    states = _all_phases(ContactState.CONTACTING)
+    states["LEAVE_ON"] = ContactState.NOT_PRESENT
+    with pytest.raises(RoutineCompletionError, match="RoutinePhase"):
+        ContactElement("ring", states)
