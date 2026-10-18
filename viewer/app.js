@@ -217,11 +217,15 @@ anchors.control=[0,77,30];
 const actLocations=[[-46,7],[46,7],[-42,-47],[42,-47]];
 for(let i=0;i<AUTH.actuators;i++){
   const [x,y]=actLocations[i];
-  mesh(new THREE.CylinderGeometry(11,11,8,40),mat.dark,assembly.actuators,[x,y,-29],[Math.PI/2,0,0]);
-  mesh(new THREE.CylinderGeometry(7.2,7.2,8.7,40),mat.bearing,assembly.actuators,[x,y,-24],[Math.PI/2,0,0]);
-  mesh(new THREE.TorusGeometry(7.4,.66,7,42),mat.structural,assembly.actuators,[x,y,-19]);
-  for(let j=0;j<3;j++){
-    mesh(new THREE.CylinderGeometry(1.05,1.05,3.0,10),mat.graphite,assembly.actuators,[x+Math.cos(j*2.094)*5,y+Math.sin(j*2.094)*5,-17],[Math.PI/2,0,0]);
+  // Four-unit architecture is real. Housing and guide geometry are provisional.
+  mesh(new THREE.CylinderGeometry(10.65,10.65,7.9,64),mat.dark,assembly.actuators,[x,y,-29],[Math.PI/2,0,0]);
+  mesh(new THREE.CylinderGeometry(8.85,8.85,1.15,64),mat.structural,assembly.actuators,[x,y,-25],[Math.PI/2,0,0]);
+  mesh(new THREE.CylinderGeometry(5.5,5.5,4,64),mat.bearing,assembly.actuators,[x,y,-23],[Math.PI/2,0,0]);
+  mesh(new THREE.TorusGeometry(9.3,.63,9,64),mat.seal,assembly.actuators,[x,y,-20]);
+  mesh(new THREE.TorusGeometry(5.55,.35,7,48),mat.graphite,assembly.actuators,[x,y,-20]);
+  for(let j=0;j<4;j++){
+    const a=(j+.5)*Math.PI/2;
+    mesh(new THREE.CylinderGeometry(.76,.76,2.4,14),mat.graphite,assembly.actuators,[x+Math.cos(a)*7.15,y+Math.sin(a)*7.15,-19.5],[Math.PI/2,0,0]);
   }
 }
 anchors.actuators=[0,-19,-26];
@@ -239,8 +243,29 @@ for(let i=0;i<branchPoints.length;i++){
   const [x,y]=branchPoints[i];
   const mid=[x*.72,y*.78,-24];
   const end=[x,y,Math.min(-5,zAt(x,y,-18))];
-  tube(assembly.fluid,[mid,[x*.89,y*.91,-19],end],.72,i%3===0?mat.liquid:mat.tubing);
-  mesh(new THREE.SphereGeometry(1.55,14,8),mat.bearing,assembly.fluid,end);
+  tube(assembly.fluid,[mid,[x*.89,y*.91,-19],end],.67,i%3===0?mat.liquid:mat.tubing);
+  mesh(new THREE.SphereGeometry(1.4,18,10),mat.bearing,assembly.fluid,end);
+}
+// Engineering baseline: 18 fresh-water outlets and 6 cleanser outlets.
+// Arrangement is a placeholder until the released manifold CAD is tessellated.
+const outlets=[];
+for(let row=0;row<3;row++)for(let col=0;col<6;col++){
+  const x=-57+col*22.7,y=48-row*44;
+  if((Math.abs(x-31.5)<26||Math.abs(x+31.5)<26)&&y>22)continue;
+  outlets.push([x,y]);
+}
+while(outlets.length<18){
+  const j=outlets.length;
+  outlets.push([(-2.5+(j%6))*20,-46-Math.floor((j-6)/6)*17]);
+}
+for(let i=0;i<18;i++){
+  const [x,y]=outlets[i],z=zAt(x,y,-10.4);
+  mesh(new THREE.CylinderGeometry(1.4,1.8,.9,16),mat.bearing,assembly.fluid,[x,y,z],[Math.PI/2,0,0]);
+  mesh(new THREE.CylinderGeometry(.58,.58,1.1,16),mat.dark,assembly.fluid,[x,y,z+.35],[Math.PI/2,0,0]);
+}
+for(let i=0;i<6;i++){
+  const a=i/6*Math.PI*2,x=Math.cos(a)*48,y=-29+Math.sin(a)*16,z=zAt(x,y,-11);
+  mesh(new THREE.CylinderGeometry(1.55,1.85,1.1,16),mat.structural,assembly.fluid,[x,y,z],[Math.PI/2,0,0]);
 }
 anchors.fluid=[45,-4,-24];
 
@@ -254,16 +279,41 @@ tube(assembly.waste,[[-50,-41,-15],[-38,-63,-15],[-24,-65,-18]],1.55,mat.tubing)
 tube(assembly.waste,[[50,-41,-15],[38,-63,-15],[24,-65,-18]],1.55,mat.tubing);
 anchors.waste=[0,-63,-25];
 
-// Rear retention band study. The quick-release safety requirement is source-backed;
-// the latch shapes and strap routing below are provisional concept geometry.
+// Engineered for a discreet supporting silhouette. Satin textile routing and
+// release latches remain concept geometry, not verified restraint hardware.
+function satinRibbon(points,width,parent,material){
+  const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)),false,'centripetal');
+  const N=64,vertices=[],uv=[],indices=[],edges=[[],[]];
+  for(let i=0;i<=N;i++){
+    const t=i/N,P=curve.getPoint(t),tan=curve.getTangent(t);
+    const across=new THREE.Vector3(-tan.y,tan.x,0);
+    if(across.lengthSq()<.035)across.set(0,1,0);
+    across.normalize();
+    const widthMod=.88+.12*Math.sin(Math.PI*t);
+    for(const sign of [-1,1]){
+      const v=P.clone().addScaledVector(across,sign*width*widthMod/2);
+      vertices.push(v.x,v.y,v.z);uv.push((sign+1)/2,t);
+      edges[(sign+1)/2].push([v.x,v.y,v.z]);
+    }
+    if(i<N){const n=i*2;indices.push(n,n+1,n+2,n+1,n+3,n+2);}
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+  geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  geo.setIndex(indices);geo.computeVertexNormals();
+  mesh(geo,material,parent);
+  for(const line of edges)tube(parent,line,.36,mat.seal);
+}
 for(const side of [-1,1]){
   const x=side;
-  tube(assembly.retention,[[x*77,18,-11],[x*92,21,-24],[x*113,24,-56],[x*98,40,-86],[x*58,49,-99]],4.8,mat.strap);
-  tube(assembly.retention,[[x*71,-34,-14],[x*96,-35,-27],[x*113,-20,-55],[x*99,18,-88],[x*58,49,-99]],4.0,mat.strap);
-  rounded([14,13,7],3,mat.dark,assembly.retention,[x*96,19,-38]);
-  rounded([8,6,8],2,mat.bearing,assembly.retention,[x*99,19,-34]);
+  satinRibbon([[x*74,39,-9],[x*92,43,-22],[x*114,49,-53],[x*102,59,-87],[x*62,64,-105]],10,assembly.retention,mat.strap);
+  satinRibbon([[x*75,-30,-11],[x*98,-28,-23],[x*115,-12,-54],[x*101,20,-88],[x*62,64,-105]],10,assembly.retention,mat.strap);
+  rounded([12,21,7],3.3,mat.dark,assembly.retention,[x*92,34,-30]);
+  rounded([8.2,15,7.8],2.4,mat.bearing,assembly.retention,[x*97,34,-27]);
+  rounded([3.8,9.8,4],1.7,mat.graphite,assembly.retention,[x*100,34,-23.4]);
+  rounded([2,3,1],.4,mat.optical,assembly.retention,[x*101,34,-21.1]);
 }
-tube(assembly.retention,[[-58,49,-99],[-36,59,-114],[0,63,-120],[36,59,-114],[58,49,-99]],5.7,mat.strap);
+satinRibbon([[-62,64,-105],[-39,68,-117],[0,70,-121],[39,68,-117],[62,64,-105]],17,assembly.retention,mat.strap);
 anchors.retention=[0,14,-79];
 
 // Dock: calm receptacle architecture. Completely provisional geometry.
