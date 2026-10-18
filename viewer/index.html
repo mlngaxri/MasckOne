@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#e8e5dd" />
+  <meta name="theme-color" content="#202622" />
   <meta name="description" content="MASCK ONE — interactive, source-informed 3D industrial design reconstruction and component exploration." />
-  <title>MASCK ONE — Industrial Design Studio</title>
+  <title>MASCK ONE — Form, engineered.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
@@ -22,24 +22,28 @@
 <body>
   <div id="app">
     <header class="topbar">
-      <a class="wordmark" href="#" aria-label="Masck One Studio home">MASCK<span class="markslash">/</span>ONE</a>
-      <div class="top-center"><span class="live-dot"></span> DIGITAL DESIGN STUDY <span class="header-line"></span> 2026 / M·01</div>
+      <a class="wordmark" href="#" aria-label="Masck One Studio home">MASCK<span class="markslash">/</span><span class="brand-one">ONE</span></a>
+      <div class="top-center"><span class="live-dot"></span> INDUSTRIAL DESIGN ATELIER <span class="header-line"></span> OBJECT 001</div>
       <a href="https://github.com/mlngaxri/MasckOne" class="source-link" target="_blank" rel="noopener noreferrer">SOURCE REPOSITORY <span aria-hidden="true">↗</span></a>
     </header>
 
     <main class="workspace">
       <section class="stage" aria-label="Interactive three-dimensional product visualisation">
         <div class="stage-noise" aria-hidden="true"></div>
+        <div class="ambient-glow" aria-hidden="true"></div>
+        <div class="ghost-index" aria-hidden="true">M/01</div>
+        <div class="stage-rule" aria-hidden="true"></div>
         <canvas id="three-canvas" aria-label="Interactive 3D model of the Masck One facial skincare wearable"></canvas>
         <div class="stage-copy">
-          <div class="eyebrow"><span class="tiny-square"></span> FORM STUDY <span class="pale">/ 01</span></div>
+          <div class="eyebrow"><span class="tiny-square"></span> MASCK ONE <span class="pale">/ OBJECT 001</span></div>
           <h1>Quiet outside.<br><em>Extraordinary inside.</em></h1>
-          <p>A considered reconstruction of Masck One, from its engineering authority and design language. Explore the object, its surfaces, and the system beneath.</p>
+          <p>A new language for personal care. One sculpted form, engineered around the ritual of doing less. Explore the object and the system behind it.</p>
         </div>
         <div class="stage-top-right">
-          <span id="display-mode">ASSEMBLED / A-SURFACE</span><span class="crosshair">✳</span>
+          <span class="display-issue">DESIGN EDITION / 2026</span><span id="display-mode">ASSEMBLED / A-SURFACE</span><span class="crosshair">✳</span>
         </div>
-        <div class="stage-coordinate">X: WEARER RIGHT <span>/</span> Y: SUPERIOR <span>/</span> Z: ANTERIOR</div>
+        <div class="stage-coordinate">SOURCE-BOUND CMF <span>/</span> DIGITAL RECONSTRUCTION <span>/</span> NOT PRODUCTION HARDWARE</div>
+        <div class="focus-readout" id="focus-readout" aria-live="polite"><span class="focus-index">01 / 07</span><span class="focus-name">SCULPTED SHELL</span><span class="focus-type">MINERAL IVORY · FINE SATIN</span></div>
         <div class="stage-gesture"><span class="gesture-ring">↗</span> DRAG TO ROTATE <span class="div-dot">·</span> SCROLL TO ZOOM</div>
         <div id="load-status" role="status" class="load-status">PREPARING 3D STUDIO…</div>
         <div class="stage-controls" aria-label="Model camera controls">
@@ -52,9 +56,9 @@
 
       <aside class="studio-panel">
         <div class="panel-intro">
-          <div class="panel-kicker">THE INDUSTRIAL DESIGN STUDIO <span>01 — 04</span></div>
+          <div class="panel-kicker">FORM, ENGINEERED <span>DESIGN STUDY / V2</span></div>
           <h2>Masck <i>One.</i></h2>
-          <p class="panel-deck">An object designed to disappear into your routine.</p>
+          <p class="panel-deck">Less visible technology. More intentional living.</p>
         </div>
 
         <div class="panel-scroll">
@@ -90,6 +94,11 @@
               <button class="component-item" data-component="retention"><span class="component-index">06</span><span>RETENTION SYSTEM<small>QUICK RELEASE / STUDY</small></span><span class="item-arrow">↗</span></button>
               <button class="component-item" data-component="dock"><span class="component-index">07</span><span>CHARGING DOCK<small>PREPARATION / CONCEPT</small></span><span class="item-arrow">↗</span></button>
             </div>
+            <div class="component-spotlight" id="component-spotlight" aria-live="polite">
+              <span class="spotlight-overline">CURRENT SELECTION <i>01</i></span>
+              <strong id="spotlight-title">The continuous A-surface.</strong>
+              <p id="spotlight-copy">A mineral-toned facial field with large, integrated apertures. Source-backed dimensions; the cosmetic curvature remains illustrative.</p>
+            </div>
           </section>
         </div>
 
@@ -99,14 +108,14 @@
             <div><small>ACTUATORS</small><strong>04 <sup>units</sup></strong></div>
             <div><small>SHELL</small><strong>1.8 <sup>mm nominal</sup></strong></div>
           </div>
-          <button id="detail-toggle" class="detail-toggle">ABOUT THIS RECONSTRUCTION <span>↗</span></button>
+          <button id="detail-toggle" class="detail-toggle">MATERIALS, PROVENANCE & LIMITATIONS <span>↗</span></button>
           <p class="disclaimer" id="disclaimer" hidden>Geometry is source-informed illustrative work, not a native STEP-to-mesh export. Values and colours derive from the current repository authority; shell curvature, internal positioning, dock and hidden mechanisms are provisional. No physical comfort, manufacturing, safety or performance claims are implied.</p>
         </div>
       </aside>
     </main>
     <footer class="footer">
       <span>MASCK / ONE — DIGITAL OBJECT STUDY</span>
-      <span>DESIGNED FOR CALM. ENGINEERED FOR COMPLEXITY.</span>
+      <span>CONCEPT APPEARANCE · NOT A MANUFACTURED DEVICE</span>
       <span>REFERENCE: <a href="https://github.com/mlngaxri/MasckOne/blob/main/config/masck_one_authority.yaml" target="_blank" rel="noopener noreferrer">ENGINEERING AUTHORITY ↗</a></span>
     </footer>
   </div>
