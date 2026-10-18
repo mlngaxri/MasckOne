@@ -35,30 +35,31 @@ const camera=new THREE.PerspectiveCamera(32,1,0.1,1600);
 camera.position.set(93,42,480);
 const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+renderer.setClearColor(0x1c241f,0);
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.85;
+renderer.toneMappingExposure=1.14;
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const environment=new RoomEnvironment();
 const pmrem=new THREE.PMREMGenerator(renderer);
 scene.environment=pmrem.fromScene(environment,0.035).texture;
 pmrem.dispose();
-const hemi=new THREE.HemisphereLight(0xffffff,0x8b8377,2.25); scene.add(hemi);
-const key=new THREE.DirectionalLight(0xfff9eb,4.6);
+const hemi=new THREE.HemisphereLight(0xf9f7ee,0x7b8177,2.0); scene.add(hemi);
+const key=new THREE.DirectionalLight(0xfff6e8,3.5);
 key.position.set(-120,180,270);key.castShadow=true;
 key.shadow.mapSize.set(2048,2048);key.shadow.camera.left=-280;key.shadow.camera.right=280;
 key.shadow.camera.top=280;key.shadow.camera.bottom=-280;key.shadow.camera.near=1;key.shadow.camera.far=800;
 key.shadow.bias=-0.00016;key.shadow.normalBias=0.018;scene.add(key);
-const fill=new THREE.DirectionalLight(0xd3d9de,2.2);fill.position.set(210,65,120);scene.add(fill);
-const rimLight=new THREE.DirectionalLight(0xffffff,2.7);rimLight.position.set(65,-85,-190);scene.add(rimLight);
+const fill=new THREE.DirectionalLight(0xd5e1da,1.8);fill.position.set(210,65,120);scene.add(fill);
+const rimLight=new THREE.DirectionalLight(0xfff5dc,2.15);rimLight.position.set(65,-85,-190);scene.add(rimLight);
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(900,900),new THREE.ShadowMaterial({opacity:0.15}));
 ground.position.z=-120;ground.receiveShadow=true;scene.add(ground);
 
 const mat={
-  shell:new THREE.MeshPhysicalMaterial({color:AUTH.colors.shell,roughness:0.44,metalness:0.035,clearcoat:0.22,clearcoatRoughness:0.54,side:THREE.DoubleSide}),
-  inside:new THREE.MeshPhysicalMaterial({color:0xbeb8ae,roughness:0.72,metalness:0.015,side:THREE.DoubleSide}),
-  elastomer:new THREE.MeshPhysicalMaterial({color:AUTH.colors.interface,roughness:0.82,metalness:0.0,clearcoat:0.05,side:THREE.DoubleSide}),
+  shell:new THREE.MeshPhysicalMaterial({color:AUTH.colors.shell,roughness:0.51,metalness:0.035,clearcoat:0.13,clearcoatRoughness:0.62,side:THREE.DoubleSide}),
+  inside:new THREE.MeshPhysicalMaterial({color:0xc2bfb6,roughness:0.73,metalness:0.015,side:THREE.DoubleSide}),
+  elastomer:new THREE.MeshPhysicalMaterial({color:AUTH.colors.interface,roughness:0.93,metalness:0.0,clearcoat:0.05,side:THREE.DoubleSide}),
   seal:new THREE.MeshPhysicalMaterial({color:0xa8a49b,roughness:0.94,metalness:0.0}),
   structural:new THREE.MeshStandardMaterial({color:0x787873,metalness:0.38,roughness:0.45}),
   dark:new THREE.MeshPhysicalMaterial({color:AUTH.colors.mechanics,metalness:0.22,roughness:0.63}),
@@ -67,9 +68,9 @@ const mat={
   liquid:new THREE.MeshPhysicalMaterial({color:0xc5c7c3,roughness:0.17,metalness:0.03,transmission:0.18,thickness:1.5,transparent:true,opacity:0.78}),
   tubing:new THREE.MeshStandardMaterial({color:0x8c948e,roughness:0.53,metalness:0.15}),
   optical:new THREE.MeshPhysicalMaterial({color:AUTH.colors.optical,roughness:0.23,emissive:0xece6d5,emissiveIntensity:0.08}),
-  strap:new THREE.MeshPhysicalMaterial({color:0xbcb8ae,roughness:0.91,metalness:0.0,side:THREE.DoubleSide}),
+  strap:new THREE.MeshPhysicalMaterial({color:0xb9b5ac,roughness:0.95,metalness:0.0,side:THREE.DoubleSide}),
   pad:new THREE.MeshPhysicalMaterial({color:0xd2cabf,roughness:0.84,metalness:0.0}),
-  dock:new THREE.MeshPhysicalMaterial({color:0xd8d4cc,roughness:0.53,clearcoat:0.18,clearcoatRoughness:0.6}),
+  dock:new THREE.MeshPhysicalMaterial({color:0xd7d3ca,roughness:0.56,clearcoat:0.15,clearcoatRoughness:0.64}),
   ceramic:new THREE.MeshPhysicalMaterial({color:AUTH.colors.control,roughness:0.31,clearcoat:0.20,clearcoatRoughness:0.46})
 };
 
@@ -98,31 +99,50 @@ function makeOutline(){
   s.bezierCurveTo(-70,93,-35,105,0,103);
   return s;
 }
-function ovalHole(x,y,rx,ry){
+// Almond-shaped eyes and softened mouth geometry are CMF explorations.
+function eyeHole(x,y,rx,ry){
   const p=new THREE.Path();
-  p.absellipse(x,y,rx,ry,0,Math.PI*2,true,0);
-  return p;
+  const angle=(x<0?-4:4)*Math.PI/180;
+  const point=(a,b)=>[x+a*Math.cos(angle)-b*Math.sin(angle),y+a*Math.sin(angle)+b*Math.cos(angle)];
+  const l=point(-rx,0),r=point(rx,0);
+  const t1=point(-rx*.55,ry*1.55),t2=point(rx*.45,ry*1.46);
+  const b1=point(rx*.46,-ry*1.49),b2=point(-rx*.46,-ry*1.40);
+  p.moveTo(...l);p.bezierCurveTo(...t1,...t2,...r);p.bezierCurveTo(...b1,...b2,...l);return p;
+}
+function ovalHole(x,y,rx,ry){
+  const p=new THREE.Path();p.absellipse(x,y,rx,ry,0,Math.PI*2,true,0);return p;
+}
+function mouthHole(x,y,rx,ry){
+  const p=new THREE.Path();p.moveTo(x-rx*.94,y);
+  p.bezierCurveTo(x-rx*1.04,y+ry*.75,x-rx*.42,y+ry*1.32,x,y+ry);
+  p.bezierCurveTo(x+rx*.42,y+ry*1.32,x+rx*1.04,y+ry*.75,x+rx*.94,y);
+  p.bezierCurveTo(x+rx*.95,y-ry*.75,x+rx*.48,y-ry*1.24,x,y-ry);
+  p.bezierCurveTo(x-rx*.48,y-ry*1.24,x-rx*.95,y-ry*.75,x-rx*.94,y);return p;
 }
 function formShape(){
   const s=makeOutline();
-  for(const c of [AUTH.eye.left,AUTH.eye.right])s.holes.push(ovalHole(c[0],c[1],AUTH.eye.width/2,AUTH.eye.height/2));
-  s.holes.push(ovalHole(0,AUTH.mouth.center[1],AUTH.mouth.width/2,AUTH.mouth.height/2));
+  for(const c of [AUTH.eye.left,AUTH.eye.right])s.holes.push(eyeHole(c[0],c[1],AUTH.eye.width/2,AUTH.eye.height/2));
+  s.holes.push(mouthHole(0,AUTH.mouth.center[1],AUTH.mouth.width/2,AUTH.mouth.height/2));
   for(const c of [AUTH.nostril.left,AUTH.nostril.right])s.holes.push(ovalHole(c[0],c[1],5,5.7));
   return s;
 }
 function faceDepth(x,y){
-  const px=Math.max(0,1-Math.pow(Math.abs(x)/93,2));
-  const py=Math.max(0,1-Math.pow(Math.abs(y-4)/129,2));
-  const cheek=17*Math.pow(px*py,0.8);
-  const nose=13*Math.exp(-Math.pow(x/18,2)-Math.pow((y+2)/36,2));
-  const brow=2.8*Math.exp(-Math.pow((y-52)/21,2));
-  const chin=3.2*Math.exp(-Math.pow((y+81)/30,2));
-  return cheek+nose+brow+chin+2.0;
+  // Aesthetic curvature placeholder, not anatomically registered geometry.
+  const px=Math.max(0,1-Math.pow(x/93,2));
+  const py=Math.max(0,1-Math.pow((y+1)/130,2));
+  const cheek=15.1*Math.pow(px*py,.82);
+  const malar=3.6*Math.exp(-Math.pow((Math.abs(x)-43)/24,2)-Math.pow((y+15)/33,2));
+  const nasal=17*Math.exp(-Math.pow(x/18.5,2)-Math.pow((y-5)/42,2));
+  const bridge=4.2*Math.exp(-Math.pow(x/17,2)-Math.pow((y-35)/31,2));
+  const brow=3.0*Math.exp(-Math.pow((y-65)/26,2));
+  const chin=3.1*Math.exp(-Math.pow((y+76)/30,2));
+  const side=1.6*Math.exp(-Math.pow((Math.abs(x)-67)/18,2)-Math.pow((y-5)/70,2));
+  return 1.8+cheek+malar+nasal+bridge+brow+chin+side;
 }
 function moldedShell(){
   const sh=formShape();
-  let geo=new THREE.ExtrudeGeometry(sh,{depth:AUTH.body.wall,steps:1,bevelEnabled:true,bevelThickness:.7,bevelSize:.7,bevelSegments:4,curveSegments:32});
-  geo=new TessellateModifier(11,5).modify(geo);
+  let geo=new THREE.ExtrudeGeometry(sh,{depth:AUTH.body.wall,steps:1,bevelEnabled:true,bevelThickness:.95,bevelSize:1.05,bevelSegments:6,curveSegments:42});
+  geo=new TessellateModifier(8,5).modify(geo);
   const p=geo.getAttribute('position');
   for(let i=0;i<p.count;i++){
     const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
@@ -146,6 +166,11 @@ function tube(parent,pts,radius,material,closed=false){
 }
 function zAt(x,y,offset=0){return faceDepth(x,y)+offset;}
 const shell=mesh(moldedShell(),formMaterial,assembly.shell);
+// Self-locating cosmetic split, restrained as an actual engineering seam.
+const edgePoints=makeOutline().getPoints(160).map(p=>[p.x,p.y,zAt(p.x,p.y,-3.25)]);
+tube(assembly.shell,edgePoints,.46,mat.inside,true);
+const rearEdge=makeOutline().getPoints(160).map(p=>[p.x*.985,p.y*.985,zAt(p.x,p.y,-5.6)]);
+tube(assembly.frame,rearEdge,.75,mat.seal,true);
 anchors.shell=[0,0,30];
 
 // Shell inner skin. This sits beneath the curved A-surface and is distinct
@@ -158,10 +183,10 @@ inner.scale.set(.986,.985,.994);
 const padCenters=[[-60,7],[60,7],[-51,-28],[51,-28],[-31,-77],[31,-77],[-45,78],[45,78]];
 for(let i=0;i<padCenters.length;i++){
   const [x,y]=padCenters[i];
-  const pad=mesh(new THREE.SphereGeometry(1,20,14),mat.elastomer,assembly.interface,[x,y,zAt(x,y,-13)]);
-  pad.scale.set(i<2?10:11,i<2?19:15,3.2);
-  const rim=mesh(new THREE.TorusGeometry(i<2?9.2:10.2,1.1,8,44),mat.seal,assembly.interface,[x,y,zAt(x,y,-13.7)]);
-  rim.scale.y=i<2?1.75:1.38;
+  const pad=mesh(new THREE.SphereGeometry(1,40,24),mat.elastomer,assembly.interface,[x,y,zAt(x,y,-12)]);
+  pad.scale.set(i<2?10.8:11.4,i<2?19.3:15.8,2.35);
+  const rim=mesh(new THREE.TorusGeometry(i<2?9.65:10.35,.62,10,48),mat.seal,assembly.interface,[x,y,zAt(x,y,-14.35)]);
+  rim.scale.y=i<2?1.78:1.41;
 }
 anchors.interface=[0,0,-6];
 
@@ -173,20 +198,20 @@ anchors.frame=[0,0,-16];
 
 // Protected eyes/mouth are clear apertures through the shell; no raised goggle rims.
 // An offset inset follows the aperture shape as a low-contrast elastomer edge study.
-function apertureRim(x,y,rx,ry){
-  const positions=[];for(let i=0;i<=68;i++){
-    const t=i/68*Math.PI*2;
-    positions.push([x+rx*Math.cos(t),y+ry*Math.sin(t),zAt(x+rx*Math.cos(t),y+ry*Math.sin(t),-3.1)]);
-  }
-  tube(assembly.interface,positions,.8,mat.seal,true);
+function insetPath(path,thickness=.65){
+  const points=path.getPoints(75).map(p=>[p.x,p.y,zAt(p.x,p.y,-2.95)]);
+  tube(assembly.interface,points,thickness,mat.seal,true);
 }
-for(const p of [AUTH.eye.left,AUTH.eye.right])apertureRim(p[0],p[1],23.5,15.5);
-apertureRim(0,-50,29.5,16.5);
+for(const p of [AUTH.eye.left,AUTH.eye.right])insetPath(eyeHole(p[0],p[1],22.8,14.8),.62);
+insetPath(mouthHole(0,-50,28.5,15.6),.63);
+for(const p of [AUTH.nostril.left,AUTH.nostril.right])insetPath(ovalHole(p[0],p[1],5.2,5.9),.34);
 
 // M-Cut signature control on the upper forehead, nearly tone-on-tone.
-const cap=mesh(new THREE.CylinderGeometry(5.0,5.0,1.05,48),mat.ceramic,assembly.shell,[0,76,zAt(0,76,3.8)],[Math.PI/2,0,0]);
-const cutA=tube(assembly.shell,[[-2.5,77.5,zAt(0,76,5)],[0,74.7,zAt(0,76,5)],[2.5,77.5,zAt(0,76,5)]],.38,mat.optical);
-anchors.control=[0,76,30];
+const cap=mesh(new THREE.CylinderGeometry(4.86,4.86,.87,64),mat.ceramic,assembly.shell,[0,77,zAt(0,77,1.7)],[Math.PI/2,0,0]);
+mesh(new THREE.TorusGeometry(4.82,.12,8,64),mat.seal,assembly.shell,[0,77,zAt(0,77,2.35)]);
+const monogramZ=zAt(0,77,2.6);
+tube(assembly.shell,[[-2.25,75.8,monogramZ],[-2.25,78.25,monogramZ],[-.4,76.05,monogramZ],[0,76.35,monogramZ],[.4,76.05,monogramZ],[2.25,78.25,monogramZ],[2.25,75.8,monogramZ]],.22,mat.optical);
+anchors.control=[0,77,30];
 
 // Four architecture-defined actuation units. Placement and actuator shape provisional.
 const actLocations=[[-46,7],[46,7],[-42,-47],[42,-47]];
