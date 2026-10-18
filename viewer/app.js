@@ -32,7 +32,7 @@ const canvas=document.getElementById('three-canvas');
 const stage=canvas.closest('.stage');
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(32,1,0.1,1600);
-camera.position.set(93,42,480);
+camera.position.set(75,25,505);
 const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
 renderer.setClearColor(0x1c241f,0);
@@ -336,7 +336,7 @@ controls.enableDamping=true;controls.dampingFactor=.06;controls.enablePan=false;
 controls.minDistance=260;controls.maxDistance=800;
 controls.target.set(0,-1,-12);
 controls.maxPolarAngle=Math.PI;controls.minPolarAngle=0;
-controls.autoRotate=false;controls.autoRotateSpeed=.62;
+controls.autoRotate=false;controls.autoRotateSpeed=.48;
 controls.update();
 const isReduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let currentMode='assembled';
@@ -369,11 +369,20 @@ function setMode(mode){
   formMaterial.depthWrite=mode!=='ghost';
   // The backing shell should not obscure x-ray internal systems.
   inner.material.visible=mode!=='ghost';
-  const dest=mode==='dock'?new THREE.Vector3(95,40,580):new THREE.Vector3(93,42,480);
+  const dest=mode==='dock'?new THREE.Vector3(85,29,580):new THREE.Vector3(75,25,505);
   if(!isReduced)camera.userData.dest=dest;else{camera.position.copy(dest);controls.update();}
 }
 document.querySelectorAll('.mode-btn').forEach(el=>el.addEventListener('click',()=>setMode(el.dataset.mode)));
 
+const componentCopy={
+  shell:['01 / 07','SCULPTED SHELL','MINERAL IVORY · SATIN','The continuous A-surface.','An ivory ceramic-like shell with integrated aperture edges and a single quiet perimeter seam. Source-backed bounds; cosmetic curvature remains illustrative.'],
+  interface:['02 / 07','FACIAL INTERFACE','SOFT STONE · MATTE','Softness, precisely placed.','Compliant support and contact islands explore cleanable surfaces against the face. Footprint, materials and comfort require physical qualification.'],
+  actuators:['03 / 07','ACTUATION ARRAY','FOUR-UNIT ARCHITECTURE','The motion beneath.','Four source-backed actuator units as contained drive cartridges. Housing and fastening geometry remain a presentation study.'],
+  fluid:['04 / 07','FLUID DISTRIBUTION','18 WATER / 6 CLEANSER','Intelligence in every route.','A session reservoir and differentiated routes illustrating the engineering-baseline outlet counts. Physical distribution remains unproven.'],
+  waste:['05 / 07','WASTE CARTRIDGE','74 × 36 × 20 MM ENVELOPE','A cleaner closed loop.','A removable cassette follows the engineering-baseline envelope. Retention, sealing and recovered-fluid performance remain unvalidated.'],
+  retention:['06 / 07','RETENTION SYSTEM','RELEASE LATCH · STUDY','Secure, without spectacle.','Restrained satin bands and compact release forms. Unpowered quick-release performance is a safety requirement, not a verified capability.'],
+  dock:['07 / 07','PREPARATION DOCK','CHARGING / LOADING STUDY','Its place in the ritual.','A calm home base intended for charging, loading and service. Dock appearance and internal arrangements are illustrative, not released CAD.']
+};
 const materialNotes={
   ivory:['MINERAL IVORY','#E9E5DC','Fine, low-gloss satin over a warm engineering-polymer shell.'],
   stone:['SOFT STONE','#CFC8BC','Cleanable, compliant soft-matte contact material; final grade still unqualified.'],
@@ -386,13 +395,20 @@ function setSwatch(which){
   document.getElementById('material-name').textContent=data[0];
   document.getElementById('material-hex').textContent=data[1];
   document.getElementById('material-desc').textContent=data[2];
-  if(which==='ivory')setMode('assembled');
+  if(which==='ivory'){setMode('assembled');selectComponent('shell',false);}
   if(which==='stone'){setMode('exploded');selectComponent('interface',false);}
   if(which==='graphite'){setMode('ghost');selectComponent('actuators',false);}
 }
 document.querySelectorAll('.swatch-row').forEach(el=>el.addEventListener('click',()=>setSwatch(el.dataset.swatch)));
 function selectComponent(comp,changeMode=true){
   activeComponent=comp;
+  const info=componentCopy[comp]||componentCopy.shell;
+  document.querySelector('.focus-index').textContent=info[0];
+  document.querySelector('.focus-name').textContent=info[1];
+  document.querySelector('.focus-type').textContent=info[2];
+  document.getElementById('spotlight-title').textContent=info[3];
+  document.getElementById('spotlight-copy').textContent=info[4];
+  document.querySelector('.spotlight-overline i').textContent=info[0].slice(0,2);
   document.querySelectorAll('.component-item').forEach(el=>el.classList.toggle('active',el.dataset.component===comp));
   if(changeMode){if(comp==='shell')setMode('assembled');else if(comp==='dock')setMode('dock');else setMode('exploded');}
   const focus=anchors[comp]||[0,0,0];
@@ -410,7 +426,7 @@ document.getElementById('front-btn').addEventListener('click',()=>{
   controls.target.set(0,0,0);
 });
 document.getElementById('iso-btn').addEventListener('click',()=>{
-  camera.userData.dest=new THREE.Vector3(93,42,480);
+  camera.userData.dest=new THREE.Vector3(75,25,505);
   controls.target.set(0,0,-12);
 });
 document.getElementById('rotate-btn').addEventListener('click',e=>{
@@ -464,6 +480,6 @@ function tick(now){
   renderer.render(scene,camera);
 }
 requestAnimationFrame(tick);
-document.getElementById('load-status').textContent='3D STUDY READY';
+document.getElementById('load-status').textContent='OBJECT 001 — VIEWER READY';
 document.getElementById('load-status').classList.add('ready');
 console.info('MASCK ONE design reconstruction initialized. Engineering source remains authoritative; visuals are not validation evidence.');
