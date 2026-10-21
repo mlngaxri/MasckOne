@@ -53,7 +53,11 @@ jobs:
     runs-on: ubuntu-latest
     # Preserve every current source/brand gate and allow measured margin for
     # per-solid STEP round-trip verification plus package-integrity verification.
-    timeout-minutes: 45
+    # Exact-head run 34777619295 completed the full 712-test suite in 37m48s,
+    # then reached the deterministic CAD smoke build and was cancelled only by
+    # the 45-minute job ceiling after another 6m20s. Sixty minutes retains every
+    # gate while providing bounded margin for the release/package checks below.
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -200,13 +204,12 @@ jobs:
       # step alone consumed 44m05s before being cancelled, which skipped the CAD
       # smoke build, the provenance verification and the package-integrity check
       # below, and left the structural-frame lane unable to complete a single
-      # run. Distributed across the runner's cores the same suite completes in
-      # single-digit minutes with no test skipped, removed or weakened.
+      # run. Distributed across the runner's cores the same suite completes with
+      # no test skipped, removed or weakened.
       #
       # --dist loadscope keeps each module's tests on one worker so the suite's
       # many module-scoped CAD fixtures are built once per module rather than
-      # once per worker. Measured on 4 cores: loadscope 6m14s, default load
-      # 8m28s, both with 0 failures across 712 tests.
+      # once per worker.
       - name: Unit and integration tests
         run: python -m pytest -n auto --dist loadscope --durations=20
 
