@@ -74,12 +74,14 @@ the owning mechanical lane rather than a hardware change made here.
 
 ## What remains UNKNOWN
 
-Footprints are declared inputs. Until Packet L / PR #157 supplies a source-bound
-contact and affected-cell capability model, the topology this compiler reasons
-over is whatever the caller passed it, and a compiled plan says only that the
-demand is reachable under those declared footprints. It is not evidence that any
-region was cleaned, that a dose was delivered, or that the mechanism can apply
-the ranked burden safely to a person.
+The low-level compiler still accepts declared footprints. PR #157 adds the
+[source-bound intake](CS018_CLEANSING_CAPABILITY_BINDING.md), which builds Actions
+only from committed records across every required owner and refuses stale or
+missing source data. Hardware-facing callers use that entry point. Current owner
+capability records are missing, so it emits no hardware plan. Successful synthetic
+compilation establishes only reachability under the recorded digital assertions.
+It is not evidence that a region was cleaned, that a dose was delivered, or that
+the mechanism can apply the ranked burden safely to a person.
 
 ## Tests
 
