@@ -1,0 +1,257 @@
+{
+  "main": "17f7d02c6178af8d33e4dfefb5043b497684ddb3",
+  "observed_owner_heads": [
+    {
+      "pr": 157,
+      "head": "a86ab3cbd391026bdf76396a3ef97d79f13be589",
+      "branch": "lane1/facial-interface-20260911"
+    },
+    {
+      "pr": 144,
+      "head": "9fb64aa4753dad03a455aad4802910d8814ef5ce",
+      "branch": "codex/buttery-primary-hmi-20260909"
+    },
+    {
+      "pr": 143,
+      "head": "d2b82e50d5bfbadb4a60588a9119139b4742031a",
+      "branch": "scheduled/warm-cool-package-20260909"
+    },
+    {
+      "pr": 142,
+      "head": "6ee47ecba639a9ce09c3cd076bbfe0408c2d089f",
+      "branch": "cell12/compact-dry-side-package-reconstructed-20260909"
+    },
+    {
+      "pr": 141,
+      "head": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+      "branch": "sol-high/retention-quick-release-20260909"
+    },
+    {
+      "pr": 140,
+      "head": "7052bb79dfe75b877bf92f75aeb2289f3d4aab1b",
+      "branch": "sol-high/cartridge-service-20260909"
+    },
+    {
+      "pr": 135,
+      "head": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "branch": "codex/treatment-live117-reconcile-20260909"
+    },
+    {
+      "pr": 117,
+      "head": "c06bed04f598b9c09a76e0207e0c562b51c70984",
+      "branch": "cell6/structural-frame-reaction-loop-v1"
+    },
+    {
+      "pr": 70,
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "branch": "cell2/exterior-green-baseline-20260905"
+    }
+  ],
+  "ci": [
+    {
+      "head": "c06bed04f598b9c09a76e0207e0c562b51c70984",
+      "pr": 117,
+      "runs": [
+        {
+          "conclusion": "failure",
+          "id": 34637916961,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "head": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "pr": 135,
+      "runs": []
+    },
+    {
+      "head": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+      "pr": 141,
+      "runs": []
+    },
+    {
+      "head": "d2b82e50d5bfbadb4a60588a9119139b4742031a",
+      "pr": 143,
+      "runs": [
+        {
+          "conclusion": "success",
+          "id": 34425183989,
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "pr": 70,
+      "runs": []
+    }
+  ],
+  "consumed_files": [
+    {
+      "path": "config/masck_one_authority.yaml",
+      "sha256": "30e1e94cb88ea9b657ec5168c7657892f8109c5ddef3f4773c7849780eca11bf",
+      "git_blob": "42656ecc57acaed9e866a46b7c3aa14867c44b62"
+    },
+    {
+      "path": "config/masck_brand_authority.yaml",
+      "sha256": "5d69bb484b45f0d653bdfd78ded3bfb35faa15d74880c36a3dc2c0a2509ad9b0",
+      "git_blob": "52c90085c474152e6a2adc9e0459cf665d006618"
+    },
+    {
+      "path": "src/masck_one/facial_surface.py",
+      "sha256": "b11c99bc994aa96a974e6d95a06330d1389f10727c4b7de6d689fa4493f2255e",
+      "git_blob": "764f6f65b83ac7709d959bb0f37f861c90ea2794"
+    },
+    {
+      "path": "src/masck_one/anatomy.py",
+      "sha256": "23ac0e557928e70db2170e23797537667776735614e7dedc22222c3498c70467",
+      "git_blob": "872d1e5be1b9ce9baa5b63cb53462eb7b36f40ab"
+    },
+    {
+      "path": "src/masck_one/reference_surfaces.py",
+      "sha256": "2b5caecd019c0ba65853f840eb893a1d98c7fa8e36710575490c2fdc2c49f068",
+      "git_blob": "299e4ebb5946c2b1ac56b2c64dde2c0a8744abf2"
+    },
+    {
+      "path": "src/masck_one/spatial.py",
+      "sha256": "507114d68e312c90fb6da38e094debba72abdba9e25e5f7067fdf2713b2cef48",
+      "git_blob": "8c1106b523fef5111009cc56236a53e3bc5ee10e"
+    },
+    {
+      "path": "src/masck_one/worn_pose.py",
+      "sha256": "ff904d5df89c3d7115f3aa253acdcf43803489cd3a823929558a199d12f2e727",
+      "git_blob": "9d4ed65246fbc92ac577ce38bceb95cd2253607b"
+    },
+    {
+      "path": "src/masck_one/model.py",
+      "sha256": "62ca91e2b400197be6212901d64765ec036bd0cf5a46bb2e537b2e3ac7575282",
+      "git_blob": "ab48b3ca47e7ec8ecb7d3ecb31e7fe22b3ebca68"
+    },
+    {
+      "path": "src/masck_one/protected_volumes.py",
+      "sha256": "258bc9f3ee9270287ee8d424c9332ef112ffaa6b77717df402255ceddc82e499",
+      "git_blob": "ff2b9b288559f9b268e5d08a1d6c78335f745cf1"
+    },
+    {
+      "path": "src/masck_one/coverage.py",
+      "sha256": "f96bdaabcb6649cf7aa1eee8285a3ac1119f9dabc816e805c69a240e53974dc3",
+      "git_blob": "4a8cec4d94db97e63f634a94dd8c90094f3afcb0"
+    },
+    {
+      "path": "src/masck_one/interface_topology.py",
+      "sha256": "e458a63f4c7e07d43a532c23f1104315b79e3a67544bddaed7c7fbc46e41ecb9",
+      "git_blob": "38b7c932f71a8675d45d098ac65154f98ff8bbb5"
+    },
+    {
+      "path": "src/masck_one/component_registry.py",
+      "sha256": "48796f1bab5338f27b36eaf1c5d880c3350df4797781c54aab27a7759cde939f",
+      "git_blob": "c8ee620ae02f5666b38266d18543ade10f236355"
+    },
+    {
+      "path": "src/masck_one/cleansing_fit.py",
+      "sha256": "481cfc8058b80ef4b07a1941292d607dc0fa875e09c698e0720118b5e2d4cb41",
+      "git_blob": "65ee6ac818f0beebc6456c1e30c31b8e13a459bf"
+    },
+    {
+      "path": "docs/CORE_SKETCH_V1.md",
+      "sha256": "a499844cd7a2b1945e37a37934d4feeb09facf16262347d64bfa66bfa004a20a",
+      "git_blob": "3fa8e3c3e668182b6cb95ce050c8cd8c503443e4"
+    },
+    {
+      "path": "docs/CORE_SKETCH_STATUS_BOARD.md",
+      "sha256": "2638fd7c859af42118c3f74485bdb0cd32f307c61a9eb804fe99236b64d19445",
+      "git_blob": "6b3ac61c15c924aa9f270e04cb5d7584075b5000"
+    },
+    {
+      "path": "docs/CORE_SKETCH_PRIORITY_RULES.md",
+      "sha256": "defe51aad050113a955591a929ceebe22a523524412a90f26e0011e70ed60f37",
+      "git_blob": "9f358f8172245ad54a792ab5ed435380c689534c"
+    },
+    {
+      "path": "docs/CORE_SKETCH_P0_OWNER_TRIAGE.md",
+      "sha256": "a3f85e92e0e7606407d9b5b83872eb651594f74473243de2956d447f1d3b3340",
+      "git_blob": "33c22c9c7cba3c1050f962d0268f3fa955a2be1f"
+    },
+    {
+      "path": "docs/CORE_SKETCH_EXECUTION_BACKLOG.md",
+      "sha256": "ff7935b60dbd6d60738fd596e7596ce36791d19ac12f7aa5651732319b735ef1",
+      "git_blob": "c9a916ad11497febb050867078ab6a1966b45e20"
+    }
+  ],
+  "status": "READ_ONLY_ANALYSIS_SNAPSHOT_NOT_PRODUCER_REBIND",
+  "coordinate_frame": "X wearer right; Y superior; Z anterior; extrinsic Rz Ry Rx",
+  "unresolved": [
+    "Registered facial/headform depth",
+    "Source-bound compliant support/seal travel",
+    "Passive self-alignment constraint/contact geometry",
+    "Integrated emergency and normal whole-head removal",
+    "CS015 required regions registered to a measured surface"
+  ],
+  "read_only_owner_files": [
+    {
+      "pr": 117,
+      "head": "c06bed04f598b9c09a76e0207e0c562b51c70984",
+      "path": "src/masck_one/structural_frame_retention_roots.py",
+      "sha256": "f7250a67f7a1f7bcb41159be8b2675f709ceb0b8c55d85a638f63f7a061fa25b",
+      "git_blob": "1cf6357898d62afc9ebdc28d3f6394c12dd76644",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 117,
+      "head": "c06bed04f598b9c09a76e0207e0c562b51c70984",
+      "path": "src/masck_one/structural_frame_crown_support.py",
+      "sha256": "bdf2efacc5badf8809b2ded5e8c3976fdac2bfa594551210ade5a8a03053d533",
+      "git_blob": "aff317669d115bcd65f21421828a557b00deba5e",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 135,
+      "head": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "path": "src/masck_one/treatment_mounted_four_zone_v10.py",
+      "sha256": "135fd91fe7a156f48ca65c372755cc21ba51a5fcd7af040f57a483928fe4e4dd",
+      "git_blob": "dd03f0637a38c5ac96a71c60c30fe0a3e32235e8",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 135,
+      "head": "b3a224770f724fbc625534ea563fa09c1b910729",
+      "path": "src/masck_one/treatment_cell6_source_binding.py",
+      "sha256": "de95ffba7277f93123c5a27c0ad73b7b2f760b4b445fa3bed33dc6a6303437bb",
+      "git_blob": "7215d1a21e78ee19933216100e9394324a920690",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 141,
+      "head": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+      "path": "src/masck_one/mechanical_interface_graph.py",
+      "sha256": "24a8708557cc5829e0a77c5628c6c620b7cd206ccc1ce2b287f6f7076cee545b",
+      "git_blob": "d4d01703ca5f4c4d57409fb69a8dc9e0b4081b17",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 141,
+      "head": "13dff9efb2bebf099a6cbb054d72620b9e0b0672",
+      "path": "src/masck_one/retention_quick_release_tactile_v3.py",
+      "sha256": "68763c2888cd27221ced204138633f54b6c84de85866f2570d9dc5aa0c59066a",
+      "git_blob": "278da9ab8b4c08cdc8fa011452866430da95ed8d",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 143,
+      "head": "d2b82e50d5bfbadb4a60588a9119139b4742031a",
+      "path": "src/masck_one/thermal_reset_hardware.py",
+      "sha256": "bdd9371b2b95c33cab3df5c2815afcce39e82c2b4888866f1edbad09c31d73f3",
+      "git_blob": "d0acc062be1b23e1363dfb17642a6591d1429e77",
+      "registration_to_measured_face": "UNKNOWN"
+    },
+    {
+      "pr": 70,
+      "head": "152312fe6eced419eef4e1e58c33df09fd0710ea",
+      "path": "src/masck_one/exterior_surface.py",
+      "sha256": "39640cd7f912811d08a3257abd7445c6e433ad24679cb44229143518c1ccbe8a",
+      "git_blob": "bb9185ffadc91f11ccac3285bb4c3d4db496e9dd",
+      "registration_to_measured_face": "UNKNOWN"
+    }
+  ],
+  "component_registry_pin_check": "All registry producer blob IDs match this main snapshot; no producer rebind performed"
+}

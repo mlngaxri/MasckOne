@@ -1,0 +1,12 @@
+{
+  "receipt": null,
+  "max_residual_mm": {
+    "sparse": null,
+    "field": null
+  },
+  "required_sparse_ids": null,
+  "required_field_cells": null,
+  "required_support_ids": null,
+  "required_force_channels": [],
+  "trajectory_max_gap_s": null
+}

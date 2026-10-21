@@ -1,0 +1,33 @@
+{
+  "schema": "FIT_METROLOGY_RECORD_BINDING_VALIDATION_1",
+  "base_head": "fdb8431902c861e496196bca2bf2b7f860131a3f",
+  "record_revision": 2,
+  "local_suites": [
+    {
+      "suite": "bench-record-binding-cli",
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "log_sha256": "d9df600c982a40c7d58d5a8335a858f1b261e9d363394f5acb8f31c120d252b8"
+    },
+    {
+      "suite": "record-boundary-integrity",
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0,
+      "log_sha256": "644e1bf6b0fb213f2c0705579111dc3f31521c137e6402f48d8e448119a8f229"
+    }
+  ],
+  "local_tests_passed": 92,
+  "source_sha256": {
+    "src/masck_one/fit_metrology_records.py": "d8d2e51da9e07d3db56b74f5cff2d51e699cd5080cdf76af4f8a306b6f9bf374",
+    "tests/test_fit_metrology_records.py": "5bac8047f2fac29fc1c329939d2be3f464c85a9580e344f36dfd2ebf81b8ecf7",
+    "analysis/fit_proof/metrology/run_record.schema.json": "bb3e0a61fb45738545fb04a1693f725a3aeef4a24ede233762e6ccd97fc3736a",
+    "analysis/fit_proof/metrology/run_record_template.json": "91f2c3b66038978e04dbe1c35d2ed9b7e1094175a773d2bf7d51c2db9c7b6612",
+    "analysis/fit_proof/metrology/source_context.schema.json": "76945ae8231918e6b381923b514b11013a30a1d8c617d2bf3140f5aceeba1376",
+    "analysis/fit_proof/metrology/source_context_template.json": "a4f5b90925cd06d4653389f7c08e0440fdf010c634ade3300d81adbfff217b7d"
+  },
+  "prior_exact_head_ci_receipt": "analysis/fit_proof/ci/fdb8431.json",
+  "current_exact_head_ci": "REQUIRED_AFTER_PUBLICATION",
+  "physical_result": null
+}

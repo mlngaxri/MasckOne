@@ -1,0 +1,29 @@
+{
+  "analyzed_main": "3ccd9128810e6a6f4d01d57067be777345aa1484",
+  "artifact_sha256": {
+    "fabrication_STEP.zip": "3bdb49a1fa4072bab8715ca0a2ba9def2c03ecc9f3c6c29c6cd73651c4561189",
+    "fabrication_manifest.json": "8977d3edd8a00f8b39a1b91f64db734806ed9c9fcbc90cc2a547277761af4836"
+  },
+  "empty_owner_profiles": "ACQUISITION_BLOCKED_UNTIL_OWNER_COUPONS_EXIST",
+  "exact_checkpoint_ci": {
+    "engineering_integrity": "success",
+    "integrity_ratchets": "success",
+    "provenance_bind": "success",
+    "release_cad_package_checks": "success",
+    "run_id": 34723491072
+  },
+  "focused_tests": {
+    "count": 31,
+    "result": "PASS",
+    "runtime": "Python3.12 CadQuery2.7 locally; repository runtime3.13/2.8 CI separate",
+    "source_sha256": {
+      "src/masck_one/fit_metrology_records.py": "850122a4bf985c12fcc36d460e992df5ad45978fa4953521edbabf4bfa270a0e",
+      "src/masck_one/fit_metrology_rig.py": "387eb6e02dc881fc310b3f63ff83d0d02ca196889243783d59f89cd2819a9e15",
+      "tests/test_fit_metrology_records.py": "f62e2e429be6d17b6fbc79b58ec79501f0bb69113b70b51892e327d2d7b99ca0",
+      "tests/test_fit_metrology_rig.py": "f7d28b2abb4aeb760ca9d717e0afc94e5c895b47d6553a6da71b0089853edf33"
+    }
+  },
+  "physical_result": null,
+  "schema": "FIT_METROLOGY_VALIDATION_1",
+  "source_current_checkpoint": "9397d574a63a1620a52e173d440738d3469d5713"
+}

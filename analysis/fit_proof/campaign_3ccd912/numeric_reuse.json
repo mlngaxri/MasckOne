@@ -1,0 +1,26 @@
+{
+  "changed_layers": [
+    "Capability cost bookkeeping: expanded range is not an added rigid DOF",
+    "Add nominal witness and projected-screen replay CLI",
+    "Proof-branch ancestry: unchanged geometry and authority"
+  ],
+  "current_proof_code_head": "401111029ddf99a9a17a6d086c0095275d944e0a",
+  "identical_numeric_functions_AST_sha256": {
+    "adversarial_fit_campaign.py:capture_slices": "5655ed78666668dafaebe3f65c63a11546e3e3360aa88f612bd9ab4767e42868",
+    "adversarial_fit_campaign.py:surface_demand": "5d1d86660fb1e1fa0ad66e3a913e983b0b2a6220a4a7c049c30a7bd0f5ae1b28",
+    "adversarial_fit_proof.py:adversarial_search": "373f255a6d1eca67d740e908eb5d50b25dbd587e82bb91f6128df9e13fd7dbe9",
+    "adversarial_fit_proof.py:boundary_search": "cb332c2352c2e616b5e4a8f18e77784c81c70d210f20d58b658ecb89b16bdd58",
+    "adversarial_fit_proof.py:pair_distance_lower_bound": "6ed1c185cd583fb177ed03ee669b3f3be25d91ef4e5a34d36340b827c61d3af0",
+    "adversarial_fit_proof.py:solve_registration": "f9f8e13fae50461512632271f20812e4c1784dbc9d8d72bb8518674478fcdab0",
+    "adversarial_fit_proof.py:warp": "8719c8e60407f4fecd78e24a82fd4b49c221f198216187ca9a47930198956ca9",
+    "adversarial_fit_study.py:capability_registration": "9da581b60ffa5f858d2202a8576bc4a835f01a622c16ea59971d287c4b2b033e",
+    "adversarial_fit_study.py:endpoint_status": "f7b88390f35d8426826748f75c069e9dfc999d2a1140fa927864fcb8c5f49c8c",
+    "adversarial_fit_study.py:make_witness": "7ef70be991a9f2d7aa4e07b74f046902faef1d08f747362cb101f8661274e06a",
+    "adversarial_fit_study.py:metrics": "ffee60612c2947a42effc6c4cf52967c81fce688696495024ba8bb3453db0aff",
+    "adversarial_fit_study.py:replay": "2b24d3aba512b7a59c79a47268e41416bf14bfa487addd933cb309c274cc7239",
+    "adversarial_fit_study.py:sparse_registration": "66b0ccff9c3d5f8f38064bb3e0cc18c61786c820494892452b785687b9135068"
+  },
+  "no_optimizer_or_geometry_threshold_changed": true,
+  "original_manifest_sha256": "a333e6803640b65860bda11aaa1089caf06b19d5db4e697b6a16ccd8cb3cdc39",
+  "original_producer_head": "1b1079415d46e2eefb9bc1b3a55d9dc8cec7d407"
+}

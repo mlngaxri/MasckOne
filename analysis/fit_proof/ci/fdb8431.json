@@ -1,0 +1,213 @@
+{
+  "schema": "MASCK_FIT_EXACT_CI_RECEIPT_1",
+  "source_head": "fdb8431902c861e496196bca2bf2b7f860131a3f",
+  "source_base": "3065148005192930c3929bad1131cf60ed5a35b4",
+  "tested_commit": "1237769722dac7c7a872d8db3143fd82f4a2bf39",
+  "source_and_tested_tree": "d4f71dc1ec7c9198f84a4bf6464914a9fa901f99",
+  "run_id": 34750799670,
+  "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34750799670",
+  "qualification_scope": "ONLY_THE_NAMED_EXACT_HEAD_NOT_SUBSEQUENT_RECORD_REVISIONS",
+  "jobs": [
+    {
+      "id": 103706889184,
+      "name": "engineering-integrity",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Checkout",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Bind tested source provenance",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set up Python",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install project",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Compile Python",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate engineering authority contract",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate MASCK brand/product identity contract",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Repository preflight",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Iteration 11 nasal subsystem preflight",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Iteration 12 interface boundary preflight",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Iteration 13 interface attachment preflight",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Iteration 14 contact simulation preflight",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Iteration 15 structural frame preflight",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Iteration 16 Class-A surface workflow preflight",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Unit and integration tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Deterministic CAD smoke build",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify exact release source provenance",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify generated package integrity",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Preserve source-bound CAD review artifacts",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set up Python",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Checkout",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 103706889350,
+      "name": "integrity-ratchets",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Checkout",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set up Python",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install guard dependencies",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Repository integrity ratchets",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Pinned-commit provenance",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Program-position consistency",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set up Python",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Checkout",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "unit_integration": {
+    "passed": 1545,
+    "subtests_passed": 4,
+    "failed": 0,
+    "elapsed_seconds": 642.2
+  },
+  "runtime": {
+    "python": "3.13",
+    "cadquery": "2.8.0"
+  },
+  "artifact": {
+    "id": 10316560227,
+    "sha256": "b6380e39df70295ebcd299c521cbf4a3a6d973dbdf59098908c6ba12fd3dfa52",
+    "size_bytes": 380397,
+    "expires_at": "2026-09-16T10:15:47Z",
+    "url": "https://github.com/mlngaxri/MasckOne/actions/runs/34750799670/artifacts/10316560227",
+    "scope": "REPOSITORY_DETERMINISTIC_CAD_SMOKE_NOT_PHYSICAL_VALIDATION"
+  },
+  "physical_result": null,
+  "whole_product_fit": "UNKNOWN"
+}

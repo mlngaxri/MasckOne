@@ -1,0 +1,52 @@
+{
+  "COMBINED_MODERATE": {
+    "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+    "maximum_absolute_z_mm": 0.0,
+    "qualified_local_travel_mm": null,
+    "seal_support_feasible": "UNKNOWN",
+    "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+    "z_max_mm": 0.0,
+    "z_min_mm": 0.0,
+    "z_span_mm": 0.0
+  },
+  "NOMINAL": {
+    "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+    "maximum_absolute_z_mm": 6.206405237571695e-17,
+    "qualified_local_travel_mm": null,
+    "seal_support_feasible": "UNKNOWN",
+    "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+    "z_max_mm": 6.206405237571695e-17,
+    "z_min_mm": -6.206405237571695e-17,
+    "z_span_mm": 1.241281047514339e-16
+  },
+  "asymmetry_HIGH": {
+    "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+    "maximum_absolute_z_mm": 4.98737535737545,
+    "qualified_local_travel_mm": null,
+    "seal_support_feasible": "UNKNOWN",
+    "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+    "z_max_mm": 4.98737535737545,
+    "z_min_mm": -4.98737535737545,
+    "z_span_mm": 9.9747507147509
+  },
+  "bridge_projection_HIGH": {
+    "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+    "maximum_absolute_z_mm": 14.861780876197985,
+    "qualified_local_travel_mm": null,
+    "seal_support_feasible": "UNKNOWN",
+    "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+    "z_max_mm": 14.861780876197985,
+    "z_min_mm": -7.045403760727295,
+    "z_span_mm": 21.90718463692528
+  },
+  "cheek_prominence_HIGH": {
+    "interpretation": "A small landmark residual cannot hide this remaining non-rigid shape demand",
+    "maximum_absolute_z_mm": 12.026540384562281,
+    "qualified_local_travel_mm": null,
+    "seal_support_feasible": "UNKNOWN",
+    "status": "SYNTHETIC_REFERENCE_DEPARTURE_ONLY",
+    "z_max_mm": 12.026540384562281,
+    "z_min_mm": -3.7549226599528676,
+    "z_span_mm": 15.78146304451515
+  }
+}
