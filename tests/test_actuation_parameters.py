@@ -59,45 +59,16 @@ def test_stale_coupling_and_wrong_peak_to_peak_value_fail_closed():
 def test_predicted_impedance_record_cannot_contain_measured_evidence():
     *_, parameters = _inputs()
     with pytest.raises(ActuationParameterError, match="masquerade as measured"):
-        ImpedanceTestRecord(
-            record_id="IMP-PRED-001",
-            source_parameter_sha256=parameters.parameter_sha256,
-            specimen_id="SYNTHETIC-NO-SPECIMEN",
-            source_kind="PREDICTED",
-            frequency_hz=40.0,
-            commanded_displacement_pp_mm=0.52,
-            axis_angle_deg=61.0,
-            measured_force_N=0.2,
-        )
+        ImpedanceTestRecord(record_id="IMP-PRED-001", source_parameter_sha256=parameters.parameter_sha256, specimen_id="SYNTHETIC-NO-SPECIMEN", source_kind="PREDICTED", frequency_hz=40.0, commanded_displacement_pp_mm=0.52, axis_angle_deg=61.0, measured_force_N=0.2)
 
 
 def test_measured_impedance_record_requires_complete_observations_and_provenance():
     *_, parameters = _inputs()
     with pytest.raises(ActuationParameterError, match="require force"):
-        ImpedanceTestRecord(
-            record_id="IMP-MEAS-001",
-            source_parameter_sha256=parameters.parameter_sha256,
-            specimen_id="COUPON-001",
-            source_kind="MEASURED",
-            frequency_hz=40.0,
-            commanded_displacement_pp_mm=0.52,
-            axis_angle_deg=61.0,
-        )
-    record = ImpedanceTestRecord(
-        record_id="IMP-MEAS-002",
-        source_parameter_sha256=parameters.parameter_sha256,
-        specimen_id="COUPON-001",
-        source_kind="MEASURED",
-        frequency_hz=40.0,
-        commanded_displacement_pp_mm=0.52,
-        axis_angle_deg=61.0,
-        measured_force_N=0.21,
-        measured_displacement_pp_mm=0.49,
-        measured_phase_deg=14.0,
-        measured_temperature_C=24.0,
-        evidence_uri="evidence://bench/impedance/COUPON-001/run-002",
-    )
+        ImpedanceTestRecord(record_id="IMP-MEAS-001", source_parameter_sha256=parameters.parameter_sha256, specimen_id="COUPON-001", source_kind="MEASURED", frequency_hz=40.0, commanded_displacement_pp_mm=0.52, axis_angle_deg=61.0)
+    record = ImpedanceTestRecord(record_id="IMP-MEAS-002", source_parameter_sha256=parameters.parameter_sha256, specimen_id="COUPON-001", source_kind="MEASURED", frequency_hz=40.0, commanded_displacement_pp_mm=0.52, axis_angle_deg=61.0, measured_force_N=0.21, measured_displacement_pp_mm=0.49, measured_phase_deg=14.0, measured_temperature_C=24.0, evidence_uri="evidence://bench/impedance/COUPON-001/run-002")
     assert record.source_kind == "MEASURED"
+    record.validate_command_envelope(parameters)
 
 
 def test_noncanonical_hash_and_physical_evidence_promotion_are_rejected():
@@ -106,3 +77,38 @@ def test_noncanonical_hash_and_physical_evidence_promotion_are_rejected():
         replace(parameters, source_actuator_architecture_sha256="A" * 64)
     with pytest.raises(ActuationParameterError, match="cannot be physical validation"):
         replace(parameters, physical_validation_eligible=True)
+
+
+def _predicted_record(parameters, **changes):
+    values = dict(record_id="IMP-PRED-ENV", source_parameter_sha256=parameters.parameter_sha256, specimen_id="SYNTHETIC-NO-SPECIMEN", source_kind="PREDICTED", frequency_hz=parameters.clean_frequency_baseline_hz, commanded_displacement_pp_mm=parameters.displacement_pp_baseline_mm, axis_angle_deg=parameters.axis_angle_baseline_deg)
+    values.update(changes)
+    return ImpedanceTestRecord(**values)
+
+
+def test_impedance_record_command_envelope_accepts_authorized_baseline_and_axis_doe():
+    *_, parameters = _inputs()
+    for angle in parameters.axis_angle_doe_deg:
+        _predicted_record(parameters, axis_angle_deg=angle).validate_command_envelope(parameters)
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        ({"frequency_hz": 41.0}, "CLEAN baseline"),
+        ({"commanded_displacement_pp_mm": 0.51}, "command envelope"),
+        ({"axis_angle_deg": 60.0}, "axis angle"),
+        ({"source_parameter_sha256": "0" * 64}, "stale"),
+    ],
+)
+def test_impedance_record_command_envelope_rejects_unapproved_commands(change, message):
+    *_, parameters = _inputs()
+    record = _predicted_record(parameters, **change)
+    with pytest.raises(ActuationParameterError, match=message):
+        record.validate_command_envelope(parameters)
+
+
+def test_impedance_record_command_envelope_rejects_parameter_lookalike():
+    *_, parameters = _inputs()
+    record = _predicted_record(parameters)
+    with pytest.raises(ActuationParameterError, match="exact ActuationParameterSet"):
+        record.validate_command_envelope(object())
