@@ -253,16 +253,21 @@ def session_product_records(binding: dict, products: list[dict], evidence: list[
             continue
         state = derive_state(product, evidence, context)
         identity = product["identity"]
-        if any(identity.get(f) != want.get(f) for f in IDENTITY_FIELDS):
+        identity_matches = all(identity.get(f) == want.get(f) for f in IDENTITY_FIELDS)
+        if not identity_matches:
             blockers.append(ident + ":BOUND_IDENTITY_DOES_NOT_MATCH_CATALOGUE")
         record = state["applications"].get(application, {"trust": "UNSUPPORTED", "promoted_by": None,
             "blockers": ["APPLICATION_NOT_DECLARED"]})
         if record["trust"] != "VALIDATED":
             blockers.append(ident + ":" + application + ":NOT_VALIDATED_FOR_REQUIRED_APPLICATION")
         blockers += state["blockers"]
-        rows.append({"id": ident, "binding": want, "trust": record["trust"],
-            "promoted_by": record["promoted_by"], "context_digest": context_digest,
-            "identity_status": "RESOLVED" if state["facets"].get("identity") else "UNKNOWN",
+        # The consumer reads these rows, not this producer's outer blockers.
+        # Never relabel evidence for a different SKU/market/version as the
+        # expected binding merely because its product id happens to match.
+        trusted = identity_matches and record["trust"] == "VALIDATED"
+        rows.append({"id": ident, "binding": want, "trust": "VALIDATED" if trusted else "UNSUPPORTED",
+            "promoted_by": record["promoted_by"] if trusted else None, "context_digest": context_digest,
+            "identity_status": "RESOLVED" if identity_matches and state["facets"].get("identity") else "UNKNOWN",
             "application": application, "lifecycle_state": state["state"]})
     return result(blockers, products=rows, context_digest=context_digest,
         evidence_status=EVIDENCE_STATUS, classification=CLASSIFICATION)
